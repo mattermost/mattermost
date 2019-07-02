@@ -146,13 +146,11 @@ func (a *App) ExportAllTeams(writer io.Writer) *model.AppError {
 func (a *App) ExportAllChannels(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
+		channels, err := a.Srv.Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
 
-		if result.Err != nil {
-			return result.Err
+		if err != nil {
+			return err
 		}
-
-		channels := result.Data.([]*model.ChannelForExport)
 
 		if len(channels) == 0 {
 			break
@@ -179,13 +177,11 @@ func (a *App) ExportAllChannels(writer io.Writer) *model.AppError {
 func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.User().GetAllAfter(1000, afterId)
+		users, err := a.Srv.Store.User().GetAllAfter(1000, afterId)
 
-		if result.Err != nil {
-			return result.Err
+		if err != nil {
+			return err
 		}
-
-		users := result.Data.([]*model.User)
 
 		if len(users) == 0 {
 			break
@@ -289,12 +285,10 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]UserChannelImportData, *model.AppError) {
 	var memberships []UserChannelImportData
 
-	result := <-a.Srv.Store.Channel().GetChannelMembersForExport(userId, teamId)
-	if result.Err != nil {
-		return nil, result.Err
+	members, err := a.Srv.Store.Channel().GetChannelMembersForExport(userId, teamId)
+	if err != nil {
+		return nil, err
 	}
-
-	members := result.Data.([]*model.ChannelMemberForExport)
 
 	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
 	preferences, err := a.GetPreferenceByCategoryForUser(userId, category)
@@ -511,12 +505,11 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
-		if result.Err != nil {
-			return result.Err
+		channels, err := a.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
+		if err != nil {
+			return err
 		}
 
-		channels := result.Data.([]*model.DirectChannelForExport)
 		if len(channels) == 0 {
 			break
 		}

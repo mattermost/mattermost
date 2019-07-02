@@ -59,10 +59,6 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
 
-	if *a.Config().ExperimentalSettings.DisablePostMetadata {
-		return post
-	}
-
 	post.Metadata = &model.PostMetadata{}
 
 	// Emojis and reaction counts
@@ -379,6 +375,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		// Parse the data
 		og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
 	}
+	og = model.TruncateOpenGraph(og) // remove unwanted length of texts
 
 	// Write back to cache and database, even if there was an error and the results are nil
 	cacheLinkMetadata(requestURL, timestamp, og, image)
@@ -420,12 +417,12 @@ func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.Op
 }
 
 func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	result := <-a.Srv.Store.LinkMetadata().Get(requestURL, timestamp)
-	if result.Err != nil {
+	linkMetadata, err := a.Srv.Store.LinkMetadata().Get(requestURL, timestamp)
+	if err != nil {
 		return nil, nil, false
 	}
 
-	data := result.Data.(*model.LinkMetadata).Data
+	data := linkMetadata.Data
 
 	switch v := data.(type) {
 	case *opengraph.OpenGraph:
@@ -453,9 +450,9 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 		metadata.Type = model.LINK_METADATA_TYPE_NONE
 	}
 
-	result := <-a.Srv.Store.LinkMetadata().Save(metadata)
-	if result.Err != nil {
-		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(result.Err))
+	_, err := a.Srv.Store.LinkMetadata().Save(metadata)
+	if err != nil {
+		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
 	}
 }
 

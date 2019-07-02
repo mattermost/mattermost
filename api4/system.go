@@ -41,30 +41,61 @@ func (api *API) InitSystem() {
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
+	reqs := c.App.Config().ClientRequirements
+
+	s := make(map[string]string)
+	s[model.STATUS] = model.STATUS_OK
+	s["AndroidLatestVersion"] = reqs.AndroidLatestVersion
+	s["AndroidMinVersion"] = reqs.AndroidMinVersion
+	s["DesktopLatestVersion"] = reqs.DesktopLatestVersion
+	s["DesktopMinVersion"] = reqs.DesktopMinVersion
+	s["IosLatestVersion"] = reqs.IosLatestVersion
+	s["IosMinVersion"] = reqs.IosMinVersion
 
 	actualGoroutines := runtime.NumGoroutine()
-	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold <= 0 || actualGoroutines <= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
-		m := make(map[string]string)
-		m[model.STATUS] = model.STATUS_OK
-
-		reqs := c.App.Config().ClientRequirements
-		m["AndroidLatestVersion"] = reqs.AndroidLatestVersion
-		m["AndroidMinVersion"] = reqs.AndroidMinVersion
-		m["DesktopLatestVersion"] = reqs.DesktopLatestVersion
-		m["DesktopMinVersion"] = reqs.DesktopMinVersion
-		m["IosLatestVersion"] = reqs.IosLatestVersion
-		m["IosMinVersion"] = reqs.IosMinVersion
-
-		w.Write([]byte(model.MapToJson(m)))
-	} else {
-		rdata := map[string]string{}
-		rdata["status"] = "unhealthy"
-
-		mlog.Warn(fmt.Sprintf("The number of running goroutines is over the health threshold %v of %v", actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
-
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(model.MapToJson(rdata)))
+	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold > 0 && actualGoroutines >= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
+		mlog.Warn(fmt.Sprintf("The number of running goroutines (%v) is over the health threshold (%v)", actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
+		s[model.STATUS] = model.STATUS_UNHEALTHY
 	}
+
+	// Enhanced ping health check:
+	// If an extra form value is provided then perform extra health checks for
+	// database and file storage backends.
+	if r.FormValue("get_server_status") != "" {
+		dbStatusKey := "database_status"
+		s[dbStatusKey] = model.STATUS_OK
+		_, appErr := c.App.Srv.Store.System().Get()
+		if appErr != nil {
+			mlog.Debug(fmt.Sprintf("Unable to get database status: %s", appErr.Error()))
+			s[dbStatusKey] = model.STATUS_UNHEALTHY
+			s[model.STATUS] = model.STATUS_UNHEALTHY
+		}
+
+		filestoreStatusKey := "filestore_status"
+		s[filestoreStatusKey] = model.STATUS_OK
+		license := c.App.License()
+		backend, appErr := filesstore.NewFileBackend(&c.App.Config().FileSettings, license != nil && *license.Features.Compliance)
+		if appErr == nil {
+			appErr = backend.TestConnection()
+			if appErr != nil {
+				s[filestoreStatusKey] = model.STATUS_UNHEALTHY
+				s[model.STATUS] = model.STATUS_UNHEALTHY
+			}
+		} else {
+			mlog.Debug(fmt.Sprintf("Unable to get filestore for ping status: %s", appErr.Error()))
+			s[filestoreStatusKey] = model.STATUS_UNHEALTHY
+			s[model.STATUS] = model.STATUS_UNHEALTHY
+		}
+
+		w.Header().Set(model.STATUS, s[model.STATUS])
+		w.Header().Set(dbStatusKey, s[dbStatusKey])
+		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey])
+	}
+
+	if s[model.STATUS] != model.STATUS_OK {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	w.Write([]byte(model.MapToJson(s)))
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {

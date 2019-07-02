@@ -168,8 +168,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 		password := model.NewId()
 
 		// Check for email conflict and use existing user if found
-		if result := <-a.Srv.Store.User().GetByEmail(email); result.Err == nil {
-			existingUser := result.Data.(*model.User)
+		if existingUser, err := a.Srv.Store.User().GetByEmail(email); err == nil {
 			addedUsers[sUser.Id] = existingUser
 			if err := a.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
 				importerLog.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
@@ -507,11 +506,11 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 		newChannel = SlackSanitiseChannelProperties(newChannel)
 
 		var mChannel *model.Channel
-		if result := <-a.Srv.Store.Channel().GetByName(teamId, sChannel.Name, true); result.Err == nil {
+		var err *model.AppError
+		if mChannel, err = a.Srv.Store.Channel().GetByName(teamId, sChannel.Name, true); err == nil {
 			// The channel already exists as an active channel. Merge with the existing one.
-			mChannel = result.Data.(*model.Channel)
 			importerLog.WriteString(utils.T("api.slackimport.slack_add_channels.merge", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
-		} else if result := <-a.Srv.Store.Channel().GetDeletedByName(teamId, sChannel.Name); result.Err == nil {
+		} else if _, err := a.Srv.Store.Channel().GetDeletedByName(teamId, sChannel.Name); err == nil {
 			// The channel already exists but has been deleted. Generate a random string for the handle instead.
 			newChannel.Name = model.NewId()
 			newChannel = SlackSanitiseChannelProperties(newChannel)
@@ -759,7 +758,8 @@ func (a *App) OldImportPost(post *model.Post) string {
 		post.RootId = firstPostId
 		post.ParentId = firstPostId
 
-		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
+		_, err := a.Srv.Store.Post().Save(post)
+		if err != nil {
 			mlog.Debug(fmt.Sprintf("Error saving post. user=%v, message=%v", post.UserId, post.Message))
 		}
 
@@ -795,8 +795,8 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 	}
 	ruser := result.Data.(*model.User)
 
-	if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); cresult.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", cresult.Err))
+	if _, err := a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
+		mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", err))
 	}
 
 	if err := a.JoinUserToTeam(team, user, ""); err != nil {

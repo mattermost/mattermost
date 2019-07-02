@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"sort"
@@ -83,6 +84,7 @@ type User struct {
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
+	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
 	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
 }
@@ -766,4 +768,25 @@ func IsValidLocale(locale string) bool {
 	}
 
 	return true
+}
+
+type UserWithGroups struct {
+	User
+	GroupIDs    string   `json:"-"`
+	Groups      []*Group `json:"groups"`
+	SchemeGuest bool     `json:"scheme_guest"`
+	SchemeUser  bool     `json:"scheme_user"`
+	SchemeAdmin bool     `json:"scheme_admin"`
+}
+
+type UsersWithGroupsAndCount struct {
+	Users []*UserWithGroups `json:"users"`
+	Count int64             `json:"total_count"`
+}
+
+func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
+	uwg := &UsersWithGroupsAndCount{}
+	bodyBytes, _ := ioutil.ReadAll(data)
+	json.Unmarshal(bodyBytes, uwg)
+	return uwg
 }

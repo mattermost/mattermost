@@ -265,8 +265,8 @@ func removeUserFromChannel(a *app.App, channel *model.Channel, user *model.User,
 }
 
 func removeAllUsersFromChannel(a *app.App, channel *model.Channel) {
-	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {
-		CommandPrintErrorln("Unable to remove all users from " + channel.Name + ". Error: " + result.Err.Error())
+	if err := a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {
+		CommandPrintErrorln("Unable to remove all users from " + channel.Name + ". Error: " + err.Error())
 	}
 }
 
@@ -444,11 +444,9 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if result := <-a.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
+		if channels, chanErr := a.Srv.Store.Channel().GetAll(team.Id); chanErr != nil {
 			CommandPrintErrorln("Unable to list channels for '" + args[i] + "'")
 		} else {
-			channels := result.Data.([]*model.Channel)
-
 			for _, channel := range channels {
 				if channel.DeleteAt > 0 {
 					CommandPrettyPrintln(channel.Name + " (archived)")
