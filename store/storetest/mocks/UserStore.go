@@ -209,19 +209,28 @@ func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) store.StoreCh
 }
 
 // GetAllProfilesInChannel provides a mock function with given fields: channelId, allowFromCache
-func (_m *UserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) store.StoreChannel {
+func (_m *UserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
 	ret := _m.Called(channelId, allowFromCache)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+	var r0 map[string]*model.User
+	if rf, ok := ret.Get(0).(func(string, bool) map[string]*model.User); ok {
 		r0 = rf(channelId, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(map[string]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(channelId, allowFromCache)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAllUsingAuthService provides a mock function with given fields: authService

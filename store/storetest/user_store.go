@@ -972,37 +972,41 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 	}))
 
 	t.Run("all profiles in channel 1, no caching", func(t *testing.T) {
-		result := <-ss.User().GetAllProfilesInChannel(c1.Id, false)
-		require.Nil(t, result.Err)
+		var profiles map[string]*model.User
+		profiles, err = ss.User().GetAllProfilesInChannel(c1.Id, false)
+		require.Nil(t, err)
 		assert.Equal(t, map[string]*model.User{
 			u1.Id: sanitized(u1),
 			u2.Id: sanitized(u2),
 			u3.Id: sanitized(u3),
-		}, result.Data.(map[string]*model.User))
+		}, profiles)
 	})
 
 	t.Run("all profiles in channel 2, no caching", func(t *testing.T) {
-		result := <-ss.User().GetAllProfilesInChannel(c2.Id, false)
-		require.Nil(t, result.Err)
+		var profiles map[string]*model.User
+		profiles, err = ss.User().GetAllProfilesInChannel(c2.Id, false)
+		require.Nil(t, err)
 		assert.Equal(t, map[string]*model.User{
 			u1.Id: sanitized(u1),
-		}, result.Data.(map[string]*model.User))
+		}, profiles)
 	})
 
 	t.Run("all profiles in channel 2, caching", func(t *testing.T) {
-		result := <-ss.User().GetAllProfilesInChannel(c2.Id, true)
-		require.Nil(t, result.Err)
+		var profiles map[string]*model.User
+		profiles, err = ss.User().GetAllProfilesInChannel(c2.Id, true)
+		require.Nil(t, err)
 		assert.Equal(t, map[string]*model.User{
 			u1.Id: sanitized(u1),
-		}, result.Data.(map[string]*model.User))
+		}, profiles)
 	})
 
 	t.Run("all profiles in channel 2, caching [repeated]", func(t *testing.T) {
-		result := <-ss.User().GetAllProfilesInChannel(c2.Id, true)
-		require.Nil(t, result.Err)
+		var profiles map[string]*model.User
+		profiles, err = ss.User().GetAllProfilesInChannel(c2.Id, true)
+		require.Nil(t, err)
 		assert.Equal(t, map[string]*model.User{
 			u1.Id: sanitized(u1),
-		}, result.Data.(map[string]*model.User))
+		}, profiles)
 	})
 
 	ss.User().InvalidateProfilesInChannelCacheByUser(u1.Id)

@@ -623,57 +623,52 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int
 	})
 }
 
-func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if allowFromCache {
-			if cacheItem, ok := profilesInChannelCache.Get(channelId); ok {
-				if us.metrics != nil {
-					us.metrics.IncrementMemCacheHitCounter("Profiles in Channel")
-				}
-				result.Data = cacheItem.(map[string]*model.User)
-				return
-			} else {
-				if us.metrics != nil {
-					us.metrics.IncrementMemCacheMissCounter("Profiles in Channel")
-				}
+func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
+	if allowFromCache {
+		if cacheItem, ok := profilesInChannelCache.Get(channelId); ok {
+			if us.metrics != nil {
+				us.metrics.IncrementMemCacheHitCounter("Profiles in Channel")
 			}
+			return cacheItem.(map[string]*model.User), nil
 		} else {
 			if us.metrics != nil {
 				us.metrics.IncrementMemCacheMissCounter("Profiles in Channel")
 			}
 		}
-
-		query := us.usersQuery.
-			Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
-			Where("cm.ChannelId = ?", channelId).
-			Where("u.DeleteAt = 0").
-			OrderBy("u.Username ASC")
-
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
+	} else {
+		if us.metrics != nil {
+			us.metrics.IncrementMemCacheMissCounter("Profiles in Channel")
 		}
+	}
 
-		var users []*model.User
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	query := us.usersQuery.
+		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
+		Where("cm.ChannelId = ?", channelId).
+		Where("u.DeleteAt = 0").
+		OrderBy("u.Username ASC")
 
-		userMap := make(map[string]*model.User)
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		for _, u := range users {
-			u.Sanitize(map[string]bool{})
-			userMap[u.Id] = u
-		}
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = userMap
+	userMap := make(map[string]*model.User)
 
-		if allowFromCache {
-			profilesInChannelCache.AddWithExpiresInSecs(channelId, userMap, PROFILES_IN_CHANNEL_CACHE_SEC)
-		}
-	})
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+		userMap[u.Id] = u
+	}
+
+	if allowFromCache {
+		profilesInChannelCache.AddWithExpiresInSecs(channelId, userMap, PROFILES_IN_CHANNEL_CACHE_SEC)
+	}
+
+	return userMap, nil
 }
 
 func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
