@@ -912,7 +912,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user, err := ss.User().Save(user)
+	user, err = ss.User().Save(user)
 	require.Nil(t, err)
 
 	// Create GroupMember
@@ -1050,7 +1050,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Len(t, teamMembers, 1)
 
 	// adding team membership stops returning result
-	res = <-ss.Team().SaveMember(&model.TeamMember{
+	res := <-ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user.Id,
 	}, 999)
@@ -1075,12 +1075,12 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user, err := ss.User().Save(user)
+	user, err = ss.User().Save(user)
 	require.Nil(t, err)
 
 	// Create GroupMember
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	// Create Channel
 	channel := &model.Channel{
@@ -1406,7 +1406,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	userA, err := ss.User().Save(userA)
+	userA, err = ss.User().Save(userA)
 	require.Nil(t, err)
 
 	// userB will not get removed from the group
@@ -1505,7 +1505,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 	}
 
 	for _, item := range userIDTeamIDs {
-		res = <-ss.Team().SaveMember(&model.TeamMember{
+		res := <-ss.Team().SaveMember(&model.TeamMember{
 			UserId: item[0],
 			TeamId: item[1],
 		}, 99)
@@ -1523,7 +1523,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 	}
 
 	for _, item := range userIDChannelIDs {
-		res = <-ss.Channel().SaveMember(&model.ChannelMember{
+		res := <-ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      item[0],
 			ChannelId:   item[1],
 			NotifyProps: model.GetDefaultChannelNotifyProps(),

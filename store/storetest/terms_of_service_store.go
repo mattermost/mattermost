@@ -48,7 +48,7 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
-	_, err := ss.TermsOfService().Save(termsOfService)
+	_, err = ss.TermsOfService().Save(termsOfService)
 
 	fetchedTermsOfService, err := ss.TermsOfService().GetLatest(true)
 	require.Nil(t, err)
@@ -65,7 +65,7 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
-	_, err := ss.TermsOfService().Save(termsOfService)
+	_, err = ss.TermsOfService().Save(termsOfService)
 	require.Nil(t, err)
 
 	r1, err := ss.TermsOfService().Get("an_invalid_id", true)
