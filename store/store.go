@@ -476,7 +476,7 @@ type StatusStore interface {
 	GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError)
 	ResetAll() *model.AppError
 	GetTotalActiveUsersCount() (int64, *model.AppError)
-	UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel
+	UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError
 }
 
 type FileInfoStore interface {
