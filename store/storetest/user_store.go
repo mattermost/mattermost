@@ -1698,45 +1698,45 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get u1 by username, allow both", func(t *testing.T) {
-		result := <-ss.User().GetForLogin(u1.Username, true, true)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u1, result.Data.(*model.User))
+		user, err := ss.User().GetForLogin(u1.Username, true, true)
+		require.Nil(t, err)
+		assert.Equal(t, u1, user)
 	})
 
 	t.Run("get u1 by username, allow only email", func(t *testing.T) {
-		result := <-ss.User().GetForLogin(u1.Username, false, true)
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, "store.sql_user.get_for_login.app_error")
+		_, err := ss.User().GetForLogin(u1.Username, false, true)
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, "store.sql_user.get_for_login.app_error")
 	})
 
 	t.Run("get u1 by email, allow both", func(t *testing.T) {
-		result := <-ss.User().GetForLogin(u1.Email, true, true)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u1, result.Data.(*model.User))
+		user, err := ss.User().GetForLogin(u1.Email, true, true)
+		require.Nil(t, err)
+		assert.Equal(t, u1, user)
 	})
 
 	t.Run("get u1 by email, allow only username", func(t *testing.T) {
-		result := <-ss.User().GetForLogin(u1.Email, true, false)
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, "store.sql_user.get_for_login.app_error")
+		_, err := ss.User().GetForLogin(u1.Email, true, false)
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, "store.sql_user.get_for_login.app_error")
 	})
 
 	t.Run("get u2 by username, allow both", func(t *testing.T) {
-		result := <-ss.User().GetForLogin(u2.Username, true, true)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u2, result.Data.(*model.User))
+		user, err := ss.User().GetForLogin(u2.Username, true, true)
+		require.Nil(t, err)
+		assert.Equal(t, u2, user)
 	})
 
 	t.Run("get u2 by email, allow both", func(t *testing.T) {
-		result := <-ss.User().GetForLogin(u2.Email, true, true)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u2, result.Data.(*model.User))
+		user, err := ss.User().GetForLogin(u2.Email, true, true)
+		require.Nil(t, err)
+		assert.Equal(t, u2, user)
 	})
 
 	t.Run("get u2 by username, allow neither", func(t *testing.T) {
-		result := <-ss.User().GetForLogin(u2.Username, false, false)
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, "store.sql_user.get_for_login.app_error")
+		_, err := ss.User().GetForLogin(u2.Username, false, false)
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, "store.sql_user.get_for_login.app_error")
 	})
 }
 
