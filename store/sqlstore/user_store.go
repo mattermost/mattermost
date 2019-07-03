@@ -392,39 +392,35 @@ func (s SqlUserStore) GetEtagForAllProfiles() store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.StoreChannel {
+func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			OrderBy("u.Username ASC").
-			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+	query := us.usersQuery.
+		OrderBy("u.Username ASC").
+		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
-		query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
+	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
-		query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyRoleFilter(query, options.Role, isPostgreSQL)
 
-		if options.Inactive {
-			query = query.Where("u.DeleteAt != 0")
-		}
+	if options.Inactive {
+		query = query.Where("u.DeleteAt != 0")
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var users []*model.User
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		for _, u := range users {
-			u.Sanitize(map[string]bool{})
-		}
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+	}
 
-		result.Data = users
-	})
+	return users, nil
 }
 
 func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.SelectBuilder {

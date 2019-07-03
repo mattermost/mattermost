@@ -193,19 +193,28 @@ func (_m *UserStore) GetAllAfter(limit int, afterId string) ([]*model.User, *mod
 }
 
 // GetAllProfiles provides a mock function with given fields: options
-func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) store.StoreChannel {
+func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	ret := _m.Called(options)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) []*model.User); ok {
 		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
+		r1 = rf(options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAllProfilesInChannel provides a mock function with given fields: channelId, allowFromCache
