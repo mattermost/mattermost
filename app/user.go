@@ -616,12 +616,12 @@ func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppE
 func (a *App) GetUsersByIds(userIds []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
 	allowFromCache := options.ViewRestrictions == nil
 
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, options, allowFromCache)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetProfileByIds(userIds, options, allowFromCache)
+	if err != nil {
+		return nil, err
 	}
 
-	return a.sanitizeProfiles(result.Data.([]*model.User), options.IsAdmin), nil
+	return a.sanitizeProfiles(users, options.IsAdmin), nil
 }
 
 func (a *App) GetUsersByGroupChannelIds(channelIds []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
@@ -1711,12 +1711,10 @@ func (a *App) esSearchUsersInTeam(teamId, term string, options *model.UserSearch
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(usersIds, nil, false)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetProfileByIds(usersIds, nil, false)
+	if err != nil {
+		return nil, err
 	}
-
-	users := result.Data.([]*model.User)
 
 	for _, user := range users {
 		a.SanitizeProfile(user, options.IsAdmin)
@@ -1797,8 +1795,21 @@ func (a *App) esAutocompleteUsersInChannel(teamId, channelId, term string, optio
 	if err != nil {
 		return nil, err
 	}
-	uchan := a.Srv.Store.User().GetProfileByIds(uchanIds, nil, false)
-	nuchan := a.Srv.Store.User().GetProfileByIds(nuchanIds, nil, false)
+
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		users, err := a.Srv.Store.User().GetProfileByIds(uchanIds, nil, false)
+		uchan <- store.StoreResult{Data: users, Err: err}
+		close(uchan)
+	}()
+
+	nuchan := make(chan store.StoreResult, 1)
+	go func() {
+		users, err := a.Srv.Store.User().GetProfileByIds(nuchanIds, nil, false)
+		nuchan <- store.StoreResult{Data: users, Err: err}
+		close(nuchan)
+	}()
+
 	autocomplete := &model.UserAutocompleteInChannel{}
 
 	result := <-uchan
@@ -1900,12 +1911,11 @@ func (a *App) esAutocompleteUsersInTeam(teamId, term string, options *model.User
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(usersIds, nil, false)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetProfileByIds(usersIds, nil, false)
+	if err != nil {
+		return nil, err
 	}
 
-	users := result.Data.([]*model.User)
 	for _, user := range users {
 		a.SanitizeProfile(user, options.IsAdmin)
 	}
