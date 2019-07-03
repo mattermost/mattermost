@@ -282,7 +282,7 @@ type UserStore interface {
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
 	PermanentDelete(userId string) *model.AppError
-	AnalyticsActiveCount(time int64) StoreChannel
+	AnalyticsActiveCount(time int64) (int64, *model.AppError)
 	GetUnreadCount(userId string) (int64, error)
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, *model.AppError)
