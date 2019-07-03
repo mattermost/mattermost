@@ -134,10 +134,10 @@ func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
 	return count, nil
 }
 
-func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("UPDATE Status SET LastActivityAt = :Time WHERE UserId = :UserId", map[string]interface{}{"UserId": userId, "Time": lastActivityAt}); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.UpdateLastActivityAt", "store.sql_status.update_last_activity_at.app_error", nil, "", http.StatusInternalServerError)
-		}
-	})
+func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError {
+	if _, err := s.GetMaster().Exec("UPDATE Status SET LastActivityAt = :Time WHERE UserId = :UserId", map[string]interface{}{"UserId": userId, "Time": lastActivityAt}); err != nil {
+		return model.NewAppError("SqlStatusStore.UpdateLastActivityAt", "store.sql_status.update_last_activity_at.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return nil
 }
