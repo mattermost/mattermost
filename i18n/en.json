@@ -3387,16 +3387,16 @@
     "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
   },
   {
-    "id": "app.plugin.store_bundle.app_error",
-    "translation": "Unable to store the plugin to the configured file store."
-  },
-  {
     "id": "app.plugin.not_installed.app_error",
     "translation": "Plugin is not installed"
   },
   {
     "id": "app.plugin.remove.app_error",
     "translation": "Unable to delete plugin"
+  },
+  {
+    "id": "app.plugin.store_bundle.app_error",
+    "translation": "Unable to store the plugin to the configured file store."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
