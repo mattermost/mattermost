@@ -7,6 +7,7 @@ package api4
 
 import (
 	"net/http"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -74,6 +75,15 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if unpackErr != nil {
 		c.Err = unpackErr
+		return
+	}
+
+	//Store bundle in file store
+	file.Seek(0, 0)
+
+	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
+	if _, err := c.App.WriteFile(file, storePluginFileName); err != nil {
+		c.Err = model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
