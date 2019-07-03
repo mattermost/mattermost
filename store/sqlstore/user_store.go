@@ -1074,45 +1074,38 @@ func (us SqlUserStore) GetByUsername(username string) store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery
+func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) (*model.User, *model.AppError) {
+	query := us.usersQuery
+	if allowSignInWithUsername && allowSignInWithEmail {
+		query = query.Where("Username = ? OR Email = ?", loginId, loginId)
+	} else if allowSignInWithUsername {
+		query = query.Where("Username = ?", loginId)
+	} else if allowSignInWithEmail {
+		query = query.Where("Email = ?", loginId)
+	} else {
+		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusInternalServerError)
+	}
 
-		if allowSignInWithUsername && allowSignInWithEmail {
-			query = query.Where("Username = ? OR Email = ?", loginId, loginId)
-		} else if allowSignInWithUsername {
-			query = query.Where("Username = ?", loginId)
-		} else if allowSignInWithEmail {
-			query = query.Where("Email = ?", loginId)
-		} else {
-			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	users := []*model.User{}
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		users := []*model.User{}
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if len(users) == 0 {
+		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusInternalServerError)
+	}
 
-		if len(users) == 0 {
-			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusInternalServerError)
-			return
-		}
+	if len(users) > 1 {
+		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.multiple_users", nil, "", http.StatusInternalServerError)
+	}
 
-		if len(users) > 1 {
-			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.multiple_users", nil, "", http.StatusInternalServerError)
-			return
-		}
+	return users[0], nil
 
-		result.Data = users[0]
-	})
 }
 
 func (us SqlUserStore) VerifyEmail(userId, email string) (string, *model.AppError) {
