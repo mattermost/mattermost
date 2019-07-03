@@ -335,17 +335,38 @@ func (_m *PostStore) GetPostAfterTime(channelId string, time int64) (*model.Post
 	return r0, r1
 }
 
-// GetPostBeforeTime provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostBeforeTime(channelId string, time int64) (*model.Post, *model.AppError) {
+// GetPostIdAfterTime provides a mock function with given fields: channelId, time
+func (_m *PostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
 	ret := _m.Called(channelId, time)
 
-	var r0 *model.Post
-	if rf, ok := ret.Get(0).(func(string, int64) *model.Post); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, int64) string); ok {
 		r0 = rf(channelId, time)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Post)
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+		r1 = rf(channelId, time)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
+	}
+
+	return r0, r1
+}
+
+// GetPostIdBeforeTime provides a mock function with given fields: channelId, time
+func (_m *PostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+	ret := _m.Called(channelId, time)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, int64) string); ok {
+		r0 = rf(channelId, time)
+	} else {
+		r0 = ret.Get(0).(string)
 	}
 
 	var r1 *model.AppError

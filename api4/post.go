@@ -112,13 +112,13 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	afterPost := r.URL.Query().Get("after")
-	if len(afterPost) > 0 && len(afterPost) != 26 {
+	if len(afterPost) > 0 && !model.IsValidId(afterPost) {
 		c.SetInvalidParam("after")
 		return
 	}
 
 	beforePost := r.URL.Query().Get("before")
-	if len(beforePost) > 0 && len(beforePost) != 26 {
+	if len(beforePost) > 0 && !model.IsValidId(beforePost) {
 		c.SetInvalidParam("before")
 		return
 	}

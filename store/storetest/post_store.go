@@ -1094,33 +1094,48 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Save(o2a)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().GetPostBeforeTime(channelId, o0a.CreateAt)
-	if r1.Id != o1.Id || err != nil {
+	rPostId1, err := ss.Post().GetPostIdBeforeTime(channelId, o0a.CreateAt)
+	if rPostId1 != o1.Id || err != nil {
 		t.Fatal("should return before post o1")
 	}
 
-	r1, err = ss.Post().GetPostAfterTime(channelId, o0b.CreateAt)
-	if r1.Id != o2.Id || err != nil {
+	rPostId1, err = ss.Post().GetPostIdAfterTime(channelId, o0b.CreateAt)
+	if rPostId1 != o2.Id || err != nil {
 		t.Fatal("should return before post o2")
 	}
 
-	r2, err := ss.Post().GetPostBeforeTime(channelId, o0.CreateAt)
-	if r2 != nil || err != nil {
+	rPost1, err := ss.Post().GetPostAfterTime(channelId, o0b.CreateAt)
+	if rPost1.Id != o2.Id || err != nil {
+		t.Fatal("should return before post o2")
+	}
+
+	rPostId2, err := ss.Post().GetPostIdBeforeTime(channelId, o0.CreateAt)
+	if rPostId2 != "" || err != nil {
 		t.Fatal("should return no post")
 	}
 
-	r2, err = ss.Post().GetPostAfterTime(channelId, o0.CreateAt)
-	if r2.Id != o1.Id || err != nil {
+	rPostId2, err = ss.Post().GetPostIdAfterTime(channelId, o0.CreateAt)
+	if rPostId2 != o1.Id || err != nil {
 		t.Fatal("should return before post o1")
 	}
 
-	r3, err := ss.Post().GetPostBeforeTime(channelId, o2a.CreateAt)
-	if r3.Id != o2.Id || err != nil {
+	rPost2, err := ss.Post().GetPostAfterTime(channelId, o0.CreateAt)
+	if rPost2.Id != o1.Id || err != nil {
+		t.Fatal("should return before post o1")
+	}
+
+	rPostId3, err := ss.Post().GetPostIdBeforeTime(channelId, o2a.CreateAt)
+	if rPostId3 != o2.Id || err != nil {
 		t.Fatal("should return before post o2")
 	}
 
-	r3, err = ss.Post().GetPostAfterTime(channelId, o2a.CreateAt)
-	if r3 != nil || err != nil {
+	rPostId3, err = ss.Post().GetPostIdAfterTime(channelId, o2a.CreateAt)
+	if rPostId3 != "" || err != nil {
+		t.Fatal("should return no post")
+	}
+
+	rPost3, err := ss.Post().GetPostAfterTime(channelId, o2a.CreateAt)
+	if rPost3 != nil || err != nil {
 		t.Fatal("should return no post")
 	}
 }
