@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -334,7 +335,7 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
 	if allowFromCache {
-		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
+		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok && cacheItem.(int64) > 0 {
 			if s.metrics != nil {
 				s.metrics.IncrementMemCacheHitCounter("Last Post Time")
 			}
@@ -659,6 +660,78 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 		list.AddPost(p)
 	}
 	return list, nil
+}
+
+func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+	return s.getPostIdAroundTime(channelId, time, true)
+}
+
+func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+	return s.getPostIdAroundTime(channelId, time, false)
+}
+
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool) (string, *model.AppError) {
+	var direction sq.Sqlizer
+	var sort string
+	if before {
+		direction = sq.Lt{"CreateAt": time}
+		sort = "DESC"
+	} else {
+		direction = sq.Gt{"CreateAt": time}
+		sort = "ASC"
+	}
+
+	query := s.getQueryBuilder().
+		Select("Id").
+		From("Posts").
+		Where(sq.And{
+			direction,
+			sq.Eq{"ChannelId": channelId},
+			sq.Eq{"DeleteAt": int(0)},
+		}).
+		OrderBy("CreateAt " + sort).
+		Limit(1)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return "", model.NewAppError("SqlPostStore.getPostIdAroundTime", "store.sql_post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var postId string
+	if err := s.GetMaster().SelectOne(&postId, queryString, args...); err != nil {
+		if err != sql.ErrNoRows {
+			return "", model.NewAppError("SqlPostStore.getPostIdAroundTime", "store.sql_post.get_post_id_around.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return postId, nil
+}
+
+func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.And{
+			sq.Gt{"CreateAt": time},
+			sq.Eq{"ChannelId": channelId},
+			sq.Eq{"DeleteAt": int(0)},
+		}).
+		OrderBy("CreateAt ASC").
+		Limit(1)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostAfterTime", "store.sql_post.get_post_after_time.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var post *model.Post
+	if err := s.GetMaster().SelectOne(&post, queryString, args...); err != nil {
+		if err != sql.ErrNoRows {
+			return nil, model.NewAppError("SqlPostStore.GetPostAfterTime", "store.sql_post.get_post_after_time.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return post, nil
 }
 
 func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) store.StoreChannel {
