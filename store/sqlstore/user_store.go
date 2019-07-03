@@ -1171,19 +1171,17 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 	return count, nil
 }
 
-func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		time := model.GetMillis() - timePeriod
+func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64) (int64, *model.AppError) {
 
-		query := "SELECT COUNT(*) FROM Status WHERE LastActivityAt > :Time"
+	time := model.GetMillis() - timePeriod
 
-		v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.AnalyticsDailyActiveUsers", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = v
-		}
-	})
+	query := "SELECT COUNT(*) FROM Status WHERE LastActivityAt > :Time"
+
+	v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
+	if err != nil {
+		return 0, model.NewAppError("SqlUserStore.AnalyticsDailyActiveUsers", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return v, nil
 }
 
 func (us SqlUserStore) GetUnreadCount(userId string) (int64, error) {
