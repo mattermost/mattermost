@@ -1273,24 +1273,26 @@ func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options 
 	return result.Data.([]*model.User), nil
 }
 
-func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id AND cm.ChannelId = ? )", channelId).
-			Where("cm.UserId IS NULL").
-			OrderBy("Username ASC").
-			Limit(uint64(options.Limit))
+func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id AND cm.ChannelId = ? )", channelId).
+		Where("cm.UserId IS NULL").
+		OrderBy("Username ASC").
+		Limit(uint64(options.Limit))
 
-		if teamId != "" {
-			query = query.Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId)
-		}
+	if teamId != "" {
+		query = query.Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId)
+	}
 
-		if options.GroupConstrained {
-			query = applyChannelGroupConstrainedFilter(query, channelId)
-		}
+	if options.GroupConstrained {
+		query = applyChannelGroupConstrainedFilter(query, channelId)
+	}
 
-		*result = us.performSearch(query, term, options)
-	})
+	result := us.performSearch(query, term, options)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
 }
 
 func (us SqlUserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {

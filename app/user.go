@@ -1685,11 +1685,10 @@ func (a *App) SearchUsersInChannel(channelId string, term string, options *model
 
 func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
-	result := <-a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
+	if err != nil {
+		return nil, err
 	}
-	users := result.Data.([]*model.User)
 
 	for _, user := range users {
 		a.SanitizeProfile(user, options.IsAdmin)
@@ -1851,7 +1850,12 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 			close(uchan)
 		}()
 
-		nuchan := a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
+		nuchan := make(chan store.StoreResult, 1)
+		go func() {
+			users, err := a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
+			nuchan <- store.StoreResult{Data: users, Err: err}
+			close(nuchan)
+		}()
 
 		result := <-uchan
 		if result.Err != nil {
