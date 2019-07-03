@@ -8,9 +8,11 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/segmentio/analytics-go"
+
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	analytics "github.com/segmentio/analytics-go"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 const (
@@ -124,46 +126,43 @@ func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string
 func (a *App) trackActivity() {
 	var userCount int64
 	var botAccountsCount int64
-	var activeUsersDailyCount int64
-	var activeUsersMonthlyCount int64
 	var inactiveUserCount int64
-	var teamCount int64
 	var publicChannelCount int64
 	var privateChannelCount int64
 	var directChannelCount int64
 	var deletedPublicChannelCount int64
 	var deletedPrivateChannelCount int64
 	var postsCount int64
+	var postsCountPreviousDay int64
+	var botPostsCountPreviousDay int64
 	var slashCommandsCount int64
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
-	monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
+	go func() {
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
+		close(activeUsersDailyCountChan)
+	}()
 
-	if r := <-dailyActiveChan; r.Err == nil {
-		activeUsersDailyCount = r.Data.(int64)
+	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
+	go func() {
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
+		close(activeUsersMonthlyCountChan)
+	}()
+
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+		userCount = count
 	}
 
-	if r := <-monthlyActiveChan; r.Err == nil {
-		activeUsersMonthlyCount = r.Data.(int64)
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
+		botAccountsCount = count
 	}
 
-	if ucr := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeDeleted: true,
-	}); ucr.Err == nil {
-		userCount = ucr.Data.(int64)
-	}
-
-	if bc := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeBotAccounts:  true,
-		ExcludeRegularUsers: true,
-	}); bc.Err == nil {
-		botAccountsCount = bc.Data.(int64)
-	}
-
-	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
-		inactiveUserCount = iucr.Data.(int64)
+	if iucr, err := a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); err == nil {
+		inactiveUserCount = iucr
 	}
 
 	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
@@ -193,6 +192,20 @@ func (a *App) trackActivity() {
 
 	postsCount, _ = a.Srv.Store.Post().AnalyticsPostCount("", false, false)
 
+	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
+	postCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	postsCountPreviousDay = 0
+	if len(postCountsYesterday) > 0 {
+		postsCountPreviousDay = int64(postCountsYesterday[0].Value)
+	}
+
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: true, YesterdayOnly: true}
+	botPostCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	botPostsCountPreviousDay = 0
+	if len(botPostCountsYesterday) > 0 {
+		botPostsCountPreviousDay = int64(botPostCountsYesterday[0].Value)
+	}
+
 	slashCommandsCount, _ = a.Srv.Store.Command().AnalyticsCommandCount("")
 
 	if c, err := a.Srv.Store.Webhook().AnalyticsIncomingCount(""); err == nil {
@@ -200,6 +213,16 @@ func (a *App) trackActivity() {
 	}
 
 	outgoingWebhooksCount, _ = a.Srv.Store.Webhook().AnalyticsOutgoingCount("")
+
+	var activeUsersDailyCount int64
+	if r := <-activeUsersDailyCountChan; r.Err == nil {
+		activeUsersDailyCount = r.Data.(int64)
+	}
+
+	var activeUsersMonthlyCount int64
+	if r := <-activeUsersMonthlyCountChan; r.Err == nil {
+		activeUsersMonthlyCount = r.Data.(int64)
+	}
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
@@ -213,6 +236,8 @@ func (a *App) trackActivity() {
 		"direct_message_channels":      directChannelCount,
 		"public_channels_deleted":      deletedPublicChannelCount,
 		"private_channels_deleted":     deletedPrivateChannelCount,
+		"posts_previous_day":           postsCountPreviousDay,
+		"bot_posts_previous_day":       botPostsCountPreviousDay,
 		"posts":                        postsCount,
 		"slash_commands":               slashCommandsCount,
 		"incoming_webhooks":            incomingWebhooksCount,
@@ -570,6 +595,7 @@ func (a *App) trackConfig() {
 		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
 		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
 		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
+		"skip_tls_verification":             *cfg.ElasticsearchSettings.SkipTLSVerification,
 		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 
@@ -580,12 +606,12 @@ func (a *App) trackConfig() {
 		"enable_github":                 pluginActivated(cfg.PluginSettings.PluginStates, "github"),
 		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
 		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
-		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", false),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
 		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
 		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
-		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
+		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
@@ -712,8 +738,8 @@ func (a *App) trackServer() {
 		"operating_system": runtime.GOOS,
 	}
 
-	if scr := <-a.Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {
-		data["system_admins"] = scr.Data.(int64)
+	if scr, err := a.Srv.Store.User().AnalyticsGetSystemAdminCount(); err == nil {
+		data["system_admins"] = scr
 	}
 
 	a.SendDiagnostic(TRACK_SERVER, data)

@@ -113,6 +113,23 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 	return nil
 }
 
+// RevokeSessionsFromAllUsers will go through all the sessions active
+// in the server and revoke them
+func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
+	// revoke tokens before sessions so they can't be used to relogin
+	tErr := a.Srv.Store.OAuth().RemoveAllAccessData()
+	if tErr != nil {
+		return tErr
+	}
+	err := a.Srv.Store.Session().RemoveAllSessions()
+	if err != nil {
+		return err
+	}
+	a.ClearSessionCacheForAllUsers()
+
+	return nil
+}
+
 func (a *App) ClearSessionCacheForUser(userId string) {
 	a.ClearSessionCacheForUserSkipClusterSend(userId)
 
@@ -121,6 +138,18 @@ func (a *App) ClearSessionCacheForUser(userId string) {
 			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER,
 			SendType: model.CLUSTER_SEND_RELIABLE,
 			Data:     userId,
+		}
+		a.Cluster.SendClusterMessage(msg)
+	}
+}
+
+func (a *App) ClearSessionCacheForAllUsers() {
+	a.ClearSessionCacheForAllUsersSkipClusterSend()
+
+	if a.Cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS,
+			SendType: model.CLUSTER_SEND_RELIABLE,
 		}
 		a.Cluster.SendClusterMessage(msg)
 	}
@@ -142,6 +171,11 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 	}
 
 	a.InvalidateWebConnSessionCacheForUser(userId)
+}
+
+func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
+	mlog.Info("Purging sessions cache")
+	a.Srv.sessionCache.Purge()
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {
@@ -312,8 +346,8 @@ func (a *App) RevokeUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	var session *model.Session
 	session, _ = a.Srv.Store.Session().Get(token.Token)
 
-	if result := <-a.Srv.Store.UserAccessToken().Delete(token.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.UserAccessToken().Delete(token.Id); err != nil {
+		return err
 	}
 
 	if session == nil {
@@ -342,8 +376,9 @@ func (a *App) EnableUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	var session *model.Session
 	session, _ = a.Srv.Store.Session().Get(token.Token)
 
-	if result := <-a.Srv.Store.UserAccessToken().UpdateTokenEnable(token.Id); result.Err != nil {
-		return result.Err
+	err := a.Srv.Store.UserAccessToken().UpdateTokenEnable(token.Id)
+	if err != nil {
+		return err
 	}
 
 	if session == nil {
@@ -392,14 +427,12 @@ func (a *App) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAcce
 }
 
 func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
-	result := <-a.Srv.Store.UserAccessToken().Search(term)
-	if result.Err != nil {
-		return nil, result.Err
+	tokens, err := a.Srv.Store.UserAccessToken().Search(term)
+	if err != nil {
+		return nil, err
 	}
-	tokens := result.Data.([]*model.UserAccessToken)
 	for _, token := range tokens {
 		token.Token = ""
 	}
 	return tokens, nil
-
 }

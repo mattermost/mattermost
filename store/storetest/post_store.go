@@ -1352,28 +1352,75 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Save(o2a)
 	require.Nil(t, err)
 
+	bot1 := &model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     model.NewId(),
+		UserId:      model.NewId(),
+	}
+	_, err = ss.Bot().Save(bot1)
+
+	b1 := &model.Post{}
+	b1.Message = "bot message one"
+	b1.ChannelId = c1.Id
+	b1.UserId = bot1.UserId
+	b1.CreateAt = utils.MillisFromTime(utils.Yesterday())
+	_, err = ss.Post().Save(b1)
+	require.Nil(t, err)
+
+	b1a := &model.Post{}
+	b1a.Message = "bot message two"
+	b1a.ChannelId = c1.Id
+	b1a.UserId = bot1.UserId
+	b1a.CreateAt = utils.MillisFromTime(utils.Yesterday()) - (1000 * 60 * 60 * 24 * 2)
+	_, err = ss.Post().Save(b1a)
+	require.Nil(t, err)
+
 	time.Sleep(1 * time.Second)
 
-	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id); err != nil {
+	// summary of posts
+	// yesterday - 2 non-bot user posts, 1 bot user post
+	// 3 days ago - 2 non-bot user posts, 1 bot user post
+
+	// last 31 days, all users (including bots)
+	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: false}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
 		t.Fatal(err)
 	} else {
-		row1 := r1[0]
-		if row1.Value != 2 {
-			t.Fatal(row1)
-		}
-
-		row2 := r1[1]
-		if row2.Value != 2 {
-			t.Fatal("wrong value")
-		}
+		assert.Equal(t, float64(3), r1[0].Value)
+		assert.Equal(t, float64(3), r1[1].Value)
 	}
 
+	// last 31 days, bots only
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: false}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
+		t.Fatal(err)
+	} else {
+		assert.Equal(t, float64(1), r1[0].Value)
+		assert.Equal(t, float64(1), r1[1].Value)
+	}
+
+	// yesterday only, all users (including bots)
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: true}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
+		t.Fatal(err)
+	} else {
+		assert.Equal(t, float64(3), r1[0].Value)
+	}
+
+	// yesterday only, bots only
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: true}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
+		t.Fatal(err)
+	} else {
+		assert.Equal(t, float64(1), r1[0].Value)
+	}
+
+	// total posts
 	if r1, err := ss.Post().AnalyticsPostCount(t1.Id, false, false); err != nil {
 		t.Fatal(err)
 	} else {
-		if r1 != 4 {
-			t.Fatal("wrong value")
-		}
+		assert.Equal(t, int64(6), r1)
 	}
 }
 

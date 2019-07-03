@@ -1465,6 +1465,18 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "An error occurred while downloading the plugin."
+  },
+  {
+    "id": "api.plugin.install.insecure_url.app_error",
+    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
+  },
+  {
+    "id": "api.plugin.install.invalid_url.app_error",
+    "translation": "An invalid url was given to download the plugin."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request"
   },
@@ -5663,6 +5675,10 @@
     "translation": "We encountered an error searching channels"
   },
   {
+    "id": "store.sql_channel.search_group_channels.app_error",
+    "translation": "Unable to get the group channels for the given user and term"
+  },
+  {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
     "translation": "Unable to commit transaction"
   },
@@ -6761,6 +6777,10 @@
   {
     "id": "store.sql_user.get_new_users.app_error",
     "translation": "We encountered an error while finding the new users"
+  },
+  {
+    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "We encountered an error while finding user profiles"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
