@@ -226,6 +226,9 @@ type PostStore interface {
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
 	GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
+	GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError)
+	GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError)
 	GetEtag(channelId string, allowFromCache bool) string
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError)
