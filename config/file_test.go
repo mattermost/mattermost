@@ -659,7 +659,7 @@ func TestFileStoreLoad(t *testing.T) {
 	})
 
 	t.Run("do not persist environment variables - string slice beginning with slice of three", func(t *testing.T) {
-		modifiedMinimalConfig := minimalConfig
+		modifiedMinimalConfig := minimalConfig.Clone()
 		modifiedMinimalConfig.SqlSettings.DataSourceReplicas = []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}
 		path, tearDown := setupConfigFile(t, modifiedMinimalConfig)
 		defer tearDown()
