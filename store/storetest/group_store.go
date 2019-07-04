@@ -26,7 +26,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, ss) })
 	t.Run("GetMemberUsersPage", func(t *testing.T) { testGroupGetMemberUsersPage(t, ss) })
-	t.Run("UpsertMember", func(t *testing.T) { testGroupCreateOrRestoreMember(t, ss) })
+	t.Run("UpsertMember", func(t *testing.T) { testUpsertMember(t, ss) })
 	t.Run("DeleteMember", func(t *testing.T) { testGroupDeleteMember(t, ss) })
 
 	t.Run("CreateGroupSyncable", func(t *testing.T) { testCreateGroupSyncable(t, ss) })
@@ -445,8 +445,8 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	user1 := res.Data.(*model.User)
 
-	res = <-ss.Group().UpsertMember(group.Id, user1.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
+	require.Nil(t, err)
 
 	u2 := &model.User{
 		Email:    MakeEmail(),
@@ -456,25 +456,26 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	user2 := res.Data.(*model.User)
 
-	res = <-ss.Group().UpsertMember(group.Id, user2.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
+	require.Nil(t, err)
 
 	// Check returns members
-	res = <-ss.Group().GetMemberUsers(group.Id)
-	require.Nil(t, res.Err)
-	groupMembers := res.Data.([]*model.User)
+	groupMembers, err := ss.Group().GetMemberUsers(group.Id)
+	require.Nil(t, err)
 	require.Equal(t, 2, len(groupMembers))
 
 	// Check madeup id
-	res = <-ss.Group().GetMemberUsers(model.NewId())
-	require.Equal(t, 0, len(res.Data.([]*model.User)))
+	groupMembers, err = ss.Group().GetMemberUsers(model.NewId())
+	require.Nil(t, err)
+	require.Equal(t, 0, len(groupMembers))
 
 	// Delete a member
-	<-ss.Group().DeleteMember(group.Id, user1.Id)
+	_, err = ss.Group().DeleteMember(group.Id, user1.Id)
+	require.Nil(t, err)
 
 	// Should not return deleted members
-	res = <-ss.Group().GetMemberUsers(group.Id)
-	groupMembers = res.Data.([]*model.User)
+	groupMembers, err = ss.Group().GetMemberUsers(group.Id)
+	require.Nil(t, err)
 	require.Equal(t, 1, len(groupMembers))
 }
 
@@ -498,8 +499,8 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	user1 := res.Data.(*model.User)
 
-	res = <-ss.Group().UpsertMember(group.Id, user1.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
+	require.Nil(t, err)
 
 	u2 := &model.User{
 		Email:    MakeEmail(),
@@ -509,43 +510,42 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	user2 := res.Data.(*model.User)
 
-	res = <-ss.Group().UpsertMember(group.Id, user2.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
+	require.Nil(t, err)
 
 	// Check returns members
-	res = <-ss.Group().GetMemberUsersPage(group.Id, 0, 100)
-	require.Nil(t, res.Err)
-	groupMembers := res.Data.([]*model.User)
+	groupMembers, err := ss.Group().GetMemberUsersPage(group.Id, 0, 100)
+	require.Nil(t, err)
 	require.Equal(t, 2, len(groupMembers))
 
 	// Check page 1
-	res = <-ss.Group().GetMemberUsersPage(group.Id, 0, 1)
-	require.Nil(t, res.Err)
-	groupMembers = res.Data.([]*model.User)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 1)
+	require.Nil(t, err)
 	require.Equal(t, 1, len(groupMembers))
 	require.Equal(t, user2.Id, groupMembers[0].Id)
 
 	// Check page 2
-	res = <-ss.Group().GetMemberUsersPage(group.Id, 1, 1)
-	require.Nil(t, res.Err)
-	groupMembers = res.Data.([]*model.User)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 1)
+	require.Nil(t, err)
 	require.Equal(t, 1, len(groupMembers))
 	require.Equal(t, user1.Id, groupMembers[0].Id)
 
 	// Check madeup id
-	res = <-ss.Group().GetMemberUsersPage(model.NewId(), 0, 100)
-	require.Equal(t, 0, len(res.Data.([]*model.User)))
+	groupMembers, err = ss.Group().GetMemberUsersPage(model.NewId(), 0, 100)
+	require.Nil(t, err)
+	require.Equal(t, 0, len(groupMembers))
 
 	// Delete a member
-	<-ss.Group().DeleteMember(group.Id, user1.Id)
+	_, err = ss.Group().DeleteMember(group.Id, user1.Id)
+	require.Nil(t, err)
 
 	// Should not return deleted members
-	res = <-ss.Group().GetMemberUsersPage(group.Id, 0, 100)
-	groupMembers = res.Data.([]*model.User)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 100)
+	require.Nil(t, err)
 	require.Equal(t, 1, len(groupMembers))
 }
 
-func testGroupCreateOrRestoreMember(t *testing.T, ss store.Store) {
+func testUpsertMember(t *testing.T, ss store.Store) {
 	// Create group
 	g1 := &model.Group{
 		Name:        model.NewId(),
@@ -566,37 +566,36 @@ func testGroupCreateOrRestoreMember(t *testing.T, ss store.Store) {
 	user := res2.Data.(*model.User)
 
 	// Happy path
-	res3 := <-ss.Group().UpsertMember(group.Id, user.Id)
-	require.Nil(t, res3.Err)
-	d2 := res3.Data.(*model.GroupMember)
+	d2, err := ss.Group().UpsertMember(group.Id, user.Id)
+	require.Nil(t, err)
 	require.Equal(t, d2.GroupId, group.Id)
 	require.Equal(t, d2.UserId, user.Id)
 	require.NotZero(t, d2.CreateAt)
 	require.Zero(t, d2.DeleteAt)
 
 	// Duplicate composite key (GroupId, UserId)
-	res4 := <-ss.Group().UpsertMember(group.Id, user.Id)
-	require.Nil(t, res4.Err)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
+	require.Nil(t, err)
 
 	// Invalid GroupId
-	res6 := <-ss.Group().UpsertMember(model.NewId(), user.Id)
-	require.Equal(t, res6.Err.Id, "store.insert_error")
+	_, err = ss.Group().UpsertMember(model.NewId(), user.Id)
+	require.Equal(t, err.Id, "store.insert_error")
 
 	// Restores a deleted member
-	res := <-ss.Group().UpsertMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
+	require.Nil(t, err)
 
-	res = <-ss.Group().DeleteMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().DeleteMember(group.Id, user.Id)
+	require.Nil(t, err)
 
-	res = <-ss.Group().GetMemberUsers(group.Id)
-	beforeRestoreCount := len(res.Data.([]*model.User))
+	groupMembers, err := ss.Group().GetMemberUsers(group.Id)
+	beforeRestoreCount := len(groupMembers)
 
-	res = <-ss.Group().UpsertMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
+	require.Nil(t, err)
 
-	res = <-ss.Group().GetMemberUsers(group.Id)
-	afterRestoreCount := len(res.Data.([]*model.User))
+	groupMembers, err = ss.Group().GetMemberUsers(group.Id)
+	afterRestoreCount := len(groupMembers)
 
 	require.Equal(t, beforeRestoreCount+1, afterRestoreCount)
 }
@@ -622,30 +621,28 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 	user := res2.Data.(*model.User)
 
 	// Create member
-	res3 := <-ss.Group().UpsertMember(group.Id, user.Id)
-	require.Nil(t, res3.Err)
-	d1 := res3.Data.(*model.GroupMember)
+	d1, err := ss.Group().UpsertMember(group.Id, user.Id)
+	require.Nil(t, err)
 
 	// Happy path
-	res4 := <-ss.Group().DeleteMember(group.Id, user.Id)
-	require.Nil(t, res4.Err)
-	d2 := res4.Data.(*model.GroupMember)
+	d2, err := ss.Group().DeleteMember(group.Id, user.Id)
+	require.Nil(t, err)
 	require.Equal(t, d2.GroupId, group.Id)
 	require.Equal(t, d2.UserId, user.Id)
 	require.Equal(t, d2.CreateAt, d1.CreateAt)
 	require.NotZero(t, d2.DeleteAt)
 
 	// Delete an already deleted member
-	res5 := <-ss.Group().DeleteMember(group.Id, user.Id)
-	require.Equal(t, res5.Err.Id, "store.sql_group.no_rows")
+	_, err = ss.Group().DeleteMember(group.Id, user.Id)
+	require.Equal(t, err.Id, "store.sql_group.no_rows")
 
 	// Delete with non-existent User
-	res8 := <-ss.Group().DeleteMember(group.Id, model.NewId())
-	require.Equal(t, res8.Err.Id, "store.sql_group.no_rows")
+	_, err = ss.Group().DeleteMember(group.Id, model.NewId())
+	require.Equal(t, err.Id, "store.sql_group.no_rows")
 
 	// Delete non-existent Group
-	res9 := <-ss.Group().DeleteMember(model.NewId(), group.Id)
-	require.Equal(t, res9.Err.Id, "store.sql_group.no_rows")
+	_, err = ss.Group().DeleteMember(model.NewId(), group.Id)
+	require.Equal(t, err.Id, "store.sql_group.no_rows")
 }
 
 func testCreateGroupSyncable(t *testing.T, ss store.Store) {
@@ -926,8 +923,8 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	user = res.Data.(*model.User)
 
 	// Create GroupMember
-	res = <-ss.Group().UpsertMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
+	require.Nil(t, err)
 
 	// Create Team
 	team := &model.Team{
@@ -960,10 +957,10 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Len(t, teamMembers, 0)
 
 	// Delete and restore GroupMember should return result
-	res = <-ss.Group().DeleteMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
-	res = <-ss.Group().UpsertMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().DeleteMember(group.Id, user.Id)
+	require.Nil(t, err)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
+	require.Nil(t, err)
 	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.CreateAt + 1)
 	require.Nil(t, err)
 	require.Len(t, teamMembers, 1)
@@ -1046,14 +1043,15 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Len(t, teamMembers, 1)
 
 	// No result if GroupMember deleted
-	res = <-ss.Group().DeleteMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().DeleteMember(group.Id, user.Id)
+	require.Nil(t, err)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, err)
 	require.Len(t, teamMembers, 0)
 
 	// restore group member and verify
-	res = <-ss.Group().UpsertMember(group.Id, user.Id)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
+	require.Nil(t, err)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, err)
 	require.Len(t, teamMembers, 1)
@@ -1089,7 +1087,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	user = res.Data.(*model.User)
 
 	// Create GroupMember
-	res = <-ss.Group().UpsertMember(group.Id, user.Id)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.Nil(t, res.Err)
 
 	// Create Channel
@@ -1119,10 +1117,10 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 0)
 
 	// Delete and restore GroupMember should return result
-	res = <-ss.Group().DeleteMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
-	res = <-ss.Group().UpsertMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().DeleteMember(group.Id, user.Id)
+	require.Nil(t, err)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
+	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.CreateAt + 1)
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 1)
@@ -1204,15 +1202,15 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 1)
 
 	// No result if GroupMember deleted
-	res = <-ss.Group().DeleteMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().DeleteMember(group.Id, user.Id)
+	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 0)
 
 	// restore group member and verify
-	res = <-ss.Group().UpsertMember(group.Id, user.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
+	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 1)
@@ -1248,8 +1246,8 @@ func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 	require.Len(t, teamMembers, 1)
 	require.Equal(t, data.UserC.Id, teamMembers[0].UserId)
 
-	res := <-ss.Group().DeleteMember(data.Group.Id, data.UserB.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().DeleteMember(data.Group.Id, data.UserB.Id)
+	require.Nil(t, err)
 
 	// user b and c should now be returned
 	teamMembers, err = ss.Group().TeamMembersToRemove()
@@ -1265,8 +1263,8 @@ func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 	require.Equal(t, data.ConstrainedTeam.Id, teamMembers[0].TeamId)
 	require.Equal(t, data.ConstrainedTeam.Id, teamMembers[1].TeamId)
 
-	res = <-ss.Group().DeleteMember(data.Group.Id, data.UserA.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().DeleteMember(data.Group.Id, data.UserA.Id)
+	require.Nil(t, err)
 
 	teamMembers, err = ss.Group().TeamMembersToRemove()
 	require.Nil(t, err)
@@ -1300,7 +1298,7 @@ func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 	require.Len(t, teamMembers, 3)
 
 	// add users back to groups
-	res = <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
+	res := <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
 	require.Nil(t, res.Err)
 	res = <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserB.Id)
 	require.Nil(t, res.Err)
@@ -1323,8 +1321,8 @@ func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 1)
 	require.Equal(t, data.UserC.Id, channelMembers[0].UserId)
 
-	res := <-ss.Group().DeleteMember(data.Group.Id, data.UserB.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().DeleteMember(data.Group.Id, data.UserB.Id)
+	require.Nil(t, err)
 
 	// user b and c should now be returned
 	channelMembers, err = ss.Group().ChannelMembersToRemove()
@@ -1340,8 +1338,8 @@ func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 	require.Equal(t, data.ConstrainedChannel.Id, channelMembers[0].ChannelId)
 	require.Equal(t, data.ConstrainedChannel.Id, channelMembers[1].ChannelId)
 
-	res = <-ss.Group().DeleteMember(data.Group.Id, data.UserA.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().DeleteMember(data.Group.Id, data.UserA.Id)
+	require.Nil(t, err)
 
 	channelMembers, err = ss.Group().ChannelMembersToRemove()
 	require.Nil(t, err)
@@ -1375,7 +1373,7 @@ func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 3)
 
 	// add users back to groups
-	res = <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
+	res := <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
 	require.Nil(t, res.Err)
 	res = <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserB.Id)
 	require.Nil(t, res.Err)
@@ -1439,11 +1437,11 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 	userC = res.Data.(*model.User)
 
 	// add users to group (but not userC)
-	res = <-ss.Group().UpsertMember(group.Id, userA.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().UpsertMember(group.Id, userA.Id)
+	require.Nil(t, err)
 
-	res = <-ss.Group().UpsertMember(group.Id, userB.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().UpsertMember(group.Id, userB.Id)
+	require.Nil(t, err)
 
 	// create channels
 	channelConstrained := &model.Channel{
@@ -1631,7 +1629,9 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	res := <-ss.User().Save(u1)
 	require.Nil(t, res.Err)
 	user1 := res.Data.(*model.User)
-	<-ss.Group().UpsertMember(group1.Id, user1.Id)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
+	require.Nil(t, err)
 
 	group1WithMemberCount := model.Group(*group1)
 	group1WithMemberCount.MemberCount = model.NewInt(1)
@@ -1829,7 +1829,9 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	res := <-ss.User().Save(u1)
 	require.Nil(t, res.Err)
 	user1 := res.Data.(*model.User)
-	<-ss.Group().UpsertMember(group1.Id, user1.Id)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
+	require.Nil(t, err)
 
 	group1WithMemberCount := model.Group(*group1)
 	group1WithMemberCount.MemberCount = model.NewInt(1)
@@ -2068,7 +2070,9 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	res := <-ss.User().Save(u1)
 	require.Nil(t, res.Err)
 	user1 := res.Data.(*model.User)
-	<-ss.Group().UpsertMember(group1.Id, user1.Id)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
+	require.Nil(t, err)
 
 	group1WithMemberCount := model.Group(*group1)
 	group1WithMemberCount.MemberCount = model.NewInt(1)
@@ -2270,12 +2274,12 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 	// Add even users to even group, and the inverse
 	for i := 0; i < numberOfUsers; i++ {
 		groupIndex := int(math.Mod(float64(i), 2))
-		res := <-ss.Group().UpsertMember(groups[groupIndex].Id, users[i].Id)
-		require.Nil(t, res.Err)
+		_, err := ss.Group().UpsertMember(groups[groupIndex].Id, users[i].Id)
+		require.Nil(t, err)
 
 		// Add everyone to group 2
-		res = <-ss.Group().UpsertMember(groups[numberOfGroups-1].Id, users[i].Id)
-		require.Nil(t, res.Err)
+		_, err = ss.Group().UpsertMember(groups[numberOfGroups-1].Id, users[i].Id)
+		require.Nil(t, err)
 	}
 
 	testCases := map[string]struct {
@@ -2423,12 +2427,12 @@ func testChannelMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 	// Add even users to even group, and the inverse
 	for i := 0; i < numberOfUsers; i++ {
 		groupIndex := int(math.Mod(float64(i), 2))
-		res := <-ss.Group().UpsertMember(groups[groupIndex].Id, users[i].Id)
-		require.Nil(t, res.Err)
+		_, err := ss.Group().UpsertMember(groups[groupIndex].Id, users[i].Id)
+		require.Nil(t, err)
 
 		// Add everyone to group 2
-		res = <-ss.Group().UpsertMember(groups[numberOfGroups-1].Id, users[i].Id)
-		require.Nil(t, res.Err)
+		_, err = ss.Group().UpsertMember(groups[numberOfGroups-1].Id, users[i].Id)
+		require.Nil(t, err)
 	}
 
 	testCases := map[string]struct {
