@@ -217,7 +217,7 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 
 	time.Sleep(10 * time.Millisecond)
 
-	if err := (<-ss.User().UpdateUpdateAt(u1.Id)).Err; err != nil {
+	if _, err := ss.User().UpdateUpdateAt(u1.Id); err != nil {
 		t.Fatal(err)
 	}
 
@@ -3309,11 +3309,8 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond * 10)
 
-	u2 := store.Must(ss.User().Save(&model.User{
-		Email:    MakeEmail(),
-		Username: "u2" + model.NewId(),
-	})).(*model.User)
-	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
+	u2 := model.User{Email: MakeEmail(), Username: "u2" + model.NewId()}
+	require.Nil(t, ss.User().PermanentDelete(u2.Id))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u2.Id}, -1))
 
 	// Ensure update at timestamp changes
@@ -3345,7 +3342,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		users, userErr := ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
 		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
-			sanitized(u2),
+			sanitized(&u2),
 			sanitized(u3),
 		}, users)
 	})
@@ -3371,8 +3368,9 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	time.Sleep(time.Millisecond * 10)
 
 	// Add u2 to team 1
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
-	u2.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u2.Id)).(int64)
+	ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
+	u2UserVar, _ := ss.User().UpdateUpdateAt(u2.Id)
+	u2.UpdateAt = u2UserVar.UpdateAt
 
 	t.Run("etag for profiles not in team 1 after update", func(t *testing.T) {
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
@@ -3394,8 +3392,10 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Team().RemoveMember(teamId, u1.Id))
 	store.Must(ss.Team().RemoveMember(teamId, u2.Id))
-	u1.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u1.Id)).(int64)
-	u2.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u2.Id)).(int64)
+	u1UserVar, _ := ss.User().UpdateUpdateAt(u1.Id)
+	u1.UpdateAt = u1UserVar.UpdateAt
+	u2UserVar, _ = ss.User().UpdateUpdateAt(u2.Id)
+	u2.UpdateAt = u2UserVar.UpdateAt
 
 	t.Run("etag for profiles not in team 1 after second update", func(t *testing.T) {
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
@@ -3410,7 +3410,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
-			sanitized(u2),
+			sanitized(&u2),
 			sanitized(u3),
 		}, users)
 	})
@@ -3434,7 +3434,8 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	// Add u3 to team 2
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u3.Id}, -1))
-	u3.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u3.Id)).(int64)
+	u3UserVar, _ := ss.User().UpdateUpdateAt(u3.Id)
+	u3.UpdateAt = u3UserVar.UpdateAt
 
 	// GetEtagForProfilesNotInTeam produces a new etag every time a member, not
 	// in the team, gets a new UpdateAt value. In the case that an older member
@@ -3465,7 +3466,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// add two members to the group
-	for _, u := range []*model.User{u1, u2} {
+	for _, u := range []*model.User{u1, &u2} {
 		_, err = ss.Group().UpsertMember(group.Id, u.Id)
 		require.Nil(t, err)
 	}
@@ -3483,7 +3484,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
-			sanitized(u2),
+			sanitized(&u2),
 		}, users)
 	})
 }

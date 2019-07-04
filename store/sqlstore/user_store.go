@@ -232,17 +232,15 @@ func (us SqlUserStore) ResetLastPictureUpdate(userId string) *model.AppError {
 	return nil
 }
 
-func (us SqlUserStore) UpdateUpdateAt(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		curTime := model.GetMillis()
+func (us SqlUserStore) UpdateUpdateAt(userId string) (*model.User, *model.AppError) {
+	curTime := model.GetMillis()
+	var user model.User
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = curTime
-	})
+	if _, err := us.GetMaster().Exec("UPDATE Users SET UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
+		return nil, model.NewAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+	} else {
+		return &user, nil
+	}
 }
 
 func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) store.StoreChannel {
