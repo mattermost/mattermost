@@ -136,6 +136,42 @@
     "translation": "Bot creation has been disabled."
   },
   {
+    "id": "api.bot.delete_bot_icon_image.app_error",
+    "translation": "Couldn't delete icon image"
+  },
+  {
+    "id": "api.bot.get_bot_icon_image.read.app_error",
+    "translation": "Unable to read icon image file"
+  },
+  {
+    "id": "api.bot.icon_image.storage.app_error",
+    "translation": "Image storage is not configured."
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.app_error",
+    "translation": "Couldn't upload icon image"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.array.app_error",
+    "translation": "Empty array under 'image' in request"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.no_file.app_error",
+    "translation": "No file under 'image' in request"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.open.app_error",
+    "translation": "Could not open image file"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.parse.app_error",
+    "translation": "Could not parse multipart form"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.too_large.app_error",
+    "translation": "Unable to upload icon image. File is too large."
+  },
+  {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
@@ -2335,10 +2371,6 @@
     "translation": "The signup link does not appear to be valid"
   },
   {
-    "id": "api.user.delete_icon_image.app_error",
-    "translation": "Couldn't delete icon image"
-  },
-  {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server"
   },
@@ -2349,10 +2381,6 @@
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Unsupported OAuth service provider"
-  },
-  {
-    "id": "api.user.get_icon_image.read.app_error",
-    "translation": "Unable to read icon image file"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2511,30 +2539,6 @@
     "translation": "Failed to send welcome email successfully"
   },
   {
-    "id": "api.user.set_icon_image.app_error",
-    "translation": "Couldn't upload icon image"
-  },
-  {
-    "id": "api.user.set_icon_image.array.app_error",
-    "translation": "Empty array under 'image' in request"
-  },
-  {
-    "id": "api.user.set_icon_image.no_file.app_error",
-    "translation": "No file under 'image' in request"
-  },
-  {
-    "id": "api.user.set_icon_image.open.app_error",
-    "translation": "Could not open image file"
-  },
-  {
-    "id": "api.user.set_icon_image.parse.app_error",
-    "translation": "Could not parse multipart form"
-  },
-  {
-    "id": "api.user.set_icon_image.too_large.app_error",
-    "translation": "Unable to upload icon image. File is too large."
-  },
-  {
     "id": "api.user.update_active.not_enable.app_error",
     "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
@@ -2609,10 +2613,6 @@
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
     "translation": "Couldn't upload profile image"
-  },
-  {
-    "id": "api.user.user_icon_image.storage.app_error",
-    "translation": "Image storage is not configured."
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",

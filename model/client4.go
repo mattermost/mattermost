@@ -1259,72 +1259,6 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 	return CheckStatusOK(rp), BuildResponse(rp)
 }
 
-// SetIconImage sets icon image of the user.
-func (c *Client4) SetIconImage(userId string, data []byte) (bool, *Response) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	part, err := writer.CreateFormFile("image", "icon.svg")
-	if err != nil {
-		return false, &Response{Error: NewAppError("SetIconImage", "model.client.set_icon_image.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
-	}
-
-	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return false, &Response{Error: NewAppError("SetIconImage", "model.client.set_icon_image.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
-	}
-
-	if err = writer.Close(); err != nil {
-		return false, &Response{Error: NewAppError("SetIconImage", "model.client.set_icon_image.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
-	}
-
-	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/icon", bytes.NewReader(body.Bytes()))
-	if err != nil {
-		return false, &Response{Error: NewAppError("SetIconImage", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
-	}
-	rq.Header.Set("Content-Type", writer.FormDataContentType())
-
-	if len(c.AuthToken) > 0 {
-		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HttpClient.Do(rq)
-	if err != nil || rp == nil {
-		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetUserRoute(userId)+"/icon", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return false, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
-	}
-
-	return CheckStatusOK(rp), BuildResponse(rp)
-}
-
-// GetIconImage gets user's LHS icon image. Must be logged in.
-func (c *Client4) GetIconImage(userId string) ([]byte, *Response) {
-	r, appErr := c.DoApiGet(c.GetUserRoute(userId)+"/icon", "")
-	if appErr != nil {
-		return nil, BuildErrorResponse(r, appErr)
-	}
-	defer closeBody(r)
-
-	data, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return nil, BuildErrorResponse(r, NewAppError("GetIconImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
-	}
-	return data, BuildResponse(r)
-}
-
-// DeleteIconImage deletes user's LHS icon image. Must be logged in.
-func (c *Client4) DeleteIconImage(userId string) (bool, *Response) {
-	r, appErr := c.DoApiDelete(c.GetUserRoute(userId) + "/icon")
-	if appErr != nil {
-		return false, BuildErrorResponse(r, appErr)
-	}
-	defer closeBody(r)
-	return CheckStatusOK(r), BuildResponse(r)
-}
-
 // CreateUserAccessToken will generate a user access token that can be used in place
 // of a session token to access the REST API. Must have the 'create_user_access_token'
 // permission and if generating for another user, must have the 'edit_other_users'
@@ -1531,6 +1465,72 @@ func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response) {
 	}
 	defer closeBody(r)
 	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// SetBotIconImage sets icon image of the user.
+func (c *Client4) SetBotIconImage(botUserId string, data []byte) (bool, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("image", "icon.svg")
+	if err != nil {
+		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.set_bot_icon_image.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.set_bot_icon_image.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err = writer.Close(); err != nil {
+		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.set_bot_icon_image.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetBotRoute(botUserId)+"/icon", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	rp, err := c.HttpClient.Do(rq)
+	if err != nil || rp == nil {
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetBotRoute(botUserId)+"/icon", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
+	}
+	defer closeBody(rp)
+
+	if rp.StatusCode >= 300 {
+		return false, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
+	}
+
+	return CheckStatusOK(rp), BuildResponse(rp)
+}
+
+// GetBotIconImage gets user's LHS icon image. Must be logged in.
+func (c *Client4) GetBotIconImage(botUserId string) ([]byte, *Response) {
+	r, appErr := c.DoApiGet(c.GetBotRoute(botUserId)+"/icon", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetBotIconImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return data, BuildResponse(r)
+}
+
+// DeleteBotIconImage deletes user's LHS icon image. Must be logged in.
+func (c *Client4) DeleteBotIconImage(botUserId string) (bool, *Response) {
+	r, appErr := c.DoApiDelete(c.GetBotRoute(botUserId) + "/icon")
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
 }
 
 // Team Section
