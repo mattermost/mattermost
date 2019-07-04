@@ -22,19 +22,28 @@ func TestCache(t *testing.T) {
 		UserId: model.NewId(),
 	}
 
+	session2 := &model.Session{
+		Id:     model.NewId(),
+		Token:  model.NewId(),
+		UserId: model.NewId(),
+	}
+
 	th.App.Srv.sessionCache.AddWithExpiresInSecs(session.Token, session, 5*60)
+	th.App.Srv.sessionCache.AddWithExpiresInSecs(session2.Token, session2, 5*60)
 
 	keys := th.App.Srv.sessionCache.Keys()
-	if len(keys) <= 0 {
-		t.Fatal("should have items")
-	}
+	require.NotEmpty(t, keys)
 
 	th.App.ClearSessionCacheForUser(session.UserId)
 
 	rkeys := th.App.Srv.sessionCache.Keys()
-	if len(rkeys) != len(keys)-1 {
-		t.Fatal("should have one less")
-	}
+	require.Lenf(t, rkeys, len(keys)-1, "should have one less: %d - %d != 1", len(keys), len(rkeys))
+	require.NotEmpty(t, rkeys)
+
+	th.App.ClearSessionCacheForAllUsers()
+
+	rkeys = th.App.Srv.sessionCache.Keys()
+	require.Empty(t, rkeys)
 }
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {

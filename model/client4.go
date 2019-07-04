@@ -1186,6 +1186,16 @@ func (c *Client4) RevokeAllSessions(userId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// RevokeAllSessions revokes all sessions for all the users.
+func (c *Client4) RevokeSessionsFromAllUsers() (bool, *Response) {
+	r, err := c.DoApiPost(c.GetUsersRoute()+"/sessions/revoke/all", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // AttachDeviceId attaches a mobile device ID to the current session.
 func (c *Client4) AttachDeviceId(deviceId string) (bool, *Response) {
 	requestBody := map[string]string{"device_id": deviceId}
@@ -2532,6 +2542,17 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 	}
 	defer closeBody(r)
 	return PostListFromJson(r.Body), BuildResponse(r)
+}
+
+// GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
+func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore, limitAfter int) (*PostList, *Response) {
+	query := fmt.Sprintf("?limit_before=%v&limit_after=%v", limitBefore, limitAfter)
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/posts/unread"+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
 }
 
 // SearchPosts returns any posts with matching terms string.
