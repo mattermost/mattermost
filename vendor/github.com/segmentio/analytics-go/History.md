@@ -1,9 +1,20 @@
-
-v2.1.1 / 2016-04-26
+v3.0.1 / 2018-10-02
 ===================
 
- * Fix blocking the goroutine when Close is the first call.
- * Fix blocking the goroutine when the message queue fills up.
+* Migrate from Circle V1 format to Circle V2
+* Adds CLI for sending segment events
+* Vendor packages back-go and uuid instead of using gitsubmodules
+
+
+v3.0.0 / 2016-06-02
+===================
+
+ * 3.0 is a significant rewrite with multiple breaking changes.
+ * [Quickstart](https://segment.com/docs/sources/server/go/quickstart/).
+ * [Documentation](https://segment.com/docs/sources/server/go/).
+ * [GoDocs](https://godoc.org/gopkg.in/segmentio/analytics-go.v3).
+ * [What's New in v3](https://segment.com/docs/sources/server/go/#what-s-new-in-v3).
+
 
 v2.1.0 / 2015-12-28
 ===================

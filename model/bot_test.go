@@ -508,12 +508,14 @@ func TestUserFromBot(t *testing.T) {
 		Username:  "username",
 		Email:     "username@localhost",
 		FirstName: "display name",
+		Roles:     "system_user",
 	}, UserFromBot(bot1))
 	assert.Equal(t, &User{
 		Id:        bot2.UserId,
 		Username:  "username2",
 		Email:     "username2@localhost",
 		FirstName: "display name 2",
+		Roles:     "system_user",
 	}, UserFromBot(bot2))
 }
 

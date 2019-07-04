@@ -72,11 +72,11 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		SenderId:  post.UserId,
 	}
 
-	if badge := <-a.Srv.Store.User().GetUnreadCount(user.Id); badge.Err != nil {
+	if unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id); err != nil {
 		msg.Badge = 1
-		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, badge.Err), mlog.String("user_id", user.Id))
+		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, err), mlog.String("user_id", user.Id))
 	} else {
-		msg.Badge = int(badge.Data.(int64))
+		msg.Badge = int(unreadCount)
 	}
 
 	contentsConfig := *cfg.EmailSettings.PushNotificationContents
@@ -232,11 +232,11 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 		ContentAvailable: 1,
 	}
 
-	if badge := <-a.Srv.Store.User().GetUnreadCount(userId); badge.Err != nil {
+	if unreadCount, err := a.Srv.Store.User().GetUnreadCount(userId); err != nil {
 		msg.Badge = 0
-		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", userId, badge.Err), mlog.String("user_id", userId))
+		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", userId, err), mlog.String("user_id", userId))
 	} else {
-		msg.Badge = int(badge.Data.(int64))
+		msg.Badge = int(unreadCount)
 	}
 
 	for _, session := range sessions {
