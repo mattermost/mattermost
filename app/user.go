@@ -1111,13 +1111,13 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	adminCopyOfUser := user.DeepCopy()
 	a.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
-	adminMessage.Add("user", *adminCopyOfUser)
+	adminMessage.Add("user", &adminCopyOfUser)
 	adminMessage.Broadcast.ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
 	a.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
-	message.Add("user", user)
+	message.Add("user", &user)
 	message.Broadcast.ContainsSanitizedData = true
 	a.Publish(message)
 }
@@ -2275,6 +2275,8 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 	message.Add("user", promotedUser)
 	a.Publish(message)
 
+	a.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest())
+
 	return nil
 }
 
@@ -2294,6 +2296,8 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", demotedUser)
 	a.Publish(message)
+
+	a.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest())
 
 	return nil
 }

@@ -6503,6 +6503,10 @@
     "translation": "Unable to update the last_activity_at"
   },
   {
+    "id": "store.sql_session.update_props.app_error",
+    "translation": "Unable to update session props"
+  },
+  {
     "id": "store.sql_session.update_roles.app_error",
     "translation": "Unable to update the roles"
   },
