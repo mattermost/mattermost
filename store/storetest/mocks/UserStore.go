@@ -1013,26 +1013,19 @@ func (_m *UserStore) UpdateAuthData(userId string, service string, authData *str
 }
 
 // UpdateFailedPasswordAttempts provides a mock function with given fields: userId, attempts
-func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) (string, *model.AppError) {
+func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) *model.AppError {
 	ret := _m.Called(userId, attempts)
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, int) string); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int) *model.AppError); ok {
 		r0 = rf(userId, attempts)
 	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int) *model.AppError); ok {
-		r1 = rf(userId, attempts)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
-	return r0, r1
+	return r0
 }
 
 // UpdateLastPictureUpdate provides a mock function with given fields: userId
