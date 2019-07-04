@@ -102,6 +102,11 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.TeamId != updatedHook.TeamId {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)
 		return

@@ -705,7 +705,7 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 
 	hook2 := &model.IncomingWebhook{Id: rhook.Id, ChannelId: channel.Id}
 	rhook, resp = th.Client.UpdateIncomingWebhook(hook2)
-	CheckForbiddenStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 }
 
 func TestRegenOutgoingHookToken(t *testing.T) {
