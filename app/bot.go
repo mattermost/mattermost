@@ -220,7 +220,9 @@ func (a *App) SetBotIconImage(botUserId string, imageData *multipart.FileHeader)
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	<-a.Srv.Store.User().UpdateLastPictureUpdate(botUserId)
+	if err := a.Srv.Store.User().UpdateLastPictureUpdate(botUserId); err != nil {
+		mlog.Error(err.Error())
+	}
 	a.invalidateUserCacheAndPublish(botUserId)
 
 	return nil
@@ -237,7 +239,9 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 		return model.NewAppError("DeleteBotIconImage", "api.bot.delete_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	<-a.Srv.Store.User().UpdateLastPictureUpdate(botUserId)
+	if err := a.Srv.Store.User().UpdateLastPictureUpdate(botUserId); err != nil {
+		mlog.Error(err.Error())
+	}
 	a.invalidateUserCacheAndPublish(botUserId)
 
 	return nil
