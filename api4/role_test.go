@@ -220,7 +220,7 @@ func TestPatchRole(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 
-	t.Run("Check guest permissions edition with E20 license", func(t *testing.T) {
+	t.Run("Check guest permissions editing with E20 license", func(t *testing.T) {
 		license := model.NewTestLicense()
 		license.Features.GuestAccountsPermissions = model.NewBool(true)
 		th.App.SetLicense(license)
