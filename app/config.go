@@ -243,10 +243,10 @@ func (a *App) ensureInstallationDate() error {
 		return nil
 	}
 
-	createdAt, err := a.Srv.Store.User().InferSystemInstallDate()
+	installDate, err := a.Srv.Store.User().InferSystemInstallDate()
 	var installationDate int64
-	if err == nil && createdAt > 0 {
-		installationDate = createdAt
+	if err == nil && installDate > 0 {
+		installationDate = installDate
 	} else {
 		installationDate = utils.MillisFromTime(time.Now())
 	}
