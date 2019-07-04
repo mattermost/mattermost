@@ -239,6 +239,13 @@ func (as SqlOAuthStore) RemoveAccessData(token string) *model.AppError {
 	return nil
 }
 
+func (as SqlOAuthStore) RemoveAllAccessData() *model.AppError {
+	if _, err := as.GetMaster().Exec("DELETE FROM OAuthAccessData", map[string]interface{}{}); err != nil {
+		return model.NewAppError("SqlOAuthStore.RemoveAccessData", "store.sql_oauth.remove_access_data.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, *model.AppError) {
 	authData.PreSave()
 	if err := authData.IsValid(); err != nil {

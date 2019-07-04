@@ -213,6 +213,23 @@ func testOAuthStoreRemoveAccessData(t *testing.T, ss store.Store) {
 	require.Nil(t, result, "did not delete access token")
 }
 
+func testOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
+	a1 := model.AccessData{}
+	a1.ClientId = model.NewId()
+	a1.UserId = model.NewId()
+	a1.Token = model.NewId()
+	a1.RefreshToken = model.NewId()
+	a1.RedirectUri = "http://example.com"
+	_, err := ss.OAuth().SaveAccessData(&a1)
+	require.Nil(t, err)
+
+	err = ss.OAuth().RemoveAllAccessData()
+	require.Nil(t, err)
+
+	result, _ := ss.OAuth().GetPreviousAccessData(a1.UserId, a1.ClientId)
+	require.Nil(t, result, "did not delete access token")
+}
+
 func testOAuthStoreSaveAuthData(t *testing.T, ss store.Store) {
 	a1 := model.AuthData{}
 	a1.ClientId = model.NewId()

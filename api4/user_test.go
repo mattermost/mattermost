@@ -2118,8 +2118,8 @@ func TestUserLoginMFAFlow(t *testing.T) {
 			t.Fatal(result.Err)
 		}
 
-		if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); result.Err != nil {
-			t.Fatal(result.Err)
+		if err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); err != nil {
+			t.Fatal(err)
 		}
 
 		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -2150,8 +2150,8 @@ func TestUserLoginMFAFlow(t *testing.T) {
 			t.Fatal(result.Err)
 		}
 
-		if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); result.Err != nil {
-			t.Fatal(result.Err)
+		if err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); err != nil {
+			t.Fatal(err)
 		}
 
 		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
@@ -2488,6 +2488,46 @@ func TestRevokeAllSessions(t *testing.T) {
 
 	_, resp = th.Client.RevokeAllSessions(user.Id)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestRevokeSessionsFromAllUsers(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := th.BasicUser
+	th.Client.Login(user.Email, user.Password)
+	_, resp := th.Client.RevokeSessionsFromAllUsers()
+	CheckForbiddenStatus(t, resp)
+
+	th.Client.Logout()
+	_, resp = th.Client.RevokeSessionsFromAllUsers()
+	CheckUnauthorizedStatus(t, resp)
+
+	th.Client.Login(user.Email, user.Password)
+	admin := th.SystemAdminUser
+	th.Client.Login(admin.Email, admin.Password)
+	sessions, err := th.Server.Store.Session().GetSessions(user.Id)
+	require.NotEmpty(t, sessions)
+	require.Nil(t, err)
+	sessions, err = th.Server.Store.Session().GetSessions(admin.Id)
+	require.NotEmpty(t, sessions)
+	require.Nil(t, err)
+	_, resp = th.Client.RevokeSessionsFromAllUsers()
+	CheckNoError(t, resp)
+
+	// All sessions were revoked, so making the same call
+	// again will fail due to lack of a session.
+	_, resp = th.Client.RevokeSessionsFromAllUsers()
+	CheckUnauthorizedStatus(t, resp)
+
+	sessions, err = th.Server.Store.Session().GetSessions(user.Id)
+	require.Empty(t, sessions)
+	require.Nil(t, err)
+
+	sessions, err = th.Server.Store.Session().GetSessions(admin.Id)
+	require.Empty(t, sessions)
+	require.Nil(t, err)
+
 }
 
 func TestAttachDeviceId(t *testing.T) {
