@@ -78,6 +78,11 @@ func (_m *LayeredStoreDatabaseLayer) ChannelMemberHistory() store.ChannelMemberH
 	return r0
 }
 
+// CheckIntegrity provides a mock function with given fields:
+func (_m *LayeredStoreDatabaseLayer) CheckIntegrity() {
+	_m.Called()
+}
+
 // Close provides a mock function with given fields:
 func (_m *LayeredStoreDatabaseLayer) Close() {
 	_m.Called()

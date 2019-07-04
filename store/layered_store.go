@@ -226,6 +226,10 @@ func (s *LayeredStore) TotalSearchDbConnections() int {
 	return s.DatabaseLayer.TotalSearchDbConnections()
 }
 
+func (s *LayeredStore) CheckIntegrity() {
+	s.DatabaseLayer.CheckIntegrity()
+}
+
 type LayeredReactionStore struct {
 	*LayeredStore
 }

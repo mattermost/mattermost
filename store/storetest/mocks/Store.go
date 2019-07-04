@@ -76,6 +76,11 @@ func (_m *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return r0
 }
 
+// CheckIntegrity provides a mock function with given fields:
+func (_m *Store) CheckIntegrity() {
+	_m.Called()
+}
+
 // Close provides a mock function with given fields:
 func (_m *Store) Close() {
 	_m.Called()

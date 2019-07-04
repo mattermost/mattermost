@@ -78,6 +78,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
+	CheckIntegrity()
 }
 
 type TeamStore interface {
