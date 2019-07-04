@@ -609,9 +609,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("etag changes for all after user creation", func(t *testing.T) {
-		result := <-ss.User().GetEtagForProfiles(teamId)
-		require.Nil(t, result.Err)
-		etag := result.Data.(string)
+		etag := ss.User().GetEtagForProfiles(teamId)
 
 		uNew := &model.User{}
 		uNew.Email = MakeEmail()
@@ -619,10 +617,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 		defer func() { require.Nil(t, ss.User().PermanentDelete(uNew.Id)) }()
 		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: uNew.Id}, -1))
 
-		result = <-ss.User().GetEtagForProfiles(teamId)
-		require.Nil(t, result.Err)
-		updatedEtag := result.Data.(string)
-
+		updatedEtag := ss.User().GetEtagForProfiles(teamId)
 		require.NotEqual(t, etag, updatedEtag)
 	})
 
