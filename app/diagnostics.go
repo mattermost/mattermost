@@ -8,9 +8,11 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/segmentio/analytics-go"
+
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	analytics "github.com/segmentio/analytics-go"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 const (
@@ -56,15 +58,13 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
-var client *analytics.Client
-
 func (a *App) SendDailyDiagnostics() {
 	a.sendDailyDiagnostics(false)
 }
 
 func (a *App) sendDailyDiagnostics(override bool) {
 	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
-		a.initDiagnostics("")
+		a.Srv.initDiagnostics("")
 		a.trackActivity()
 		a.trackConfig()
 		a.trackLicense()
@@ -74,24 +74,8 @@ func (a *App) sendDailyDiagnostics(override bool) {
 	}
 }
 
-func (a *App) initDiagnostics(endpoint string) {
-	if client == nil {
-		client = analytics.New(SEGMENT_KEY)
-		client.Logger = a.Log.StdLog(mlog.String("source", "segment"))
-		// For testing
-		if endpoint != "" {
-			client.Endpoint = endpoint
-			client.Verbose = true
-			client.Size = 1
-		}
-		client.Identify(&analytics.Identify{
-			UserId: a.DiagnosticId(),
-		})
-	}
-}
-
 func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
-	client.Track(&analytics.Track{
+	a.Srv.diagnosticClient.Track(&analytics.Track{
 		Event:      event,
 		UserId:     a.DiagnosticId(),
 		Properties: properties,
@@ -124,10 +108,7 @@ func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string
 func (a *App) trackActivity() {
 	var userCount int64
 	var botAccountsCount int64
-	var activeUsersDailyCount int64
-	var activeUsersMonthlyCount int64
 	var inactiveUserCount int64
-	var teamCount int64
 	var publicChannelCount int64
 	var privateChannelCount int64
 	var directChannelCount int64
@@ -140,16 +121,19 @@ func (a *App) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
-	monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
+	go func() {
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
+		close(activeUsersDailyCountChan)
+	}()
 
-	if r := <-dailyActiveChan; r.Err == nil {
-		activeUsersDailyCount = r.Data.(int64)
-	}
-
-	if r := <-monthlyActiveChan; r.Err == nil {
-		activeUsersMonthlyCount = r.Data.(int64)
-	}
+	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
+	go func() {
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
+		close(activeUsersMonthlyCountChan)
+	}()
 
 	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
 		userCount = count
@@ -211,6 +195,16 @@ func (a *App) trackActivity() {
 	}
 
 	outgoingWebhooksCount, _ = a.Srv.Store.Webhook().AnalyticsOutgoingCount("")
+
+	var activeUsersDailyCount int64
+	if r := <-activeUsersDailyCountChan; r.Err == nil {
+		activeUsersDailyCount = r.Data.(int64)
+	}
+
+	var activeUsersMonthlyCount int64
+	if r := <-activeUsersMonthlyCountChan; r.Err == nil {
+		activeUsersMonthlyCount = r.Data.(int64)
+	}
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
