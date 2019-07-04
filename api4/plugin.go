@@ -7,8 +7,8 @@ package api4
 
 import (
 	"net/http"
-	"path/filepath"
 	"net/url"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
