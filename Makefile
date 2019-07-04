@@ -576,9 +576,6 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Update all dependencies (does not update across major versions)
 	go get -u
 
-	# Keep back because of breaking API changes
-	go get -u github.com/segmentio/analytics-go@2.1.1
-
 	# Tidy up
 	go mod tidy
 
