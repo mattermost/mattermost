@@ -203,7 +203,7 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.User().UpdateLastPictureUpdate(u1.Id); result.Err != nil {
+	if err := ss.User().UpdateLastPictureUpdate(u1.Id); err != nil {
 		t.Fatal("Update should not have failed")
 	}
 }

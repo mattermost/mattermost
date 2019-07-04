@@ -904,7 +904,9 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	<-a.Srv.Store.User().UpdateLastPictureUpdate(userId)
+	if err := a.Srv.Store.User().UpdateLastPictureUpdate(userId); err != nil {
+		mlog.Error(err.Error())
+	}
 
 	a.InvalidateCacheForUser(userId)
 
