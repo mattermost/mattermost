@@ -93,6 +93,27 @@ func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 	return a.Srv.Store.Session().GetSessions(userId)
 }
 
+func (a *App) UpdateSessionsIsGuest(userId string, isGuest bool) {
+	sessions, err := a.Srv.Store.Session().GetSessions(userId)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Unable to get user sessions: userId=%s err=%s", userId, err.Error()))
+	}
+
+	for _, session := range sessions {
+		if isGuest {
+			session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
+		} else {
+			session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
+		}
+		err := a.Srv.Store.Session().UpdateProps(session)
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Unable to update isGuest session: %s", err.Error()))
+			continue
+		}
+		a.AddSessionToCache(session)
+	}
+}
+
 func (a *App) RevokeAllSessions(userId string) *model.AppError {
 	sessions, err := a.Srv.Store.Session().GetSessions(userId)
 	if err != nil {
@@ -113,6 +134,23 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 	return nil
 }
 
+// RevokeSessionsFromAllUsers will go through all the sessions active
+// in the server and revoke them
+func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
+	// revoke tokens before sessions so they can't be used to relogin
+	tErr := a.Srv.Store.OAuth().RemoveAllAccessData()
+	if tErr != nil {
+		return tErr
+	}
+	err := a.Srv.Store.Session().RemoveAllSessions()
+	if err != nil {
+		return err
+	}
+	a.ClearSessionCacheForAllUsers()
+
+	return nil
+}
+
 func (a *App) ClearSessionCacheForUser(userId string) {
 	a.ClearSessionCacheForUserSkipClusterSend(userId)
 
@@ -121,6 +159,18 @@ func (a *App) ClearSessionCacheForUser(userId string) {
 			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER,
 			SendType: model.CLUSTER_SEND_RELIABLE,
 			Data:     userId,
+		}
+		a.Cluster.SendClusterMessage(msg)
+	}
+}
+
+func (a *App) ClearSessionCacheForAllUsers() {
+	a.ClearSessionCacheForAllUsersSkipClusterSend()
+
+	if a.Cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS,
+			SendType: model.CLUSTER_SEND_RELIABLE,
 		}
 		a.Cluster.SendClusterMessage(msg)
 	}
@@ -142,6 +192,11 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 	}
 
 	a.InvalidateWebConnSessionCacheForUser(userId)
+}
+
+func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
+	mlog.Info("Purging sessions cache")
+	a.Srv.sessionCache.Purge()
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {
@@ -294,6 +349,11 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_USER_ACCESS_TOKEN)
 	if user.IsBot {
 		session.AddProp(model.SESSION_PROP_IS_BOT, model.SESSION_PROP_IS_BOT_VALUE)
+	}
+	if user.IsGuest() {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
+	} else {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
 	}
 	session.SetExpireInDays(model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
 
