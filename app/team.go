@@ -565,8 +565,8 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		})
 	}
 
-	if _, uua := a.Srv.Store.User().UpdateUpdateAt(user.Id); uua != nil {
-		return uua
+	if _, err := a.Srv.Store.User().UpdateUpdateAt(user.Id); err != nil {
+		return err
 	}
 
 	shouldBeAdmin := team.Email == user.Email
@@ -897,8 +897,8 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		})
 	}
 
-	if _, uua := a.Srv.Store.User().UpdateUpdateAt(user.Id); uua != nil {
-		return uua
+	if _, err := a.Srv.Store.User().UpdateUpdateAt(user.Id); err != nil {
+		return err
 	}
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
