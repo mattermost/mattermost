@@ -837,80 +837,75 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if options == nil {
-			options = &store.UserGetByIdsOpts{}
-		}
+func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, *model.AppError) {
+	if options == nil {
+		options = &store.UserGetByIdsOpts{}
+	}
 
-		users := []*model.User{}
-		remainingUserIds := make([]string, 0)
+	users := []*model.User{}
+	remainingUserIds := make([]string, 0)
 
-		if allowFromCache {
-			for _, userId := range userIds {
-				if cacheItem, ok := profileByIdsCache.Get(userId); ok {
-					u := &model.User{}
-					*u = *cacheItem.(*model.User)
+	if allowFromCache {
+		for _, userId := range userIds {
+			if cacheItem, ok := profileByIdsCache.Get(userId); ok {
+				u := &model.User{}
+				*u = *cacheItem.(*model.User)
 
-					if options.Since == 0 || u.UpdateAt > options.Since {
-						users = append(users, u)
-					}
-				} else {
-					remainingUserIds = append(remainingUserIds, userId)
+				if options.Since == 0 || u.UpdateAt > options.Since {
+					users = append(users, u)
 				}
-			}
-			if us.metrics != nil {
-				us.metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(users)))
-				us.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
-			}
-		} else {
-			remainingUserIds = userIds
-			if us.metrics != nil {
-				us.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
+			} else {
+				remainingUserIds = append(remainingUserIds, userId)
 			}
 		}
-
-		// If everything came from the cache then just return
-		if len(remainingUserIds) == 0 {
-			result.Data = users
-			return
+		if us.metrics != nil {
+			us.metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(users)))
+			us.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
 		}
-
-		query := us.usersQuery.
-			Where(map[string]interface{}{
-				"u.Id": remainingUserIds,
-			}).
-			OrderBy("u.Username ASC")
-
-		if options.Since > 0 {
-			query = query.Where(squirrel.Gt(map[string]interface{}{
-				"u.UpdateAt": options.Since,
-			}))
+	} else {
+		remainingUserIds = userIds
+		if us.metrics != nil {
+			us.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
 		}
+	}
 
-		query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
+	// If everything came from the cache then just return
+	if len(remainingUserIds) == 0 {
+		return users, nil
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	query := us.usersQuery.
+		Where(map[string]interface{}{
+			"u.Id": remainingUserIds,
+		}).
+		OrderBy("u.Username ASC")
 
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if options.Since > 0 {
+		query = query.Where(squirrel.Gt(map[string]interface{}{
+			"u.UpdateAt": options.Since,
+		}))
+	}
 
-		for _, u := range users {
-			u.Sanitize(map[string]bool{})
+	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
-			cpy := &model.User{}
-			*cpy = *u
-			profileByIdsCache.AddWithExpiresInSecs(cpy.Id, cpy, PROFILE_BY_IDS_CACHE_SEC)
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = users
-	})
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+
+		cpy := &model.User{}
+		*cpy = *u
+		profileByIdsCache.AddWithExpiresInSecs(cpy.Id, cpy, PROFILE_BY_IDS_CACHE_SEC)
+	}
+
+	return users, nil
 }
 
 type UserWithChannel struct {
