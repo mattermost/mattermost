@@ -18,7 +18,7 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) 
 	}
 
 	// If we fail for any reason, this could be a race between creation of bot and
-	// retreval from another EnsureBot. Just try the basic retrieve existing again.
+	// retrieval from another EnsureBot. Just try the basic retrieve existing again.
 	defer func() {
 		if retBotId == "" || retErr != nil {
 			var err error
