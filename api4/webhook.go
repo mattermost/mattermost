@@ -96,20 +96,25 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, updatedHook.TeamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
+	channel, err := c.App.GetChannel(updatedHook.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if channel.TeamId != updatedHook.TeamId {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)
 		return
 	}
 
-	if c.App.Session.UserId != oldHook.UserId && !c.App.SessionHasPermissionToTeam(c.App.Session, updatedHook.TeamId, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
+	if c.App.Session.UserId != oldHook.UserId && !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
 		c.LogAudit("fail - inappropriate permissions")
 		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS)
-		return
-	}
-
-	channel, err := c.App.GetChannel(updatedHook.ChannelId)
-	if err != nil {
-		c.Err = err
 		return
 	}
 
