@@ -203,7 +203,7 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.User().UpdateLastPictureUpdate(u1.Id); result.Err != nil {
+	if err := ss.User().UpdateLastPictureUpdate(u1.Id); err != nil {
 		t.Fatal("Update should not have failed")
 	}
 }
@@ -415,10 +415,9 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 
 	t.Run("get offset 0, limit 100", func(t *testing.T) {
 		options := &model.UserGetOptions{Page: 0, PerPage: 100}
-		result := <-ss.User().GetAllProfiles(options)
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAllProfiles(options)
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		require.Equal(t, []*model.User{
 			sanitized(u1),
 			sanitized(u2),
@@ -431,12 +430,11 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get offset 0, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 1,
 		})
-		require.Nil(t, result.Err)
-		actual := result.Data.([]*model.User)
+		require.Nil(t, err)
 		require.Equal(t, []*model.User{
 			sanitized(u1),
 		}, actual)
@@ -459,30 +457,24 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("etag changes for all after user creation", func(t *testing.T) {
-		result := <-ss.User().GetEtagForAllProfiles()
-		require.Nil(t, result.Err)
-		etag := result.Data.(string)
+		etag := ss.User().GetEtagForAllProfiles()
 
 		uNew := &model.User{}
 		uNew.Email = MakeEmail()
 		store.Must(ss.User().Save(uNew))
 		defer func() { require.Nil(t, ss.User().PermanentDelete(uNew.Id)) }()
 
-		result = <-ss.User().GetEtagForAllProfiles()
-		require.Nil(t, result.Err)
-		updatedEtag := result.Data.(string)
-
+		updatedEtag := ss.User().GetEtagForAllProfiles()
 		require.NotEqual(t, etag, updatedEtag)
 	})
 
 	t.Run("filter to system_admin role", func(t *testing.T) {
-		result := <-ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
 			Role:    "system_admin",
 		})
-		require.Nil(t, result.Err)
-		actual := result.Data.([]*model.User)
+		require.Nil(t, err)
 		require.Equal(t, []*model.User{
 			sanitized(u5),
 			sanitized(u6),
@@ -490,27 +482,25 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to system_admin role, inactive", func(t *testing.T) {
-		result := <-ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:     0,
 			PerPage:  10,
 			Role:     "system_admin",
 			Inactive: true,
 		})
-		require.Nil(t, result.Err)
-		actual := result.Data.([]*model.User)
+		require.Nil(t, err)
 		require.Equal(t, []*model.User{
 			sanitized(u6),
 		}, actual)
 	})
 
 	t.Run("filter to inactive", func(t *testing.T) {
-		result := <-ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:     0,
 			PerPage:  10,
 			Inactive: true,
 		})
-		require.Nil(t, result.Err)
-		actual := result.Data.([]*model.User)
+		require.Nil(t, err)
 		require.Equal(t, []*model.User{
 			sanitized(u6),
 			sanitized(u7),
@@ -1190,43 +1180,43 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
 
 	t.Run("get u1 by id, no caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id}, nil, false)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u1)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfileByIds([]string{u1.Id}, nil, false)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u1)}, users)
 	})
 
 	t.Run("get u1 by id, caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id}, nil, true)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u1)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfileByIds([]string{u1.Id}, nil, true)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u1)}, users)
 	})
 
 	t.Run("get u1, u2, u3 by id, no caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, false)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, false)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, users)
 	})
 
 	t.Run("get u1, u2, u3 by id, caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, true)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, true)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, users)
 	})
 
 	t.Run("get unknown id, caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{"123"}, nil, true)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfileByIds([]string{"123"}, nil, true)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{}, users)
 	})
 
 	t.Run("should only return users with UpdateAt greater than the since time", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id, u4.Id}, &store.UserGetByIdsOpts{
+		users, err := ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id, u4.Id}, &store.UserGetByIdsOpts{
 			Since: u2.CreateAt,
 		}, true)
-		require.Nil(t, result.Err)
+		require.Nil(t, err)
 
 		// u3 comes from the cache, and u4 does not
-		assert.Equal(t, []*model.User{sanitized(u3), sanitized(u4)}, result.Data.([]*model.User))
+		assert.Equal(t, []*model.User{sanitized(u3), sanitized(u4)}, users)
 	})
 }
 
