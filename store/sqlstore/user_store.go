@@ -381,15 +381,12 @@ func (us SqlUserStore) GetAllAfter(limit int, afterId string) ([]*model.User, *m
 	return users, nil
 }
 
-func (s SqlUserStore) GetEtagForAllProfiles() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users ORDER BY UpdateAt DESC LIMIT 1")
-		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
-		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
-		}
-	})
+func (us SqlUserStore) GetEtagForAllProfiles() string {
+	updateAt, err := us.GetReplica().SelectInt("SELECT UpdateAt FROM Users ORDER BY UpdateAt DESC LIMIT 1")
+	if err != nil {
+		return fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+	}
+	return fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
 }
 
 func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
