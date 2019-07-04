@@ -1474,29 +1474,26 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool
 	})
 }
 
-func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) (string, *model.AppError) {
+	var querystr string
+	querystr = `
+		SELECT
+			CONCAT(MAX(UpdateAt), '.', COUNT(Id)) as etag
+		FROM
+			Users as u
+		LEFT JOIN TeamMembers tm
+			ON tm.UserId = u.Id
+			AND tm.TeamId = :TeamId
+			AND tm.DeleteAt = 0
+		WHERE
+			tm.UserId IS NULL
+	`
+	etag, err := us.GetReplica().SelectStr(querystr, map[string]interface{}{"TeamId": teamId})
+	if err != nil {
+		return fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis()), nil
+	}
 
-		var querystr string
-		querystr = `
-			SELECT
-				CONCAT(MAX(UpdateAt), '.', COUNT(Id)) as etag
-			FROM
-				Users as u
-			LEFT JOIN TeamMembers tm
-				ON tm.UserId = u.Id
-				AND tm.TeamId = :TeamId
-				AND tm.DeleteAt = 0
-			WHERE
-				tm.UserId IS NULL
-		`
-		etag, err := us.GetReplica().SelectStr(querystr, map[string]interface{}{"TeamId": teamId})
-		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
-		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, etag)
-		}
-	})
+	return fmt.Sprintf("%v.%v", model.CurrentVersion, etag), nil
 }
 
 func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {

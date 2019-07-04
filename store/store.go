@@ -296,7 +296,7 @@ type UserStore interface {
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetSystemAdminCount() StoreChannel
 	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
-	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
+	GetEtagForProfilesNotInTeam(teamId string) (string, *model.AppError)
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
 	GetAllAfter(limit int, afterId string) StoreChannel

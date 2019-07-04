@@ -506,7 +506,8 @@ func (a *App) GetUsersInTeamEtag(teamId string, restrictionsHash string) string 
 }
 
 func (a *App) GetUsersNotInTeamEtag(teamId string, restrictionsHash string) string {
-	return fmt.Sprintf("%v.%v.%v.%v", (<-a.Srv.Store.User().GetEtagForProfilesNotInTeam(teamId)).Data.(string), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+	etag, _ := a.Srv.Store.User().GetEtagForProfilesNotInTeam(teamId)
+	return fmt.Sprintf("%v.%v.%v.%v", etag, a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
 }
 
 func (a *App) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
