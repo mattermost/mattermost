@@ -47,8 +47,8 @@ var ActianceExportCmd = &cobra.Command{
 
 var GlobalRelayZipExportCmd = &cobra.Command{
 	Use:     "global-relay-zip",
-	Short:   "Export data from Mattermost into a zip of emails to send to Global Relay for debug or testing",
-	Long:    "Export data from Mattermost into a zip of emails to send to Global Relay (This not archives any information in global relay, is for debug and testing purpose)",
+	Short:   "Export data from Mattermost into a zip file containing emails to send to Global Relay for debug and testing purposes only.",
+	Long:    "Export data from Mattermost into a zip file containing emails to send to Global Relay for debug and testing purposes only. This does not archive any information in Global Relay.",
 	Example: "export global-relay-zip --exportFrom=12345",
 	RunE:    buildExportCmdF("globalrelay-zip"),
 }
