@@ -498,7 +498,7 @@ func (a *App) GetUsersNotInTeamPage(teamId string, groupConstrained bool, page i
 }
 
 func (a *App) GetUsersInTeamEtag(teamId string, restrictionsHash string) string {
-	return fmt.Sprintf("%v.%v.%v.%v", (<-a.Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+	return fmt.Sprintf("%v.%v.%v.%v", a.Srv.Store.User().GetEtagForProfiles(teamId), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
 }
 
 func (a *App) GetUsersNotInTeamEtag(teamId string, restrictionsHash string) string {
