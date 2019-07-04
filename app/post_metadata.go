@@ -40,8 +40,10 @@ func (a *App) InitPostMetadata() {
 
 func (a *App) PreparePostListForClient(originalList *model.PostList) *model.PostList {
 	list := &model.PostList{
-		Posts: make(map[string]*model.Post, len(originalList.Posts)),
-		Order: originalList.Order, // Note that this uses the original Order array, so it isn't a deep copy
+		Posts:      make(map[string]*model.Post, len(originalList.Posts)),
+		Order:      originalList.Order,
+		NextPostId: originalList.NextPostId,
+		PrevPostId: originalList.PrevPostId,
 	}
 
 	for id, originalPost := range originalList.Posts {
@@ -450,9 +452,9 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 		metadata.Type = model.LINK_METADATA_TYPE_NONE
 	}
 
-	result := <-a.Srv.Store.LinkMetadata().Save(metadata)
-	if result.Err != nil {
-		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(result.Err))
+	_, err := a.Srv.Store.LinkMetadata().Save(metadata)
+	if err != nil {
+		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
 	}
 }
 

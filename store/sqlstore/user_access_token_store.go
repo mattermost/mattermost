@@ -196,14 +196,11 @@ func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, 
 	return tokens, nil
 }
 
-func (s SqlUserAccessTokenStore) UpdateTokenEnable(tokenId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("UPDATE UserAccessTokens SET IsActive = TRUE WHERE Id = :Id", map[string]interface{}{"Id": tokenId}); err != nil {
-			result.Err = model.NewAppError("SqlUserAccessTokenStore.UpdateTokenEnable", "store.sql_user_access_token.update_token_enable.app_error", nil, "id="+tokenId+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = tokenId
-		}
-	})
+func (s SqlUserAccessTokenStore) UpdateTokenEnable(tokenId string) *model.AppError {
+	if _, err := s.GetMaster().Exec("UPDATE UserAccessTokens SET IsActive = TRUE WHERE Id = :Id", map[string]interface{}{"Id": tokenId}); err != nil {
+		return model.NewAppError("SqlUserAccessTokenStore.UpdateTokenEnable", "store.sql_user_access_token.update_token_enable.app_error", nil, "id="+tokenId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) *model.AppError {
