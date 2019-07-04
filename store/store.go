@@ -269,9 +269,9 @@ type UserStore interface {
 	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
-	GetAllProfiles(options *model.UserGetOptions) StoreChannel
+	GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetProfiles(options *model.UserGetOptions) StoreChannel
-	GetProfileByIds(userIds []string, options *UserGetByIdsOpts, allowFromCache bool) StoreChannel
+	GetProfileByIds(userIds []string, options *UserGetByIdsOpts, allowFromCache bool) ([]*model.User, *model.AppError)
 	GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, *model.AppError)
 	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) (*model.User, *model.AppError)
@@ -281,7 +281,7 @@ type UserStore interface {
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) (*model.User, *model.AppError)
 	VerifyEmail(userId, email string) (string, *model.AppError)
 	GetEtagForAllProfiles() StoreChannel
-	GetEtagForProfiles(teamId string) StoreChannel
+	GetEtagForProfiles(teamId string) string
 	UpdateFailedPasswordAttempts(userId string, attempts int) *model.AppError
 	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
 	PermanentDelete(userId string) *model.AppError

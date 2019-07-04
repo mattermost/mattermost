@@ -193,19 +193,28 @@ func (_m *UserStore) GetAllAfter(limit int, afterId string) ([]*model.User, *mod
 }
 
 // GetAllProfiles provides a mock function with given fields: options
-func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) store.StoreChannel {
+func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	ret := _m.Called(options)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) []*model.User); ok {
 		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
+		r1 = rf(options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAllProfilesInChannel provides a mock function with given fields: channelId, allowFromCache
@@ -380,16 +389,14 @@ func (_m *UserStore) GetEtagForAllProfiles() store.StoreChannel {
 }
 
 // GetEtagForProfiles provides a mock function with given fields: teamId
-func (_m *UserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
+func (_m *UserStore) GetEtagForProfiles(teamId string) string {
 	ret := _m.Called(teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0
@@ -487,19 +494,28 @@ func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userId string, channelId
 }
 
 // GetProfileByIds provides a mock function with given fields: userIds, options, allowFromCache
-func (_m *UserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) store.StoreChannel {
+func (_m *UserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, *model.AppError) {
 	ret := _m.Called(userIds, options, allowFromCache)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func([]string, *store.UserGetByIdsOpts, bool) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func([]string, *store.UserGetByIdsOpts, bool) []*model.User); ok {
 		r0 = rf(userIds, options, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]string, *store.UserGetByIdsOpts, bool) *model.AppError); ok {
+		r1 = rf(userIds, options, allowFromCache)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetProfiles provides a mock function with given fields: options
