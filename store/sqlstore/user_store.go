@@ -224,14 +224,12 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) store.StoreChannel
 	})
 }
 
-func (us SqlUserStore) ResetLastPictureUpdate(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": 0, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.ResetLastPictureUpdate", "store.sql_user.update_last_picture_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
-		} else {
-			result.Data = userId
-		}
-	})
+func (us SqlUserStore) ResetLastPictureUpdate(userId string) *model.AppError {
+	if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": 0, "UserId": userId}); err != nil {
+		return model.NewAppError("SqlUserStore.ResetLastPictureUpdate", "store.sql_user.update_last_picture_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (us SqlUserStore) UpdateUpdateAt(userId string) store.StoreChannel {
@@ -304,16 +302,14 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 	return userId, nil
 }
 
-func (us SqlUserStore) UpdateMfaSecret(userId, secret string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		updateAt := model.GetMillis()
+func (us SqlUserStore) UpdateMfaSecret(userId, secret string) *model.AppError {
+	updateAt := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET MfaSecret = :Secret, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"Secret": secret, "UpdateAt": updateAt, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdateMfaSecret", "store.sql_user.update_mfa_secret.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = userId
-		}
-	})
+	if _, err := us.GetMaster().Exec("UPDATE Users SET MfaSecret = :Secret, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"Secret": secret, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+		return model.NewAppError("SqlUserStore.UpdateMfaSecret", "store.sql_user.update_mfa_secret.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (us SqlUserStore) UpdateMfaActive(userId string, active bool) store.StoreChannel {
@@ -974,33 +970,29 @@ func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channel
 	return usersByChannelId, nil
 }
 
-func (us SqlUserStore) GetSystemAdminProfiles() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Where("Roles LIKE ?", "%system_admin%").
-			OrderBy("u.Username ASC")
+func (us SqlUserStore) GetSystemAdminProfiles() (map[string]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Where("Roles LIKE ?", "%system_admin%").
+		OrderBy("u.Username ASC")
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetSystemAdminProfiles", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetSystemAdminProfiles", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var users []*model.User
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetSystemAdminProfiles", "store.sql_user.get_sysadmin_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetSystemAdminProfiles", "store.sql_user.get_sysadmin_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		userMap := make(map[string]*model.User)
+	userMap := make(map[string]*model.User)
 
-		for _, u := range users {
-			u.Sanitize(map[string]bool{})
-			userMap[u.Id] = u
-		}
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+		userMap[u.Id] = u
+	}
 
-		result.Data = userMap
-	})
+	return userMap, nil
 }
 
 func (us SqlUserStore) GetByEmail(email string) (*model.User, *model.AppError) {
@@ -1082,45 +1074,38 @@ func (us SqlUserStore) GetByUsername(username string) store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery
+func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) (*model.User, *model.AppError) {
+	query := us.usersQuery
+	if allowSignInWithUsername && allowSignInWithEmail {
+		query = query.Where("Username = ? OR Email = ?", loginId, loginId)
+	} else if allowSignInWithUsername {
+		query = query.Where("Username = ?", loginId)
+	} else if allowSignInWithEmail {
+		query = query.Where("Email = ?", loginId)
+	} else {
+		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusInternalServerError)
+	}
 
-		if allowSignInWithUsername && allowSignInWithEmail {
-			query = query.Where("Username = ? OR Email = ?", loginId, loginId)
-		} else if allowSignInWithUsername {
-			query = query.Where("Username = ?", loginId)
-		} else if allowSignInWithEmail {
-			query = query.Where("Email = ?", loginId)
-		} else {
-			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	users := []*model.User{}
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		users := []*model.User{}
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if len(users) == 0 {
+		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusInternalServerError)
+	}
 
-		if len(users) == 0 {
-			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusInternalServerError)
-			return
-		}
+	if len(users) > 1 {
+		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.multiple_users", nil, "", http.StatusInternalServerError)
+	}
 
-		if len(users) > 1 {
-			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.multiple_users", nil, "", http.StatusInternalServerError)
-			return
-		}
+	return users[0], nil
 
-		result.Data = users[0]
-	})
 }
 
 func (us SqlUserStore) VerifyEmail(userId, email string) (string, *model.AppError) {
@@ -1179,19 +1164,17 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 	return count, nil
 }
 
-func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		time := model.GetMillis() - timePeriod
+func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64) (int64, *model.AppError) {
 
-		query := "SELECT COUNT(*) FROM Status WHERE LastActivityAt > :Time"
+	time := model.GetMillis() - timePeriod
 
-		v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.AnalyticsDailyActiveUsers", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = v
-		}
-	})
+	query := "SELECT COUNT(*) FROM Status WHERE LastActivityAt > :Time"
+
+	v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
+	if err != nil {
+		return 0, model.NewAppError("SqlUserStore.AnalyticsDailyActiveUsers", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return v, nil
 }
 
 func (us SqlUserStore) GetUnreadCount(userId string) (int64, error) {
@@ -1283,35 +1266,39 @@ func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options 
 	return result.Data.([]*model.User), nil
 }
 
-func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id AND cm.ChannelId = ? )", channelId).
-			Where("cm.UserId IS NULL").
-			OrderBy("Username ASC").
-			Limit(uint64(options.Limit))
+func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id AND cm.ChannelId = ? )", channelId).
+		Where("cm.UserId IS NULL").
+		OrderBy("Username ASC").
+		Limit(uint64(options.Limit))
 
-		if teamId != "" {
-			query = query.Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId)
-		}
+	if teamId != "" {
+		query = query.Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId)
+	}
 
-		if options.GroupConstrained {
-			query = applyChannelGroupConstrainedFilter(query, channelId)
-		}
+	if options.GroupConstrained {
+		query = applyChannelGroupConstrainedFilter(query, channelId)
+	}
 
-		*result = us.performSearch(query, term, options)
-	})
+	result := us.performSearch(query, term, options)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
 }
 
-func (us SqlUserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Join("ChannelMembers cm ON ( cm.UserId = u.Id AND cm.ChannelId = ? )", channelId).
-			OrderBy("Username ASC").
-			Limit(uint64(options.Limit))
+func (us SqlUserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Join("ChannelMembers cm ON ( cm.UserId = u.Id AND cm.ChannelId = ? )", channelId).
+		OrderBy("Username ASC").
+		Limit(uint64(options.Limit))
 
-		*result = us.performSearch(query, term, options)
-	})
+	result := us.performSearch(query, term, options)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
 }
 
 var escapeLikeSearchChar = []string{
@@ -1427,48 +1414,41 @@ func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
 	return count, nil
 }
 
-func (us SqlUserStore) AnalyticsGetSystemAdminCount() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if count, err := us.GetReplica().SelectInt("SELECT count(*) FROM Users WHERE Roles LIKE :Roles and DeleteAt = 0", map[string]interface{}{"Roles": "%system_admin%"}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.AnalyticsGetSystemAdminCount", "store.sql_user.analytics_get_system_admin_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = count
-		}
-	})
+func (us SqlUserStore) AnalyticsGetSystemAdminCount() (int64, *model.AppError) {
+	count, err := us.GetReplica().SelectInt("SELECT count(*) FROM Users WHERE Roles LIKE :Roles and DeleteAt = 0", map[string]interface{}{"Roles": "%system_admin%"})
+	if err != nil {
+		return int64(0), model.NewAppError("SqlUserStore.AnalyticsGetSystemAdminCount", "store.sql_user.analytics_get_system_admin_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return count, nil
 }
 
-func (us SqlUserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId).
-			Where("tm.UserId IS NULL").
-			OrderBy("u.Username ASC").
-			Offset(uint64(offset)).Limit(uint64(limit))
+func (us SqlUserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	var users []*model.User
+	query := us.usersQuery.
+		LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId).
+		Where("tm.UserId IS NULL").
+		OrderBy("u.Username ASC").
+		Offset(uint64(offset)).Limit(uint64(limit))
 
-		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
-		if groupConstrained {
-			query = applyTeamGroupConstrainedFilter(query, teamId)
-		}
+	if groupConstrained {
+		query = applyTeamGroupConstrainedFilter(query, teamId)
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfilesNotInTeam", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetProfilesNotInTeam", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var users []*model.User
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfilesNotInTeam", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetProfilesNotInTeam", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		for _, u := range users {
-			u.Sanitize(map[string]bool{})
-		}
-
-		result.Data = users
-	})
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+	}
+	return users, nil
 }
 
 func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreChannel {
