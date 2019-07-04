@@ -3309,7 +3309,10 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond * 10)
 
-	u2 := model.User{Email: MakeEmail(), Username: "u2" + model.NewId()}
+	u2 := store.Must(ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u2" + model.NewId(),
+	})).(*model.User)
 	require.Nil(t, ss.User().PermanentDelete(u2.Id))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u2.Id}, -1))
 
@@ -3342,7 +3345,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		users, userErr := ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
 		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
-			sanitized(&u2),
+			sanitized(u2),
 			sanitized(u3),
 		}, users)
 	})
@@ -3368,7 +3371,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	time.Sleep(time.Millisecond * 10)
 
 	// Add u2 to team 1
-	ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 	u2UserVar, _ := ss.User().UpdateUpdateAt(u2.Id)
 	u2.UpdateAt = u2UserVar.UpdateAt
 
@@ -3410,7 +3413,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
-			sanitized(&u2),
+			sanitized(u2),
 			sanitized(u3),
 		}, users)
 	})
@@ -3466,7 +3469,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// add two members to the group
-	for _, u := range []*model.User{u1, &u2} {
+	for _, u := range []*model.User{u1, u2} {
 		_, err = ss.Group().UpsertMember(group.Id, u.Id)
 		require.Nil(t, err)
 	}
@@ -3484,7 +3487,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
-			sanitized(&u2),
+			sanitized(u2),
 		}, users)
 	})
 }
