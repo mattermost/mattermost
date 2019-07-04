@@ -194,11 +194,7 @@ func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.App
 		return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-a.Srv.Store.Emoji().GetMultipleByName(names); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Emoji), nil
-	}
+	return a.Srv.Store.Emoji().GetMultipleByName(names)
 }
 
 func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
