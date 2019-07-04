@@ -447,11 +447,7 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 }
 
 func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetAllProfiles(options)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetAllProfiles(options)
 }
 
 func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
