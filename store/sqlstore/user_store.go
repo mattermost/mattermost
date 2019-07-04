@@ -488,15 +488,12 @@ func applyTeamGroupConstrainedFilter(query sq.SelectBuilder, teamId string) sq.S
 			)`, teamId)
 }
 
-func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
-		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
-		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
-		}
-	})
+func (s SqlUserStore) GetEtagForProfiles(teamId string) string {
+	updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
+	if err != nil {
+		return fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+	}
+	return fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
 }
 
 func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) store.StoreChannel {
