@@ -280,7 +280,7 @@ type UserStore interface {
 	GetByUsername(username string) StoreChannel
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) (*model.User, *model.AppError)
 	VerifyEmail(userId, email string) (string, *model.AppError)
-	GetEtagForAllProfiles() StoreChannel
+	GetEtagForAllProfiles() string
 	GetEtagForProfiles(teamId string) string
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
