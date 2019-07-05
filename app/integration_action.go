@@ -215,12 +215,9 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	rawURLPath := path.Clean(rawURL)
 	if siteURL != nil && (strings.HasPrefix(rawURLPath, "/plugins/") || strings.HasPrefix(rawURLPath, "plugins/")) {
-		if siteURL.Path == "" {
-			siteURL.Path = "/"
-		}
 		inURL.Scheme = siteURL.Scheme
 		inURL.Host = siteURL.Host
-		inURL.Path = path.Join(siteURL.Path, rawURLPath)
+		inURL.Path = path.Join("/", siteURL.Path, rawURLPath)
 		rawURL = inURL.String()
 	}
 
