@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 
@@ -26,11 +25,8 @@ func TestGenerateSecret(t *testing.T) {
 	configService := testutils.StaticConfigService{Cfg: &config}
 	storeMock := mocks.Store{}
 	userStoreMock := mocks.UserStore{}
-	userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) store.StoreChannel {
-		return store.Do(func(result *store.StoreResult) {
-			result.Data = nil
-			result.Err = nil
-		})
+	userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) *model.AppError {
+		return nil
 	})
 	storeMock.On("User").Return(&userStoreMock)
 

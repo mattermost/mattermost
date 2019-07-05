@@ -123,25 +123,22 @@ func (es SqlEmojiStore) GetByName(name string) (*model.Emoji, *model.AppError) {
 	return emoji, nil
 }
 
-func (es SqlEmojiStore) GetMultipleByName(names []string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		keys, params := MapStringsToQueryParams(names, "Emoji")
+func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError) {
+	keys, params := MapStringsToQueryParams(names, "Emoji")
 
-		var emojis []*model.Emoji
+	var emojis []*model.Emoji
 
-		if _, err := es.GetReplica().Select(&emojis,
-			`SELECT
-				*
-			FROM
-				Emoji
-			WHERE
-				Name IN `+keys+`
-				AND DeleteAt = 0`, params); err != nil {
-			result.Err = model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
-		} else {
-			result.Data = emojis
-		}
-	})
+	if _, err := es.GetReplica().Select(&emojis,
+		`SELECT
+			*
+		FROM
+			Emoji
+		WHERE
+			Name IN `+keys+`
+			AND DeleteAt = 0`, params); err != nil {
+		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
+	}
+	return emojis, nil
 }
 
 func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError) {
