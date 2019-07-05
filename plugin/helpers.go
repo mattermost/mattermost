@@ -26,6 +26,8 @@ type Helpers interface {
 	KVGetJSON(key string, value interface{}) (bool, error)
 
 	// KVSetWithExpiryJSON stores a key-value pair with an expiry time, unique per plugin, marshalling the given value as a JSON string.
+	//
+	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 }
 
