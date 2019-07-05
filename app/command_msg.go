@@ -48,12 +48,10 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 	targetUsername = strings.SplitN(message, " ", 2)[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	var userProfile *model.User
-	if result := <-a.Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
-		mlog.Error(result.Err.Error())
+	userProfile, err := a.Srv.Store.User().GetByUsername(targetUsername)
+	if err != nil {
+		mlog.Error(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		userProfile = result.Data.(*model.User)
 	}
 
 	if userProfile.Id == args.UserId {
