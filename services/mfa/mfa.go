@@ -70,8 +70,8 @@ func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError)
 
 	img := code.PNG()
 
-	if result := <-m.Store.User().UpdateMfaSecret(user.Id, secret); result.Err != nil {
-		return "", nil, model.NewAppError("GenerateQrCode", "mfa.generate_qr_code.save_secret.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	if err := m.Store.User().UpdateMfaSecret(user.Id, secret); err != nil {
+		return "", nil, model.NewAppError("GenerateQrCode", "mfa.generate_qr_code.save_secret.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return secret, img, nil
@@ -112,14 +112,18 @@ func (m *Mfa) Deactivate(userId string) *model.AppError {
 	}
 
 	achan := m.Store.User().UpdateMfaActive(userId, false)
-	schan := m.Store.User().UpdateMfaSecret(userId, "")
+	schan := make(chan *model.AppError, 1)
+	go func() {
+		schan <- m.Store.User().UpdateMfaSecret(userId, "")
+		close(schan)
+	}()
 
 	if result := <-achan; result.Err != nil {
 		return model.NewAppError("Deactivate", "mfa.deactivate.save_active.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
 	}
 
-	if result := <-schan; result.Err != nil {
-		return model.NewAppError("Deactivate", "mfa.deactivate.save_secret.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	if err := <-schan; err != nil {
+		return model.NewAppError("Deactivate", "mfa.deactivate.save_secret.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

@@ -28,7 +28,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		return []string{}, nil
 	}
 
-	pchan := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
+	pchan := make(chan store.StoreResult, 1)
+	go func() {
+		props, err := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
+		pchan <- store.StoreResult{Data: props, Err: err}
+		close(pchan)
+	}()
 
 	cmnchan := make(chan store.StoreResult, 1)
 	go func() {

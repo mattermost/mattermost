@@ -285,6 +285,22 @@ func (_m *OAuthStore) RemoveAccessData(token string) *model.AppError {
 	return r0
 }
 
+// RemoveAllAccessData provides a mock function with given fields:
+func (_m *OAuthStore) RemoveAllAccessData() *model.AppError {
+	ret := _m.Called()
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // RemoveAuthData provides a mock function with given fields: code
 func (_m *OAuthStore) RemoveAuthData(code string) *model.AppError {
 	ret := _m.Called(code)
