@@ -1067,7 +1067,7 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 }
 
 func (ss *SqlSupplier) CheckIntegrity() {
-	CheckRelationalIntegrity(ss.master)
+	CheckRelationalIntegrity(ss.GetMaster())
 }
 
 type mattermConverter struct{}
