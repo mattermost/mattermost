@@ -16,9 +16,8 @@ import (
 )
 
 func TestUserStore(t *testing.T, ss store.Store) {
-	result := <-ss.User().GetAll()
-	require.Nil(t, result.Err, "failed cleaning up test users")
-	users := result.Data.([]*model.User)
+	users, err := ss.User().GetAll()
+	require.Nil(t, err, "failed cleaning up test users")
 
 	for _, u := range users {
 		err := ss.User().PermanentDelete(u.Id)
@@ -441,10 +440,9 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get all", func(t *testing.T) {
-		result := <-ss.User().GetAll()
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAll()
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		require.Equal(t, []*model.User{
 			u1,
 			u2,

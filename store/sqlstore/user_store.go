@@ -340,24 +340,19 @@ func (us SqlUserStore) Get(id string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
-func (us SqlUserStore) GetAll() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.OrderBy("Username ASC")
+func (us SqlUserStore) GetAll() ([]*model.User, *model.AppError) {
+	query := us.usersQuery.OrderBy("Username ASC")
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetAll", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetAll", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var data []*model.User
-		if _, err := us.GetReplica().Select(&data, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetAll", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = data
-	})
+	var data []*model.User
+	if _, err := us.GetReplica().Select(&data, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetAll", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return data, nil
 }
 
 func (us SqlUserStore) GetAllAfter(limit int, afterId string) ([]*model.User, *model.AppError) {

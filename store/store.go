@@ -259,7 +259,7 @@ type UserStore interface {
 	UpdateMfaSecret(userId, secret string) *model.AppError
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) (*model.User, *model.AppError)
-	GetAll() StoreChannel
+	GetAll() ([]*model.User, *model.AppError)
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)

@@ -1519,11 +1519,10 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 }
 
 func (a *App) PermanentDeleteAllUsers() *model.AppError {
-	result := <-a.Srv.Store.User().GetAll()
-	if result.Err != nil {
-		return result.Err
+	users, err := a.Srv.Store.User().GetAll()
+	if err != nil {
+		return err
 	}
-	users := result.Data.([]*model.User)
 	for _, user := range users {
 		a.PermanentDeleteUser(user)
 	}
