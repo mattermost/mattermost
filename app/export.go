@@ -17,7 +17,7 @@ import (
 )
 
 // We use this map to identify the exportable preferences.
-// Here we link the preference category and name, to the name of the relevant filed in the import struct.
+// Here we link the preference category and name, to the name of the relevant field in the import struct.
 var exportablePreferences = map[ComparablePreference]string{{
 	Category: model.PREFERENCE_CATEGORY_THEME,
 	Name:     "",
@@ -247,10 +247,10 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]UserTeamImportData, *model.AppError) {
 	var memberships []UserTeamImportData
 
-	members, err := a.Srv.Store.Team().GetTeamMembersForExport(userId)
+	members, err := a.Srv.Store.Team().GetTeamMembersForExport(userID)
 
 	if err != nil {
 		return nil, err
@@ -265,9 +265,15 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 		memberData := ImportUserTeamDataFromTeamMember(member)
 
 		// Do the Channel Memberships.
-		channelMembers, err := a.buildUserChannelMemberships(userId, member.TeamId)
+		channelMembers, err := a.buildUserChannelMemberships(userID, member.TeamId)
 		if err != nil {
 			return nil, err
+		}
+
+		// Get the user theme
+		themePreference, err := a.Srv.Store.Preference().Get(member.UserId, model.PREFERENCE_CATEGORY_THEME, "")
+		if err == nil {
+			memberData.Theme = &themePreference.Value
 		}
 
 		memberData.Channels = channelMembers
