@@ -25,8 +25,6 @@ type Helpers interface {
 	KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error)
 
 	// KVSetWithExpiryJSON stores a key-value pair with an expiry time.
-	//
-	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 }
 
