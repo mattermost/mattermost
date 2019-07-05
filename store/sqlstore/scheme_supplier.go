@@ -42,11 +42,11 @@ func (s *SqlSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hint
 		defer finalizeTransaction(transaction)
 
 		newScheme, appErr := s.createScheme(ctx, scheme, transaction, hints...)
-
-		if appErr == nil {
-			if err := transaction.Commit(); err != nil {
-				return nil, model.NewAppError("SqlSchemeStore.SchemeSave", "store.sql_scheme.save_scheme.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+		if appErr != nil {
+			return nil, appErr
+		}
+		if err := transaction.Commit(); err != nil {
+			return nil, model.NewAppError("SqlSchemeStore.SchemeSave", "store.sql_scheme.save_scheme.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		return newScheme, nil
 	}
