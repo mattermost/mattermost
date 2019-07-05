@@ -555,12 +555,12 @@ type RoleStore interface {
 }
 
 type SchemeStore interface {
-	Save(scheme *model.Scheme) StoreChannel
-	Get(schemeId string) StoreChannel
-	GetByName(schemeName string) StoreChannel
-	GetAllPage(scope string, offset int, limit int) StoreChannel
-	Delete(schemeId string) StoreChannel
-	PermanentDeleteAll() StoreChannel
+	Save(scheme *model.Scheme) (*model.Scheme, *model.AppError)
+	Get(schemeId string) (*model.Scheme, *model.AppError)
+	GetByName(schemeName string) (*model.Scheme, *model.AppError)
+	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError)
+	Delete(schemeId string) (*model.Scheme, *model.AppError)
+	PermanentDeleteAll() *model.AppError
 }
 
 type TermsOfServiceStore interface {
