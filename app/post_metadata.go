@@ -60,9 +60,10 @@ func (a *App) PostWithOverridenIconURL(post *model.Post) *model.Post {
 	if !ok || prop == nil {
 		return post
 	}
-
 	emojiName := prop.(string)
-	if emojiName == "" {
+	delete(post.Props, model.POST_PROPS_OVERRIDE_ICON_EMOJI)
+
+	if !*a.Config().ServiceSettings.EnablePostIconOverride || emojiName == "" {
 		return post
 	}
 

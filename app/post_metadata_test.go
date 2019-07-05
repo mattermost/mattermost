@@ -235,6 +235,48 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 	})
 
+	t.Run("emojis overriding profile icon", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePostIconOverride = false
+		})
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Test",
+		}, th.BasicChannel, false)
+
+		require.Nil(t, err)
+
+		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, "http://host.com/image.png")
+		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_EMOJI, "basketball")
+
+		clientPost := th.App.PreparePostForClient(post, false, false)
+
+		t.Run("does not override icon URL", func(t *testing.T) {
+			s, _ := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
+			assert.EqualValues(t, s, "http://host.com/image.png")
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePostIconOverride = true
+		})
+
+		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, "http://host.com/image.png")
+		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_EMOJI, "basketball")
+
+		clientPost = th.App.PreparePostForClient(post, false, false)
+
+		t.Run("overrides icon URL", func(t *testing.T) {
+			s, _ := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
+			assert.EqualValues(t, s, "/static/emoji/1f3c0.png")
+		})
+
+	})
+
 	t.Run("markdown image dimensions", func(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
