@@ -1107,16 +1107,14 @@ func (_m *UserStore) UpdatePassword(userId string, newPassword string) store.Sto
 }
 
 // UpdateUpdateAt provides a mock function with given fields: userId
-func (_m *UserStore) UpdateUpdateAt(userId string) (*model.User, *model.AppError) {
+func (_m *UserStore) UpdateUpdateAt(userId string) (int64, *model.AppError) {
 	ret := _m.Called(userId)
 
-	var r0 *model.User
-	if rf, ok := ret.Get(0).(func(string) *model.User); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.User)
-		}
+		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 *model.AppError
