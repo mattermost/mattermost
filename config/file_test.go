@@ -204,24 +204,134 @@ func TestFileStoreGet(t *testing.T) {
 }
 
 func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
-	path, tearDown := setupConfigFile(t, testConfig)
-	defer tearDown()
+	t.Run("get override for a string variable", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, testConfig)
+		defer tearDown()
 
-	fs, err := config.NewFileStore(path, false)
-	require.NoError(t, err)
-	defer fs.Close()
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
 
-	assert.Equal(t, "http://TestStoreNew", *fs.Get().ServiceSettings.SiteURL)
-	assert.Empty(t, fs.GetEnvironmentOverrides())
+		assert.Equal(t, "http://TestStoreNew", *fs.Get().ServiceSettings.SiteURL)
+		assert.Empty(t, fs.GetEnvironmentOverrides())
 
-	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 
-	fs, err = config.NewFileStore(path, false)
-	require.NoError(t, err)
-	defer fs.Close()
+		fs, err = config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
 
-	assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
-	assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for a bool variable", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, testConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, false, *fs.Get().PluginSettings.EnableUploads)
+		assert.Empty(t, fs.GetEnvironmentOverrides())
+
+		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
+
+		fs, err = config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
+		assert.Equal(t, map[string]interface{}{"PluginSettings": map[string]interface{}{"EnableUploads": true}}, fs.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for an int variable", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, testConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, model.TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM, *fs.Get().TeamSettings.MaxUsersPerTeam)
+		assert.Empty(t, fs.GetEnvironmentOverrides())
+
+		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
+
+		fs, err = config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
+		assert.Equal(t, map[string]interface{}{"TeamSettings": map[string]interface{}{"MaxUsersPerTeam": true}}, fs.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for an int64 variable", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, testConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, int64(63072000), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
+		assert.Empty(t, fs.GetEnvironmentOverrides())
+
+		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
+
+		fs, err = config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"TLSStrictTransportMaxAge": true}}, fs.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for a slice variable - one value", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, testConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, []string{}, fs.Get().SqlSettings.DataSourceReplicas)
+		assert.Empty(t, fs.GetEnvironmentOverrides())
+
+		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
+
+		fs, err = config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
+		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for a slice variable - three values", func(t *testing.T) {
+		// This should work, but Viper (or we) don't parse environment variables to turn strings with spaces into slices.
+		t.Skip("not implemented yet")
+
+		path, tearDown := setupConfigFile(t, testConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, []string{}, fs.Get().SqlSettings.DataSourceReplicas)
+		assert.Empty(t, fs.GetEnvironmentOverrides())
+
+		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db user:pwd@db2:5433/test-db2 user:pwd@db3:5434/test-db3")
+
+		fs, err = config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}, fs.Get().SqlSettings.DataSourceReplicas)
+		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
+	})
 }
 
 func TestFileStoreSet(t *testing.T) {
@@ -438,7 +548,7 @@ func TestFileStoreLoad(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
 	})
 
-	t.Run("do not persist environment variables", func(t *testing.T) {
+	t.Run("do not persist environment variables - string", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
@@ -458,6 +568,118 @@ func TestFileStoreLoad(t *testing.T) {
 		// check that on disk config does not include overwritten variable
 		actualConfig := getActualFileConfig(t, path)
 		assert.Equal(t, "http://minimal", *actualConfig.ServiceSettings.SiteURL)
+	})
+
+	t.Run("do not persist environment variables - boolean", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
+
+		_, err = fs.Set(fs.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
+		assert.Equal(t, map[string]interface{}{"PluginSettings": map[string]interface{}{"EnableUploads": true}}, fs.GetEnvironmentOverrides())
+		// check that on disk config does not include overwritten variable
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, false, *actualConfig.PluginSettings.EnableUploads)
+	})
+
+	t.Run("do not persist environment variables - int", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
+
+		_, err = fs.Set(fs.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
+		assert.Equal(t, map[string]interface{}{"TeamSettings": map[string]interface{}{"MaxUsersPerTeam": true}}, fs.GetEnvironmentOverrides())
+		// check that on disk config does not include overwritten variable
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, model.TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM, *actualConfig.TeamSettings.MaxUsersPerTeam)
+	})
+
+	t.Run("do not persist environment variables - int64", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
+
+		_, err = fs.Set(fs.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"TLSStrictTransportMaxAge": true}}, fs.GetEnvironmentOverrides())
+		// check that on disk config does not include overwritten variable
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, int64(63072000), *actualConfig.ServiceSettings.TLSStrictTransportMaxAge)
+	})
+
+	t.Run("do not persist environment variables - string slice beginning with default", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
+
+		_, err = fs.Set(fs.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
+		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
+		// check that on disk config does not include overwritten variable
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, []string(nil), actualConfig.SqlSettings.DataSourceReplicas)
+	})
+
+	t.Run("do not persist environment variables - string slice beginning with slice of three", func(t *testing.T) {
+		modifiedMinimalConfig := minimalConfig.Clone()
+		modifiedMinimalConfig.SqlSettings.DataSourceReplicas = []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}
+		path, tearDown := setupConfigFile(t, modifiedMinimalConfig)
+		defer tearDown()
+
+		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
+
+		_, err = fs.Set(fs.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
+		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
+		// check that on disk config does not include overwritten variable
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}, actualConfig.SqlSettings.DataSourceReplicas)
 	})
 
 	t.Run("invalid", func(t *testing.T) {
