@@ -448,8 +448,8 @@ test-data: start-docker ## Add test data to the local instance.
 	@echo ========================================================================
 
 define validate_go_version
-	@if [ $(GO_MINOR_VERSION) -lt $(MINIMUM_SUPPORTED_MINOR_VERSION) ]; then \
-		echo 'Golang version is not supported, please update.';\
+	@if [ $(SUB_VERSION) -lt $(MINIMUM_SUPPORTED_MINOR_VERSION) ]; then \
+		echo 'Golang version is not supported, please update to at least minor version $(MINIMUM_SUPPORTED_MINOR_VERSION)';\
 		exit 1; \
 	fi
 endef
