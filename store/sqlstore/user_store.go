@@ -482,40 +482,37 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) string {
 	return fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
 }
 
-func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) store.StoreChannel {
+func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
-			Where("tm.TeamId = ?", options.InTeamId).
-			OrderBy("u.Username ASC").
-			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+	query := us.usersQuery.
+		Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
+		Where("tm.TeamId = ?", options.InTeamId).
+		OrderBy("u.Username ASC").
+		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
-		query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
+	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
-		query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyRoleFilter(query, options.Role, isPostgreSQL)
 
-		if options.Inactive {
-			query = query.Where("u.DeleteAt != 0")
-		}
+	if options.Inactive {
+		query = query.Where("u.DeleteAt != 0")
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfiles", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetProfiles", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var users []*model.User
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		for _, u := range users {
-			u.Sanitize(map[string]bool{})
-		}
-		result.Data = users
-	})
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+	}
+
+	return users, nil
 }
 
 func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
