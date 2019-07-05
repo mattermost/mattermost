@@ -985,7 +985,8 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	if data.Attachments != nil {
-		fileIds, err := a.uploadAttachments(data.Attachments, post, team.Id, dryRun)
+		var fileIds []string
+		fileIds, err = a.uploadAttachments(data.Attachments, post, team.Id, dryRun)
 		if err != nil {
 			return err
 		}
@@ -993,11 +994,11 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	}
 
 	if post.Id == "" {
-		if _, err := a.Srv.Store.Post().Save(post); err != nil {
+		if _, err = a.Srv.Store.Post().Save(post); err != nil {
 			return err
 		}
 	} else {
-		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
+		if _, err = a.Srv.Store.Post().Overwrite(post); err != nil {
 			return err
 		}
 	}
@@ -1144,7 +1145,7 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 
 func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError {
 	var err *model.AppError
-	if err := validateDirectPostImportData(data, a.MaxPostSize()); err != nil {
+	if err = validateDirectPostImportData(data, a.MaxPostSize()); err != nil {
 		return err
 	}
 
@@ -1164,14 +1165,15 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	}
 
 	var channel *model.Channel
+	var ch *model.Channel
 	if len(userIds) == 2 {
-		ch, err := a.createDirectChannel(userIds[0], userIds[1])
+		ch, err = a.createDirectChannel(userIds[0], userIds[1])
 		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
 			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
 		channel = ch
 	} else {
-		ch, err := a.createGroupChannel(userIds, userIds[0])
+		ch, err = a.createGroupChannel(userIds, userIds[0])
 		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
 			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
@@ -1210,7 +1212,8 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	if data.Attachments != nil {
-		fileIds, err := a.uploadAttachments(data.Attachments, post, "noteam", dryRun)
+		var fileIds []string
+		fileIds, err = a.uploadAttachments(data.Attachments, post, "noteam", dryRun)
 		if err != nil {
 			return err
 		}
@@ -1218,11 +1221,11 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	}
 
 	if post.Id == "" {
-		if _, err := a.Srv.Store.Post().Save(post); err != nil {
+		if _, err = a.Srv.Store.Post().Save(post); err != nil {
 			return err
 		}
 	} else {
-		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
+		if _, err = a.Srv.Store.Post().Overwrite(post); err != nil {
 			return err
 		}
 	}
