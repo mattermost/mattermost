@@ -90,10 +90,12 @@ func (s *Store) Close()                                { /* do nothing */ }
 func (s *Store) LockToMaster()                         { /* do nothing */ }
 func (s *Store) UnlockFromMaster()                     { /* do nothing */ }
 func (s *Store) DropAllTables()                        { /* do nothing */ }
-func (s *Store) CheckIntegrity()                       { /* do nothing */ }
 func (s *Store) TotalMasterDbConnections() int         { return 1 }
 func (s *Store) TotalReadDbConnections() int           { return 1 }
 func (s *Store) TotalSearchDbConnections() int         { return 1 }
+func (s *Store) CheckIntegrity() <-chan store.IntegrityCheckResult {
+	return make(chan store.IntegrityCheckResult)
+}
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,

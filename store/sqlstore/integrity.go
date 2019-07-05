@@ -8,21 +8,11 @@ import (
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/store"
 )
 
-type OrphanedRecord struct {
-	ParentId string
-	ChildId  string
-}
-
-type IntegrityCheckResult struct {
-	ParentName string
-	ChildName  string
-	Records    []OrphanedRecord
-}
-
-func getOrphanedRecords(dbmap *gorp.DbMap, parent, child, parentIdAttr, childIdAttr string) ([]OrphanedRecord, error) {
-	var records []OrphanedRecord
+func getOrphanedRecords(dbmap *gorp.DbMap, parent, child, parentIdAttr, childIdAttr string) ([]store.OrphanedRecord, error) {
+	var records []store.OrphanedRecord
 
 	query := fmt.Sprintf(`
 		SELECT
@@ -44,22 +34,22 @@ func getOrphanedRecords(dbmap *gorp.DbMap, parent, child, parentIdAttr, childIdA
 	return records, err
 }
 
-func printOrphanedRecords(records []OrphanedRecord, parent, child string) {
-	fmt.Println(fmt.Sprintf("Found %d records of %s orphans of %s", len(records), child, parent))
-	for _, record := range records {
-		fmt.Println(fmt.Sprintf("	Child %s is orphan of Parent %s", record.ChildId, record.ParentId))
-	}
-}
-
-func checkChannelsIntegrity(dbmap *gorp.DbMap) {
+func checkChannelsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
 	var err error
-	var records []OrphanedRecord
+	var records []store.OrphanedRecord
+	var result store.IntegrityCheckResult
+
 	records, err = getOrphanedRecords(dbmap, "Channels", "Posts", "ChannelId", "Id")
 	if err != nil {
 		mlog.Error(err.Error())
-		return
 	}
-	printOrphanedRecords(records, "Channels", "Posts")
+
+	result.ParentName = "Channels"
+	result.ChildName = "Posts"
+	result.Records = records
+	result.Err = err
+
+	results <- result
 }
 
 func checkUsersIntegrity(dbmap *gorp.DbMap) {
@@ -70,10 +60,11 @@ func checkTeamsIntegrity(dbmap *gorp.DbMap) {
 
 }
 
-func CheckRelationalIntegrity(dbmap *gorp.DbMap) {
+func CheckRelationalIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
 	mlog.Info("Starting relational integrity checks...")
-	checkChannelsIntegrity(dbmap)
+	checkChannelsIntegrity(dbmap, results)
 	//checkUsersIntegrity(dbmap)
 	//checkTeamsIntegrity(dbmap)
 	mlog.Info("Done with relational integrity checks")
+	close(results)
 }

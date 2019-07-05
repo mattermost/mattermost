@@ -79,8 +79,19 @@ func (_m *LayeredStoreDatabaseLayer) ChannelMemberHistory() store.ChannelMemberH
 }
 
 // CheckIntegrity provides a mock function with given fields:
-func (_m *LayeredStoreDatabaseLayer) CheckIntegrity() {
-	_m.Called()
+func (_m *LayeredStoreDatabaseLayer) CheckIntegrity() <-chan store.IntegrityCheckResult {
+	ret := _m.Called()
+
+	var r0 <-chan store.IntegrityCheckResult
+	if rf, ok := ret.Get(0).(func() <-chan store.IntegrityCheckResult); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(<-chan store.IntegrityCheckResult)
+		}
+	}
+
+	return r0
 }
 
 // Close provides a mock function with given fields:

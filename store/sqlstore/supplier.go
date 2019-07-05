@@ -1066,8 +1066,10 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 	return builder
 }
 
-func (ss *SqlSupplier) CheckIntegrity() {
-	CheckRelationalIntegrity(ss.GetMaster())
+func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
+	results := make(chan store.IntegrityCheckResult)
+	go CheckRelationalIntegrity(ss.GetMaster(), results)
+	return results
 }
 
 type mattermConverter struct{}
