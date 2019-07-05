@@ -41,14 +41,14 @@ func (s *SqlSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hint
 		}
 		defer finalizeTransaction(transaction)
 
-		scheme, appErr := s.createScheme(ctx, scheme, transaction, hints...)
+		newScheme, appErr := s.createScheme(ctx, scheme, transaction, hints...)
 
 		if appErr == nil {
 			if err := transaction.Commit(); err != nil {
 				return nil, model.NewAppError("SqlSchemeStore.SchemeSave", "store.sql_scheme.save_scheme.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
-		return scheme, nil
+		return newScheme, nil
 	}
 
 	if !scheme.IsValid() {
