@@ -1388,9 +1388,9 @@ func testUserStoreGetProfilesByUsernames(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get by u1 and u3 usernames, team id 1", func(t *testing.T) {
-		_, err := ss.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, &model.ViewUsersRestrictions{Teams: []string{teamId}})
+		users, err := ss.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, &model.ViewUsersRestrictions{Teams: []string{teamId}})
 		require.Nil(t, err)
-		assert.Equal(t, []*model.User{u1}, err)
+		assert.Equal(t, []*model.User{u1}, users)
 	})
 
 	t.Run("get by u1 and u3 usernames, team id 2", func(t *testing.T) {
