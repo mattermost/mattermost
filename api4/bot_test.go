@@ -1119,14 +1119,10 @@ func TestSetBotIconImage(t *testing.T) {
 	defer th.App.PermanentDeleteBot(bot.UserId)
 
 	badData, err := testutils.ReadTestFile("test.png")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	goodData, err := testutils.ReadTestFile("test.svg")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	// SetBotIconImage only allowed for bots
 	_, resp = th.SystemAdminClient.SetBotIconImage(user.Id, goodData)
@@ -1134,15 +1130,11 @@ func TestSetBotIconImage(t *testing.T) {
 
 	// png/jpg is not allowed
 	ok, resp := th.Client.SetBotIconImage(bot.UserId, badData)
-	if ok {
-		t.Fatal("Should return false, set icon image only allows svg")
-	}
+	require.False(t, ok, "Should return false, set icon image only allows svg")
 	CheckBadRequestStatus(t, resp)
 
 	ok, resp = th.Client.SetBotIconImage(model.NewId(), badData)
-	if ok {
-		t.Fatal("Should return false, set icon image not allowed")
-	}
+	require.False(t, ok, "Should return false, set icon image not allowed")
 	CheckNotFoundStatus(t, resp)
 
 	_, resp = th.Client.SetBotIconImage(bot.UserId, goodData)
@@ -1157,16 +1149,15 @@ func TestSetBotIconImage(t *testing.T) {
 	} else if resp.StatusCode == http.StatusUnauthorized {
 		CheckUnauthorizedStatus(t, resp)
 	} else {
-		t.Fatal("Should have failed either forbidden or unauthorized")
+		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
 	_, resp = th.SystemAdminClient.SetBotIconImage(bot.UserId, goodData)
 	CheckNoError(t, resp)
 
 	info := &model.FileInfo{Path: "/bots/" + bot.UserId + "/icon.svg"}
-	if err := th.cleanupTestFile(info); err != nil {
-		t.Fatal(err)
-	}
+	err = th.cleanupTestFile(info)
+	require.Nil(t, err)
 }
 
 func TestGetBotIconImage(t *testing.T) {
@@ -1227,9 +1218,8 @@ func TestGetBotIconImage(t *testing.T) {
 	CheckNoError(t, resp)
 
 	info := &model.FileInfo{Path: "/bots/" + bot.UserId + "/icon.svg"}
-	if err := th.cleanupTestFile(info); err != nil {
-		t.Fatal(err)
-	}
+	err = th.cleanupTestFile(info)
+	require.Nil(t, err)
 }
 
 func TestDeleteBotIconImage(t *testing.T) {
@@ -1260,9 +1250,8 @@ func TestDeleteBotIconImage(t *testing.T) {
 
 	// Set an icon image
 	svgData, err := testutils.ReadTestFile("test.svg")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
+
 	_, resp = th.Client.SetBotIconImage(bot.UserId, svgData)
 	CheckNoError(t, resp)
 
