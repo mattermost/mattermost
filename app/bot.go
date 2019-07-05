@@ -209,8 +209,7 @@ func (a *App) SetBotIconImage(botUserId string, imageData *multipart.FileHeader)
 	}
 	defer file.Close()
 
-	_, err = parseSVG(file)
-	if err != nil {
+	if _, err = parseSVG(file); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 

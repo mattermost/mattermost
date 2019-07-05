@@ -248,7 +248,8 @@ func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	} else if !user.IsBot {
+	}
+	if !user.IsBot {
 		c.Err = model.MakeBotNotFoundError(botUserId)
 		return
 	}

@@ -2229,7 +2229,7 @@ func (a *App) invalidateUserCacheAndPublish(userId string) {
 
 	user, userErr := a.GetUser(userId)
 	if userErr != nil {
-		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v", userId), mlog.String("user_id", userId))
+		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v, err=%v", userId, userErr.Error()), mlog.String("user_id", userId))
 		return
 	}
 
