@@ -890,7 +890,7 @@ func (s SqlTeamStore) ResetAllTeamSchemes() *model.AppError {
 	if _, err := s.GetMaster().Exec("UPDATE Teams SET SchemeId=''"); err != nil {
 		return model.NewAppError("SqlTeamStore.ResetAllTeamSchemes", "store.sql_team.reset_all_team_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return nil;
+	return nil
 }
 
 var allTeamIdsForUserCache = utils.NewLru(ALL_TEAM_IDS_FOR_USER_CACHE_SIZE)
