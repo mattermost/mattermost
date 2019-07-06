@@ -252,13 +252,11 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImportData, *model.AppError) {
 	var memberships []UserTeamImportData
 
-	result := <-a.Srv.Store.Team().GetTeamMembersForExport(userId)
+	members, err := a.Srv.Store.Team().GetTeamMembersForExport(userId)
 
-	if result.Err != nil {
-		return nil, result.Err
+	if err != nil {
+		return nil, err
 	}
-
-	members := result.Data.([]*model.TeamMemberForExport)
 
 	for _, member := range members {
 		// Skip deleted.

@@ -121,7 +121,7 @@ type TeamStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
 	GetAllForExportAfter(limit int, afterId string) StoreChannel
-	GetTeamMembersForExport(userId string) StoreChannel
+	GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError)
 	UserBelongsToTeams(userId string, teamIds []string) StoreChannel
 	GetUserTeamIds(userId string, allowFromCache bool) StoreChannel
 	InvalidateAllTeamIdsForUser(userId string)
