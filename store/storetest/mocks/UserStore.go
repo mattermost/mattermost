@@ -1072,15 +1072,15 @@ func (_m *UserStore) UpdateAuthData(userId string, service string, authData *str
 }
 
 // UpdateFailedPasswordAttempts provides a mock function with given fields: userId, attempts
-func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) store.StoreChannel {
+func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) *model.AppError {
 	ret := _m.Called(userId, attempts)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int) *model.AppError); ok {
 		r0 = rf(userId, attempts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

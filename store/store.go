@@ -282,7 +282,7 @@ type UserStore interface {
 	VerifyEmail(userId, email string) (string, *model.AppError)
 	GetEtagForAllProfiles() string
 	GetEtagForProfiles(teamId string) string
-	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
+	UpdateFailedPasswordAttempts(userId string, attempts int) *model.AppError
 	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
 	PermanentDelete(userId string) *model.AppError
 	AnalyticsActiveCount(time int64) (int64, *model.AppError)
