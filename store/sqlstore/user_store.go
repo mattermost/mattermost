@@ -1434,7 +1434,7 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool
 	return users, nil
 }
 
-func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) (string, *model.AppError) {
+func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) string {
 	var querystr string
 	querystr = `
 		SELECT
@@ -1450,10 +1450,10 @@ func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) (string, *mode
 	`
 	etag, err := us.GetReplica().SelectStr(querystr, map[string]interface{}{"TeamId": teamId})
 	if err != nil {
-		return fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis()), nil
+		return fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 	}
 
-	return fmt.Sprintf("%v.%v", model.CurrentVersion, etag), nil
+	return fmt.Sprintf("%v.%v", model.CurrentVersion, etag)
 }
 
 func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {

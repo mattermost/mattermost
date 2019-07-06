@@ -401,7 +401,7 @@ func (_m *UserStore) GetEtagForProfiles(teamId string) string {
 }
 
 // GetEtagForProfilesNotInTeam provides a mock function with given fields: teamId
-func (_m *UserStore) GetEtagForProfilesNotInTeam(teamId string) (string, *model.AppError) {
+func (_m *UserStore) GetEtagForProfilesNotInTeam(teamId string) string {
 	ret := _m.Called(teamId)
 
 	var r0 string
@@ -411,16 +411,7 @@ func (_m *UserStore) GetEtagForProfilesNotInTeam(teamId string) (string, *model.
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(teamId)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
+	return r0
 }
 
 // GetForLogin provides a mock function with given fields: loginId, allowSignInWithUsername, allowSignInWithEmail
