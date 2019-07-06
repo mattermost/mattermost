@@ -20,10 +20,7 @@ func makeBotWithUser(ss store.Store, t *testing.T, bot *model.Bot) (*model.Bot, 
 
 	bot.UserId = user.Id
 	bot, err = ss.Bot().Save(bot)
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	return bot, user
 }

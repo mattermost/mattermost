@@ -49,6 +49,7 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
 	_, err = ss.TermsOfService().Save(termsOfService)
+	require.Nil(t, err)
 
 	fetchedTermsOfService, err := ss.TermsOfService().GetLatest(true)
 	require.Nil(t, err)
