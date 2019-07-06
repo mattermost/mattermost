@@ -802,8 +802,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		require.Equal(t, m1.TeamId, ms[0].TeamId)
 	}
 
-	if r1 := <-ss.Team().RemoveMember(teamId1, m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if err := ss.Team().RemoveMember(teamId1, m1.UserId); err != nil {
+		t.Fatal(err)
 	}
 
 	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
@@ -872,8 +872,8 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
 
-	r1 = <-ss.Team().RemoveMember(teamId1, m1.UserId)
-	require.Nil(t, r1.Err)
+	e := ss.Team().RemoveMember(teamId1, m1.UserId)
+	require.Nil(t, e)
 
 	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
@@ -937,7 +937,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		}, maxUsersPerTeam))
 
 		defer func(userId string) {
-			<-ss.Team().RemoveMember(team.Id, userId)
+			ss.Team().RemoveMember(team.Id, userId)
 		}(userIds[i])
 	}
 
@@ -989,7 +989,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		t.Fatal("should've been able to save new member after deleting one", result.Err)
 	} else {
 		defer func(userId string) {
-			<-ss.Team().RemoveMember(team.Id, userId)
+			ss.Team().RemoveMember(team.Id, userId)
 		}(newUserId)
 	}
 
@@ -1016,7 +1016,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		t.Fatal("should've been able to save new member after deleting one", result.Err)
 	} else {
 		defer func(userId string) {
-			<-ss.Team().RemoveMember(team.Id, userId)
+			ss.Team().RemoveMember(team.Id, userId)
 		}(newUserId2)
 	}
 }

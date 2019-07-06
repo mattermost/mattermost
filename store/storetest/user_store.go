@@ -3483,6 +3483,14 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	u2.UpdateAt, err = ss.User().UpdateUpdateAt(u2.Id)
 	require.Nil(t, err)
+	e := ss.Team().RemoveMember(teamId, u1.Id)
+	require.Nil(t, e)
+
+	e = ss.Team().RemoveMember(teamId, u1.Id)
+	require.Nil(t, e)
+
+	u1.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u1.Id)).(int64)
+	u2.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u2.Id)).(int64)
 
 	t.Run("etag for profiles not in team 1 after second update", func(t *testing.T) {
 		etag3 = ss.User().GetEtagForProfilesNotInTeam(teamId)
@@ -3919,8 +3927,8 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	requireNUsers(2)
 
 	// delete team membership of allowed user
-	res = <-ss.Team().RemoveMember(team.Id, userGroupA.Id)
-	require.Nil(t, res.Err)
+	err = ss.Team().RemoveMember(team.Id, userGroupA.Id)
+	require.Nil(t, err)
 
 	// ensure removed allowed member still returned by query
 	requireNUsers(2)
