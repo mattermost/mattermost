@@ -21,7 +21,8 @@ func init() {
 }
 
 func printIntegrityCheckResult(result store.IntegrityCheckResult) {
-	fmt.Println(fmt.Sprintf("Found %d records of relation %s orphans of relation %s", len(result.Records), result.ChildName, result.ParentName))
+	fmt.Println(fmt.Sprintf("Found %d records of relation %s orphans of relation %s",
+		len(result.Records), result.Info.ChildName, result.Info.ParentName))
 	for _, record := range result.Records {
 		fmt.Println(fmt.Sprintf("	Child %s is orphan of Parent %s", record.ChildId, record.ParentId))
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func getOrphanedRecords(dbmap *gorp.DbMap, parent, child, parentIdAttr, childIdAttr string) ([]store.OrphanedRecord, error) {
+func getOrphanedRecords(dbmap *gorp.DbMap, info store.IntegrityRelationInfo) ([]store.OrphanedRecord, error) {
 	var records []store.OrphanedRecord
 
 	query := fmt.Sprintf(`
@@ -27,29 +27,31 @@ func getOrphanedRecords(dbmap *gorp.DbMap, parent, child, parentIdAttr, childIdA
 			WHERE
 				%s.id = %s.%s
 		)
-	`, parentIdAttr, childIdAttr, child, parent, parent, child, parentIdAttr)
+	`, info.ParentIdAttr, info.ChildIdAttr, info.ChildName,
+		info.ParentName, info.ParentName, info.ChildName, info.ParentIdAttr)
 
 	_, err := dbmap.Select(&records, query)
 
 	return records, err
 }
 
-func checkChannelsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	var err error
-	var records []store.OrphanedRecord
+func checkChannelsPostsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
 	var result store.IntegrityCheckResult
 
-	records, err = getOrphanedRecords(dbmap, "Channels", "Posts", "ChannelId", "Id")
-	if err != nil {
-		mlog.Error(err.Error())
+	result.Info.ParentName = "Channels"
+	result.Info.ChildName = "Posts"
+	result.Info.ParentIdAttr = "ChannelId"
+	result.Info.ChildIdAttr = "Id"
+	result.Records, result.Err = getOrphanedRecords(dbmap, result.Info)
+	if result.Err != nil {
+		mlog.Error(result.Err.Error())
 	}
 
-	result.ParentName = "Channels"
-	result.ChildName = "Posts"
-	result.Records = records
-	result.Err = err
-
 	results <- result
+}
+
+func checkChannelsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
+	checkChannelsPostsIntegrity(dbmap, results)
 }
 
 func checkUsersIntegrity(dbmap *gorp.DbMap) {

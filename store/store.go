@@ -650,9 +650,15 @@ type OrphanedRecord struct {
 	ChildId  string
 }
 
+type IntegrityRelationInfo struct {
+	ParentName   string
+	ChildName    string
+	ParentIdAttr string
+	ChildIdAttr  string
+}
+
 type IntegrityCheckResult struct {
-	ParentName string
-	ChildName  string
-	Records    []OrphanedRecord
-	Err        error
+	Info    IntegrityRelationInfo
+	Records []OrphanedRecord
+	Err     error
 }
