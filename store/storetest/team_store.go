@@ -1051,7 +1051,8 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
-	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+	s2, err := ss.Scheme().Save(s2)
+	require.Nil(t, err)
 	t.Log(s2)
 
 	t2, err := ss.Team().Save(&model.Team{
@@ -1318,8 +1319,10 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
 
-	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
-	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+	s1, err := ss.Scheme().Save(s1)
+	require.Nil(t, err)
+	s2, err = ss.Scheme().Save(s2)
+	require.Nil(t, err)
 
 	// Create and save some teams.
 	t1 := &model.Team{
@@ -1345,7 +1348,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	_, err := ss.Team().Save(t1)
+	_, err = ss.Team().Save(t1)
 	require.Nil(t, err)
 
 	_, err = ss.Team().Save(t2)
@@ -1447,7 +1450,8 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
-	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+	s1, err := ss.Scheme().Save(s1)
+	require.Nil(t, err)
 
 	t1 := &model.Team{
 		Name:        model.NewId(),
@@ -1465,7 +1469,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 		SchemeId:    &s1.Id,
 	}
 
-	t1, err := ss.Team().Save(t1)
+	t1, err = ss.Team().Save(t1)
 	require.Nil(t, err)
 	t2, err = ss.Team().Save(t2)
 	require.Nil(t, err)
@@ -1539,7 +1543,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
-	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+	s1, err := ss.Scheme().Save(s1)
+	require.Nil(t, err)
 
 	count1 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(0), count1)
@@ -1551,7 +1556,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &s1.Id,
 	}
-	_, err := ss.Team().Save(t1)
+	_, err = ss.Team().Save(t1)
 	require.Nil(t, err)
 
 	count2 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
