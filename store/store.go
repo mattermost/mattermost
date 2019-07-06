@@ -117,7 +117,7 @@ type TeamStore interface {
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) StoreChannel
 	GetTeamsByScheme(schemeId string, offset int, limit int) StoreChannel
 	MigrateTeamMembers(fromTeamId string, fromUserId string) StoreChannel
-	ResetAllTeamSchemes() StoreChannel
+	ResetAllTeamSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() StoreChannel
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
 	GetAllForExportAfter(limit int, afterId string) StoreChannel

@@ -18,8 +18,8 @@ const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents coll
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
-	if result := <-a.Srv.Store.Team().ResetAllTeamSchemes(); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().ResetAllTeamSchemes(); err != nil {
+		return err
 	}
 
 	// Reset all Channels to not have a scheme.
