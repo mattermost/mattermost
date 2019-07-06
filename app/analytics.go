@@ -66,7 +66,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 				close(userInactiveChan)
 			}()
 		} else {
-			userChan := make(chan store.StoreResult, 1)
+			userChan = make(chan store.StoreResult, 1)
 			go func() {
 				count, err := a.Srv.Store.User().Count(model.UserCountOptions{TeamId: teamId})
 				userChan <- store.StoreResult{Data: count, Err: err}
@@ -84,13 +84,25 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			}()
 		}
 
-		dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
-		monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
 		teamCountChan := make(chan store.StoreResult, 1)
 		go func() {
 			teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
 			teamCountChan <- store.StoreResult{Data: teamCount, Err: err}
 			close(teamCountChan)
+		}()
+
+		dailyActiveChan := make(chan store.StoreResult, 1)
+		go func() {
+			dailyActive, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+			dailyActiveChan <- store.StoreResult{Data: dailyActive, Err: err}
+			close(dailyActiveChan)
+		}()
+
+		monthlyActiveChan := make(chan store.StoreResult, 1)
+		go func() {
+			monthlyActive, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, Err: err}
+			close(monthlyActiveChan)
 		}()
 
 		r := <-openChan

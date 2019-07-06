@@ -20,6 +20,7 @@ import (
 const (
 	PENDING_POST_IDS_CACHE_SIZE = 25000
 	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
+	PAGE_DEFAULT                = 0
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
@@ -672,6 +673,126 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 		return a.Srv.Store.Post().GetPostsBefore(channelId, postId, limit, offset)
 	}
 	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
+}
+
+func (a *App) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+	return a.Srv.Store.Post().GetPostAfterTime(channelId, time)
+}
+
+func (a *App) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+	return a.Srv.Store.Post().GetPostIdAfterTime(channelId, time)
+}
+
+func (a *App) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+	return a.Srv.Store.Post().GetPostIdBeforeTime(channelId, time)
+}
+
+func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
+	if len(postList.Order) > 0 {
+		firstPostId := postList.Order[0]
+		firstPost := postList.Posts[firstPostId]
+		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt)
+		if err != nil {
+			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
+		}
+
+		return nextPostId
+	}
+
+	return ""
+}
+
+func (a *App) GetPrevPostIdFromPostList(postList *model.PostList) string {
+	if len(postList.Order) > 0 {
+		lastPostId := postList.Order[len(postList.Order)-1]
+		lastPost := postList.Posts[lastPostId]
+		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt)
+		if err != nil {
+			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
+		}
+
+		return previousPostId
+	}
+
+	return ""
+}
+
+// AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
+// The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
+// and only query to database whenever necessary.
+func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int) {
+	prevPostIdSet := false
+	prevPostId := ""
+	nextPostIdSet := false
+	nextPostId := ""
+
+	if since > 0 { // "since" query to return empty NextPostId and PrevPostId
+		nextPostIdSet = true
+		prevPostIdSet = true
+	} else if afterPost != "" {
+		if page == 0 {
+			prevPostId = afterPost
+			prevPostIdSet = true
+		}
+
+		if len(originalList.Order) < perPage {
+			nextPostIdSet = true
+		}
+	} else if beforePost != "" {
+		if page == 0 {
+			nextPostId = beforePost
+			nextPostIdSet = true
+		}
+
+		if len(originalList.Order) < perPage {
+			prevPostIdSet = true
+		}
+	}
+
+	if !nextPostIdSet {
+		nextPostId = a.GetNextPostIdFromPostList(originalList)
+	}
+
+	if !prevPostIdSet {
+		prevPostId = a.GetPrevPostIdFromPostList(originalList)
+	}
+
+	originalList.NextPostId = nextPostId
+	originalList.PrevPostId = prevPostId
+}
+
+func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int) (*model.PostList, *model.AppError) {
+	var member *model.ChannelMember
+	var err *model.AppError
+	if member, err = a.GetChannelMember(channelId, userId); err != nil {
+		return nil, err
+	} else if member.LastViewedAt == 0 {
+		return model.NewPostList(), nil
+	}
+
+	lastUnreadPost, err := a.GetPostAfterTime(channelId, member.LastViewedAt)
+	if err != nil {
+		return nil, err
+	} else if lastUnreadPost == nil {
+		return model.NewPostList(), nil
+	}
+
+	var postList *model.PostList
+	if postList, err = a.GetPostsBeforePost(channelId, lastUnreadPost.Id, PAGE_DEFAULT, limitBefore); err != nil {
+		return nil, err
+	}
+
+	if postListAfter, err := a.GetPostsAfterPost(channelId, lastUnreadPost.Id, PAGE_DEFAULT, limitAfter-1); err != nil {
+		return nil, err
+	} else if postListAfter != nil {
+		postList.Extend(postListAfter)
+	}
+
+	postList.AddPost(lastUnreadPost)
+	postList.AddOrder(lastUnreadPost.Id)
+
+	postList.SortByCreateAt()
+	return postList, nil
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
