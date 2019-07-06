@@ -55,7 +55,7 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_H
 LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
-MINIMUM_SUPPORTED_MINOR_VERSION = 12
+MINIMUM_SUPPORTED_GO_MINOR_VERSION = 12
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
@@ -448,8 +448,8 @@ test-data: start-docker ## Add test data to the local instance.
 	@echo ========================================================================
 
 define validate_go_version
-	@if [ $(GO_MINOR_VERSION) -lt $(MINIMUM_SUPPORTED_MINOR_VERSION) ]; then \
-		echo 'Golang version is not supported, please update to at least minor version $(MINIMUM_SUPPORTED_MINOR_VERSION)';\
+	@if [ $(GO_MINOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MINOR_VERSION) ]; then \
+		echo 'Golang version is not supported, please update to at least minor version $(MINIMUM_SUPPORTED_GO_MINOR_VERSION)';\
 		exit 1; \
 	fi
 endef
