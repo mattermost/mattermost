@@ -37,38 +37,47 @@ func getOrphanedRecords(dbmap *gorp.DbMap, info store.IntegrityRelationInfo) ([]
 	return records, err
 }
 
-func checkChannelsPostsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
+func checkParentChildIntegrity(dbmap *gorp.DbMap, parentName, childName, parentIdAttr, childIdAttr string) store.IntegrityCheckResult {
 	var result store.IntegrityCheckResult
 
-	result.Info.ParentName = "Channels"
-	result.Info.ChildName = "Posts"
-	result.Info.ParentIdAttr = "ChannelId"
-	result.Info.ChildIdAttr = "Id"
+	result.Info.ParentName = parentName
+	result.Info.ChildName = childName
+	result.Info.ParentIdAttr = parentIdAttr
+	result.Info.ChildIdAttr = childIdAttr
 	result.Records, result.Err = getOrphanedRecords(dbmap, result.Info)
 	if result.Err != nil {
 		mlog.Error(result.Err.Error())
 	}
 
-	results <- result
+	return result
 }
 
 func checkChannelsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	checkChannelsPostsIntegrity(dbmap, results)
+	var result store.IntegrityCheckResult
+
+	result = checkParentChildIntegrity(dbmap, "Channels", "Posts", "ChannelId", "Id")
+	results <- result
 }
 
-func checkUsersIntegrity(dbmap *gorp.DbMap) {
+func checkUsersIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
+	var result store.IntegrityCheckResult
 
+	result = checkParentChildIntegrity(dbmap, "Users", "Posts", "UserId", "Id")
+	results <- result
 }
 
-func checkTeamsIntegrity(dbmap *gorp.DbMap) {
+func checkTeamsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
+	var result store.IntegrityCheckResult
 
+	result = checkParentChildIntegrity(dbmap, "Teams", "Channels", "TeamId", "Id")
+	results <- result
 }
 
 func CheckRelationalIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
 	mlog.Info("Starting relational integrity checks...")
 	checkChannelsIntegrity(dbmap, results)
-	//checkUsersIntegrity(dbmap)
-	//checkTeamsIntegrity(dbmap)
+	checkUsersIntegrity(dbmap, results)
+	checkTeamsIntegrity(dbmap, results)
 	mlog.Info("Done with relational integrity checks")
 	close(results)
 }
