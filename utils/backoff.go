@@ -12,18 +12,13 @@ const (
 	maxAttempts        = 4
 )
 
-// BackoffOperation is executed by Retry.
-// The BackoffOperation will be retried the provided
-// number attempts if returning an error.
-type BackoffOperation func() error
-
 // ProgressiveRetry executes a BackoffOperation and retries the operation 3 times upon error.
-func ProgressiveRetry(bo BackoffOperation) error {
+func ProgressiveRetry(operation func() error) error {
 	var t *time.Timer
 	var attempt uint64
 
 	for {
-		err := bo()
+		err := operation()
 		if err == nil {
 			return nil
 		}
