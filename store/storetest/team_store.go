@@ -842,8 +842,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		require.Len(t, ms, 2)
 	}
 
-	if r1 := <-ss.Team().RemoveAllMembersByUser(uid); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if err := ss.Team().RemoveAllMembersByUser(uid); err != nil {
+		t.Fatal(err)
 	}
 
 	if ms, err := ss.Team().GetTeamsForUser(m1.UserId); err != nil {
@@ -898,8 +898,8 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Len(t, result, 1)
 
-	r1 = <-ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, r1.Err)
+	err = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, err)
 
 	result, err = ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
 	require.Nil(t, err)
@@ -1237,8 +1237,8 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r1 := <-ss.Team().RemoveAllMembersByUser(uid); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if err := ss.Team().RemoveAllMembersByUser(uid); err != nil {
+		t.Fatal(err)
 	}
 }
 
