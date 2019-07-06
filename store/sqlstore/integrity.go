@@ -27,8 +27,10 @@ func getOrphanedRecords(dbmap *gorp.DbMap, info store.IntegrityRelationInfo) ([]
 			WHERE
 				%s.id = %s.%s
 		)
+		ORDER BY
+			%s
 	`, info.ParentIdAttr, info.ChildIdAttr, info.ChildName,
-		info.ParentName, info.ParentName, info.ChildName, info.ParentIdAttr)
+		info.ParentName, info.ParentName, info.ChildName, info.ParentIdAttr, info.ParentIdAttr)
 
 	_, err := dbmap.Select(&records, query)
 
