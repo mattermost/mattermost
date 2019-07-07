@@ -1005,15 +1005,14 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) store.Stor
 	})
 }
 
-func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+// GetUserTeamIds get the team ids to which the user belongs to
+func (s SqlTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]string, *model.AppError) {
 		if allowFromCache {
-			if cacheItem, ok := allTeamIdsForUserCache.Get(userId); ok {
+			if cacheItem, ok := allTeamIdsForUserCache.Get(userID); ok {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("All Team Ids for User")
 				}
-				result.Data = cacheItem.([]string)
-				return
+				return cacheItem.([]string), nil
 			}
 		}
 
@@ -1033,18 +1032,21 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.S
 		TeamMembers.UserId = :UserId
 		AND TeamMembers.DeleteAt = 0
 		AND Teams.DeleteAt = 0`,
-			map[string]interface{}{"UserId": userId})
+			map[string]interface{}{"UserId": userID})
 		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetUserTeamIds", "store.sql_team.get_user_team_ids.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
-			return
+			return []string{}, model.NewAppError(
+				"SqlTeamStore.GetUserTeamIds", 
+				"store.sql_team.get_user_team_ids.app_error", 
+				nil, 
+				"userID="+userID+" "+err.Error(), 
+				http.StatusInternalServerError,
+			)
 		}
-
-		result.Data = teamIds
 
 		if allowFromCache {
-			allTeamIdsForUserCache.AddWithExpiresInSecs(userId, teamIds, ALL_TEAM_IDS_FOR_USER_CACHE_SEC)
+			allTeamIdsForUserCache.AddWithExpiresInSecs(userID, teamIds, ALL_TEAM_IDS_FOR_USER_CACHE_SEC)
 		}
-	})
+		return teamIds, nil
 }
 
 func (s SqlTeamStore) GetTeamMembersForExport(userId string) store.StoreChannel {
