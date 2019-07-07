@@ -33,6 +33,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, ss) })
 	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, ss) })
 	t.Run("GetPostsSince", func(t *testing.T) { testPostStoreGetPostsSince(t, ss) })
+	t.Run("GetPostBeforeAfter", func(t *testing.T) { testPostStoreGetPostBeforeAfter(t, ss) })
 	t.Run("Search", func(t *testing.T) { testPostStoreSearch(t, ss) })
 	t.Run("UserCountsWithPostsByDay", func(t *testing.T) { testUserCountsWithPostsByDay(t, ss) })
 	t.Run("PostCountsByDay", func(t *testing.T) { testPostCountsByDay(t, ss) })
@@ -1027,6 +1028,118 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 	}
 }
 
+func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
+	channelId := model.NewId()
+
+	o0 := &model.Post{}
+	o0.ChannelId = channelId
+	o0.UserId = model.NewId()
+	o0.Message = "zz" + model.NewId() + "b"
+	_, err := ss.Post().Save(o0)
+	require.Nil(t, err)
+	time.Sleep(2 * time.Millisecond)
+
+	o1 := &model.Post{}
+	o1.ChannelId = channelId
+	o1.Type = model.POST_JOIN_CHANNEL
+	o1.UserId = model.NewId()
+	o1.Message = "system_join_channel message"
+	_, err = ss.Post().Save(o1)
+	require.Nil(t, err)
+	time.Sleep(2 * time.Millisecond)
+
+	o0a := &model.Post{}
+	o0a.ChannelId = channelId
+	o0a.UserId = model.NewId()
+	o0a.Message = "zz" + model.NewId() + "b"
+	o0a.ParentId = o1.Id
+	o0a.RootId = o1.Id
+	_, err = ss.Post().Save(o0a)
+	require.Nil(t, err)
+	time.Sleep(2 * time.Millisecond)
+
+	o0b := &model.Post{}
+	o0b.ChannelId = channelId
+	o0b.UserId = model.NewId()
+	o0b.Message = "deleted message"
+	o0b.ParentId = o1.Id
+	o0b.RootId = o1.Id
+	o0b.DeleteAt = 1
+	_, err = ss.Post().Save(o0b)
+	require.Nil(t, err)
+	time.Sleep(2 * time.Millisecond)
+
+	otherChannelPost := &model.Post{}
+	otherChannelPost.ChannelId = model.NewId()
+	otherChannelPost.UserId = model.NewId()
+	otherChannelPost.Message = "zz" + model.NewId() + "b"
+	_, err = ss.Post().Save(otherChannelPost)
+	require.Nil(t, err)
+	time.Sleep(2 * time.Millisecond)
+
+	o2 := &model.Post{}
+	o2.ChannelId = channelId
+	o2.UserId = model.NewId()
+	o2.Message = "zz" + model.NewId() + "b"
+	_, err = ss.Post().Save(o2)
+	require.Nil(t, err)
+	time.Sleep(2 * time.Millisecond)
+
+	o2a := &model.Post{}
+	o2a.ChannelId = channelId
+	o2a.UserId = model.NewId()
+	o2a.Message = "zz" + model.NewId() + "b"
+	o2a.ParentId = o2.Id
+	o2a.RootId = o2.Id
+	_, err = ss.Post().Save(o2a)
+	require.Nil(t, err)
+
+	rPostId1, err := ss.Post().GetPostIdBeforeTime(channelId, o0a.CreateAt)
+	if rPostId1 != o1.Id || err != nil {
+		t.Fatal("should return before post o1")
+	}
+
+	rPostId1, err = ss.Post().GetPostIdAfterTime(channelId, o0b.CreateAt)
+	if rPostId1 != o2.Id || err != nil {
+		t.Fatal("should return before post o2")
+	}
+
+	rPost1, err := ss.Post().GetPostAfterTime(channelId, o0b.CreateAt)
+	if rPost1.Id != o2.Id || err != nil {
+		t.Fatal("should return before post o2")
+	}
+
+	rPostId2, err := ss.Post().GetPostIdBeforeTime(channelId, o0.CreateAt)
+	if rPostId2 != "" || err != nil {
+		t.Fatal("should return no post")
+	}
+
+	rPostId2, err = ss.Post().GetPostIdAfterTime(channelId, o0.CreateAt)
+	if rPostId2 != o1.Id || err != nil {
+		t.Fatal("should return before post o1")
+	}
+
+	rPost2, err := ss.Post().GetPostAfterTime(channelId, o0.CreateAt)
+	if rPost2.Id != o1.Id || err != nil {
+		t.Fatal("should return before post o1")
+	}
+
+	rPostId3, err := ss.Post().GetPostIdBeforeTime(channelId, o2a.CreateAt)
+	if rPostId3 != o2.Id || err != nil {
+		t.Fatal("should return before post o2")
+	}
+
+	rPostId3, err = ss.Post().GetPostIdAfterTime(channelId, o2a.CreateAt)
+	if rPostId3 != "" || err != nil {
+		t.Fatal("should return no post")
+	}
+
+	rPost3, err := ss.Post().GetPostAfterTime(channelId, o2a.CreateAt)
+	if rPost3 != nil || err != nil {
+		t.Fatal("should return no post")
+	}
+}
+
 func testPostStoreSearch(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 	userId := model.NewId()
@@ -1353,28 +1466,75 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Save(o2a)
 	require.Nil(t, err)
 
+	bot1 := &model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     model.NewId(),
+		UserId:      model.NewId(),
+	}
+	_, err = ss.Bot().Save(bot1)
+
+	b1 := &model.Post{}
+	b1.Message = "bot message one"
+	b1.ChannelId = c1.Id
+	b1.UserId = bot1.UserId
+	b1.CreateAt = utils.MillisFromTime(utils.Yesterday())
+	_, err = ss.Post().Save(b1)
+	require.Nil(t, err)
+
+	b1a := &model.Post{}
+	b1a.Message = "bot message two"
+	b1a.ChannelId = c1.Id
+	b1a.UserId = bot1.UserId
+	b1a.CreateAt = utils.MillisFromTime(utils.Yesterday()) - (1000 * 60 * 60 * 24 * 2)
+	_, err = ss.Post().Save(b1a)
+	require.Nil(t, err)
+
 	time.Sleep(1 * time.Second)
 
-	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id); err != nil {
+	// summary of posts
+	// yesterday - 2 non-bot user posts, 1 bot user post
+	// 3 days ago - 2 non-bot user posts, 1 bot user post
+
+	// last 31 days, all users (including bots)
+	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: false}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
 		t.Fatal(err)
 	} else {
-		row1 := r1[0]
-		if row1.Value != 2 {
-			t.Fatal(row1)
-		}
-
-		row2 := r1[1]
-		if row2.Value != 2 {
-			t.Fatal("wrong value")
-		}
+		assert.Equal(t, float64(3), r1[0].Value)
+		assert.Equal(t, float64(3), r1[1].Value)
 	}
 
+	// last 31 days, bots only
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: false}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
+		t.Fatal(err)
+	} else {
+		assert.Equal(t, float64(1), r1[0].Value)
+		assert.Equal(t, float64(1), r1[1].Value)
+	}
+
+	// yesterday only, all users (including bots)
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: true}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
+		t.Fatal(err)
+	} else {
+		assert.Equal(t, float64(3), r1[0].Value)
+	}
+
+	// yesterday only, bots only
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: true}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
+		t.Fatal(err)
+	} else {
+		assert.Equal(t, float64(1), r1[0].Value)
+	}
+
+	// total posts
 	if r1, err := ss.Post().AnalyticsPostCount(t1.Id, false, false); err != nil {
 		t.Fatal(err)
 	} else {
-		if r1 != 4 {
-			t.Fatal("wrong value")
-		}
+		assert.Equal(t, int64(6), r1)
 	}
 }
 

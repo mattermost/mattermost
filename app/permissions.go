@@ -43,8 +43,8 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	}
 
 	// Purge all schemes from the database.
-	if result := <-a.Srv.Store.Scheme().PermanentDeleteAll(); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Scheme().PermanentDeleteAll(); err != nil {
+		return err
 	}
 
 	// Purge all roles from the database.
