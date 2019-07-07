@@ -852,26 +852,12 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 	if err != nil {
 		return err
 	}
-	isGuest := user.IsGuest()
 
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()
 
 	if _, err := a.Srv.Store.Team().UpdateMember(teamMember); err != nil {
 		return err
-	}
-
-	if isGuest {
-		teams, err := a.GetTeamsForUser(teamMember.UserId)
-		if err != nil {
-			mlog.Error(fmt.Sprintf("Unable to count the teams of the user: %v", err))
-		}
-		if len(teams) == 0 {
-			_, err := a.UpdateActive(user, false)
-			if err != nil {
-				mlog.Error(fmt.Sprintf("Unable to deactivate the user: %v", err))
-			}
-		}
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
