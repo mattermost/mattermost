@@ -25,12 +25,14 @@ func getOrphanedRecords(dbmap *gorp.DbMap, info store.IntegrityRelationInfo) ([]
 			FROM
 				%s
 			WHERE
-				%s.id = %s.%s
+				id = %s.%s
 		)
+		AND (%s IS NOT NULL AND %s != '')
 		ORDER BY
 			%s
 	`, info.ParentIdAttr, info.ChildIdAttr, info.ChildName,
-		info.ParentName, info.ParentName, info.ChildName, info.ParentIdAttr, info.ParentIdAttr)
+		info.ParentName, info.ChildName, info.ParentIdAttr,
+		info.ParentIdAttr, info.ParentIdAttr, info.ParentIdAttr)
 
 	_, err := dbmap.Select(&records, query)
 
@@ -52,25 +54,33 @@ func checkParentChildIntegrity(dbmap *gorp.DbMap, parentName, childName, parentI
 	return result
 }
 
-func checkChannelsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	var result store.IntegrityCheckResult
+func checkChannelsPostsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	return checkParentChildIntegrity(dbmap, "Channels", "Posts", "ChannelId", "Id")
+}
 
-	result = checkParentChildIntegrity(dbmap, "Channels", "Posts", "ChannelId", "Id")
-	results <- result
+func checkUsersChannelsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	return checkParentChildIntegrity(dbmap, "Users", "Channels", "CreatorId", "Id")
+}
+
+func checkUsersPostsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	return checkParentChildIntegrity(dbmap, "Users", "Posts", "UserId", "Id")
+}
+
+func checkTeamsChannelsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	return checkParentChildIntegrity(dbmap, "Teams", "Channels", "TeamId", "Id")
+}
+
+func checkChannelsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
+	results <- checkChannelsPostsIntegrity(dbmap)
 }
 
 func checkUsersIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	var result store.IntegrityCheckResult
-
-	result = checkParentChildIntegrity(dbmap, "Users", "Posts", "UserId", "Id")
-	results <- result
+	results <- checkUsersChannelsIntegrity(dbmap)
+	results <- checkUsersPostsIntegrity(dbmap)
 }
 
 func checkTeamsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	var result store.IntegrityCheckResult
-
-	result = checkParentChildIntegrity(dbmap, "Teams", "Channels", "TeamId", "Id")
-	results <- result
+	results <- checkTeamsChannelsIntegrity(dbmap)
 }
 
 func CheckRelationalIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {

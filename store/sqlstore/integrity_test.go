@@ -50,8 +50,25 @@ func createPostWithUserId(ss store.Store, id string) *model.Post {
 
 func TestCheckIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
 		ss.DropAllTables()
-		t.Run("there should be no orphaned records on new db", func(t *testing.T) {
+		dbmap.DropTables()
+
+		t.Run("should receive errors", func(t *testing.T) {
+			results := ss.CheckIntegrity()
+			require.NotNil(t, results)
+			for result := range results {
+				require.IsType(t, store.IntegrityCheckResult{}, result)
+				require.NotNil(t, result.Err)
+				require.Empty(t, result.Records)
+			}
+		})
+
+		dbmap.CreateTablesIfNotExists()
+
+		t.Run("generate reports with no records", func(t *testing.T) {
 			results := ss.CheckIntegrity()
 			require.NotNil(t, results)
 			for result := range results {
@@ -63,131 +80,102 @@ func TestCheckIntegrity(t *testing.T) {
 	})
 }
 
-func TestCheckChannelsIntegrity(t *testing.T) {
+func TestCheckChannelsPostsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
 		dbmap := sqlStore.GetMaster()
-
 		ss.DropAllTables()
-		dbmap.DropTable(model.Channel{})
-
-		t.Run("should fail with an error", func(t *testing.T) {
-			results := make(chan store.IntegrityCheckResult)
-			go checkChannelsIntegrity(dbmap, results)
-			result := <-results
-			require.NotNil(t, result.Err)
-			close(results)
-		})
-
-		dbmap.CreateTablesIfNotExists()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
-			results := make(chan store.IntegrityCheckResult)
-			go checkUsersIntegrity(dbmap, results)
-			result := <-results
+			result := checkChannelsPostsIntegrity(dbmap)
 			require.Nil(t, result.Err)
 			require.Empty(t, result.Records)
-			close(results)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			results := make(chan store.IntegrityCheckResult)
 			post := createPostWithChannelId(ss, model.NewId())
-			go checkChannelsIntegrity(dbmap, results)
-			result := <-results
+			result := checkChannelsPostsIntegrity(dbmap)
 			require.Nil(t, result.Err)
 			require.Len(t, result.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: post.ChannelId,
 				ChildId: post.Id,
 			}, result.Records[0])
-			close(results)
 		})
 	})
 }
 
-func TestCheckUsersIntegrity(t *testing.T) {
+func TestCheckUsersChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
 		dbmap := sqlStore.GetMaster()
-
 		ss.DropAllTables()
-		dbmap.DropTable(model.User{})
-
-		t.Run("should fail with an error", func(t *testing.T) {
-			results := make(chan store.IntegrityCheckResult)
-			go checkUsersIntegrity(dbmap, results)
-			result := <-results
-			require.NotNil(t, result.Err)
-			close(results)
-		})
-
-		dbmap.CreateTablesIfNotExists()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
-			results := make(chan store.IntegrityCheckResult)
-			go checkUsersIntegrity(dbmap, results)
-			result := <-results
+			result := checkUsersChannelsIntegrity(dbmap)
 			require.Nil(t, result.Err)
 			require.Empty(t, result.Records)
-			close(results)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			results := make(chan store.IntegrityCheckResult)
+			channel := createChannelWithCreatorId(ss, model.NewId())
+			result := checkUsersChannelsIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			require.Len(t, result.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: channel.CreatorId,
+				ChildId: channel.Id,
+			}, result.Records[0])
+		})
+	})
+}
+
+func TestCheckUsersPostsIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+		ss.DropAllTables()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkUsersPostsIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			require.Empty(t, result.Records)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
 			post := createPostWithUserId(ss, model.NewId())
-			go checkUsersIntegrity(dbmap, results)
-			result := <-results
+			result := checkUsersPostsIntegrity(dbmap)
 			require.Nil(t, result.Err)
 			require.Len(t, result.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: post.UserId,
 				ChildId: post.Id,
 			}, result.Records[0])
-			close(results)
 		})
 	})
 }
 
-func TestCheckTeamsIntegrity(t *testing.T) {
+func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
 		dbmap := sqlStore.GetMaster()
-
 		ss.DropAllTables()
-		dbmap.DropTable(model.Team{})
-
-		t.Run("should fail with an error", func(t *testing.T) {
-			results := make(chan store.IntegrityCheckResult)
-			go checkTeamsIntegrity(dbmap, results)
-			result := <-results
-			require.NotNil(t, result.Err)
-			close(results)
-		})
-
-		dbmap.CreateTablesIfNotExists()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
-			results := make(chan store.IntegrityCheckResult)
-			go checkTeamsIntegrity(dbmap, results)
-			result := <-results
+			result := checkTeamsChannelsIntegrity(dbmap)
 			require.Nil(t, result.Err)
 			require.Empty(t, result.Records)
-			close(results)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			results := make(chan store.IntegrityCheckResult)
 			channel := createChannelWithTeamId(ss, model.NewId())
-			go checkTeamsIntegrity(dbmap, results)
-			result := <-results
+			result := checkTeamsChannelsIntegrity(dbmap)
 			require.Nil(t, result.Err)
 			require.Len(t, result.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: channel.TeamId,
 				ChildId: channel.Id,
 			}, result.Records[0])
-			close(results)
 		})
 	})
 }
