@@ -146,11 +146,7 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
-	result := <-a.Srv.Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(model.ChannelList), nil
+	return a.Srv.Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
 }
 
 func (a *App) IsPhase2MigrationCompleted() *model.AppError {

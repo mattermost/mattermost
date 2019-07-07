@@ -1465,6 +1465,18 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "An error occurred while downloading the plugin."
+  },
+  {
+    "id": "api.plugin.install.insecure_url.app_error",
+    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
+  },
+  {
+    "id": "api.plugin.install.invalid_url.app_error",
+    "translation": "An invalid url was given to download the plugin."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request"
   },
@@ -6163,6 +6175,14 @@
     "translation": "Unable to get the parent post for the channel"
   },
   {
+    "id": "store.sql_post.get_post_after_time.app_error",
+    "translation": "Unable to get post after time bound"
+  },
+  {
+    "id": "store.sql_post.get_post_id_around.app_error",
+    "translation": "Unable to get post around time bound"
+  },
+  {
     "id": "store.sql_post.get_posts.app_error",
     "translation": "Limit exceeded for paging"
   },
@@ -6489,6 +6509,10 @@
   {
     "id": "store.sql_session.update_last_activity.app_error",
     "translation": "Unable to update the last_activity_at"
+  },
+  {
+    "id": "store.sql_session.update_props.app_error",
+    "translation": "Unable to update session props"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
