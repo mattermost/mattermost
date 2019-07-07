@@ -44,7 +44,7 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 	errorsChan := make(chan LineImportWorkerError, (2*workers)+1) // size chosen to ensure it never gets filled up completely.
 	var wg sync.WaitGroup
 	var linesChan chan LineImportWorkerData
-	lastLineType := ""
+	lastLineType := "begin"
 
 	for scanner.Scan() {
 		decoder := json.NewDecoder(strings.NewReader(scanner.Text()))
@@ -68,7 +68,7 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 		}
 
 		if line.Type != lastLineType {
-			if lastLineType != "" {
+			if lastLineType != "begin" {
 				// Changing type. Clear out the worker queue before continuing.
 				close(linesChan)
 				wg.Wait()
