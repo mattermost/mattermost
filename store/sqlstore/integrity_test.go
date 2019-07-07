@@ -61,8 +61,11 @@ func TestCheckIntegrity(t *testing.T) {
 			require.NotNil(t, results)
 			for result := range results {
 				require.IsType(t, store.IntegrityCheckResult{}, result)
-				require.NotNil(t, result.Err)
-				require.Empty(t, result.Records)
+				switch data := result.Data.(type) {
+				case store.RelationalIntegrityCheckData:
+					require.NotNil(t, result.Err)
+					require.Len(t, data.Records, 0)
+				}
 			}
 		})
 
@@ -74,7 +77,10 @@ func TestCheckIntegrity(t *testing.T) {
 			for result := range results {
 				require.IsType(t, store.IntegrityCheckResult{}, result)
 				require.Nil(t, result.Err)
-				require.Empty(t, result.Records)
+				switch data := result.Data.(type) {
+				case store.RelationalIntegrityCheckData:
+					require.Len(t, data.Records, 0)
+				}
 			}
 		})
 	})
@@ -89,18 +95,20 @@ func TestCheckChannelsPostsIntegrity(t *testing.T) {
 		t.Run("should generate a report with no records", func(t *testing.T) {
 			result := checkChannelsPostsIntegrity(dbmap)
 			require.Nil(t, result.Err)
-			require.Empty(t, result.Records)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			post := createPostWithChannelId(ss, model.NewId())
 			result := checkChannelsPostsIntegrity(dbmap)
 			require.Nil(t, result.Err)
-			require.Len(t, result.Records, 1)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: post.ChannelId,
 				ChildId: post.Id,
-			}, result.Records[0])
+			}, data.Records[0])
 		})
 	})
 }
@@ -114,18 +122,20 @@ func TestCheckUsersChannelsIntegrity(t *testing.T) {
 		t.Run("should generate a report with no records", func(t *testing.T) {
 			result := checkUsersChannelsIntegrity(dbmap)
 			require.Nil(t, result.Err)
-			require.Empty(t, result.Records)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			channel := createChannelWithCreatorId(ss, model.NewId())
 			result := checkUsersChannelsIntegrity(dbmap)
 			require.Nil(t, result.Err)
-			require.Len(t, result.Records, 1)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: channel.CreatorId,
 				ChildId: channel.Id,
-			}, result.Records[0])
+			}, data.Records[0])
 		})
 	})
 }
@@ -139,18 +149,20 @@ func TestCheckUsersPostsIntegrity(t *testing.T) {
 		t.Run("should generate a report with no records", func(t *testing.T) {
 			result := checkUsersPostsIntegrity(dbmap)
 			require.Nil(t, result.Err)
-			require.Empty(t, result.Records)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			post := createPostWithUserId(ss, model.NewId())
 			result := checkUsersPostsIntegrity(dbmap)
 			require.Nil(t, result.Err)
-			require.Len(t, result.Records, 1)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: post.UserId,
 				ChildId: post.Id,
-			}, result.Records[0])
+			}, data.Records[0])
 		})
 	})
 }
@@ -164,18 +176,20 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 		t.Run("should generate a report with no records", func(t *testing.T) {
 			result := checkTeamsChannelsIntegrity(dbmap)
 			require.Nil(t, result.Err)
-			require.Empty(t, result.Records)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			channel := createChannelWithTeamId(ss, model.NewId())
 			result := checkTeamsChannelsIntegrity(dbmap)
 			require.Nil(t, result.Err)
-			require.Len(t, result.Records, 1)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: channel.TeamId,
 				ChildId: channel.Id,
-			}, result.Records[0])
+			}, data.Records[0])
 		})
 	})
 }

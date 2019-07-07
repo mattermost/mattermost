@@ -24,14 +24,21 @@ func init() {
 	RootCmd.AddCommand(IntegrityCmd)
 }
 
-func printIntegrityCheckResult(result store.IntegrityCheckResult, verbose bool) {
+func printRelationalIntegrityCheckResult(data store.RelationalIntegrityCheckData, verbose bool) {
 	fmt.Println(fmt.Sprintf("Found %d records in relation %s orphans of relation %s",
-		len(result.Records), result.Info.ChildName, result.Info.ParentName))
+		len(data.Records), data.ChildName, data.ParentName))
 	if !verbose {
 		return
 	}
-	for _, record := range result.Records {
+	for _, record := range data.Records {
 		fmt.Println(fmt.Sprintf("  Child %s is missing Parent %s", record.ChildId, record.ParentId))
+	}
+}
+
+func printIntegrityCheckResult(result store.IntegrityCheckResult, verbose bool) {
+	switch data := result.Data.(type) {
+	case store.RelationalIntegrityCheckData:
+		printRelationalIntegrityCheckResult(data, verbose)
 	}
 }
 

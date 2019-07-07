@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func getOrphanedRecords(dbmap *gorp.DbMap, info store.IntegrityRelationInfo) ([]store.OrphanedRecord, error) {
+func getOrphanedRecords(dbmap *gorp.DbMap, info store.RelationalIntegrityCheckData) ([]store.OrphanedRecord, error) {
 	var records []store.OrphanedRecord
 
 	query := fmt.Sprintf(`
@@ -41,15 +41,17 @@ func getOrphanedRecords(dbmap *gorp.DbMap, info store.IntegrityRelationInfo) ([]
 
 func checkParentChildIntegrity(dbmap *gorp.DbMap, parentName, childName, parentIdAttr, childIdAttr string) store.IntegrityCheckResult {
 	var result store.IntegrityCheckResult
+	var data store.RelationalIntegrityCheckData
 
-	result.Info.ParentName = parentName
-	result.Info.ChildName = childName
-	result.Info.ParentIdAttr = parentIdAttr
-	result.Info.ChildIdAttr = childIdAttr
-	result.Records, result.Err = getOrphanedRecords(dbmap, result.Info)
+	data.ParentName = parentName
+	data.ChildName = childName
+	data.ParentIdAttr = parentIdAttr
+	data.ChildIdAttr = childIdAttr
+	data.Records, result.Err = getOrphanedRecords(dbmap, data)
 	if result.Err != nil {
 		mlog.Error(result.Err.Error())
 	}
+	result.Data = data
 
 	return result
 }
