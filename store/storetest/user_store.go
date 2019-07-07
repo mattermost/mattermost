@@ -3506,7 +3506,7 @@ func testUserStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(&u4))
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
 
-	require.Nil(t, (<-ss.User().ClearAllCustomRoleAssignments()).Err)
+	require.Nil(t, ss.User().ClearAllCustomRoleAssignments())
 
 	r1 := <-ss.User().GetByUsername(u1.Username)
 	require.Nil(t, r1.Err)
