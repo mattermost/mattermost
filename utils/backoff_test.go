@@ -2,7 +2,6 @@ package utils
 
 import (
 	"testing"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -20,7 +19,7 @@ func TestProgressiveRetryShouldFail(t *testing.T) {
 	if err == nil || err != operationError {
 		t.Errorf("Expected %v, Got %v", operationError, err)
 	}
-	if i != 4 {
+	if i != 6 {
 		t.Errorf("Invalid number of attempts: %d", i)
 	}
 }
@@ -44,21 +43,5 @@ func TestProgressiveRetryShouldSuccessAfterTwoAttempts(t *testing.T) {
 	}
 	if i != 2 {
 		t.Errorf("Invalid number of attempts: %d", i)
-	}
-}
-
-func TestNextRetryFallsWithinRange(t *testing.T) {
-	var expectedTimes = []time.Duration{128, 256, 512, 1024, 2048, 4096}
-	for i, et := range expectedTimes {
-		expectedTimes[i] = et * time.Millisecond
-	}
-
-	var attempt uint64
-	for _, expectedTime := range expectedTimes {
-		actualTime := NextRetry(attempt)
-		if actualTime != expectedTime {
-			t.Errorf("Expected %d, Got %d", expectedTime, actualTime)
-		}
-		attempt++
 	}
 }

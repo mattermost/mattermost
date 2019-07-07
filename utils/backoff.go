@@ -7,15 +7,12 @@ import (
 	"time"
 )
 
-const (
-	backoffBase uint64 = 128
-	maxAttempts        = 4
-)
+var backoffTimeouts = []time.Duration{50 * time.Millisecond, 100 * time.Millisecond, 200 * time.Millisecond, 200 * time.Millisecond, 400 * time.Millisecond, 400 * time.Millisecond}
 
 // ProgressiveRetry executes a BackoffOperation and retries the operation 3 times upon error.
 func ProgressiveRetry(operation func() error) error {
 	var t *time.Timer
-	var attempt uint64
+	var attempts = 0
 
 	for {
 		err := operation()
@@ -23,26 +20,19 @@ func ProgressiveRetry(operation func() error) error {
 			return nil
 		}
 
-		nextRetry := NextRetry(attempt)
+		attempts++
+		if attempts >= len(backoffTimeouts) {
+			return err
+		}
+
+		nextRetry := backoffTimeouts[attempts]
 		if t == nil {
 			t = time.NewTimer(nextRetry)
 		} else {
 			t.Reset(nextRetry)
 		}
 
-		attempt++
-		if attempt >= maxAttempts {
-			return err
-		}
-
 		// Wait until timer is finished before trying again
 		<-t.C
 	}
-}
-
-// NextRetry calculates the duration until next retry
-// by bit shift left starting from 128 as base
-func NextRetry(attempt uint64) time.Duration {
-	progressiveBackoff := time.Duration(backoffBase << attempt)
-	return progressiveBackoff * time.Millisecond
 }
