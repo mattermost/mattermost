@@ -1652,10 +1652,9 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}
 	store.Must(ss.Team().SaveMember(m2, -1))
 
-	r1 := <-ss.Team().GetTeamMembersForExport(u1.Id)
-	assert.Nil(t, r1.Err)
+	d1, err := ss.Team().GetTeamMembersForExport(u1.Id)
+	assert.Nil(t, err)
 
-	d1 := r1.Data.([]*model.TeamMemberForExport)
 	assert.Len(t, d1, 1)
 
 	tmfe1 := d1[0]
