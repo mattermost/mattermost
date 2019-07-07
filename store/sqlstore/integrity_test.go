@@ -50,26 +50,7 @@ func createPostWithUserId(ss store.Store, id string) *model.Post {
 
 func TestCheckIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
-		dbmap := sqlStore.GetMaster()
-
 		ss.DropAllTables()
-		dbmap.DropTables()
-
-		t.Run("should receive errors", func(t *testing.T) {
-			results := ss.CheckIntegrity()
-			require.NotNil(t, results)
-			for result := range results {
-				require.IsType(t, store.IntegrityCheckResult{}, result)
-				switch data := result.Data.(type) {
-				case store.RelationalIntegrityCheckData:
-					require.NotNil(t, result.Err)
-					require.Len(t, data.Records, 0)
-				}
-			}
-		})
-
-		dbmap.CreateTablesIfNotExists()
 
 		t.Run("generate reports with no records", func(t *testing.T) {
 			results := ss.CheckIntegrity()
@@ -86,11 +67,23 @@ func TestCheckIntegrity(t *testing.T) {
 	})
 }
 
+func TestCheckParentChildIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should receive an error", func(t *testing.T) {
+			result := checkParentChildIntegrity(dbmap, "NotValid", "NotValid", "NotValid", "NotValid")
+			require.NotNil(t, result.Err)
+			require.Empty(t, result.Data)
+		})
+	})
+}
+
 func TestCheckChannelsPostsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
 		dbmap := sqlStore.GetMaster()
-		ss.DropAllTables()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
 			result := checkChannelsPostsIntegrity(dbmap)
@@ -109,6 +102,7 @@ func TestCheckChannelsPostsIntegrity(t *testing.T) {
 				ParentId: post.ChannelId,
 				ChildId: post.Id,
 			}, data.Records[0])
+			dbmap.Delete(post)
 		})
 	})
 }
@@ -117,7 +111,6 @@ func TestCheckUsersChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
 		dbmap := sqlStore.GetMaster()
-		ss.DropAllTables()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
 			result := checkUsersChannelsIntegrity(dbmap)
@@ -136,6 +129,7 @@ func TestCheckUsersChannelsIntegrity(t *testing.T) {
 				ParentId: channel.CreatorId,
 				ChildId: channel.Id,
 			}, data.Records[0])
+			dbmap.Delete(channel)
 		})
 	})
 }
@@ -144,7 +138,6 @@ func TestCheckUsersPostsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
 		dbmap := sqlStore.GetMaster()
-		ss.DropAllTables()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
 			result := checkUsersPostsIntegrity(dbmap)
@@ -163,6 +156,7 @@ func TestCheckUsersPostsIntegrity(t *testing.T) {
 				ParentId: post.UserId,
 				ChildId: post.Id,
 			}, data.Records[0])
+			dbmap.Delete(post)
 		})
 	})
 }
@@ -171,7 +165,6 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
 		dbmap := sqlStore.GetMaster()
-		ss.DropAllTables()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
 			result := checkTeamsChannelsIntegrity(dbmap)
@@ -190,6 +183,7 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 				ParentId: channel.TeamId,
 				ChildId: channel.Id,
 			}, data.Records[0])
+			dbmap.Delete(channel)
 		})
 	})
 }

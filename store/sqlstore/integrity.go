@@ -50,6 +50,7 @@ func checkParentChildIntegrity(dbmap *gorp.DbMap, parentName, childName, parentI
 	data.Records, result.Err = getOrphanedRecords(dbmap, data)
 	if result.Err != nil {
 		mlog.Error(result.Err.Error())
+		return result
 	}
 	result.Data = data
 
