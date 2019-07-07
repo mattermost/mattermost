@@ -3358,6 +3358,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// Add u2 to team 1
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 	u2.UpdateAt, _ = ss.User().UpdateUpdateAt(u2.Id)
+	require.Nil(t, err)
 
 	t.Run("etag for profiles not in team 1 after update", func(t *testing.T) {
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
@@ -3380,7 +3381,9 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().RemoveMember(teamId, u1.Id))
 	store.Must(ss.Team().RemoveMember(teamId, u2.Id))
 	u1.UpdateAt, _ = ss.User().UpdateUpdateAt(u1.Id)
+	require.Nil(t, err)
 	u2.UpdateAt, _ = ss.User().UpdateUpdateAt(u2.Id)
+	require.Nil(t, err)
 
 	t.Run("etag for profiles not in team 1 after second update", func(t *testing.T) {
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
@@ -3420,6 +3423,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// Add u3 to team 2
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u3.Id}, -1))
 	u3.UpdateAt, _ = ss.User().UpdateUpdateAt(u3.Id)
+	require.Nil(t, err)
 
 	// GetEtagForProfilesNotInTeam produces a new etag every time a member, not
 	// in the team, gets a new UpdateAt value. In the case that an older member
