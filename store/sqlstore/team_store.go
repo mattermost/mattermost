@@ -1034,13 +1034,7 @@ func (s SqlTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]stri
 			AND Teams.DeleteAt = 0`,
 		map[string]interface{}{"UserId": userID})
 	if err != nil {
-		return []string{}, model.NewAppError(
-			"SqlTeamStore.GetUserTeamIds",
-			"store.sql_team.get_user_team_ids.app_error",
-			nil,
-			"userID="+userID+" "+err.Error(),
-			http.StatusInternalServerError,
-		)
+		return []string{}, model.NewAppError("SqlTeamStore.GetUserTeamIds", "store.sql_team.get_user_team_ids.app_error", nil, "userID="+userID+" "+err.Error(), http.StatusInternalServerError)
 	}
 
 	if allowFromCache {
