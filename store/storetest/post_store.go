@@ -1345,7 +1345,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := ss.Post().Search(teamId, userId, tc.searchParams)
 			require.Nil(t, err)
-			require.Len(t, result.Order, tc.extectedResultsCount)
+			require.Len(t, result.Order, tc.expectedResultsCount)
 			for _, expectedMessageResultId := range tc.expectedMessageResultIds {
 				assert.Contains(t, result.Order, expectedMessageResultId)
 			}
