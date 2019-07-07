@@ -83,15 +83,15 @@ func (_m *UserStore) AnalyticsGetSystemAdminCount() (int64, *model.AppError) {
 }
 
 // ClearAllCustomRoleAssignments provides a mock function with given fields:
-func (_m *UserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
+func (_m *UserStore) ClearAllCustomRoleAssignments() *model.AppError {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
