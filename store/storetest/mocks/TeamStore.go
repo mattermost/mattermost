@@ -951,17 +951,24 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, 
 }
 
 // UserBelongsToTeams provides a mock function with given fields: userId, teamIds
-func (_m *TeamStore) UserBelongsToTeams(userId string, teamIds []string) store.StoreChannel {
+func (_m *TeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError) {
 	ret := _m.Called(userId, teamIds)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, []string) store.StoreChannel); ok {
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, []string) bool); ok {
 		r0 = rf(userId, teamIds)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(userId, teamIds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
