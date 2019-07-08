@@ -2126,11 +2126,10 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		return nil, nil
 	}
 
-	result := <-a.Srv.Store.Team().GetUserTeamIds(userId, true)
-	if result.Err != nil {
-		return nil, result.Err
+	teamIds, getTeamErr := a.Srv.Store.Team().GetUserTeamIds(userId, true)
+	if getTeamErr != nil {
+		return nil, getTeamErr
 	}
-	teamIds := result.Data.([]string)
 
 	teamIdsWithPermission := []string{}
 	teamIdsWithoutPermission := []string{}

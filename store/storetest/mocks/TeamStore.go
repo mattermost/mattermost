@@ -584,19 +584,28 @@ func (_m *TeamStore) GetTotalMemberCount(teamId string) (int64, *model.AppError)
 }
 
 // GetUserTeamIds provides a mock function with given fields: userId, allowFromCache
-func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.StoreChannel {
+func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]string, *model.AppError) {
 	ret := _m.Called(userId, allowFromCache)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, bool) []string); ok {
 		r0 = rf(userId, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(userId, allowFromCache)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // InvalidateAllTeamIdsForUser provides a mock function with given fields: userId
