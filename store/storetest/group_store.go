@@ -10,9 +10,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGroupStore(t *testing.T, ss store.Store) {
@@ -2124,7 +2125,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
 				for _, g := range groups {
-					if !strings.Contains(g.Name, group2NameSubstring) {
+					if !strings.Contains(g.Name, group2NameSubstring) && !strings.Contains(g.DisplayName, group2NameSubstring) {
 						return false
 					}
 				}
