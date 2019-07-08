@@ -976,30 +976,27 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) store.Stor
 	})
 }
 
-func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var data []*model.TeamForExport
-		if _, err := s.GetReplica().Select(&data, `
-			SELECT
-				Teams.*,
-				Schemes.Name as SchemeName
-			FROM
-				Teams
-			LEFT JOIN
-				Schemes ON Teams.SchemeId = Schemes.Id
-			WHERE
-				Teams.Id > :AfterId
-			ORDER BY
-				Id
-			LIMIT
-				:Limit`,
-			map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError) {
+	var data []*model.TeamForExport
+	if _, err := s.GetReplica().Select(&data, `
+		SELECT
+			Teams.*,
+			Schemes.Name as SchemeName
+		FROM
+			Teams
+		LEFT JOIN
+			Schemes ON Teams.SchemeId = Schemes.Id
+		WHERE
+			Teams.Id > :AfterId
+		ORDER BY
+			Id
+		LIMIT
+			:Limit`,
+		map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = data
-	})
+	return data, nil
 }
 
 func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.StoreChannel {
