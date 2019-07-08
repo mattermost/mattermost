@@ -73,7 +73,13 @@ func TestCheckParentChildIntegrity(t *testing.T) {
 		dbmap := sqlStore.GetMaster()
 
 		t.Run("should receive an error", func(t *testing.T) {
-			result := checkParentChildIntegrity(dbmap, "NotValid", "NotValid", "NotValid", "NotValid")
+			config := relationalCheckConfig{
+				parentName: "NotValid",
+				parentIdAttr: "NotValid",
+				childName: "NotValid",
+				childIdAttr: "NotValid",
+			}
+			result := checkParentChildIntegrity(dbmap, config)
 			require.NotNil(t, result.Err)
 			require.Empty(t, result.Data)
 		})

@@ -52,7 +52,7 @@ func integrityCmdF(command *cobra.Command, args []string) error {
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
 		var confirm string
-		fmt.Fprintf(os.Stdout, "This check can harm performance on live systems. Are you sure you want to proceed? (y/N): ")
+		fmt.Fprintf(os.Stdout, "This check may harm performance on live systems. Are you sure you want to proceed? (y/N): ")
 		fmt.Scanln(&confirm)
 		if !strings.EqualFold(confirm, "y") && !strings.EqualFold(confirm, "yes") {
 			fmt.Fprintf(os.Stderr, "Aborted.\n")
@@ -69,5 +69,6 @@ func integrityCmdF(command *cobra.Command, args []string) error {
 		}
 		printIntegrityCheckResult(result, verboseFlag)
 	}
+
 	return nil
 }
