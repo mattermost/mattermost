@@ -116,9 +116,9 @@ func (a *App) DeleteAllExpiredPluginKeys() *model.AppError {
 		return nil
 	}
 
-	if result := <-a.Srv.Store.Plugin().DeleteAllExpired(); result.Err != nil {
-		mlog.Error("Failed to delete all expired plugin key values", mlog.Err(result.Err))
-		return result.Err
+	if err := a.Srv.Store.Plugin().DeleteAllExpired(); err != nil {
+		mlog.Error("Failed to delete all expired plugin key values", mlog.Err(err))
+		return err
 	}
 
 	return nil
