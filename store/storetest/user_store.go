@@ -3324,9 +3324,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	var etag1, etag2, etag3 string
 
 	t.Run("etag for profiles not in team 1", func(t *testing.T) {
-		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
-		require.Nil(t, result.Err)
-		etag1 = result.Data.(string)
+		etag1 = ss.User().GetEtagForProfilesNotInTeam(teamId)
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000", func(t *testing.T) {
@@ -3364,9 +3362,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("etag for profiles not in team 1 after update", func(t *testing.T) {
-		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
-		require.Nil(t, result.Err)
-		etag2 = result.Data.(string)
+		etag2 = ss.User().GetEtagForProfilesNotInTeam(teamId)
 		require.NotEqual(t, etag2, etag1, "etag should have changed")
 	})
 
@@ -3389,9 +3385,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("etag for profiles not in team 1 after second update", func(t *testing.T) {
-		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
-		require.Nil(t, result.Err)
-		etag3 = result.Data.(string)
+		etag3 = ss.User().GetEtagForProfilesNotInTeam(teamId)
 		require.NotEqual(t, etag1, etag3, "etag should have changed")
 		require.NotEqual(t, etag2, etag3, "etag should have changed")
 	})
@@ -3417,9 +3411,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1))
 
 	t.Run("etag for profiles not in team 1 after addition to team", func(t *testing.T) {
-		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
-		require.Nil(t, result.Err)
-		etag4 := result.Data.(string)
+		etag4 := ss.User().GetEtagForProfilesNotInTeam(teamId)
 		require.Equal(t, etag3, etag4, "etag should not have changed")
 	})
 
@@ -3435,9 +3427,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// solution, which only uses UserIds, would solve this issue.
 	t.Run("etag for profiles not in team 1 after u3 added to team 2", func(t *testing.T) {
 		t.Skip()
-		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
-		require.Nil(t, result.Err)
-		etag4 := result.Data.(string)
+		etag4 := ss.User().GetEtagForProfilesNotInTeam(teamId)
 		require.Equal(t, etag3, etag4, "etag should not have changed")
 	})
 
