@@ -23,9 +23,13 @@ type relationalCheckConfig struct {
 func getOrphanedRecords(dbmap *gorp.DbMap, cfg relationalCheckConfig) ([]store.OrphanedRecord, error) {
 	var records []store.OrphanedRecord
 
-	query := fmt.Sprintf(`
-		SELECT
-  		%s AS ParentId, %s AS ChildId
+	query := fmt.Sprintf(`SELECT %s AS ParentId`, cfg.parentIdAttr)
+
+	if cfg.childIdAttr != "" {
+		query += fmt.Sprintf(` , %s AS ChildId`, cfg.childIdAttr)
+	}
+
+	query += fmt.Sprintf(`
 		FROM
 			%s
 		WHERE NOT EXISTS (
@@ -36,7 +40,7 @@ func getOrphanedRecords(dbmap *gorp.DbMap, cfg relationalCheckConfig) ([]store.O
 			WHERE
 				id = %s.%s
 		)
-	`, cfg.parentIdAttr, cfg.childIdAttr, cfg.childName, cfg.parentName, cfg.childName, cfg.parentIdAttr)
+	`, cfg.childName, cfg.parentName, cfg.childName, cfg.parentIdAttr)
 
 	if cfg.canParentIdBeEmpty {
 		query += fmt.Sprintf(` AND %s != ''`, cfg.parentIdAttr)
@@ -55,6 +59,7 @@ func checkParentChildIntegrity(dbmap *gorp.DbMap, config relationalCheckConfig) 
 	var result store.IntegrityCheckResult
 	var data store.RelationalIntegrityCheckData
 
+	config.sortRecords = true
 	data.Records, result.Err = getOrphanedRecords(dbmap, config)
 	if result.Err != nil {
 		mlog.Error(result.Err.Error())
@@ -69,13 +74,20 @@ func checkParentChildIntegrity(dbmap *gorp.DbMap, config relationalCheckConfig) 
 	return result
 }
 
+func checkChannelsChannelMembersIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	var config relationalCheckConfig
+	config.parentName = "Channels"
+	config.parentIdAttr = "ChannelId"
+	config.childName = "ChannelMembers"
+	return checkParentChildIntegrity(dbmap, config)
+}
+
 func checkChannelsPostsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Channels"
 	config.parentIdAttr = "ChannelId"
 	config.childName = "Posts"
 	config.childIdAttr = "Id"
-	config.sortRecords = true
 	return checkParentChildIntegrity(dbmap, config)
 }
 
@@ -86,7 +98,6 @@ func checkUsersChannelsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
 	config.childName = "Channels"
 	config.childIdAttr = "Id"
 	config.canParentIdBeEmpty = true
-	config.sortRecords = true
 	return checkParentChildIntegrity(dbmap, config)
 }
 
@@ -96,7 +107,6 @@ func checkUsersPostsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
 	config.parentIdAttr = "UserId"
 	config.childName = "Posts"
 	config.childIdAttr = "Id"
-	config.sortRecords = true
 	return checkParentChildIntegrity(dbmap, config)
 }
 
@@ -106,11 +116,19 @@ func checkTeamsChannelsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
 	config.parentIdAttr = "TeamId"
 	config.childName = "Channels"
 	config.childIdAttr = "Id"
-	config.sortRecords = true
+	return checkParentChildIntegrity(dbmap, config)
+}
+
+func checkTeamsTeamMembersIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	var config relationalCheckConfig
+	config.parentName = "Teams"
+	config.parentIdAttr = "TeamId"
+	config.childName = "TeamMembers"
 	return checkParentChildIntegrity(dbmap, config)
 }
 
 func checkChannelsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
+	results <- checkChannelsChannelMembersIntegrity(dbmap)
 	results <- checkChannelsPostsIntegrity(dbmap)
 }
 
@@ -121,6 +139,7 @@ func checkUsersIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckR
 
 func checkTeamsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
 	results <- checkTeamsChannelsIntegrity(dbmap)
+	results <- checkTeamsTeamMembersIntegrity(dbmap)
 }
 
 func CheckRelationalIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {

@@ -23,12 +23,25 @@ func createChannel(ss store.Store, TeamId, CreatorId string) *model.Channel {
 	return c
 }
 
+func createChannelMember(ss store.Store, ChannelId, UserId string) *model.ChannelMember {
+	m := model.ChannelMember{}
+	m.ChannelId = ChannelId
+	m.UserId = UserId
+	m.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m))
+	return &m
+}
+
 func createChannelWithTeamId(ss store.Store, id string) *model.Channel {
 	return createChannel(ss, id, model.NewId());
 }
 
 func createChannelWithCreatorId(ss store.Store, id string) *model.Channel {
 	return createChannel(ss, model.NewId(), id);
+}
+
+func createChannelMemberWithChannelId(ss store.Store, id string) *model.ChannelMember {
+	return createChannelMember(ss, id, model.NewId());
 }
 
 func createPost(ss store.Store, ChannelId, UserId string) *model.Post {
@@ -46,6 +59,24 @@ func createPostWithChannelId(ss store.Store, id string) *model.Post {
 
 func createPostWithUserId(ss store.Store, id string) *model.Post {
 	return createPost(ss, model.NewId(), id);
+}
+
+func createTeam(ss store.Store, UserId string) *model.Team {
+	m := model.Team{}
+	m.DisplayName = "DisplayName"
+	m.Type = model.TEAM_OPEN
+	m.Email = "test@example.com"
+	m.Name = "z-z-z" + model.NewId() + "b"
+	t, _ := ss.Team().Save(&m)
+	return t
+}
+
+func createTeamMember(ss store.Store, TeamId, UserId string) *model.TeamMember {
+	m := model.TeamMember{}
+	m.TeamId = TeamId
+	m.UserId = UserId
+	store.Must(ss.Team().SaveMember(&m, -1))
+	return &m
 }
 
 func TestCheckIntegrity(t *testing.T) {
@@ -82,6 +113,35 @@ func TestCheckParentChildIntegrity(t *testing.T) {
 			result := checkParentChildIntegrity(dbmap, config)
 			require.NotNil(t, result.Err)
 			require.Empty(t, result.Data)
+		})
+	})
+}
+
+func TestCheckChannelsChannelMembersIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkChannelsChannelMembersIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			channel := createChannel(ss, model.NewId(), model.NewId())
+			member := createChannelMemberWithChannelId(ss, channel.Id)
+			dbmap.Delete(channel)
+			result := checkChannelsChannelMembersIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: member.ChannelId,
+				ChildId: "",
+			}, data.Records[0])
+			dbmap.Delete(member)
 		})
 	})
 }
@@ -190,6 +250,35 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 				ChildId: channel.Id,
 			}, data.Records[0])
 			dbmap.Delete(channel)
+		})
+	})
+}
+
+func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkTeamsTeamMembersIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			team := createTeam(ss, model.NewId())
+			member := createTeamMember(ss, team.Id, model.NewId())
+			dbmap.Delete(team)
+			result := checkTeamsTeamMembersIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: team.Id,
+				ChildId: "",
+			}, data.Records[0])
+			dbmap.Delete(member)
 		})
 	})
 }

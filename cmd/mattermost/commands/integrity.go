@@ -31,7 +31,11 @@ func printRelationalIntegrityCheckResult(data store.RelationalIntegrityCheckData
 		return
 	}
 	for _, record := range data.Records {
-		fmt.Println(fmt.Sprintf("  Child %s is missing Parent %s", record.ChildId, record.ParentId))
+		if record.ChildId != "" {
+			fmt.Println(fmt.Sprintf("  Child %s is missing Parent %s", record.ChildId, record.ParentId))
+		} else {
+			fmt.Println(fmt.Sprintf("  Child is missing Parent %s", record.ParentId))
+		}
 	}
 }
 
