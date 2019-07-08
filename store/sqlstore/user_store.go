@@ -223,7 +223,9 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) *model.AppError {
 }
 
 func (us SqlUserStore) ResetLastPictureUpdate(userId string) *model.AppError {
-	if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": 0, "UserId": userId}); err != nil {
+	curTime := model.GetMillis()
+
+	if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :PictureUpdateTime, UpdateAt = :UpdateTime WHERE Id = :UserId", map[string]interface{}{"PictureUpdateTime": 0, "UpdateTime": curTime, "UserId": userId}); err != nil {
 		return model.NewAppError("SqlUserStore.ResetLastPictureUpdate", "store.sql_user.update_last_picture_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
 	}
 
@@ -1436,71 +1438,65 @@ func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreCha
 	})
 }
 
-func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		builtInRoles := model.MakeDefaultRoles()
-		lastUserId := strings.Repeat("0", 26)
+func (us SqlUserStore) ClearAllCustomRoleAssignments() *model.AppError {
+	builtInRoles := model.MakeDefaultRoles()
+	lastUserId := strings.Repeat("0", 26)
 
-		for {
-			var transaction *gorp.Transaction
-			var err error
+	for {
+		var transaction *gorp.Transaction
+		var err error
 
-			if transaction, err = us.GetMaster().Begin(); err != nil {
-				result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			defer finalizeTransaction(transaction)
+		if transaction, err = us.GetMaster().Begin(); err != nil {
+			return model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		defer finalizeTransaction(transaction)
 
-			var users []*model.User
-			if _, err := transaction.Select(&users, "SELECT * from Users WHERE Id > :Id ORDER BY Id LIMIT 1000", map[string]interface{}{"Id": lastUserId}); err != nil {
-				result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			}
+		var users []*model.User
+		if _, err := transaction.Select(&users, "SELECT * from Users WHERE Id > :Id ORDER BY Id LIMIT 1000", map[string]interface{}{"Id": lastUserId}); err != nil {
+			return model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 
-			if len(users) == 0 {
-				break
-			}
+		if len(users) == 0 {
+			break
+		}
 
-			for _, user := range users {
-				lastUserId = user.Id
+		for _, user := range users {
+			lastUserId = user.Id
 
-				var newRoles []string
+			var newRoles []string
 
-				for _, role := range strings.Fields(user.Roles) {
-					for name := range builtInRoles {
-						if name == role {
-							newRoles = append(newRoles, role)
-							break
-						}
-					}
-				}
-
-				newRolesString := strings.Join(newRoles, " ")
-				if newRolesString != user.Roles {
-					if _, err := transaction.Exec("UPDATE Users SET Roles = :Roles WHERE Id = :Id", map[string]interface{}{"Roles": newRolesString, "Id": user.Id}); err != nil {
-						result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.update.app_error", nil, err.Error(), http.StatusInternalServerError)
-						return
+			for _, role := range strings.Fields(user.Roles) {
+				for name := range builtInRoles {
+					if name == role {
+						newRoles = append(newRoles, role)
+						break
 					}
 				}
 			}
 
-			if err := transaction.Commit(); err != nil {
-				result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
+			newRolesString := strings.Join(newRoles, " ")
+			if newRolesString != user.Roles {
+				if _, err := transaction.Exec("UPDATE Users SET Roles = :Roles WHERE Id = :Id", map[string]interface{}{"Roles": newRolesString, "Id": user.Id}); err != nil {
+					return model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
 			}
 		}
-	})
+
+		if err := transaction.Commit(); err != nil {
+			return model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return nil
 }
 
-func (us SqlUserStore) InferSystemInstallDate() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		createAt, err := us.GetReplica().SelectInt("SELECT CreateAt FROM Users WHERE CreateAt IS NOT NULL ORDER BY CreateAt ASC LIMIT 1")
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetSystemInstallDate", "store.sql_user.get_system_install_date.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = createAt
-	})
+func (us SqlUserStore) InferSystemInstallDate() (int64, *model.AppError) {
+	createAt, err := us.GetReplica().SelectInt("SELECT CreateAt FROM Users WHERE CreateAt IS NOT NULL ORDER BY CreateAt ASC LIMIT 1")
+	if err != nil {
+		return 0, model.NewAppError("SqlUserStore.GetSystemInstallDate", "store.sql_user.get_system_install_date.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return createAt, nil
 }
 
 func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit int) ([]*model.UserForIndexing, *model.AppError) {

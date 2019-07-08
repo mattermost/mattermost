@@ -1291,7 +1291,7 @@ func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
 
 	curTime := model.GetMillis()
 
-	if err = (<-ss.Team().UpdateLastTeamIconUpdate(o1.Id, curTime)).Err; err != nil {
+	if err = ss.Team().UpdateLastTeamIconUpdate(o1.Id, curTime); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1611,9 +1611,8 @@ func testTeamStoreGetAllForExportAfter(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&t1)
 	require.Nil(t, err)
 
-	r1 := <-ss.Team().GetAllForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.TeamForExport)
+	d1, err := ss.Team().GetAllForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
 	found := false
 	for _, team := range d1 {
@@ -1652,10 +1651,9 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}
 	store.Must(ss.Team().SaveMember(m2, -1))
 
-	r1 := <-ss.Team().GetTeamMembersForExport(u1.Id)
-	assert.Nil(t, r1.Err)
+	d1, err := ss.Team().GetTeamMembersForExport(u1.Id)
+	assert.Nil(t, err)
 
-	d1 := r1.Data.([]*model.TeamMemberForExport)
 	assert.Len(t, d1, 1)
 
 	tmfe1 := d1[0]

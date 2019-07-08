@@ -13,7 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
@@ -770,5 +772,161 @@ func TestUpdatePost(t *testing.T) {
 		rpost, err = th.App.UpdatePost(post, false)
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+}
+
+func TestSearchPostsInTeamForUser(t *testing.T) {
+	perPage := 5
+	searchTerm := "searchTerm"
+
+	setup := func(t *testing.T, enableElasticsearch bool) (*TestHelper, []*model.Post) {
+		th := Setup(t).InitBasic()
+
+		posts := make([]*model.Post, 7)
+		for i := 0; i < cap(posts); i++ {
+			post, err := th.App.CreatePost(&model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   searchTerm,
+			}, th.BasicChannel, false)
+
+			require.Nil(t, err)
+
+			posts[i] = post
+		}
+
+		if enableElasticsearch {
+			th.App.SetLicense(model.NewTestLicense("elastic_search"))
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableIndexing = true
+				*cfg.ElasticsearchSettings.EnableSearching = true
+			})
+		} else {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableSearching = false
+			})
+		}
+
+		return th, posts
+	}
+
+	t.Run("should return everything as first page of posts from database", func(t *testing.T) {
+		th, posts := setup(t, false)
+		defer th.TearDown()
+
+		page := 0
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{
+			posts[6].Id,
+			posts[5].Id,
+			posts[4].Id,
+			posts[3].Id,
+			posts[2].Id,
+			posts[1].Id,
+			posts[0].Id,
+		}, results.Order)
+	})
+
+	t.Run("should not return later pages of posts from database", func(t *testing.T) {
+		th, _ := setup(t, false)
+		defer th.TearDown()
+
+		page := 1
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{}, results.Order)
+	})
+
+	t.Run("should return first page of posts from ElasticSearch", func(t *testing.T) {
+		th, posts := setup(t, true)
+		defer th.TearDown()
+
+		page := 0
+		resultsPage := []string{
+			posts[6].Id,
+			posts[5].Id,
+			posts[4].Id,
+			posts[3].Id,
+			posts[2].Id,
+		}
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, resultsPage, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should return later pages of posts from ElasticSearch", func(t *testing.T) {
+		th, posts := setup(t, true)
+		defer th.TearDown()
+
+		page := 1
+		resultsPage := []string{
+			posts[1].Id,
+			posts[0].Id,
+		}
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, resultsPage, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should fall back to database if ElasticSearch fails on first page", func(t *testing.T) {
+		th, posts := setup(t, true)
+		defer th.TearDown()
+
+		page := 0
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{
+			posts[6].Id,
+			posts[5].Id,
+			posts[4].Id,
+			posts[3].Id,
+			posts[2].Id,
+			posts[1].Id,
+			posts[0].Id,
+		}, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should return nothing if ElasticSearch fails on later pages", func(t *testing.T) {
+		th, _ := setup(t, true)
+		defer th.TearDown()
+
+		page := 1
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{}, results.Order)
+		es.AssertExpectations(t)
 	})
 }
