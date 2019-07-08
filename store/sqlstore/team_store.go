@@ -1055,27 +1055,26 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMembe
 	return members, nil
 }
 
-func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		props := make(map[string]interface{})
-		props["UserId"] = userId
-		idQuery := ""
+func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError) {
+	props := make(map[string]interface{})
+	props["UserId"] = userId
+	idQuery := ""
 
-		for index, teamId := range teamIds {
-			if len(idQuery) > 0 {
-				idQuery += ", "
-			}
+	for index, teamId := range teamIds {
+		if len(idQuery) > 0 {
+			idQuery += ", "
+		}
 
-			props["teamId"+strconv.Itoa(index)] = teamId
-			idQuery += ":teamId" + strconv.Itoa(index)
-		}
-		c, err := s.GetReplica().SelectInt("SELECT Count(*) FROM TeamMembers WHERE UserId = :UserId AND TeamId IN ("+idQuery+") AND DeleteAt = 0", props)
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.UserBelongsToTeams", "store.sql_team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = c > 0
-	})
+		props["teamId"+strconv.Itoa(index)] = teamId
+		idQuery += ":teamId" + strconv.Itoa(index)
+	}
+
+	c, err := s.GetReplica().SelectInt("SELECT Count(*) FROM TeamMembers WHERE UserId = :UserId AND TeamId IN ("+idQuery+") AND DeleteAt = 0", props)
+	if err != nil {
+		return false, model.NewAppError("SqlTeamStore.UserBelongsToTeams", "store.sql_team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return c > 0, nil
 }
 
 func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, teamId string, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {

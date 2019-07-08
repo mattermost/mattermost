@@ -2086,7 +2086,7 @@ func (a *App) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *mod
 	}
 
 	if len(restrictions.Teams) > 0 {
-		result, err := a.userBelongsToTeams(otherUserId, restrictions.Teams)
+		result, err := a.Srv.Store.Team().UserBelongsToTeams(otherUserId, restrictions.Teams)
 		if err != nil {
 			return false, err
 		}
@@ -2106,14 +2106,6 @@ func (a *App) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *mod
 	}
 
 	return false, nil
-}
-
-func (a *App) userBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError) {
-	result := <-a.Srv.Store.Team().UserBelongsToTeams(userId, teamIds)
-	if result.Err != nil {
-		return false, result.Err
-	}
-	return result.Data.(bool), nil
 }
 
 func (a *App) userBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
