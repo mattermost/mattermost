@@ -1005,6 +1005,7 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) store.Stor
 	})
 }
 
+// GetUserTeamIds get the team ids to which the user belongs to
 func (s SqlTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]string, *model.AppError) {
 	if allowFromCache {
 		if cacheItem, ok := allTeamIdsForUserCache.Get(userID); ok {
