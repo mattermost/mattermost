@@ -1480,8 +1480,8 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	assert.Equal(t, s1.Id, *t1.SchemeId)
 	assert.Equal(t, s1.Id, *t2.SchemeId)
 
-	res := <-ss.Team().ResetAllTeamSchemes()
-	assert.Nil(t, res.Err)
+	res := ss.Team().ResetAllTeamSchemes()
+	assert.Nil(t, res)
 
 	t1, err = ss.Team().Get(t1.Id)
 	require.Nil(t, err)
