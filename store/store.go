@@ -122,7 +122,7 @@ type TeamStore interface {
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
 	GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError)
 	GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError)
-	UserBelongsToTeams(userId string, teamIds []string) StoreChannel
+	UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError)
 	GetUserTeamIds(userId string, allowFromCache bool) ([]string, *model.AppError)
 	InvalidateAllTeamIdsForUser(userId string)
 	ClearCaches()
