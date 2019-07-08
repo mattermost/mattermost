@@ -541,7 +541,7 @@ type PluginStore interface {
 	Delete(pluginId, key string) StoreChannel
 	DeleteAllForPlugin(PluginId string) StoreChannel
 	DeleteAllExpired() StoreChannel
-	List(pluginId string, page, perPage int) StoreChannel
+	List(pluginId string, page, perPage int) ([]string, *model.AppError)
 }
 
 type RoleStore interface {
