@@ -619,11 +619,9 @@ func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllPrivateTeamListing(); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, err := ss.Team().GetAllPrivateTeamListing(); err != nil {
+		t.Fatal(err)
 	} else {
-		teams := r1.Data.([]*model.Team)
-
 		for _, team := range teams {
 			if team.AllowOpenInvite {
 				t.Fatal("should have returned team with AllowOpenInvite as false")
