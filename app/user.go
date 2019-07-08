@@ -464,11 +464,7 @@ func (a *App) GetUsersEtag(restrictionsHash string) string {
 }
 
 func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfiles(options)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetProfiles(options)
 }
 
 func (a *App) GetUsersNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
@@ -550,11 +546,7 @@ func (a *App) GetUsersInChannelPageByStatus(channelId string, page int, perPage 
 }
 
 func (a *App) GetUsersNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetProfilesNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 }
 
 func (a *App) GetUsersNotInChannelMap(teamId string, channelId string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
@@ -633,11 +625,11 @@ func (a *App) GetUsersByGroupChannelIds(channelIds []string, asAdmin bool) (map[
 }
 
 func (a *App) GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesByUsernames(usernames, viewRestrictions)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetProfilesByUsernames(usernames, viewRestrictions)
+	if err != nil {
+		return nil, err
 	}
-	return a.sanitizeProfiles(result.Data.([]*model.User), asAdmin), nil
+	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User {
@@ -907,21 +899,7 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 	if err := a.Srv.Store.User().UpdateLastPictureUpdate(userId); err != nil {
 		mlog.Error(err.Error())
 	}
-
-	a.InvalidateCacheForUser(userId)
-
-	user, userErr := a.GetUser(userId)
-	if userErr != nil {
-		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", userId), mlog.String("user_id", userId))
-		return nil
-	}
-
-	options := a.Config().GetSanitizeOptions()
-	user.SanitizeProfile(options)
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
-	message.Add("user", user)
-	a.Publish(message)
+	a.invalidateUserCacheAndPublish(userId)
 
 	return nil
 }
@@ -1519,11 +1497,10 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 }
 
 func (a *App) PermanentDeleteAllUsers() *model.AppError {
-	result := <-a.Srv.Store.User().GetAll()
-	if result.Err != nil {
-		return result.Err
+	users, err := a.Srv.Store.User().GetAll()
+	if err != nil {
+		return err
 	}
-	users := result.Data.([]*model.User)
 	for _, user := range users {
 		a.PermanentDeleteUser(user)
 	}
@@ -2235,4 +2212,22 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 	}
 
 	return listOfAllowedChannels, nil
+}
+
+// invalidateUserCacheAndPublish Invalidates cache for a user and publishes user updated event
+func (a *App) invalidateUserCacheAndPublish(userId string) {
+	a.InvalidateCacheForUser(userId)
+
+	user, userErr := a.GetUser(userId)
+	if userErr != nil {
+		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v, err=%v", userId, userErr.Error()), mlog.String("user_id", userId))
+		return
+	}
+
+	options := a.Config().GetSanitizeOptions()
+	user.SanitizeProfile(options)
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	message.Add("user", user)
+	a.Publish(message)
 }
