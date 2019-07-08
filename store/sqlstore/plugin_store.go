@@ -160,7 +160,7 @@ func (ps SqlPluginStore) DeleteAllExpired() store.StoreChannel {
 	})
 }
 
-func (ps SqlPluginStore) List(pluginId string, offset int, limit int) store.StoreChannel {
+func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string, *model.AppError) {
 	if limit <= 0 {
 		limit = DEFAULT_PLUGIN_KEY_FETCH_LIMIT
 	}
@@ -169,13 +169,11 @@ func (ps SqlPluginStore) List(pluginId string, offset int, limit int) store.Stor
 		offset = 0
 	}
 
-	return store.Do(func(result *store.StoreResult) {
-		var keys []string
-		_, err := ps.GetReplica().Select(&keys, "SELECT PKey FROM PluginKeyValueStore WHERE PluginId = :PluginId order by PKey limit :Limit offset :Offset", map[string]interface{}{"PluginId": pluginId, "Limit": limit, "Offset": offset})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPluginStore.List", "store.sql_plugin_store.list.app_error", nil, fmt.Sprintf("plugin_id=%v, err=%v", pluginId, err.Error()), http.StatusInternalServerError)
-		} else {
-			result.Data = keys
-		}
-	})
+	var keys []string
+	_, err := ps.GetReplica().Select(&keys, "SELECT PKey FROM PluginKeyValueStore WHERE PluginId = :PluginId order by PKey limit :Limit offset :Offset", map[string]interface{}{"PluginId": pluginId, "Limit": limit, "Offset": offset})
+	if err != nil {
+		return nil, model.NewAppError("SqlPluginStore.List", "store.sql_plugin_store.list.app_error", nil, fmt.Sprintf("plugin_id=%v, err=%v", pluginId, err.Error()), http.StatusInternalServerError)
+	}
+
+	return keys, nil
 }
