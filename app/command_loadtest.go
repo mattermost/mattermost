@@ -301,8 +301,7 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 
 	var usernames []string
 	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if result := <-a.Srv.Store.User().GetProfiles(options); result.Err == nil {
-		profileUsers := result.Data.([]*model.User)
+	if profileUsers, err := a.Srv.Store.User().GetProfiles(options); err == nil {
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {

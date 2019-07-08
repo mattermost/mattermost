@@ -783,7 +783,7 @@ func (_m *LayeredStoreDatabaseLayer) Scheme() store.SchemeStore {
 }
 
 // SchemeDelete provides a mock function with given fields: ctx, schemeId, hints
-func (_m *LayeredStoreDatabaseLayer) SchemeDelete(ctx context.Context, schemeId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) SchemeDelete(ctx context.Context, schemeId string, hints ...store.LayeredStoreHint) (*model.Scheme, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -793,20 +793,29 @@ func (_m *LayeredStoreDatabaseLayer) SchemeDelete(ctx context.Context, schemeId 
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.Scheme
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *model.Scheme); ok {
 		r0 = rf(ctx, schemeId, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.Scheme)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, string, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, schemeId, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SchemeGet provides a mock function with given fields: ctx, schemeId, hints
-func (_m *LayeredStoreDatabaseLayer) SchemeGet(ctx context.Context, schemeId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) SchemeGet(ctx context.Context, schemeId string, hints ...store.LayeredStoreHint) (*model.Scheme, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -816,20 +825,29 @@ func (_m *LayeredStoreDatabaseLayer) SchemeGet(ctx context.Context, schemeId str
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.Scheme
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *model.Scheme); ok {
 		r0 = rf(ctx, schemeId, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.Scheme)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, string, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, schemeId, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SchemeGetAllPage provides a mock function with given fields: ctx, scope, offset, limit, hints
-func (_m *LayeredStoreDatabaseLayer) SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...store.LayeredStoreHint) ([]*model.Scheme, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -839,20 +857,29 @@ func (_m *LayeredStoreDatabaseLayer) SchemeGetAllPage(ctx context.Context, scope
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, int, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 []*model.Scheme
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int, ...store.LayeredStoreHint) []*model.Scheme); ok {
 		r0 = rf(ctx, scope, offset, limit, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).([]*model.Scheme)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, string, int, int, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, scope, offset, limit, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SchemeGetByName provides a mock function with given fields: ctx, schemeName, hints
-func (_m *LayeredStoreDatabaseLayer) SchemeGetByName(ctx context.Context, schemeName string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) SchemeGetByName(ctx context.Context, schemeName string, hints ...store.LayeredStoreHint) (*model.Scheme, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -862,20 +889,29 @@ func (_m *LayeredStoreDatabaseLayer) SchemeGetByName(ctx context.Context, scheme
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.Scheme
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *model.Scheme); ok {
 		r0 = rf(ctx, schemeName, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.Scheme)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, string, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, schemeName, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SchemePermanentDeleteAll provides a mock function with given fields: ctx, hints
-func (_m *LayeredStoreDatabaseLayer) SchemePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) SchemePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *model.AppError {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -885,12 +921,12 @@ func (_m *LayeredStoreDatabaseLayer) SchemePermanentDeleteAll(ctx context.Contex
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.LayeredStoreHint) *model.AppError); ok {
 		r0 = rf(ctx, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -898,7 +934,7 @@ func (_m *LayeredStoreDatabaseLayer) SchemePermanentDeleteAll(ctx context.Contex
 }
 
 // SchemeSave provides a mock function with given fields: ctx, scheme, hints
-func (_m *LayeredStoreDatabaseLayer) SchemeSave(ctx context.Context, scheme *model.Scheme, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) SchemeSave(ctx context.Context, scheme *model.Scheme, hints ...store.LayeredStoreHint) (*model.Scheme, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -908,16 +944,25 @@ func (_m *LayeredStoreDatabaseLayer) SchemeSave(ctx context.Context, scheme *mod
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, *model.Scheme, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.Scheme
+	if rf, ok := ret.Get(0).(func(context.Context, *model.Scheme, ...store.LayeredStoreHint) *model.Scheme); ok {
 		r0 = rf(ctx, scheme, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.Scheme)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, *model.Scheme, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, scheme, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // Session provides a mock function with given fields:
