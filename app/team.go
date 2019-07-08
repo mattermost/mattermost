@@ -626,11 +626,7 @@ func (a *App) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithC
 }
 
 func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
-	result, err := a.Srv.Store.Team().GetAllPrivateTeamListing()
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
+	return a.Srv.Store.Team().GetAllPrivateTeamListing()
 }
 
 func (a *App) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
