@@ -214,7 +214,7 @@ func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, ena
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients
 func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
-	if !*config.EmailSettings.SendEmailNotifications || len(*config.EmailSettings.SMTPServer) == 0 {
+	if len(*config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
 

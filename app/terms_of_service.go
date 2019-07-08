@@ -17,29 +17,13 @@ func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, 
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.TermsOfService().Save(termsOfService)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	termsOfService = result.Data.(*model.TermsOfService)
-	return termsOfService, nil
+	return a.Srv.Store.TermsOfService().Save(termsOfService)
 }
 
 func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
-	if result := <-a.Srv.Store.TermsOfService().GetLatest(true); result.Err != nil {
-		return nil, result.Err
-	} else {
-		termsOfService := result.Data.(*model.TermsOfService)
-		return termsOfService, nil
-	}
+	return a.Srv.Store.TermsOfService().GetLatest(true)
 }
 
 func (a *App) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
-	if result := <-a.Srv.Store.TermsOfService().Get(id, true); result.Err != nil {
-		return nil, result.Err
-	} else {
-		termsOfService := result.Data.(*model.TermsOfService)
-		return termsOfService, nil
-	}
+	return a.Srv.Store.TermsOfService().Get(id, true)
 }

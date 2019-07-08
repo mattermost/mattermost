@@ -76,8 +76,8 @@ func testStatusStore(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.Status().UpdateLastActivityAt(status.UserId, 10); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Status().UpdateLastActivityAt(status.UserId, 10); err != nil {
+		t.Fatal(err)
 	}
 }
 
