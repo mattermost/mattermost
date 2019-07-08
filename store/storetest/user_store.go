@@ -3477,20 +3477,15 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond * 10)
 
-	store.Must(ss.Team().RemoveMember(teamId, u1.Id))
-	store.Must(ss.Team().RemoveMember(teamId, u2.Id))
+	e := ss.Team().RemoveMember(teamId, u1.Id)
+	require.Nil(t, e)
+	e = ss.Team().RemoveMember(teamId, u2.Id)
+	require.Nil(t, e)
+
 	u1.UpdateAt, err = ss.User().UpdateUpdateAt(u1.Id)
 	require.Nil(t, err)
 	u2.UpdateAt, err = ss.User().UpdateUpdateAt(u2.Id)
 	require.Nil(t, err)
-	e := ss.Team().RemoveMember(teamId, u1.Id)
-	require.Nil(t, e)
-
-	e = ss.Team().RemoveMember(teamId, u2.Id)
-	require.Nil(t, e)
-
-	u1.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u1.Id)).(int64)
-	u2.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u2.Id)).(int64)
 
 	t.Run("etag for profiles not in team 1 after second update", func(t *testing.T) {
 		etag3 = ss.User().GetEtagForProfilesNotInTeam(teamId)
