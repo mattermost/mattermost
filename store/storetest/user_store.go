@@ -153,8 +153,6 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
-	time.Sleep(100 * time.Millisecond)
-
 	if _, err = ss.User().Update(u1, false); err != nil {
 		t.Fatal(err)
 	}
@@ -219,9 +217,7 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
-	time.Sleep(10 * time.Millisecond)
-
-	if _, err := ss.User().UpdateUpdateAt(u1.Id); err != nil {
+	if _, err = ss.User().UpdateUpdateAt(u1.Id); err != nil {
 		t.Fatal(err)
 	}
 
@@ -241,7 +237,7 @@ func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
-	if err := ss.User().UpdateFailedPasswordAttempts(u1.Id, 3); err != nil {
+	if err = ss.User().UpdateFailedPasswordAttempts(u1.Id, 3); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1972,14 +1968,12 @@ func testUserStoreUpdateMfaSecret(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	time.Sleep(100 * time.Millisecond)
-
-	if err := ss.User().UpdateMfaSecret(u1.Id, "12345"); err != nil {
+	if err = ss.User().UpdateMfaSecret(u1.Id, "12345"); err != nil {
 		t.Fatal(err)
 	}
 
 	// should pass, no update will occur though
-	if err := ss.User().UpdateMfaSecret("junk", "12345"); err != nil {
+	if err = ss.User().UpdateMfaSecret("junk", "12345"); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -4057,11 +4051,11 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
-	store.Must(ss.User().Save(u1))
+	_, err := ss.User().Save(u1)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
-	err := ss.User().UpdateLastPictureUpdate(u1.Id)
+	err = ss.User().UpdateLastPictureUpdate(u1.Id)
 	require.Nil(t, err)
 
 	user, err := ss.User().Get(u1.Id)
