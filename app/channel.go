@@ -1017,11 +1017,10 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 func (a *App) AddDirectChannels(teamId string, user *model.User) *model.AppError {
 	var profiles []*model.User
 	options := &model.UserGetOptions{InTeamId: teamId, Page: 0, PerPage: 100}
-	result := <-a.Srv.Store.User().GetProfiles(options)
-	if result.Err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": result.Err.Error()}, "", http.StatusInternalServerError)
+	profiles, err := a.Srv.Store.User().GetProfiles(options)
+	if err != nil {
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
-	profiles = result.Data.([]*model.User)
 
 	var preferences model.Preferences
 
