@@ -179,12 +179,11 @@ func (a *App) DoGuestRolesCreationMigration() {
 		}
 	}
 
-	resultSchemes := <-a.Srv.Store.Scheme().GetAllPage("", 0, 1000000)
-	if resultSchemes.Err != nil {
-		mlog.Critical("Failed to get all schemes.", mlog.Err(resultSchemes.Err))
+	schemes, err := a.Srv.Store.Scheme().GetAllPage("", 0, 1000000)
+	if err != nil {
+		mlog.Critical("Failed to get all schemes.", mlog.Err(err))
 		allSucceeded = false
 	}
-	schemes := resultSchemes.Data.([]*model.Scheme)
 	for _, scheme := range schemes {
 		if scheme.DefaultTeamGuestRole == "" || scheme.DefaultChannelGuestRole == "" {
 			// Team Guest Role
@@ -217,9 +216,9 @@ func (a *App) DoGuestRolesCreationMigration() {
 				scheme.DefaultChannelGuestRole = savedRole.Name
 			}
 
-			result := <-a.Srv.Store.Scheme().Save(scheme)
-			if result.Err != nil {
-				mlog.Critical("Failed to update custom scheme.", mlog.Err(result.Err))
+			_, err := a.Srv.Store.Scheme().Save(scheme)
+			if err != nil {
+				mlog.Critical("Failed to update custom scheme.", mlog.Err(err))
 				allSucceeded = false
 			}
 		}

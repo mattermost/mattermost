@@ -103,7 +103,7 @@ type Server struct {
 	limitedClientConfig map[string]string
 
 	diagnosticId     string
-	diagnosticClient *analytics.Client
+	diagnosticClient analytics.Client
 
 	phase2PermissionsMigrationComplete bool
 
@@ -745,15 +745,16 @@ func (s *Server) StartElasticsearch() {
 
 func (s *Server) initDiagnostics(endpoint string) {
 	if s.diagnosticClient == nil {
-		client := analytics.New(SEGMENT_KEY)
-		client.Logger = s.Log.StdLog(mlog.String("source", "segment"))
+		config := analytics.Config{}
+		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "segment")))
 		// For testing
 		if endpoint != "" {
-			client.Endpoint = endpoint
-			client.Verbose = true
-			client.Size = 1
+			config.Endpoint = endpoint
+			config.Verbose = true
+			config.BatchSize = 1
 		}
-		client.Identify(&analytics.Identify{
+		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
+		client.Enqueue(&analytics.Identify{
 			UserId: s.diagnosticId,
 		})
 
@@ -761,7 +762,7 @@ func (s *Server) initDiagnostics(endpoint string) {
 	}
 }
 
-// ShutdownDiagnostics closes the diagnostic client.
+// shutdownDiagnostics closes the diagnostic client.
 func (s *Server) shutdownDiagnostics() error {
 	if s.diagnosticClient != nil {
 		return s.diagnosticClient.Close()

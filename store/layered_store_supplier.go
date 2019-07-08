@@ -41,10 +41,10 @@ type LayeredStoreSupplier interface {
 	RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *model.AppError
 
 	// Schemes
-	SchemeSave(ctx context.Context, scheme *model.Scheme, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	SchemeGet(ctx context.Context, schemeId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	SchemeGetByName(ctx context.Context, schemeName string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	SchemeDelete(ctx context.Context, schemeId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	SchemePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	SchemeSave(ctx context.Context, scheme *model.Scheme, hints ...LayeredStoreHint) (*model.Scheme, *model.AppError)
+	SchemeGet(ctx context.Context, schemeId string, hints ...LayeredStoreHint) (*model.Scheme, *model.AppError)
+	SchemeGetByName(ctx context.Context, schemeName string, hints ...LayeredStoreHint) (*model.Scheme, *model.AppError)
+	SchemeDelete(ctx context.Context, schemeId string, hints ...LayeredStoreHint) (*model.Scheme, *model.AppError)
+	SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...LayeredStoreHint) ([]*model.Scheme, *model.AppError)
+	SchemePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *model.AppError
 }
