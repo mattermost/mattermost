@@ -247,10 +247,10 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImportData, *model.AppError) {
 	var memberships []UserTeamImportData
 
-	members, err := a.Srv.Store.Team().GetTeamMembersForExport(userID)
+	members, err := a.Srv.Store.Team().GetTeamMembersForExport(userId)
 
 	if err != nil {
 		return nil, err
@@ -265,7 +265,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]UserTeamImpo
 		memberData := ImportUserTeamDataFromTeamMember(member)
 
 		// Do the Channel Memberships.
-		channelMembers, err := a.buildUserChannelMemberships(userID, member.TeamId)
+		channelMembers, err := a.buildUserChannelMemberships(userId, member.TeamId)
 		if err != nil {
 			return nil, err
 		}
