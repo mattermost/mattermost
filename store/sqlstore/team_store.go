@@ -818,60 +818,60 @@ func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) s
 // causing unnecessary table locks. **THIS FUNCTION SHOULD NOT BE USED FOR ANY OTHER PURPOSE.** Executing this function
 // *after* the new Schemes functionality has been used on an installation will have unintended consequences.
 func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) *model.AppError {
-		var transaction *gorp.Transaction
-		var err error
+	var transaction *gorp.Transaction
+	var err error
 
-		if transaction, err = s.GetMaster().Begin(); err != nil {
-			return model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		defer finalizeTransaction(transaction)
+	if transaction, err = s.GetMaster().Begin(); err != nil {
+		return model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
 
-		var teamMembers []teamMember
-		if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
-			return model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.select.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	var teamMembers []teamMember
+	if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
+		return model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		if len(teamMembers) == 0 {
-			// No more team members in query result means that the migration has finished.
-			return nil
-		}
-
-		for _, member := range teamMembers {
-			roles := strings.Fields(member.Roles)
-			var newRoles []string
-			if !member.SchemeAdmin.Valid {
-				member.SchemeAdmin = sql.NullBool{Bool: false, Valid: true}
-			}
-			if !member.SchemeUser.Valid {
-				member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
-			}
-			if !member.SchemeGuest.Valid {
-				member.SchemeGuest = sql.NullBool{Bool: false, Valid: true}
-			}
-			for _, role := range roles {
-				if role == model.TEAM_ADMIN_ROLE_ID {
-					member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
-				} else if role == model.TEAM_USER_ROLE_ID {
-					member.SchemeUser = sql.NullBool{Bool: true, Valid: true}
-				} else if role == model.TEAM_GUEST_ROLE_ID {
-					member.SchemeGuest = sql.NullBool{Bool: true, Valid: true}
-				} else {
-					newRoles = append(newRoles, role)
-				}
-			}
-			member.Roles = strings.Join(newRoles, " ")
-
-			if _, err := transaction.Update(&member); err != nil {
-				return model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-
-		}
-
-		if err := transaction.Commit(); err != nil {
-			return model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
+	if len(teamMembers) == 0 {
+		// No more team members in query result means that the migration has finished.
 		return nil
+	}
+
+	for _, member := range teamMembers {
+		roles := strings.Fields(member.Roles)
+		var newRoles []string
+		if !member.SchemeAdmin.Valid {
+			member.SchemeAdmin = sql.NullBool{Bool: false, Valid: true}
+		}
+		if !member.SchemeUser.Valid {
+			member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
+		}
+		if !member.SchemeGuest.Valid {
+			member.SchemeGuest = sql.NullBool{Bool: false, Valid: true}
+		}
+		for _, role := range roles {
+			if role == model.TEAM_ADMIN_ROLE_ID {
+				member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
+			} else if role == model.TEAM_USER_ROLE_ID {
+				member.SchemeUser = sql.NullBool{Bool: true, Valid: true}
+			} else if role == model.TEAM_GUEST_ROLE_ID {
+				member.SchemeGuest = sql.NullBool{Bool: true, Valid: true}
+			} else {
+				newRoles = append(newRoles, role)
+			}
+		}
+		member.Roles = strings.Join(newRoles, " ")
+
+		if _, err := transaction.Update(&member); err != nil {
+			return model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s SqlTeamStore) ResetAllTeamSchemes() store.StoreChannel {
