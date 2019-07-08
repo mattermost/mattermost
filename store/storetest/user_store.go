@@ -67,6 +67,7 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("GetUsersBatchForIndexing", func(t *testing.T) { testUserStoreGetUsersBatchForIndexing(t, ss) })
 	t.Run("GetTeamGroupUsers", func(t *testing.T) { testUserStoreGetTeamGroupUsers(t, ss) })
 	t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetChannelGroupUsers(t, ss) })
+	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -3943,4 +3944,30 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 
 	// ensure removed allowed member still returned by query
 	requireNUsers(2)
+}
+
+func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	store.Must(ss.User().Save(u1))
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
+
+	err := ss.User().UpdateLastPictureUpdate(u1.Id)
+	require.Nil(t, err)
+
+	user, err := ss.User().Get(u1.Id)
+	require.Nil(t, err)
+
+	assert.NotZero(t, user.LastPictureUpdate)
+	assert.NotZero(t, user.UpdateAt)
+
+	err = ss.User().ResetLastPictureUpdate(u1.Id)
+	require.Nil(t, err)
+
+	user2, err := ss.User().Get(u1.Id)
+	require.Nil(t, err)
+
+	assert.True(t, user2.UpdateAt > user.UpdateAt)
+	assert.Zero(t, user2.LastPictureUpdate)
 }
