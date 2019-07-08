@@ -871,10 +871,6 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) *
 			return model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		// data := make(map[string]string)
-		// data["TeamId"] = teamMembers[len(teamMembers)-1].TeamId
-		// data["UserId"] = teamMembers[len(teamMembers)-1].UserId
-		// result.Data = data
 		return nil
 }
 

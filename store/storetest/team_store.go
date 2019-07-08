@@ -1418,9 +1418,6 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 			if res == nil {
 				break
 			}
-			// data := res.Data.(map[string]string)
-			// lastDoneTeamId = data["TeamId"]
-			// lastDoneUserId = data["UserId"]
 		}
 	}
 
