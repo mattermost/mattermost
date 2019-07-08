@@ -124,7 +124,6 @@ func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *mode
 			return nil, model.NewAppError("SqlPluginStore.Get", "store.sql_plugin_store.get.app_error", nil, fmt.Sprintf("plugin_id=%v, key=%v, err=%v", pluginId, key, err.Error()), http.StatusNotFound)
 		}
 		return nil, model.NewAppError("SqlPluginStore.Get", "store.sql_plugin_store.get.app_error", nil, fmt.Sprintf("plugin_id=%v, key=%v, err=%v", pluginId, key, err.Error()), http.StatusInternalServerError)
-
 	}
 
 	return kv, nil
