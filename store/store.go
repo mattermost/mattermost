@@ -538,7 +538,7 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
 	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	Get(pluginId, key string) StoreChannel
-	Delete(pluginId, key string) StoreChannel
+	Delete(pluginId, key string) *model.AppError
 	DeleteAllForPlugin(PluginId string) StoreChannel
 	DeleteAllExpired() StoreChannel
 	List(pluginId string, page, perPage int) StoreChannel
