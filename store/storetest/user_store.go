@@ -3477,8 +3477,11 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond * 10)
 
-	store.Must(ss.Team().RemoveMember(teamId, u1.Id))
-	store.Must(ss.Team().RemoveMember(teamId, u2.Id))
+	e := ss.Team().RemoveMember(teamId, u1.Id)
+	require.Nil(t, e)
+	e = ss.Team().RemoveMember(teamId, u2.Id)
+	require.Nil(t, e)
+
 	u1.UpdateAt, err = ss.User().UpdateUpdateAt(u1.Id)
 	require.Nil(t, err)
 	u2.UpdateAt, err = ss.User().UpdateUpdateAt(u2.Id)
@@ -3919,8 +3922,8 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	requireNUsers(2)
 
 	// delete team membership of allowed user
-	res = <-ss.Team().RemoveMember(team.Id, userGroupA.Id)
-	require.Nil(t, res.Err)
+	err = ss.Team().RemoveMember(team.Id, userGroupA.Id)
+	require.Nil(t, err)
 
 	// ensure removed allowed member still returned by query
 	requireNUsers(2)
