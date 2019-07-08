@@ -91,6 +91,33 @@ func checkChannelsPostsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
 	return checkParentChildIntegrity(dbmap, config)
 }
 
+func checkTeamsChannelsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	var config relationalCheckConfig
+	config.parentName = "Teams"
+	config.parentIdAttr = "TeamId"
+	config.childName = "Channels"
+	config.childIdAttr = "Id"
+	return checkParentChildIntegrity(dbmap, config)
+}
+
+func checkTeamsTeamMembersIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	var config relationalCheckConfig
+	config.parentName = "Teams"
+	config.parentIdAttr = "TeamId"
+	config.childName = "TeamMembers"
+	return checkParentChildIntegrity(dbmap, config)
+}
+
+func checkUsersChannelMembersIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	var config relationalCheckConfig
+	config.parentName = "Users"
+	config.parentIdAttr = "UserId"
+	config.childName = "ChannelMembers"
+	config.childIdAttr = ""
+	config.canParentIdBeEmpty = true
+	return checkParentChildIntegrity(dbmap, config)
+}
+
 func checkUsersChannelsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
@@ -110,19 +137,10 @@ func checkUsersPostsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
 	return checkParentChildIntegrity(dbmap, config)
 }
 
-func checkTeamsChannelsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersTeamMembersIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
 	var config relationalCheckConfig
-	config.parentName = "Teams"
-	config.parentIdAttr = "TeamId"
-	config.childName = "Channels"
-	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
-}
-
-func checkTeamsTeamMembersIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
-	var config relationalCheckConfig
-	config.parentName = "Teams"
-	config.parentIdAttr = "TeamId"
+	config.parentName = "Users"
+	config.parentIdAttr = "UserId"
 	config.childName = "TeamMembers"
 	return checkParentChildIntegrity(dbmap, config)
 }
@@ -132,21 +150,23 @@ func checkChannelsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityChe
 	results <- checkChannelsPostsIntegrity(dbmap)
 }
 
-func checkUsersIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	results <- checkUsersChannelsIntegrity(dbmap)
-	results <- checkUsersPostsIntegrity(dbmap)
-}
-
 func checkTeamsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
 	results <- checkTeamsChannelsIntegrity(dbmap)
 	results <- checkTeamsTeamMembersIntegrity(dbmap)
 }
 
+func checkUsersIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
+	results <- checkUsersChannelMembersIntegrity(dbmap)
+	results <- checkUsersChannelsIntegrity(dbmap)
+	results <- checkUsersPostsIntegrity(dbmap)
+	results <- checkUsersTeamMembersIntegrity(dbmap)
+}
+
 func CheckRelationalIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
 	mlog.Info("Starting relational integrity checks...")
 	checkChannelsIntegrity(dbmap, results)
-	checkUsersIntegrity(dbmap, results)
 	checkTeamsIntegrity(dbmap, results)
+	checkUsersIntegrity(dbmap, results)
 	mlog.Info("Done with relational integrity checks")
 	close(results)
 }
