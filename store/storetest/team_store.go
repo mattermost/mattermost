@@ -1611,9 +1611,8 @@ func testTeamStoreGetAllForExportAfter(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&t1)
 	require.Nil(t, err)
 
-	r1 := <-ss.Team().GetAllForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.TeamForExport)
+	d1, err := ss.Team().GetAllForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
 	found := false
 	for _, team := range d1 {

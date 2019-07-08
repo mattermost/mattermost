@@ -120,7 +120,7 @@ type TeamStore interface {
 	ResetAllTeamSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
-	GetAllForExportAfter(limit int, afterId string) StoreChannel
+	GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError)
 	GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError)
 	UserBelongsToTeams(userId string, teamIds []string) StoreChannel
 	GetUserTeamIds(userId string, allowFromCache bool) StoreChannel
