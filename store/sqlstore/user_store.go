@@ -223,24 +223,23 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) *model.AppError {
 }
 
 func (us SqlUserStore) ResetLastPictureUpdate(userId string) *model.AppError {
-	if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": 0, "UserId": userId}); err != nil {
+	curTime := model.GetMillis()
+
+	if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :PictureUpdateTime, UpdateAt = :UpdateTime WHERE Id = :UserId", map[string]interface{}{"PictureUpdateTime": 0, "UpdateTime": curTime, "UserId": userId}); err != nil {
 		return model.NewAppError("SqlUserStore.ResetLastPictureUpdate", "store.sql_user.update_last_picture_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
 	}
 
 	return nil
 }
 
-func (us SqlUserStore) UpdateUpdateAt(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		curTime := model.GetMillis()
+func (us SqlUserStore) UpdateUpdateAt(userId string) (int64, *model.AppError) {
+	curTime := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
-			return
-		}
+	if _, err := us.GetMaster().Exec("UPDATE Users SET UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
+		return curTime, model.NewAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+	}
 
-		result.Data = curTime
-	})
+	return curTime, nil
 }
 
 func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) store.StoreChannel {
@@ -1411,29 +1410,26 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool
 	return users, nil
 }
 
-func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) string {
+	var querystr string
+	querystr = `
+		SELECT
+			CONCAT(MAX(UpdateAt), '.', COUNT(Id)) as etag
+		FROM
+			Users as u
+		LEFT JOIN TeamMembers tm
+			ON tm.UserId = u.Id
+			AND tm.TeamId = :TeamId
+			AND tm.DeleteAt = 0
+		WHERE
+			tm.UserId IS NULL
+	`
+	etag, err := us.GetReplica().SelectStr(querystr, map[string]interface{}{"TeamId": teamId})
+	if err != nil {
+		return fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+	}
 
-		var querystr string
-		querystr = `
-			SELECT
-				CONCAT(MAX(UpdateAt), '.', COUNT(Id)) as etag
-			FROM
-				Users as u
-			LEFT JOIN TeamMembers tm
-				ON tm.UserId = u.Id
-				AND tm.TeamId = :TeamId
-				AND tm.DeleteAt = 0
-			WHERE
-				tm.UserId IS NULL
-		`
-		etag, err := us.GetReplica().SelectStr(querystr, map[string]interface{}{"TeamId": teamId})
-		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
-		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, etag)
-		}
-	})
+	return fmt.Sprintf("%v.%v", model.CurrentVersion, etag)
 }
 
 func (us SqlUserStore) ClearAllCustomRoleAssignments() *model.AppError {

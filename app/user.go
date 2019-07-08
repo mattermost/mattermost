@@ -494,7 +494,7 @@ func (a *App) GetUsersInTeamEtag(teamId string, restrictionsHash string) string 
 }
 
 func (a *App) GetUsersNotInTeamEtag(teamId string, restrictionsHash string) string {
-	return fmt.Sprintf("%v.%v.%v.%v", (<-a.Srv.Store.User().GetEtagForProfilesNotInTeam(teamId)).Data.(string), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+	return fmt.Sprintf("%v.%v.%v.%v", a.Srv.Store.User().GetEtagForProfilesNotInTeam(teamId), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
 }
 
 func (a *App) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
@@ -1479,8 +1479,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Team().RemoveAllMembersByUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().RemoveAllMembersByUser(user.Id); err != nil {
+		return err
 	}
 
 	mlog.Warn(fmt.Sprintf("Permanently deleted account %v id=%v", user.Email, user.Id), mlog.String("user_id", user.Id))
@@ -2126,11 +2126,10 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		return nil, nil
 	}
 
-	result := <-a.Srv.Store.Team().GetUserTeamIds(userId, true)
-	if result.Err != nil {
-		return nil, result.Err
+	teamIds, getTeamErr := a.Srv.Store.Team().GetUserTeamIds(userId, true)
+	if getTeamErr != nil {
+		return nil, getTeamErr
 	}
-	teamIds := result.Data.([]string)
 
 	teamIdsWithPermission := []string{}
 	teamIdsWithoutPermission := []string{}
