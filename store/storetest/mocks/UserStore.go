@@ -888,19 +888,28 @@ func (_m *UserStore) ResetLastPictureUpdate(userId string) *model.AppError {
 }
 
 // Save provides a mock function with given fields: user
-func (_m *UserStore) Save(user *model.User) store.StoreChannel {
+func (_m *UserStore) Save(user *model.User) (*model.User, *model.AppError) {
 	ret := _m.Called(user)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.User) store.StoreChannel); ok {
+	var r0 *model.User
+	if rf, ok := ret.Get(0).(func(*model.User) *model.User); ok {
 		r0 = rf(user)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.User) *model.AppError); ok {
+		r1 = rf(user)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // Search provides a mock function with given fields: teamId, term, options
