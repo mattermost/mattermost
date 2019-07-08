@@ -130,13 +130,15 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(u1))
+	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(u2))
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
 	m1 := model.ChannelMember{}
@@ -149,7 +151,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err != nil {
+	if _, err = ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err != nil {
 		t.Fatal("couldn't save direct channel", err)
 	}
 
@@ -211,13 +213,15 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(u1))
+	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(u2))
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
 	c1, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
@@ -382,13 +386,15 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(u1))
+	_, err = ss.User().Save(u1)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u2))
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
 	o2 := model.Channel{}
@@ -457,13 +463,15 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(u1))
+	_, err = ss.User().Save(u1)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u2))
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
 	o2 := model.Channel{}
@@ -864,13 +872,15 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u1))
+	_, err = ss.User().Save(&u1)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u2))
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
 	o1 := model.ChannelMember{}
@@ -954,13 +964,15 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u1))
+	_, err = ss.User().Save(&u1)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u2))
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
 	o1 := model.ChannelMember{}
@@ -1917,7 +1929,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
-	store.Must(ss.User().Save(u1))
+	_, err = ss.User().Save(u1)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	m1 := model.ChannelMember{
@@ -1927,8 +1940,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().SaveMember(&m1))
 
-	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
-		t.Fatalf("failed to get member count: %v", err)
+	if count, channelErr := ss.Channel().GetMemberCount(c1.Id, false); channelErr != nil {
+		t.Fatalf("failed to get member count: %v", channelErr)
 	} else if count != 1 {
 		t.Fatalf("got incorrect member count %v", count)
 	}
@@ -1937,7 +1950,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
-	store.Must(ss.User().Save(&u2))
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
 	m2 := model.ChannelMember{
@@ -1947,8 +1961,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
-		t.Fatalf("failed to get member count: %v", err)
+	if count, channelErr := ss.Channel().GetMemberCount(c1.Id, false); channelErr != nil {
+		t.Fatalf("failed to get member count: %v", channelErr)
 	} else if count != 2 {
 		t.Fatalf("got incorrect member count %v", count)
 	}
@@ -1958,7 +1972,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
-	store.Must(ss.User().Save(&u3))
+	_, err = ss.User().Save(&u3)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
 
 	m3 := model.ChannelMember{
@@ -1968,8 +1983,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
-		t.Fatalf("failed to get member count: %v", err)
+	if count, channelErr := ss.Channel().GetMemberCount(c1.Id, false); channelErr != nil {
+		t.Fatalf("failed to get member count: %v", channelErr)
 	} else if count != 2 {
 		t.Fatalf("got incorrect member count %v", count)
 	}
@@ -1979,7 +1994,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		DeleteAt: 10000,
 	}
-	store.Must(ss.User().Save(u4))
+	_, err = ss.User().Save(u4)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1))
 
 	m4 := model.ChannelMember{
@@ -2564,32 +2580,36 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 	u1.Email = MakeEmail()
 	u1.Username = "user1" + model.NewId()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(u1))
+	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Username = "user2" + model.NewId()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(u2))
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
 
 	u3 := &model.User{}
 	u3.Email = MakeEmail()
 	u3.Username = "user3" + model.NewId()
 	u3.Nickname = model.NewId()
-	store.Must(ss.User().Save(u3))
+	_, err = ss.User().Save(u3)
+	require.Nil(t, err)
 
 	u4 := &model.User{}
 	u4.Email = MakeEmail()
 	u4.Username = "user4" + model.NewId()
 	u4.Nickname = model.NewId()
-	store.Must(ss.User().Save(u4))
+	_, err = ss.User().Save(u4)
+	require.Nil(t, err)
 
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "ChannelA"
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	_, err := ss.Channel().Save(&o1, -1)
+	_, err = ss.Channel().Save(&o1, -1)
 	require.Nil(t, err)
 
 	m1 := model.ChannelMember{}
@@ -2732,25 +2752,29 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	u1.Username = "user.one"
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(u1))
+	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
 
 	u2 := &model.User{}
 	u2.Username = "user.two"
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(u2))
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
 
 	u3 := &model.User{}
 	u3.Username = "user.three"
 	u3.Email = MakeEmail()
 	u3.Nickname = model.NewId()
-	store.Must(ss.User().Save(u3))
+	_, err = ss.User().Save(u3)
+	require.Nil(t, err)
 
 	u4 := &model.User{}
 	u4.Username = "user.four"
 	u4.Email = MakeEmail()
 	u4.Nickname = model.NewId()
-	store.Must(ss.User().Save(u4))
+	_, err = ss.User().Save(u4)
+	require.Nil(t, err)
 
 	// Group channels
 	userIds := []string{u1.Id, u2.Id, u3.Id}
@@ -2758,7 +2782,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	gc1.Name = model.GetGroupNameFromUserIds(userIds)
 	gc1.DisplayName = "GroupChannel" + model.NewId()
 	gc1.Type = model.CHANNEL_GROUP
-	_, err := ss.Channel().Save(&gc1, -1)
+	_, err = ss.Channel().Save(&gc1, -1)
 	require.Nil(t, err)
 
 	for _, userId := range userIds {
@@ -2901,12 +2925,14 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(u1))
+	_, err = ss.User().Save(u1)
+	require.Nil(t, err)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(u2))
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
 
 	d4, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
 	if err != nil {
@@ -3482,7 +3508,8 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u1))
+	_, err = ss.User().Save(&u1)
+	require.Nil(t, err)
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = c1.Id
@@ -3528,17 +3555,20 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u1))
+	_, err = ss.User().Save(&u1)
+	require.Nil(t, err)
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u2))
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err)
 
 	u3 := model.User{}
 	u3.Email = MakeEmail()
 	u3.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u3))
+	_, err = ss.User().Save(&u3)
+	require.Nil(t, err)
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = c1.Id
@@ -3603,13 +3633,15 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s Sql
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(u1))
+	_, err = ss.User().Save(u1)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(u2))
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
 	m1 := model.ChannelMember{}
@@ -3662,13 +3694,15 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(u1))
+	_, err = ss.User().Save(u1)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(u2))
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
 	m1 := model.ChannelMember{}
@@ -3704,13 +3738,15 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(u1))
+	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(u2))
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
 	m1 := model.ChannelMember{}
@@ -3726,7 +3762,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	o1.DeleteAt = 1
-	err := ss.Channel().SetDeleteAt(o1.Id, 1, 1)
+	err = ss.Channel().SetDeleteAt(o1.Id, 1, 1)
 	require.Nil(t, err, "channel should have been deleted")
 
 	d1, err := ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
