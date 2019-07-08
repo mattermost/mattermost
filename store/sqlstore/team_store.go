@@ -785,13 +785,12 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) RemoveAllMembersByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.RemoveMember", "store.sql_team.remove_member.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
+	_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+	if err != nil {
+		return model.NewAppError("SqlTeamStore.RemoveMember", "store.sql_team.remove_member.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (us SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError {
