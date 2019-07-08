@@ -35,7 +35,6 @@ require (
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20190311042500-a93a6c6ea053
-	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lib/pq v1.0.0
@@ -60,8 +59,8 @@ require (
 	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90 // indirect
 	github.com/prometheus/procfs v0.0.0-20190322151404-55ae3d9d5573 // indirect
 	github.com/rs/cors v1.6.0
-	github.com/rwcarlsen/goexif v0.0.0-20190318171057-76e3344f7516
-	github.com/segmentio/analytics-go v2.0.1-0.20160426181448-2d840d861c32+incompatible
+	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
+	github.com/segmentio/analytics-go v3.0.1+incompatible
 	github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c // indirect
 	github.com/sirupsen/logrus v1.4.0
 	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect

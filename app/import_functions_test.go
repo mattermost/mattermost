@@ -63,7 +63,7 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -74,7 +74,7 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -85,7 +85,7 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -96,10 +96,9 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -162,10 +161,9 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have succeeded: %v", err)
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -227,10 +225,9 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -276,7 +273,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -287,7 +284,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -298,7 +295,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -309,10 +306,9 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -375,10 +371,9 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have succeeded: %v", err)
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -440,10 +435,9 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -568,10 +562,8 @@ func TestImportImportTeam(t *testing.T) {
 	scheme2 := th.SetupTeamScheme()
 
 	// Check how many teams are in the database.
-	var teamsCount int64
-	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
-		teamsCount = r.Data.(int64)
-	} else {
+	teamsCount, err := th.App.Srv.Store.Team().AnalyticsTeamCount()
+	if err != nil {
 		t.Fatalf("Failed to get team count.")
 	}
 
@@ -681,12 +673,8 @@ func TestImportImportChannel(t *testing.T) {
 	}
 
 	// Check how many channels are in the database.
-	var channelCount int64
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		channelCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get team count.")
-	}
+	channelCount, err := th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	require.Nil(t, err, "Failed to get team count.")
 
 	// Do an invalid channel in dry-run mode.
 	data := ChannelImportData{
@@ -795,76 +783,60 @@ func TestImportImportUser(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many users are in the database.
-	var userCount int64
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		userCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
 
 	// Do an invalid user in dry-run mode.
 	data := UserImportData{
 		Username: ptrStr(model.NewId()),
 	}
-	if err := th.App.ImportUser(&data, true); err == nil {
+	if err = th.App.ImportUser(&data, true); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount2, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		if r.Data.(int64) != userCount {
-			t.Fatalf("Unexpected number of users")
-		}
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
+	assert.Equal(t, userCount, userCount2, "Unexpected number of users")
 
 	// Do a valid user in dry-run mode.
 	data = UserImportData{
 		Username: ptrStr(model.NewId()),
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
-	if err := th.App.ImportUser(&data, true); err != nil {
+	if err = th.App.ImportUser(&data, true); err != nil {
 		t.Fatalf("Should have succeeded to import valid user.")
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount3, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		if r.Data.(int64) != userCount {
-			t.Fatalf("Unexpected number of users")
-		}
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
+	assert.Equal(t, userCount, userCount3, "Unexpected number of users")
 
 	// Do an invalid user in apply mode.
 	data = UserImportData{
 		Username: ptrStr(model.NewId()),
 	}
-	if err := th.App.ImportUser(&data, false); err == nil {
+	if err = th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount4, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		if r.Data.(int64) != userCount {
-			t.Fatalf("Unexpected number of users")
-		}
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
+	assert.Equal(t, userCount, userCount4, "Unexpected number of users")
 
 	// Do a valid user in apply mode.
 	username := model.NewId()
@@ -878,24 +850,20 @@ func TestImportImportUser(t *testing.T) {
 		LastName:     ptrStr(model.NewId()),
 		Position:     ptrStr(model.NewId()),
 	}
-	if err := th.App.ImportUser(&data, false); err != nil {
+	if err = th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to import valid user.")
 	}
 
 	// Check that one more user is in the DB.
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount5, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		if r.Data.(int64) != userCount+1 {
-			t.Fatalf("Unexpected number of users")
-		}
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
+	assert.Equal(t, userCount+1, userCount5, "Unexpected number of users")
 
 	// Get the user and check all the fields are correct.
-	if user, err := th.App.GetUserByUsername(username); err != nil {
+	if user, err2 := th.App.GetUserByUsername(username); err2 != nil {
 		t.Fatalf("Failed to get user from database.")
 	} else {
 		if user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position {
@@ -938,24 +906,20 @@ func TestImportImportUser(t *testing.T) {
 	data.Position = ptrStr(model.NewId())
 	data.Roles = ptrStr("system_admin system_user")
 	data.Locale = ptrStr("zh_CN")
-	if err := th.App.ImportUser(&data, false); err != nil {
+	if err = th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to update valid user %v", err)
 	}
 
 	// Check user count the same.
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount6, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		if r.Data.(int64) != userCount+1 {
-			t.Fatalf("Unexpected number of users")
-		}
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
+	assert.Equal(t, userCount+1, userCount6, "Unexpected number of users")
 
 	// Get the user and check all the fields are correct.
-	if user, err := th.App.GetUserByUsername(username); err != nil {
+	if user, err2 := th.App.GetUserByUsername(username); err2 != nil {
 		t.Fatalf("Failed to get user from database.")
 	} else {
 		if user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position {
@@ -989,22 +953,22 @@ func TestImportImportUser(t *testing.T) {
 
 	// Check Password and AuthData together.
 	data.Password = ptrStr("PasswordTest")
-	if err := th.App.ImportUser(&data, false); err == nil {
+	if err = th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	data.AuthData = nil
-	if err := th.App.ImportUser(&data, false); err != nil {
+	if err = th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to update valid user %v", err)
 	}
 
 	data.Password = ptrStr("")
-	if err := th.App.ImportUser(&data, false); err == nil {
+	if err = th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	data.Password = ptrStr(strings.Repeat("0123456789", 10))
-	if err := th.App.ImportUser(&data, false); err == nil {
+	if err = th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
@@ -1545,12 +1509,8 @@ func TestImportImportUser(t *testing.T) {
 	err = th.App.ImportScheme(teamSchemeData, false)
 	assert.Nil(t, err)
 
-	var teamScheme *model.Scheme
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*teamSchemeData.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
-	} else {
-		teamScheme = res.Data.(*model.Scheme)
-	}
+	teamScheme, err := th.App.Srv.Store.Scheme().GetByName(*teamSchemeData.Name)
+	require.Nil(t, err, "Failed to import scheme")
 
 	teamData := &TeamImportData{
 		Name:            ptrStr(model.NewId()),
@@ -1801,11 +1761,9 @@ func TestImportImportPost(t *testing.T) {
 	}
 
 	// Count the number of posts in the testing team.
-	var initialPostCount int64
-	if result := <-th.App.Srv.Store.Post().AnalyticsPostCount(team.Id, false, false); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		initialPostCount = result.Data.(int64)
+	initialPostCount, err := th.App.Srv.Store.Post().AnalyticsPostCount(team.Id, false, false)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	// Try adding an invalid post in dry run mode.
@@ -2177,19 +2135,11 @@ func TestImportImportDirectChannel(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many channels are in the database.
-	var directChannelCount int64
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_DIRECT); r.Err == nil {
-		directChannelCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get direct channel count.")
-	}
+	directChannelCount, err := th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_DIRECT)
+	require.Nil(t, err, "Failed to get direct channel count.")
 
-	var groupChannelCount int64
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_GROUP); r.Err == nil {
-		groupChannelCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get group channel count.")
-	}
+	groupChannelCount, err := th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_GROUP)
+	require.Nil(t, err, "Failed to get group channel count.")
 
 	// Do an invalid channel in dry-run mode.
 	data := DirectChannelImportData{
@@ -2198,7 +2148,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		},
 		Header: ptrStr("Channel Header"),
 	}
-	err := th.App.ImportDirectChannel(&data, true)
+	err = th.App.ImportDirectChannel(&data, true)
 	require.NotNil(t, err)
 
 	// Check that no more channels are in the DB.
@@ -2370,9 +2320,9 @@ func TestImportImportDirectPost(t *testing.T) {
 	directChannel = channel
 
 	// Get the number of posts in the system.
-	result := <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, result.Err)
-	initialPostCount := result.Data.(int64)
+	result, err := th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, err)
+	initialPostCount := result
 
 	// Try adding an invalid post in dry run mode.
 	data := &DirectPostImportData{
@@ -2536,9 +2486,9 @@ func TestImportImportDirectPost(t *testing.T) {
 	groupChannel = channel
 
 	// Get the number of posts in the system.
-	result = <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, result.Err)
-	initialPostCount = result.Data.(int64)
+	result, err = th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, err)
+	initialPostCount = result
 
 	// Try adding an invalid post in dry run mode.
 	data = &DirectPostImportData{
@@ -2697,8 +2647,9 @@ func TestImportImportEmoji(t *testing.T) {
 	err := th.App.ImportEmoji(&data, true)
 	assert.NotNil(t, err, "Invalid emoji should have failed dry run")
 
-	result := <-th.App.Srv.Store.Emoji().GetByName(*data.Name)
-	assert.Nil(t, result.Data, "Emoji should not have been imported")
+	emoji, err := th.App.Srv.Store.Emoji().GetByName(*data.Name)
+	assert.Nil(t, emoji, "Emoji should not have been imported")
+	assert.NotNil(t, err)
 
 	data.Image = ptrStr(testImage)
 	err = th.App.ImportEmoji(&data, true)
@@ -2716,8 +2667,9 @@ func TestImportImportEmoji(t *testing.T) {
 	err = th.App.ImportEmoji(&data, false)
 	assert.Nil(t, err, "Valid emoji should have succeeded apply mode")
 
-	result = <-th.App.Srv.Store.Emoji().GetByName(*data.Name)
-	assert.NotNil(t, result.Data, "Emoji should have been imported")
+	emoji, err = th.App.Srv.Store.Emoji().GetByName(*data.Name)
+	assert.NotNil(t, emoji, "Emoji should have been imported")
+	assert.Nil(t, err, "Emoji should have been imported without any error")
 
 	err = th.App.ImportEmoji(&data, false)
 	assert.Nil(t, err, "Second run should have succeeded apply mode")

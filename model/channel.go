@@ -25,7 +25,6 @@ const (
 	CHANNEL_DISPLAY_NAME_MAX_RUNES = 64
 	CHANNEL_NAME_MIN_LENGTH        = 2
 	CHANNEL_NAME_MAX_LENGTH        = 64
-	CHANNEL_NAME_UI_MAX_LENGTH     = 22
 	CHANNEL_HEADER_MAX_RUNES       = 1024
 	CHANNEL_PURPOSE_MAX_RUNES      = 250
 	CHANNEL_CACHE_SIZE             = 25000
@@ -59,6 +58,11 @@ type ChannelWithTeamData struct {
 	TeamDisplayName string `json:"team_display_name"`
 	TeamName        string `json:"team_name"`
 	TeamUpdateAt    int64  `json:"team_update_at"`
+}
+
+type ChannelsWithCount struct {
+	Channels   *ChannelListWithTeamData `json:"channels"`
+	TotalCount int64                    `json:"total_count"`
 }
 
 type ChannelPatch struct {
@@ -110,6 +114,17 @@ func (o *Channel) ToJson() string {
 func (o *ChannelPatch) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
+}
+
+func (o *ChannelsWithCount) ToJson() []byte {
+	b, _ := json.Marshal(o)
+	return b
+}
+
+func ChannelsWithCountFromJson(data io.Reader) *ChannelsWithCount {
+	var o *ChannelsWithCount
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func ChannelFromJson(data io.Reader) *Channel {

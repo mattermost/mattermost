@@ -104,7 +104,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, teamURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
 	a.Srv.Go(func() {
-		if err := a.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
+		if err := a.SendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
 			mlog.Error(fmt.Sprint("Error to send the email", user.Email, err))
 		}
 	})

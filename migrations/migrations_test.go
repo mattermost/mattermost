@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -52,7 +53,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j1 = (<-th.App.Srv.Store.Job().Save(j1)).Data.(*model.Job)
+	j1, err = th.App.Srv.Store.Job().Save(j1)
+	require.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)
@@ -70,7 +72,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j2 = (<-th.App.Srv.Store.Job().Save(j2)).Data.(*model.Job)
+	j2, err = th.App.Srv.Store.Job().Save(j2)
+	require.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)
@@ -88,7 +91,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j3 = (<-th.App.Srv.Store.Job().Save(j3)).Data.(*model.Job)
+	j3, err = th.App.Srv.Store.Job().Save(j3)
+	require.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)

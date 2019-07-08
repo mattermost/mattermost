@@ -81,10 +81,10 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	if result := <-a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false); err != nil {
+		t.Fatal(err)
 	} else {
-		if initialCount+change != result.Data.(int64) {
+		if initialCount+change != result {
 			debug.PrintStack()
 			t.Fatalf("Did not find the expected number of posts.")
 		}
@@ -92,8 +92,7 @@ func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64,
 }
 
 func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount int64) {
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", channelType); r.Err == nil {
-		count := r.Data.(int64)
+	if count, err := a.Srv.Store.Channel().AnalyticsTypeCount("", channelType); err == nil {
 		if count != expectedCount {
 			debug.PrintStack()
 			t.Fatalf("Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
@@ -227,6 +226,14 @@ func TestImportBulkImport(t *testing.T) {
 	if err, line := th.App.BulkImport(strings.NewReader(data3), false, 2); err == nil || line != 1 {
 		t.Fatalf("Should have failed due to missing version line on line 1.")
 	}
+
+	t.Run("First item after version without type", func(t *testing.T) {
+		data := `{"type": "version", "version": 1}
+{"name": "custom-emoji-troll", "image": "bulkdata/emoji/trollolol.png"}`
+		err, line := th.App.BulkImport(strings.NewReader(data), false, 2)
+		require.NotNil(t, err, "Should have failed due to invalid type on line 2.")
+		require.Equal(t, 2, line, "Should have failed due to invalid type on line 2.")
+	})
 }
 
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {

@@ -148,6 +148,11 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
 	var commands []*model.Command
 	var err *model.AppError
 	if customOnly {

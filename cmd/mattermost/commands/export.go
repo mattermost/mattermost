@@ -45,6 +45,14 @@ var ActianceExportCmd = &cobra.Command{
 	RunE:    buildExportCmdF("actiance"),
 }
 
+var GlobalRelayZipExportCmd = &cobra.Command{
+	Use:     "global-relay-zip",
+	Short:   "Export data from Mattermost into a zip file containing emails to send to Global Relay for debug and testing purposes only.",
+	Long:    "Export data from Mattermost into a zip file containing emails to send to Global Relay for debug and testing purposes only. This does not archive any information in Global Relay.",
+	Example: "export global-relay-zip --exportFrom=12345",
+	RunE:    buildExportCmdF("globalrelay-zip"),
+}
+
 var BulkExportCmd = &cobra.Command{
 	Use:     "bulk [file]",
 	Short:   "Export bulk data.",
@@ -62,12 +70,14 @@ func init() {
 	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 
 	BulkExportCmd.Flags().Bool("all-teams", false, "Export all teams from the server.")
 
 	ExportCmd.AddCommand(ScheduleExportCmd)
 	ExportCmd.AddCommand(CsvExportCmd)
 	ExportCmd.AddCommand(ActianceExportCmd)
+	ExportCmd.AddCommand(GlobalRelayZipExportCmd)
 	ExportCmd.AddCommand(BulkExportCmd)
 
 	RootCmd.AddCommand(ExportCmd)

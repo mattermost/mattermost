@@ -243,10 +243,10 @@ func (a *App) ensureInstallationDate() error {
 		return nil
 	}
 
-	result := <-a.Srv.Store.User().InferSystemInstallDate()
+	installDate, err := a.Srv.Store.User().InferSystemInstallDate()
 	var installationDate int64
-	if result.Err == nil && result.Data.(int64) > 0 {
-		installationDate = result.Data.(int64)
+	if err == nil && installDate > 0 {
+		installationDate = installDate
 	} else {
 		installationDate = utils.MillisFromTime(time.Now())
 	}
@@ -398,4 +398,20 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 	}
 
 	return nil
+}
+
+func (a *App) IsESIndexingEnabled() bool {
+	return a.Elasticsearch != nil && *a.Config().ElasticsearchSettings.EnableIndexing
+}
+
+func (a *App) IsESSearchEnabled() bool {
+	esInterface := a.Elasticsearch
+	license := a.License()
+	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch
+}
+
+func (a *App) IsESAutocompletionEnabled() bool {
+	esInterface := a.Elasticsearch
+	license := a.License()
+	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch
 }

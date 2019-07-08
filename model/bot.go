@@ -169,6 +169,7 @@ func UserFromBot(b *Bot) *User {
 		Username:  b.Username,
 		Email:     fmt.Sprintf("%s@localhost", strings.ToLower(b.Username)),
 		FirstName: b.DisplayName,
+		Roles:     SYSTEM_USER_ROLE_ID,
 	}
 }
 
