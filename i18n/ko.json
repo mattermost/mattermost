@@ -3852,7 +3852,7 @@
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": "이미 사용 중인 이메일입니다"
+    "translation": "SAML유저에 의해 이미 사용 중인 이메일입니다"
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
