@@ -85,19 +85,28 @@ func (_m *PluginStore) DeleteAllForPlugin(PluginId string) store.StoreChannel {
 }
 
 // Get provides a mock function with given fields: pluginId, key
-func (_m *PluginStore) Get(pluginId string, key string) store.StoreChannel {
+func (_m *PluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, *model.AppError) {
 	ret := _m.Called(pluginId, key)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 *model.PluginKeyValue
+	if rf, ok := ret.Get(0).(func(string, string) *model.PluginKeyValue); ok {
 		r0 = rf(pluginId, key)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.PluginKeyValue)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(pluginId, key)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // List provides a mock function with given fields: pluginId, page, perPage
