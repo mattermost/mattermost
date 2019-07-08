@@ -81,9 +81,9 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 				return false, progress.ToJson(), nil
 			}
 
-			// data := result.Data.(map[string]string)
-			// progress.LastTeamId = data["TeamId"]
-			// progress.LastUserId = data["UserId"]
+			data := result.Data.(map[string]string)
+			progress.LastTeamId = data["TeamId"]
+			progress.LastUserId = data["UserId"]
 		}
 	} else if progress.CurrentTable == "ChannelMembers" {
 		// Run a ChannelMembers migration batch.
