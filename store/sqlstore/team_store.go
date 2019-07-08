@@ -833,7 +833,7 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) *
 
 		if len(teamMembers) == 0 {
 			// No more team members in query result means that the migration has finished.
-			return nil
+			return
 		}
 
 		for _, member := range teamMembers {
