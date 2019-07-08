@@ -840,8 +840,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		require.Len(t, ms, 2)
 	}
 
-	if r1 := <-ss.Team().RemoveAllMembersByUser(uid); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if err := ss.Team().RemoveAllMembersByUser(uid); err != nil {
+		t.Fatal(err)
 	}
 
 	if ms, err := ss.Team().GetTeamsForUser(m1.UserId); err != nil {
@@ -896,8 +896,8 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Len(t, result, 1)
 
-	r1 = <-ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, r1.Err)
+	err = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, err)
 
 	result, err = ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
 	require.Nil(t, err)
@@ -1049,7 +1049,8 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
-	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+	s2, err := ss.Scheme().Save(s2)
+	require.Nil(t, err)
 	t.Log(s2)
 
 	t2, err := ss.Team().Save(&model.Team{
@@ -1234,8 +1235,8 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r1 := <-ss.Team().RemoveAllMembersByUser(uid); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if err := ss.Team().RemoveAllMembersByUser(uid); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -1288,7 +1289,7 @@ func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
 
 	curTime := model.GetMillis()
 
-	if err = (<-ss.Team().UpdateLastTeamIconUpdate(o1.Id, curTime)).Err; err != nil {
+	if err = ss.Team().UpdateLastTeamIconUpdate(o1.Id, curTime); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1316,8 +1317,10 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
 
-	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
-	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+	s1, err := ss.Scheme().Save(s1)
+	require.Nil(t, err)
+	s2, err = ss.Scheme().Save(s2)
+	require.Nil(t, err)
 
 	// Create and save some teams.
 	t1 := &model.Team{
@@ -1343,7 +1346,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	_, err := ss.Team().Save(t1)
+	_, err = ss.Team().Save(t1)
 	require.Nil(t, err)
 
 	_, err = ss.Team().Save(t2)
@@ -1445,7 +1448,8 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
-	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+	s1, err := ss.Scheme().Save(s1)
+	require.Nil(t, err)
 
 	t1 := &model.Team{
 		Name:        model.NewId(),
@@ -1463,7 +1467,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 		SchemeId:    &s1.Id,
 	}
 
-	t1, err := ss.Team().Save(t1)
+	t1, err = ss.Team().Save(t1)
 	require.Nil(t, err)
 	t2, err = ss.Team().Save(t2)
 	require.Nil(t, err)
@@ -1537,7 +1541,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
-	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+	s1, err := ss.Scheme().Save(s1)
+	require.Nil(t, err)
 
 	count1 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(0), count1)
@@ -1549,7 +1554,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &s1.Id,
 	}
-	_, err := ss.Team().Save(t1)
+	_, err = ss.Team().Save(t1)
 	require.Nil(t, err)
 
 	count2 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
@@ -1604,9 +1609,8 @@ func testTeamStoreGetAllForExportAfter(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&t1)
 	require.Nil(t, err)
 
-	r1 := <-ss.Team().GetAllForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.TeamForExport)
+	d1, err := ss.Team().GetAllForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
 	found := false
 	for _, team := range d1 {
@@ -1645,10 +1649,9 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}
 	store.Must(ss.Team().SaveMember(m2, -1))
 
-	r1 := <-ss.Team().GetTeamMembersForExport(u1.Id)
-	assert.Nil(t, r1.Err)
+	d1, err := ss.Team().GetTeamMembersForExport(u1.Id)
+	assert.Nil(t, err)
 
-	d1 := r1.Data.([]*model.TeamMemberForExport)
 	assert.Len(t, d1, 1)
 
 	tmfe1 := d1[0]
