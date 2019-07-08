@@ -80,7 +80,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Store bundle in file store
+	// Store bundle in the file store to allow access from other servers.
 	file.Seek(0, 0)
 
 	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
