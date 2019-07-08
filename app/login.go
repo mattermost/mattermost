@@ -93,8 +93,8 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	}
 
 	// Try to get the user by username/email
-	if result := <-a.Srv.Store.User().GetForLogin(loginId, enableUsername, enableEmail); result.Err == nil {
-		return result.Data.(*model.User), nil
+	if user, err := a.Srv.Store.User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
+		return user, nil
 	}
 
 	// Try to get the user with LDAP if enabled

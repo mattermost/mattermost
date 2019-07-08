@@ -108,6 +108,12 @@ type SearchParameter struct {
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
 }
 
+type AnalyticsPostCountsOptions struct {
+	TeamId        string
+	BotsOnly      bool
+	YesterdayOnly bool
+}
+
 func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 	copy := *o
 	if copy.Message != nil {
