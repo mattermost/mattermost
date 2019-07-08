@@ -2096,7 +2096,7 @@ func (a *App) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *mod
 	}
 
 	if len(restrictions.Channels) > 0 {
-		result, err := a.Srv.Store.Team().UserBelongsToTeams(otherUserId, restrictions.Channels)
+		result, err := a.userBelongsToChannels(otherUserId, restrictions.Channels)
 		if err != nil {
 			return false, err
 		}
