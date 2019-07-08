@@ -696,15 +696,15 @@ func (_m *TeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
 }
 
 // RemoveMember provides a mock function with given fields: teamId, userId
-func (_m *TeamStore) RemoveMember(teamId string, userId string) store.StoreChannel {
+func (_m *TeamStore) RemoveMember(teamId string, userId string) *model.AppError {
 	ret := _m.Called(teamId, userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
 		r0 = rf(teamId, userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
