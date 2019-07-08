@@ -105,7 +105,7 @@ func (es SqlEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *mode
 		}
 	}
 
-	if emoji, err := es.GetBy("Id", id); err != nil {
+	if emoji, err := es.GetBy("Id", id); err == nil {
 		if allowFromCache {
 			emojiCache.AddWithExpiresInSecs(id, emoji, EMOJI_CACHE_SEC)
 		}
