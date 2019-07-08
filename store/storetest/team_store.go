@@ -1366,22 +1366,19 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// Get the teams by a valid Scheme ID.
-	res1 := <-ss.Team().GetTeamsByScheme(s1.Id, 0, 100)
-	assert.Nil(t, res1.Err)
-	d1 := res1.Data.([]*model.Team)
-	assert.Len(t, d1, 2)
+	d, err := ss.Team().GetTeamsByScheme(s1.Id, 0, 100)
+	assert.Nil(t, err)
+	assert.Len(t, d, 2)
 
 	// Get the teams by a valid Scheme ID where there aren't any matching Teams.
-	res2 := <-ss.Team().GetTeamsByScheme(s2.Id, 0, 100)
-	assert.Nil(t, res2.Err)
-	d2 := res2.Data.([]*model.Team)
-	assert.Len(t, d2, 0)
+	d, err = ss.Team().GetTeamsByScheme(s2.Id, 0, 100)
+	assert.Nil(t, err)
+	assert.Len(t, d, 0)
 
 	// Get the teams by an invalid Scheme ID.
-	res3 := <-ss.Team().GetTeamsByScheme(model.NewId(), 0, 100)
-	assert.Nil(t, res3.Err)
-	d3 := res3.Data.([]*model.Team)
-	assert.Len(t, d3, 0)
+	d, err = ss.Team().GetTeamsByScheme(model.NewId(), 0, 100)
+	assert.Nil(t, err)
+	assert.Len(t, d, 0)
 }
 
 func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
