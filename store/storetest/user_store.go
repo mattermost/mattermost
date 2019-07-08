@@ -3486,7 +3486,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	e := ss.Team().RemoveMember(teamId, u1.Id)
 	require.Nil(t, e)
 
-	e = ss.Team().RemoveMember(teamId, u1.Id)
+	e = ss.Team().RemoveMember(teamId, u2.Id)
 	require.Nil(t, e)
 
 	u1.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u1.Id)).(int64)
