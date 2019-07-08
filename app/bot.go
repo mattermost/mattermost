@@ -4,6 +4,10 @@
 package app
 
 import (
+	"fmt"
+	"mime/multipart"
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -137,7 +141,7 @@ func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
 	return nil
 }
 
-// UpdateBotOwner changes a bot's owner to the given value
+// UpdateBotOwner changes a bot's owner to the given value.
 func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.AppError) {
 	bot, err := a.Srv.Store.Bot().Get(botUserId, true)
 	if err != nil {
@@ -154,7 +158,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 	return bot, nil
 }
 
-// disableUserBots disables all bots owned by the given user
+// disableUserBots disables all bots owned by the given user.
 func (a *App) disableUserBots(userId string) *model.AppError {
 	perPage := 20
 	for {
@@ -188,7 +192,74 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 	return nil
 }
 
-// ConvertUserToBot converts a user to bot
+// ConvertUserToBot converts a user to bot.
 func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
 	return a.Srv.Store.Bot().Save(model.BotFromUser(user))
+}
+
+// SetBotIconImage sets LHS icon for a bot.
+func (a *App) SetBotIconImage(botUserId string, imageData *multipart.FileHeader) *model.AppError {
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return model.NewAppError("SetBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	file, err := imageData.Open()
+	if err != nil {
+		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.open.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	defer file.Close()
+
+	if _, err = parseSVG(file); err != nil {
+		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	// Set icon
+	file.Seek(0, 0)
+	if _, err := a.WriteFile(file, getBotIconPath(botUserId)); err != nil {
+		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := a.Srv.Store.User().UpdateLastPictureUpdate(botUserId); err != nil {
+		mlog.Error(err.Error())
+	}
+	a.invalidateUserCacheAndPublish(botUserId)
+
+	return nil
+}
+
+// DeleteBotIconImage deletes LHS icon for a bot.
+func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return model.NewAppError("DeleteBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	// Delete icon
+	if err := a.RemoveFile(getBotIconPath(botUserId)); err != nil {
+		return model.NewAppError("DeleteBotIconImage", "api.bot.delete_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := a.Srv.Store.User().UpdateLastPictureUpdate(botUserId); err != nil {
+		mlog.Error(err.Error())
+	}
+	a.invalidateUserCacheAndPublish(botUserId)
+
+	return nil
+}
+
+// GetBotIconImage retrieves LHS icon for a bot.
+func (a *App) GetBotIconImage(botUserId string) ([]byte, bool, *model.AppError) {
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return nil, false, model.NewAppError("GetBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	data, err := a.ReadFile(getBotIconPath(botUserId))
+	if err != nil {
+		return nil, false, model.NewAppError("GetBotIconImage", "api.bot.get_bot_icon_image.read.app_error", nil, err.Error(), http.StatusNotFound)
+	}
+
+	return data, false, nil
+}
+
+func getBotIconPath(botUserId string) string {
+	return fmt.Sprintf("bots/%v/icon.svg", botUserId)
 }
