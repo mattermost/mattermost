@@ -226,7 +226,7 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		ss.Channel().PermanentDeleteMembersByChannel(c1.Id)
-		<-ss.Channel().PermanentDelete(c1.Id)
+		ss.Channel().PermanentDelete(c1.Id)
 	}()
 
 	members, err := ss.Channel().GetMembers(c1.Id, 0, 100)
@@ -635,8 +635,8 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal("invalid number of channels")
 	}
 
-	cresult := <-ss.Channel().PermanentDelete(o2.Id)
-	require.Nil(t, cresult.Err)
+	cresult := ss.Channel().PermanentDelete(o2.Id)
+	require.Nil(t, cresult)
 
 	list, err = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
 	if assert.NotNil(t, err) {
@@ -2804,7 +2804,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	defer func() {
 		for _, gc := range []model.Channel{gc1, gc2, gc3} {
 			ss.Channel().PermanentDeleteMembersByChannel(gc3.Id)
-			<-ss.Channel().PermanentDelete(gc.Id)
+			ss.Channel().PermanentDelete(gc.Id)
 		}
 	}()
 
@@ -2914,7 +2914,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		ss.Channel().PermanentDeleteMembersByChannel(d4.Id)
-		<-ss.Channel().PermanentDelete(d4.Id)
+		ss.Channel().PermanentDelete(d4.Id)
 	}()
 
 	var openStartCount int64
@@ -3039,10 +3039,12 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	}
 
-	result := <-ss.Scheme().Save(s1)
-	s1 = result.Data.(*model.Scheme)
-	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
-	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+	s1, err := ss.Scheme().Save(s1)
+	require.Nil(t, err)
+	s1, err = ss.Scheme().Save(s1)
+	require.Nil(t, err)
+	s2, err = ss.Scheme().Save(s2)
+	require.Nil(t, err)
 
 	// Create and save some teams.
 	c1 := &model.Channel{
@@ -3167,7 +3169,8 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	}
-	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+	s1, err := ss.Scheme().Save(s1)
+	require.Nil(t, err)
 
 	c1 := &model.Channel{
 		TeamId:      model.NewId(),
@@ -3191,7 +3194,7 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 	assert.Equal(t, s1.Id, *c1.SchemeId)
 	assert.Equal(t, s1.Id, *c2.SchemeId)
 
-	err := ss.Channel().ResetAllChannelSchemes()
+	err = ss.Channel().ResetAllChannelSchemes()
 	assert.Nil(t, err)
 
 	c1, _ = ss.Channel().Get(c1.Id, true)
@@ -3303,7 +3306,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		require.Equal(t, &model.ChannelList{&o1, &o2}, channels)
 	})
 
-	<-ss.Channel().PermanentDelete(o1.Id)
+	ss.Channel().PermanentDelete(o1.Id)
 
 	t.Run("o1 no longer listed in public channels when permanently deleted", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)

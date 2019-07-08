@@ -83,15 +83,15 @@ func (_m *UserStore) AnalyticsGetSystemAdminCount() (int64, *model.AppError) {
 }
 
 // ClearAllCustomRoleAssignments provides a mock function with given fields:
-func (_m *UserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
+func (_m *UserStore) ClearAllCustomRoleAssignments() *model.AppError {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -535,35 +535,53 @@ func (_m *UserStore) GetProfileByIds(userIds []string, options *store.UserGetByI
 }
 
 // GetProfiles provides a mock function with given fields: options
-func (_m *UserStore) GetProfiles(options *model.UserGetOptions) store.StoreChannel {
+func (_m *UserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	ret := _m.Called(options)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) []*model.User); ok {
 		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
+		r1 = rf(options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetProfilesByUsernames provides a mock function with given fields: usernames, viewRestrictions
-func (_m *UserStore) GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+func (_m *UserStore) GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	ret := _m.Called(usernames, viewRestrictions)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func([]string, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func([]string, *model.ViewUsersRestrictions) []*model.User); ok {
 		r0 = rf(usernames, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]string, *model.ViewUsersRestrictions) *model.AppError); ok {
+		r1 = rf(usernames, viewRestrictions)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetProfilesInChannel provides a mock function with given fields: channelId, offset, limit
@@ -802,19 +820,26 @@ func (_m *UserStore) GetUsersBatchForIndexing(startTime int64, endTime int64, li
 }
 
 // InferSystemInstallDate provides a mock function with given fields:
-func (_m *UserStore) InferSystemInstallDate() store.StoreChannel {
+func (_m *UserStore) InferSystemInstallDate() (int64, *model.AppError) {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // InvalidatProfileCacheForUser provides a mock function with given fields: userId
@@ -1054,15 +1079,15 @@ func (_m *UserStore) UpdateAuthData(userId string, service string, authData *str
 }
 
 // UpdateFailedPasswordAttempts provides a mock function with given fields: userId, attempts
-func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) store.StoreChannel {
+func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) *model.AppError {
 	ret := _m.Called(userId, attempts)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int) *model.AppError); ok {
 		r0 = rf(userId, attempts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
