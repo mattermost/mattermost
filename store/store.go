@@ -115,7 +115,7 @@ type TeamStore interface {
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) *model.AppError
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError
-	GetTeamsByScheme(schemeId string, offset int, limit int) StoreChannel
+	GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError)
 	MigrateTeamMembers(fromTeamId string, fromUserId string) StoreChannel
 	ResetAllTeamSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
