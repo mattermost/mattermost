@@ -1087,7 +1087,7 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 }
 
 func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
-	return a.Srv.Store.FileInfo().GetForPost(postId, fromMaster, true)
+	return a.Srv.Store.FileInfo().GetForPost(postId, fromMaster, false, true)
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
