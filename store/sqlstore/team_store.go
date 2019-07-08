@@ -876,12 +876,11 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 	})
 }
 
-func (s SqlTeamStore) ResetAllTeamSchemes() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("UPDATE Teams SET SchemeId=''"); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.ResetAllTeamSchemes", "store.sql_team.reset_all_team_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlTeamStore) ResetAllTeamSchemes() *model.AppError {
+	if _, err := s.GetMaster().Exec("UPDATE Teams SET SchemeId=''"); err != nil {
+		return model.NewAppError("SqlTeamStore.ResetAllTeamSchemes", "store.sql_team.reset_all_team_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 var allTeamIdsForUserCache = utils.NewLru(ALL_TEAM_IDS_FOR_USER_CACHE_SIZE)
