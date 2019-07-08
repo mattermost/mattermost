@@ -794,14 +794,11 @@ func (s SqlTeamStore) RemoveAllMembersByUser(userId string) store.StoreChannel {
 	})
 }
 
-func (us SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := us.GetMaster().Exec("UPDATE Teams SET LastTeamIconUpdate = :Time, UpdateAt = :Time WHERE Id = :teamId", map[string]interface{}{"Time": curTime, "teamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.UpdateLastTeamIconUpdate", "store.sql_team.update_last_team_icon_update.app_error", nil, "team_id="+teamId, http.StatusInternalServerError)
-			return
-		}
-		result.Data = teamId
-	})
+func (us SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError {
+	if _, err := us.GetMaster().Exec("UPDATE Teams SET LastTeamIconUpdate = :Time, UpdateAt = :Time WHERE Id = :teamId", map[string]interface{}{"Time": curTime, "teamId": teamId}); err != nil {
+		return model.NewAppError("SqlTeamStore.UpdateLastTeamIconUpdate", "store.sql_team.update_last_team_icon_update.app_error", nil, "team_id="+teamId, http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) store.StoreChannel {
@@ -979,30 +976,27 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) store.Stor
 	})
 }
 
-func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var data []*model.TeamForExport
-		if _, err := s.GetReplica().Select(&data, `
-			SELECT
-				Teams.*,
-				Schemes.Name as SchemeName
-			FROM
-				Teams
-			LEFT JOIN
-				Schemes ON Teams.SchemeId = Schemes.Id
-			WHERE
-				Teams.Id > :AfterId
-			ORDER BY
-				Id
-			LIMIT
-				:Limit`,
-			map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError) {
+	var data []*model.TeamForExport
+	if _, err := s.GetReplica().Select(&data, `
+		SELECT
+			Teams.*,
+			Schemes.Name as SchemeName
+		FROM
+			Teams
+		LEFT JOIN
+			Schemes ON Teams.SchemeId = Schemes.Id
+		WHERE
+			Teams.Id > :AfterId
+		ORDER BY
+			Id
+		LIMIT
+			:Limit`,
+		map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = data
-	})
+	return data, nil
 }
 
 func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.StoreChannel {
@@ -1047,34 +1041,30 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.S
 	})
 }
 
-func (s SqlTeamStore) GetTeamMembersForExport(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var members []*model.TeamMemberForExport
-		_, err := s.GetReplica().Select(&members, `
-            SELECT
-                TeamMembers.TeamId,
-                TeamMembers.UserId,
-                TeamMembers.Roles,
-                TeamMembers.DeleteAt,
-                (TeamMembers.SchemeGuest IS NOT NULL AND TeamMembers.SchemeGuest) as SchemeGuest,
-                TeamMembers.SchemeUser,
-                TeamMembers.SchemeAdmin,
-                Teams.Name as TeamName
-            FROM
-                TeamMembers
-            INNER JOIN
-                Teams ON TeamMembers.TeamId = Teams.Id
-            WHERE
-                TeamMembers.UserId = :UserId
-                AND Teams.DeleteAt = 0`,
-			map[string]interface{}{"UserId": userId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetTeamMembersForExport", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = members
-	})
+func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError) {
+	var members []*model.TeamMemberForExport
+	_, err := s.GetReplica().Select(&members, `
+		SELECT
+			TeamMembers.TeamId,
+			TeamMembers.UserId,
+			TeamMembers.Roles,
+			TeamMembers.DeleteAt,
+			(TeamMembers.SchemeGuest IS NOT NULL AND TeamMembers.SchemeGuest) as SchemeGuest,
+			TeamMembers.SchemeUser,
+			TeamMembers.SchemeAdmin,
+			Teams.Name as TeamName
+		FROM
+			TeamMembers
+		INNER JOIN
+			Teams ON TeamMembers.TeamId = Teams.Id
+		WHERE
+			TeamMembers.UserId = :UserId
+			AND Teams.DeleteAt = 0`,
+		map[string]interface{}{"UserId": userId})
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetTeamMembersForExport", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+	}
+	return members, nil
 }
 
 func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) store.StoreChannel {

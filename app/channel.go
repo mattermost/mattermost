@@ -434,11 +434,10 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, nil, true)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetProfileByIds(userIds, nil, true)
+	if err != nil {
+		return nil, err
 	}
-	users := result.Data.([]*model.User)
 
 	if len(users) != len(userIds) {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
@@ -483,11 +482,10 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, nil, true)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetProfileByIds(userIds, nil, true)
+	if err != nil {
+		return nil, err
 	}
-	users := result.Data.([]*model.User)
 
 	if len(users) != len(userIds) {
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
@@ -1019,11 +1017,10 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 func (a *App) AddDirectChannels(teamId string, user *model.User) *model.AppError {
 	var profiles []*model.User
 	options := &model.UserGetOptions{InTeamId: teamId, Page: 0, PerPage: 100}
-	result := <-a.Srv.Store.User().GetProfiles(options)
-	if result.Err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": result.Err.Error()}, "", http.StatusInternalServerError)
+	profiles, err := a.Srv.Store.User().GetProfiles(options)
+	if err != nil {
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
-	profiles = result.Data.([]*model.User)
 
 	var preferences model.Preferences
 
@@ -1304,12 +1301,11 @@ func (a *App) GetChannelMembersForUser(teamId string, userId string) (*model.Cha
 }
 
 func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMembersForUserWithPagination(teamId, userId, page, perPage)
-	if result.Err != nil {
-		return nil, result.Err
+	m, err := a.Srv.Store.Channel().GetMembersForUserWithPagination(teamId, userId, page, perPage)
+	if err != nil {
+		return nil, err
 	}
 
-	m := result.Data.(*model.ChannelMembers)
 	members := make([]*model.ChannelMember, 0)
 	if m != nil {
 		for _, member := range *m {
@@ -1896,9 +1892,9 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, currentSession
 }
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
-	channelUsers := <-a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, false)
-	if channelUsers.Err != nil {
-		return channelUsers.Err
+	profiles, err := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, false)
+	if err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Post().PermanentDeleteByChannel(channel.Id); err != nil {
@@ -1917,13 +1913,13 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().PermanentDelete(channel.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Channel().PermanentDelete(channel.Id); err != nil {
+		return err
 	}
 
 	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
-			for _, user := range channelUsers.Data.(map[string]*model.User) {
+			for _, user := range profiles {
 				if err := a.indexUser(user); err != nil {
 					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
 				}

@@ -226,7 +226,7 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		ss.Channel().PermanentDeleteMembersByChannel(c1.Id)
-		<-ss.Channel().PermanentDelete(c1.Id)
+		ss.Channel().PermanentDelete(c1.Id)
 	}()
 
 	members, err := ss.Channel().GetMembers(c1.Id, 0, 100)
@@ -635,8 +635,8 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal("invalid number of channels")
 	}
 
-	cresult := <-ss.Channel().PermanentDelete(o2.Id)
-	require.Nil(t, cresult.Err)
+	cresult := ss.Channel().PermanentDelete(o2.Id)
+	require.Nil(t, cresult)
 
 	list, err = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
 	if assert.NotNil(t, err) {
@@ -645,8 +645,8 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		require.Equal(t, &model.ChannelList{}, list)
 	}
 
-	if r := <-ss.Channel().PermanentDeleteByTeam(o1.TeamId); r.Err != nil {
-		t.Fatal(r.Err)
+	if err = ss.Channel().PermanentDeleteByTeam(o1.TeamId); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -1113,7 +1113,9 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	store.Must(ss.Group().Create(group))
+	_, err = ss.Group().Create(group)
+	require.Nil(t, err)
+
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, c1.Id, true))
 	require.Nil(t, err)
 
@@ -1641,13 +1643,12 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	cresult := <-ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 0, 1)
-	members := cresult.Data.(*model.ChannelMembers)
-
+	members, err := ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 0, 1)
+	require.Nil(t, err)
 	assert.Len(t, *members, 1)
 
-	cresult = <-ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
-	members = cresult.Data.(*model.ChannelMembers)
+	members, err = ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
+	require.Nil(t, err)
 	assert.Len(t, *members, 1)
 }
 
@@ -2458,7 +2459,9 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	store.Must(ss.Group().Create(group))
+	_, err = ss.Group().Create(group)
+	require.Nil(t, err)
+
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, o7.Id, true))
 	require.Nil(t, err)
 
@@ -2801,7 +2804,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	defer func() {
 		for _, gc := range []model.Channel{gc1, gc2, gc3} {
 			ss.Channel().PermanentDeleteMembersByChannel(gc3.Id)
-			<-ss.Channel().PermanentDelete(gc.Id)
+			ss.Channel().PermanentDelete(gc.Id)
 		}
 	}()
 
@@ -2911,7 +2914,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		ss.Channel().PermanentDeleteMembersByChannel(d4.Id)
-		<-ss.Channel().PermanentDelete(d4.Id)
+		ss.Channel().PermanentDelete(d4.Id)
 	}()
 
 	var openStartCount int64
@@ -3036,10 +3039,12 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	}
 
-	result := <-ss.Scheme().Save(s1)
-	s1 = result.Data.(*model.Scheme)
-	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
-	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+	s1, err := ss.Scheme().Save(s1)
+	require.Nil(t, err)
+	s1, err = ss.Scheme().Save(s1)
+	require.Nil(t, err)
+	s2, err = ss.Scheme().Save(s2)
+	require.Nil(t, err)
 
 	// Create and save some teams.
 	c1 := &model.Channel{
@@ -3070,21 +3075,18 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 	_, _ = ss.Channel().Save(c3, 100)
 
 	// Get the channels by a valid Scheme ID.
-	res1 := <-ss.Channel().GetChannelsByScheme(s1.Id, 0, 100)
-	assert.Nil(t, res1.Err)
-	d1 := res1.Data.(model.ChannelList)
+	d1, err := ss.Channel().GetChannelsByScheme(s1.Id, 0, 100)
+	assert.Nil(t, err)
 	assert.Len(t, d1, 2)
 
 	// Get the channels by a valid Scheme ID where there aren't any matching Channel.
-	res2 := <-ss.Channel().GetChannelsByScheme(s2.Id, 0, 100)
-	assert.Nil(t, res2.Err)
-	d2 := res2.Data.(model.ChannelList)
+	d2, err := ss.Channel().GetChannelsByScheme(s2.Id, 0, 100)
+	assert.Nil(t, err)
 	assert.Len(t, d2, 0)
 
 	// Get the channels by an invalid Scheme ID.
-	res3 := <-ss.Channel().GetChannelsByScheme(model.NewId(), 0, 100)
-	assert.Nil(t, res3.Err)
-	d3 := res3.Data.(model.ChannelList)
+	d3, err := ss.Channel().GetChannelsByScheme(model.NewId(), 0, 100)
+	assert.Nil(t, err)
 	assert.Len(t, d3, 0)
 }
 
@@ -3167,7 +3169,8 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	}
-	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+	s1, err := ss.Scheme().Save(s1)
+	require.Nil(t, err)
 
 	c1 := &model.Channel{
 		TeamId:      model.NewId(),
@@ -3191,7 +3194,7 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 	assert.Equal(t, s1.Id, *c1.SchemeId)
 	assert.Equal(t, s1.Id, *c2.SchemeId)
 
-	err := ss.Channel().ResetAllChannelSchemes()
+	err = ss.Channel().ResetAllChannelSchemes()
 	assert.Nil(t, err)
 
 	c1, _ = ss.Channel().Get(c1.Id, true)
@@ -3303,7 +3306,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		require.Equal(t, &model.ChannelList{&o1, &o2}, channels)
 	})
 
-	<-ss.Channel().PermanentDelete(o1.Id)
+	ss.Channel().PermanentDelete(o1.Id)
 
 	t.Run("o1 no longer listed in public channels when permanently deleted", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
