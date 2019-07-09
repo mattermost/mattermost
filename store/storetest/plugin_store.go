@@ -6,6 +6,8 @@ package storetest
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
@@ -27,8 +29,8 @@ func testPluginSaveGet(t *testing.T, ss store.Store) {
 		ExpireAt: 0,
 	}
 
-	if result := <-ss.Plugin().SaveOrUpdate(kv); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Plugin().SaveOrUpdate(kv); err != nil {
+		t.Fatal(err)
 	}
 
 	defer func() {
@@ -46,8 +48,8 @@ func testPluginSaveGet(t *testing.T, ss store.Store) {
 
 	// Try inserting when already exists
 	kv.Value = []byte(model.NewId())
-	if result := <-ss.Plugin().SaveOrUpdate(kv); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Plugin().SaveOrUpdate(kv); err != nil {
+		t.Fatal(err)
 	}
 
 	if received, err := ss.Plugin().Get(kv.PluginId, kv.Key); err != nil {
@@ -67,8 +69,8 @@ func testPluginSaveGetExpiry(t *testing.T, ss store.Store) {
 		ExpireAt: model.GetMillis() + 30000,
 	}
 
-	if result := <-ss.Plugin().SaveOrUpdate(kv); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Plugin().SaveOrUpdate(kv); err != nil {
+		t.Fatal(err)
 	}
 
 	defer func() {
@@ -91,8 +93,8 @@ func testPluginSaveGetExpiry(t *testing.T, ss store.Store) {
 		ExpireAt: model.GetMillis() - 5000,
 	}
 
-	if result := <-ss.Plugin().SaveOrUpdate(kv); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Plugin().SaveOrUpdate(kv); err != nil {
+		t.Fatal(err)
 	}
 
 	defer func() {
@@ -105,11 +107,12 @@ func testPluginSaveGetExpiry(t *testing.T, ss store.Store) {
 }
 
 func testPluginDelete(t *testing.T, ss store.Store) {
-	kv := store.Must(ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+	kv, err := ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
 		PluginId: model.NewId(),
 		Key:      model.NewId(),
 		Value:    []byte(model.NewId()),
-	})).(*model.PluginKeyValue)
+	})
+	require.Nil(t, err)
 
 	if result := <-ss.Plugin().Delete(kv.PluginId, kv.Key); result.Err != nil {
 		t.Fatal(result.Err)
@@ -119,17 +122,19 @@ func testPluginDelete(t *testing.T, ss store.Store) {
 func testPluginDeleteAll(t *testing.T, ss store.Store) {
 	pluginId := model.NewId()
 
-	kv := store.Must(ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+	kv, err := ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
 		PluginId: pluginId,
 		Key:      model.NewId(),
 		Value:    []byte(model.NewId()),
-	})).(*model.PluginKeyValue)
+	})
+	require.Nil(t, err)
 
-	kv2 := store.Must(ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+	kv2, err := ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
 		PluginId: pluginId,
 		Key:      model.NewId(),
 		Value:    []byte(model.NewId()),
-	})).(*model.PluginKeyValue)
+	})
+	require.Nil(t, err)
 
 	if result := <-ss.Plugin().DeleteAllForPlugin(pluginId); result.Err != nil {
 		t.Fatal(result.Err)
@@ -147,19 +152,21 @@ func testPluginDeleteAll(t *testing.T, ss store.Store) {
 func testPluginDeleteExpired(t *testing.T, ss store.Store) {
 	pluginId := model.NewId()
 
-	kv := store.Must(ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+	kv, err := ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
 		PluginId: pluginId,
 		Key:      model.NewId(),
 		Value:    []byte(model.NewId()),
 		ExpireAt: model.GetMillis() - 6000,
-	})).(*model.PluginKeyValue)
+	})
+	require.Nil(t, err)
 
-	kv2 := store.Must(ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+	kv2, err := ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
 		PluginId: pluginId,
 		Key:      model.NewId(),
 		Value:    []byte(model.NewId()),
 		ExpireAt: 0,
-	})).(*model.PluginKeyValue)
+	})
+	require.Nil(t, err)
 
 	if result := <-ss.Plugin().DeleteAllExpired(); result.Err != nil {
 		t.Fatal(result.Err)
