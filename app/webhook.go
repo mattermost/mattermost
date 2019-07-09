@@ -681,11 +681,9 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.parse.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	var hook *model.CommandWebhook
-	if result := <-a.Srv.Store.CommandWebhook().Get(hookId); result.Err != nil {
-		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.invalid.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
-	} else {
-		hook = result.Data.(*model.CommandWebhook)
+	hook, err := a.Srv.Store.CommandWebhook().Get(hookId)
+	if err != nil {
+		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.invalid.app_error", nil, "err="+err.Message, err.StatusCode)
 	}
 
 	cmd, err := a.Srv.Store.Command().Get(hook.CommandId)
