@@ -144,15 +144,12 @@ func (ps SqlPluginStore) DeleteAllForPlugin(pluginId string) store.StoreChannel 
 	})
 }
 
-func (ps SqlPluginStore) DeleteAllExpired() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		currentTime := model.GetMillis()
-		if _, err := ps.GetMaster().Exec("DELETE FROM PluginKeyValueStore WHERE ExpireAt != 0 AND ExpireAt < :CurrentTime", map[string]interface{}{"CurrentTime": currentTime}); err != nil {
-			result.Err = model.NewAppError("SqlPluginStore.Delete", "store.sql_plugin_store.delete.app_error", nil, fmt.Sprintf("current_time=%v, err=%v", currentTime, err.Error()), http.StatusInternalServerError)
-		} else {
-			result.Data = true
-		}
-	})
+func (ps SqlPluginStore) DeleteAllExpired() *model.AppError {
+	currentTime := model.GetMillis()
+	if _, err := ps.GetMaster().Exec("DELETE FROM PluginKeyValueStore WHERE ExpireAt != 0 AND ExpireAt < :CurrentTime", map[string]interface{}{"CurrentTime": currentTime}); err != nil {
+		return model.NewAppError("SqlPluginStore.Delete", "store.sql_plugin_store.delete.app_error", nil, fmt.Sprintf("current_time=%v, err=%v", currentTime, err.Error()), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string, *model.AppError) {
