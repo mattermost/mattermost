@@ -94,7 +94,7 @@ type TeamStore interface {
 	GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllPrivateTeamListing() ([]*model.Team, *model.AppError)
 	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
-	GetAllTeamListing() StoreChannel
+	GetAllTeamListing() ([]*model.Team, *model.AppError)
 	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetTeamsByUserId(userId string) StoreChannel
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
