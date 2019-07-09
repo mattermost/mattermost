@@ -22,13 +22,12 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	post := notification.post
 
 	if channel.IsGroupOrDirect() {
-		result := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id)
-		if result.Err != nil {
-			return result.Err
+		teams, err := a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+		if err != nil {
+			return err
 		}
 
 		// if the recipient isn't in the current user's team, just pick one
-		teams := result.Data.([]*model.Team)
 		found := false
 
 		for i := range teams {
@@ -104,7 +103,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, teamURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
 	a.Srv.Go(func() {
-		if err := a.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
+		if err := a.SendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
 			mlog.Error(fmt.Sprint("Error to send the email", user.Email, err))
 		}
 	})

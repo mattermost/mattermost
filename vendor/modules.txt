@@ -99,8 +99,6 @@ github.com/icrowley/fake
 github.com/inconshreveable/mousetrap
 # github.com/jaytaylor/html2text v0.0.0-20190311042500-a93a6c6ea053
 github.com/jaytaylor/html2text
-# github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869
-github.com/jehiah/go-strftime
 # github.com/jmoiron/sqlx v1.2.0
 github.com/jmoiron/sqlx
 github.com/jmoiron/sqlx/reflectx
@@ -195,7 +193,7 @@ github.com/rwcarlsen/goexif/exif
 github.com/rwcarlsen/goexif/tiff
 # github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529
 github.com/sean-/seed
-# github.com/segmentio/analytics-go v2.0.1-0.20160426181448-2d840d861c32+incompatible
+# github.com/segmentio/analytics-go v3.0.1+incompatible
 github.com/segmentio/analytics-go
 # github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c
 github.com/segmentio/backo-go
