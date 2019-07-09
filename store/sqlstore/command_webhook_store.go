@@ -36,40 +36,37 @@ func (s SqlCommandWebhookStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_command_webhook_create_at", "CommandWebhooks", "CreateAt")
 }
 
-func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(webhook.Id) > 0 {
-			result.Err = model.NewAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.existing.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
-			return
-		}
+func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError) {
+	if len(webhook.Id) > 0 {
+		return nil, model.NewAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.existing.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
+	}
 
-		webhook.PreSave()
-		if result.Err = webhook.IsValid(); result.Err != nil {
-			return
-		}
+	webhook.PreSave()
+	if err := webhook.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if err := s.GetMaster().Insert(webhook); err != nil {
-			result.Err = model.NewAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.app_error", nil, "id="+webhook.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = webhook
-		}
-	})
+	if err := s.GetMaster().Insert(webhook); err != nil {
+		return nil, model.NewAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.app_error", nil, "id="+webhook.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return webhook, nil
 }
 
-func (s SqlCommandWebhookStore) Get(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var webhook model.CommandWebhook
+func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.AppError) {
+	var webhook model.CommandWebhook
 
-		exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
-		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM CommandWebhooks WHERE Id = :Id AND CreateAt > :ExpTime", map[string]interface{}{"Id": id, "ExpTime": exptime}); err != nil {
-			result.Err = model.NewAppError("SqlCommandWebhookStore.Get", "store.sql_command_webhooks.get.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
-			if err == sql.ErrNoRows {
-				result.Err.StatusCode = http.StatusNotFound
-			}
+	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
+	var appErr *model.AppError
+	if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM CommandWebhooks WHERE Id = :Id AND CreateAt > :ExpTime", map[string]interface{}{"Id": id, "ExpTime": exptime}); err != nil {
+		appErr = model.NewAppError("SqlCommandWebhookStore.Get", "store.sql_command_webhooks.get.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
+		if err == sql.ErrNoRows {
+			appErr.StatusCode = http.StatusNotFound
 		}
+		return nil, appErr
+	}
 
-		result.Data = &webhook
-	})
+	return &webhook, nil
 }
 
 func (s SqlCommandWebhookStore) TryUse(id string, limit int) *model.AppError {

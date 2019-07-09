@@ -481,11 +481,9 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllTeamListing(); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, err := ss.Team().GetAllTeamListing(); err != nil {
+		t.Fatal(err)
 	} else {
-		teams := r1.Data.([]*model.Team)
-
 		for _, team := range teams {
 			if !team.AllowOpenInvite {
 				t.Fatal("should have returned team with AllowOpenInvite as true")
@@ -816,8 +814,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Team().SaveMember(m1, -1))
 
-	if r1 := <-ss.Team().RemoveAllMembersByTeam(teamId1); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if err := ss.Team().RemoveAllMembersByTeam(teamId1); err != nil {
+		t.Fatal(err)
 	}
 
 	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
@@ -883,8 +881,8 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Team().SaveMember(m1, -1))
 
-	r1 = <-ss.Team().RemoveAllMembersByTeam(teamId1)
-	require.Nil(t, r1.Err)
+	err = ss.Team().RemoveAllMembersByTeam(teamId1)
+	require.Nil(t, err)
 
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}

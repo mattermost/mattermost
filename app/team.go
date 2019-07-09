@@ -634,11 +634,7 @@ func (a *App) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *mod
 }
 
 func (a *App) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllTeamListing()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAllTeamListing()
 }
 
 func (a *App) GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
@@ -1071,8 +1067,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		}
 	}
 
-	if result := <-a.Srv.Store.Team().RemoveAllMembersByTeam(team.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().RemoveAllMembersByTeam(team.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Command().PermanentDeleteByTeam(team.Id); err != nil {
