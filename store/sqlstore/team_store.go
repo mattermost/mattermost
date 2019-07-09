@@ -418,22 +418,19 @@ func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*mo
 	return data, nil
 }
 
-func (s SqlTeamStore) GetAllTeamListing() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName"
+func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
+	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName"
 
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true ORDER BY DisplayName"
-		}
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = "SELECT * FROM Teams WHERE AllowOpenInvite = true ORDER BY DisplayName"
+	}
 
-		var data []*model.Team
-		if _, err := s.GetReplica().Select(&data, query); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var data []*model.Team
+	if _, err := s.GetReplica().Select(&data, query); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = data
-	})
+	return data, nil
 }
 
 func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
