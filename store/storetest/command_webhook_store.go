@@ -28,15 +28,16 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h1, err := cws.Save(h1)
 	require.Nil(t, err)
 
-	if r1 := <-cws.Get(h1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	var r1 *model.CommandWebhook
+	if r1, err = cws.Get(h1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if *r1.Data.(*model.CommandWebhook) != *h1 {
+		if *r1 != *h1 {
 			t.Fatal("invalid returned webhook")
 		}
 	}
 
-	if err = (<-cws.Get("123")).Err; err.StatusCode != http.StatusNotFound {
+	if _, err = cws.Get("123"); err.StatusCode != http.StatusNotFound {
 		t.Fatal("Should have set the status as not found for missing id")
 	}
 
@@ -48,17 +49,17 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h2, err = cws.Save(h2)
 	require.Nil(t, err)
 
-	if err := (<-cws.Get(h2.Id)).Err; err == nil || err.StatusCode != http.StatusNotFound {
+	if _, err := cws.Get(h2.Id); err == nil || err.StatusCode != http.StatusNotFound {
 		t.Fatal("Should have set the status as not found for expired webhook")
 	}
 
 	cws.Cleanup()
 
-	if err := (<-cws.Get(h1.Id)).Err; err != nil {
+	if _, err := cws.Get(h1.Id); err != nil {
 		t.Fatal("Should have no error getting unexpired webhook")
 	}
 
-	if err := (<-cws.Get(h2.Id)).Err; err.StatusCode != http.StatusNotFound {
+	if _, err := cws.Get(h2.Id); err.StatusCode != http.StatusNotFound {
 		t.Fatal("Should have set the status as not found for expired webhook")
 	}
 
