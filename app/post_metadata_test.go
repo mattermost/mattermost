@@ -239,40 +239,41 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnablePostIconOverride = false
-		})
+		prepare := func(override bool, url, emoji string) *model.Post {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.EnablePostIconOverride = override
+			})
 
-		post, err := th.App.CreatePost(&model.Post{
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   "Test",
-		}, th.BasicChannel, false)
+			post, err := th.App.CreatePost(&model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "Test",
+			}, th.BasicChannel, false)
 
-		require.Nil(t, err)
+			require.Nil(t, err)
 
-		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, "http://host.com/image.png")
-		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_EMOJI, "basketball")
+			post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, url)
+			post.AddProp(model.POST_PROPS_OVERRIDE_ICON_EMOJI, emoji)
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
+			return th.App.PreparePostForClient(post, false, false)
+		}
+
+		emoji := "basketball"
+		url := "http://host.com/image.png"
+		overridenUrl := "/static/emoji/1f3c0.png"
 
 		t.Run("does not override icon URL", func(t *testing.T) {
+			clientPost := prepare(false, url, emoji)
+
 			s, _ := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
-			assert.EqualValues(t, s, "http://host.com/image.png")
+			assert.EqualValues(t, s, url)
 		})
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnablePostIconOverride = true
-		})
-
-		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, "http://host.com/image.png")
-		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_EMOJI, "basketball")
-
-		clientPost = th.App.PreparePostForClient(post, false, false)
 
 		t.Run("overrides icon URL", func(t *testing.T) {
+			clientPost := prepare(true, url, emoji)
+
 			s, _ := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
-			assert.EqualValues(t, s, "/static/emoji/1f3c0.png")
+			assert.EqualValues(t, s, overridenUrl)
 		})
 
 	})

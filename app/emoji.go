@@ -227,16 +227,15 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 // GetEmojiStaticUrl returns a relative static URL for system default emojis,
 // and the API route for custom ones. Errors if not found or if custom and deleted.
 func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
-	var id string
-	var found bool
-	if id, found = model.GetSystemEmojiId(emojiName); !found {
-		emoji, err := a.Srv.Store.Emoji().GetByName(emojiName, true)
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("/api/v4/emoji/%s/image", emoji.Id), nil
+	if id, found := model.GetSystemEmojiId(emojiName); found {
+		return fmt.Sprintf("/static/emoji/%s.png", id), nil
 	}
-	return fmt.Sprintf("/static/emoji/%s.png", id), nil
+
+	if emoji, err := a.Srv.Store.Emoji().GetByName(emojiName, true); err == nil {
+		return fmt.Sprintf("/api/v4/emoji/%s/image", emoji.Id), nil
+	} else {
+		return "", err
+	}
 }
 
 func resizeEmojiGif(gifImg *gif.GIF) *gif.GIF {
