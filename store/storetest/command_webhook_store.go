@@ -6,6 +6,8 @@ package storetest
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -23,9 +25,11 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h1.CommandId = model.NewId()
 	h1.UserId = model.NewId()
 	h1.ChannelId = model.NewId()
-	h1 = (<-cws.Save(h1)).Data.(*model.CommandWebhook)
+	h1, err := cws.Save(h1)
+	require.Nil(t, err)
 
-	if r1, err := cws.Get(h1.Id); err != nil {
+	var r1 *model.CommandWebhook
+	if r1, err = cws.Get(h1.Id); err != nil {
 		t.Fatal(err)
 	} else {
 		if *r1 != *h1 {
@@ -33,7 +37,7 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if _, err := cws.Get("123"); err.StatusCode != http.StatusNotFound {
+	if _, err = cws.Get("123"); err.StatusCode != http.StatusNotFound {
 		t.Fatal("Should have set the status as not found for missing id")
 	}
 
@@ -42,7 +46,8 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h2.CommandId = model.NewId()
 	h2.UserId = model.NewId()
 	h2.ChannelId = model.NewId()
-	h2 = (<-cws.Save(h2)).Data.(*model.CommandWebhook)
+	h2, err = cws.Save(h2)
+	require.Nil(t, err)
 
 	if _, err := cws.Get(h2.Id); err == nil || err.StatusCode != http.StatusNotFound {
 		t.Fatal("Should have set the status as not found for expired webhook")

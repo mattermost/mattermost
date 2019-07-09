@@ -1800,7 +1800,7 @@ func testUserStoreUpdatePassword(t *testing.T, ss store.Store) {
 
 	hashedPassword := model.HashPassword("newpwd")
 
-	if err := (<-ss.User().UpdatePassword(u1.Id, hashedPassword)).Err; err != nil {
+	if err := ss.User().UpdatePassword(u1.Id, hashedPassword); err != nil {
 		t.Fatal(err)
 	}
 
