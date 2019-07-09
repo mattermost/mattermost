@@ -168,8 +168,8 @@ func testPluginDeleteExpired(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if result := <-ss.Plugin().DeleteAllExpired(); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Plugin().DeleteAllExpired(); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err := ss.Plugin().Get(pluginId, kv.Key); err == nil {
