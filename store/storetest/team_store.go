@@ -1421,6 +1421,8 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 			if res == nil {
 				break
 			}
+			lastDoneTeamId = res["TeamId"]
+			lastDoneUserId = res["UserId"]
 		}
 	}
 
