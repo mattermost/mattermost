@@ -19,7 +19,7 @@ var IntegrityCmd = &cobra.Command{
 }
 
 func init() {
-	IntegrityCmd.Flags().Bool("confirm", false, "Confirm you really want to run a complete integrity check of your DB.")
+	IntegrityCmd.Flags().Bool("confirm", false, "Confirm you really want to run a complete integrity check that may temporarily harm system performance")
 	IntegrityCmd.Flags().BoolP("verbose", "v", false, "Show detailed information on integrity check results")
 	RootCmd.AddCommand(IntegrityCmd)
 }
