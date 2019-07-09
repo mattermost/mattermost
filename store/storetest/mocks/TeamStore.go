@@ -147,19 +147,28 @@ func (_m *TeamStore) GetAll() ([]*model.Team, *model.AppError) {
 }
 
 // GetAllForExportAfter provides a mock function with given fields: limit, afterId
-func (_m *TeamStore) GetAllForExportAfter(limit int, afterId string) store.StoreChannel {
+func (_m *TeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError) {
 	ret := _m.Called(limit, afterId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+	var r0 []*model.TeamForExport
+	if rf, ok := ret.Get(0).(func(int, string) []*model.TeamForExport); ok {
 		r0 = rf(limit, afterId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.TeamForExport)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, string) *model.AppError); ok {
+		r1 = rf(limit, afterId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAllPage provides a mock function with given fields: offset, limit
@@ -188,19 +197,28 @@ func (_m *TeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.Ap
 }
 
 // GetAllPrivateTeamListing provides a mock function with given fields:
-func (_m *TeamStore) GetAllPrivateTeamListing() store.StoreChannel {
+func (_m *TeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError) {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func() []*model.Team); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Team)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAllPrivateTeamPageListing provides a mock function with given fields: offset, limit
@@ -445,35 +463,53 @@ func (_m *TeamStore) GetMembersByIds(teamId string, userIds []string, restrictio
 }
 
 // GetTeamMembersForExport provides a mock function with given fields: userId
-func (_m *TeamStore) GetTeamMembersForExport(userId string) store.StoreChannel {
+func (_m *TeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError) {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 []*model.TeamMemberForExport
+	if rf, ok := ret.Get(0).(func(string) []*model.TeamMemberForExport); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.TeamMemberForExport)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetTeamsByScheme provides a mock function with given fields: schemeId, offset, limit
-func (_m *TeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) store.StoreChannel {
+func (_m *TeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError) {
 	ret := _m.Called(schemeId, offset, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Team); ok {
 		r0 = rf(schemeId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Team)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(schemeId, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetTeamsByUserId provides a mock function with given fields: userId
@@ -566,19 +602,28 @@ func (_m *TeamStore) GetTotalMemberCount(teamId string) (int64, *model.AppError)
 }
 
 // GetUserTeamIds provides a mock function with given fields: userId, allowFromCache
-func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.StoreChannel {
+func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]string, *model.AppError) {
 	ret := _m.Called(userId, allowFromCache)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, bool) []string); ok {
 		r0 = rf(userId, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(userId, allowFromCache)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // InvalidateAllTeamIdsForUser provides a mock function with given fields: userId
@@ -635,15 +680,15 @@ func (_m *TeamStore) RemoveAllMembersByTeam(teamId string) store.StoreChannel {
 }
 
 // RemoveAllMembersByUser provides a mock function with given fields: userId
-func (_m *TeamStore) RemoveAllMembersByUser(userId string) store.StoreChannel {
+func (_m *TeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -651,15 +696,15 @@ func (_m *TeamStore) RemoveAllMembersByUser(userId string) store.StoreChannel {
 }
 
 // RemoveMember provides a mock function with given fields: teamId, userId
-func (_m *TeamStore) RemoveMember(teamId string, userId string) store.StoreChannel {
+func (_m *TeamStore) RemoveMember(teamId string, userId string) *model.AppError {
 	ret := _m.Called(teamId, userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
 		r0 = rf(teamId, userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -667,15 +712,15 @@ func (_m *TeamStore) RemoveMember(teamId string, userId string) store.StoreChann
 }
 
 // ResetAllTeamSchemes provides a mock function with given fields:
-func (_m *TeamStore) ResetAllTeamSchemes() store.StoreChannel {
+func (_m *TeamStore) ResetAllTeamSchemes() *model.AppError {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -865,15 +910,15 @@ func (_m *TeamStore) UpdateDisplayName(name string, teamId string) *model.AppErr
 }
 
 // UpdateLastTeamIconUpdate provides a mock function with given fields: teamId, curTime
-func (_m *TeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) store.StoreChannel {
+func (_m *TeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError {
 	ret := _m.Called(teamId, curTime)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
 		r0 = rf(teamId, curTime)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -906,17 +951,24 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, 
 }
 
 // UserBelongsToTeams provides a mock function with given fields: userId, teamIds
-func (_m *TeamStore) UserBelongsToTeams(userId string, teamIds []string) store.StoreChannel {
+func (_m *TeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError) {
 	ret := _m.Called(userId, teamIds)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, []string) store.StoreChannel); ok {
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, []string) bool); ok {
 		r0 = rf(userId, teamIds)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(userId, teamIds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
