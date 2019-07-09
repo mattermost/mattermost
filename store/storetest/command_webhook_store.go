@@ -63,11 +63,11 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 		t.Fatal("Should have set the status as not found for expired webhook")
 	}
 
-	if err := (<-cws.TryUse(h1.Id, 1)).Err; err != nil {
+	if err := cws.TryUse(h1.Id, 1); err != nil {
 		t.Fatal("Should be able to use webhook once")
 	}
 
-	if err := (<-cws.TryUse(h1.Id, 1)).Err; err == nil || err.StatusCode != http.StatusBadRequest {
+	if err := cws.TryUse(h1.Id, 1); err == nil || err.StatusCode != http.StatusBadRequest {
 		t.Fatal("Should be able to use webhook once")
 	}
 }

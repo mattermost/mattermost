@@ -699,8 +699,8 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		ParentId:  hook.ParentId,
 	}
 
-	if result := <-a.Srv.Store.CommandWebhook().TryUse(hook.Id, 5); result.Err != nil {
-		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.invalid.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
+	if err = a.Srv.Store.CommandWebhook().TryUse(hook.Id, 5); err != nil {
+		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.invalid.app_error", nil, "err="+err.Message, err.StatusCode)
 	}
 
 	_, err = a.HandleCommandResponse(cmd, args, response, false)
