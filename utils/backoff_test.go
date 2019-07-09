@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProgressiveRetry(t *testing.T) {
@@ -49,12 +51,12 @@ func TestProgressiveRetry(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			retries = 0
 
-			if err := ProgressiveRetry(tt.args.operation); (err != nil) != tt.wantErr {
-				t.Errorf("ProgressiveRetry() error = %v, wantErr %v", err, tt.wantErr)
+			err := ProgressiveRetry(tt.args.operation)
+			if !tt.wantErr {
+				require.Nil(t, err)
 			}
-			if tt.expectedRetries != retries {
-				t.Errorf("ProgressiveRetry() retries = %d, expectedRetries = %d", retries, tt.expectedRetries)
-			}
+
+			assert.Equal(t, tt.expectedRetries, retries)
 		})
 	}
 }
