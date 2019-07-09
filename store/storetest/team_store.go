@@ -431,10 +431,9 @@ func testTeamStoreByUserId(t *testing.T, ss store.Store) {
 	m1 := &model.TeamMember{TeamId: o1.Id, UserId: model.NewId()}
 	store.Must(ss.Team().SaveMember(m1, -1))
 
-	if r1 := <-ss.Team().GetTeamsByUserId(m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, err := ss.Team().GetTeamsByUserId(m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		teams := r1.Data.([]*model.Team)
 		if len(teams) == 0 {
 			t.Fatal("Should return a team")
 		}

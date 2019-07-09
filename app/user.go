@@ -189,13 +189,13 @@ func (a *App) IsFirstUserAccount() bool {
 // indexUser fetches the required information to index a user from the database and
 // calls the elasticsearch interface method
 func (a *App) indexUser(user *model.User) *model.AppError {
-	userTeams := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id)
-	if userTeams.Err != nil {
-		return userTeams.Err
+	userTeams, err := a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+	if err != nil {
+		return err
 	}
 
 	userTeamsIds := []string{}
-	for _, team := range userTeams.Data.([]*model.Team) {
+	for _, team := range userTeams {
 		userTeamsIds = append(userTeamsIds, team.Id)
 	}
 

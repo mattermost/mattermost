@@ -654,11 +654,7 @@ func (a *App) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetTeamsByUserId(userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetTeamsByUserId(userId)
 }
 
 func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
