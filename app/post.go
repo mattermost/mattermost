@@ -1012,6 +1012,10 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 	var err *model.AppError
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 
+	if !*a.Config().ServiceSettings.EnablePostSearch {
+		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
+	}
+
 	if a.IsESSearchEnabled() {
 		postSearchResults, err = a.esSearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
 		if err != nil {
@@ -1019,16 +1023,12 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		}
 	}
 
-	if !*a.Config().ServiceSettings.EnablePostSearch {
-		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
-	}
-
-	// Since we don't support paging we just return nothing for later pages
-	if page > 0 {
-		return model.MakePostSearchResults(model.NewPostList(), nil), nil
-	}
-
 	if !a.IsESSearchEnabled() || err != nil {
+		// Since we don't support paging for DB search, we just return nothing for later pages
+		if page > 0 {
+			return model.MakePostSearchResults(model.NewPostList(), nil), nil
+		}
+
 		includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 		posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
 			params.IncludeDeletedChannels = includeDeleted

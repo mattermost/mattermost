@@ -16,11 +16,11 @@ import (
 
 // CreateBot creates the given bot and corresponding user.
 func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
-	result := <-a.Srv.Store.User().Save(model.UserFromBot(bot))
-	if result.Err != nil {
-		return nil, result.Err
+	user, err := a.Srv.Store.User().Save(model.UserFromBot(bot))
+	if err != nil {
+		return nil, err
 	}
-	bot.UserId = result.Data.(*model.User).Id
+	bot.UserId = user.Id
 
 	savedBot, err := a.Srv.Store.Bot().Save(bot)
 	if err != nil {

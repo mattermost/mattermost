@@ -64,11 +64,13 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 			if importDataFileVersion != 1 {
 				return model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest), lineNumber
 			}
+			lastLineType = line.Type
 			continue
 		}
 
 		if line.Type != lastLineType {
-			if lastLineType != "" {
+			// Only clear the worker queue if is not the first data entry
+			if lineNumber != 2 {
 				// Changing type. Clear out the worker queue before continuing.
 				close(linesChan)
 				wg.Wait()
