@@ -673,11 +673,7 @@ func (a *App) CreateCommandWebhook(commandId string, args *model.CommandArgs) (*
 		ParentId:  args.ParentId,
 	}
 
-	if result := <-a.Srv.Store.CommandWebhook().Save(hook); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.CommandWebhook), nil
-	}
+	return a.Srv.Store.CommandWebhook().Save(hook)
 }
 
 func (a *App) HandleCommandWebhook(hookId string, response *model.CommandResponse) *model.AppError {
