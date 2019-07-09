@@ -430,7 +430,7 @@ type CommandStore interface {
 type CommandWebhookStore interface {
 	Save(webhook *model.CommandWebhook) StoreChannel
 	Get(id string) StoreChannel
-	TryUse(id string, limit int) StoreChannel
+	TryUse(id string, limit int) *model.AppError
 	Cleanup()
 }
 
