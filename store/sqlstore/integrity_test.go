@@ -72,8 +72,8 @@ func createCommandWebhook(ss store.Store, commandId, userId, channelId string) *
 	m.CommandId = commandId
 	m.UserId = userId
 	m.ChannelId = channelId
-	store.Must(ss.CommandWebhook().Save(&m))
-	return &m
+	cwh, _ := ss.CommandWebhook().Save(&m)
+	return cwh
 }
 
 func createIncomingWebhook(ss store.Store, userId, channelId, teamId string) *model.IncomingWebhook {
@@ -142,8 +142,8 @@ func createUser(ss store.Store) *model.User {
 	m := model.User{}
 	m.Username = model.NewId()
 	m.Email = "test@example.com"
-	store.Must(ss.User().Save(&m))
-	return &m
+	user, _ := ss.User().Save(&m)
+	return user
 }
 
 func TestCheckIntegrity(t *testing.T) {
