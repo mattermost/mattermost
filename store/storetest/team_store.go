@@ -1413,7 +1413,7 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 	lastDoneUserId := strings.Repeat("0", 26)
 
 	for {
-		res := ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
+		res, _ := ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
 		if assert.Nil(t, res) {
 			if res == nil {
 				break

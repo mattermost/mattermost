@@ -71,8 +71,8 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 
 	if progress.CurrentTable == "TeamMembers" {
 		// Run a TeamMembers migration batch.
-		if result := worker.app.Srv.Store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId); result != nil {
-			return false, progress.ToJson(), result
+		if result, err := worker.app.Srv.Store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId); err != nil {
+			return false, progress.ToJson(), err
 		} else {
 			if result == nil {
 				// We haven't progressed. That means that we've reached the end of this stage of the migration, and should now advance to the next stage.
@@ -81,7 +81,7 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 				return false, progress.ToJson(), nil
 			}
 
-			data := result.Data.(map[string]string)
+			data := result
 			progress.LastTeamId = data["TeamId"]
 			progress.LastUserId = data["UserId"]
 		}

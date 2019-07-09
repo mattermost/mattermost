@@ -605,19 +605,28 @@ func (_m *TeamStore) InvalidateAllTeamIdsForUser(userId string) {
 }
 
 // MigrateTeamMembers provides a mock function with given fields: fromTeamId, fromUserId
-func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) *model.AppError {
+func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError) {
 	ret := _m.Called(fromTeamId, fromUserId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
 		r0 = rf(fromTeamId, fromUserId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
+			r0 = ret.Get(0).(map[string]string)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(fromTeamId, fromUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // PermanentDelete provides a mock function with given fields: teamId
