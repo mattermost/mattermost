@@ -141,8 +141,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		if len(m.OtherPotentialMentions) > 0 && !post.IsSystemMessage() {
-			if profilesResult := <-a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, &model.ViewUsersRestrictions{Teams: []string{team.Id}}); profilesResult.Err == nil {
-				channelMentions := model.UserSlice(profilesResult.Data.([]*model.User)).FilterByActive(true)
+			if users, err := a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, &model.ViewUsersRestrictions{Teams: []string{team.Id}}); err == nil {
+				channelMentions := model.UserSlice(users).FilterByActive(true)
 
 				var outOfChannelMentions model.UserSlice
 				var outOfGroupsMentions model.UserSlice

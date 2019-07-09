@@ -142,7 +142,8 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
 
-	store.Must(ss.User().Save(&u1))
+	_, err := ss.User().Save(&u1)
+	require.Nil(t, err)
 
 	uat := &model.UserAccessToken{
 		Token:       model.NewId(),
@@ -154,7 +155,7 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	s1, err := ss.Session().Save(s1)
+	s1, err = ss.Session().Save(s1)
 	require.Nil(t, err)
 
 	if _, err = ss.UserAccessToken().Save(uat); err != nil {
