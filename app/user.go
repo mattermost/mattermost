@@ -1046,8 +1046,8 @@ func (a *App) UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.Us
 		}
 		password := model.HashPassword(userAuth.Password)
 
-		if result := <-a.Srv.Store.User().UpdatePassword(userId, password); result.Err != nil {
-			return nil, result.Err
+		if err := a.Srv.Store.User().UpdatePassword(userId, password); err != nil {
+			return nil, err
 		}
 	} else {
 		userAuth.Password = ""
@@ -1216,8 +1216,8 @@ func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppErr
 
 	hashedPassword := model.HashPassword(newPassword)
 
-	if result := <-a.Srv.Store.User().UpdatePassword(user.Id, hashedPassword); result.Err != nil {
-		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	if err := a.Srv.Store.User().UpdatePassword(user.Id, hashedPassword); err != nil {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
