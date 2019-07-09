@@ -156,7 +156,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 }
 
 func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
-	if err := a.Srv.Store.Emoji().Delete(emoji.Id, model.GetMillis()); err != nil {
+	if err := a.Srv.Store.Emoji().Delete(emoji, model.GetMillis()); err != nil {
 		return err
 	}
 

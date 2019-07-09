@@ -45,7 +45,7 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 		t.Fatal("shouldn't be able to save emoji with duplicate name")
 	}
 
-	if err := ss.Emoji().Delete(emoji1.Id, time.Now().Unix()); err != nil {
+	if err := ss.Emoji().Delete(emoji1, time.Now().Unix()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -53,7 +53,7 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 		t.Fatal("should be able to save emoji with duplicate name now that original has been deleted", err)
 	}
 
-	if err := ss.Emoji().Delete(emoji2.Id, time.Now().Unix()+1); err != nil {
+	if err := ss.Emoji().Delete(&emoji2, time.Now().Unix()+1); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -81,7 +81,7 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			err := ss.Emoji().Delete(emoji.Id, time.Now().Unix())
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
 			require.Nil(t, err)
 		}
 	}()
@@ -128,7 +128,7 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			err := ss.Emoji().Delete(emoji.Id, time.Now().Unix())
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
 			require.Nil(t, err)
 		}
 	}()
@@ -163,7 +163,7 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			err := ss.Emoji().Delete(emoji.Id, time.Now().Unix())
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
 			require.Nil(t, err)
 		}
 	}()
@@ -224,7 +224,7 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			err := ss.Emoji().Delete(emoji.Id, time.Now().Unix())
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
 			require.Nil(t, err)
 		}
 	}()
@@ -290,7 +290,7 @@ func testEmojiSearch(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			err := ss.Emoji().Delete(emoji.Id, time.Now().Unix())
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
 			require.Nil(t, err)
 		}
 	}()
