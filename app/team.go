@@ -565,8 +565,8 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		})
 	}
 
-	if uua := <-a.Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
-		return uua.Err
+	if _, err := a.Srv.Store.User().UpdateUpdateAt(user.Id); err != nil {
+		return err
 	}
 
 	shouldBeAdmin := team.Email == user.Email
@@ -626,11 +626,7 @@ func (a *App) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithC
 }
 
 func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllPrivateTeamListing()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAllPrivateTeamListing()
 }
 
 func (a *App) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
@@ -897,8 +893,8 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		})
 	}
 
-	if uua := <-a.Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
-		return uua.Err
+	if _, err := a.Srv.Store.User().UpdateUpdateAt(user.Id); err != nil {
+		return err
 	}
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
@@ -1075,8 +1071,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		}
 	}
 
-	if result := <-a.Srv.Store.Team().RemoveAllMembersByTeam(team.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().RemoveAllMembersByTeam(team.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Command().PermanentDeleteByTeam(team.Id); err != nil {
