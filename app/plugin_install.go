@@ -17,11 +17,11 @@ import (
 )
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
-func (a *App) InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	return a.installPlugin(pluginFile, replace)
 }
 
-func (a *App) installPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -89,6 +89,14 @@ func (a *App) installPlugin(pluginFile io.Reader, replace bool) (*model.Manifest
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
 		mlog.Error("failed to notify plugin status changed", mlog.Err(err))
+	}
+
+	// Store bundle in the file store to allow access from other servers.
+	pluginFile.Seek(0, 0)
+
+	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
+	if _, err := a.WriteFile(pluginFile, storePluginFileName); err != nil {
+		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return manifest, nil

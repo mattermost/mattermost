@@ -6,9 +6,10 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -80,15 +81,6 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Store bundle in the file store to allow access from other servers.
-	file.Seek(0, 0)
-
-	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
-	if _, err := c.App.WriteFile(file, storePluginFileName); err != nil {
-		c.Err = model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(manifest.ToJson()))
 }
@@ -134,20 +126,19 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("force") == "true" {
 		force = true
 	}
-	manifest, unpackErr := c.App.InstallPlugin(resp.Body, force)
+
+	fileBytes, readErr := ioutil.ReadAll(resp.Body)
+	if readErr != nil {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	manifest, unpackErr := c.App.InstallPlugin(bytes.NewReader(fileBytes), force)
 
 	if unpackErr != nil {
 		c.Err = unpackErr
 		return
 	}
-
-	// Store bundle in the file store to allow access from other servers.
-	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
-	if _, err := c.App.WriteFile(resp.Body, storePluginFileName); err != nil {
-		c.Err = model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(manifest.ToJson()))
 }

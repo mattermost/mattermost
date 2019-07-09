@@ -1513,6 +1513,10 @@
     "translation": "An invalid url was given to download the plugin."
   },
   {
+    "id": "api.plugin.install.reading_stream_failed.app_error",
+    "translation": "An error ocurred reading the plugin file stream."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request"
   },
