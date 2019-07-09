@@ -112,7 +112,7 @@ type TeamStore interface {
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError)
 	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError)
 	RemoveMember(teamId string, userId string) *model.AppError
-	RemoveAllMembersByTeam(teamId string) StoreChannel
+	RemoveAllMembersByTeam(teamId string) *model.AppError
 	RemoveAllMembersByUser(userId string) *model.AppError
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError
 	GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError)
