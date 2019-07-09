@@ -9,30 +9,18 @@ import (
 
 var backoffTimeouts = []time.Duration{50 * time.Millisecond, 100 * time.Millisecond, 200 * time.Millisecond, 200 * time.Millisecond, 400 * time.Millisecond, 400 * time.Millisecond}
 
-// ProgressiveRetry executes a BackoffOperation and retries the operation 3 times upon error.
+// ProgressiveRetry executes a BackoffOperation and waits an increasing time before retrying the operation.
 func ProgressiveRetry(operation func() error) error {
-	var t *time.Timer
-	var attempts = 0
+	var err error
 
-	for {
-		err := operation()
+	for attempts := 0; attempts < len(backoffTimeouts); attempts++ {
+		err = operation()
 		if err == nil {
 			return nil
 		}
 
-		attempts++
-		if attempts >= len(backoffTimeouts) {
-			return err
-		}
-
-		nextRetry := backoffTimeouts[attempts]
-		if t == nil {
-			t = time.NewTimer(nextRetry)
-		} else {
-			t.Reset(nextRetry)
-		}
-
-		// Wait until timer is finished before trying again
-		<-t.C
+		time.Sleep(backoffTimeouts[attempts])
 	}
+
+	return err
 }
