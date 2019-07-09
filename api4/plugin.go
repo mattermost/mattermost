@@ -141,6 +141,13 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Store bundle in the file store to allow access from other servers.
+	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
+	if _, err := c.App.WriteFile(resp.Body, storePluginFileName); err != nil {
+		c.Err = model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(manifest.ToJson()))
 }
