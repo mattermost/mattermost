@@ -1,8 +1,11 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package config
 
 import "github.com/pkg/errors"
 
-func Migrate(from , to string) error {
+func Migrate(from, to string) error {
 	// Get source config store - invalid config will throw error here
 	fromConfigStore, err := NewStore(from, false)
 	if err != nil {
