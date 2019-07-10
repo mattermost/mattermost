@@ -803,7 +803,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		require.Equal(t, m1.TeamId, ms[0].TeamId)
 	}
 
-	if err := ss.Team().RemoveMember(teamId1, m1.UserId); err != nil {
+	if err = ss.Team().RemoveMember(teamId1, m1.UserId); err != nil {
 		t.Fatal(err)
 	}
 
@@ -818,7 +818,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(m1, -1)
 	require.Nil(t, err)
 
-	if err := ss.Team().RemoveAllMembersByTeam(teamId1); err != nil {
+	if err = ss.Team().RemoveAllMembersByTeam(teamId1); err != nil {
 		t.Fatal(err)
 	}
 
@@ -844,7 +844,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		require.Len(t, ms, 2)
 	}
 
-	if err := ss.Team().RemoveAllMembersByUser(uid); err != nil {
+	if err = ss.Team().RemoveAllMembersByUser(uid); err != nil {
 		t.Fatal(err)
 	}
 
@@ -967,7 +967,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		ss.User().PermanentDelete(newUserId)
 	}()
 
-	if _, err := ss.Team().SaveMember(&model.TeamMember{
+	if _, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: newUserId,
 	}, maxUsersPerTeam); err == nil {
@@ -995,7 +995,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		t.Fatalf("should now only have 4 team members, had %v instead", totalMemberCount)
 	}
 
-	if _, err := ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}, maxUsersPerTeam); err != nil {
+	if _, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}, maxUsersPerTeam); err != nil {
 		t.Fatal("should've been able to save new member after deleting one", err)
 	} else {
 		defer func(userId string) {
