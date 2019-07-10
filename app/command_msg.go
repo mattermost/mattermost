@@ -48,12 +48,10 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 	targetUsername = strings.SplitN(message, " ", 2)[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	var userProfile *model.User
-	if result := <-a.Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
-		mlog.Error(result.Err.Error())
+	userProfile, err := a.Srv.Store.User().GetByUsername(targetUsername)
+	if err != nil {
+		mlog.Error(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		userProfile = result.Data.(*model.User)
 	}
 
 	if userProfile.Id == args.UserId {
@@ -70,7 +68,8 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 
-			if directChannel, err := a.GetOrCreateDirectChannel(args.UserId, userProfile.Id); err != nil {
+			var directChannel *model.Channel
+			if directChannel, err = a.GetOrCreateDirectChannel(args.UserId, userProfile.Id); err != nil {
 				mlog.Error(err.Error())
 				return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			} else {
@@ -89,7 +88,7 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelId
 		post.UserId = args.UserId
-		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
+		if _, err = a.CreatePostMissingChannel(post, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}

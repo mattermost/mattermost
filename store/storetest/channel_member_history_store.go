@@ -39,7 +39,9 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	user = *store.Must(ss.User().Save(&user)).(*model.User)
+	userPtr, err := ss.User().Save(&user)
+	require.Nil(t, err)
+	user = *userPtr
 
 	// log a join event
 	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
@@ -63,7 +65,9 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	user = *store.Must(ss.User().Save(&user)).(*model.User)
+	userPtr, err := ss.User().Save(&user)
+	require.Nil(t, err)
+	user = *userPtr
 
 	// log a join event, followed by a leave event
 	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
@@ -90,7 +94,9 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	user = *store.Must(ss.User().Save(&user)).(*model.User)
+	userPtr, err := ss.User().Save(&user)
+	require.Nil(t, err)
+	user = *userPtr
 
 	// the user was previously in the channel a long time ago, before the export period starts
 	// the existence of this record makes it look like the MessageExport feature has been active for awhile, and prevents
@@ -184,7 +190,9 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	user = *store.Must(ss.User().Save(&user)).(*model.User)
+	userPtr, err := ss.User().Save(&user)
+	require.Nil(t, err)
+	user = *userPtr
 
 	// clear any existing ChannelMemberHistory data that might interfere with our test
 	var tableDataTruncated = false
@@ -292,14 +300,18 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	user = *store.Must(ss.User().Save(&user)).(*model.User)
+	userPtr, err := ss.User().Save(&user)
+	require.Nil(t, err)
+	user = *userPtr
 
 	user2 := model.User{
 		Email:    MakeEmail(),
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	user2 = *store.Must(ss.User().Save(&user2)).(*model.User)
+	user2Ptr, err := ss.User().Save(&user2)
+	require.Nil(t, err)
+	user2 = *user2Ptr
 
 	// user1 joins and leaves the channel
 	leaveTime := model.GetMillis()

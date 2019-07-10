@@ -11,6 +11,8 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+const pluginsJobInterval = 24 * 60 * 60 * time.Second
+
 type Scheduler struct {
 	App *app.App
 }
@@ -32,7 +34,7 @@ func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 }
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
-	nextTime := time.Now().Add(60 * time.Second)
+	nextTime := time.Now().Add(pluginsJobInterval)
 	return &nextTime
 }
 

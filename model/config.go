@@ -174,11 +174,12 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
 
-	COMPLIANCE_EXPORT_TYPE_CSV         = "csv"
-	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
-	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
-	GLOBALRELAY_CUSTOMER_TYPE_A9       = "A9"
-	GLOBALRELAY_CUSTOMER_TYPE_A10      = "A10"
+	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
+	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
+	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY     = "globalrelay"
+	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY_ZIP = "globalrelay-zip"
+	GLOBALRELAY_CUSTOMER_TYPE_A9           = "A9"
+	GLOBALRELAY_CUSTOMER_TYPE_A10          = "A10"
 
 	CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH   = "primary"
 	CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH = "secondary"
@@ -2183,12 +2184,13 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable          *bool
-	EnableUploads   *bool   `restricted:"true"`
-	Directory       *string `restricted:"true"`
-	ClientDirectory *string `restricted:"true"`
-	Plugins         map[string]map[string]interface{}
-	PluginStates    map[string]*PluginState
+	Enable                   *bool
+	EnableUploads            *bool   `restricted:"true"`
+	AllowInsecureDownloadUrl *bool   `restricted:"true"`
+	Directory                *string `restricted:"true"`
+	ClientDirectory          *string `restricted:"true"`
+	Plugins                  map[string]map[string]interface{}
+	PluginStates             map[string]*PluginState
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2198,6 +2200,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.EnableUploads == nil {
 		s.EnableUploads = NewBool(false)
+	}
+
+	if s.AllowInsecureDownloadUrl == nil {
+		s.AllowInsecureDownloadUrl = NewBool(false)
 	}
 
 	if s.Directory == nil {
