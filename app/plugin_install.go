@@ -149,7 +149,6 @@ func (a *App) removePlugin(id string) *model.AppError {
 	// Remove bundle from the file store.
 	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
 	bundleExist, fileErr := a.FileExists(storePluginFileName)
-
 	if fileErr != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
