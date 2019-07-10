@@ -756,3 +756,38 @@ func (api *PluginAPI) UpdateBotActive(userId string, active bool) (*model.Bot, *
 func (api *PluginAPI) PermanentDeleteBot(userId string) *model.AppError {
 	return api.app.PermanentDeleteBot(userId)
 }
+
+func (api *PluginAPI) GetBotIconImage(userId string) ([]byte, *model.AppError) {
+	bot, err := api.app.GetBot(userId, true)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := api.app.GetBotIconImage(bot.UserId)
+	return data, err
+}
+
+func (api *PluginAPI) SetBotIconImage(userId string, data []byte) *model.AppError {
+	bot, err := api.app.GetBot(userId, true)
+	if err != nil {
+		return err
+	}
+
+	fileReader := bytes.NewReader(data)
+	if err := api.app.SetBotIconImage(bot.UserId, fileReader); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
+	bot, err := api.app.GetBot(userId, true)
+	if err != nil {
+		return err
+	}
+
+	if err := api.app.DeleteBotIconImage(bot.UserId); err != nil {
+		return err
+	}
+	return nil
+}

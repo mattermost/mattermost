@@ -4,7 +4,10 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 
@@ -197,25 +200,42 @@ func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
 	return a.Srv.Store.Bot().Save(model.BotFromUser(user))
 }
 
-// SetBotIconImage sets LHS icon for a bot.
-func (a *App) SetBotIconImage(botUserId string, imageData *multipart.FileHeader) *model.AppError {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return model.NewAppError("SetBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
-	}
-
+// SetBotIconImageFromMultiPartFile sets LHS icon for a bot.
+func (a *App) SetBotIconImageFromMultiPartFile(botUserId string, imageData *multipart.FileHeader) *model.AppError {
 	file, err := imageData.Open()
 	if err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer file.Close()
 
-	if _, err = parseSVG(file); err != nil {
+	file.Seek(0, 0)
+	return a.SetBotIconImage(botUserId, file)
+}
+
+// SetBotIconImage sets LHS icon for a bot.
+func (a *App) SetBotIconImage(botUserId string, file io.Reader) *model.AppError {
+	if _, err := a.GetBot(botUserId, true); err != nil {
+		return err
+	}
+
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return model.NewAppError("SetBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	// Copy bytes as we want to use it multiple times
+	buf, err := ioutil.ReadAll(file)
+	if err != nil {
+		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	bufferReader := bytes.NewReader(buf)
+
+	if _, err := parseSVG(bufferReader); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	// Set icon
-	file.Seek(0, 0)
-	if _, err := a.WriteFile(file, getBotIconPath(botUserId)); err != nil {
+	bufferReader.Seek(0, 0)
+	if _, err := a.WriteFile(bufferReader, getBotIconPath(botUserId)); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -229,6 +249,10 @@ func (a *App) SetBotIconImage(botUserId string, imageData *multipart.FileHeader)
 
 // DeleteBotIconImage deletes LHS icon for a bot.
 func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
+	if _, err := a.GetBot(botUserId, true); err != nil {
+		return err
+	}
+
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return model.NewAppError("DeleteBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -247,17 +271,17 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 }
 
 // GetBotIconImage retrieves LHS icon for a bot.
-func (a *App) GetBotIconImage(botUserId string) ([]byte, bool, *model.AppError) {
+func (a *App) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return nil, false, model.NewAppError("GetBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	data, err := a.ReadFile(getBotIconPath(botUserId))
 	if err != nil {
-		return nil, false, model.NewAppError("GetBotIconImage", "api.bot.get_bot_icon_image.read.app_error", nil, err.Error(), http.StatusNotFound)
+		return nil, model.NewAppError("GetBotIconImage", "api.bot.get_bot_icon_image.read.app_error", nil, err.Error(), http.StatusNotFound)
 	}
 
-	return data, false, nil
+	return data, nil
 }
 
 func getBotIconPath(botUserId string) string {

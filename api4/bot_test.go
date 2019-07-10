@@ -1155,7 +1155,13 @@ func TestSetBotIconImage(t *testing.T) {
 	_, resp = th.SystemAdminClient.SetBotIconImage(bot.UserId, goodData)
 	CheckNoError(t, resp)
 
-	info := &model.FileInfo{Path: "/bots/" + bot.UserId + "/icon.svg"}
+	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
+	actualData, err := th.App.ReadFile(fpath)
+	require.Nil(t, err)
+	require.NotNil(t, actualData)
+	require.Equal(t, goodData, actualData)
+
+	info := &model.FileInfo{Path: fpath}
 	err = th.cleanupTestFile(info)
 	require.Nil(t, err)
 }

@@ -254,24 +254,19 @@ func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := strconv.FormatInt(user.LastPictureUpdate, 10)
-	if c.HandleEtag(etag, "Get Icon Image", w, r) {
-		return
-	}
-
-	img, readFailed, err := c.App.GetBotIconImage(user.Id)
+	img, err := c.App.GetBotIconImage(user.Id)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if readFailed {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 5*60)) // 5 mins
-	} else {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	etag := strconv.FormatInt(user.LastPictureUpdate, 10)
+	if c.HandleEtag(etag, "Get Icon Image", w, r) {
+		return
 	}
 
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Header().Set("Content-Type", "image/svg+xml")
 	w.Write(img)
 }
@@ -287,11 +282,6 @@ func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
 		c.Err = err
-		return
-	}
-
-	if _, err := c.App.GetBot(botUserId, true); err != nil {
-		c.Err = model.MakeBotNotFoundError(botUserId)
 		return
 	}
 
@@ -318,7 +308,7 @@ func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	imageData := imageArray[0]
-	if err := c.App.SetBotIconImage(botUserId, imageData); err != nil {
+	if err := c.App.SetBotIconImageFromMultiPartFile(botUserId, imageData); err != nil {
 		c.Err = err
 		return
 	}
