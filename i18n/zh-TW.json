@@ -2376,19 +2376,19 @@
   },
   {
     "id": "api.user.login.invalid_credentials_email",
-    "translation": "Enter a valid email and/or password"
+    "translation": "輸入一個有效的電子郵件地址與/或密碼"
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Enter a valid email or username and/or password."
+    "translation": "輸入一個有效的電子郵件地址或使用者名稱與/或密碼。"
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+    "translation": "輸入一個有效的電子郵件地址或使用者名稱與/或密碼，或使用其他方式登入。\n"
   },
   {
     "id": "api.user.login.invalid_credentials_username",
-    "translation": "Enter a valid username and/or password."
+    "translation": "輸入一個有效的使用者名稱與/或密碼。"
   },
   {
     "id": "api.user.login.not_verified.app_error",
