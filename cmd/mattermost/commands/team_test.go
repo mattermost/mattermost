@@ -71,9 +71,8 @@ func TestLeaveTeam(t *testing.T) {
 		t.Fatal("profile should not be on team")
 	}
 
-	if result := <-th.App.Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id); result.Err != nil {
-		teamMembers := result.Data.([]*model.TeamMember)
-		if len(teamMembers) > 0 {
+	if teams, err := th.App.Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id); err != nil {
+		if len(teams) > 0 {
 			t.Fatal("Shouldn't be in team")
 		}
 	}
