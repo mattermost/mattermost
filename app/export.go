@@ -113,13 +113,11 @@ func (a *App) ExportVersion(writer io.Writer) *model.AppError {
 func (a *App) ExportAllTeams(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Team().GetAllForExportAfter(1000, afterId)
+		teams, err := a.Srv.Store.Team().GetAllForExportAfter(1000, afterId)
 
-		if result.Err != nil {
-			return result.Err
+		if err != nil {
+			return err
 		}
-
-		teams := result.Data.([]*model.TeamForExport)
 
 		if len(teams) == 0 {
 			break
@@ -252,13 +250,11 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImportData, *model.AppError) {
 	var memberships []UserTeamImportData
 
-	result := <-a.Srv.Store.Team().GetTeamMembersForExport(userId)
+	members, err := a.Srv.Store.Team().GetTeamMembersForExport(userId)
 
-	if result.Err != nil {
-		return nil, result.Err
+	if err != nil {
+		return nil, err
 	}
-
-	members := result.Data.([]*model.TeamMemberForExport)
 
 	for _, member := range members {
 		// Skip deleted.

@@ -83,15 +83,15 @@ func (_m *UserStore) AnalyticsGetSystemAdminCount() (int64, *model.AppError) {
 }
 
 // ClearAllCustomRoleAssignments provides a mock function with given fields:
-func (_m *UserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
+func (_m *UserStore) ClearAllCustomRoleAssignments() *model.AppError {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -419,16 +419,14 @@ func (_m *UserStore) GetEtagForProfiles(teamId string) string {
 }
 
 // GetEtagForProfilesNotInTeam provides a mock function with given fields: teamId
-func (_m *UserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreChannel {
+func (_m *UserStore) GetEtagForProfilesNotInTeam(teamId string) string {
 	ret := _m.Called(teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0
@@ -820,19 +818,26 @@ func (_m *UserStore) GetUsersBatchForIndexing(startTime int64, endTime int64, li
 }
 
 // InferSystemInstallDate provides a mock function with given fields:
-func (_m *UserStore) InferSystemInstallDate() store.StoreChannel {
+func (_m *UserStore) InferSystemInstallDate() (int64, *model.AppError) {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // InvalidatProfileCacheForUser provides a mock function with given fields: userId
@@ -883,19 +888,28 @@ func (_m *UserStore) ResetLastPictureUpdate(userId string) *model.AppError {
 }
 
 // Save provides a mock function with given fields: user
-func (_m *UserStore) Save(user *model.User) store.StoreChannel {
+func (_m *UserStore) Save(user *model.User) (*model.User, *model.AppError) {
 	ret := _m.Called(user)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.User) store.StoreChannel); ok {
+	var r0 *model.User
+	if rf, ok := ret.Get(0).(func(*model.User) *model.User); ok {
 		r0 = rf(user)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.User) *model.AppError); ok {
+		r1 = rf(user)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // Search provides a mock function with given fields: teamId, term, options
@@ -1136,15 +1150,15 @@ func (_m *UserStore) UpdateMfaSecret(userId string, secret string) *model.AppErr
 }
 
 // UpdatePassword provides a mock function with given fields: userId, newPassword
-func (_m *UserStore) UpdatePassword(userId string, newPassword string) store.StoreChannel {
+func (_m *UserStore) UpdatePassword(userId string, newPassword string) *model.AppError {
 	ret := _m.Called(userId, newPassword)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
 		r0 = rf(userId, newPassword)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -1152,19 +1166,26 @@ func (_m *UserStore) UpdatePassword(userId string, newPassword string) store.Sto
 }
 
 // UpdateUpdateAt provides a mock function with given fields: userId
-func (_m *UserStore) UpdateUpdateAt(userId string) store.StoreChannel {
+func (_m *UserStore) UpdateUpdateAt(userId string) (int64, *model.AppError) {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // VerifyEmail provides a mock function with given fields: userId, email
