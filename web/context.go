@@ -115,6 +115,9 @@ func (c *Context) MfaRequired() {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 		return
 	} else {
+		if user.IsGuest() && !*c.App.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
+			return
+		}
 		// Only required for email and ldap accounts
 		if user.AuthService != "" &&
 			user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&

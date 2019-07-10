@@ -94,7 +94,24 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(tokenId) > 0 {
-		ruser, err = c.App.CreateUserWithToken(user, tokenId)
+		var token *model.Token
+		token, err = c.App.Srv.Store.Token().GetByToken(tokenId)
+		if err != nil {
+			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if token.Type == app.TOKEN_TYPE_GUEST_INVITATION {
+			if c.App.License() == nil {
+				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
+				return
+			}
+			if !*c.App.Config().GuestAccountsSettings.Enable {
+				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.disabled.app_error", nil, "", http.StatusBadRequest)
+				return
+			}
+		}
+		ruser, err = c.App.CreateUserWithToken(user, token)
 	} else if len(inviteId) > 0 {
 		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
 	} else if c.IsSystemAdmin() {
@@ -1374,6 +1391,17 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.IsGuest() {
+		if c.App.License() == nil {
+			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
+			return
+		}
+		if !*c.App.Config().GuestAccountsSettings.Enable {
+			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.disabled.error", nil, "", http.StatusUnauthorized)
+			return
+		}
+	}
+
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
 	session, err := c.App.DoLogin(w, r, user, deviceId)
@@ -1955,6 +1983,11 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !*c.App.Config().GuestAccountsSettings.Enable {
+		c.Err = model.NewAppError("Api4.promoteGuestToUser", "api.team.promote_guest_to_user.disabled.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_PROMOTE_GUEST) {
 		c.SetPermissionError(model.PERMISSION_PROMOTE_GUEST)
 		return
@@ -1987,6 +2020,11 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.App.License() == nil {
 		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.demote_user_to_guest.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !*c.App.Config().GuestAccountsSettings.Enable {
+		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.demote_user_to_guest.disabled.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
