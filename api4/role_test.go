@@ -209,7 +209,7 @@ func TestPatchRole(t *testing.T) {
 	assert.EqualValues(t, received.Permissions, []string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"})
 	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
-	t.Run("Check guest permissions edition without E20 license", func(t *testing.T) {
+	t.Run("Check guest permissions editing without E20 license", func(t *testing.T) {
 		license := model.NewTestLicense()
 		license.Features.GuestAccountsPermissions = model.NewBool(false)
 		th.App.SetLicense(license)
@@ -220,7 +220,7 @@ func TestPatchRole(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 
-	t.Run("Check guest permissions edition with E20 license", func(t *testing.T) {
+	t.Run("Check guest permissions editing with E20 license", func(t *testing.T) {
 		license := model.NewTestLicense()
 		license.Features.GuestAccountsPermissions = model.NewBool(true)
 		th.App.SetLicense(license)
