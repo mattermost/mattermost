@@ -1987,16 +1987,16 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err = (<-ss.User().UpdateMfaActive(u1.Id, true)).Err; err != nil {
+	if err = ss.User().UpdateMfaActive(u1.Id, true); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = (<-ss.User().UpdateMfaActive(u1.Id, false)).Err; err != nil {
+	if err = ss.User().UpdateMfaActive(u1.Id, false); err != nil {
 		t.Fatal(err)
 	}
 
 	// should pass, no update will occur though
-	if err = (<-ss.User().UpdateMfaActive("junk", true)).Err; err != nil {
+	if err = ss.User().UpdateMfaActive("junk", true); err != nil {
 		t.Fatal(err)
 	}
 }

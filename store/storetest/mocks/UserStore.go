@@ -1127,15 +1127,15 @@ func (_m *UserStore) UpdateLastPictureUpdate(userId string) *model.AppError {
 }
 
 // UpdateMfaActive provides a mock function with given fields: userId, active
-func (_m *UserStore) UpdateMfaActive(userId string, active bool) store.StoreChannel {
+func (_m *UserStore) UpdateMfaActive(userId string, active bool) *model.AppError {
 	ret := _m.Called(userId, active)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
 		r0 = rf(userId, active)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

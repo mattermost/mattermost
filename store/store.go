@@ -257,7 +257,7 @@ type UserStore interface {
 	UpdateUpdateAt(userId string) (int64, *model.AppError)
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, *model.AppError)
 	UpdateMfaSecret(userId, secret string) *model.AppError
-	UpdateMfaActive(userId string, active bool) StoreChannel
+	UpdateMfaActive(userId string, active bool) *model.AppError
 	Get(id string) (*model.User, *model.AppError)
 	GetAll() ([]*model.User, *model.AppError)
 	ClearCaches()
