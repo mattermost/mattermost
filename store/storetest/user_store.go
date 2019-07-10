@@ -1689,9 +1689,9 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get by empty username", func(t *testing.T) {
-		result, _ := ss.User().GetByUsername("")
-		require.NotNil(t, result)
-		require.Equal(t, result.Id, "store.sql_user.get_by_username.app_error")
+		_, err := ss.User().GetByUsername("")
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, "store.sql_user.get_by_username.app_error")
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
