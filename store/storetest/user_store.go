@@ -3838,8 +3838,9 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 	_, err = ss.Team().SaveMember(&model.TeamMember{
-		UserId: u3.Id,
-		TeamId: t1.Id,
+		UserId:   u3.Id,
+		TeamId:   t1.Id,
+		DeleteAt: model.GetMillis(),
 	}, 100)
 	require.Nil(t, err)
 	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
