@@ -55,17 +55,24 @@ func (_m *Helpers) KVCompareAndSetJSON(key string, oldValue interface{}, newValu
 }
 
 // KVGetJSON provides a mock function with given fields: key, value
-func (_m *Helpers) KVGetJSON(key string, value interface{}) error {
+func (_m *Helpers) KVGetJSON(key string, value interface{}) (bool, error) {
 	ret := _m.Called(key, value)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, interface{}) bool); ok {
 		r0 = rf(key, value)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, interface{}) error); ok {
+		r1 = rf(key, value)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // KVSetJSON provides a mock function with given fields: key, value

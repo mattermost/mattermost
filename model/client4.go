@@ -1497,6 +1497,72 @@ func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response) {
 	return BotFromJson(r.Body), BuildResponse(r)
 }
 
+// SetBotIconImage sets icon image of the user.
+func (c *Client4) SetBotIconImage(botUserId string, data []byte) (bool, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("image", "icon.svg")
+	if err != nil {
+		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.set_bot_icon_image.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.set_bot_icon_image.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err = writer.Close(); err != nil {
+		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.set_bot_icon_image.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetBotRoute(botUserId)+"/icon", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return false, &Response{Error: NewAppError("SetBotIconImage", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	rp, err := c.HttpClient.Do(rq)
+	if err != nil || rp == nil {
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetBotRoute(botUserId)+"/icon", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
+	}
+	defer closeBody(rp)
+
+	if rp.StatusCode >= 300 {
+		return false, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
+	}
+
+	return CheckStatusOK(rp), BuildResponse(rp)
+}
+
+// GetBotIconImage gets user's LHS icon image. Must be logged in.
+func (c *Client4) GetBotIconImage(botUserId string) ([]byte, *Response) {
+	r, appErr := c.DoApiGet(c.GetBotRoute(botUserId)+"/icon", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetBotIconImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return data, BuildResponse(r)
+}
+
+// DeleteBotIconImage deletes user's LHS icon image. Must be logged in.
+func (c *Client4) DeleteBotIconImage(botUserId string) (bool, *Response) {
+	r, appErr := c.DoApiDelete(c.GetBotRoute(botUserId) + "/icon")
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
