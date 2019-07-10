@@ -500,11 +500,7 @@ func (api *PluginAPI) SetProfileImage(userId string, data []byte) *model.AppErro
 		return err
 	}
 
-	err = api.app.SetProfileImageFromFile(userId, bytes.NewReader(data))
-	if err != nil {
-		return err
-	}
-	return nil
+	return api.app.SetProfileImageFromFile(userId, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
@@ -579,11 +575,7 @@ func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
 		return err
 	}
 
-	err = api.app.SetTeamIconFromFile(team, bytes.NewReader(data))
-	if err != nil {
-		return err
-	}
-	return nil
+	return api.app.SetTeamIconFromFile(team, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
@@ -768,10 +760,7 @@ func (api *PluginAPI) SetBotIconImage(userId string, data []byte) *model.AppErro
 		return err
 	}
 
-	if err := api.app.SetBotIconImage(userId, bytes.NewReader(data)); err != nil {
-		return err
-	}
-	return nil
+	return api.app.SetBotIconImage(userId, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
@@ -779,8 +768,5 @@ func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
 		return err
 	}
 
-	if err := api.app.DeleteBotIconImage(userId); err != nil {
-		return err
-	}
-	return nil
+	return api.app.DeleteBotIconImage(userId)
 }
