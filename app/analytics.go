@@ -93,14 +93,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		dailyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			dailyActive, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+			dailyActive, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
 			dailyActiveChan <- store.StoreResult{Data: dailyActive, Err: err}
 			close(dailyActiveChan)
 		}()
 
 		monthlyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			monthlyActive, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+			monthlyActive, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
 			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, Err: err}
 			close(monthlyActiveChan)
 		}()
