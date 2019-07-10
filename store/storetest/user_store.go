@@ -1950,12 +1950,14 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 		t.Fatal("should have 3 unread messages")
 	}
 
-	badge = (<-ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)).Data.(int64)
+	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
+	require.Nil(t, unreadCountErr)
 	if badge != 1 {
 		t.Fatal("should have 1 unread messages for that channel")
 	}
 
-	badge = (<-ss.User().GetUnreadCountForChannel(u2.Id, c2.Id)).Data.(int64)
+	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c2.Id)
+	require.Nil(t, unreadCountErr)
 	if badge != 2 {
 		t.Fatal("should have 2 unread messages for that channel")
 	}
