@@ -13,20 +13,20 @@ type UserStore struct {
 	mock.Mock
 }
 
-// AnalyticsActiveCount provides a mock function with given fields: time
-func (_m *UserStore) AnalyticsActiveCount(time int64) (int64, *model.AppError) {
-	ret := _m.Called(time)
+// AnalyticsActiveCount provides a mock function with given fields: time, options
+func (_m *UserStore) AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError) {
+	ret := _m.Called(time, options)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(int64) int64); ok {
-		r0 = rf(time)
+	if rf, ok := ret.Get(0).(func(int64, model.UserCountOptions) int64); ok {
+		r0 = rf(time, options)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64) *model.AppError); ok {
-		r1 = rf(time)
+	if rf, ok := ret.Get(1).(func(int64, model.UserCountOptions) *model.AppError); ok {
+		r1 = rf(time, options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

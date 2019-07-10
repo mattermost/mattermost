@@ -123,14 +123,14 @@ func (a *App) trackActivity() {
 
 	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
 	go func() {
-		count, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
 		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersDailyCountChan)
 	}()
 
 	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
 	go func() {
-		count, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
 		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersMonthlyCountChan)
 	}()
