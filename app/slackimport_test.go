@@ -171,6 +171,16 @@ func TestSlackParsePosts(t *testing.T) {
 	assert.Equal(t, 9, len(posts))
 }
 
+func TestSlackParseMultipleAttachments(t *testing.T) {
+	file, err := os.Open("tests/slack-import-test-posts.json")
+	require.NoError(t, err)
+	defer file.Close()
+
+	posts, err := SlackParsePosts(file)
+	require.NoError(t, err)
+	assert.Equal(t, 2, len(posts[8].Files))
+}
+
 func TestSlackSanitiseChannelProperties(t *testing.T) {
 	c1 := model.Channel{
 		DisplayName: "display-name",
