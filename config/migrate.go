@@ -8,15 +8,30 @@ import "github.com/pkg/errors"
 func Migrate(from, to string) error {
 	sourceStore, err := NewStore(from, false)
 	if err != nil {
-		return errors.Wrapf(err, "failed to access config %s", from)
+		return errors.Wrapf(err, "failed to access source config %s", from)
 	}
 
 	destinationStore, err := NewStore(to, false)
 	if err != nil {
-		return errors.Wrapf(err, "failed to access config %s", to)
+		return errors.Wrapf(err, "failed to access destination config %s", to)
 	}
 
-	_, err = destinationStore.Set(sourceStore.Get())
+	sourceConfig := sourceStore.Get()
+	_, err = destinationStore.Set(sourceConfig)
 
-	return err
+	if err != nil {
+		return errors.Wrapf(err, "failed to set config")
+	}
+
+	idpCertificateFile, err := sourceStore.GetFile(*sourceConfig.SamlSettings.IdpCertificateFile)
+
+	if idpCertificateFile != nil {
+		err = destinationStore.SetFile(*sourceConfig.SamlSettings.IdpCertificateFile, idpCertificateFile)
+		if err != nil {
+			return errors.Wrapf(err, "failed to migrate idpCertificateFile")
+		}
+
+	}
+
+	return nil
 }
