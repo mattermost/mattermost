@@ -112,8 +112,6 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		ruser, err = c.App.CreateUserWithToken(user, token)
-		if err == nil {
-		}
 	} else if len(inviteId) > 0 {
 		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
 	} else if c.IsSystemAdmin() {
