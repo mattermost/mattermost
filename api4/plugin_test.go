@@ -57,6 +57,11 @@ func TestPlugin(t *testing.T) {
 	CheckNoError(t, resp)
 	assert.Equal(t, "testplugin", manifest.Id)
 
+	// Stored in File Store: Install Plugin from URL case
+	pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+	assert.Nil(t, err)
+	assert.True(t, pluginStored)
+
 	th.App.RemovePlugin(manifest.Id)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
@@ -88,6 +93,11 @@ func TestPlugin(t *testing.T) {
 	CheckNoError(t, resp)
 
 	assert.Equal(t, "testplugin", manifest.Id)
+
+	// Stored in File Store: Upload Plugin case
+	pluginStored, err = th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+	assert.Nil(t, err)
+	assert.True(t, pluginStored)
 
 	// Upload error cases
 	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader([]byte("badfile")))
