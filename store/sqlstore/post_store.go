@@ -794,47 +794,46 @@ var specialSearchChar = []string{
 	":",
 }
 
-func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		queryParams := map[string]interface{}{
-			"TeamId": teamId,
-			"UserId": userId,
+func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
+	queryParams := map[string]interface{}{
+		"TeamId": teamId,
+		"UserId": userId,
+	}
+
+	termMap := map[string]bool{}
+	terms := params.Terms
+	list := model.NewPostList()
+
+	if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 && len(params.OnDate) == 0 && len(params.AfterDate) == 0 && len(params.BeforeDate) == 0 {
+		return list, nil
+	}
+
+	searchType := "Message"
+	if params.IsHashtag {
+		searchType = "Hashtags"
+		for _, term := range strings.Split(terms, " ") {
+			termMap[strings.ToUpper(term)] = true
 		}
+	}
 
-		termMap := map[string]bool{}
-		terms := params.Terms
+	// these chars have special meaning and can be treated as spaces
+	for _, c := range specialSearchChar {
+		terms = strings.Replace(terms, c, " ", -1)
+	}
 
-		if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 && len(params.OnDate) == 0 && len(params.AfterDate) == 0 && len(params.BeforeDate) == 0 {
-			result.Data = []*model.Post{}
-			return
-		}
+	var posts []*model.Post
 
-		searchType := "Message"
-		if params.IsHashtag {
-			searchType = "Hashtags"
-			for _, term := range strings.Split(terms, " ") {
-				termMap[strings.ToUpper(term)] = true
-			}
-		}
+	deletedQueryPart := "AND DeleteAt = 0"
+	if params.IncludeDeletedChannels {
+		deletedQueryPart = ""
+	}
 
-		// these chars have special meaning and can be treated as spaces
-		for _, c := range specialSearchChar {
-			terms = strings.Replace(terms, c, " ", -1)
-		}
+	userIdPart := "AND UserId = :UserId"
+	if params.SearchWithoutUserId {
+		userIdPart = ""
+	}
 
-		var posts []*model.Post
-
-		deletedQueryPart := "AND DeleteAt = 0"
-		if params.IncludeDeletedChannels {
-			deletedQueryPart = ""
-		}
-
-		userIdPart := "AND UserId = :UserId"
-		if params.SearchWithoutUserId {
-			userIdPart = ""
-		}
-
-		searchQuery := `
+	searchQuery := `
 			SELECT
 				*
 			FROM
@@ -860,35 +859,35 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 				ORDER BY CreateAt DESC
 			LIMIT 100`
 
-		if len(params.InChannels) > 1 {
-			inClause := ":InChannel0"
-			queryParams["InChannel0"] = params.InChannels[0]
+	if len(params.InChannels) > 1 {
+		inClause := ":InChannel0"
+		queryParams["InChannel0"] = params.InChannels[0]
 
-			for i := 1; i < len(params.InChannels); i++ {
-				paramName := "InChannel" + strconv.FormatInt(int64(i), 10)
-				inClause += ", :" + paramName
-				queryParams[paramName] = params.InChannels[i]
-			}
-
-			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name IN ("+inClause+")", 1)
-		} else if len(params.InChannels) == 1 {
-			queryParams["InChannel"] = params.InChannels[0]
-			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name = :InChannel", 1)
-		} else {
-			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "", 1)
+		for i := 1; i < len(params.InChannels); i++ {
+			paramName := "InChannel" + strconv.FormatInt(int64(i), 10)
+			inClause += ", :" + paramName
+			queryParams[paramName] = params.InChannels[i]
 		}
 
-		if len(params.FromUsers) > 1 {
-			inClause := ":FromUser0"
-			queryParams["FromUser0"] = params.FromUsers[0]
+		searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name IN ("+inClause+")", 1)
+	} else if len(params.InChannels) == 1 {
+		queryParams["InChannel"] = params.InChannels[0]
+		searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name = :InChannel", 1)
+	} else {
+		searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "", 1)
+	}
 
-			for i := 1; i < len(params.FromUsers); i++ {
-				paramName := "FromUser" + strconv.FormatInt(int64(i), 10)
-				inClause += ", :" + paramName
-				queryParams[paramName] = params.FromUsers[i]
-			}
+	if len(params.FromUsers) > 1 {
+		inClause := ":FromUser0"
+		queryParams["FromUser0"] = params.FromUsers[0]
 
-			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
+		for i := 1; i < len(params.FromUsers); i++ {
+			paramName := "FromUser" + strconv.FormatInt(int64(i), 10)
+			inClause += ", :" + paramName
+			queryParams[paramName] = params.FromUsers[i]
+		}
+
+		searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
 				AND UserId IN (
 					SELECT
 						Id
@@ -899,9 +898,9 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 						TeamMembers.TeamId = :TeamId
 						AND Users.Id = TeamMembers.UserId
 						AND Username IN (`+inClause+`))`, 1)
-		} else if len(params.FromUsers) == 1 {
-			queryParams["FromUser"] = params.FromUsers[0]
-			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
+	} else if len(params.FromUsers) == 1 {
+		queryParams["FromUser"] = params.FromUsers[0]
+		searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
 				AND UserId IN (
 					SELECT
 						Id
@@ -912,106 +911,104 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 						TeamMembers.TeamId = :TeamId
 						AND Users.Id = TeamMembers.UserId
 						AND Username = :FromUser)`, 1)
-		} else {
-			searchQuery = strings.Replace(searchQuery, "POST_FILTER", "", 1)
+	} else {
+		searchQuery = strings.Replace(searchQuery, "POST_FILTER", "", 1)
+	}
+
+	// handle after: before: on: filters
+	if len(params.AfterDate) > 1 || len(params.BeforeDate) > 1 || len(params.OnDate) > 1 {
+		if len(params.OnDate) > 1 {
+			onDateStart, onDateEnd := params.GetOnDateMillis()
+			queryParams["OnDateStart"] = strconv.FormatInt(onDateStart, 10)
+			queryParams["OnDateEnd"] = strconv.FormatInt(onDateEnd, 10)
+
+			// between `on date` start of day and end of day
+			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd ", 1)
+		} else if len(params.AfterDate) > 1 && len(params.BeforeDate) > 1 {
+			afterDate := params.GetAfterDateMillis()
+			beforeDate := params.GetBeforeDateMillis()
+			queryParams["OnDateStart"] = strconv.FormatInt(afterDate, 10)
+			queryParams["OnDateEnd"] = strconv.FormatInt(beforeDate, 10)
+
+			// between clause
+			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd ", 1)
+		} else if len(params.AfterDate) > 1 {
+			afterDate := params.GetAfterDateMillis()
+			queryParams["AfterDate"] = strconv.FormatInt(afterDate, 10)
+
+			// greater than `after date`
+			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt >= :AfterDate ", 1)
+		} else if len(params.BeforeDate) > 1 {
+			beforeDate := params.GetBeforeDateMillis()
+			queryParams["BeforeDate"] = strconv.FormatInt(beforeDate, 10)
+
+			// less than `before date`
+			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt <= :BeforeDate ", 1)
+		}
+	} else {
+		// no create date filters set
+		searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "", 1)
+	}
+
+	if terms == "" {
+		// we've already confirmed that we have a channel or user to search for
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		// Parse text for wildcards
+		if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
+			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 		}
 
-		// handle after: before: on: filters
-		if len(params.AfterDate) > 1 || len(params.BeforeDate) > 1 || len(params.OnDate) > 1 {
-			if len(params.OnDate) > 1 {
-				onDateStart, onDateEnd := params.GetOnDateMillis()
-				queryParams["OnDateStart"] = strconv.FormatInt(onDateStart, 10)
-				queryParams["OnDateEnd"] = strconv.FormatInt(onDateEnd, 10)
-
-				// between `on date` start of day and end of day
-				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd ", 1)
-			} else if len(params.AfterDate) > 1 && len(params.BeforeDate) > 1 {
-				afterDate := params.GetAfterDateMillis()
-				beforeDate := params.GetBeforeDateMillis()
-				queryParams["OnDateStart"] = strconv.FormatInt(afterDate, 10)
-				queryParams["OnDateEnd"] = strconv.FormatInt(beforeDate, 10)
-
-				// between clause
-				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd ", 1)
-			} else if len(params.AfterDate) > 1 {
-				afterDate := params.GetAfterDateMillis()
-				queryParams["AfterDate"] = strconv.FormatInt(afterDate, 10)
-
-				// greater than `after date`
-				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt >= :AfterDate ", 1)
-			} else if len(params.BeforeDate) > 1 {
-				beforeDate := params.GetBeforeDateMillis()
-				queryParams["BeforeDate"] = strconv.FormatInt(beforeDate, 10)
-
-				// less than `before date`
-				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt <= :BeforeDate ", 1)
-			}
+		if params.OrTerms {
+			terms = strings.Join(strings.Fields(terms), " | ")
 		} else {
-			// no create date filters set
-			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "", 1)
+			terms = strings.Join(strings.Fields(terms), " & ")
 		}
 
-		if terms == "" {
-			// we've already confirmed that we have a channel or user to search for
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-		} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			// Parse text for wildcards
-			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
-				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
+		searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery(:Terms)", searchType)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+
+		if !params.OrTerms {
+			splitTerms := strings.Fields(terms)
+			for i, t := range strings.Fields(terms) {
+				splitTerms[i] = "+" + t
 			}
 
-			if params.OrTerms {
-				terms = strings.Join(strings.Fields(terms), " | ")
-			} else {
-				terms = strings.Join(strings.Fields(terms), " & ")
-			}
+			terms = strings.Join(splitTerms, " ")
+		}
+	}
 
-			searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery(:Terms)", searchType)
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	queryParams["Terms"] = terms
 
-			if !params.OrTerms {
-				splitTerms := strings.Fields(terms)
-				for i, t := range strings.Fields(terms) {
-					splitTerms[i] = "+" + t
+	_, err := s.GetSearchReplica().Select(&posts, searchQuery, queryParams)
+	if err != nil {
+		mlog.Warn(fmt.Sprintf("Query error searching posts: %v", err.Error()))
+		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
+		return list, nil
+	}
+
+	for _, p := range posts {
+		if searchType == "Hashtags" {
+			exactMatch := false
+			for _, tag := range strings.Split(p.Hashtags, " ") {
+				if termMap[strings.ToUpper(tag)] {
+					exactMatch = true
 				}
-
-				terms = strings.Join(splitTerms, " ")
+			}
+			if !exactMatch {
+				continue
 			}
 		}
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
 
-		queryParams["Terms"] = terms
+	list.MakeNonNil()
 
-		list := model.NewPostList()
-
-		_, err := s.GetSearchReplica().Select(&posts, searchQuery, queryParams)
-		if err != nil {
-			mlog.Warn(fmt.Sprintf("Query error searching posts: %v", err.Error()))
-			// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
-		} else {
-			for _, p := range posts {
-				if searchType == "Hashtags" {
-					exactMatch := false
-					for _, tag := range strings.Split(p.Hashtags, " ") {
-						if termMap[strings.ToUpper(tag)] {
-							exactMatch = true
-						}
-					}
-					if !exactMatch {
-						continue
-					}
-				}
-				list.AddPost(p)
-				list.AddOrder(p.Id)
-			}
-		}
-
-		list.MakeNonNil()
-
-		result.Data = list
-	})
+	return list, nil
 }
 
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {

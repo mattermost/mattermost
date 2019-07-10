@@ -110,6 +110,7 @@ func (cs *commonStore) load(f io.ReadCloser, needsSave bool, validate func(*mode
 	needsSave = needsSave || loadedCfg.FileSettings.PublicLinkSalt == nil || len(*loadedCfg.FileSettings.PublicLinkSalt) == 0
 
 	loadedCfg.SetDefaults()
+	loadedCfgWithoutEnvOverrides.SetDefaults()
 
 	if validate != nil {
 		if err = validate(loadedCfg); err != nil {

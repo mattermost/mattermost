@@ -788,18 +788,17 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 
 	user.Roles = model.SYSTEM_USER_ROLE_ID
 
-	result := <-a.Srv.Store.User().Save(user)
-	if result.Err != nil {
-		mlog.Error(fmt.Sprintf("Error saving user. err=%v", result.Err))
+	ruser, err := a.Srv.Store.User().Save(user)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Error saving user. err=%v", err))
 		return nil
 	}
-	ruser := result.Data.(*model.User)
 
-	if _, err := a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
+	if _, err = a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
 		mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", err))
 	}
 
-	if err := a.JoinUserToTeam(team, user, ""); err != nil {
+	if err = a.JoinUserToTeam(team, user, ""); err != nil {
 		mlog.Error(fmt.Sprintf("Failed to join team when importing err=%v", err))
 	}
 
