@@ -1671,33 +1671,33 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get u1 by username", func(t *testing.T) {
-		result := <-ss.User().GetByUsername(u1.Username)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u1, result.Data.(*model.User))
+		result, err := ss.User().GetByUsername(u1.Username)
+		require.Nil(t, err)
+		assert.Equal(t, u1, result)
 	})
 
 	t.Run("get u2 by username", func(t *testing.T) {
-		result := <-ss.User().GetByUsername(u2.Username)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u2, result.Data.(*model.User))
+		result, err := ss.User().GetByUsername(u2.Username)
+		require.Nil(t, err)
+		assert.Equal(t, u2, result)
 	})
 
 	t.Run("get u3 by username", func(t *testing.T) {
-		result := <-ss.User().GetByUsername(u3.Username)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u3, result.Data.(*model.User))
+		result, err := ss.User().GetByUsername(u3.Username)
+		require.Nil(t, err)
+		assert.Equal(t, u3, result)
 	})
 
 	t.Run("get by empty username", func(t *testing.T) {
-		result := <-ss.User().GetByUsername("")
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, "store.sql_user.get_by_username.app_error")
+		_, err := ss.User().GetByUsername("")
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, "store.sql_user.get_by_username.app_error")
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
-		result := <-ss.User().GetByUsername("unknown")
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, "store.sql_user.get_by_username.app_error")
+		_, err := ss.User().GetByUsername("unknown")
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, "store.sql_user.get_by_username.app_error")
 	})
 }
 
@@ -3611,21 +3611,21 @@ func testUserStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 
 	require.Nil(t, ss.User().ClearAllCustomRoleAssignments())
 
-	r1 := <-ss.User().GetByUsername(u1.Username)
-	require.Nil(t, r1.Err)
-	assert.Equal(t, u1.Roles, r1.Data.(*model.User).Roles)
+	r1, err := ss.User().GetByUsername(u1.Username)
+	require.Nil(t, err)
+	assert.Equal(t, u1.Roles, r1.Roles)
 
-	r2 := <-ss.User().GetByUsername(u2.Username)
-	require.Nil(t, r2.Err)
-	assert.Equal(t, "system_user system_admin", r2.Data.(*model.User).Roles)
+	r2, err1 := ss.User().GetByUsername(u2.Username)
+	require.Nil(t, err1)
+	assert.Equal(t, "system_user system_admin", r2.Roles)
 
-	r3 := <-ss.User().GetByUsername(u3.Username)
-	require.Nil(t, r3.Err)
-	assert.Equal(t, u3.Roles, r3.Data.(*model.User).Roles)
+	r3, err2 := ss.User().GetByUsername(u3.Username)
+	require.Nil(t, err2)
+	assert.Equal(t, u3.Roles, r3.Roles)
 
-	r4 := <-ss.User().GetByUsername(u4.Username)
-	require.Nil(t, r4.Err)
-	assert.Equal(t, "", r4.Data.(*model.User).Roles)
+	r4, err3 := ss.User().GetByUsername(u4.Username)
+	require.Nil(t, err3)
+	assert.Equal(t, "", r4.Roles)
 }
 
 func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
