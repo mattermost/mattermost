@@ -4,10 +4,8 @@
 package app
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 
@@ -213,7 +211,7 @@ func (a *App) SetBotIconImageFromMultiPartFile(botUserId string, imageData *mult
 }
 
 // SetBotIconImage sets LHS icon for a bot.
-func (a *App) SetBotIconImage(botUserId string, file io.Reader) *model.AppError {
+func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError {
 	if _, err := a.GetBot(botUserId, true); err != nil {
 		return err
 	}
@@ -222,20 +220,13 @@ func (a *App) SetBotIconImage(botUserId string, file io.Reader) *model.AppError 
 		return model.NewAppError("SetBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	// Copy bytes as we want to use it multiple times
-	buf, err := ioutil.ReadAll(file)
-	if err != nil {
-		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	bufferReader := bytes.NewReader(buf)
-
-	if _, err := parseSVG(bufferReader); err != nil {
+	if _, err := parseSVG(file); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	// Set icon
-	bufferReader.Seek(0, 0)
-	if _, err := a.WriteFile(bufferReader, getBotIconPath(botUserId)); err != nil {
+	file.Seek(0, 0)
+	if _, err := a.WriteFile(file, getBotIconPath(botUserId)); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
