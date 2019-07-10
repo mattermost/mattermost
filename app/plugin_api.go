@@ -500,8 +500,7 @@ func (api *PluginAPI) SetProfileImage(userId string, data []byte) *model.AppErro
 		return err
 	}
 
-	fileReader := bytes.NewReader(data)
-	err = api.app.SetProfileImageFromFile(userId, fileReader)
+	err = api.app.SetProfileImageFromFile(userId, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
@@ -580,8 +579,7 @@ func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
 		return err
 	}
 
-	fileReader := bytes.NewReader(data)
-	err = api.app.SetTeamIconFromFile(team, fileReader)
+	err = api.app.SetTeamIconFromFile(team, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
@@ -763,8 +761,7 @@ func (api *PluginAPI) GetBotIconImage(userId string) ([]byte, *model.AppError) {
 		return nil, err
 	}
 
-	data, err := api.app.GetBotIconImage(bot.UserId)
-	return data, err
+	return api.app.GetBotIconImage(bot.UserId)
 }
 
 func (api *PluginAPI) SetBotIconImage(userId string, data []byte) *model.AppError {
@@ -773,8 +770,7 @@ func (api *PluginAPI) SetBotIconImage(userId string, data []byte) *model.AppErro
 		return err
 	}
 
-	fileReader := bytes.NewReader(data)
-	if err := api.app.SetBotIconImage(bot.UserId, fileReader); err != nil {
+	if err := api.app.SetBotIconImage(bot.UserId, bytes.NewReader(data)); err != nil {
 		return err
 	}
 	return nil

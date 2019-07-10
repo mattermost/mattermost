@@ -263,6 +263,10 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 
 // GetBotIconImage retrieves LHS icon for a bot.
 func (a *App) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
+	if _, err := a.GetBot(botUserId, true); err != nil {
+		return nil, err
+	}
+
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("GetBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
