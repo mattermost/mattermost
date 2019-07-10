@@ -4,7 +4,11 @@
 package api4
 
 import (
+	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -17,6 +21,10 @@ func (api *API) InitBot() {
 	api.BaseRoutes.Bot.Handle("/disable", api.ApiSessionRequired(disableBot)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/enable", api.ApiSessionRequired(enableBot)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(assignBot)).Methods("POST")
+
+	api.BaseRoutes.Bot.Handle("/icon", api.ApiSessionRequiredTrustRequester(getBotIconImage)).Methods("GET")
+	api.BaseRoutes.Bot.Handle("/icon", api.ApiSessionRequired(setBotIconImage)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/icon", api.ApiSessionRequired(deleteBotIconImage)).Methods("DELETE")
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -216,4 +224,128 @@ func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(bot.ToJson())
+}
+
+func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireBotUserId()
+	if c.Err != nil {
+		return
+	}
+	botUserId := c.Params.BotUserId
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, botUserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		return
+	}
+
+	user, err := c.App.GetUser(botUserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if !user.IsBot {
+		c.Err = model.MakeBotNotFoundError(botUserId)
+		return
+	}
+
+	etag := strconv.FormatInt(user.LastPictureUpdate, 10)
+	if c.HandleEtag(etag, "Get Icon Image", w, r) {
+		return
+	}
+
+	img, readFailed, err := c.App.GetBotIconImage(user.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if readFailed {
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 5*60)) // 5 mins
+	} else {
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	}
+
+	w.Header().Set("Content-Type", "image/svg+xml")
+	w.Write(img)
+}
+
+func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
+	c.RequireBotUserId()
+	if c.Err != nil {
+		return
+	}
+	botUserId := c.Params.BotUserId
+
+	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if _, err := c.App.GetBot(botUserId, true); err != nil {
+		c.Err = model.MakeBotNotFoundError(botUserId)
+		return
+	}
+
+	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
+		c.Err = model.NewAppError("setBotIconImage", "api.bot.set_bot_icon_image.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
+		return
+	}
+
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
+		c.Err = model.NewAppError("setBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	m := r.MultipartForm
+	imageArray, ok := m.File["image"]
+	if !ok {
+		c.Err = model.NewAppError("setBotIconImage", "api.bot.set_bot_icon_image.no_file.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if len(imageArray) <= 0 {
+		c.Err = model.NewAppError("setBotIconImage", "api.bot.set_bot_icon_image.array.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	imageData := imageArray[0]
+	if err := c.App.SetBotIconImage(botUserId, imageData); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
+}
+
+func deleteBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
+	c.RequireBotUserId()
+	if c.Err != nil {
+		return
+	}
+	botUserId := c.Params.BotUserId
+
+	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := c.App.DeleteBotIconImage(botUserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
 }

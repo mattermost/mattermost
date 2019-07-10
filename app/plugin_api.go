@@ -620,7 +620,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
 	}
 
-	return api.app.SendMail(to, subject, htmlBody)
+	return api.app.SendNotificationMail(to, subject, htmlBody)
 }
 
 // Plugin Section
