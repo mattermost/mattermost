@@ -2230,12 +2230,12 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 	if err != nil {
 		return err
 	}
-	userTeams := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id)
-	if userTeams.Err != nil {
-		return userTeams.Err
+	userTeams, err := a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+	if err != nil {
+		return err
 	}
 
-	for _, team := range userTeams.Data.([]*model.Team) {
+	for _, team := range userTeams {
 		// Soft error if there is an issue joining the default channels
 		if err = a.JoinDefaultChannels(team.Id, user, false, requestorId); err != nil {
 			mlog.Error(fmt.Sprintf("Encountered an issue joining default channels err=%v", err), mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.String("requestor_id", requestorId))
