@@ -83,20 +83,20 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 		return nil, model.NewAppError("installPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if stashed != nil && stashed.Enable {
-		a.EnablePlugin(manifest.Id)
-	}
-
-	if err := a.notifyPluginStatusesChanged(); err != nil {
-		mlog.Error("failed to notify plugin status changed", mlog.Err(err))
-	}
-
 	// Store bundle in the file store to allow access from other servers.
 	pluginFile.Seek(0, 0)
 
 	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
 	if _, err := a.WriteFile(pluginFile, storePluginFileName); err != nil {
 		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if stashed != nil && stashed.Enable {
+		a.EnablePlugin(manifest.Id)
+	}
+
+	if err := a.notifyPluginStatusesChanged(); err != nil {
+		mlog.Error("failed to notify plugin status changed", mlog.Err(err))
 	}
 
 	return manifest, nil
