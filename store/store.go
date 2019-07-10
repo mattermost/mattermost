@@ -92,11 +92,11 @@ type TeamStore interface {
 	SearchPrivate(term string) ([]*model.Team, *model.AppError)
 	GetAll() ([]*model.Team, *model.AppError)
 	GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError)
-	GetAllPrivateTeamListing() StoreChannel
+	GetAllPrivateTeamListing() ([]*model.Team, *model.AppError)
 	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
-	GetAllTeamListing() StoreChannel
+	GetAllTeamListing() ([]*model.Team, *model.AppError)
 	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
-	GetTeamsByUserId(userId string) StoreChannel
+	GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError)
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
 	PermanentDelete(teamId string) *model.AppError
 	AnalyticsTeamCount() (int64, *model.AppError)
@@ -111,19 +111,19 @@ type TeamStore interface {
 	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError)
 	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError)
-	RemoveMember(teamId string, userId string) StoreChannel
-	RemoveAllMembersByTeam(teamId string) StoreChannel
-	RemoveAllMembersByUser(userId string) StoreChannel
+	RemoveMember(teamId string, userId string) *model.AppError
+	RemoveAllMembersByTeam(teamId string) *model.AppError
+	RemoveAllMembersByUser(userId string) *model.AppError
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError
-	GetTeamsByScheme(schemeId string, offset int, limit int) StoreChannel
-	MigrateTeamMembers(fromTeamId string, fromUserId string) StoreChannel
-	ResetAllTeamSchemes() StoreChannel
+	GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError)
+	MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError)
+	ResetAllTeamSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() StoreChannel
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
 	GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError)
 	GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError)
-	UserBelongsToTeams(userId string, teamIds []string) StoreChannel
-	GetUserTeamIds(userId string, allowFromCache bool) StoreChannel
+	UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError)
+	GetUserTeamIds(userId string, allowFromCache bool) ([]string, *model.AppError)
 	InvalidateAllTeamIdsForUser(userId string)
 	ClearCaches()
 }
@@ -140,8 +140,8 @@ type ChannelStore interface {
 	Delete(channelId string, time int64) *model.AppError
 	Restore(channelId string, time int64) *model.AppError
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError
+	PermanentDelete(channelId string) *model.AppError
 	PermanentDeleteByTeam(teamId string) *model.AppError
-	PermanentDelete(channelId string) StoreChannel
 	GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
 	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError)
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
@@ -249,12 +249,12 @@ type PostStore interface {
 }
 
 type UserStore interface {
-	Save(user *model.User) StoreChannel
+	Save(user *model.User) (*model.User, *model.AppError)
 	Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, *model.AppError)
 	UpdateLastPictureUpdate(userId string) *model.AppError
 	ResetLastPictureUpdate(userId string) *model.AppError
-	UpdateUpdateAt(userId string) StoreChannel
-	UpdatePassword(userId, newPassword string) StoreChannel
+	UpdatePassword(userId, newPassword string) *model.AppError
+	UpdateUpdateAt(userId string) (int64, *model.AppError)
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, *model.AppError)
 	UpdateMfaSecret(userId, secret string) *model.AppError
 	UpdateMfaActive(userId string, active bool) StoreChannel
@@ -277,7 +277,7 @@ type UserStore interface {
 	GetByEmail(email string) (*model.User, *model.AppError)
 	GetByAuth(authData *string, authService string) (*model.User, *model.AppError)
 	GetAllUsingAuthService(authService string) ([]*model.User, *model.AppError)
-	GetByUsername(username string) StoreChannel
+	GetByUsername(username string) (*model.User, *model.AppError)
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) (*model.User, *model.AppError)
 	VerifyEmail(userId, email string) (string, *model.AppError)
 	GetEtagForAllProfiles() string
@@ -299,7 +299,7 @@ type UserStore interface {
 	AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
 	AnalyticsGetSystemAdminCount() (int64, *model.AppError)
 	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
+	GetEtagForProfilesNotInTeam(teamId string) string
 	ClearAllCustomRoleAssignments() *model.AppError
 	InferSystemInstallDate() (int64, *model.AppError)
 	GetAllAfter(limit int, afterId string) ([]*model.User, *model.AppError)
@@ -428,9 +428,9 @@ type CommandStore interface {
 }
 
 type CommandWebhookStore interface {
-	Save(webhook *model.CommandWebhook) StoreChannel
-	Get(id string) StoreChannel
-	TryUse(id string, limit int) StoreChannel
+	Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError)
+	Get(id string) (*model.CommandWebhook, *model.AppError)
+	TryUse(id string, limit int) *model.AppError
 	Cleanup()
 }
 
@@ -535,12 +535,12 @@ type UserAccessTokenStore interface {
 }
 
 type PluginStore interface {
-	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
+	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)
 	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
 	Delete(pluginId, key string) StoreChannel
 	DeleteAllForPlugin(PluginId string) StoreChannel
-	DeleteAllExpired() StoreChannel
+	DeleteAllExpired() *model.AppError
 	List(pluginId string, page, perPage int) ([]string, *model.AppError)
 }
 

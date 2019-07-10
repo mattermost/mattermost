@@ -198,7 +198,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 
 	// args[0] points to the filename/filepath passed with export bulk command
 	if err := a.BulkExport(fileWriter, args[0], pathToEmojiDir, dirNameToExportEmoji); err != nil {
-		CommandPrettyPrintln(err.Error())
+		CommandPrintErrorln(err.Error())
 		return err
 	}
 
