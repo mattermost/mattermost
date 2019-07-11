@@ -80,7 +80,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		assert.Equal(t, args.SiteURL+"/"+th.BasicTeam.Name+"/channels/"+model.DEFAULT_CHANNEL, actual.GotoLocation)
 		assert.Equal(t, "", actual.ResponseType)
 
-		_, err := th.App.GetChannelMember(publicChannel.Id, th.BasicUser.Id)
+		_, err = th.App.GetChannelMember(publicChannel.Id, th.BasicUser.Id)
 		assert.NotNil(t, err)
 		assert.NotNil(t, err.Id, "store.sql_channel.get_member.missing.app_error")
 	})
@@ -140,7 +140,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		assert.Equal(t, args.SiteURL+"/", actual.GotoLocation)
 		assert.Equal(t, "", actual.ResponseType)
 
-		_, err := th.App.GetChannelMember(publicChannel.Id, guest.Id)
+		_, err = th.App.GetChannelMember(publicChannel.Id, guest.Id)
 		assert.NotNil(t, err)
 		assert.NotNil(t, err.Id, "store.sql_channel.get_member.missing.app_error")
 	})
