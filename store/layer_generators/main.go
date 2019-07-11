@@ -171,7 +171,7 @@ func GenerateTimerLayer() string {
 		},
 		"genResultsVars": func(results []string) string {
 			vars := []string{}
-			for idx, _ := range results {
+			for idx := range results {
 				vars = append(vars, fmt.Sprintf("resultVar%d", idx))
 			}
 			return strings.Join(vars, ", ")
