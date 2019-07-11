@@ -210,11 +210,9 @@ func GenerateTimerLayer() string {
 package store
 
 import (
-	"fmt"
 	timemodule "time"
 
     "github.com/mattermost/mattermost-server/einterfaces"
-    "github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
