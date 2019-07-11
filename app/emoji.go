@@ -14,12 +14,14 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"path"
 
 	"image/color/palette"
 
 	"github.com/disintegration/imaging"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -227,12 +229,17 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 // GetEmojiStaticUrl returns a relative static URL for system default emojis,
 // and the API route for custom ones. Errors if not found or if custom and deleted.
 func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
+	subPath, _ := utils.GetSubpathFromConfig(a.Config())
+	if subPath == "" {
+		subPath = "/"
+	}
+
 	if id, found := model.GetSystemEmojiId(emojiName); found {
-		return fmt.Sprintf("/static/emoji/%s.png", id), nil
+		return path.Join(subPath, "static/emoji", id), nil
 	}
 
 	if emoji, err := a.Srv.Store.Emoji().GetByName(emojiName, true); err == nil {
-		return fmt.Sprintf("/api/v4/emoji/%s/image", emoji.Id), nil
+		return path.Join(subPath, "api/v4/emoji", emoji.Id, "image"), nil
 	} else {
 		return "", err
 	}
