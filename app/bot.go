@@ -216,10 +216,6 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 		return err
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return model.NewAppError("SetBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
-	}
-
 	if _, err := parseSVG(file); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -244,10 +240,6 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 		return err
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return model.NewAppError("DeleteBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
-	}
-
 	// Delete icon
 	if err := a.RemoveFile(getBotIconPath(botUserId)); err != nil {
 		return model.NewAppError("DeleteBotIconImage", "api.bot.delete_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -265,10 +257,6 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 func (a *App) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
 	if _, err := a.GetBot(botUserId, true); err != nil {
 		return nil, err
-	}
-
-	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return nil, model.NewAppError("GetBotIconImage", "api.bot.icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	data, err := a.ReadFile(getBotIconPath(botUserId))
