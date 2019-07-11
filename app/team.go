@@ -920,11 +920,11 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
-			if err := a.postLeaveTeamMessage(user, channel); err != nil {
+			if err = a.postLeaveTeamMessage(user, channel); err != nil {
 				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
 			}
 		} else {
-			if err := a.postRemoveFromTeamMessage(user, channel); err != nil {
+			if err = a.postRemoveFromTeamMessage(user, channel); err != nil {
 				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
 			}
 		}

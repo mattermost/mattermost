@@ -453,14 +453,14 @@ func TestLeaveDefaultChannel(t *testing.T) {
 		err = th.App.LeaveChannel(townSquare.Id, th.BasicUser.Id)
 		assert.NotNil(t, err, "It should fail to remove a regular user from the default channel")
 		assert.Equal(t, err.Id, "api.channel.remove.default.app_error")
-		_, err := th.App.GetChannelMember(townSquare.Id, th.BasicUser.Id)
+		_, err = th.App.GetChannelMember(townSquare.Id, th.BasicUser.Id)
 		assert.Nil(t, err)
 	})
 
 	t.Run("Guest leaves the default channel", func(t *testing.T) {
 		err = th.App.LeaveChannel(townSquare.Id, guest.Id)
 		assert.Nil(t, err, "It should allow to remove a guest user from the default channel")
-		_, err := th.App.GetChannelMember(townSquare.Id, guest.Id)
+		_, err = th.App.GetChannelMember(townSquare.Id, guest.Id)
 		assert.NotNil(t, err)
 	})
 }
@@ -487,7 +487,7 @@ func TestLeaveLastChannel(t *testing.T) {
 	t.Run("Guest leaves last channel", func(t *testing.T) {
 		err = th.App.LeaveChannel(th.BasicChannel.Id, guest.Id)
 		assert.Nil(t, err, "It should allow to remove a guest user from the default channel")
-		_, err := th.App.GetChannelMember(th.BasicChannel.Id, guest.Id)
+		_, err = th.App.GetChannelMember(th.BasicChannel.Id, guest.Id)
 		assert.NotNil(t, err)
 		_, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
 		assert.Nil(t, err, "It should remove the team membership")
