@@ -69,6 +69,10 @@ func (s *LayeredStore) RunQuery(queryFunction QueryFunction) StoreChannel {
 	return storeChannel
 }
 
+func (s *LayeredStore) GetCurrentSchemaVersion() string {
+	return s.DatabaseLayer.GetCurrentSchemaVersion()
+}
+
 func (s *LayeredStore) Team() TeamStore {
 	return s.DatabaseLayer.Team()
 }

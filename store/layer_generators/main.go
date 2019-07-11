@@ -78,6 +78,7 @@ func ExtractStoreMetadata() StoreMetadata {
 		"TotalMasterDbConnections": true,
 		"TotalReadDbConnections":   true,
 		"TotalSearchDbConnections": true,
+		"GetCurrentSchemaVersion":  true,
 	}
 
 	metadata := StoreMetadata{Methods: map[string]Method{}, SubStores: map[string]SubStore{}}
