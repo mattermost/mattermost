@@ -34,6 +34,18 @@ func createChannel(ss store.Store, teamId, creatorId string) *model.Channel {
 	return c
 }
 
+func createChannelWithSchemeId(ss store.Store, schemeId *string) *model.Channel {
+	m := model.Channel{}
+	m.SchemeId = schemeId
+	m.TeamId = model.NewId()
+	m.CreatorId = model.NewId()
+	m.DisplayName = "Name"
+	m.Name = "zz" + model.NewId() + "b"
+	m.Type = model.CHANNEL_OPEN
+	c, _ := ss.Channel().Save(&m, -1)
+	return c
+}
+
 func createCommand(ss store.Store, userId, teamId string) * model.Command {
 	m := model.Command{}
 	m.CreatorId = userId
@@ -87,6 +99,26 @@ func createCommandWebhook(ss store.Store, commandId, userId, channelId string) *
 	return cwh
 }
 
+func createCompliance(ss store.Store, userId string) *model.Compliance {
+	m := model.Compliance{}
+	m.UserId = userId
+	m.Desc = "Audit"
+	m.Status = model.COMPLIANCE_STATUS_FAILED
+	m.StartAt = model.GetMillis() - 1
+	m.EndAt = model.GetMillis() + 1
+	m.Type = model.COMPLIANCE_TYPE_ADHOC
+	c, _ := ss.Compliance().Save(&m)
+	return c
+}
+
+func createEmoji(ss store.Store, userId string) *model.Emoji {
+	m := model.Emoji{}
+	m.CreatorId = userId
+	m.Name = "emoji"
+	emoji, _ := ss.Emoji().Save(&m)
+	return emoji
+}
+
 func createFileInfo(ss store.Store, postId, userId string) *model.FileInfo {
 	m := model.FileInfo{}
 	m.PostId = postId
@@ -103,6 +135,38 @@ func createIncomingWebhook(ss store.Store, userId, channelId, teamId string) *mo
 	m.TeamId = teamId
 	wh, _ := ss.Webhook().SaveIncoming(&m)
 	return wh
+}
+
+func createOAuthAccessData(ss store.Store, userId string) *model.AccessData {
+	m := model.AccessData{}
+	m.ClientId = model.NewId()
+	m.UserId = userId
+	m.Token = model.NewId()
+	m.RefreshToken = model.NewId()
+	m.RedirectUri = "http://example.com"
+	ad, _ := ss.OAuth().SaveAccessData(&m)
+	return ad
+}
+
+func createOAuthApp(ss store.Store, userId string) *model.OAuthApp {
+	m := model.OAuthApp{}
+	m.CreatorId = userId
+	m.CallbackUrls = []string{"https://nowhere.com"}
+	m.Homepage = "https://nowhere.com"
+	m.Id = ""
+	m.Name = "TestApp" + model.NewId()
+	app, _ := ss.OAuth().SaveApp(&m)
+	return app
+}
+
+func createOAuthAuthData(ss store.Store, userId string) *model.AuthData {
+	m := model.AuthData{}
+	m.ClientId = model.NewId()
+	m.UserId = userId
+	m.Code = model.NewId()
+	m.RedirectUri = "http://example.com"
+	ad, _ := ss.OAuth().SaveAuthData(&m)
+	return ad
 }
 
 func createOutgoingWebhook(ss store.Store, token, userId, teamId string) *model.OutgoingWebhook {
@@ -156,6 +220,70 @@ func createReaction(ss store.Store, userId, postId string) *model.Reaction {
 	return reaction
 }
 
+func createDefaultRoles(ss store.Store) {
+	ss.Role().Save(&model.Role{
+		Name:        model.TEAM_ADMIN_ROLE_ID,
+		DisplayName: model.TEAM_ADMIN_ROLE_ID,
+		Permissions: []string{
+			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.TEAM_USER_ROLE_ID,
+		DisplayName: model.TEAM_USER_ROLE_ID,
+		Permissions: []string{
+			model.PERMISSION_VIEW_TEAM.Id,
+			model.PERMISSION_ADD_USER_TO_TEAM.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.TEAM_GUEST_ROLE_ID,
+		DisplayName: model.TEAM_GUEST_ROLE_ID,
+		Permissions: []string{
+			model.PERMISSION_VIEW_TEAM.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.CHANNEL_ADMIN_ROLE_ID,
+		DisplayName: model.CHANNEL_ADMIN_ROLE_ID,
+		Permissions: []string{
+			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
+			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.CHANNEL_USER_ROLE_ID,
+		DisplayName: model.CHANNEL_USER_ROLE_ID,
+		Permissions: []string{
+			model.PERMISSION_READ_CHANNEL.Id,
+			model.PERMISSION_CREATE_POST.Id,
+		},
+	})
+
+	ss.Role().Save(&model.Role{
+		Name:        model.CHANNEL_GUEST_ROLE_ID,
+		DisplayName: model.CHANNEL_GUEST_ROLE_ID,
+		Permissions: []string{
+			model.PERMISSION_READ_CHANNEL.Id,
+			model.PERMISSION_CREATE_POST.Id,
+		},
+	})
+}
+
+func createScheme(ss store.Store) *model.Scheme {
+	m := model.Scheme{}
+	m.DisplayName = model.NewId()
+	m.Name = model.NewId()
+	m.Description = model.NewId()
+	m.Scope = model.SCHEME_SCOPE_CHANNEL
+	s, _ := ss.Scheme().Save(&m)
+	return s
+}
+
 func createSession(ss store.Store, userId string) *model.Session {
 	m := model.Session{}
 	m.UserId = userId
@@ -187,6 +315,17 @@ func createTeamMember(ss store.Store, teamId, userId string) *model.TeamMember {
 	m.UserId = userId
 	store.Must(ss.Team().SaveMember(&m, -1))
 	return &m
+}
+
+func createTeamWithSchemeId(ss store.Store, schemeId *string) *model.Team {
+	m := model.Team{}
+	m.SchemeId = schemeId
+	m.DisplayName = "DisplayName"
+	m.Type = model.TEAM_OPEN
+	m.Email = "test@example.com"
+	m.Name = "z-z-z" + model.NewId() + "b"
+	t, _ := ss.Team().Save(&m)
+	return t
 }
 
 func createUser(ss store.Store) *model.User {
@@ -460,6 +599,68 @@ func TestCheckPostsReactionsIntegrity(t *testing.T) {
 				ParentId: postId,
 			}, data.Records[0])
 			dbmap.Delete(reaction)
+		})
+	})
+}
+
+func TestCheckSchemesChannelsIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkSchemesChannelsIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			createDefaultRoles(ss)
+			scheme := createScheme(ss)
+			schemeId := scheme.Id
+			channel := createChannelWithSchemeId(ss, &schemeId)
+			dbmap.Delete(scheme)
+			result := checkSchemesChannelsIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: schemeId,
+				ChildId: channel.Id,
+			}, data.Records[0])
+			dbmap.Delete(channel)
+		})
+	})
+}
+
+func TestCheckSchemesTeamsIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkSchemesTeamsIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			createDefaultRoles(ss)
+			scheme := createScheme(ss)
+			schemeId := scheme.Id
+			team := createTeamWithSchemeId(ss, &schemeId)
+			dbmap.Delete(scheme)
+			result := checkSchemesTeamsIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: schemeId,
+				ChildId: team.Id,
+			}, data.Records[0])
+			dbmap.Delete(team)
 		})
 	})
 }
@@ -807,6 +1008,66 @@ func TestCheckUsersCommandsIntegrity(t *testing.T) {
 	})
 }
 
+func TestCheckUsersCompliancesIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkUsersCompliancesIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			user := createUser(ss)
+			userId := user.Id
+			compliance := createCompliance(ss, userId)
+			dbmap.Delete(user)
+			result := checkUsersCompliancesIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: userId,
+				ChildId: compliance.Id,
+			}, data.Records[0])
+			dbmap.Delete(compliance)
+		})
+	})
+}
+
+func TestCheckUsersEmojiIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkUsersEmojiIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			user := createUser(ss)
+			userId := user.Id
+			emoji := createEmoji(ss, userId)
+			dbmap.Delete(user)
+			result := checkUsersEmojiIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: userId,
+				ChildId: emoji.Id,
+			}, data.Records[0])
+			dbmap.Delete(emoji)
+		})
+	})
+}
+
 func TestCheckUsersFileInfoIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
@@ -860,6 +1121,96 @@ func TestCheckUsersIncomingWebhooksIntegrity(t *testing.T) {
 				ChildId: wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
+		})
+	})
+}
+
+func TestCheckUsersOAuthAccessDataIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkUsersOAuthAccessDataIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			user := createUser(ss)
+			userId := user.Id
+			ad := createOAuthAccessData(ss, userId)
+			dbmap.Delete(user)
+			result := checkUsersOAuthAccessDataIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: userId,
+				ChildId: ad.Token,
+			}, data.Records[0])
+			ss.OAuth().RemoveAccessData(ad.Token)
+		})
+	})
+}
+
+func TestCheckUsersOAuthAppsIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkUsersOAuthAppsIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			user := createUser(ss)
+			userId := user.Id
+			app := createOAuthApp(ss, userId)
+			dbmap.Delete(user)
+			result := checkUsersOAuthAppsIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: userId,
+				ChildId: app.Id,
+			}, data.Records[0])
+			ss.OAuth().DeleteApp(app.Id)
+		})
+	})
+}
+
+func TestCheckUsersOAuthAuthDataIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkUsersOAuthAuthDataIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			user := createUser(ss)
+			userId := user.Id
+			ad := createOAuthAuthData(ss, userId)
+			dbmap.Delete(user)
+			result := checkUsersOAuthAuthDataIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: userId,
+				ChildId: ad.Code,
+			}, data.Records[0])
+			ss.OAuth().RemoveAuthData(ad.Code)
 		})
 	})
 }
