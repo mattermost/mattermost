@@ -38,16 +38,17 @@ func (me *LeaveProvider) DoCommand(a *App, args *model.CommandArgs, message stri
 	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
-	err := a.LeaveChannel(args.ChannelId, args.UserId)
+
+	team, err := a.GetTeam(args.TeamId)
+	if err != nil {
+		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	err = a.LeaveChannel(args.ChannelId, args.UserId)
 	if err != nil {
 		if channel.Name == model.DEFAULT_CHANNEL {
 			return &model.CommandResponse{Text: args.T("api.channel.leave.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
-		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	}
-
-	team, err := a.GetTeam(args.TeamId)
-	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
