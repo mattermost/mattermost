@@ -876,10 +876,6 @@ func TestGetViewUsersRestrictionsForTeam(t *testing.T) {
 
 	team2channel1 := th.CreateChannel(team2)
 	th.CreateChannel(team2) // Another channel
-	team2offtopic, err := th.App.GetChannelByName("off-topic", team2.Id, false)
-	require.Nil(t, err)
-	team2townsquare, err := th.App.GetChannelByName("town-square", team2.Id, false)
-	require.Nil(t, err)
 
 	th.App.AddUserToChannel(user1, team1channel1)
 	th.App.AddUserToChannel(user1, team1channel2)
@@ -935,7 +931,7 @@ func TestGetViewUsersRestrictionsForTeam(t *testing.T) {
 		require.Nil(t, err)
 
 		assert.NotNil(t, restrictions)
-		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions)
+		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id}, restrictions)
 	})
 }
 
