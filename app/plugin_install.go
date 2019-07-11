@@ -17,11 +17,11 @@ import (
 )
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
-func (a *App) InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	return a.installPlugin(pluginFile, replace)
 }
 
-func (a *App) installPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -83,6 +83,14 @@ func (a *App) installPlugin(pluginFile io.Reader, replace bool) (*model.Manifest
 		return nil, model.NewAppError("installPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	// Store bundle in the file store to allow access from other servers.
+	pluginFile.Seek(0, 0)
+
+	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
+	if _, err := a.WriteFile(pluginFile, storePluginFileName); err != nil {
+		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	if stashed != nil && stashed.Enable {
 		a.EnablePlugin(manifest.Id)
 	}
@@ -136,6 +144,19 @@ func (a *App) removePlugin(id string) *model.AppError {
 	err = os.RemoveAll(pluginPath)
 	if err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Remove bundle from the file store.
+	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
+	bundleExist, fileErr := a.FileExists(storePluginFileName)
+	if fileErr != nil {
+		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if bundleExist {
+		if err := a.RemoveFile(storePluginFileName); err != nil {
+			return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return nil
