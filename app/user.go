@@ -408,7 +408,7 @@ func (a *App) IsUsernameTaken(name string) bool {
 		return false
 	}
 
-	if result := <-a.Srv.Store.User().GetByUsername(name); result.Err != nil {
+	if _, err := a.Srv.Store.User().GetByUsername(name); err != nil {
 		return false
 	}
 
@@ -420,12 +420,12 @@ func (a *App) GetUser(userId string) (*model.User, *model.AppError) {
 }
 
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetByUsername(username)
-	if result.Err != nil && result.Err.Id == "store.sql_user.get_by_username.app_error" {
-		result.Err.StatusCode = http.StatusNotFound
-		return nil, result.Err
+	result, err := a.Srv.Store.User().GetByUsername(username)
+	if err != nil && err.Id == "store.sql_user.get_by_username.app_error" {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
 	}
-	return result.Data.(*model.User), nil
+	return result, nil
 }
 
 func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {

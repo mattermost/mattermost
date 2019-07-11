@@ -117,7 +117,7 @@ type TeamStore interface {
 	RemoveAllMembersByUser(userId string) *model.AppError
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError
 	GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError)
-	MigrateTeamMembers(fromTeamId string, fromUserId string) StoreChannel
+	MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError)
 	ResetAllTeamSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() StoreChannel
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
@@ -258,7 +258,7 @@ type UserStore interface {
 	UpdateUpdateAt(userId string) (int64, *model.AppError)
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, *model.AppError)
 	UpdateMfaSecret(userId, secret string) *model.AppError
-	UpdateMfaActive(userId string, active bool) StoreChannel
+	UpdateMfaActive(userId string, active bool) *model.AppError
 	Get(id string) (*model.User, *model.AppError)
 	GetAll() ([]*model.User, *model.AppError)
 	ClearCaches()
@@ -278,7 +278,7 @@ type UserStore interface {
 	GetByEmail(email string) (*model.User, *model.AppError)
 	GetByAuth(authData *string, authService string) (*model.User, *model.AppError)
 	GetAllUsingAuthService(authService string) ([]*model.User, *model.AppError)
-	GetByUsername(username string) StoreChannel
+	GetByUsername(username string) (*model.User, *model.AppError)
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) (*model.User, *model.AppError)
 	VerifyEmail(userId, email string) (string, *model.AppError)
 	GetEtagForAllProfiles() string
@@ -431,7 +431,7 @@ type CommandStore interface {
 type CommandWebhookStore interface {
 	Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError)
 	Get(id string) (*model.CommandWebhook, *model.AppError)
-	TryUse(id string, limit int) StoreChannel
+	TryUse(id string, limit int) *model.AppError
 	Cleanup()
 }
 
@@ -540,7 +540,7 @@ type PluginStore interface {
 	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
 	Delete(pluginId, key string) StoreChannel
-	DeleteAllForPlugin(PluginId string) StoreChannel
+	DeleteAllForPlugin(PluginId string) *model.AppError
 	DeleteAllExpired() *model.AppError
 	List(pluginId string, page, perPage int) ([]string, *model.AppError)
 }

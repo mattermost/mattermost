@@ -103,9 +103,9 @@ func (a *App) DeletePluginKey(pluginId string, key string) *model.AppError {
 }
 
 func (a *App) DeleteAllKeysForPlugin(pluginId string) *model.AppError {
-	if result := <-a.Srv.Store.Plugin().DeleteAllForPlugin(pluginId); result.Err != nil {
-		mlog.Error("Failed to delete all plugin key values", mlog.String("plugin_id", pluginId), mlog.Err(result.Err))
-		return result.Err
+	if err := a.Srv.Store.Plugin().DeleteAllForPlugin(pluginId); err != nil {
+		mlog.Error("Failed to delete all plugin key values", mlog.String("plugin_id", pluginId), mlog.Err(err))
+		return err
 	}
 
 	return nil
