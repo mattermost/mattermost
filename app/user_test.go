@@ -561,7 +561,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 
 	t.Run("invalid token", func(t *testing.T) {
-		if _, err := th.App.CreateUserWithToken(&user, "123"); err == nil {
+		if _, err := th.App.CreateUserWithToken(&user, &model.Token{Token: "123"}); err == nil {
 			t.Fatal("Should fail on unexisting token")
 		}
 	})
@@ -573,7 +573,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
-		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
+		if _, err := th.App.CreateUserWithToken(&user, token); err == nil {
 			t.Fatal("Should fail on bad token type")
 		}
 	})
@@ -586,7 +586,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		token.CreateAt = model.GetMillis() - INVITATION_EXPIRY_TIME - 1
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
-		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
+		if _, err := th.App.CreateUserWithToken(&user, token); err == nil {
 			t.Fatal("Should fail on expired token")
 		}
 	})
@@ -598,7 +598,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
-		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
+		if _, err := th.App.CreateUserWithToken(&user, token); err == nil {
 			t.Fatal("Should fail on bad team id")
 		}
 	})
@@ -610,7 +610,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
-		newUser, err := th.App.CreateUserWithToken(&user, token.Token)
+		newUser, err := th.App.CreateUserWithToken(&user, token)
 		if err != nil {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
@@ -636,7 +636,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		guest := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		newGuest, err := th.App.CreateUserWithToken(&guest, token.Token)
+		newGuest, err := th.App.CreateUserWithToken(&guest, token)
 		if err != nil {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
