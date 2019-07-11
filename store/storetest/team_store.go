@@ -1516,7 +1516,7 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m3, -1))
 	store.Must(ss.Team().SaveMember(m4, -1))
 
-	require.Nil(t, (<-ss.Team().ClearAllCustomRoleAssignments()).Err)
+	require.Nil(t, (ss.Team().ClearAllCustomRoleAssignments()))
 
 	r1, err := ss.Team().GetMember(m1.TeamId, m1.UserId)
 	require.Nil(t, err)
