@@ -209,7 +209,7 @@ func (a *App) SynchPlugins() *model.AppError {
 		files, readErr := ioutil.ReadDir(dirFullPath)
 
 		if readErr != nil {
-			mlog.Error(fmt.Sprintf("Error reading local plugin directoy: %v. Skipped for synch.", dir.Name()), mlog.Err(readErr))
+			mlog.Error("Error reading local plugin directoy. Skipped for synch.", mlog.String("folder", dir.Name()), mlog.Err(readErr))
 			continue
 		}
 		// Only handle managed plugins with .filestore flag file.
@@ -220,14 +220,14 @@ func (a *App) SynchPlugins() *model.AppError {
 
 				mlog.Debug(fmt.Sprintf("Plugin Synch: Uninstalling %v plugin locally", dir.Name()))
 				if err := a.removePluginLocally(dir.Name()); err != nil {
-					mlog.Error(fmt.Sprintf("Plugin Synch: Error uninstalling managed plugin: %v.", dir.Name()), mlog.Err(err))
+					mlog.Error("Plugin Synch: Error uninstalling managed plugin.", mlog.String("plugin", dir.Name()), mlog.Err(err))
 				}
 				break
 			}
 		}
 
 		if !managed {
-			mlog.Warn(fmt.Sprintf("Found unmanaged plugin: %v. Ignoring in plugin synch with the filestore.", dir.Name()))
+			mlog.Warn("Found unmanaged plugin. Ignoring in plugin synch with the filestore.", mlog.String("plugin", dir.Name()))
 		}
 	}
 
@@ -248,11 +248,11 @@ func (a *App) SynchPlugins() *model.AppError {
 			if strings.HasSuffix(path, ".tar.gz") {
 				fileBytes, fileReaderErr := a.ReadFile(filepath.Join("./", path))
 				if fileReaderErr != nil {
-					mlog.Error(fmt.Sprintf("Failed to open plugin bundle from filestore: %v", path), mlog.Err(fileReaderErr))
+					mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("bundle", path), mlog.Err(fileReaderErr))
 					continue
 				}
 
-				mlog.Debug(fmt.Sprintf("Plugin Synch: installing %v plugin locally", path))
+				mlog.Debug(fmt.Sprintf("Plugin Synch: installing plugin locally", mlog.String("plugin", path)))
 				if _, err := a.installPluginLocally(bytes.NewReader(fileBytes), true); err != nil {
 					mlog.Error("Failed to unpack plugin from filestore", mlog.Err(err), mlog.String("path", path))
 				}
