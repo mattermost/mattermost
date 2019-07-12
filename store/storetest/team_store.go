@@ -780,12 +780,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(m3, -1)
 	require.Nil(t, err)
 
-	var ms []*model.TeamMember
-	if ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
-		t.Fatal(err)
-	} else {
-		require.Len(t, ms, 2)
-	}
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
+	require.Nil(t, err)
+	assert.Len(t, ms, 2)
 
 	if ms, err = ss.Team().GetMembers(teamId2, 0, 100, nil); err != nil {
 		t.Fatal(err)
