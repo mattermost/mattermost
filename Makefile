@@ -58,6 +58,7 @@ GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
 MINIMUM_SUPPORTED_GO_MINOR_VERSION = 12
+GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
@@ -454,8 +455,13 @@ test-data: start-docker ## Add test data to the local instance.
 	@echo ========================================================================
 
 define validate_go_version
-	@if [ $(GO_MINOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MINOR_VERSION) ] || [ $(GO_MAJOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
-		echo 'Golang version is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)';\
+	@if [ $(GO_MAJOR_VERSION) -gt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
+		exit 0 ;\
+	elif [ $(GO_MAJOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
+		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
+		exit 1; \
+	elif [ $(GO_MINOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MINOR_VERSION) ] ; then \
+		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
 		exit 1; \
 	fi
 endef
