@@ -565,8 +565,8 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		})
 	}
 
-	if uua := <-a.Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
-		return uua.Err
+	if _, err := a.Srv.Store.User().UpdateUpdateAt(user.Id); err != nil {
+		return err
 	}
 
 	shouldBeAdmin := team.Email == user.Email
@@ -626,11 +626,7 @@ func (a *App) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithC
 }
 
 func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllPrivateTeamListing()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAllPrivateTeamListing()
 }
 
 func (a *App) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
@@ -638,11 +634,7 @@ func (a *App) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *mod
 }
 
 func (a *App) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllTeamListing()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAllTeamListing()
 }
 
 func (a *App) GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
@@ -662,11 +654,7 @@ func (a *App) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetTeamsByUserId(userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetTeamsByUserId(userId)
 }
 
 func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -897,8 +885,8 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		})
 	}
 
-	if uua := <-a.Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
-		return uua.Err
+	if _, err := a.Srv.Store.User().UpdateUpdateAt(user.Id); err != nil {
+		return err
 	}
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
@@ -1075,8 +1063,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		}
 	}
 
-	if result := <-a.Srv.Store.Team().RemoveAllMembersByTeam(team.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().RemoveAllMembersByTeam(team.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Command().PermanentDeleteByTeam(team.Id); err != nil {
@@ -1282,8 +1270,8 @@ func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppEr
 
 	curTime := model.GetMillis()
 
-	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(team.Id, curTime); result.Err != nil {
-		return model.NewAppError("SetTeamIcon", "api.team.team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	if err := a.Srv.Store.Team().UpdateLastTeamIconUpdate(team.Id, curTime); err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.team_icon.update.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	// manually set time to avoid possible cluster inconsistencies
@@ -1300,8 +1288,8 @@ func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
 		return model.NewAppError("RemoveTeamIcon", "api.team.remove_team_icon.get_team.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, 0); result.Err != nil {
-		return model.NewAppError("RemoveTeamIcon", "api.team.team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	if err := a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, 0); err != nil {
+		return model.NewAppError("RemoveTeamIcon", "api.team.team_icon.update.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	team.LastTeamIconUpdate = 0

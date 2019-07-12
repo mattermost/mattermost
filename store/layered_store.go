@@ -290,38 +290,26 @@ type LayeredSchemeStore struct {
 	*LayeredStore
 }
 
-func (s *LayeredSchemeStore) Save(scheme *model.Scheme) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.SchemeSave(s.TmpContext, scheme)
-	})
+func (s *LayeredSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+	return s.LayerChainHead.SchemeSave(s.TmpContext, scheme)
 }
 
-func (s *LayeredSchemeStore) Get(schemeId string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.SchemeGet(s.TmpContext, schemeId)
-	})
+func (s *LayeredSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
+	return s.LayerChainHead.SchemeGet(s.TmpContext, schemeId)
 }
 
-func (s *LayeredSchemeStore) GetByName(schemeName string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.SchemeGetByName(s.TmpContext, schemeName)
-	})
+func (s *LayeredSchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
+	return s.LayerChainHead.SchemeGetByName(s.TmpContext, schemeName)
 }
 
-func (s *LayeredSchemeStore) Delete(schemeId string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.SchemeDelete(s.TmpContext, schemeId)
-	})
+func (s *LayeredSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
+	return s.LayerChainHead.SchemeDelete(s.TmpContext, schemeId)
 }
 
-func (s *LayeredSchemeStore) GetAllPage(scope string, offset int, limit int) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.SchemeGetAllPage(s.TmpContext, scope, offset, limit)
-	})
+func (s *LayeredSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+	return s.LayerChainHead.SchemeGetAllPage(s.TmpContext, scope, offset, limit)
 }
 
-func (s *LayeredSchemeStore) PermanentDeleteAll() StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.SchemePermanentDeleteAll(s.TmpContext)
-	})
+func (s *LayeredSchemeStore) PermanentDeleteAll() *model.AppError {
+	return s.LayerChainHead.SchemePermanentDeleteAll(s.TmpContext)
 }

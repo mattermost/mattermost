@@ -226,6 +226,14 @@ func TestImportBulkImport(t *testing.T) {
 	if err, line := th.App.BulkImport(strings.NewReader(data3), false, 2); err == nil || line != 1 {
 		t.Fatalf("Should have failed due to missing version line on line 1.")
 	}
+
+	t.Run("First item after version without type", func(t *testing.T) {
+		data := `{"type": "version", "version": 1}
+{"name": "custom-emoji-troll", "image": "bulkdata/emoji/trollolol.png"}`
+		err, line := th.App.BulkImport(strings.NewReader(data), false, 2)
+		require.NotNil(t, err, "Should have failed due to invalid type on line 2.")
+		require.Equal(t, 2, line, "Should have failed due to invalid type on line 2.")
+	})
 }
 
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
