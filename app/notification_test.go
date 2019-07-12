@@ -4,9 +4,11 @@
 package app
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -18,71 +20,107 @@ func TestSendNotifications(t *testing.T) {
 
 	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
 
-	post1, err := th.App.CreatePostMissingChannel(&model.Post{
+	post1, appErr := th.App.CreatePostMissingChannel(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
 		Type:      model.POST_ADD_TO_CHANNEL,
 		Props:     map[string]interface{}{model.POST_PROPS_ADDED_USER_ID: "junk"},
 	}, true)
+	require.Nil(t, appErr)
 
-	if err != nil {
-		t.Fatal(err)
-	}
+	mentions, err := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	require.NoError(t, err)
+	require.NotNil(t, mentions)
+	require.True(t, utils.StringInSlice(th.BasicUser2.Id, mentions), "mentions", mentions)
 
-	mentions, err2 := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
-	if err2 != nil {
-		t.Fatal(err2)
-	} else if mentions == nil {
-		t.Log(mentions)
-		t.Fatal("user should have been mentioned")
-	} else if !utils.StringInSlice(th.BasicUser2.Id, mentions) {
-		t.Log(mentions)
-		t.Fatal("user should have been mentioned")
-	}
+	dm, appErr := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
 
-	dm, err := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	post2, err := th.App.CreatePostMissingChannel(&model.Post{
+	post2, appErr := th.App.CreatePostMissingChannel(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
 	}, true)
+	require.Nil(t, appErr)
 
-	if err != nil {
-		t.Fatal(err)
-	}
+	mentions, err = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
+	require.NoError(t, err)
+	require.NotNil(t, mentions)
 
-	_, err2 = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
-	if err2 != nil {
-		t.Fatal(err2)
-	}
+	_, appErr = th.App.UpdateActive(th.BasicUser2, false)
+	require.Nil(t, appErr)
+	appErr = th.App.InvalidateAllCaches()
+	require.Nil(t, appErr)
 
-	th.App.UpdateActive(th.BasicUser2, false)
-	th.App.InvalidateAllCaches()
-
-	post3, err := th.App.CreatePostMissingChannel(&model.Post{
+	post3, appErr := th.App.CreatePostMissingChannel(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
 	}, true)
+	require.Nil(t, appErr)
 
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err2 = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
-	if err2 != nil {
-		t.Fatal(err2)
-	}
+	mentions, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
+	require.NoError(t, err)
+	require.NotNil(t, mentions)
 
 	th.BasicChannel.DeleteAt = 1
-	mentions, err2 = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
-	assert.Nil(t, err2)
-	assert.Len(t, mentions, 0)
+	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	require.NoError(t, err)
+	require.Len(t, mentions, 0)
+}
+
+func TestSendNotificationsWithManyUsers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	users := []*model.User{}
+	for i := 0; i < 10; i++ {
+		user := th.CreateUser()
+		th.LinkUserToTeam(user, th.BasicTeam)
+		th.App.AddUserToChannel(user, th.BasicChannel)
+		users = append(users, user)
+	}
+
+	_, appErr1 := th.App.CreatePostMissingChannel(&model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "@channel",
+		Type:      model.POST_ADD_TO_CHANNEL,
+		Props:     map[string]interface{}{model.POST_PROPS_ADDED_USER_ID: "junk"},
+	}, true)
+	require.Nil(t, appErr1)
+
+	// Each user should have a mention count of exactly 1 in the DB at this point.
+	t.Run("1-mention", func(t *testing.T) {
+		for i, user := range users {
+			t.Run(fmt.Sprintf("user-%d", i+1), func(t *testing.T) {
+				channelUnread, appErr2 := th.Server.Store.Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
+				require.Nil(t, appErr2)
+				assert.Equal(t, int64(1), channelUnread.MentionCount)
+			})
+		}
+	})
+
+	_, appErr1 = th.App.CreatePostMissingChannel(&model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "@channel",
+		Type:      model.POST_ADD_TO_CHANNEL,
+		Props:     map[string]interface{}{model.POST_PROPS_ADDED_USER_ID: "junk"},
+	}, true)
+	require.Nil(t, appErr1)
+
+	// Now each user should have a mention count of exactly 2 in the DB.
+	t.Run("2-mentions", func(t *testing.T) {
+		for i, user := range users {
+			t.Run(fmt.Sprintf("user-%d", i+1), func(t *testing.T) {
+				channelUnread, appErr2 := th.Server.Store.Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
+				require.Nil(t, appErr2)
+				assert.Equal(t, int64(2), channelUnread.MentionCount)
+			})
+		}
+	})
 }
 
 func TestGetExplicitMentions(t *testing.T) {
