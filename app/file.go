@@ -122,12 +122,13 @@ func (a *App) RemoveFile(path string) *model.AppError {
 	return backend.RemoveFile(path)
 }
 
-func (a *App) ListAll(path string) ([]string, *model.AppError) {
+func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return nil, err
 	}
-	return backend.ListAll(path)
+	paths, listErr := backend.ListDirectory(path)
+	return *paths, listErr
 }
 
 func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename string) *model.FileInfo {

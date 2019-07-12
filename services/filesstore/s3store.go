@@ -251,10 +251,6 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) 
 	return &paths, nil
 }
 
-func (b *S3FileBackend) ListAll(path string) ([]string, *model.AppError) {
-	panic("Not implemented yet")
-}
-
 func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
 	s3Clnt, err := b.s3New()
 	if err != nil {

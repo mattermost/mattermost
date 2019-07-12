@@ -117,23 +117,9 @@ func (b *LocalFileBackend) ListDirectory(path string) (*[]string, *model.AppErro
 		return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.local.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	for _, fileInfo := range fileInfos {
-		if fileInfo.IsDir() {
-			paths = append(paths, filepath.Join(path, fileInfo.Name()))
-		}
-	}
-	return &paths, nil
-}
-
-func (b *LocalFileBackend) ListAll(path string) ([]string, *model.AppError) {
-	var paths []string
-	fileInfos, err := ioutil.ReadDir(filepath.Join(b.directory, path))
-	if err != nil {
-		return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.local.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	for _, fileInfo := range fileInfos {
 		paths = append(paths, filepath.Join(path, fileInfo.Name()))
 	}
-	return paths, nil
+	return &paths, nil
 }
 
 func (b *LocalFileBackend) RemoveDirectory(path string) *model.AppError {

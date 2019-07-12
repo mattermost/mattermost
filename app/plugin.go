@@ -239,7 +239,7 @@ func (a *App) SynchPlugins() *model.AppError {
 	}
 
 	if exists {
-		fileStorepaths, listDirErr := a.ListAll("./plugins")
+		fileStorepaths, listDirErr := a.ListDirectory("./plugins")
 		if listDirErr != nil {
 			return model.NewAppError("SynchPlugins", "app.plugin.synch.list_filestore.app_error", nil, listDirErr.Error(), http.StatusInternalServerError)
 		}
