@@ -69,6 +69,34 @@ func TestPostListExtend(t *testing.T) {
 	} else if len(l2.Posts) != 3 || len(l2.Order) != 3 {
 		t.Fatal("extending l2 again changed l2")
 	}
+
+	// Extend where length of Posts and Order is not equal
+	// It can happen when a PostList contains parent post/s
+	l3 := PostList{}
+
+	l3.AddPost(p1)
+	l3.AddOrder(p1.Id)
+
+	l3.AddPost(p2)
+	l3.AddOrder(p2.Id)
+
+	l4 := PostList{}
+
+	l4.AddPost(p3)
+	l4.AddOrder(p3.Id)
+
+	p4 := &Post{Id: NewId(), Message: NewId()}
+	l4.AddPost(p4)
+
+	l4.Extend(&l3)
+
+	if len(l3.Posts) != 2 || len(l3.Order) != 2 {
+		t.Fatal("extending l4 changed l3")
+	} else if len(l4.Posts) != 4 {
+		t.Fatal("failed to extend posts of l4")
+	} else if len(l4.Order) != 3 || l4.Order[0] != p3.Id || l4.Order[1] != p1.Id || l4.Order[2] != p2.Id {
+		t.Fatal("failed to extend order of l4")
+	}
 }
 
 func TestPostListSortByCreateAt(t *testing.T) {

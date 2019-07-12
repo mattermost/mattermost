@@ -95,10 +95,23 @@ func (o *PostList) AddPost(post *Post) {
 	o.Posts[post.Id] = post
 }
 
+func (o *PostList) IsInOrder(postId string) bool {
+	for _, id := range o.Order {
+		if postId == id {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (o *PostList) Extend(other *PostList) {
 	for _, postId := range other.Order {
-		if _, ok := o.Posts[postId]; !ok {
+		_, found := o.Posts[postId]
+		if !found {
 			o.AddPost(other.Posts[postId])
+			o.AddOrder(postId)
+		} else if found && !o.IsInOrder(postId) {
 			o.AddOrder(postId)
 		}
 	}
