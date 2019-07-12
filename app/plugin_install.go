@@ -24,7 +24,7 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	manifest, installErr := a.installPluginLocally(pluginFile, replace)
 	if installErr != nil {
-		return nil, model.NewAppError("uploadPlugin", "app.plugin.install.app_error", nil, installErr.Error(), http.StatusInternalServerError)
+		return nil, installErr
 	}
 
 	// Store bundle in the file store to allow access from other servers.
@@ -124,7 +124,7 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 
 func (a *App) removePlugin(id string) *model.AppError {
 	if rmErr := a.removePluginLocally(id); rmErr != nil {
-		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, "", http.StatusNotImplemented)
+		return rmErr
 	}
 
 	// Remove bundle from the file store.

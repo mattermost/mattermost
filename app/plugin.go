@@ -150,7 +150,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	a.SetPluginsEnvironment(env)
 
 	if synchErr := a.SynchPlugins(); synchErr != nil {
-		mlog.Error("Failed to synch plugins with filestore", mlog.Err(err))
+		mlog.Error("Failed to synch plugins with filestore", mlog.Err(synchErr))
 	}
 
 	//Prepackaged
