@@ -219,7 +219,7 @@ func (a *App) SynchPlugins() *model.AppError {
 				managed = true
 
 				mlog.Debug(fmt.Sprintf("Plugin Synch: Uninstalling %v plugin locally", dir.Name()))
-				if err := a.removePlugin(dir.Name(), true); err != nil {
+				if err := a.removePluginLocally(dir.Name()); err != nil {
 					mlog.Error(fmt.Sprintf("Plugin Synch: Error uninstalling managed plugin: %v.", dir.Name()), mlog.Err(err))
 				}
 				break
@@ -253,7 +253,7 @@ func (a *App) SynchPlugins() *model.AppError {
 				}
 
 				mlog.Debug(fmt.Sprintf("Plugin Synch: installing %v plugin locally", path))
-				if _, err := a.InstallPlugin(bytes.NewReader(fileBytes), true); err != nil {
+				if _, err := a.installPluginLocally(bytes.NewReader(fileBytes), true); err != nil {
 					mlog.Error("Failed to unpack plugin from filestore", mlog.Err(err), mlog.String("path", path))
 				}
 			}
