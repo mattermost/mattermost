@@ -27,6 +27,7 @@ type FileBackend interface {
 	RemoveFile(path string) *model.AppError
 
 	ListDirectory(path string) (*[]string, *model.AppError)
+	ListAll(path string) ([]string, *model.AppError)
 	RemoveDirectory(path string) *model.AppError
 }
 
