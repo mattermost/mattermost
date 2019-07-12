@@ -209,6 +209,10 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 	if err != nil {
 		return err
 	}
+
+	if len(userBots) == 0 {
+		return nil
+	}
 	fmt.Printf("--- bots.go.notify() -> userBots = %+v\n", userBots)
 
 	user, err := a.GetUser(userId)
