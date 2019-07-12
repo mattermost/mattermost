@@ -192,6 +192,90 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 	return nil
 }
 
+func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
+
+	botsDisabled := *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
+	fmt.Printf("--- bots.go.notify() -> botsDisabled = %+v\n", botsDisabled)
+	perPage := 20
+	options := &model.BotGetOptions{
+		OwnerId:        userId,
+		IncludeDeleted: false,
+		OnlyOrphaned:   false,
+		Page:           0,
+		PerPage:        perPage,
+	}
+	userBots, err := a.GetBots(options)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("--- bots.go.notify() -> userBots = %+v\n", userBots)
+
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	// get sysadmins
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  perPage,
+		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Inactive: false,
+	}
+	sysAdmins, err := a.GetUsers(userOptions)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("--- bots.go.notify() -> sysAdmins = %+v\n", sysAdmins)
+
+	// for each sysadmin, notifiy of disabled bot
+	for _, sysAdmin := range sysAdmins {
+		fmt.Printf("--- bots.go.notify() -> sysAdmin.Username = %+v\n", sysAdmin.Username)
+		channel, appErr := a.GetOrCreateDirectChannel(sysAdmin.Id, sysAdmin.Id)
+		if appErr != nil {
+			return appErr
+		}
+
+		// TODO : need to figure out who is actually goig to send this post.
+		// @system is not a 'user' and cannot post DMs
+		post := &model.Post{
+			UserId:    sysAdmin.Id,
+			ChannelId: channel.Id,
+			Message:   getDisableBotSysadminMessage(a.GetSiteURL(), user, userBots, botsDisabled),
+			// Type:      postType,
+		}
+
+		_, appErr = a.CreatePost(post, channel, false)
+		if appErr != nil {
+			return appErr
+		}
+
+	}
+	return nil
+}
+
+func getDisableBotSysadminMessage(siteURL string, user *model.User, userBots model.BotList, botsDisabled bool) string {
+
+	message := fmt.Sprintf("%v was deactivated. The user managed the following bot accounts which have now been disabled.\n\n", user.Username)
+
+	fmt.Printf("userBots = %+v\n", userBots)
+	for _, bot := range userBots {
+		message += fmt.Sprintf("* %v\n", bot.Username)
+		// message += fmt.Sprintf("* bot2\n\n")
+		// _, err := a.UpdateBotActive(bot.UserId, false)
+	}
+	if botsDisabled {
+		message += fmt.Sprintf("Do not worry - you can take ownership of each bot by enabling it at [Integrations > Bot Accounts](%v/%v/integrations/bots) and creating new tokens for the bot.\n\n", siteURL, "team")
+	} else {
+		message += fmt.Sprintf("We strongly recommend you to take ownership of the bot by re-enabling it at Integrations > Bot Accounts and creating new tokens for the bot.\n\n")
+		message += fmt.Sprintf("If you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in System Console > Custom Integrations > Bot Accounts to true.\n\n")
+	}
+
+	message += fmt.Sprintf("For more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html).")
+
+	return message
+}
+
 // ConvertUserToBot converts a user to bot.
 func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
 	return a.Srv.Store.Bot().Save(model.BotFromUser(user))
