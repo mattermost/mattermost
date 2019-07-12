@@ -70,7 +70,7 @@ func (a *App) GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
 	return pluginStatuses, nil
 }
 
-func (a *App) notifyPluginStatusesChanged() error {
+func (a *App) notifyPluginStatusesChanged() *model.AppError {
 	pluginStatuses, err := a.GetClusterPluginStatuses()
 	if err != nil {
 		return err

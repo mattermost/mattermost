@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,6 +16,14 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/utils"
 )
+
+func (a *App) InstallPluginFromData(data model.PluginEventData) {
+	mlog.Info(fmt.Sprintf("InstallPluginFromData. ID: %v, Path: %v", data.PluginId, data.PluginFileStorePath))
+}
+
+func (a *App) RemovePluginFromData(data model.PluginEventData) {
+	mlog.Info(fmt.Sprintf("RemovePluginFromData. ID: %v, Path: %v", data.PluginId, data.PluginFileStorePath))
+}
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
@@ -95,6 +104,14 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 		a.EnablePlugin(manifest.Id)
 	}
 
+	a.notifyClusterPluginEvent(
+		model.CLUSTER_EVENT_INSTALL_PLUGIN,
+		model.PluginEventData{
+			PluginId:            manifest.Id,
+			PluginFileStorePath: storePluginFileName,
+		},
+	)
+
 	if err := a.notifyPluginStatusesChanged(); err != nil {
 		mlog.Error("failed to notify plugin status changed", mlog.Err(err))
 	}
@@ -157,6 +174,14 @@ func (a *App) removePlugin(id string) *model.AppError {
 		if err := a.RemoveFile(storePluginFileName); err != nil {
 			return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+
+		a.notifyClusterPluginEvent(
+			model.CLUSTER_EVENT_REMOVE_PLUGIN,
+			model.PluginEventData{
+				PluginId:            manifest.Id,
+				PluginFileStorePath: storePluginFileName,
+			},
+		)
 	}
 
 	return nil
