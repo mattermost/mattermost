@@ -266,8 +266,6 @@ func getDisableBotSysadminMessage(siteURL string, user *model.User, userBots mod
 	fmt.Printf("userBots = %+v\n", userBots)
 	for _, bot := range userBots {
 		message += fmt.Sprintf("* %v\n", bot.Username)
-		// message += fmt.Sprintf("* bot2\n\n")
-		// _, err := a.UpdateBotActive(bot.UserId, false)
 	}
 	if botsDisabled {
 		message += fmt.Sprintf("Do not worry - you can take ownership of each bot by enabling it at [Integrations > Bot Accounts](%v/%v/integrations/bots) and creating new tokens for the bot.\n\n", siteURL, "team")
