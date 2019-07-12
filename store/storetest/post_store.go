@@ -860,93 +860,124 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
-	o0 := &model.Post{}
-	o0.ChannelId = model.NewId()
-	o0.UserId = model.NewId()
-	o0.Message = "zz" + model.NewId() + "b"
-	_ = (<-ss.Post().Save(o0)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+	t.Run("should return posts created after the given time", func(t *testing.T) {
+		channelId := model.NewId()
+		userId := model.NewId()
 
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = "zz" + model.NewId() + "b"
-	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+		post1 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
 
-	o2 := &model.Post{}
-	o2.ChannelId = o1.ChannelId
-	o2.UserId = model.NewId()
-	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
-	o2.RootId = o1.Id
-	_ = (<-ss.Post().Save(o2)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+		_ = store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
 
-	o2a := &model.Post{}
-	o2a.ChannelId = o1.ChannelId
-	o2a.UserId = model.NewId()
-	o2a.Message = "zz" + model.NewId() + "b"
-	o2a.ParentId = o1.Id
-	o2a.RootId = o1.Id
-	o2a = (<-ss.Post().Save(o2a)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+		post3 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
 
-	o3 := &model.Post{}
-	o3.ChannelId = o1.ChannelId
-	o3.UserId = model.NewId()
-	o3.Message = "zz" + model.NewId() + "b"
-	o3.ParentId = o1.Id
-	o3.RootId = o1.Id
-	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+		post4 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
 
-	o4 := &model.Post{}
-	o4.ChannelId = o1.ChannelId
-	o4.UserId = model.NewId()
-	o4.Message = "zz" + model.NewId() + "b"
-	o4 = (<-ss.Post().Save(o4)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+		post5 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+			RootId:    post3.Id,
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
 
-	o5 := &model.Post{}
-	o5.ChannelId = o1.ChannelId
-	o5.UserId = model.NewId()
-	o5.Message = "zz" + model.NewId() + "b"
-	o5.ParentId = o4.Id
-	o5.RootId = o4.Id
-	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
+		post6 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+			RootId:    post1.Id,
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
 
-	r1 := (<-ss.Post().GetPostsSince(o1.ChannelId, o1.CreateAt, false)).Data.(*model.PostList)
+		res := <-ss.Post().GetPostsSince(channelId, post3.CreateAt, false)
+		assert.Nil(t, res.Err)
 
-	if r1.Order[0] != o5.Id {
-		t.Fatal("invalid order")
-	}
+		postList := res.Data.(*model.PostList)
 
-	if r1.Order[1] != o4.Id {
-		t.Fatal("invalid order")
-	}
+		assert.Equal(t, []string{
+			post6.Id,
+			post5.Id,
+			post4.Id,
+			post3.Id,
+			post1.Id,
+		}, postList.Order)
 
-	if r1.Order[2] != o3.Id {
-		t.Fatal("invalid order")
-	}
+		assert.Len(t, postList.Posts, 5)
+		assert.NotNil(t, postList.Posts[post1.Id], "should return the parent post")
+		assert.NotNil(t, postList.Posts[post3.Id])
+		assert.NotNil(t, postList.Posts[post4.Id])
+		assert.NotNil(t, postList.Posts[post5.Id])
+		assert.NotNil(t, postList.Posts[post6.Id])
+	})
 
-	if r1.Order[3] != o2a.Id {
-		t.Fatal("invalid order")
-	}
+	t.Run("should return empty list when nothing has changed", func(t *testing.T) {
+		channelId := model.NewId()
+		userId := model.NewId()
 
-	if len(r1.Posts) != 6 {
-		t.Fatal("wrong size")
-	}
+		post1 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
 
-	if r1.Posts[o1.Id].Message != o1.Message {
-		t.Fatal("Missing parent")
-	}
+		res := <-ss.Post().GetPostsSince(channelId, post1.CreateAt, false)
+		assert.Nil(t, res.Err)
 
-	r2 := (<-ss.Post().GetPostsSince(o1.ChannelId, o5.UpdateAt, true)).Data.(*model.PostList)
+		postList := res.Data.(*model.PostList)
 
-	if len(r2.Order) != 0 {
-		t.Fatal("wrong size ", len(r2.Posts))
-	}
+		assert.Equal(t, []string{}, postList.Order)
+		assert.Len(t, postList.Posts, 0)
+	})
+
+	t.Run("should not cache a timestamp of 0 when nothing has changed", func(t *testing.T) {
+		ss.Post().ClearCaches()
+
+		channelId := model.NewId()
+		userId := model.NewId()
+
+		post1 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
+
+		// Make a request that returns no results
+		res := <-ss.Post().GetPostsSince(channelId, post1.CreateAt, true)
+		require.Nil(t, res.Err)
+		require.Equal(t, model.NewPostList(), res.Data.(*model.PostList))
+
+		// And then ensure that it doesn't cause future requests to also return no results
+		res = <-ss.Post().GetPostsSince(channelId, post1.CreateAt-1, true)
+		assert.Nil(t, res.Err)
+
+		postList := res.Data.(*model.PostList)
+
+		assert.Equal(t, []string{post1.Id}, postList.Order)
+
+		assert.Len(t, postList.Posts, 1)
+		assert.NotNil(t, postList.Posts[post1.Id])
+	})
 }
 
 func testPostStoreSearch(t *testing.T, ss store.Store) {
