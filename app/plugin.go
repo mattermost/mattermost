@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -218,7 +217,7 @@ func (a *App) SynchPlugins() *model.AppError {
 			if f.Name() == ".filestore" {
 				managed = true
 
-				mlog.Debug(fmt.Sprintf("Plugin Synch: Uninstalling %v plugin locally", dir.Name()))
+				mlog.Debug("Plugin Synch: Uninstalling plugin locally", mlog.String("plugin", dir.Name()))
 				if err := a.removePluginLocally(dir.Name()); err != nil {
 					mlog.Error("Plugin Synch: Error uninstalling managed plugin.", mlog.String("plugin", dir.Name()), mlog.Err(err))
 				}
@@ -252,7 +251,7 @@ func (a *App) SynchPlugins() *model.AppError {
 					continue
 				}
 
-				mlog.Debug(fmt.Sprintf("Plugin Synch: installing plugin locally", mlog.String("plugin", path)))
+				mlog.Debug("Plugin Synch: installing plugin locally", mlog.String("plugin", path))
 				if _, err := a.installPluginLocally(bytes.NewReader(fileBytes), true); err != nil {
 					mlog.Error("Failed to unpack plugin from filestore", mlog.Err(err), mlog.String("path", path))
 				}
