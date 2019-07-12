@@ -6,20 +6,18 @@ package config
 import "github.com/pkg/errors"
 
 func Migrate(from, to string) error {
-	sourceStore, err := NewStore(from, false)
+	source, err := NewStore(from, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to access source config %s", from)
 	}
 
-	destinationStore, err := NewStore(to, false)
+	destination, err := NewStore(to, false)
 	if err != nil {
 		return errors.Wrapf(err, "failed to access destination config %s", to)
 	}
 
-	sourceConfig := sourceStore.Get()
-	_, err = destinationStore.Set(sourceConfig)
-
-	if err != nil {
+	sourceConfig := source.Get()
+	if _, err = destination.Set(sourceConfig); err != nil {
 		return errors.Wrapf(err, "failed to set config")
 	}
 
@@ -27,7 +25,7 @@ func Migrate(from, to string) error {
 		*sourceConfig.SamlSettings.PrivateKeyFile}
 
 	for _, file := range files {
-		err = migrateFile(file, sourceStore, destinationStore)
+		err = migrateFile(file, source, destination)
 
 		if err != nil {
 			return err
@@ -36,18 +34,18 @@ func Migrate(from, to string) error {
 	return nil
 }
 
-func migrateFile(file string, sourceStore Store, destinationStore Store) error {
-	hasFile, err := sourceStore.HasFile(file)
+func migrateFile(name string, source Store, destination Store) error {
+	fileExists, err := source.HasFile(name)
 
 	if err != nil {
-		return errors.Wrapf(err, "failed to check existence of %s", file)
+		return errors.Wrapf(err, "failed to check existence of %s", name)
 	}
 
-	if hasFile {
-		fileData, err := sourceStore.GetFile(file)
-		err = destinationStore.SetFile(file, fileData)
+	if fileExists {
+		file, err := source.GetFile(name)
+		err = destination.SetFile(name, file)
 		if err != nil {
-			return errors.Wrapf(err, "failed to migrate %s", file)
+			return errors.Wrapf(err, "failed to migrate %s", name)
 		}
 	}
 
