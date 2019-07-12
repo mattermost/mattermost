@@ -500,12 +500,7 @@ func (api *PluginAPI) SetProfileImage(userId string, data []byte) *model.AppErro
 		return err
 	}
 
-	fileReader := bytes.NewReader(data)
-	err = api.app.SetProfileImageFromFile(userId, fileReader)
-	if err != nil {
-		return err
-	}
-	return nil
+	return api.app.SetProfileImageFromFile(userId, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
@@ -580,12 +575,7 @@ func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
 		return err
 	}
 
-	fileReader := bytes.NewReader(data)
-	err = api.app.SetTeamIconFromFile(team, fileReader)
-	if err != nil {
-		return err
-	}
-	return nil
+	return api.app.SetTeamIconFromFile(team, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
@@ -755,4 +745,28 @@ func (api *PluginAPI) UpdateBotActive(userId string, active bool) (*model.Bot, *
 
 func (api *PluginAPI) PermanentDeleteBot(userId string) *model.AppError {
 	return api.app.PermanentDeleteBot(userId)
+}
+
+func (api *PluginAPI) GetBotIconImage(userId string) ([]byte, *model.AppError) {
+	if _, err := api.app.GetBot(userId, true); err != nil {
+		return nil, err
+	}
+
+	return api.app.GetBotIconImage(userId)
+}
+
+func (api *PluginAPI) SetBotIconImage(userId string, data []byte) *model.AppError {
+	if _, err := api.app.GetBot(userId, true); err != nil {
+		return err
+	}
+
+	return api.app.SetBotIconImage(userId, bytes.NewReader(data))
+}
+
+func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
+	if _, err := api.app.GetBot(userId, true); err != nil {
+		return err
+	}
+
+	return api.app.DeleteBotIconImage(userId)
 }

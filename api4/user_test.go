@@ -2114,8 +2114,8 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		assert.Nil(t, err)
 
 		// Fake user has MFA enabled
-		if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true); result.Err != nil {
-			t.Fatal(result.Err)
+		if err = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true); err != nil {
+			t.Fatal(err)
 		}
 
 		if err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); err != nil {
@@ -2146,8 +2146,8 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		assert.Nil(t, err)
 
 		// Fake user has MFA enabled
-		if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true); result.Err != nil {
-			t.Fatal(result.Err)
+		if err = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true); err != nil {
+			t.Fatal(err)
 		}
 
 		if err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); err != nil {
@@ -4352,8 +4352,8 @@ func TestLoginLockout(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
 
 	// Fake user has MFA enabled
-	if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, true); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, true); err != nil {
+		t.Fatal(err)
 	}
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
 	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
@@ -4367,8 +4367,8 @@ func TestLoginLockout(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
 
 	// Fake user has MFA disabled
-	if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, false); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, false); err != nil {
+		t.Fatal(err)
 	}
 
 	//Check if lock is active

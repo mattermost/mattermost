@@ -99,8 +99,8 @@ func (m *Mfa) Activate(user *model.User, token string) *model.AppError {
 		return model.NewAppError("Activate", "mfa.activate.bad_token.app_error", nil, "", http.StatusUnauthorized)
 	}
 
-	if result := <-m.Store.User().UpdateMfaActive(user.Id, true); result.Err != nil {
-		return model.NewAppError("Activate", "mfa.activate.save_active.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	if err = m.Store.User().UpdateMfaActive(user.Id, true); err != nil {
+		return model.NewAppError("Activate", "mfa.activate.save_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -111,15 +111,14 @@ func (m *Mfa) Deactivate(userId string) *model.AppError {
 		return err
 	}
 
-	achan := m.Store.User().UpdateMfaActive(userId, false)
 	schan := make(chan *model.AppError, 1)
 	go func() {
 		schan <- m.Store.User().UpdateMfaSecret(userId, "")
 		close(schan)
 	}()
 
-	if result := <-achan; result.Err != nil {
-		return model.NewAppError("Deactivate", "mfa.deactivate.save_active.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	if err := m.Store.User().UpdateMfaActive(userId, false); err != nil {
+		return model.NewAppError("Deactivate", "mfa.deactivate.save_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := <-schan; err != nil {
