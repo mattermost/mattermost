@@ -62,8 +62,6 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError)
 		return nil, model.NewAppError("SqlEmojiStore.Save", "store.sql_emoji.save.app_error", nil, "id="+emoji.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	es.addToCache(emoji)
-
 	return emoji, nil
 }
 
@@ -74,14 +72,7 @@ func (es SqlEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *mode
 		}
 	}
 
-	if emoji, err := es.getBy("Id", id); err == nil {
-		if allowFromCache {
-			es.addToCache(emoji)
-		}
-		return emoji, nil
-	} else {
-		return nil, err
-	}
+	return es.getBy("Id", id, allowFromCache)
 }
 
 func (es SqlEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError) {
@@ -95,7 +86,7 @@ func (es SqlEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoj
 		}
 	}
 
-	return es.getBy("Name", name)
+	return es.getBy("Name", name, allowFromCache)
 }
 
 func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError) {
@@ -179,7 +170,7 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 }
 
 // getBy returns one active (not deleted) emoji, found by any one column (what/key).
-func (es SqlEmojiStore) getBy(what string, key interface{}) (*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) getBy(what string, key interface{}, addToCache bool) (*model.Emoji, *model.AppError) {
 	var emoji *model.Emoji
 
 	err := es.GetReplica().SelectOne(&emoji,
@@ -200,12 +191,16 @@ func (es SqlEmojiStore) getBy(what string, key interface{}) (*model.Emoji, *mode
 		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get.app_error", nil, "key="+fmt.Sprintf("%v", key)+", "+err.Error(), status)
 	}
 
+	if addToCache {
+		es.addToCache(emoji)
+	}
+
 	return emoji, nil
 }
 
 func (es SqlEmojiStore) addToCache(emoji *model.Emoji) {
 	emojiCacheById.AddWithExpiresInSecs(emoji.Id, emoji, EMOJI_CACHE_SEC)
-	emojiIdCacheByName.AddWithExpiresInSecs(emoji.Name, emoji, EMOJI_CACHE_SEC)
+	emojiIdCacheByName.AddWithExpiresInSecs(emoji.Name, emoji.Id, EMOJI_CACHE_SEC)
 }
 
 func (es SqlEmojiStore) getFromCacheById(id string) (*model.Emoji, bool) {
