@@ -262,6 +262,22 @@ func (_m *API) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	return r0, r1
 }
 
+// DeleteBotIconImage provides a mock function with given fields: botUserId
+func (_m *API) DeleteBotIconImage(botUserId string) *model.AppError {
+	ret := _m.Called(botUserId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(botUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeleteChannel provides a mock function with given fields: channelId
 func (_m *API) DeleteChannel(channelId string) *model.AppError {
 	ret := _m.Called(channelId)
@@ -411,6 +427,31 @@ func (_m *API) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
 		r1 = rf(botUserId, includeDeleted)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetBotIconImage provides a mock function with given fields: botUserId
+func (_m *API) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
+	ret := _m.Called(botUserId)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = rf(botUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(botUserId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -2349,6 +2390,22 @@ func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppEr
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
 		r0 = rf(to, subject, htmlBody)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SetBotIconImage provides a mock function with given fields: botUserId, data
+func (_m *API) SetBotIconImage(botUserId string, data []byte) *model.AppError {
+	ret := _m.Called(botUserId, data)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+		r0 = rf(botUserId, data)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

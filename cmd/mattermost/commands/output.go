@@ -17,5 +17,5 @@ func CommandPrintErrorln(a ...interface{}) (int, error) {
 }
 
 func CommandPrettyPrintln(a ...interface{}) (int, error) {
-	return fmt.Fprintln(os.Stderr, a...)
+	return fmt.Fprintln(os.Stdout, a...)
 }
