@@ -4,7 +4,6 @@
 package app
 
 import (
-	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -238,14 +237,16 @@ func (a *App) SyncPlugins() *model.AppError {
 
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
-			fileBytes, fileReaderErr := a.ReadFile(filepath.Join("./", path))
+			reader, fileReaderErr := a.FileReader(filepath.Join("./", path))
+			defer reader.Close()
+
 			if fileReaderErr != nil {
 				mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("bundle", path), mlog.Err(fileReaderErr))
 				continue
 			}
 
 			mlog.Debug("Plugin Sync: installing plugin locally", mlog.String("plugin", path))
-			if _, err := a.installPluginLocally(bytes.NewReader(fileBytes), true); err != nil {
+			if _, err := a.installPluginLocally(reader, true); err != nil {
 				mlog.Error("Failed to unpack plugin from filestore", mlog.Err(err), mlog.String("path", path))
 			}
 		}
