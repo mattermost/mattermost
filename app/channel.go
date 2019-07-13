@@ -1842,8 +1842,7 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 					}
 				}
 			} else if notify == model.USER_NOTIFY_MENTION || channel.Type == model.CHANNEL_DIRECT {
-				if result := <-a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); result.Err == nil {
-					count := result.Data.(int64)
+				if count, err := a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); err == nil {
 					if count > 0 {
 						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
 					}
