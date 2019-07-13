@@ -127,8 +127,8 @@ func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 	if err != nil {
 		return nil, err
 	}
-	paths, listErr := backend.ListDirectory(path)
-	return *paths, listErr
+	paths, err := backend.ListDirectory(path)
+	return *paths, err
 }
 
 func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename string) *model.FileInfo {

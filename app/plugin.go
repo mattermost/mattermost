@@ -148,8 +148,8 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	}
 	a.SetPluginsEnvironment(env)
 
-	if syncErr := a.SyncPlugins(); syncErr != nil {
-		mlog.Error("Failed to sync plugins with filestore", mlog.Err(syncErr))
+	if err := a.SyncPlugins(); err != nil {
+		mlog.Error("Failed to sync plugins with filestore", mlog.Err(err))
 	}
 
 	prepackagedPluginsDir, found := fileutils.FindDir("prepackaged_plugins")
@@ -230,33 +230,35 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	// Install plugins from the file store.
-	exists, existsErr := a.FileExists("./plugins")
-
-	if existsErr != nil {
-		return model.NewAppError("SyncPlugins", "app.plugin.sync.check_filestore.app_error", nil, err.Error(), http.StatusInternalServerError)
+	exists, fileErr := a.FileExists("./plugins")
+	if fileErr != nil {
+		return model.NewAppError("SyncPlugins", "app.plugin.sync.check_filestore.app_error", nil, fileErr.Error(), http.StatusInternalServerError)
 	}
 
-	if exists {
-		fileStorepaths, listDirErr := a.ListDirectory("./plugins")
-		if listDirErr != nil {
-			return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, listDirErr.Error(), http.StatusInternalServerError)
-		}
+	if !exists {
+		return nil
+	}
 
-		for _, path := range fileStorepaths {
-			if strings.HasSuffix(path, ".tar.gz") {
-				fileBytes, fileReaderErr := a.ReadFile(filepath.Join("./", path))
-				if fileReaderErr != nil {
-					mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("bundle", path), mlog.Err(fileReaderErr))
-					continue
-				}
+	fileStorepaths, listDirErr := a.ListDirectory("./plugins")
+	if listDirErr != nil {
+		return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, listDirErr.Error(), http.StatusInternalServerError)
+	}
 
-				mlog.Debug("Plugin Sync: installing plugin locally", mlog.String("plugin", path))
-				if _, err := a.installPluginLocally(bytes.NewReader(fileBytes), true); err != nil {
-					mlog.Error("Failed to unpack plugin from filestore", mlog.Err(err), mlog.String("path", path))
-				}
+	for _, path := range fileStorepaths {
+		if strings.HasSuffix(path, ".tar.gz") {
+			fileBytes, fileReaderErr := a.ReadFile(filepath.Join("./", path))
+			if fileReaderErr != nil {
+				mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("bundle", path), mlog.Err(fileReaderErr))
+				continue
+			}
+
+			mlog.Debug("Plugin Sync: installing plugin locally", mlog.String("plugin", path))
+			if _, err := a.installPluginLocally(bytes.NewReader(fileBytes), true); err != nil {
+				mlog.Error("Failed to unpack plugin from filestore", mlog.Err(err), mlog.String("path", path))
 			}
 		}
 	}
+
 	return nil
 }
 

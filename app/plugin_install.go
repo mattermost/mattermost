@@ -123,21 +123,22 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 }
 
 func (a *App) removePlugin(id string) *model.AppError {
-	if rmErr := a.removePluginLocally(id); rmErr != nil {
-		return rmErr
+	if err := a.removePluginLocally(id); err != nil {
+		return err
 	}
 
 	// Remove bundle from the file store.
 	storePluginFileName := filepath.Join("./plugins", id) + ".tar.gz"
-	bundleExist, fileErr := a.FileExists(storePluginFileName)
-	if fileErr != nil {
-		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, fileErr.Error(), http.StatusInternalServerError)
+	bundleExist, err := a.FileExists(storePluginFileName)
+	if err != nil {
+		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if bundleExist {
-		if err := a.RemoveFile(storePluginFileName); err != nil {
-			return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	if !bundleExist {
+		return nil
+	}
+	if err := a.RemoveFile(storePluginFileName); err != nil {
+		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
