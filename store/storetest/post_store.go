@@ -1181,7 +1181,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	m1.ChannelId = c1.Id
 	m1.UserId = userId
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	store.Must(ss.Channel().SaveMember(&m1))
+	if _, err := ss.Channel().SaveMember(&m1); err != nil {		panic(err)	}
 
 	c2 := &model.Channel{}
 	c2.TeamId = teamId
@@ -1203,7 +1203,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	m3.ChannelId = c3.Id
 	m3.UserId = userId
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
-	store.Must(ss.Channel().SaveMember(&m3))
+	if _, err := ss.Channel().SaveMember(&m3); err != nil {		panic(err)	}
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
