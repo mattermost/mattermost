@@ -205,14 +205,13 @@ func (a *App) SyncPlugins() *model.AppError {
 		}
 
 		// Only handle managed plugins with .filestore flag file.
-		_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, dir.Name(), ".filestore"))
+		_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, dir.Name(), managedPluginFileName))
 
 		if os.IsNotExist(err) {
 			mlog.Warn("Found unmanaged plugin. Ignoring in plugin sync with the filestore.", mlog.String("plugin", dir.Name()))
 
 		} else if err != nil {
 			mlog.Error("Error reading local plugin directoy. Skipped for sync.", mlog.String("folder", dir.Name()), mlog.Err(err))
-			continue
 
 		} else {
 			mlog.Debug("Plugin Sync: Uninstalling plugin locally", mlog.String("plugin", dir.Name()))
@@ -223,7 +222,7 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	// Install plugins from the file store.
-	exists, fileErr := a.FileExists("./plugins")
+	exists, fileErr := a.FileExists(fileStorePluginFolder)
 	if fileErr != nil {
 		return model.NewAppError("SyncPlugins", "app.plugin.sync.check_filestore.app_error", nil, fileErr.Error(), http.StatusInternalServerError)
 	}
@@ -232,12 +231,12 @@ func (a *App) SyncPlugins() *model.AppError {
 		return nil
 	}
 
-	fileStorepaths, listDirErr := a.ListDirectory("./plugins")
+	fileStorePaths, listDirErr := a.ListDirectory(fileStorePluginFolder)
 	if listDirErr != nil {
 		return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, listDirErr.Error(), http.StatusInternalServerError)
 	}
 
-	for _, path := range fileStorepaths {
+	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
 			fileBytes, fileReaderErr := a.ReadFile(filepath.Join("./", path))
 			if fileReaderErr != nil {
