@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
@@ -1039,22 +1038,18 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMembe
 }
 
 func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError) {
-	props := make(map[string]interface{})
-	props["UserId"] = userId
-	idQuery := strings.Builder{}
-
-	for index, teamId := range teamIds {
-		if idQuery.Len() > 0 {
-			idQuery.WriteString(", ")
-		}
-
-		key := "teamId" + strconv.Itoa(index)
-		props[key] = teamId
-		idQuery.WriteByte(':')
-		idQuery.WriteString(key)
+	idQuery := sq.Eq{
+		"UserId":   userId,
+		"TeamId":   teamIds,
+		"DeleteAt": 0,
 	}
 
-	c, err := s.GetReplica().SelectInt("SELECT Count(*) FROM TeamMembers WHERE UserId = :UserId AND TeamId IN ("+idQuery.String()+") AND DeleteAt = 0", props)
+	query, params, err := s.getQueryBuilder().Select("Count(*)").From("TeamMembers").Where(idQuery).ToSql()
+	if err != nil {
+		return false, model.NewAppError("SqlTeamStore.UserBelongsToTeams", "store.sql_team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	c, err := s.GetReplica().SelectInt(query, params...)
 	if err != nil {
 		return false, model.NewAppError("SqlTeamStore.UserBelongsToTeams", "store.sql_team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
