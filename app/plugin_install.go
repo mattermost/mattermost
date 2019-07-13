@@ -88,7 +88,7 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*mod
 				return nil, model.NewAppError("installPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
 			}
 
-			if err := a.RemovePlugin(manifest.Id); err != nil {
+			if err := a.removePluginLocally(manifest.Id); err != nil {
 				return nil, model.NewAppError("installPlugin", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusBadRequest)
 			}
 		}

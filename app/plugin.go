@@ -203,29 +203,22 @@ func (a *App) SyncPlugins() *model.AppError {
 		if !dir.IsDir() {
 			continue
 		}
-		dirFullPath := filepath.Join(*a.Config().PluginSettings.Directory, dir.Name())
-		files, readErr := ioutil.ReadDir(dirFullPath)
 
-		if readErr != nil {
-			mlog.Error("Error reading local plugin directoy. Skipped for sync.", mlog.String("folder", dir.Name()), mlog.Err(readErr))
-			continue
-		}
 		// Only handle managed plugins with .filestore flag file.
-		managed := false
-		for _, f := range files {
-			if f.Name() == ".filestore" {
-				managed = true
+		_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, dir.Name(), ".filestore"))
 
-				mlog.Debug("Plugin Sync: Uninstalling plugin locally", mlog.String("plugin", dir.Name()))
-				if err := a.removePluginLocally(dir.Name()); err != nil {
-					mlog.Error("Plugin Sync: Error uninstalling managed plugin.", mlog.String("plugin", dir.Name()), mlog.Err(err))
-				}
-				break
-			}
-		}
-
-		if !managed {
+		if os.IsNotExist(err) {
 			mlog.Warn("Found unmanaged plugin. Ignoring in plugin sync with the filestore.", mlog.String("plugin", dir.Name()))
+
+		} else if err != nil {
+			mlog.Error("Error reading local plugin directoy. Skipped for sync.", mlog.String("folder", dir.Name()), mlog.Err(err))
+			continue
+
+		} else {
+			mlog.Debug("Plugin Sync: Uninstalling plugin locally", mlog.String("plugin", dir.Name()))
+			if err := a.removePluginLocally(dir.Name()); err != nil {
+				mlog.Error("Plugin Sync: Error uninstalling managed plugin.", mlog.String("plugin", dir.Name()), mlog.Err(err))
+			}
 		}
 	}
 
