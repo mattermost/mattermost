@@ -169,32 +169,34 @@ func createOAuthAuthData(ss store.Store, userId string) *model.AuthData {
 	return ad
 }
 
-func createOutgoingWebhook(ss store.Store, token, userId, teamId string) *model.OutgoingWebhook {
+func createOutgoingWebhook(ss store.Store, userId, channelId, teamId string) *model.OutgoingWebhook {
 	m := model.OutgoingWebhook{}
-	m.Token = token
 	m.CreatorId = userId
+	m.ChannelId = channelId
 	m.TeamId = teamId
-	m.ChannelId = model.NewId()
+	m.Token = model.NewId()
 	m.CallbackURLs = []string{"http://nowhere.com/"}
 	wh, _ := ss.Webhook().SaveOutgoing(&m)
 	return wh
 }
 
-func createPost(ss store.Store, channelId, userId string) *model.Post {
+func createPost(ss store.Store, channelId, userId, rootId, parentId string) *model.Post {
 	m := model.Post{}
 	m.ChannelId = channelId
 	m.UserId = userId
+	m.RootId = rootId
+	m.ParentId = parentId
 	m.Message = "zz" + model.NewId() + "b"
 	p, _ := ss.Post().Save(&m)
 	return p
 }
 
 func createPostWithChannelId(ss store.Store, id string) *model.Post {
-	return createPost(ss, id, model.NewId());
+	return createPost(ss, id, model.NewId(), "", "");
 }
 
 func createPostWithUserId(ss store.Store, id string) *model.Post {
-	return createPost(ss, model.NewId(), id);
+	return createPost(ss, model.NewId(), id, "", "");
 }
 
 func createPreferences(ss store.Store, userId string) *model.Preferences {
@@ -494,6 +496,36 @@ func TestCheckChannelsIncomingWebhooksIntegrity(t *testing.T) {
 	})
 }
 
+func TestCheckChannelsOutgoingWebhooksIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkChannelsOutgoingWebhooksIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			channel := createChannel(ss, model.NewId(), model.NewId())
+			channelId := channel.Id
+			wh := createOutgoingWebhook(ss, model.NewId(), channelId, model.NewId())
+			dbmap.Delete(channel)
+			result := checkChannelsOutgoingWebhooksIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: channelId,
+				ChildId: wh.Id,
+			}, data.Records[0])
+			dbmap.Delete(wh)
+		})
+	})
+}
+
 func TestCheckChannelsPostsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
@@ -572,6 +604,68 @@ func TestCheckPostsFileInfoIntegrity(t *testing.T) {
 				ParentId: postId,
 			}, data.Records[0])
 			dbmap.Delete(info)
+		})
+	})
+}
+
+func TestCheckPostsPostsParentIdIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkPostsPostsParentIdIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			root := createPost(ss, model.NewId(), model.NewId(), "", "")
+			parent := createPost(ss, model.NewId(), model.NewId(), root.Id, root.Id)
+			parentId := parent.Id
+			post := createPost(ss, model.NewId(), model.NewId(), root.Id, parent.Id)
+			dbmap.Delete(parent)
+			result := checkPostsPostsParentIdIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: parentId,
+				ChildId: post.Id,
+			}, data.Records[0])
+			dbmap.Delete(root)
+			dbmap.Delete(post)
+		})
+	})
+}
+
+func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
+		dbmap := sqlStore.GetMaster()
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			result := checkPostsPostsRootIdIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			root := createPost(ss, model.NewId(), model.NewId(), "", "")
+			rootId := root.Id
+			post := createPost(ss, model.NewId(), model.NewId(), root.Id, root.Id)
+			dbmap.Delete(root)
+			result := checkPostsPostsRootIdIntegrity(dbmap)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 1)
+			require.Equal(t, store.OrphanedRecord{
+				ParentId: rootId,
+				ChildId: post.Id,
+			}, data.Records[0])
+			dbmap.Delete(post)
 		})
 	})
 }
@@ -1229,7 +1323,7 @@ func TestCheckUsersOutgoingWebhooksIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			userId := model.NewId()
-			wh := createOutgoingWebhook(ss, model.NewId(), userId, model.NewId())
+			wh := createOutgoingWebhook(ss, userId, model.NewId(), model.NewId())
 			result := checkUsersOutgoingWebhooksIntegrity(dbmap)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)

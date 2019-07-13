@@ -108,6 +108,15 @@ func checkChannelsIncomingWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCh
 	return checkParentChildIntegrity(dbmap, config)
 }
 
+func checkChannelsOutgoingWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	var config relationalCheckConfig
+	config.parentName = "Channels"
+	config.parentIdAttr = "ChannelId"
+	config.childName = "OutgoingWebhooks"
+	config.childIdAttr = "Id"
+	return checkParentChildIntegrity(dbmap, config)
+}
+
 func checkChannelsPostsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Channels"
@@ -131,6 +140,26 @@ func checkPostsFileInfoIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
 	config.parentName = "Posts"
 	config.parentIdAttr = "PostId"
 	config.childName = "FileInfo"
+	return checkParentChildIntegrity(dbmap, config)
+}
+
+func checkPostsPostsParentIdIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	var config relationalCheckConfig
+	config.parentName = "Posts"
+	config.parentIdAttr = "ParentId"
+	config.childName = "Posts"
+	config.childIdAttr = "Id"
+	config.canParentIdBeEmpty = true
+	return checkParentChildIntegrity(dbmap, config)
+}
+
+func checkPostsPostsRootIdIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+	var config relationalCheckConfig
+	config.parentName = "Posts"
+	config.parentIdAttr = "RootId"
+	config.childName = "Posts"
+	config.childIdAttr = "Id"
+	config.canParentIdBeEmpty = true
 	return checkParentChildIntegrity(dbmap, config)
 }
 
@@ -405,6 +434,7 @@ func checkChannelsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityChe
 	results <- checkChannelsChannelMemberHistoryIntegrity(dbmap)
 	results <- checkChannelsChannelMembersIntegrity(dbmap)
 	results <- checkChannelsIncomingWebhooksIntegrity(dbmap)
+	results <- checkChannelsOutgoingWebhooksIntegrity(dbmap)
 	results <- checkChannelsPostsIntegrity(dbmap)
 }
 
@@ -414,6 +444,8 @@ func checkCommandsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityChe
 
 func checkPostsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
 	results <- checkPostsFileInfoIntegrity(dbmap)
+	results <- checkPostsPostsParentIdIntegrity(dbmap)
+	results <- checkPostsPostsRootIdIntegrity(dbmap)
 	results <- checkPostsReactionsIntegrity(dbmap)
 }
 
