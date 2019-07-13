@@ -273,7 +273,7 @@ func getDisableBotSysadminMessage(siteURL string, user *model.User, userBots mod
 		message += fmt.Sprintf("If you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in System Console > Custom Integrations > Bot Accounts to true.\n\n")
 	}
 
-	message += fmt.Sprintf("For more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html).")
+	message += fmt.Sprintf("For more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).")
 
 	return message
 }
