@@ -1413,14 +1413,13 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 	lastDoneUserId := strings.Repeat("0", 26)
 
 	for {
-		res := <-ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
-		if assert.Nil(t, res.Err) {
-			if res.Data == nil {
+		res, e := ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
+		if assert.Nil(t, e) {
+			if res == nil {
 				break
 			}
-			data := res.Data.(map[string]string)
-			lastDoneTeamId = data["TeamId"]
-			lastDoneUserId = data["UserId"]
+			lastDoneTeamId = res["TeamId"]
+			lastDoneUserId = res["UserId"]
 		}
 	}
 
@@ -1517,7 +1516,7 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m3, -1))
 	store.Must(ss.Team().SaveMember(m4, -1))
 
-	require.Nil(t, (<-ss.Team().ClearAllCustomRoleAssignments()).Err)
+	require.Nil(t, (ss.Team().ClearAllCustomRoleAssignments()))
 
 	r1, err := ss.Team().GetMember(m1.TeamId, m1.UserId)
 	require.Nil(t, err)

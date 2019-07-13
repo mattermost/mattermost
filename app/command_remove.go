@@ -107,15 +107,14 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 	targetUsername = strings.SplitN(message, " ", 2)[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	result := <-a.Srv.Store.User().GetByUsername(targetUsername)
-	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+	userProfile, err := a.Srv.Store.User().GetByUsername(targetUsername)
+	if err != nil {
+		mlog.Error(err.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.missing.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
 	}
-	userProfile := result.Data.(*model.User)
 	if userProfile.DeleteAt != 0 {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.missing.app_error"),

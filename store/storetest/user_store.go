@@ -886,21 +886,21 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(0, 100, nil)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesWithoutTeam(0, 100, nil)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, users)
 	})
 
 	t.Run("get, offset 1, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(1, 1, nil)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u3)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesWithoutTeam(1, 1, nil)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u3)}, users)
 	})
 
 	t.Run("get, offset 2, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(2, 1, nil)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesWithoutTeam(2, 1, nil)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{}, users)
 	})
 }
 
@@ -1671,33 +1671,33 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get u1 by username", func(t *testing.T) {
-		result := <-ss.User().GetByUsername(u1.Username)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u1, result.Data.(*model.User))
+		result, err := ss.User().GetByUsername(u1.Username)
+		require.Nil(t, err)
+		assert.Equal(t, u1, result)
 	})
 
 	t.Run("get u2 by username", func(t *testing.T) {
-		result := <-ss.User().GetByUsername(u2.Username)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u2, result.Data.(*model.User))
+		result, err := ss.User().GetByUsername(u2.Username)
+		require.Nil(t, err)
+		assert.Equal(t, u2, result)
 	})
 
 	t.Run("get u3 by username", func(t *testing.T) {
-		result := <-ss.User().GetByUsername(u3.Username)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u3, result.Data.(*model.User))
+		result, err := ss.User().GetByUsername(u3.Username)
+		require.Nil(t, err)
+		assert.Equal(t, u3, result)
 	})
 
 	t.Run("get by empty username", func(t *testing.T) {
-		result := <-ss.User().GetByUsername("")
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, "store.sql_user.get_by_username.app_error")
+		_, err := ss.User().GetByUsername("")
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, "store.sql_user.get_by_username.app_error")
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
-		result := <-ss.User().GetByUsername("unknown")
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, "store.sql_user.get_by_username.app_error")
+		_, err := ss.User().GetByUsername("unknown")
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, "store.sql_user.get_by_username.app_error")
 	})
 }
 
@@ -1950,12 +1950,14 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 		t.Fatal("should have 3 unread messages")
 	}
 
-	badge = (<-ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)).Data.(int64)
+	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
+	require.Nil(t, unreadCountErr)
 	if badge != 1 {
 		t.Fatal("should have 1 unread messages for that channel")
 	}
 
-	badge = (<-ss.User().GetUnreadCountForChannel(u2.Id, c2.Id)).Data.(int64)
+	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c2.Id)
+	require.Nil(t, unreadCountErr)
 	if badge != 2 {
 		t.Fatal("should have 2 unread messages for that channel")
 	}
@@ -1987,16 +1989,16 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err = (<-ss.User().UpdateMfaActive(u1.Id, true)).Err; err != nil {
+	if err = ss.User().UpdateMfaActive(u1.Id, true); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = (<-ss.User().UpdateMfaActive(u1.Id, false)).Err; err != nil {
+	if err = ss.User().UpdateMfaActive(u1.Id, false); err != nil {
 		t.Fatal(err)
 	}
 
 	// should pass, no update will occur though
-	if err = (<-ss.User().UpdateMfaActive("junk", true)).Err; err != nil {
+	if err = ss.User().UpdateMfaActive("junk", true); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -3611,21 +3613,21 @@ func testUserStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 
 	require.Nil(t, ss.User().ClearAllCustomRoleAssignments())
 
-	r1 := <-ss.User().GetByUsername(u1.Username)
-	require.Nil(t, r1.Err)
-	assert.Equal(t, u1.Roles, r1.Data.(*model.User).Roles)
+	r1, err := ss.User().GetByUsername(u1.Username)
+	require.Nil(t, err)
+	assert.Equal(t, u1.Roles, r1.Roles)
 
-	r2 := <-ss.User().GetByUsername(u2.Username)
-	require.Nil(t, r2.Err)
-	assert.Equal(t, "system_user system_admin", r2.Data.(*model.User).Roles)
+	r2, err1 := ss.User().GetByUsername(u2.Username)
+	require.Nil(t, err1)
+	assert.Equal(t, "system_user system_admin", r2.Roles)
 
-	r3 := <-ss.User().GetByUsername(u3.Username)
-	require.Nil(t, r3.Err)
-	assert.Equal(t, u3.Roles, r3.Data.(*model.User).Roles)
+	r3, err2 := ss.User().GetByUsername(u3.Username)
+	require.Nil(t, err2)
+	assert.Equal(t, u3.Roles, r3.Roles)
 
-	r4 := <-ss.User().GetByUsername(u4.Username)
-	require.Nil(t, r4.Err)
-	assert.Equal(t, "", r4.Data.(*model.User).Roles)
+	r4, err3 := ss.User().GetByUsername(u4.Username)
+	require.Nil(t, err3)
+	assert.Equal(t, "", r4.Roles)
 }
 
 func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
