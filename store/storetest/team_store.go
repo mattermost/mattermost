@@ -431,10 +431,9 @@ func testTeamStoreByUserId(t *testing.T, ss store.Store) {
 	m1 := &model.TeamMember{TeamId: o1.Id, UserId: model.NewId()}
 	store.Must(ss.Team().SaveMember(m1, -1))
 
-	if r1 := <-ss.Team().GetTeamsByUserId(m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, err := ss.Team().GetTeamsByUserId(m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		teams := r1.Data.([]*model.Team)
 		if len(teams) == 0 {
 			t.Fatal("Should return a team")
 		}
@@ -481,11 +480,9 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllTeamListing(); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, err := ss.Team().GetAllTeamListing(); err != nil {
+		t.Fatal(err)
 	} else {
-		teams := r1.Data.([]*model.Team)
-
 		for _, team := range teams {
 			if !team.AllowOpenInvite {
 				t.Fatal("should have returned team with AllowOpenInvite as true")
@@ -816,8 +813,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Team().SaveMember(m1, -1))
 
-	if r1 := <-ss.Team().RemoveAllMembersByTeam(teamId1); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if err := ss.Team().RemoveAllMembersByTeam(teamId1); err != nil {
+		t.Fatal(err)
 	}
 
 	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
@@ -883,8 +880,8 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Team().SaveMember(m1, -1))
 
-	r1 = <-ss.Team().RemoveAllMembersByTeam(teamId1)
-	require.Nil(t, r1.Err)
+	err = ss.Team().RemoveAllMembersByTeam(teamId1)
+	require.Nil(t, err)
 
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
@@ -1416,14 +1413,13 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 	lastDoneUserId := strings.Repeat("0", 26)
 
 	for {
-		res := <-ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
-		if assert.Nil(t, res.Err) {
-			if res.Data == nil {
+		res, e := ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
+		if assert.Nil(t, e) {
+			if res == nil {
 				break
 			}
-			data := res.Data.(map[string]string)
-			lastDoneTeamId = data["TeamId"]
-			lastDoneUserId = data["UserId"]
+			lastDoneTeamId = res["TeamId"]
+			lastDoneUserId = res["UserId"]
 		}
 	}
 
@@ -1520,7 +1516,7 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m3, -1))
 	store.Must(ss.Team().SaveMember(m4, -1))
 
-	require.Nil(t, (<-ss.Team().ClearAllCustomRoleAssignments()).Err)
+	require.Nil(t, (ss.Team().ClearAllCustomRoleAssignments()))
 
 	r1, err := ss.Team().GetMember(m1.TeamId, m1.UserId)
 	require.Nil(t, err)

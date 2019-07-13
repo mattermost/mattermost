@@ -189,13 +189,13 @@ func (a *App) IsFirstUserAccount() bool {
 // indexUser fetches the required information to index a user from the database and
 // calls the elasticsearch interface method
 func (a *App) indexUser(user *model.User) *model.AppError {
-	userTeams := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id)
-	if userTeams.Err != nil {
-		return userTeams.Err
+	userTeams, err := a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+	if err != nil {
+		return err
 	}
 
 	userTeamsIds := []string{}
-	for _, team := range userTeams.Data.([]*model.Team) {
+	for _, team := range userTeams {
 		userTeamsIds = append(userTeamsIds, team.Id)
 	}
 
@@ -408,7 +408,7 @@ func (a *App) IsUsernameTaken(name string) bool {
 		return false
 	}
 
-	if result := <-a.Srv.Store.User().GetByUsername(name); result.Err != nil {
+	if _, err := a.Srv.Store.User().GetByUsername(name); err != nil {
 		return false
 	}
 
@@ -420,12 +420,12 @@ func (a *App) GetUser(userId string) (*model.User, *model.AppError) {
 }
 
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetByUsername(username)
-	if result.Err != nil && result.Err.Id == "store.sql_user.get_by_username.app_error" {
-		result.Err.StatusCode = http.StatusNotFound
-		return nil, result.Err
+	result, err := a.Srv.Store.User().GetByUsername(username)
+	if err != nil && err.Id == "store.sql_user.get_by_username.app_error" {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
 	}
-	return result.Data.(*model.User), nil
+	return result, nil
 }
 
 func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
@@ -583,11 +583,7 @@ func (a *App) GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool, viewR
 }
 
 func (a *App) GetUsersWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesWithoutTeam(offset, limit, viewRestrictions)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetProfilesWithoutTeam(offset, limit, viewRestrictions)
 }
 
 // GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
@@ -1046,8 +1042,8 @@ func (a *App) UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.Us
 		}
 		password := model.HashPassword(userAuth.Password)
 
-		if result := <-a.Srv.Store.User().UpdatePassword(userId, password); result.Err != nil {
-			return nil, result.Err
+		if err := a.Srv.Store.User().UpdatePassword(userId, password); err != nil {
+			return nil, err
 		}
 	} else {
 		userAuth.Password = ""
@@ -1216,8 +1212,8 @@ func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppErr
 
 	hashedPassword := model.HashPassword(newPassword)
 
-	if result := <-a.Srv.Store.User().UpdatePassword(user.Id, hashedPassword); result.Err != nil {
-		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	if err := a.Srv.Store.User().UpdatePassword(user.Id, hashedPassword); err != nil {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

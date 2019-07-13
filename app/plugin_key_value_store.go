@@ -34,9 +34,9 @@ func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, 
 		ExpireAt: expireInSeconds,
 	}
 
-	if result := <-a.Srv.Store.Plugin().SaveOrUpdate(kv); result.Err != nil {
-		mlog.Error("Failed to set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
-		return result.Err
+	if _, err := a.Srv.Store.Plugin().SaveOrUpdate(kv); err != nil {
+		mlog.Error("Failed to set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		return err
 	}
 
 	// Clean up a previous entry using the hashed key, if it exists.
@@ -103,9 +103,9 @@ func (a *App) DeletePluginKey(pluginId string, key string) *model.AppError {
 }
 
 func (a *App) DeleteAllKeysForPlugin(pluginId string) *model.AppError {
-	if result := <-a.Srv.Store.Plugin().DeleteAllForPlugin(pluginId); result.Err != nil {
-		mlog.Error("Failed to delete all plugin key values", mlog.String("plugin_id", pluginId), mlog.Err(result.Err))
-		return result.Err
+	if err := a.Srv.Store.Plugin().DeleteAllForPlugin(pluginId); err != nil {
+		mlog.Error("Failed to delete all plugin key values", mlog.String("plugin_id", pluginId), mlog.Err(err))
+		return err
 	}
 
 	return nil
@@ -116,9 +116,9 @@ func (a *App) DeleteAllExpiredPluginKeys() *model.AppError {
 		return nil
 	}
 
-	if result := <-a.Srv.Store.Plugin().DeleteAllExpired(); result.Err != nil {
-		mlog.Error("Failed to delete all expired plugin key values", mlog.Err(result.Err))
-		return result.Err
+	if err := a.Srv.Store.Plugin().DeleteAllExpired(); err != nil {
+		mlog.Error("Failed to delete all expired plugin key values", mlog.Err(err))
+		return err
 	}
 
 	return nil

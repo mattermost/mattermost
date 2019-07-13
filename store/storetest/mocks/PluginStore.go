@@ -53,15 +53,15 @@ func (_m *PluginStore) Delete(pluginId string, key string) *model.AppError {
 }
 
 // DeleteAllExpired provides a mock function with given fields:
-func (_m *PluginStore) DeleteAllExpired() store.StoreChannel {
+func (_m *PluginStore) DeleteAllExpired() *model.AppError {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -69,15 +69,15 @@ func (_m *PluginStore) DeleteAllExpired() store.StoreChannel {
 }
 
 // DeleteAllForPlugin provides a mock function with given fields: PluginId
-func (_m *PluginStore) DeleteAllForPlugin(PluginId string) store.StoreChannel {
+func (_m *PluginStore) DeleteAllForPlugin(PluginId string) *model.AppError {
 	ret := _m.Called(PluginId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(PluginId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -135,17 +135,26 @@ func (_m *PluginStore) List(pluginId string, page int, perPage int) ([]string, *
 }
 
 // SaveOrUpdate provides a mock function with given fields: keyVal
-func (_m *PluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) store.StoreChannel {
+func (_m *PluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {
 	ret := _m.Called(keyVal)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.PluginKeyValue) store.StoreChannel); ok {
+	var r0 *model.PluginKeyValue
+	if rf, ok := ret.Get(0).(func(*model.PluginKeyValue) *model.PluginKeyValue); ok {
 		r0 = rf(keyVal)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.PluginKeyValue)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.PluginKeyValue) *model.AppError); ok {
+		r1 = rf(keyVal)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
