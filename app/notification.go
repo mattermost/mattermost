@@ -182,10 +182,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
 		umc := make(chan *model.AppError, 1)
-		go func() {
-			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id)
+		go func(userId string) {
+			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, userId)
 			close(umc)
-		}()
+		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
 	}
 

@@ -144,10 +144,6 @@
     "translation": "Unable to read icon image file"
   },
   {
-    "id": "api.bot.icon_image.storage.app_error",
-    "translation": "Image storage is not configured."
-  },
-  {
     "id": "api.bot.set_bot_icon_image.app_error",
     "translation": "Couldn't upload icon image"
   },

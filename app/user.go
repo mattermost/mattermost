@@ -583,11 +583,7 @@ func (a *App) GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool, viewR
 }
 
 func (a *App) GetUsersWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesWithoutTeam(offset, limit, viewRestrictions)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetProfilesWithoutTeam(offset, limit, viewRestrictions)
 }
 
 // GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.

@@ -886,21 +886,21 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(0, 100, nil)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesWithoutTeam(0, 100, nil)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, users)
 	})
 
 	t.Run("get, offset 1, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(1, 1, nil)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u3)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesWithoutTeam(1, 1, nil)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u3)}, users)
 	})
 
 	t.Run("get, offset 2, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(2, 1, nil)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesWithoutTeam(2, 1, nil)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{}, users)
 	})
 }
 
@@ -1950,12 +1950,14 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 		t.Fatal("should have 3 unread messages")
 	}
 
-	badge = (<-ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)).Data.(int64)
+	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
+	require.Nil(t, unreadCountErr)
 	if badge != 1 {
 		t.Fatal("should have 1 unread messages for that channel")
 	}
 
-	badge = (<-ss.User().GetUnreadCountForChannel(u2.Id, c2.Id)).Data.(int64)
+	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c2.Id)
+	require.Nil(t, unreadCountErr)
 	if badge != 2 {
 		t.Fatal("should have 2 unread messages for that channel")
 	}
