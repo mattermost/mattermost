@@ -148,11 +148,10 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	}
 	a.SetPluginsEnvironment(env)
 
-	if synchErr := a.SynchPlugins(); synchErr != nil {
-		mlog.Error("Failed to synch plugins with filestore", mlog.Err(synchErr))
+	if syncErr := a.SyncPlugins(); syncErr != nil {
+		mlog.Error("Failed to sync plugins with filestore", mlog.Err(syncErr))
 	}
 
-	//Prepackaged
 	prepackagedPluginsDir, found := fileutils.FindDir("prepackaged_plugins")
 	if found {
 		if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
@@ -189,17 +188,17 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	a.SyncPluginsActiveState()
 }
 
-// SynchPlugins will synchronize the plugins installed locally
+// SyncPlugins synchronizes the plugins installed locally
 // with the plugin bundles available in the file store.
-func (a *App) SynchPlugins() *model.AppError {
-	mlog.Info("Synching plugins with the file store ...")
+func (a *App) SyncPlugins() *model.AppError {
+	mlog.Info("Synching plugins with the file store")
 
 	pluginDirs, err := ioutil.ReadDir(*a.Config().PluginSettings.Directory)
 	if err != nil {
-		return model.NewAppError("SynchPlugins", "app.plugin.synch.read_local_folder.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SyncPlugins", "app.plugin.sync.read_local_folder.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// Remove plugins locally to synch with file store.
+	// Remove plugins locally to sync with file store.
 	for _, dir := range pluginDirs {
 		if !dir.IsDir() {
 			continue
@@ -208,7 +207,7 @@ func (a *App) SynchPlugins() *model.AppError {
 		files, readErr := ioutil.ReadDir(dirFullPath)
 
 		if readErr != nil {
-			mlog.Error("Error reading local plugin directoy. Skipped for synch.", mlog.String("folder", dir.Name()), mlog.Err(readErr))
+			mlog.Error("Error reading local plugin directoy. Skipped for sync.", mlog.String("folder", dir.Name()), mlog.Err(readErr))
 			continue
 		}
 		// Only handle managed plugins with .filestore flag file.
@@ -217,16 +216,16 @@ func (a *App) SynchPlugins() *model.AppError {
 			if f.Name() == ".filestore" {
 				managed = true
 
-				mlog.Debug("Plugin Synch: Uninstalling plugin locally", mlog.String("plugin", dir.Name()))
+				mlog.Debug("Plugin Sync: Uninstalling plugin locally", mlog.String("plugin", dir.Name()))
 				if err := a.removePluginLocally(dir.Name()); err != nil {
-					mlog.Error("Plugin Synch: Error uninstalling managed plugin.", mlog.String("plugin", dir.Name()), mlog.Err(err))
+					mlog.Error("Plugin Sync: Error uninstalling managed plugin.", mlog.String("plugin", dir.Name()), mlog.Err(err))
 				}
 				break
 			}
 		}
 
 		if !managed {
-			mlog.Warn("Found unmanaged plugin. Ignoring in plugin synch with the filestore.", mlog.String("plugin", dir.Name()))
+			mlog.Warn("Found unmanaged plugin. Ignoring in plugin sync with the filestore.", mlog.String("plugin", dir.Name()))
 		}
 	}
 
@@ -234,13 +233,13 @@ func (a *App) SynchPlugins() *model.AppError {
 	exists, existsErr := a.FileExists("./plugins")
 
 	if existsErr != nil {
-		return model.NewAppError("SynchPlugins", "app.plugin.synch.check_filestore.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SyncPlugins", "app.plugin.sync.check_filestore.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if exists {
 		fileStorepaths, listDirErr := a.ListDirectory("./plugins")
 		if listDirErr != nil {
-			return model.NewAppError("SynchPlugins", "app.plugin.synch.list_filestore.app_error", nil, listDirErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, listDirErr.Error(), http.StatusInternalServerError)
 		}
 
 		for _, path := range fileStorepaths {
@@ -251,7 +250,7 @@ func (a *App) SynchPlugins() *model.AppError {
 					continue
 				}
 
-				mlog.Debug("Plugin Synch: installing plugin locally", mlog.String("plugin", path))
+				mlog.Debug("Plugin Sync: installing plugin locally", mlog.String("plugin", path))
 				if _, err := a.installPluginLocally(bytes.NewReader(fileBytes), true); err != nil {
 					mlog.Error("Failed to unpack plugin from filestore", mlog.Err(err), mlog.String("path", path))
 				}
