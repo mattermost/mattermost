@@ -454,7 +454,7 @@ test-data: start-docker ## Add test data to the local instance.
 	@echo Login with a regular account username=user-1 password=user-1
 	@echo ========================================================================
 
-define validate_go_version
+validate-go-version: ## Validates the installed version of go against Mattermost's minimum requirement.
 	@if [ $(GO_MAJOR_VERSION) -gt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
 		exit 0 ;\
 	elif [ $(GO_MAJOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
@@ -464,9 +464,8 @@ define validate_go_version
 		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
 		exit 1; \
 	fi
-endef
 
-run-server: start-docker ## Starts the server.
+run-server: validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
 
 	$(call validate_go_version)
