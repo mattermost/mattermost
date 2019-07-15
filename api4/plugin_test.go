@@ -262,14 +262,13 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 	// Stored in File Store: Upload Plugin case
 	expectedPath := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
-
 	pluginStored, err := th.App.FileExists(expectedPath)
 	require.Nil(t, err)
 	require.True(t, pluginStored)
 
 	expectedPluginData := model.PluginEventData{
-		PluginId:            manifest.Id,
-		PluginFileStorePath: expectedPath,
+		Id:            manifest.Id,
+		FileStorePath: expectedPath,
 	}
 	expectedInstallMessage := &model.ClusterMessage{
 		Event:            model.CLUSTER_EVENT_INSTALL_PLUGIN,
@@ -277,9 +276,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 		WaitForAllToSend: true,
 		Data:             expectedPluginData.ToJson(),
 	}
-	expectedMessage := findClusterMessage(model.CLUSTER_EVENT_INSTALL_PLUGIN, testCluster.GetMessages())
-	require.Len(t, expectedMessage, 1)
-	require.Equal(t, expectedInstallMessage, expectedMessage[0])
+	expectedMessages := findClusterMessages(model.CLUSTER_EVENT_INSTALL_PLUGIN, testCluster.GetMessages())
+	require.Equal(t, []*model.ClusterMessage{expectedInstallMessage}, expectedMessages)
 
 	// Successful remove
 	testCluster.ClearMessages()
@@ -294,16 +292,15 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 		WaitForAllToSend: true,
 		Data:             expectedPluginData.ToJson(),
 	}
-	expectedMessage = findClusterMessage(model.CLUSTER_EVENT_REMOVE_PLUGIN, testCluster.GetMessages())
-	require.Len(t, expectedMessage, 1)
-	require.Equal(t, expectedRemoveMessage, expectedMessage[0])
+	expectedMessages = findClusterMessages(model.CLUSTER_EVENT_REMOVE_PLUGIN, testCluster.GetMessages())
+	require.Equal(t, []*model.ClusterMessage{expectedRemoveMessage}, expectedMessages)
 
 	pluginStored, err = th.App.FileExists(expectedPath)
 	require.Nil(t, err)
 	require.False(t, pluginStored)
 }
 
-func findClusterMessage(event string, msgs []*model.ClusterMessage) []*model.ClusterMessage {
+func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.ClusterMessage {
 	var result []*model.ClusterMessage
 	for _, msg := range msgs {
 		if msg.Event == event {

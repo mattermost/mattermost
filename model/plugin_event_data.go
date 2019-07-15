@@ -8,10 +8,10 @@ import (
 	"io"
 )
 
-// PluginEventData used to send plugin data to other clusters.
+// PluginEventData used to notify peers about plugin changes.
 type PluginEventData struct {
-	PluginId            string `json:"plugin_id"`
-	PluginFileStorePath string `json:"plugin_path"`
+	Id            string `json:"id"`
+	FileStorePath string `json:"file_store_path"`
 }
 
 func (p *PluginEventData) ToJson() string {

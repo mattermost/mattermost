@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	// ClusterMessage Events
 	CLUSTER_EVENT_PUBLISH                                           = "publish"
 	CLUSTER_EVENT_UPDATE_STATUS                                     = "update_status"
 	CLUSTER_EVENT_INVALIDATE_ALL_CACHES                             = "inv_all_caches"

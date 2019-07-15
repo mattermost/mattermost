@@ -18,11 +18,11 @@ import (
 )
 
 func (a *App) InstallPluginFromData(data model.PluginEventData) {
-	mlog.Info(fmt.Sprintf("InstallPluginFromData. ID: %v, Path: %v", data.PluginId, data.PluginFileStorePath))
+	mlog.Info(fmt.Sprintf("InstallPluginFromData. ID: %v, Path: %v", data.Id, data.FileStorePath))
 }
 
 func (a *App) RemovePluginFromData(data model.PluginEventData) {
-	mlog.Info(fmt.Sprintf("RemovePluginFromData. ID: %v, Path: %v", data.PluginId, data.PluginFileStorePath))
+	mlog.Info(fmt.Sprintf("RemovePluginFromData. ID: %v, Path: %v", data.Id, data.FileStorePath))
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
@@ -107,8 +107,8 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 	a.notifyClusterPluginEvent(
 		model.CLUSTER_EVENT_INSTALL_PLUGIN,
 		model.PluginEventData{
-			PluginId:            manifest.Id,
-			PluginFileStorePath: storePluginFileName,
+			Id:            manifest.Id,
+			FileStorePath: storePluginFileName,
 		},
 	)
 
@@ -178,8 +178,8 @@ func (a *App) removePlugin(id string) *model.AppError {
 		a.notifyClusterPluginEvent(
 			model.CLUSTER_EVENT_REMOVE_PLUGIN,
 			model.PluginEventData{
-				PluginId:            manifest.Id,
-				PluginFileStorePath: storePluginFileName,
+				Id:            manifest.Id,
+				FileStorePath: storePluginFileName,
 			},
 		)
 	}
