@@ -585,7 +585,7 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 
 			list := model.NewPostList()
 
-			var latestUpdate int64 = 0
+			latestUpdate := time
 
 			for _, p := range posts {
 				list.AddPost(p)
