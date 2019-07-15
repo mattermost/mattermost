@@ -1497,7 +1497,7 @@ func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response) {
 	return BotFromJson(r.Body), BuildResponse(r)
 }
 
-// SetBotIconImage sets icon image of the user.
+// SetBotIconImage sets LHS bot icon image.
 func (c *Client4) SetBotIconImage(botUserId string, data []byte) (bool, *Response) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -1538,7 +1538,7 @@ func (c *Client4) SetBotIconImage(botUserId string, data []byte) (bool, *Respons
 	return CheckStatusOK(rp), BuildResponse(rp)
 }
 
-// GetBotIconImage gets user's LHS icon image. Must be logged in.
+// GetBotIconImage gets LHS bot icon image. Must be logged in.
 func (c *Client4) GetBotIconImage(botUserId string) ([]byte, *Response) {
 	r, appErr := c.DoApiGet(c.GetBotRoute(botUserId)+"/icon", "")
 	if appErr != nil {
@@ -1553,7 +1553,7 @@ func (c *Client4) GetBotIconImage(botUserId string) ([]byte, *Response) {
 	return data, BuildResponse(r)
 }
 
-// DeleteBotIconImage deletes user's LHS icon image. Must be logged in.
+// DeleteBotIconImage deletes LHS bot icon image. Must be logged in.
 func (c *Client4) DeleteBotIconImage(botUserId string) (bool, *Response) {
 	r, appErr := c.DoApiDelete(c.GetBotRoute(botUserId) + "/icon")
 	if appErr != nil {
@@ -3586,7 +3586,7 @@ func (c *Client4) GetBrandImage() ([]byte, *Response) {
 	return data, BuildResponse(r)
 }
 
-// DeleteBrandImage delets the brand image for the system.
+// DeleteBrandImage deletes the brand image for the system.
 func (c *Client4) DeleteBrandImage() *Response {
 	r, err := c.DoApiDelete(c.GetBrandRoute() + "/image")
 	if err != nil {
