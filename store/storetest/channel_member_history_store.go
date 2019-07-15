@@ -212,9 +212,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	// in every single case, the user will be included in the export, because ChannelMembers says they were in the channel at some point in
 	// the past, even though the time that they were actually in the channel doesn't necessarily overlap with the export period
