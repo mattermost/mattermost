@@ -786,7 +786,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 	if postListAfter, err := a.GetPostsAfterPost(channelId, lastUnreadPost.Id, PAGE_DEFAULT, limitAfter-1); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
-		postList.Extend(postListAfter)
+		postList.ExtendAll(postListAfter)
 	}
 
 	postList.AddPost(lastUnreadPost)
