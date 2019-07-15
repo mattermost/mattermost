@@ -829,53 +829,17 @@ func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId strin
 	return nil
 }
 
-func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) *model.AppError {
-	teamMember, err := a.GetTeamMember(team.Id, user.Id)
-	if err != nil {
-		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
+func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId string) *model.AppError {
+	// Send the websocket message before we actually do the remove so the user being removed gets it.
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, teamMember.TeamId, "", "", nil)
+	message.Add("user_id", teamMember.UserId)
+	message.Add("team_id", teamMember.TeamId)
+	a.Publish(message)
 
-	var channelList *model.ChannelList
-
-	if channelList, err = a.Srv.Store.Channel().GetChannels(team.Id, user.Id, true); err != nil {
-		if err.Id == "store.sql_channel.get_channels.not_found.app_error" {
-			channelList = &model.ChannelList{}
-		} else {
-			return err
-		}
-	}
-
-	for _, channel := range *channelList {
-		if !channel.IsGroupOrDirect() {
-			a.InvalidateCacheForChannelMembers(channel.Id)
-			if err = a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
-				return err
-			}
-		}
-	}
-
-	channel, err := a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	user, err := a.Srv.Store.User().Get(teamMember.UserId)
 	if err != nil {
 		return err
 	}
-
-	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
-		if requestorId == user.Id {
-			if err := a.postLeaveTeamMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
-			}
-		} else {
-			if err := a.postRemoveFromTeamMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
-			}
-		}
-	}
-
-	// Send the websocket message before we actually do the remove so the user being removed gets it.
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, team.Id, "", "", nil)
-	message.Add("user_id", user.Id)
-	message.Add("team_id", team.Id)
-	a.Publish(message)
 
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()
@@ -913,13 +877,63 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	}
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
-	if err := a.Srv.Store.Preference().DeleteCategory(user.Id, team.Id); err != nil {
+	if err := a.Srv.Store.Preference().DeleteCategory(user.Id, teamMember.TeamId); err != nil {
 		return err
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
 	a.InvalidateCacheForUserTeams(user.Id)
+
+	return nil
+}
+
+func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) *model.AppError {
+	teamMember, err := a.GetTeamMember(team.Id, user.Id)
+	if err != nil {
+		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	var channelList *model.ChannelList
+
+	if channelList, err = a.Srv.Store.Channel().GetChannels(team.Id, user.Id, true); err != nil {
+		if err.Id == "store.sql_channel.get_channels.not_found.app_error" {
+			channelList = &model.ChannelList{}
+		} else {
+			return err
+		}
+	}
+
+	for _, channel := range *channelList {
+		if !channel.IsGroupOrDirect() {
+			a.InvalidateCacheForChannelMembers(channel.Id)
+			if err = a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
+				return err
+			}
+		}
+	}
+
+	channel, err := a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	if err != nil {
+		return err
+	}
+
+	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
+		if requestorId == user.Id {
+			if err = a.postLeaveTeamMessage(user, channel); err != nil {
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+			}
+		} else {
+			if err = a.postRemoveFromTeamMessage(user, channel); err != nil {
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+			}
+		}
+	}
+
+	err = a.RemoveTeamMemberFromTeam(teamMember, requestorId)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
