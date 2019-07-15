@@ -54,7 +54,7 @@ func TestPostListExtend(t *testing.T) {
 	l2.AddPost(p3)
 	l2.AddOrder(p3.Id)
 
-	l2.ExtendAll(&l1)
+	l2.Extend(&l1)
 
 	if len(l1.Posts) != 2 || len(l1.Order) != 2 {
 		t.Fatal("extending l2 changed l1")
@@ -97,11 +97,11 @@ func TestPostListExtendAll(t *testing.T) {
 	assert.Len(t, afterPostList.Posts, 4)
 	assert.Len(t, afterPostList.Order, 3)
 
-	// should extend Posts of beforePostList
+	// should extend beforePostList
 	assert.Len(t, beforePostList.Posts, 5)
 	assert.Len(t, beforePostList.Order, 5)
 
-	// should extend the Order correctly
+	// should extend the Order of beforePostList correctly
 	assert.Equal(t, beforePostList.Order[0], p1.Id)
 	assert.Equal(t, beforePostList.Order[1], p2.Id)
 	assert.Equal(t, beforePostList.Order[2], p4.Id)
