@@ -205,17 +205,14 @@ func (a *App) SyncPlugins() *model.AppError {
 
 		// Only handle managed plugins with .filestore flag file.
 		_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, dir.Name(), managedPluginFileName))
-
 		if os.IsNotExist(err) {
 			mlog.Warn("Found unmanaged plugin. Ignoring in plugin sync with the filestore.", mlog.String("plugin", dir.Name()))
-
 		} else if err != nil {
 			mlog.Error("Error reading local plugin directoy. Skipped for sync.", mlog.String("folder", dir.Name()), mlog.Err(err))
-
 		} else {
-			mlog.Debug("Plugin Sync: Uninstalling plugin locally", mlog.String("plugin", dir.Name()))
+			mlog.Debug("Plugin Sync Uninstalling plugin locally", mlog.String("plugin", dir.Name()))
 			if err := a.removePluginLocally(dir.Name()); err != nil {
-				mlog.Error("Plugin Sync: Error uninstalling managed plugin.", mlog.String("plugin", dir.Name()), mlog.Err(err))
+				mlog.Error("Error uninstalling managed plugin during sync.", mlog.String("plugin", dir.Name()), mlog.Err(err))
 			}
 		}
 	}
@@ -238,14 +235,13 @@ func (a *App) SyncPlugins() *model.AppError {
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
 			reader, fileReaderErr := a.FileReader(filepath.Join("./", path))
-			defer reader.Close()
-
 			if fileReaderErr != nil {
 				mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("bundle", path), mlog.Err(fileReaderErr))
 				continue
 			}
+			defer reader.Close()
 
-			mlog.Debug("Plugin Sync: installing plugin locally", mlog.String("plugin", path))
+			mlog.Debug("Plugin Sync installing plugin locally", mlog.String("plugin", path))
 			if _, err := a.installPluginLocally(reader, true); err != nil {
 				mlog.Error("Failed to unpack plugin from filestore", mlog.Err(err), mlog.String("path", path))
 			}
