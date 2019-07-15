@@ -134,14 +134,11 @@ func (ps SqlPluginStore) Delete(pluginId, key string) store.StoreChannel {
 	})
 }
 
-func (ps SqlPluginStore) DeleteAllForPlugin(pluginId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := ps.GetMaster().Exec("DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId", map[string]interface{}{"PluginId": pluginId}); err != nil {
-			result.Err = model.NewAppError("SqlPluginStore.Delete", "store.sql_plugin_store.delete.app_error", nil, fmt.Sprintf("plugin_id=%v, err=%v", pluginId, err.Error()), http.StatusInternalServerError)
-		} else {
-			result.Data = true
-		}
-	})
+func (ps SqlPluginStore) DeleteAllForPlugin(pluginId string) *model.AppError {
+	if _, err := ps.GetMaster().Exec("DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId", map[string]interface{}{"PluginId": pluginId}); err != nil {
+		return model.NewAppError("SqlPluginStore.Delete", "store.sql_plugin_store.delete.app_error", nil, fmt.Sprintf("plugin_id=%v, err=%v", pluginId, err.Error()), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (ps SqlPluginStore) DeleteAllExpired() *model.AppError {

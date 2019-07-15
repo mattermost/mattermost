@@ -144,10 +144,6 @@
     "translation": "Unable to read icon image file"
   },
   {
-    "id": "api.bot.icon_image.storage.app_error",
-    "translation": "Image storage is not configured."
-  },
-  {
     "id": "api.bot.set_bot_icon_image.app_error",
     "translation": "Couldn't upload icon image"
   },
@@ -1511,6 +1507,10 @@
   {
     "id": "api.plugin.install.invalid_url.app_error",
     "translation": "An invalid url was given to download the plugin."
+  },
+  {
+    "id": "api.plugin.install.reading_stream_failed.app_error",
+    "translation": "An error ocurred reading the plugin file stream."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -3493,6 +3493,14 @@
   {
     "id": "app.plugin.remove.app_error",
     "translation": "Unable to delete plugin"
+  },
+  {
+    "id": "app.plugin.remove_bundle.app_error",
+    "translation": "Unable to remove plugin bundle from file store."
+  },
+  {
+    "id": "app.plugin.store_bundle.app_error",
+    "translation": "Unable to store the plugin to the configured file store."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
