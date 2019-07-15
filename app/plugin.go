@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
@@ -218,25 +219,26 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	// Install plugins from the file store.
-	exists, fileErr := a.FileExists(fileStorePluginFolder)
-	if fileErr != nil {
-		return model.NewAppError("SyncPlugins", "app.plugin.sync.check_filestore.app_error", nil, fileErr.Error(), http.StatusInternalServerError)
+	exists, appErr := a.FileExists(fileStorePluginFolder)
+	if appErr != nil {
+		return model.NewAppError("SyncPlugins", "app.plugin.sync.check_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	if !exists {
 		return nil
 	}
 
-	fileStorePaths, listDirErr := a.ListDirectory(fileStorePluginFolder)
-	if listDirErr != nil {
-		return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, listDirErr.Error(), http.StatusInternalServerError)
+	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
+	if appErr != nil {
+		return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
-			reader, fileReaderErr := a.FileReader(filepath.Join("./", path))
-			if fileReaderErr != nil {
-				mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("bundle", path), mlog.Err(fileReaderErr))
+			var reader filesstore.ReadCloseSeeker
+			reader, appErr = a.FileReader(filepath.Join("./", path))
+			if appErr != nil {
+				mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("bundle", path), mlog.Err(appErr))
 				continue
 			}
 			defer reader.Close()
