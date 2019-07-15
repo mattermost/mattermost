@@ -569,6 +569,22 @@ type API interface {
 	//
 	// Minimum server version: 5.10
 	PermanentDeleteBot(botUserId string) *model.AppError
+
+	// GetBotIconImage gets LHS bot icon image.
+	//
+	// Minimum server version: 5.14
+	GetBotIconImage(botUserId string) ([]byte, *model.AppError)
+
+	// SetBotIconImage sets LHS bot icon image.
+	// Icon image must be SVG format, all other formats are rejected.
+	//
+	// Minimum server version: 5.14
+	SetBotIconImage(botUserId string, data []byte) *model.AppError
+
+	// DeleteBotIconImage deletes LHS bot icon image.
+	//
+	// Minimum server version: 5.14
+	DeleteBotIconImage(botUserId string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

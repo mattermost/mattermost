@@ -289,7 +289,7 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 	}
 
 	// extract the filenames from their paths and determine what type of files are attached
-	infos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+	infos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
 	if err != nil {
 		mlog.Warn(fmt.Sprintf("Encountered error when getting files for notification message, post_id=%v, err=%v", post.Id, err), mlog.String("post_id", post.Id))
 	}

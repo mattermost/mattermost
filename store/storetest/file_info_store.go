@@ -128,17 +128,85 @@ func testFileInfoGetForPost(t *testing.T, ss store.Store) {
 		}(newInfo.Id)
 	}
 
-	postInfos, err := ss.FileInfo().GetForPost(postId, true, false)
-	require.Nil(t, err)
-	assert.Len(t, postInfos, 2)
+	testCases := []struct {
+		Name           string
+		PostId         string
+		ReadFromMaster bool
+		IncludeDeleted bool
+		AllowFromCache bool
+		ExpectedPosts  int
+	}{
+		{
+			Name:           "Fetch from master, without deleted and without cache",
+			PostId:         postId,
+			ReadFromMaster: true,
+			IncludeDeleted: false,
+			AllowFromCache: false,
+			ExpectedPosts:  2,
+		},
+		{
+			Name:           "Fetch from master, with deleted and without cache",
+			PostId:         postId,
+			ReadFromMaster: true,
+			IncludeDeleted: true,
+			AllowFromCache: false,
+			ExpectedPosts:  3,
+		},
+		{
+			Name:           "Fetch from master, with deleted and with cache",
+			PostId:         postId,
+			ReadFromMaster: true,
+			IncludeDeleted: true,
+			AllowFromCache: true,
+			ExpectedPosts:  3,
+		},
+		{
+			Name:           "Fetch from replica, without deleted and without cache",
+			PostId:         postId,
+			ReadFromMaster: false,
+			IncludeDeleted: false,
+			AllowFromCache: false,
+			ExpectedPosts:  2,
+		},
+		{
+			Name:           "Fetch from replica, with deleted and without cache",
+			PostId:         postId,
+			ReadFromMaster: false,
+			IncludeDeleted: true,
+			AllowFromCache: false,
+			ExpectedPosts:  3,
+		},
+		{
+			Name:           "Fetch from replica, with deleted and without cache",
+			PostId:         postId,
+			ReadFromMaster: false,
+			IncludeDeleted: true,
+			AllowFromCache: true,
+			ExpectedPosts:  3,
+		},
+		{
+			Name:           "Fetch from replica, without deleted and with cache",
+			PostId:         postId,
+			ReadFromMaster: true,
+			IncludeDeleted: false,
+			AllowFromCache: true,
+			ExpectedPosts:  2,
+		},
+	}
 
-	postInfos, err = ss.FileInfo().GetForPost(postId, false, false)
-	require.Nil(t, err)
-	assert.Len(t, postInfos, 2)
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			postInfos, err := ss.FileInfo().GetForPost(
+				tc.PostId,
+				tc.ReadFromMaster,
+				tc.IncludeDeleted,
+				tc.AllowFromCache,
+			)
+			require.Nil(t, err)
+			assert.Len(t, postInfos, tc.ExpectedPosts)
 
-	postInfos, err = ss.FileInfo().GetForPost(postId, true, true)
-	require.Nil(t, err)
-	assert.Len(t, postInfos, 2)
+		})
+	}
 }
 
 func testFileInfoGetForUser(t *testing.T, ss store.Store) {
@@ -212,7 +280,7 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 		err = ss.FileInfo().AttachToPost(info2.Id, postId, userId)
 		assert.Nil(t, err)
 
-		data, err := ss.FileInfo().GetForPost(postId, true, false)
+		data, err := ss.FileInfo().GetForPost(postId, true, false, false)
 		assert.Nil(t, err)
 
 		assert.Len(t, data, 2)
@@ -296,7 +364,7 @@ func testFileInfoDeleteForPost(t *testing.T, ss store.Store) {
 	_, err := ss.FileInfo().DeleteForPost(postId)
 	require.Nil(t, err)
 
-	infos, err = ss.FileInfo().GetForPost(postId, true, false)
+	infos, err = ss.FileInfo().GetForPost(postId, true, false, false)
 	require.Nil(t, err)
 	assert.Len(t, infos, 0)
 }
@@ -340,14 +408,14 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	postFiles, err := ss.FileInfo().GetForPost(postId, true, false)
+	postFiles, err := ss.FileInfo().GetForPost(postId, true, false, false)
 	require.Nil(t, err)
 	assert.Len(t, postFiles, 3)
 
 	_, err = ss.FileInfo().PermanentDeleteBatch(1500, 1000)
 	require.Nil(t, err)
 
-	postFiles, err = ss.FileInfo().GetForPost(postId, true, false)
+	postFiles, err = ss.FileInfo().GetForPost(postId, true, false, false)
 	require.Nil(t, err)
 	assert.Len(t, postFiles, 1)
 }
