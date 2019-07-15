@@ -26,6 +26,11 @@ const (
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES                      = "inv_schemes"
 	CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS                 = "inv_all_user_sessions"
 
+	// Plugin Events
+	CLUSTER_EVENT_INSTALL_PLUGIN = "install_plugin"
+	CLUSTER_EVENT_REMOVE_PLUGIN  = "remove_plugin"
+
+	// ClusterMessage SendTypes
 	CLUSTER_SEND_BEST_EFFORT = "best_effort"
 	CLUSTER_SEND_RELIABLE    = "reliable"
 )
