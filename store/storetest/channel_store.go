@@ -2835,7 +2835,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	for _, userId := range userIds {
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   gc1.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -2852,7 +2852,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	for _, userId := range userIds {
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   gc2.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
