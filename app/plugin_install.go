@@ -128,7 +128,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 	}
 
 	if manifest == nil {
-		return model.NewAppError("removePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("removePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusConflict)
 	}
 
 	if pluginsEnvironment.IsActive(id) && manifest.HasClient() {
