@@ -26,24 +26,25 @@ const managedPluginFileName = ".filestore"
 const fileStorePluginFolder = "./plugins"
 
 func (a *App) InstallPluginFromData(data model.PluginEventData) {
-	mlog.Debug(fmt.Sprintf("InstallPluginFromData. ID: %v, Path: %v", data.Id, data.FileStorePath))
+	mlog.Debug(fmt.Sprintf("InstallPluginFromData. ID: %v", data.Id))
 
-	reader, appErr := a.FileReader(data.FileStorePath)
+	fileStorePath := a.getBundleStorePath(data.Id)
+	reader, appErr := a.FileReader(fileStorePath)
 	if appErr != nil {
-		mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("bundle", data.FileStorePath), mlog.Err(appErr))
+		mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("path", fileStorePath), mlog.Err(appErr))
 	}
 	defer reader.Close()
 
 	if _, appErr = a.installPluginLocally(reader, true); appErr != nil {
-		mlog.Error("Failed to unpack plugin from filestore", mlog.Err(appErr), mlog.String("path", data.FileStorePath))
+		mlog.Error("Failed to unpack plugin from filestore", mlog.Err(appErr), mlog.String("path", fileStorePath))
 	}
 }
 
 func (a *App) RemovePluginFromData(data model.PluginEventData) {
-	mlog.Debug(fmt.Sprintf("RemovePluginFromData. ID: %v, Path: %v", data.Id, data.FileStorePath))
+	mlog.Debug(fmt.Sprintf("RemovePluginFromData. ID: %v", data.Id))
 
 	if err := a.removePluginLocally(data.Id); err != nil {
-		mlog.Error("Failed to remove plugin locally", mlog.Err(err), mlog.String("path", data.FileStorePath))
+		mlog.Error("Failed to remove plugin locally", mlog.Err(err), mlog.String("id", data.Id))
 	}
 }
 
@@ -68,8 +69,7 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 	a.notifyClusterPluginEvent(
 		model.CLUSTER_EVENT_INSTALL_PLUGIN,
 		model.PluginEventData{
-			Id:            manifest.Id,
-			FileStorePath: a.getBundleStorePath(manifest.Id),
+			Id: manifest.Id,
 		},
 	)
 
@@ -181,8 +181,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 	a.notifyClusterPluginEvent(
 		model.CLUSTER_EVENT_REMOVE_PLUGIN,
 		model.PluginEventData{
-			Id:            id,
-			FileStorePath: storePluginFileName,
+			Id: id,
 		},
 	)
 

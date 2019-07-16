@@ -10,8 +10,7 @@ import (
 
 // PluginEventData used to notify peers about plugin changes.
 type PluginEventData struct {
-	Id            string `json:"id"`
-	FileStorePath string `json:"file_store_path"`
+	Id string `json:"id"`
 }
 
 func (p *PluginEventData) ToJson() string {
