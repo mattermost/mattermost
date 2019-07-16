@@ -266,14 +266,14 @@ func TestPreparePostForClient(t *testing.T) {
 			clientPost := prepare(false, url, emoji)
 
 			s, _ := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
-			assert.EqualValues(t, s, url)
+			assert.EqualValues(t, url, s)
 		})
 
 		t.Run("overrides icon URL", func(t *testing.T) {
 			clientPost := prepare(true, url, emoji)
 
 			s, _ := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
-			assert.EqualValues(t, s, overridenUrl)
+			assert.EqualValues(t, overridenUrl, s)
 		})
 
 	})

@@ -232,7 +232,7 @@ func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
 	subPath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	if id, found := model.GetSystemEmojiId(emojiName); found {
-		return path.Join(subPath, "/static/emoji", id), nil
+		return path.Join(subPath, "/static/emoji", id+".png"), nil
 	}
 
 	if emoji, err := a.Srv.Store.Emoji().GetByName(emojiName, true); err == nil {
