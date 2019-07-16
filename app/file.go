@@ -128,6 +128,10 @@ func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 		return nil, err
 	}
 	paths, err := backend.ListDirectory(path)
+	if err != nil {
+		return nil, err
+	}
+
 	return *paths, err
 }
 

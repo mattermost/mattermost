@@ -17,11 +17,16 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+// managedPluginFileName is the file name of the flag file that marks
+// a local plugin folder as "managed" by the file store.
 const managedPluginFileName = ".filestore"
+
+// fileStorePluginFolder is the folder name in the file store of the plugin bundles
+// installed.
 const fileStorePluginFolder = "./plugins"
 
 func (a *App) InstallPluginFromData(data model.PluginEventData) {
-	mlog.Info(fmt.Sprintf("InstallPluginFromData. ID: %v, Path: %v", data.Id, data.FileStorePath))
+	mlog.Debug(fmt.Sprintf("InstallPluginFromData. ID: %v, Path: %v", data.Id, data.FileStorePath))
 
 	reader, appErr := a.FileReader(data.FileStorePath)
 	if appErr != nil {
@@ -35,7 +40,7 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 }
 
 func (a *App) RemovePluginFromData(data model.PluginEventData) {
-	mlog.Info(fmt.Sprintf("RemovePluginFromData. ID: %v, Path: %v", data.Id, data.FileStorePath))
+	mlog.Debug(fmt.Sprintf("RemovePluginFromData. ID: %v, Path: %v", data.Id, data.FileStorePath))
 
 	if err := a.removePluginLocally(data.Id); err != nil {
 		mlog.Error("Failed to remove plugin locally", mlog.Err(err), mlog.String("path", data.FileStorePath))
@@ -134,9 +139,9 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*mod
 	}
 
 	// Flag plugin locally as managed by the filestore.
-	f, createErr := os.Create(filepath.Join(pluginPath, managedPluginFileName))
-	if createErr != nil {
-		return nil, model.NewAppError("uploadPlugin", "app.plugin.flag_managed.app_error", nil, createErr.Error(), http.StatusInternalServerError)
+	f, err := os.Create(filepath.Join(pluginPath, managedPluginFileName))
+	if err != nil {
+		return nil, model.NewAppError("uploadPlugin", "app.plugin.flag_managed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	f.Close()
 
@@ -166,7 +171,6 @@ func (a *App) removePlugin(id string) *model.AppError {
 	if err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
 	if !bundleExist {
 		return nil
 	}
