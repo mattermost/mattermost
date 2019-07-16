@@ -192,13 +192,12 @@ func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
 	name, _ := url.QueryUnescape(split[4])
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
-	result := <-a.Srv.Store.Team().GetTeamsByUserId(post.UserId)
-	if result.Err != nil {
-		mlog.Error(fmt.Sprintf("Unable to get teams when migrating post to use FileInfo, err=%v", result.Err), mlog.String("post_id", post.Id))
+	teams, err := a.Srv.Store.Team().GetTeamsByUserId(post.UserId)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Unable to get teams when migrating post to use FileInfo, err=%v", err), mlog.String("post_id", post.Id))
 		return ""
 	}
 
-	teams := result.Data.([]*model.Team)
 	if len(teams) == 1 {
 		// The user has only one team so the post must've been sent from it
 		return teams[0].Id
@@ -276,7 +275,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		var fileInfos []*model.FileInfo
-		fileInfos, err = a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
+		fileInfos, err = a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, false)
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
