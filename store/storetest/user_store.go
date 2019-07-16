@@ -711,36 +711,28 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 	t.Run("get in channel 1, offset 0, limit 100", func(t *testing.T) {
 		result := <-ss.User().GetProfilesInChannel(c1.Id, 0, 100)
 		require.Nil(t, result.Err)
@@ -818,36 +810,28 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u1.Id,
 		Status: model.STATUS_DND,
@@ -993,27 +977,21 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	t.Run("all profiles in channel 1, no caching", func(t *testing.T) {
 		var profiles map[string]*model.User
@@ -1137,27 +1115,21 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
@@ -1348,9 +1320,7 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, ss store.Stor
 			UserId:      uId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		if err != nil {
-			panic(err)
-		}
+		require.Nil(t, err)
 	}
 
 	gc2, err := ss.Channel().Save(&model.Channel{
@@ -1366,9 +1336,7 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, ss store.Stor
 			UserId:      uId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		if err != nil {
-			panic(err)
-		}
+		require.Nil(t, err)
 	}
 
 	testCases := []struct {
@@ -1953,9 +1921,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	if _, err = ss.Channel().SaveMember(&m2); err != nil {
-		panic(err)
-	}
+	_, err = ss.Channel().SaveMember(&m2)
+	require.Nil(t, err)
 
 	m1.ChannelId = c2.Id
 	m2.ChannelId = c2.Id
@@ -2656,25 +2623,19 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	testCases := []struct {
 		Description string
@@ -2885,25 +2846,19 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	testCases := []struct {
 		Description string
@@ -3806,17 +3761,13 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		ChannelId:   cPub1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		UserId:      u2.Id,
 		ChannelId:   cPub2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	startTime := u2.CreateAt
 	time.Sleep(10 * time.Millisecond)
@@ -3837,17 +3788,13 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		ChannelId:   cPub2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		UserId:      u3.Id,
 		ChannelId:   cPriv.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	if err != nil {
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	endTime := u3.CreateAt
 
