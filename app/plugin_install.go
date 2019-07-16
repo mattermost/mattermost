@@ -20,15 +20,37 @@ import (
 const managedPluginFileName = ".filestore"
 const fileStorePluginFolder = "./plugins"
 
+func (a *App) InstallPluginFromData(data model.PluginEventData) {
+	mlog.Info(fmt.Sprintf("InstallPluginFromData. ID: %v, Path: %v", data.Id, data.FileStorePath))
+
+	reader, appErr := a.FileReader(data.FileStorePath)
+	if appErr != nil {
+		mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("bundle", data.FileStorePath), mlog.Err(appErr))
+	}
+	defer reader.Close()
+
+	if _, appErr = a.installPluginLocally(reader, true); appErr != nil {
+		mlog.Error("Failed to unpack plugin from filestore", mlog.Err(appErr), mlog.String("path", data.FileStorePath))
+	}
+}
+
+func (a *App) RemovePluginFromData(data model.PluginEventData) {
+	mlog.Info(fmt.Sprintf("RemovePluginFromData. ID: %v, Path: %v", data.Id, data.FileStorePath))
+
+	if err := a.removePluginLocally(data.Id); err != nil {
+		mlog.Error("Failed to remove plugin locally", mlog.Err(err), mlog.String("path", data.FileStorePath))
+	}
+}
+
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	return a.installPlugin(pluginFile, replace)
 }
 
 func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
-	manifest, installErr := a.installPluginLocally(pluginFile, replace)
-	if installErr != nil {
-		return nil, installErr
+	manifest, appErr := a.installPluginLocally(pluginFile, replace)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// Store bundle in the file store to allow access from other servers.
@@ -37,6 +59,14 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 	if _, err := a.WriteFile(pluginFile, a.getBundleStorePath(manifest.Id)); err != nil {
 		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	a.notifyClusterPluginEvent(
+		model.CLUSTER_EVENT_INSTALL_PLUGIN,
+		model.PluginEventData{
+			Id:            manifest.Id,
+			FileStorePath: a.getBundleStorePath(manifest.Id),
+		},
+	)
 
 	return manifest, nil
 }
@@ -143,6 +173,14 @@ func (a *App) removePlugin(id string) *model.AppError {
 	if err := a.RemoveFile(storePluginFileName); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	a.notifyClusterPluginEvent(
+		model.CLUSTER_EVENT_REMOVE_PLUGIN,
+		model.PluginEventData{
+			Id:            id,
+			FileStorePath: storePluginFileName,
+		},
+	)
 
 	return nil
 }
