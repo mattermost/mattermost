@@ -2038,7 +2038,6 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(&m4)
 	require.Nil(t, err)
 
-
 	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
 		t.Fatalf("failed to get member count: %v", err)
 	} else if count != 2 {
