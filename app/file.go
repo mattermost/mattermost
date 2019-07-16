@@ -132,7 +132,7 @@ func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 		return nil, err
 	}
 
-	return *paths, err
+	return *paths, nil
 }
 
 func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename string) *model.FileInfo {
