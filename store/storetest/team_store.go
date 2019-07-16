@@ -1545,7 +1545,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	s1, err := ss.Scheme().Save(s1)
 	require.Nil(t, err)
 
-	count1 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	count1, err := ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(0), count1)
 
 	t1 := &model.Team{
@@ -1558,7 +1559,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(t1)
 	require.Nil(t, err)
 
-	count2 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	count2, err := ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(1), count2)
 
 	t2 := &model.Team{
@@ -1571,7 +1573,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(t2)
 	require.Nil(t, err)
 
-	count3 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	count3, err := ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(2), count3)
 
 	t3 := &model.Team{
@@ -1583,7 +1586,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(t3)
 	require.Nil(t, err)
 
-	count4 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	count4, err := ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(2), count4)
 
 	t4 := &model.Team{
@@ -1597,7 +1601,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(t4)
 	require.Nil(t, err)
 
-	count5 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	count5, err := ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(2), count5)
 }
 
