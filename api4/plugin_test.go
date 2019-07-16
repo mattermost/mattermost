@@ -267,8 +267,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	require.True(t, pluginStored)
 
 	expectedPluginData := model.PluginEventData{
-		Id:            manifest.Id,
-		FileStorePath: expectedPath,
+		Id: manifest.Id,
 	}
 	expectedInstallMessage := &model.ClusterMessage{
 		Event:            model.CLUSTER_EVENT_INSTALL_PLUGIN,
