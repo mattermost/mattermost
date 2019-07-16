@@ -1,5 +1,3 @@
-this is to test the cherry pick
-
 # [![Mattermost](https://user-images.githubusercontent.com/33878967/33095422-7c8aa7a4-ceb8-11e7-810a-4b261fdff6d6.png)](https://mattermost.org)
 
 Mattermost is an open source, private cloud, Slack-alternative from [https://mattermost.com](https://mattermost.com).
