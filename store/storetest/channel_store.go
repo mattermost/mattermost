@@ -2764,7 +2764,8 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(m1)
 	require.Nil(t, err)
 
-	if members, err := ss.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId}); err != nil {
+	var members *model.ChannelMembers
+	if members, err = ss.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId}); err != nil {
 		t.Fatal(err)
 	} else {
 		rm1 := (*members)[0]
@@ -2782,7 +2783,7 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(m2)
 	require.Nil(t, err)
 
-	if members, err := ss.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId, m2.UserId, model.NewId()}); err != nil {
+	if members, err = ss.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId, m2.UserId, model.NewId()}); err != nil {
 		t.Fatal(err)
 	} else {
 		if len(*members) != 2 {
@@ -2790,7 +2791,7 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if _, err := ss.Channel().GetMembersByIds(m1.ChannelId, []string{}); err == nil {
+	if _, err = ss.Channel().GetMembersByIds(m1.ChannelId, []string{}); err == nil {
 		t.Fatal("empty user ids - should have failed")
 	}
 }
