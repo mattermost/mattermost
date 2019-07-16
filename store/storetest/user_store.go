@@ -886,21 +886,21 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(0, 100, nil)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesWithoutTeam(0, 100, nil)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, users)
 	})
 
 	t.Run("get, offset 1, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(1, 1, nil)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u3)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesWithoutTeam(1, 1, nil)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u3)}, users)
 	})
 
 	t.Run("get, offset 2, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(2, 1, nil)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesWithoutTeam(2, 1, nil)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{}, users)
 	})
 }
 
