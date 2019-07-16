@@ -4,7 +4,6 @@
 package app
 
 import (
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -193,27 +192,28 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 func (a *App) SyncPlugins() *model.AppError {
 	mlog.Info("Synching plugins with the file store")
 
-	pluginDirs, err := ioutil.ReadDir(*a.Config().PluginSettings.Directory)
+	a.Srv.PluginsLock.RLock()
+	pluginsEnvironment := a.Srv.PluginsEnvironment
+	a.Srv.PluginsLock.RUnlock()
+
+	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return model.NewAppError("SyncPlugins", "app.plugin.sync.read_local_folder.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// Remove plugins locally to sync with file store.
-	for _, dir := range pluginDirs {
-		if !dir.IsDir() {
-			continue
-		}
+	for _, plugin := range availablePlugins {
+		pluginId := plugin.Manifest.Id
 
 		// Only handle managed plugins with .filestore flag file.
-		_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, dir.Name(), managedPluginFileName))
+		_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, pluginId, managedPluginFileName))
 		if os.IsNotExist(err) {
-			mlog.Warn("Found unmanaged plugin. Ignoring in plugin sync with the filestore.", mlog.String("plugin", dir.Name()))
+			mlog.Warn("Found unmanaged plugin. Ignoring in plugin sync with the filestore.", mlog.String("plugin", pluginId))
 		} else if err != nil {
-			mlog.Error("Error reading local plugin directoy. Skipped for sync.", mlog.String("folder", dir.Name()), mlog.Err(err))
+			mlog.Error("Error reading local plugin directoy. Skipped for sync.", mlog.String("folder", pluginId), mlog.Err(err))
 		} else {
-			mlog.Debug("Plugin Sync Uninstalling plugin locally", mlog.String("plugin", dir.Name()))
-			if err := a.removePluginLocally(dir.Name()); err != nil {
-				mlog.Error("Error uninstalling managed plugin during sync.", mlog.String("plugin", dir.Name()), mlog.Err(err))
+			mlog.Debug("Plugin Sync Uninstalling plugin locally", mlog.String("plugin", pluginId))
+			if err := a.removePluginLocally(pluginId); err != nil {
+				mlog.Error("Error uninstalling managed plugin during sync.", mlog.String("plugin", pluginId), mlog.Err(err))
 			}
 		}
 	}
