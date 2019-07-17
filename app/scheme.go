@@ -103,11 +103,11 @@ func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Team().GetTeamsByScheme(scheme.Id, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
+	teams, err := a.Srv.Store.Team().GetTeamsByScheme(scheme.Id, offset, limit)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.([]*model.Team), nil
+	return teams, nil
 }
 
 func (a *App) GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError) {

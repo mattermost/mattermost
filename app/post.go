@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -895,7 +896,9 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 }
 
 func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
-	channels := []store.StoreChannel{}
+	var wg sync.WaitGroup
+
+	pchan := make(chan store.StoreResult, len(paramsList))
 
 	for _, params := range paramsList {
 		// Don't allow users to search for everything.
@@ -903,12 +906,21 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 			continue
 		}
 		modifierFun(params)
-		channels = append(channels, a.Srv.Store.Post().Search(teamId, userId, params))
+		wg.Add(1)
+
+		go func(params *model.SearchParams) {
+			defer wg.Done()
+			postList, err := a.Srv.Store.Post().Search(teamId, userId, params)
+			pchan <- store.StoreResult{Data: postList, Err: err}
+		}(params)
 	}
 
+	wg.Wait()
+	close(pchan)
+
 	posts := model.NewPostList()
-	for _, channel := range channels {
-		result := <-channel
+
+	for result := range pchan {
 		if result.Err != nil {
 			return nil, result.Err
 		}
@@ -1000,6 +1012,10 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 	var err *model.AppError
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 
+	if !*a.Config().ServiceSettings.EnablePostSearch {
+		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
+	}
+
 	if a.IsESSearchEnabled() {
 		postSearchResults, err = a.esSearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
 		if err != nil {
@@ -1007,16 +1023,12 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		}
 	}
 
-	if !*a.Config().ServiceSettings.EnablePostSearch {
-		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
-	}
-
-	// Since we don't support paging we just return nothing for later pages
-	if page > 0 {
-		return model.MakePostSearchResults(model.NewPostList(), nil), nil
-	}
-
 	if !a.IsESSearchEnabled() || err != nil {
+		// Since we don't support paging for DB search, we just return nothing for later pages
+		if page > 0 {
+			return model.MakePostSearchResults(model.NewPostList(), nil), nil
+		}
+
 		includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 		posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
 			params.IncludeDeletedChannels = includeDeleted
@@ -1075,7 +1087,7 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 }
 
 func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
-	return a.Srv.Store.FileInfo().GetForPost(postId, fromMaster, true)
+	return a.Srv.Store.FileInfo().GetForPost(postId, fromMaster, false, true)
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {

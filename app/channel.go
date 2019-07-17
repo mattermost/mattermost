@@ -1842,8 +1842,7 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 					}
 				}
 			} else if notify == model.USER_NOTIFY_MENTION || channel.Type == model.CHANNEL_DIRECT {
-				if result := <-a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); result.Err == nil {
-					count := result.Data.(int64)
+				if count, err := a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); err == nil {
 					if count > 0 {
 						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
 					}
@@ -1913,8 +1912,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().PermanentDelete(channel.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Channel().PermanentDelete(channel.Id); err != nil {
+		return err
 	}
 
 	if a.IsESIndexingEnabled() {
