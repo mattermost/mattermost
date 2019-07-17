@@ -81,7 +81,7 @@ TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.1
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.0.0
