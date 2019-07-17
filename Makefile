@@ -481,6 +481,15 @@ debug-server: start-docker
 		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
+debug-server-headless: start-docker
+	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
+	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
+		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+
 run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
