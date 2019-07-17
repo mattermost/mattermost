@@ -220,34 +220,32 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	// Install plugins from the file store.
-	exists, appErr := a.FileExists(fileStorePluginFolder)
-	if appErr != nil {
-		return model.NewAppError("SyncPlugins", "app.plugin.sync.check_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-	}
-
-	if !exists {
-		return nil
-	}
-
 	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
 	if appErr != nil {
 		return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
+	if len(fileStorePaths) == 0 {
+		mlog.Info("Found no files in plugins file store")
+		return nil
+	}
 
 	for _, path := range fileStorePaths {
-		if strings.HasSuffix(path, ".tar.gz") {
-			var reader filesstore.ReadCloseSeeker
-			reader, appErr = a.FileReader(path)
-			if appErr != nil {
-				mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", path), mlog.Err(appErr))
-				continue
-			}
-			defer reader.Close()
+		if !strings.HasSuffix(path, ".tar.gz") {
+			mlog.Warn("Ignoring non-plugin in file store", mlog.String("bundle", path))
+			continue
+		}
 
-			mlog.Debug("Syncing plugin from file store", mlog.String("bundle", path))
-			if _, err := a.installPluginLocally(reader, true); err != nil {
-				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", path), mlog.Err(err))
-			}
+		var reader filesstore.ReadCloseSeeker
+		reader, appErr = a.FileReader(path)
+		if appErr != nil {
+			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", path), mlog.Err(appErr))
+			continue
+		}
+		defer reader.Close()
+
+		mlog.Info("Syncing plugin from file store", mlog.String("bundle", path))
+		if _, err := a.installPluginLocally(reader, true); err != nil {
+			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", path), mlog.Err(err))
 		}
 	}
 
