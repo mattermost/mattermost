@@ -231,7 +231,7 @@ func (a *App) SyncPlugins() *model.AppError {
 
 	for _, path := range fileStorePaths {
 		if !strings.HasSuffix(path, ".tar.gz") {
-			mlog.Info("Ignoring non-plugin in file store", mlog.String("bundle", path))
+			mlog.Warn("Ignoring non-plugin in file store", mlog.String("bundle", path))
 			continue
 		}
 
@@ -243,7 +243,7 @@ func (a *App) SyncPlugins() *model.AppError {
 		}
 		defer reader.Close()
 
-		mlog.Debug("Syncing plugin from file store", mlog.String("bundle", path))
+		mlog.Info("Syncing plugin from file store", mlog.String("bundle", path))
 		if _, err := a.installPluginLocally(reader, true); err != nil {
 			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", path), mlog.Err(err))
 		}

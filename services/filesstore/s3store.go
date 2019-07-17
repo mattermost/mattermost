@@ -240,13 +240,12 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) 
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
-	updatedPath := path
 	if !strings.HasSuffix(path, "/") && len(path) > 0 {
 		// s3Clnt returns only the path itself when "/" is not present
 		// appending "/" to make it consistent across all filesstores
-		updatedPath = path + "/"
+		path = path + "/"
 	}
-	for object := range s3Clnt.ListObjects(b.bucket, updatedPath, false, doneCh) {
+	for object := range s3Clnt.ListObjects(b.bucket, path, false, doneCh) {
 		if object.Err != nil {
 			return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, object.Err.Error(), http.StatusInternalServerError)
 		}
