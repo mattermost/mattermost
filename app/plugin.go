@@ -220,15 +220,6 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	// Install plugins from the file store.
-	exists, appErr := a.FileExists(fileStorePluginFolder)
-	if appErr != nil {
-		return model.NewAppError("SyncPlugins", "app.plugin.sync.check_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-	}
-	if !exists {
-		mlog.Info("Found no plugins folder in file store")
-		return nil
-	}
-
 	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
 	if appErr != nil {
 		return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
