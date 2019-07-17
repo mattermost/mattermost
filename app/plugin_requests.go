@@ -119,10 +119,25 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 			if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML && !csrfCheckPassed {
 				csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
+				sid := ""
+				userId := ""
+
+				if session != nil {
+					sid = session.Id
+					userId = session.UserId
+				}
+
+				fields := []mlog.Field{
+					mlog.String("path", r.URL.Path),
+					mlog.String("ip", r.RemoteAddr),
+					mlog.String("session_id", sid),
+					mlog.String("user_id", userId),
+				}
+
 				if *a.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-					a.Log.Warn(csrfErrorMessage)
+					a.Log.Warn(csrfErrorMessage, fields...)
 				} else {
-					a.Log.Debug(csrfErrorMessage)
+					a.Log.Debug(csrfErrorMessage, fields...)
 					csrfCheckPassed = true
 				}
 			}

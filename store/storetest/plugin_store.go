@@ -34,7 +34,7 @@ func testPluginSaveGet(t *testing.T, ss store.Store) {
 	}
 
 	defer func() {
-		<-ss.Plugin().Delete(kv.PluginId, kv.Key)
+		_ = ss.Plugin().Delete(kv.PluginId, kv.Key)
 	}()
 
 	if received, err := ss.Plugin().Get(kv.PluginId, kv.Key); err != nil {
@@ -74,7 +74,7 @@ func testPluginSaveGetExpiry(t *testing.T, ss store.Store) {
 	}
 
 	defer func() {
-		<-ss.Plugin().Delete(kv.PluginId, kv.Key)
+		_ = ss.Plugin().Delete(kv.PluginId, kv.Key)
 	}()
 
 	if received, err := ss.Plugin().Get(kv.PluginId, kv.Key); err != nil {
@@ -98,7 +98,7 @@ func testPluginSaveGetExpiry(t *testing.T, ss store.Store) {
 	}
 
 	defer func() {
-		<-ss.Plugin().Delete(kv.PluginId, kv.Key)
+		_ = ss.Plugin().Delete(kv.PluginId, kv.Key)
 	}()
 
 	if _, err := ss.Plugin().Get(kv.PluginId, kv.Key); err == nil {
@@ -114,8 +114,8 @@ func testPluginDelete(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if result := <-ss.Plugin().Delete(kv.PluginId, kv.Key); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Plugin().Delete(kv.PluginId, kv.Key); err != nil {
+		t.Fatal(err)
 	}
 }
 
