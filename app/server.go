@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
+	analytics "github.com/segmentio/analytics-go"
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
@@ -100,7 +101,9 @@ type Server struct {
 	clientConfig        map[string]string
 	clientConfigHash    string
 	limitedClientConfig map[string]string
-	diagnosticId        string
+
+	diagnosticId     string
+	diagnosticClient analytics.Client
 
 	phase2PermissionsMigrationComplete bool
 
@@ -234,8 +237,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
-	if result := <-s.Store.Status().ResetAll(); result.Err != nil {
-		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
+	if err := s.Store.Status().ResetAll(); err != nil {
+		mlog.Error(fmt.Sprint("Error to reset the server status.", err.Error()))
 	}
 
 	if s.joinCluster && s.Cluster != nil {
@@ -320,6 +323,11 @@ func (s *Server) Shutdown() error {
 	mlog.Info("Stopping Server...")
 
 	s.RunOldAppShutdown()
+
+	err := s.shutdownDiagnostics()
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Unable to cleanly shutdown diagnostic client: %s", err))
+	}
 
 	s.StopHTTPServer()
 	s.WaitForGoroutines()
@@ -733,4 +741,32 @@ func (s *Server) StartElasticsearch() {
 			})
 		}
 	})
+}
+
+func (s *Server) initDiagnostics(endpoint string) {
+	if s.diagnosticClient == nil {
+		config := analytics.Config{}
+		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "segment")))
+		// For testing
+		if endpoint != "" {
+			config.Endpoint = endpoint
+			config.Verbose = true
+			config.BatchSize = 1
+		}
+		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
+		client.Enqueue(&analytics.Identify{
+			UserId: s.diagnosticId,
+		})
+
+		s.diagnosticClient = client
+	}
+}
+
+// shutdownDiagnostics closes the diagnostic client.
+func (s *Server) shutdownDiagnostics() error {
+	if s.diagnosticClient != nil {
+		return s.diagnosticClient.Close()
+	}
+
+	return nil
 }

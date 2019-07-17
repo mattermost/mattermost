@@ -78,11 +78,10 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	if len(missingUserIds) > 0 {
-		result := <-a.Srv.Store.Status().GetByIds(missingUserIds)
-		if result.Err != nil {
-			return nil, result.Err
+		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
-		statuses := result.Data.([]*model.Status)
 
 		for _, s := range statuses {
 			a.AddStatusCacheSkipClusterSend(s)
@@ -126,11 +125,10 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	if len(missingUserIds) > 0 {
-		result := <-a.Srv.Store.Status().GetByIds(missingUserIds)
-		if result.Err != nil {
-			return nil, result.Err
+		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
-		statuses := result.Data.([]*model.Status)
 
 		for _, s := range statuses {
 			a.AddStatusCacheSkipClusterSend(s)
@@ -220,9 +218,8 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, err), mlog.String("user_id", userId))
 			}
 		} else {
-			schan := a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
-			if result := <-schan; result.Err != nil {
-				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("user_id", userId))
+			if err := a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
+				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, err), mlog.String("user_id", userId))
 			}
 		}
 	}
@@ -351,11 +348,7 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 		return status, nil
 	}
 
-	result := <-a.Srv.Store.Status().Get(userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Status), nil
+	return a.Srv.Store.Status().Get(userId)
 }
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {

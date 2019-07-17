@@ -31,6 +31,11 @@ func inSystemEmoji(emojiName string) bool {
 	return ok
 }
 
+func GetSystemEmojiId(emojiName string) (string, bool) {
+	id, found := SystemEmojis[emojiName]
+	return id, found
+}
+
 func (emoji *Emoji) IsValid() *AppError {
 	if len(emoji.Id) != 26 {
 		return NewAppError("Emoji.IsValid", "model.emoji.id.app_error", nil, "", http.StatusBadRequest)

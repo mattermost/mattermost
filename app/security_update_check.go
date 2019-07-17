@@ -69,10 +69,8 @@ func (s *Server) DoSecurityUpdateCheck() {
 			s.Store.System().Update(systemSecurityLastTime)
 		}
 
-		if ucr := <-s.Store.User().Count(model.UserCountOptions{
-			IncludeDeleted: true,
-		}); ucr.Err == nil {
-			v.Set(PROP_SECURITY_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+		if count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+			v.Set(PROP_SECURITY_USER_COUNT, strconv.FormatInt(count, 10))
 		}
 
 		if ucr, err := s.Store.Status().GetTotalActiveUsersCount(); err == nil {
@@ -96,12 +94,11 @@ func (s *Server) DoSecurityUpdateCheck() {
 		for _, bulletin := range bulletins {
 			if bulletin.AppliesToVersion == model.CurrentVersion {
 				if props["SecurityBulletin_"+bulletin.Id] == "" {
-					results := <-s.Store.User().GetSystemAdminProfiles()
-					if results.Err != nil {
+					users, userErr := s.Store.User().GetSystemAdminProfiles()
+					if userErr != nil {
 						mlog.Error("Failed to get system admins for security update information from Mattermost.")
 						return
 					}
-					users := results.Data.(map[string]*model.User)
 
 					resBody, err := http.Get(SECURITY_URL + "/bulletins/" + bulletin.Id)
 					if err != nil {
