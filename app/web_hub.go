@@ -246,6 +246,7 @@ func (a *App) InvalidateCacheForChannelMembers(channelId string) {
 func (a *App) InvalidateCacheForChannelMembersSkipClusterSend(channelId string) {
 	a.Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
 	a.Srv.Store.Channel().InvalidateMemberCount(channelId)
+	a.Srv.Store.Channel().InvalidateGuestCount(channelId)
 }
 
 func (a *App) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
