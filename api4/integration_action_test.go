@@ -43,7 +43,7 @@ func TestPostActionCookies(t *testing.T) {
 	Client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	handler := &testHandler{t}
@@ -99,7 +99,7 @@ func TestOpenDialog(t *testing.T) {
 	Client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
@@ -160,7 +160,7 @@ func TestSubmitDialog(t *testing.T) {
 	Client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	submit := model.SubmitDialogRequest{
