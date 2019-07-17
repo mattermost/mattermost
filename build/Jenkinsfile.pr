@@ -259,18 +259,27 @@ pipeline {
             }
         }
 
-        stage('Trigger docker image') {
+        stage('Build Docker Image') {
             environment {
                 GIT_COMMIT_SHORT = sh(
-                        script: "cd /tmp/mattermost-server && printf \$(git rev-parse --short HEAD)",
-                        returnStdout: true
+                    script: "cd /tmp/mattermost-server && printf \$(git rev-parse --short HEAD)",
+                    returnStdout: true
                 )
             }
             when {
                 expression { env.CHANGE_ID != null }
             }
             steps {
-                build job: '../../mk/mattermost-enterprise-edition-release', parameters: [string(name: 'RELEASE', value: "${CHANGE_ID}"), booleanParam(name: 'FROM_PR', value: true),string(name: 'PR_TAG', value: "${GIT_COMMIT_SHORT}")], propagate: false, wait: false
+                dir('src/github.com/mattermost/mattermost-server') {
+                    withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
+                        sh """
+                            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:${GIT_COMMIT_SHORT} build
+                            docker push mattermost/mattermost-enterprise-edition:${GIT_COMMIT_SHORT}
+                            docker logout
+                        """
+                    }
+                }
             }
         }
     }
