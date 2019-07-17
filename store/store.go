@@ -119,7 +119,7 @@ type TeamStore interface {
 	MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError)
 	ResetAllTeamSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() *model.AppError
-	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
+	AnalyticsGetTeamCountForScheme(schemeId string) (int64, *model.AppError)
 	GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError)
 	GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError)
 	UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError)
@@ -469,10 +469,10 @@ type TokenStore interface {
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
-	GetByName(name string) (*model.Emoji, *model.AppError)
+	GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError)
-	Delete(id string, time int64) *model.AppError
+	Delete(emoji *model.Emoji, time int64) *model.AppError
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
 }
 
