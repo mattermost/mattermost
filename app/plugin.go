@@ -160,7 +160,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 			if fileReader, err := os.Open(walkPath); err != nil {
 				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-			} else if _, err := a.InstallPlugin(fileReader, true); err != nil {
+			} else if _, err := a.installPluginLocally(fileReader, true); err != nil {
 				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
 			}
 
