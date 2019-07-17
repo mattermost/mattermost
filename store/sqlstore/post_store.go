@@ -335,7 +335,7 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
 	if allowFromCache {
-		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok && cacheItem.(int64) > 0 {
+		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
 			if s.metrics != nil {
 				s.metrics.IncrementMemCacheHitCounter("Last Post Time")
 			}
@@ -554,7 +554,7 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 
 	list := model.NewPostList()
 
-	var latestUpdate int64 = 0
+	latestUpdate := time
 
 	for _, p := range posts {
 		list.AddPost(p)
