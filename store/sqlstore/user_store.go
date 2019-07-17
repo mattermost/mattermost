@@ -563,12 +563,12 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int
 		LeftJoin("Status s ON ( s.UserId = u.Id )").
 		Where("cm.ChannelId = ?", channelId).
 		OrderBy(`
-				CASE s.Status
-					WHEN 'online' THEN 1
-					WHEN 'away' THEN 2
-					WHEN 'dnd' THEN 3
-					ELSE 4
-				END
+			CASE s.Status
+				WHEN 'online' THEN 1
+				WHEN 'away' THEN 2
+				WHEN 'dnd' THEN 3
+				ELSE 4
+			END
 			`).
 		OrderBy("u.Username ASC").
 		Offset(uint64(offset)).Limit(uint64(limit))
