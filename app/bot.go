@@ -233,7 +233,7 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 	}
 	fmt.Printf("--- bots.go.notify() -> sysAdmins = %+v\n", sysAdmins)
 
-	// for each sysadmin, notifiy of disabled bot
+	// for each sysadmin, notify user that owns bots was disabled
 	for _, sysAdmin := range sysAdmins {
 		fmt.Printf("--- bots.go.notify() -> sysAdmin.Username = %+v\n", sysAdmin.Username)
 		channel, appErr := a.GetOrCreateDirectChannel(sysAdmin.Id, sysAdmin.Id)
@@ -241,13 +241,11 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 			return appErr
 		}
 
-		// TODO : need to figure out who is actually goig to send this post.
-		// @system is not a 'user' and cannot post DMs
 		post := &model.Post{
 			UserId:    sysAdmin.Id,
 			ChannelId: channel.Id,
 			Message:   getDisableBotSysadminMessage(a.GetSiteURL(), user, userBots, botsDisabled),
-			// Type:      postType,
+			Type:      model.POST_SYSTEM_GENERIC,
 		}
 
 		_, appErr = a.CreatePost(post, channel, false)
