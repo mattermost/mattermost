@@ -275,7 +275,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		var fileInfos []*model.FileInfo
-		fileInfos, err = a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
+		fileInfos, err = a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, false)
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
