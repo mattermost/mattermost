@@ -532,6 +532,7 @@ func (s *Server) Start() error {
 
 	s.didFinishListen = make(chan struct{})
 	go func() {
+		os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
 		var err error
 		if *s.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 
@@ -545,6 +546,8 @@ func (s *Server) Start() error {
 				tlsConfig.MinVersion = tls.VersionTLS10
 			case "1.1":
 				tlsConfig.MinVersion = tls.VersionTLS11
+			case "1.3":
+				tlsConfig.MinVersion = tls.VersionTLS13
 			default:
 				tlsConfig.MinVersion = tls.VersionTLS12
 			}
