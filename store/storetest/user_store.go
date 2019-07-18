@@ -20,18 +20,9 @@ const (
 	MONTH_MILLISECONDS = 31 * DAY_MILLISECONDS
 )
 
-func cleanupStatusStore(t *testing.T, userIds []string, ss store.Store, s SqlSupplier) {
-	for _, userId := range userIds {
-		_, execerr := s.GetMaster().ExecNoTimeout(`
-			DELETE FROM
-					Status
-			WHERE
-					UserId = :UserId
-		`, map[string]interface{}{
-			"UserId": userId,
-		})
-		require.Nil(t, execerr)
-	}
+func cleanupStatusStore(t *testing.T, s SqlSupplier) {
+	_, execerr := s.GetMaster().ExecNoTimeout(` DELETE FROM Status `)
+	require.Nil(t, execerr)
 }
 
 func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
@@ -770,6 +761,9 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s SqlSupplier) {
+
+	cleanupStatusStore(t, s)
+
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -858,7 +852,6 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 		UserId: u3.Id,
 		Status: model.STATUS_ONLINE,
 	}))
-	defer cleanupStatusStore(t, []string{u1.Id, u2.Id, u3.Id}, ss, s)
 
 	t.Run("get in channel 1 by status, offset 0, limit 100", func(t *testing.T) {
 		result := <-ss.User().GetProfilesInChannelByStatus(c1.Id, 0, 100)
@@ -2025,6 +2018,9 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlSupplier) {
+
+	cleanupStatusStore(t, s)
+
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -2067,7 +2063,6 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s 
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u1.LastActivityAt, ActiveChannel: ""}))
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u2.LastActivityAt, ActiveChannel: ""}))
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
-	defer cleanupStatusStore(t, []string{u1.Id, u2.Id, u3.Id}, ss, s)
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
 		users, err := ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
@@ -3332,6 +3327,9 @@ func testCount(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSupplier) {
+
+	cleanupStatusStore(t, s)
+
 	// Create 5 users statuses u0, u1, u2, u3, u4.
 	// u4 is also a bot
 	u0Id := model.NewId()
@@ -3365,7 +3363,6 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSuppli
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
-	defer cleanupStatusStore(t, []string{u0Id, u1Id, u2Id, u3Id, u4.Id}, ss, s)
 
 	//NOTE: at during testing, there are currently 4 additional user statuses
 	//before this routine.
