@@ -40,8 +40,10 @@ func (a *App) InitPostMetadata() {
 
 func (a *App) PreparePostListForClient(originalList *model.PostList) *model.PostList {
 	list := &model.PostList{
-		Posts: make(map[string]*model.Post, len(originalList.Posts)),
-		Order: originalList.Order, // Note that this uses the original Order array, so it isn't a deep copy
+		Posts:      make(map[string]*model.Post, len(originalList.Posts)),
+		Order:      originalList.Order,
+		NextPostId: originalList.NextPostId,
+		PrevPostId: originalList.PrevPostId,
 	}
 
 	for id, originalPost := range originalList.Posts {
@@ -53,11 +55,35 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 	return list
 }
 
+// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
+// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
+func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
+	prop, ok := post.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+	if !ok || prop == nil {
+		return
+	}
+	emojiName := prop.(string)
+
+	if !*a.Config().ServiceSettings.EnablePostIconOverride || emojiName == "" {
+		return
+	}
+
+	if emojiUrl, err := a.GetEmojiStaticUrl(emojiName); err == nil {
+		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, emojiUrl)
+	} else {
+		mlog.Warn("Failed to retrieve URL for overriden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
+	}
+
+	return
+}
+
 func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
+
+	a.OverrideIconURLIfEmoji(post)
 
 	post.Metadata = &model.PostMetadata{}
 
@@ -450,9 +476,9 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 		metadata.Type = model.LINK_METADATA_TYPE_NONE
 	}
 
-	result := <-a.Srv.Store.LinkMetadata().Save(metadata)
-	if result.Err != nil {
-		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(result.Err))
+	_, err := a.Srv.Store.LinkMetadata().Save(metadata)
+	if err != nil {
+		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
 	}
 }
 

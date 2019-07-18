@@ -71,9 +71,8 @@ func TestLeaveTeam(t *testing.T) {
 		t.Fatal("profile should not be on team")
 	}
 
-	if result := <-th.App.Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id); result.Err != nil {
-		teamMembers := result.Data.([]*model.TeamMember)
-		if len(teamMembers) > 0 {
+	if teams, err := th.App.Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id); err != nil {
+		if len(teams) > 0 {
 			t.Fatal("Shouldn't be in team")
 		}
 	}
@@ -269,6 +268,28 @@ func TestRenameTeam(t *testing.T) {
 
 	if updatedTeam.DisplayName != "Brand New DName" {
 		t.Fatal("team Display Name was not properly updated")
+	}
+
+}
+
+func TestModifyTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	team := th.CreateTeam()
+
+	th.CheckCommand(t, "team", "modify", team.Name, "--private")
+
+	updatedTeam, _ := th.App.GetTeam(team.Id)
+
+	if !updatedTeam.AllowOpenInvite && team.Type == model.TEAM_INVITE {
+		t.Fatal("Failed modifying team's privacy to private")
+	}
+
+	th.CheckCommand(t, "team", "modify", team.Name, "--public")
+
+	if updatedTeam.AllowOpenInvite && team.Type == model.TEAM_OPEN {
+		t.Fatal("Failed modifying team's privacy to private")
 	}
 
 }

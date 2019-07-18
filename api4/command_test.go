@@ -294,6 +294,25 @@ func TestListCommands(t *testing.T) {
 			t.Fatal("Should not list the custom command")
 		}
 	})
+
+	t.Run("NoMember", func(t *testing.T) {
+		Client.Logout()
+		user := th.CreateUser()
+		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
+		Client.Login(user.Email, user.Password)
+		_, resp := Client.ListCommands(th.BasicTeam.Id, false)
+		CheckForbiddenStatus(t, resp)
+		_, resp = Client.ListCommands(th.BasicTeam.Id, true)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.ListCommands(th.BasicTeam.Id, false)
+		CheckUnauthorizedStatus(t, resp)
+		_, resp = Client.ListCommands(th.BasicTeam.Id, true)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestListAutocompleteCommands(t *testing.T) {
@@ -353,6 +372,21 @@ func TestListAutocompleteCommands(t *testing.T) {
 		if foundCustom {
 			t.Fatal("Should not list the custom command")
 		}
+	})
+
+	t.Run("NoMember", func(t *testing.T) {
+		Client.Logout()
+		user := th.CreateUser()
+		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
+		Client.Login(user.Email, user.Password)
+		_, resp := Client.ListAutocompleteCommands(th.BasicTeam.Id)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.ListAutocompleteCommands(th.BasicTeam.Id)
+		CheckUnauthorizedStatus(t, resp)
 	})
 }
 
@@ -593,7 +627,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	expectedCommandResponse := &model.CommandResponse{
@@ -643,7 +677,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	expectedCommandResponse := &model.CommandResponse{
@@ -698,7 +732,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	// create a team that the user isn't a part of
@@ -758,7 +792,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	// create a team that the user isn't a part of

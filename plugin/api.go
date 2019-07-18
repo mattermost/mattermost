@@ -456,37 +456,36 @@ type API interface {
 
 	// KV Store Section
 
-	// KVSet will store a key-value pair, unique per plugin.
+	// KVSet stores a key-value pair, unique per plugin.
 	// Provided helper functions and internal plugin code will use the prefix `mmi_` before keys. Do not use this prefix.
 	KVSet(key string, value []byte) *model.AppError
 
-	// KVCompareAndSet will update a key-value pair,
-	// unique per plugin, to the given new value if the current value == the old value.
+	// KVCompareAndSet updates a key-value pair, unique per plugin, but only if the current value matches the given oldValue.
 	// Inserts a new key if oldValue == nil.
 	// Returns (false, err) if DB error occurred
-	// Returns (false, nil) if current value != old value or key already exists when inserting
-	// Returns (true, nil) if current value == old value or new key is inserted
+	// Returns (false, nil) if current value != oldValue or key already exists when inserting
+	// Returns (true, nil) if current value == oldValue or new key is inserted
 	//
 	// Minimum server version: 5.12
 	KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError)
 
-	// KVSet will store a key-value pair, unique per plugin with an expiry time
+	// KVSet stores a key-value pair with an expiry time, unique per plugin.
 	//
 	// Minimum server version: 5.6
 	KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError
 
-	// KVGet will retrieve a value based on the key. Returns nil for non-existent keys.
+	// KVGet retrieves a value based on the key, unique per plugin. Returns nil for non-existent keys.
 	KVGet(key string) ([]byte, *model.AppError)
 
-	// KVDelete will remove a key-value pair. Returns nil for non-existent keys.
+	// KVDelete removes a key-value pair, unique per plugin. Returns nil for non-existent keys.
 	KVDelete(key string) *model.AppError
 
-	// KVDeleteAll will remove all key-value pairs for a plugin.
+	// KVDeleteAll removes all key-value pairs for a plugin.
 	//
 	// Minimum server version: 5.6
 	KVDeleteAll() *model.AppError
 
-	// KVList will list all keys for a plugin.
+	// KVList lists all keys for a plugin.
 	//
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
@@ -570,6 +569,22 @@ type API interface {
 	//
 	// Minimum server version: 5.10
 	PermanentDeleteBot(botUserId string) *model.AppError
+
+	// GetBotIconImage gets LHS bot icon image.
+	//
+	// Minimum server version: 5.14
+	GetBotIconImage(botUserId string) ([]byte, *model.AppError)
+
+	// SetBotIconImage sets LHS bot icon image.
+	// Icon image must be SVG format, all other formats are rejected.
+	//
+	// Minimum server version: 5.14
+	SetBotIconImage(botUserId string, data []byte) *model.AppError
+
+	// DeleteBotIconImage deletes LHS bot icon image.
+	//
+	// Minimum server version: 5.14
+	DeleteBotIconImage(botUserId string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

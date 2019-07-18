@@ -28,7 +28,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		return []string{}, nil
 	}
 
-	pchan := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
+	pchan := make(chan store.StoreResult, 1)
+	go func() {
+		props, err := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
+		pchan <- store.StoreResult{Data: props, Err: err}
+		close(pchan)
+	}()
 
 	cmnchan := make(chan store.StoreResult, 1)
 	go func() {
@@ -41,7 +46,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if len(post.FileIds) != 0 {
 		fchan = make(chan store.StoreResult, 1)
 		go func() {
-			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
 			fchan <- store.StoreResult{Data: fileInfos, Err: err}
 			close(fchan)
 		}()
@@ -136,8 +141,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		if len(m.OtherPotentialMentions) > 0 && !post.IsSystemMessage() {
-			if profilesResult := <-a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, &model.ViewUsersRestrictions{Teams: []string{team.Id}}); profilesResult.Err == nil {
-				channelMentions := model.UserSlice(profilesResult.Data.([]*model.User)).FilterByActive(true)
+			if users, err := a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, &model.ViewUsersRestrictions{Teams: []string{team.Id}}); err == nil {
+				channelMentions := model.UserSlice(users).FilterByActive(true)
 
 				var outOfChannelMentions model.UserSlice
 				var outOfGroupsMentions model.UserSlice
@@ -153,6 +158,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				} else {
 					outOfChannelMentions = channelMentions
 				}
+				outOfChannelMentions = outOfChannelMentions.FilterWithoutBots()
 
 				if channel.Type != model.CHANNEL_GROUP {
 					a.Srv.Go(func() {
@@ -177,10 +183,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
 		umc := make(chan *model.AppError, 1)
-		go func() {
-			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id)
+		go func(userId string) {
+			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, userId)
 			close(umc)
-		}()
+		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
 	}
 

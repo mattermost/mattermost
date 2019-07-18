@@ -18,6 +18,8 @@ const (
 	PER_PAGE_MAXIMUM      = 200
 	LOGS_PER_PAGE_DEFAULT = 10000
 	LOGS_PER_PAGE_MAXIMUM = 10000
+	LIMIT_DEFAULT         = 60
+	LIMIT_MAXIMUM         = 200
 )
 
 type Params struct {
@@ -68,6 +70,8 @@ type Params struct {
 	IncludeMemberCount     bool
 	NotAssociatedToGroup   string
 	ExcludeDefaultChannels bool
+	LimitAfter             int
+	LimitBefore            int
 	GroupIDs               string
 	IncludeTotalCount      bool
 }
@@ -224,6 +228,22 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.LogsPerPage = LOGS_PER_PAGE_MAXIMUM
 	} else {
 		params.LogsPerPage = val
+	}
+
+	if val, err := strconv.Atoi(query.Get("limit_after")); err != nil || val < 0 {
+		params.LimitAfter = LIMIT_DEFAULT
+	} else if val > LIMIT_MAXIMUM {
+		params.LimitAfter = LIMIT_MAXIMUM
+	} else {
+		params.LimitAfter = val
+	}
+
+	if val, err := strconv.Atoi(query.Get("limit_before")); err != nil || val < 0 {
+		params.LimitBefore = LIMIT_DEFAULT
+	} else if val > LIMIT_MAXIMUM {
+		params.LimitBefore = LIMIT_MAXIMUM
+	} else {
+		params.LimitBefore = val
 	}
 
 	if val, ok := props["syncable_id"]; ok {

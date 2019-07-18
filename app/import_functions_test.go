@@ -63,7 +63,7 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -74,7 +74,7 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -85,7 +85,7 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -96,10 +96,9 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -162,10 +161,9 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have succeeded: %v", err)
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -227,10 +225,9 @@ func TestImportImportScheme(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -276,7 +273,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -287,7 +284,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -298,7 +295,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+	if _, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err == nil {
 		t.Fatalf("Scheme should not have imported.")
 	}
 
@@ -309,10 +306,9 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -375,10 +371,9 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have succeeded: %v", err)
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -440,10 +435,9 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
+	if scheme, err := th.App.Srv.Store.Scheme().GetByName(*data.Name); err != nil {
+		t.Fatalf("Failed to import scheme: %v", err)
 	} else {
-		scheme := res.Data.(*model.Scheme)
 		assert.Equal(t, *data.Name, scheme.Name)
 		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 		assert.Equal(t, *data.Description, scheme.Description)
@@ -1515,12 +1509,8 @@ func TestImportImportUser(t *testing.T) {
 	err = th.App.ImportScheme(teamSchemeData, false)
 	assert.Nil(t, err)
 
-	var teamScheme *model.Scheme
-	if res := <-th.App.Srv.Store.Scheme().GetByName(*teamSchemeData.Name); res.Err != nil {
-		t.Fatalf("Failed to import scheme: %v", res.Err)
-	} else {
-		teamScheme = res.Data.(*model.Scheme)
-	}
+	teamScheme, err := th.App.Srv.Store.Scheme().GetByName(*teamSchemeData.Name)
+	require.Nil(t, err, "Failed to import scheme")
 
 	teamData := &TeamImportData{
 		Name:            ptrStr(model.NewId()),
@@ -2657,7 +2647,7 @@ func TestImportImportEmoji(t *testing.T) {
 	err := th.App.ImportEmoji(&data, true)
 	assert.NotNil(t, err, "Invalid emoji should have failed dry run")
 
-	emoji, err := th.App.Srv.Store.Emoji().GetByName(*data.Name)
+	emoji, err := th.App.Srv.Store.Emoji().GetByName(*data.Name, true)
 	assert.Nil(t, emoji, "Emoji should not have been imported")
 	assert.NotNil(t, err)
 
@@ -2677,7 +2667,7 @@ func TestImportImportEmoji(t *testing.T) {
 	err = th.App.ImportEmoji(&data, false)
 	assert.Nil(t, err, "Valid emoji should have succeeded apply mode")
 
-	emoji, err = th.App.Srv.Store.Emoji().GetByName(*data.Name)
+	emoji, err = th.App.Srv.Store.Emoji().GetByName(*data.Name, true)
 	assert.NotNil(t, emoji, "Emoji should have been imported")
 	assert.Nil(t, err, "Emoji should have been imported without any error")
 
