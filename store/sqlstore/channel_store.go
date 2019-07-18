@@ -1291,34 +1291,31 @@ var CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 		Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
 `
 
-func (s SqlChannelStore) SaveMember(member *model.ChannelMember) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		defer s.InvalidateAllChannelMembersForUser(member.UserId)
+func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	defer s.InvalidateAllChannelMembersForUser(member.UserId)
 
-		// Grab the channel we are saving this member to
-		channel, errCh := s.GetFromMaster(member.ChannelId)
-		if errCh != nil {
-			result.Err = errCh
-			return
-		}
+	// Grab the channel we are saving this member to
+	channel, errCh := s.GetFromMaster(member.ChannelId)
+	if errCh != nil {
+		return nil, errCh
+	}
 
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer finalizeTransaction(transaction)
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
 
-		*result = s.saveMemberT(transaction, member, channel)
-		if result.Err != nil {
-			return
-		}
+	storeResult := s.saveMemberT(transaction, member, channel)
+	if storeResult.Err != nil {
+		return nil, storeResult.Err
+	}
 
-		if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
+	if err := transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return storeResult.Data.(*model.ChannelMember), nil
 }
 
 func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *model.ChannelMember, channel *model.Channel) store.StoreResult {

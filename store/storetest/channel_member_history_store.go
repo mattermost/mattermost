@@ -207,11 +207,12 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	// available in the ChannelMemberHistory table. Instead, we'll fall back to the ChannelMembers table for a rough approximation
 	joinTime := int64(1000)
 	leaveTime := joinTime + 5000
-	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   channel.Id,
 		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-	}))
+	})
+	require.Nil(t, err)
 
 	// in every single case, the user will be included in the export, because ChannelMembers says they were in the channel at some point in
 	// the past, even though the time that they were actually in the channel doesn't necessarily overlap with the export period
