@@ -25,7 +25,7 @@ const managedPluginFileName = ".filestore"
 const fileStorePluginFolder = "plugins"
 
 func (a *App) InstallPluginFromData(data model.PluginEventData) {
-	mlog.Debug("Installing plugin from cluster message", mlog.String("plugin_id", data.Id))
+	mlog.Debug("Installing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
 	fileStorePath := a.getBundleStorePath(data.Id)
 	reader, appErr := a.FileReader(fileStorePath)
@@ -40,7 +40,7 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 }
 
 func (a *App) RemovePluginFromData(data model.PluginEventData) {
-	mlog.Debug("Uninstalling plugin from cluster message", mlog.String("plugin_id", data.Id))
+	mlog.Debug("Removing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
 	if err := a.removePluginLocally(data.Id); err != nil {
 		mlog.Error("Failed to remove plugin locally", mlog.Err(err), mlog.String("id", data.Id))
