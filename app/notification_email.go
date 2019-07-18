@@ -22,13 +22,12 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	post := notification.post
 
 	if channel.IsGroupOrDirect() {
-		result := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id)
-		if result.Err != nil {
-			return result.Err
+		teams, err := a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+		if err != nil {
+			return err
 		}
 
 		// if the recipient isn't in the current user's team, just pick one
-		teams := result.Data.([]*model.Team)
 		found := false
 
 		for i := range teams {
@@ -290,7 +289,7 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 	}
 
 	// extract the filenames from their paths and determine what type of files are attached
-	infos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+	infos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
 	if err != nil {
 		mlog.Warn(fmt.Sprintf("Encountered error when getting files for notification message, post_id=%v, err=%v", post.Id, err), mlog.String("post_id", post.Id))
 	}
