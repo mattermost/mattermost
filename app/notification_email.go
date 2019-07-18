@@ -288,17 +288,30 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 }
 
 func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) string {
-	r := regexp.MustCompile(`\~[-a-zA-Z0-9]+\b`)
+	var publicChannels *model.ChannelList
+	if team, err := a.GetTeamByName(teamName); err != nil {
+		mlog.Error(fmt.Sprintf("Encountered error while looking up team by name for %s", teamName))
+		return postMessage
+	} else {
+		if publicChannels, err = a.GetPublicChannelsForTeam(team.Id, 0, 100); err != nil {
+			mlog.Error(fmt.Sprintf("Encountered error while looking up Public Channels for Team: %s", teamName))
+			return postMessage
+		}
+	}
+
+	r := regexp.MustCompile(`\~[\w-]+\b`)
 	matches := r.FindAllString(postMessage, -1)
 	var channelURL, channelHyperLink string
+	channelNameMap := make(map[string]struct{})
 	for _, channelName := range matches {
-		ch, err := a.GetChannelByNameForTeamName(channelName[1:], teamName, true)
-		if ch == nil || err != nil {
-			mlog.Warn(fmt.Sprintf("Encountered error while generating hyperlink for %s, as channel with that name doesn't exist.", channelName[1:]))
-		} else {
+		channelNameMap[channelName[1:]] = struct{}{}
+	}
+
+	for _, ch := range *publicChannels {
+		if _, ok := channelNameMap[ch.DisplayName]; ok {
 			channelURL = teamURL + "/channels/" + ch.Name
 			channelHyperLink = fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.DisplayName)
-			postMessage = strings.Replace(postMessage, channelName, channelHyperLink, -1)
+			postMessage = strings.Replace(postMessage, "~"+ch.DisplayName, channelHyperLink, -1)
 		}
 	}
 	return postMessage

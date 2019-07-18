@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/utils"
@@ -498,4 +500,82 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 	if !strings.Contains(body, teamURL) {
 		t.Fatal("Expected email text '" + teamURL + "'. Got " + body)
 	}
+}
+
+func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ch := th.BasicChannel
+	recipient := th.BasicUser2
+	post := &model.Post{
+		Message: "This is the message ~" + ch.DisplayName,
+	}
+
+	senderName := th.BasicUser.Username
+	teamName := th.BasicTeam.Name
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := th.App.getNotificationEmailBody(recipient, post, ch,
+		ch.DisplayName, senderName, teamName, teamURL,
+		emailNotificationContentsType, true, translateFunc)
+	channelURL := teamURL + "/channels/" + ch.Name
+	mention := "~" + ch.DisplayName
+	assert.Contains(t, body, "<a href='"+channelURL+"'>"+mention+"</a>")
+}
+
+func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ch := th.CreatePrivateChannel(th.BasicTeam)
+	recipient := th.BasicUser2
+	post := &model.Post{
+		Message: "This is the message ~" + ch.DisplayName,
+	}
+
+	senderName := th.BasicUser.Username
+	teamName := ch.Name
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := th.App.getNotificationEmailBody(recipient, post, ch,
+		ch.DisplayName, senderName, teamName, teamURL,
+		emailNotificationContentsType, true, translateFunc)
+	channelURL := teamURL + "/channels/" + ch.Name
+	mention := "~" + ch.DisplayName
+	assert.NotContains(t, body, "<a href='"+channelURL+"'>"+mention+"</a>")
+}
+
+func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ch := th.BasicChannel
+	message := "This is the message "
+	mention := "~" + ch.DisplayName
+
+	teamName := th.BasicTeam.Name
+	teamURL := "http://localhost:8065/" + teamName
+
+	outMessage := th.App.generateHyperlinkForChannels(message+mention, teamName, teamURL)
+	channelURL := teamURL + "/channels/" + ch.Name
+	assert.Equal(t, outMessage, message+"<a href='"+channelURL+"'>"+mention+"</a>")
+}
+
+func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ch := th.CreatePrivateChannel(th.BasicTeam)
+	message := "This is the message ~" + ch.DisplayName
+
+	teamName := th.BasicTeam.Name
+	teamURL := "http://localhost:8065/" + teamName
+
+	outMessage := th.App.generateHyperlinkForChannels(message, teamName, teamURL)
+	assert.Equal(t, outMessage, message)
 }
