@@ -358,7 +358,7 @@ func TestPluginSync(t *testing.T) {
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 
-	// Check if uninstalled
+	// Check if removed
 	pluginStatus, err = env.Statuses()
 	require.Nil(t, err)
 	require.True(t, len(pluginStatus) == 0)
