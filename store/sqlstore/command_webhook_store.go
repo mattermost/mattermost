@@ -69,16 +69,14 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.Ap
 	return &webhook, nil
 }
 
-func (s SqlCommandWebhookStore) TryUse(id string, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if sqlResult, err := s.GetMaster().Exec("UPDATE CommandWebhooks SET UseCount = UseCount + 1 WHERE Id = :Id AND UseCount < :UseLimit", map[string]interface{}{"Id": id, "UseLimit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlCommandWebhookStore.TryUse", "store.sql_command_webhooks.try_use.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
-		} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-			result.Err = model.NewAppError("SqlCommandWebhookStore.TryUse", "store.sql_command_webhooks.try_use.invalid.app_error", nil, "id="+id, http.StatusBadRequest)
-		}
+func (s SqlCommandWebhookStore) TryUse(id string, limit int) *model.AppError {
+	if sqlResult, err := s.GetMaster().Exec("UPDATE CommandWebhooks SET UseCount = UseCount + 1 WHERE Id = :Id AND UseCount < :UseLimit", map[string]interface{}{"Id": id, "UseLimit": limit}); err != nil {
+		return model.NewAppError("SqlCommandWebhookStore.TryUse", "store.sql_command_webhooks.try_use.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
+	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
+		return model.NewAppError("SqlCommandWebhookStore.TryUse", "store.sql_command_webhooks.try_use.invalid.app_error", nil, "id="+id, http.StatusBadRequest)
+	}
 
-		result.Data = id
-	})
+	return nil
 }
 
 func (s SqlCommandWebhookStore) Cleanup() {

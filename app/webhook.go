@@ -589,10 +589,10 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 
 	if len(channelName) != 0 {
 		if channelName[0] == '@' {
-			if result := <-a.Srv.Store.User().GetByUsername(channelName[1:]); result.Err != nil {
-				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "err="+result.Err.Message, http.StatusBadRequest)
+			if result, err := a.Srv.Store.User().GetByUsername(channelName[1:]); err != nil {
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "err="+err.Message, http.StatusBadRequest)
 			} else {
-				if ch, err := a.GetOrCreateDirectChannel(hook.UserId, result.Data.(*model.User).Id); err != nil {
+				if ch, err := a.GetOrCreateDirectChannel(hook.UserId, result.Id); err != nil {
 					return err
 				} else {
 					channel = ch
@@ -699,8 +699,8 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		ParentId:  hook.ParentId,
 	}
 
-	if result := <-a.Srv.Store.CommandWebhook().TryUse(hook.Id, 5); result.Err != nil {
-		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.invalid.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
+	if err = a.Srv.Store.CommandWebhook().TryUse(hook.Id, 5); err != nil {
+		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.invalid.app_error", nil, "err="+err.Message, err.StatusCode)
 	}
 
 	_, err = a.HandleCommandResponse(cmd, args, response, false)
