@@ -119,7 +119,7 @@ type TeamStore interface {
 	MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError)
 	ResetAllTeamSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() *model.AppError
-	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
+	AnalyticsGetTeamCountForScheme(schemeId string) (int64, *model.AppError)
 	GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError)
 	GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError)
 	UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError)
@@ -158,7 +158,7 @@ type ChannelStore interface {
 	GetAll(teamId string) ([]*model.Channel, *model.AppError)
 	GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError)
 	GetForPost(postId string) (*model.Channel, *model.AppError)
-	SaveMember(member *model.ChannelMember) StoreChannel
+	SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError)
 	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
@@ -267,7 +267,7 @@ type UserStore interface {
 	GetProfilesInChannelByStatus(channelId string, offset int, limit int) StoreChannel
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError)
 	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
@@ -463,10 +463,10 @@ type TokenStore interface {
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
-	GetByName(name string) (*model.Emoji, *model.AppError)
+	GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError)
-	Delete(id string, time int64) *model.AppError
+	Delete(emoji *model.Emoji, time int64) *model.AppError
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
 }
 
@@ -486,7 +486,7 @@ type FileInfoStore interface {
 	Save(info *model.FileInfo) (*model.FileInfo, *model.AppError)
 	Get(id string) (*model.FileInfo, *model.AppError)
 	GetByPath(path string) (*model.FileInfo, *model.AppError)
-	GetForPost(postId string, readFromMaster bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
+	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
 	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
 	InvalidateFileInfosForPostCache(postId string)
 	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
@@ -538,7 +538,7 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)
 	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
-	Delete(pluginId, key string) StoreChannel
+	Delete(pluginId, key string) *model.AppError
 	DeleteAllForPlugin(PluginId string) *model.AppError
 	DeleteAllExpired() *model.AppError
 	List(pluginId string, page, perPage int) ([]string, *model.AppError)
