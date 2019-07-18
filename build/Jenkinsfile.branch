@@ -116,6 +116,9 @@ pipeline {
     }
 
     stage ('Build Docker mattermost-enterprise-edition') {
+      agent {
+        label 'default-mm-builder'
+      }
       steps {
         dir('src/github.com/mattermost/mattermost-server') {
           withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
