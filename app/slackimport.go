@@ -62,6 +62,7 @@ type SlackPost struct {
 	Comment     *SlackComment            `json:"comment"`
 	Upload      bool                     `json:"upload"`
 	File        *SlackFile               `json:"file"`
+	Files       []*SlackFile             `json:"files"`
 	Attachments []*model.SlackAttachment `json:"attachments"`
 }
 
@@ -250,8 +251,16 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
 			if sPost.Upload {
-				if fileInfo, ok := a.SlackUploadFile(sPost, uploads, teamId, newPost.ChannelId, newPost.UserId); ok {
-					newPost.FileIds = append(newPost.FileIds, fileInfo.Id)
+				if sPost.File != nil {
+					if fileInfo, ok := a.SlackUploadFile(sPost.File, uploads, teamId, newPost.ChannelId, newPost.UserId, sPost.TimeStamp); ok {
+						newPost.FileIds = append(newPost.FileIds, fileInfo.Id)
+					}
+				} else if sPost.Files != nil {
+					for _, file := range sPost.Files {
+						if fileInfo, ok := a.SlackUploadFile(file, uploads, teamId, newPost.ChannelId, newPost.UserId, sPost.TimeStamp); ok {
+							newPost.FileIds = append(newPost.FileIds, fileInfo.Id)
+						}
+					}
 				}
 			}
 			// If post in thread
@@ -418,27 +427,27 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 	}
 }
 
-func (a *App) SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId string, channelId string, userId string) (*model.FileInfo, bool) {
-	if sPost.File == nil {
+func (a *App) SlackUploadFile(slackPostFile *SlackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool) {
+	if slackPostFile == nil {
 		mlog.Warn("Slack Import: Unable to attach the file to the post as the latter has no file section present in Slack export.")
 		return nil, false
 	}
-	file, ok := uploads[sPost.File.Id]
+	file, ok := uploads[slackPostFile.Id]
 	if !ok {
-		mlog.Warn(fmt.Sprintf("Slack Import: Unable to import file %v as the file is missing from the Slack export zip file.", sPost.File.Id))
+		mlog.Warn(fmt.Sprintf("Slack Import: Unable to import file %v as the file is missing from the Slack export zip file.", slackPostFile.Id))
 		return nil, false
 	}
 	openFile, err := file.Open()
 	if err != nil {
-		mlog.Warn(fmt.Sprintf("Slack Import: Unable to open the file %v from the Slack export: %v.", sPost.File.Id, err.Error()))
+		mlog.Warn(fmt.Sprintf("Slack Import: Unable to open the file %v from the Slack export: %v.", slackPostFile.Id, err.Error()))
 		return nil, false
 	}
 	defer openFile.Close()
 
-	timestamp := utils.TimeFromMillis(SlackConvertTimeStamp(sPost.TimeStamp))
+	timestamp := utils.TimeFromMillis(SlackConvertTimeStamp(slackTimestamp))
 	uploadedFile, err := a.OldImportFile(timestamp, openFile, teamId, channelId, userId, filepath.Base(file.Name))
 	if err != nil {
-		mlog.Warn(fmt.Sprintf("Slack Import: An error occurred when uploading file %v: %v.", sPost.File.Id, err.Error()))
+		mlog.Warn(fmt.Sprintf("Slack Import: An error occurred when uploading file %v: %v.", slackPostFile.Id, err.Error()))
 		return nil, false
 	}
 

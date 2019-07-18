@@ -4100,3 +4100,89 @@ func (s *apiRPCServer) PermanentDeleteBot(args *Z_PermanentDeleteBotArgs, return
 	}
 	return nil
 }
+
+type Z_GetBotIconImageArgs struct {
+	A string
+}
+
+type Z_GetBotIconImageReturns struct {
+	A []byte
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
+	_args := &Z_GetBotIconImageArgs{botUserId}
+	_returns := &Z_GetBotIconImageReturns{}
+	if err := g.client.Call("Plugin.GetBotIconImage", _args, _returns); err != nil {
+		log.Printf("RPC call to GetBotIconImage API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetBotIconImage(args *Z_GetBotIconImageArgs, returns *Z_GetBotIconImageReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetBotIconImage(botUserId string) ([]byte, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetBotIconImage(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetBotIconImage called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SetBotIconImageArgs struct {
+	A string
+	B []byte
+}
+
+type Z_SetBotIconImageReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetBotIconImage(botUserId string, data []byte) *model.AppError {
+	_args := &Z_SetBotIconImageArgs{botUserId, data}
+	_returns := &Z_SetBotIconImageReturns{}
+	if err := g.client.Call("Plugin.SetBotIconImage", _args, _returns); err != nil {
+		log.Printf("RPC call to SetBotIconImage API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetBotIconImage(args *Z_SetBotIconImageArgs, returns *Z_SetBotIconImageReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetBotIconImage(botUserId string, data []byte) *model.AppError
+	}); ok {
+		returns.A = hook.SetBotIconImage(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SetBotIconImage called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeleteBotIconImageArgs struct {
+	A string
+}
+
+type Z_DeleteBotIconImageReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) DeleteBotIconImage(botUserId string) *model.AppError {
+	_args := &Z_DeleteBotIconImageArgs{botUserId}
+	_returns := &Z_DeleteBotIconImageReturns{}
+	if err := g.client.Call("Plugin.DeleteBotIconImage", _args, _returns); err != nil {
+		log.Printf("RPC call to DeleteBotIconImage API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeleteBotIconImage(args *Z_DeleteBotIconImageArgs, returns *Z_DeleteBotIconImageReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeleteBotIconImage(botUserId string) *model.AppError
+	}); ok {
+		returns.A = hook.DeleteBotIconImage(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API DeleteBotIconImage called but not implemented."))
+	}
+	return nil
+}

@@ -1197,9 +1197,11 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	store.Must(ss.Channel().SaveMember(cm1))
+	_, err = ss.Channel().SaveMember(cm1)
+	require.Nil(t, err)
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	store.Must(ss.Channel().SaveMember(cm2))
+	_, err = ss.Channel().SaveMember(cm2)
+	require.Nil(t, err)
 
 	if ms1, err := ss.Team().GetChannelUnreadsForAllTeams("", uid); err != nil {
 		t.Fatal(err)
@@ -1261,9 +1263,11 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	store.Must(ss.Channel().SaveMember(cm1))
+	_, err = ss.Channel().SaveMember(cm1)
+	require.Nil(t, err)
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	store.Must(ss.Channel().SaveMember(cm2))
+	_, err = ss.Channel().SaveMember(cm2)
+	require.Nil(t, err)
 
 	if ms, err := ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId); err != nil {
 		t.Fatal(err)
@@ -1413,14 +1417,13 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 	lastDoneUserId := strings.Repeat("0", 26)
 
 	for {
-		res := <-ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
-		if assert.Nil(t, res.Err) {
-			if res.Data == nil {
+		res, e := ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
+		if assert.Nil(t, e) {
+			if res == nil {
 				break
 			}
-			data := res.Data.(map[string]string)
-			lastDoneTeamId = data["TeamId"]
-			lastDoneUserId = data["UserId"]
+			lastDoneTeamId = res["TeamId"]
+			lastDoneUserId = res["UserId"]
 		}
 	}
 
@@ -1517,7 +1520,7 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m3, -1))
 	store.Must(ss.Team().SaveMember(m4, -1))
 
-	require.Nil(t, (<-ss.Team().ClearAllCustomRoleAssignments()).Err)
+	require.Nil(t, (ss.Team().ClearAllCustomRoleAssignments()))
 
 	r1, err := ss.Team().GetMember(m1.TeamId, m1.UserId)
 	require.Nil(t, err)
@@ -1546,7 +1549,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	s1, err := ss.Scheme().Save(s1)
 	require.Nil(t, err)
 
-	count1 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	count1, err := ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(0), count1)
 
 	t1 := &model.Team{
@@ -1559,7 +1563,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(t1)
 	require.Nil(t, err)
 
-	count2 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	count2, err := ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(1), count2)
 
 	t2 := &model.Team{
@@ -1572,7 +1577,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(t2)
 	require.Nil(t, err)
 
-	count3 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	count3, err := ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(2), count3)
 
 	t3 := &model.Team{
@@ -1584,7 +1590,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(t3)
 	require.Nil(t, err)
 
-	count4 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	count4, err := ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(2), count4)
 
 	t4 := &model.Team{
@@ -1598,7 +1605,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(t4)
 	require.Nil(t, err)
 
-	count5 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	count5, err := ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(2), count5)
 }
 

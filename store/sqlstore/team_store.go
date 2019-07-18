@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
@@ -802,70 +801,65 @@ func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) (
 // in batches as a single transaction per batch to ensure consistency but to also minimise execution time to avoid
 // causing unnecessary table locks. **THIS FUNCTION SHOULD NOT BE USED FOR ANY OTHER PURPOSE.** Executing this function
 // *after* the new Schemes functionality has been used on an installation will have unintended consequences.
-func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var transaction *gorp.Transaction
-		var err error
+func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError) {
+	var transaction *gorp.Transaction
+	var err error
 
-		if transaction, err = s.GetMaster().Begin(); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
+	if transaction, err = s.GetMaster().Begin(); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	var teamMembers []teamMember
+	if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if len(teamMembers) == 0 {
+		// No more team members in query result means that the migration has finished.
+		return nil, nil
+	}
+
+	for _, member := range teamMembers {
+		roles := strings.Fields(member.Roles)
+		var newRoles []string
+		if !member.SchemeAdmin.Valid {
+			member.SchemeAdmin = sql.NullBool{Bool: false, Valid: true}
 		}
-		defer finalizeTransaction(transaction)
-
-		var teamMembers []teamMember
-		if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.select.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
+		if !member.SchemeUser.Valid {
+			member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
 		}
-
-		if len(teamMembers) == 0 {
-			// No more team members in query result means that the migration has finished.
-			return
+		if !member.SchemeGuest.Valid {
+			member.SchemeGuest = sql.NullBool{Bool: false, Valid: true}
 		}
+		for _, role := range roles {
+			if role == model.TEAM_ADMIN_ROLE_ID {
+				member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
+			} else if role == model.TEAM_USER_ROLE_ID {
+				member.SchemeUser = sql.NullBool{Bool: true, Valid: true}
+			} else if role == model.TEAM_GUEST_ROLE_ID {
+				member.SchemeGuest = sql.NullBool{Bool: true, Valid: true}
+			} else {
+				newRoles = append(newRoles, role)
+			}
+		}
+		member.Roles = strings.Join(newRoles, " ")
 
-		for _, member := range teamMembers {
-			roles := strings.Fields(member.Roles)
-			var newRoles []string
-			if !member.SchemeAdmin.Valid {
-				member.SchemeAdmin = sql.NullBool{Bool: false, Valid: true}
-			}
-			if !member.SchemeUser.Valid {
-				member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
-			}
-			if !member.SchemeGuest.Valid {
-				member.SchemeGuest = sql.NullBool{Bool: false, Valid: true}
-			}
-			for _, role := range roles {
-				if role == model.TEAM_ADMIN_ROLE_ID {
-					member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
-				} else if role == model.TEAM_USER_ROLE_ID {
-					member.SchemeUser = sql.NullBool{Bool: true, Valid: true}
-				} else if role == model.TEAM_GUEST_ROLE_ID {
-					member.SchemeGuest = sql.NullBool{Bool: true, Valid: true}
-				} else {
-					newRoles = append(newRoles, role)
-				}
-			}
-			member.Roles = strings.Join(newRoles, " ")
-
-			if _, err := transaction.Update(&member); err != nil {
-				result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
+		if _, err := transaction.Update(&member); err != nil {
+			return nil, model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	}
 
-		data := make(map[string]string)
-		data["TeamId"] = teamMembers[len(teamMembers)-1].TeamId
-		data["UserId"] = teamMembers[len(teamMembers)-1].UserId
-		result.Data = data
-	})
+	if err := transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	data := make(map[string]string)
+	data["TeamId"] = teamMembers[len(teamMembers)-1].TeamId
+	data["UserId"] = teamMembers[len(teamMembers)-1].UserId
+
+	return data, nil
 }
 
 func (s SqlTeamStore) ResetAllTeamSchemes() *model.AppError {
@@ -891,73 +885,67 @@ func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {
 	}
 }
 
-func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		builtInRoles := model.MakeDefaultRoles()
-		lastUserId := strings.Repeat("0", 26)
-		lastTeamId := strings.Repeat("0", 26)
+func (s SqlTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 
-		for {
-			var transaction *gorp.Transaction
-			var err error
+	builtInRoles := model.MakeDefaultRoles()
+	lastUserId := strings.Repeat("0", 26)
+	lastTeamId := strings.Repeat("0", 26)
 
-			if transaction, err = s.GetMaster().Begin(); err != nil {
-				result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			defer finalizeTransaction(transaction)
+	for {
+		var transaction *gorp.Transaction
+		var err error
 
-			var teamMembers []*teamMember
-			if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:TeamId, :UserId) ORDER BY TeamId, UserId LIMIT 1000", map[string]interface{}{"TeamId": lastTeamId, "UserId": lastUserId}); err != nil {
-				result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			}
+		if transaction, err = s.GetMaster().Begin(); err != nil {
+			return model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		defer finalizeTransaction(transaction)
 
-			if len(teamMembers) == 0 {
-				break
-			}
+		var teamMembers []*teamMember
+		if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:TeamId, :UserId) ORDER BY TeamId, UserId LIMIT 1000", map[string]interface{}{"TeamId": lastTeamId, "UserId": lastUserId}); err != nil {
+			return model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 
-			for _, member := range teamMembers {
-				lastUserId = member.UserId
-				lastTeamId = member.TeamId
+		if len(teamMembers) == 0 {
+			break
+		}
 
-				var newRoles []string
+		for _, member := range teamMembers {
+			lastUserId = member.UserId
+			lastTeamId = member.TeamId
 
-				for _, role := range strings.Fields(member.Roles) {
-					for name := range builtInRoles {
-						if name == role {
-							newRoles = append(newRoles, role)
-							break
-						}
-					}
-				}
+			var newRoles []string
 
-				newRolesString := strings.Join(newRoles, " ")
-				if newRolesString != member.Roles {
-					if _, err := transaction.Exec("UPDATE TeamMembers SET Roles = :Roles WHERE UserId = :UserId AND TeamId = :TeamId", map[string]interface{}{"Roles": newRolesString, "TeamId": member.TeamId, "UserId": member.UserId}); err != nil {
-						result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.update.app_error", nil, err.Error(), http.StatusInternalServerError)
-						return
+			for _, role := range strings.Fields(member.Roles) {
+				for name := range builtInRoles {
+					if name == role {
+						newRoles = append(newRoles, role)
+						break
 					}
 				}
 			}
 
-			if err := transaction.Commit(); err != nil {
-				result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
+			newRolesString := strings.Join(newRoles, " ")
+			if newRolesString != member.Roles {
+				if _, err := transaction.Exec("UPDATE TeamMembers SET Roles = :Roles WHERE UserId = :UserId AND TeamId = :TeamId", map[string]interface{}{"Roles": newRolesString, "TeamId": member.TeamId, "UserId": member.UserId}); err != nil {
+					return model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
 			}
 		}
-	})
+
+		if err := transaction.Commit(); err != nil {
+			return model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return nil
 }
 
-func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		count, err := s.GetReplica().SelectInt("SELECT count(*) FROM Teams WHERE SchemeId = :SchemeId AND DeleteAt = 0", map[string]interface{}{"SchemeId": schemeId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.AnalyticsGetTeamCountForScheme", "store.sql_team.analytics_get_team_count_for_scheme.app_error", nil, "schemeId="+schemeId+" "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = count
-	})
+func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, *model.AppError) {
+	count, err := s.GetReplica().SelectInt("SELECT count(*) FROM Teams WHERE SchemeId = :SchemeId AND DeleteAt = 0", map[string]interface{}{"SchemeId": schemeId})
+	if err != nil {
+		return 0, model.NewAppError("SqlTeamStore.AnalyticsGetTeamCountForScheme", "store.sql_team.analytics_get_team_count_for_scheme.app_error", nil, "schemeId="+schemeId+" "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
 }
 
 func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError) {
@@ -1048,20 +1036,18 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMembe
 }
 
 func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError) {
-	props := make(map[string]interface{})
-	props["UserId"] = userId
-	idQuery := ""
-
-	for index, teamId := range teamIds {
-		if len(idQuery) > 0 {
-			idQuery += ", "
-		}
-
-		props["teamId"+strconv.Itoa(index)] = teamId
-		idQuery += ":teamId" + strconv.Itoa(index)
+	idQuery := sq.Eq{
+		"UserId":   userId,
+		"TeamId":   teamIds,
+		"DeleteAt": 0,
 	}
 
-	c, err := s.GetReplica().SelectInt("SELECT Count(*) FROM TeamMembers WHERE UserId = :UserId AND TeamId IN ("+idQuery+") AND DeleteAt = 0", props)
+	query, params, err := s.getQueryBuilder().Select("Count(*)").From("TeamMembers").Where(idQuery).ToSql()
+	if err != nil {
+		return false, model.NewAppError("SqlTeamStore.UserBelongsToTeams", "store.sql_team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	c, err := s.GetReplica().SelectInt(query, params...)
 	if err != nil {
 		return false, model.NewAppError("SqlTeamStore.UserBelongsToTeams", "store.sql_team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

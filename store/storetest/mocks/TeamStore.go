@@ -14,19 +14,26 @@ type TeamStore struct {
 }
 
 // AnalyticsGetTeamCountForScheme provides a mock function with given fields: schemeId
-func (_m *TeamStore) AnalyticsGetTeamCountForScheme(schemeId string) store.StoreChannel {
+func (_m *TeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, *model.AppError) {
 	ret := _m.Called(schemeId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
 		r0 = rf(schemeId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(schemeId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // AnalyticsTeamCount provides a mock function with given fields:
@@ -53,15 +60,15 @@ func (_m *TeamStore) AnalyticsTeamCount() (int64, *model.AppError) {
 }
 
 // ClearAllCustomRoleAssignments provides a mock function with given fields:
-func (_m *TeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
+func (_m *TeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -650,19 +657,28 @@ func (_m *TeamStore) InvalidateAllTeamIdsForUser(userId string) {
 }
 
 // MigrateTeamMembers provides a mock function with given fields: fromTeamId, fromUserId
-func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) store.StoreChannel {
+func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError) {
 	ret := _m.Called(fromTeamId, fromUserId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
 		r0 = rf(fromTeamId, fromUserId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(map[string]string)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(fromTeamId, fromUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // PermanentDelete provides a mock function with given fields: teamId

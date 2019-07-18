@@ -46,7 +46,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if len(post.FileIds) != 0 {
 		fchan = make(chan store.StoreResult, 1)
 		go func() {
-			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
 			fchan <- store.StoreResult{Data: fileInfos, Err: err}
 			close(fchan)
 		}()
@@ -158,6 +158,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				} else {
 					outOfChannelMentions = channelMentions
 				}
+				outOfChannelMentions = outOfChannelMentions.FilterWithoutBots()
 
 				if channel.Type != model.CHANNEL_GROUP {
 					a.Srv.Go(func() {
@@ -182,10 +183,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
 		umc := make(chan *model.AppError, 1)
-		go func() {
-			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id)
+		go func(userId string) {
+			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, userId)
 			close(umc)
-		}()
+		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
 	}
 

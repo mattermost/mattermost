@@ -122,6 +122,19 @@ func (a *App) RemoveFile(path string) *model.AppError {
 	return backend.RemoveFile(path)
 }
 
+func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return nil, err
+	}
+	paths, err := backend.ListDirectory(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return *paths, nil
+}
+
 func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename string) *model.FileInfo {
 	// Find the path from the Filename of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
 	split := strings.SplitN(filename, "/", 5)
@@ -275,7 +288,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		var fileInfos []*model.FileInfo
-		fileInfos, err = a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
+		fileInfos, err = a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, false)
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
