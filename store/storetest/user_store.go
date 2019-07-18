@@ -846,9 +846,9 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get in channel 2 by status, offset 0, limit 1", func(t *testing.T) {
-		user, err := ss.User().GetProfilesInChannelByStatus(c2.Id, 0, 1)
+		users, err := ss.User().GetProfilesInChannelByStatus(c2.Id, 0, 1)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.User{sanitized(u1)}, user)
+		assert.Equal(t, []*model.User{sanitized(u1)}, users)
 	})
 }
 
