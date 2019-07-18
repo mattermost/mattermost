@@ -158,7 +158,7 @@ type ChannelStore interface {
 	GetAll(teamId string) ([]*model.Channel, *model.AppError)
 	GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError)
 	GetForPost(postId string) (*model.Channel, *model.AppError)
-	SaveMember(member *model.ChannelMember) StoreChannel
+	SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError)
 	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
