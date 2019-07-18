@@ -23,6 +23,9 @@ func (a *App) RegisterAllClusterMessageHandlers() {
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER_TEAMS, a.ClusterInvalidateCacheForUserTeamsHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER, a.ClusterClearSessionCacheForUserHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS, a.ClusterClearSessionCacheForAllUsersHandler)
+	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INSTALL_PLUGIN, a.ClusterInstallPluginHandler)
+	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_REMOVE_PLUGIN, a.ClusterRemovePluginHandler)
+
 }
 
 func (a *App) ClusterPublishHandler(msg *model.ClusterMessage) {
@@ -77,4 +80,12 @@ func (a *App) ClusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) 
 
 func (a *App) ClusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMessage) {
 	a.ClearSessionCacheForAllUsersSkipClusterSend()
+}
+
+func (a *App) ClusterInstallPluginHandler(msg *model.ClusterMessage) {
+	a.InstallPluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
+}
+
+func (a *App) ClusterRemovePluginHandler(msg *model.ClusterMessage) {
+	a.RemovePluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
 }
