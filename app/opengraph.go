@@ -19,7 +19,7 @@ const MaxOpenGraphResponseSize = 1024 * 1024 * 50
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
 	if err != nil {
-		mlog.Warn("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Err(err))
+		mlog.Debug("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Err(err))
 		return nil
 	}
 	defer res.Body.Close()
