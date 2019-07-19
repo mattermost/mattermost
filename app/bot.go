@@ -197,6 +197,7 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 
 	botsDisabled := *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
 	fmt.Printf("--- bots.go.notify() -> botsDisabled = %+v\n", botsDisabled)
+
 	perPage := 20
 	options := &model.BotGetOptions{
 		OwnerId:        userId,
@@ -231,11 +232,27 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("--- bots.go.notify() -> sysAdmins = %+v\n", sysAdmins)
 
 	// for each sysadmin, notify user that owns bots was disabled
 	for _, sysAdmin := range sysAdmins {
+
 		fmt.Printf("--- bots.go.notify() -> sysAdmin.Username = %+v\n", sysAdmin.Username)
+
+		// get teams for sysadmin
+		teams, err := a.GetTeamsForUser(sysAdmin.Id)
+		if err != nil {
+			return (err)
+		}
+
+		// sysadmin is not on any teams
+		if len(teams) == 0 {
+			return nil
+		}
+
+		// use first team for hard-coded link for now
+		team := teams[0]
+		fmt.Printf("team[0] = %+v\n", team)
+
 		channel, appErr := a.GetOrCreateDirectChannel(sysAdmin.Id, sysAdmin.Id)
 		if appErr != nil {
 			return appErr
@@ -244,7 +261,7 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 		post := &model.Post{
 			UserId:    sysAdmin.Id,
 			ChannelId: channel.Id,
-			Message:   getDisableBotSysadminMessage(a.GetSiteURL(), user, userBots, botsDisabled),
+			Message:   getDisableBotSysadminMessage(a.GetSiteURL(), user, team, userBots, botsDisabled),
 			Type:      model.POST_SYSTEM_GENERIC,
 		}
 
@@ -257,18 +274,17 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 	return nil
 }
 
-func getDisableBotSysadminMessage(siteURL string, user *model.User, userBots model.BotList, botsDisabled bool) string {
+func getDisableBotSysadminMessage(siteURL string, user *model.User, team *model.Team, userBots model.BotList, botsDisabled bool) string {
 
 	message := fmt.Sprintf("%v was deactivated. The user managed the following bot accounts which have now been disabled.\n\n", user.Username)
 
-	fmt.Printf("userBots = %+v\n", userBots)
 	for _, bot := range userBots {
 		message += fmt.Sprintf("* %v\n", bot.Username)
 	}
 	if botsDisabled {
-		message += fmt.Sprintf("Do not worry - you can take ownership of each bot by enabling it at [Integrations > Bot Accounts](%v/%v/integrations/bots) and creating new tokens for the bot.\n\n", siteURL, "team")
+		message += fmt.Sprintf("Do not worry - you can take ownership of each bot by enabling it at [Integrations > Bot Accounts](%v/%v/integrations/bots) and creating new tokens for the bot.\n\n", siteURL, team.Name)
 	} else {
-		message += fmt.Sprintf("We strongly recommend you to take ownership of the bot by re-enabling it at Integrations > Bot Accounts and creating new tokens for the bot.\n\n")
+		message += fmt.Sprintf("We strongly recommend you to take ownership of the bot by re-enabling it at [Integrations > Bot Accounts](%v/%v/integrations/bots) and creating new tokens for the bot.\n\n", siteURL, team.Name)
 		message += fmt.Sprintf("If you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in System Console > Custom Integrations > Bot Accounts to true.\n\n")
 	}
 
