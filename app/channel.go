@@ -93,9 +93,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
 
-		if cmResult := <-a.Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
-			err = cmResult.Err
-		}
+		_, err = a.Srv.Store.Channel().SaveMember(cm)
 		if histErr := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
 			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", histErr))
 		}
@@ -240,8 +238,8 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
 
-		if cmresult := <-a.Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
-			return nil, cmresult.Err
+		if _, err := a.Srv.Store.Channel().SaveMember(cm); err != nil {
+			return nil, err
 		}
 		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); err != nil {
 			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
@@ -466,8 +464,8 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 			SchemeUser:  !user.IsGuest(),
 		}
 
-		if result := <-a.Srv.Store.Channel().SaveMember(cm); result.Err != nil {
-			return nil, result.Err
+		if _, err := a.Srv.Store.Channel().SaveMember(cm); err != nil {
+			return nil, err
 		}
 		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
 			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
@@ -918,8 +916,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		SchemeGuest: user.IsGuest(),
 		SchemeUser:  !user.IsGuest(),
 	}
-	if result := <-a.Srv.Store.Channel().SaveMember(newMember); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err), mlog.String("user_id", user.Id))
+	if _, err = a.Srv.Store.Channel().SaveMember(newMember); err != nil {
+		mlog.Error(fmt.Sprintf("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, err), mlog.String("user_id", user.Id))
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusInternalServerError)
 	}
 	a.WaitForChannelMembership(channel.Id, user.Id)

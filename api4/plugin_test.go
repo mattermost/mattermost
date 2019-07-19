@@ -14,8 +14,10 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/testlib"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPlugin(t *testing.T) {
@@ -233,4 +235,76 @@ func TestPlugin(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.RemovePlugin("bad.id")
 	CheckBadRequestStatus(t, resp)
+}
+
+func TestNotifyClusterPluginEvent(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	testCluster := &testlib.FakeClusterInterface{}
+	th.Server.Cluster = testCluster
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Successful upload
+	manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	CheckNoError(t, resp)
+	require.Equal(t, "testplugin", manifest.Id)
+
+	// Stored in File Store: Upload Plugin case
+	expectedPath := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
+	pluginStored, err := th.App.FileExists(expectedPath)
+	require.Nil(t, err)
+	require.True(t, pluginStored)
+
+	expectedPluginData := model.PluginEventData{
+		Id: manifest.Id,
+	}
+	expectedInstallMessage := &model.ClusterMessage{
+		Event:            model.CLUSTER_EVENT_INSTALL_PLUGIN,
+		SendType:         model.CLUSTER_SEND_RELIABLE,
+		WaitForAllToSend: true,
+		Data:             expectedPluginData.ToJson(),
+	}
+	expectedMessages := findClusterMessages(model.CLUSTER_EVENT_INSTALL_PLUGIN, testCluster.GetMessages())
+	require.Equal(t, []*model.ClusterMessage{expectedInstallMessage}, expectedMessages)
+
+	// Successful remove
+	testCluster.ClearMessages()
+
+	ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
+	CheckNoError(t, resp)
+	require.True(t, ok)
+
+	expectedRemoveMessage := &model.ClusterMessage{
+		Event:            model.CLUSTER_EVENT_REMOVE_PLUGIN,
+		SendType:         model.CLUSTER_SEND_RELIABLE,
+		WaitForAllToSend: true,
+		Data:             expectedPluginData.ToJson(),
+	}
+	expectedMessages = findClusterMessages(model.CLUSTER_EVENT_REMOVE_PLUGIN, testCluster.GetMessages())
+	require.Equal(t, []*model.ClusterMessage{expectedRemoveMessage}, expectedMessages)
+
+	pluginStored, err = th.App.FileExists(expectedPath)
+	require.Nil(t, err)
+	require.False(t, pluginStored)
+}
+
+func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.ClusterMessage {
+	var result []*model.ClusterMessage
+	for _, msg := range msgs {
+		if msg.Event == event {
+			result = append(result, msg)
+		}
+	}
+	return result
 }

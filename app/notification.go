@@ -158,6 +158,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				} else {
 					outOfChannelMentions = channelMentions
 				}
+				outOfChannelMentions = outOfChannelMentions.FilterWithoutBots()
 
 				if channel.Type != model.CHANNEL_GROUP {
 					a.Srv.Go(func() {

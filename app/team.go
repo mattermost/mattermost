@@ -183,6 +183,24 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 	return oldTeam, nil
 }
 
+func (a *App) UpdateTeamPrivacy(teamId string, teamType string, allowOpenInvite bool) *model.AppError {
+	oldTeam, err := a.GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	oldTeam.Type = teamType
+	oldTeam.AllowOpenInvite = allowOpenInvite
+
+	if oldTeam, err = a.Srv.Store.Team().Update(oldTeam); err != nil {
+		return err
+	}
+
+	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+
+	return nil
+}
+
 func (a *App) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
 	team, err := a.GetTeam(teamId)
 	if err != nil {

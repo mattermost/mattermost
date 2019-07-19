@@ -81,7 +81,7 @@ TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.1
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.0.0
@@ -475,6 +475,15 @@ run-server: validate-go-version start-docker ## Starts the server.
 debug-server: start-docker
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
+		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+
+debug-server-headless: start-docker
+	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
+	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
 		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
 		-X \"github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)\"\
 		-X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
