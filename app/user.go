@@ -932,8 +932,6 @@ func (a *App) userDeactivated(user *model.User) *model.AppError {
 		return err
 	}
 
-	fmt.Printf("--- user.go.userDeactivated() -> user.Username = %+v\n", user.Username)
-
 	a.SetStatusOffline(user.Id, false)
 
 	// when disable a user, this userDeactivated is called or the user and the

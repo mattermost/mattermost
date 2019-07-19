@@ -196,7 +196,6 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 
 	botsDisabled := *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
-	fmt.Printf("--- bots.go.notify() -> botsDisabled = %+v\n", botsDisabled)
 
 	perPage := 20
 	options := &model.BotGetOptions{
@@ -211,11 +210,12 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 		return err
 	}
 
+	// user does not own bots
 	if len(userBots) == 0 {
 		return nil
 	}
-	fmt.Printf("--- bots.go.notify() -> userBots = %+v\n", userBots)
 
+	// user being disabled
 	user, err := a.GetUser(userId)
 	if err != nil {
 		return err
@@ -236,8 +236,6 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 	// for each sysadmin, notify user that owns bots was disabled
 	for _, sysAdmin := range sysAdmins {
 
-		fmt.Printf("--- bots.go.notify() -> sysAdmin.Username = %+v\n", sysAdmin.Username)
-
 		// get teams for sysadmin
 		teams, err := a.GetTeamsForUser(sysAdmin.Id)
 		if err != nil {
@@ -251,7 +249,6 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 
 		// use first team for hard-coded link for now
 		team := teams[0]
-		fmt.Printf("team[0] = %+v\n", team)
 
 		channel, appErr := a.GetOrCreateDirectChannel(sysAdmin.Id, sysAdmin.Id)
 		if appErr != nil {
