@@ -62,8 +62,8 @@ func createChannelMember(ss store.Store, channelId, userId string) *model.Channe
 	m.ChannelId = channelId
 	m.UserId = userId
 	m.NotifyProps = model.GetDefaultChannelNotifyProps()
-	store.Must(ss.Channel().SaveMember(&m))
-	return &m
+	cm, _ := ss.Channel().SaveMember(&m)
+	return cm
 }
 
 func createChannelMemberHistory(ss store.Store, channelId, userId string) *model.ChannelMemberHistory {
