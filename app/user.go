@@ -248,17 +248,17 @@ func (a *App) CreateGuest(user *model.User) (*model.User, *model.AppError) {
 }
 
 func (a *App) createUserOrGuest(user *model.User, guest bool) (*model.User, *model.AppError) {
+	user.Roles = model.SYSTEM_USER_ROLE_ID
+	if guest {
+		user.Roles = model.SYSTEM_GUEST_ROLE_ID
+	}
+
 	if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !user.IsLDAPUser() && !user.IsSAMLUser() && user.IsGuest() && !CheckUserDomain(user, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	user.Roles = model.SYSTEM_USER_ROLE_ID
-	if guest {
-		user.Roles = model.SYSTEM_GUEST_ROLE_ID
 	}
 
 	// Below is a special case where the first user in the entire
