@@ -274,7 +274,7 @@ func GetDisableBotSysadminMessage(user *model.User, userBots model.BotList, bots
 		message += botMessage
 		message += fmt.Sprintf("We strongly recommend you to take ownership of the bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\n")
 		message += fmt.Sprintf("%+v\n\n", infoMessage)
-		message += fmt.Sprintf("If you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Custom Integrations > Bot Accounts** to true.")
+		message += fmt.Sprintf("If you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.")
 	}
 
 	return message
