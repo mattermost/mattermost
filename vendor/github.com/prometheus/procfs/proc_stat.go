@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+
+	"github.com/prometheus/procfs/internal/fs"
 )
 
 // Originally, this USER_HZ value was dynamically retrieved via a sysconf call
@@ -99,11 +101,18 @@ type ProcStat struct {
 	// Resident set size in pages.
 	RSS int
 
-	fs FS
+	proc fs.FS
 }
 
 // NewStat returns the current status information of the process.
+//
+// Deprecated: use p.Stat() instead
 func (p Proc) NewStat() (ProcStat, error) {
+	return p.Stat()
+}
+
+// Stat returns the current status information of the process.
+func (p Proc) Stat() (ProcStat, error) {
 	f, err := os.Open(p.path("stat"))
 	if err != nil {
 		return ProcStat{}, err
@@ -118,7 +127,7 @@ func (p Proc) NewStat() (ProcStat, error) {
 	var (
 		ignore int
 
-		s = ProcStat{PID: p.PID, fs: p.fs}
+		s = ProcStat{PID: p.PID, proc: p.fs}
 		l = bytes.Index(data, []byte("("))
 		r = bytes.LastIndex(data, []byte(")"))
 	)
@@ -175,7 +184,8 @@ func (s ProcStat) ResidentMemory() int {
 
 // StartTime returns the unix timestamp of the process in seconds.
 func (s ProcStat) StartTime() (float64, error) {
-	stat, err := s.fs.NewStat()
+	fs := FS{proc: s.proc}
+	stat, err := fs.Stat()
 	if err != nil {
 		return 0, err
 	}
