@@ -186,7 +186,7 @@ func testCreatePostWithOutgoingHook(
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	var hook *model.OutgoingWebhook
@@ -1717,11 +1717,17 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	post3 := th.CreatePost()
 	post4 := th.CreatePost()
 	th.CreatePost() // post5
-	post6 := th.CreatePost()
-	post7 := th.CreatePost()
-	post8 := th.CreatePost()
-	post9 := th.CreatePost()
-	post10 := th.CreatePost()
+	replyPost := &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post4.Id, ParentId: post4.Id}
+	post6, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post7, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post8, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post9, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post10, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
 
 	// All returned posts are all read by the user, since it's created by the user itself.
 	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
