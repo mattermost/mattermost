@@ -1181,7 +1181,8 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	m1.ChannelId = c1.Id
 	m1.UserId = userId
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	store.Must(ss.Channel().SaveMember(&m1))
+	_, err := ss.Channel().SaveMember(&m1)
+	require.Nil(t, err)
 
 	c2 := &model.Channel{}
 	c2.TeamId = teamId
@@ -1203,13 +1204,14 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	m3.ChannelId = c3.Id
 	m3.UserId = userId
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
-	store.Must(ss.Channel().SaveMember(&m3))
+	_, err = ss.Channel().SaveMember(&m3)
+	require.Nil(t, err)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
 	o1.UserId = model.NewId()
 	o1.Message = "corey mattermost new york"
-	o1, err := ss.Post().Save(o1)
+	o1, err = ss.Post().Save(o1)
 	require.Nil(t, err)
 
 	o1a := &model.Post{}

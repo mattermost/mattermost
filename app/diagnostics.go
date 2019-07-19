@@ -826,10 +826,7 @@ func (a *App) trackPermissions() {
 				channelGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 
-			var count int64 = 0
-			if res := <-a.Srv.Store.Team().AnalyticsGetTeamCountForScheme(scheme.Id); res.Err == nil {
-				count = res.Data.(int64)
-			}
+			count, _ := a.Srv.Store.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
 
 			a.SendDiagnostic(TRACK_PERMISSIONS_TEAM_SCHEMES, map[string]interface{}{
 				"scheme_id":                 scheme.Id,
