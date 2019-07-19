@@ -505,11 +505,7 @@ func (a *App) GetUsersInChannel(channelId string, offset int, limit int) ([]*mod
 }
 
 func (a *App) GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesInChannelByStatus(channelId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetProfilesInChannelByStatus(channelId, offset, limit)
 }
 
 func (a *App) GetUsersInChannelMap(channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
