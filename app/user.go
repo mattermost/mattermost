@@ -1426,6 +1426,10 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
+	if err := a.Srv.Store.Bot().PermanentDelete(user.Id); err != nil {
+		return err
+	}
+
 	infos, err := a.Srv.Store.FileInfo().GetForUser(user.Id)
 	if err != nil {
 		mlog.Warn("Error getting file list for user from FileInfoStore")
