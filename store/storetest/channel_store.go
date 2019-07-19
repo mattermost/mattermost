@@ -2083,7 +2083,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 			SchemeGuest: false,
 		}
-		store.Must(ss.Channel().SaveMember(&m1))
+		_, err = ss.Channel().SaveMember(&m1)
+		require.Nil(t, err)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
 		require.Nil(t, channelErr)
@@ -2106,7 +2107,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 			SchemeGuest: true,
 		}
-		store.Must(ss.Channel().SaveMember(&m2))
+		_, err = ss.Channel().SaveMember(&m2)
+		require.Nil(t, err)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
 		require.Nil(t, channelErr)
@@ -2129,7 +2131,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 			SchemeGuest: true,
 		}
-		store.Must(ss.Channel().SaveMember(&m3))
+		_, err = ss.Channel().SaveMember(&m3)
+		require.Nil(t, err)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
 		require.Nil(t, channelErr)
@@ -2152,7 +2155,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 			SchemeGuest: true,
 		}
-		store.Must(ss.Channel().SaveMember(&m4))
+		_, err = ss.Channel().SaveMember(&m4)
+		require.Nil(t, err)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
 		require.Nil(t, channelErr)
