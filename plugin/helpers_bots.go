@@ -4,9 +4,8 @@
 package plugin
 
 import (
-	"time"
-
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
 )
 
@@ -17,11 +16,20 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) 
 	}
 
 	// If we fail for any reason, this could be a race between creation of bot and
-	// retreval from anouther EnsureBot. Just try the basic retrieve existing again.
+	// retrieval from another EnsureBot. Just try the basic retrieve existing again.
 	defer func() {
 		if retBotId == "" || retErr != nil {
-			time.Sleep(time.Second)
-			botIdBytes, err := p.API.KVGet(BOT_USER_KEY)
+			var err error
+			var botIdBytes []byte
+
+			err = utils.ProgressiveRetry(func() error {
+				botIdBytes, err = p.API.KVGet(BOT_USER_KEY)
+				if err != nil {
+					return err
+				}
+				return nil
+			})
+
 			if err == nil && botIdBytes != nil {
 				retBotId = string(botIdBytes)
 				retErr = nil

@@ -33,8 +33,8 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	}
 
 	// Reset all Custom Role assignments to TeamMembers.
-	if result := <-a.Srv.Store.Team().ClearAllCustomRoleAssignments(); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().ClearAllCustomRoleAssignments(); err != nil {
+		return err
 	}
 
 	// Reset all Custom Role assignments to ChannelMembers.

@@ -1329,19 +1329,28 @@ func (_m *ChannelStore) SaveDirectChannel(channel *model.Channel, member1 *model
 }
 
 // SaveMember provides a mock function with given fields: member
-func (_m *ChannelStore) SaveMember(member *model.ChannelMember) store.StoreChannel {
+func (_m *ChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	ret := _m.Called(member)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.ChannelMember) store.StoreChannel); ok {
+	var r0 *model.ChannelMember
+	if rf, ok := ret.Get(0).(func(*model.ChannelMember) *model.ChannelMember); ok {
 		r0 = rf(member)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.ChannelMember)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.ChannelMember) *model.AppError); ok {
+		r1 = rf(member)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SearchAllChannels provides a mock function with given fields: term, opts

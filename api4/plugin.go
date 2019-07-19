@@ -6,6 +6,8 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -124,13 +126,19 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("force") == "true" {
 		force = true
 	}
-	manifest, unpackErr := c.App.InstallPlugin(resp.Body, force)
+
+	fileBytes, readErr := ioutil.ReadAll(resp.Body)
+	if readErr != nil {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	manifest, unpackErr := c.App.InstallPlugin(bytes.NewReader(fileBytes), force)
 
 	if unpackErr != nil {
 		c.Err = unpackErr
 		return
 	}
-
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(manifest.ToJson()))
 }
