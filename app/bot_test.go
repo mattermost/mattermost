@@ -611,8 +611,9 @@ func TestNotifySysadminsBotDisabled(t *testing.T) {
 	}
 
 	// create bots owned by user
+	var bot *model.Bot
 	for i := 0; i < 3; i++ {
-		bot, err := th.App.CreateBot(&model.Bot{
+		bot, err = th.App.CreateBot(&model.Bot{
 			Username:    fmt.Sprintf("bot%v", i),
 			Description: "a bot",
 			OwnerId:     user1.Id,
