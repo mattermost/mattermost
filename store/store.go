@@ -158,7 +158,7 @@ type ChannelStore interface {
 	GetAll(teamId string) ([]*model.Channel, *model.AppError)
 	GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError)
 	GetForPost(postId string) (*model.Channel, *model.AppError)
-	SaveMember(member *model.ChannelMember) StoreChannel
+	SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError)
 	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
@@ -264,7 +264,7 @@ type UserStore interface {
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
 	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
-	GetProfilesInChannelByStatus(channelId string, offset int, limit int) StoreChannel
+	GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError)
 	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
