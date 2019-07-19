@@ -15,7 +15,17 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func TestUserStore(t *testing.T, ss store.Store) {
+const (
+	DAY_MILLISECONDS   = 24 * 60 * 60 * 1000
+	MONTH_MILLISECONDS = 31 * DAY_MILLISECONDS
+)
+
+func cleanupStatusStore(t *testing.T, s SqlSupplier) {
+	_, execerr := s.GetMaster().ExecNoTimeout(` DELETE FROM Status `)
+	require.Nil(t, execerr)
+}
+
+func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	users, err := ss.User().GetAll()
 	require.Nil(t, err, "failed cleaning up test users")
 
@@ -25,6 +35,7 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("Count", func(t *testing.T) { testCount(t, ss) })
+	t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, ss, s) })
 	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
@@ -36,7 +47,7 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, ss) })
 	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
 	t.Run("GetProfilesInChannel", func(t *testing.T) { testUserStoreGetProfilesInChannel(t, ss) })
-	t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, ss) })
+	t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, ss, s) })
 	t.Run("GetProfilesWithoutTeam", func(t *testing.T) { testUserStoreGetProfilesWithoutTeam(t, ss) })
 	t.Run("GetAllProfilesInChannel", func(t *testing.T) { testUserStoreGetAllProfilesInChannel(t, ss) })
 	t.Run("GetProfilesNotInChannel", func(t *testing.T) { testUserStoreGetProfilesNotInChannel(t, ss) })
@@ -54,7 +65,7 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("UserUnreadCount", func(t *testing.T) { testUserUnreadCount(t, ss) })
 	t.Run("UpdateMfaSecret", func(t *testing.T) { testUserStoreUpdateMfaSecret(t, ss) })
 	t.Run("UpdateMfaActive", func(t *testing.T) { testUserStoreUpdateMfaActive(t, ss) })
-	t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, ss) })
+	t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, ss, s) })
 	t.Run("GetNewUsersForTeam", func(t *testing.T) { testUserStoreGetNewUsersForTeam(t, ss) })
 	t.Run("Search", func(t *testing.T) { testUserStoreSearch(t, ss) })
 	t.Run("SearchNotInChannel", func(t *testing.T) { testUserStoreSearchNotInChannel(t, ss) })
@@ -752,7 +763,10 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
+func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s SqlSupplier) {
+
+	cleanupStatusStore(t, s)
+
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -2022,7 +2036,10 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
+func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlSupplier) {
+
+	cleanupStatusStore(t, s)
+
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -3332,6 +3349,61 @@ func testCount(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 	require.Equal(t, int64(0), count)
+}
+
+func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSupplier) {
+
+	cleanupStatusStore(t, s)
+
+	// Create 5 users statuses u0, u1, u2, u3, u4.
+	// u4 is also a bot
+	u0Id := model.NewId()
+	u1Id := model.NewId()
+	u2Id := model.NewId()
+	u3Id := model.NewId()
+
+	u4, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
+
+	_, err = ss.Bot().Save(&model.Bot{
+		UserId:   u4.Id,
+		Username: u4.Username,
+		OwnerId:  u1Id,
+	})
+	require.Nil(t, err)
+
+	millis := model.GetMillis()
+	millisTwoDaysAgo := model.GetMillis() - (2 * DAY_MILLISECONDS)
+	millisTwoMonthsAgo := model.GetMillis() - (2 * MONTH_MILLISECONDS)
+
+	// u0 last activity status is two months ago.
+	// u1 last activity status is two days ago.
+	// u2, u3, u4 last activity is within last day
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+
+	// Daily counts (without bots)
+	count, err := ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+	assert.Equal(t, int64(2), count)
+
+	// Daily counts (with bots)
+	count, err = ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true})
+	assert.Equal(t, int64(3), count)
+
+	// Monthly counts (without bots)
+	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+	assert.Equal(t, int64(3), count)
+
+	// Monthly counts - (with bots)
+	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true})
+	assert.Equal(t, int64(4), count)
 }
 
 func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
