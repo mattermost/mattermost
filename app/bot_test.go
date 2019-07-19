@@ -558,6 +558,106 @@ func TestDisableUserBots(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestNotifySysadminsBotDisabled(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	userBots := []*model.Bot{}
+	defer func() {
+		for _, bot := range userBots {
+			th.App.PermanentDeleteBot(bot.UserId)
+		}
+	}()
+
+	// // Create two sysadmins
+	sysadmin1 := model.User{
+		Email:    "sys1@example.com",
+		Nickname: "nn_sysadmin1",
+		Password: "hello1",
+		Username: "un_sysadmin1",
+		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+	_, err := th.App.CreateUser(&sysadmin1)
+	th.App.UpdateUserRoles(sysadmin1.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+
+	sysadmin2 := model.User{
+		Email:    "sys2@example.com",
+		Nickname: "nn_sysadmin2",
+		Password: "hello1",
+		Username: "un_sysadmin2",
+		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+	_, err = th.App.CreateUser(&sysadmin2)
+	th.App.UpdateUserRoles(sysadmin2.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+
+	// create user to be disabled
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    "user1@example.com",
+		Username: "user1_disabled",
+		Nickname: "user1",
+		Password: "Password1",
+	})
+	if err != nil {
+		t.Fatalf("failed to create user: %v", err)
+	}
+
+	// create user that doesn't own any bots
+	user2, err := th.App.CreateUser(&model.User{
+		Email:    "user2@example.com",
+		Username: "user2_disabled",
+		Nickname: "user2",
+		Password: "Password1",
+	})
+	if err != nil {
+		t.Fatalf("failed to create user: %v", err)
+	}
+
+	// create bots owned by user
+	for i := 0; i < 3; i++ {
+		bot, err := th.App.CreateBot(&model.Bot{
+			Username:    fmt.Sprintf("bot%v", i),
+			Description: "a bot",
+			OwnerId:     user1.Id,
+		})
+		require.Nil(t, err)
+		userBots = append(userBots, bot)
+	}
+	assert.Len(t, userBots, 3)
+
+	// get DM channels for sysadmin1 and sysadmin2
+	channelSys1, appErr := th.App.GetOrCreateDirectChannel(sysadmin1.Id, sysadmin1.Id)
+	require.Nil(t, appErr)
+	channelSys2, appErr := th.App.GetOrCreateDirectChannel(sysadmin2.Id, sysadmin2.Id)
+	require.Nil(t, appErr)
+
+	// send notification for user without bots
+	err = th.App.notifySysadminsBotDisabled(user2.Id)
+	require.Nil(t, err)
+
+	// get posts from sysadmin1 and sysadmin2 DM channels
+	posts1, err := th.App.GetPosts(channelSys1.Id, 0, 5)
+	posts2, err := th.App.GetPosts(channelSys2.Id, 0, 5)
+	assert.Len(t, posts1.Order, 0)
+	assert.Len(t, posts2.Order, 0)
+
+	// send notification for user with bots
+	err = th.App.notifySysadminsBotDisabled(user1.Id)
+	require.Nil(t, err)
+
+	// get posts from sysadmin1  and sysadmin2 DM channels
+	posts1, err = th.App.GetPosts(channelSys1.Id, 0, 5)
+	posts2, err = th.App.GetPosts(channelSys2.Id, 0, 5)
+	assert.Len(t, posts1.Order, 1)
+	assert.Len(t, posts2.Order, 1)
+
+	post := posts1.Posts[posts1.Order[0]].Message
+	assert.Equal(t, post, "user1_disabled was deactivated. The user managed the following bot accounts which have now been disabled.\n\n* bot0\n* bot1\n* bot2\nDo not worry - you can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).")
+
+	message := GetDisableBotSysadminMessage(user1, userBots, true)
+	assert.Equal(t, message, "user1_disabled was deactivated. The user managed the following bot accounts which have now been disabled.\n\n* bot0\n* bot1\n* bot2\nDo not worry - you can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).")
+
+	message = GetDisableBotSysadminMessage(user1, userBots, false)
+	assert.Equal(t, message, "user1_disabled was deactivated. The user managed the following bot accounts which have now been disabled.\n\n* bot0\n* bot1\n* bot2\nWe strongly recommend you to take ownership of the bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Custom Integrations > Bot Accounts** to true.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).")
+}
+
 func TestConvertUserToBot(t *testing.T) {
 	t.Run("invalid user", func(t *testing.T) {
 		t.Run("invalid user id", func(t *testing.T) {
