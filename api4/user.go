@@ -55,6 +55,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa", api.ApiSessionRequiredMfa(updateUserMfa)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/mfa/generate", api.ApiSessionRequiredMfa(generateMfaSecret)).Methods("POST")
 	api.BaseRoutes.User.Handle("/mfa/recovery", api.ApiSessionRequiredMfa(generateRecovery)).Methods("GET")
+	api.BaseRoutes.User.Handle("/mfa/recovery", api.ApiSessionRequiredMfa(loginWithRecovery)).Methods("POST")
 
 	api.BaseRoutes.Users.Handle("/login", api.ApiHandler(login)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.ApiHandler(switchAccountType)).Methods("POST")
@@ -1239,6 +1240,34 @@ func generateRecovery(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
 	w.Write([]byte(jsonCodes))
+}
+
+func loginWithRecovery(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.App.Session.IsOAuth {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	props := model.MapFromJson(r.Body)
+	code := props["code"]
+
+	if err := c.App.LoginWithRecovery(c.Params.UserId, code); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
