@@ -5,10 +5,13 @@ package mfa
 
 import (
 	b32 "encoding/base32"
+	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/mattermost/mattermost-server/model"
@@ -49,6 +52,34 @@ func getIssuerFromUrl(uri string) string {
 	}
 
 	return url.QueryEscape(issuer)
+}
+
+func generateCode(n int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = charset[rand.Int63()%int64(len(charset))]
+	}
+	return string(b)
+}
+
+func (m *Mfa) GenerateRecovery(user *model.User) ([]string, *model.AppError) {
+	if err := m.checkConfig(); err != nil {
+		return nil, err
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	codes := make([]string, 5)
+	for i := range codes {
+		codes[i] = generateCode(10)
+	}
+	jsonCodes, _ := json.Marshal(codes)
+
+	if err := m.Store.User().UpdateMfaRecovery(user.Id, string(jsonCodes)); err != nil {
+		return nil, model.NewAppError("GenerateRecovery", "mfa.generate_recovery.save_codes", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return codes, nil
 }
 
 func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError) {

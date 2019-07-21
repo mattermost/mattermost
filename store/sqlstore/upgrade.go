@@ -734,6 +734,8 @@ func UpgradeDatabaseToVersion516(sqlStore SqlStore) {
 		sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
 	}
 
+	sqlStore.CreateColumnIfNotExists("Users", "MfaRecovery", "varchar(255)", "varchar(255)", "")
+
 	// 	saveSchemaVersion(sqlStore, VERSION_5_16_0)
 	// }
 }
