@@ -82,6 +82,37 @@ func (m *Mfa) GenerateRecovery(user *model.User) ([]string, *model.AppError) {
 	return codes, nil
 }
 
+func (m *Mfa) LoginWithRecovery(user *model.User, code string) *model.AppError {
+	if err := m.checkConfig(); err != nil {
+		return err
+	}
+
+	var codes []string
+	if err := json.Unmarshal([]byte(user.MfaRecovery), &codes); err != nil {
+		return model.NewAppError("Recovery Codes Error", "mfa.generate_recovery.read_codes", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	found := false
+	for i, c := range codes {
+		if c == code {
+			found = true
+			codes = append(codes[:i], codes[i+1:]...)
+			break
+		}
+	}
+
+	if !found {
+		return model.NewAppError("Recovery Codes Error", "mfa.generate_recovery.code_not_found", nil, "Code not found", http.StatusInternalServerError)
+	}
+
+	jsonCodes, _ := json.Marshal(codes)
+	if err := m.Store.User().UpdateMfaRecovery(user.Id, string(jsonCodes)); err != nil {
+		return model.NewAppError("GenerateRecovery", "mfa.generate_recovery.save_codes", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError) {
 	if err := m.checkConfig(); err != nil {
 		return "", nil, err
