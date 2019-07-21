@@ -29,6 +29,12 @@ type Helpers interface {
 	//
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
+
+	// SplitCommandArgs is a helper that parses command arguments into a command, action, and parameters.
+	SplitCommandArgs(args *model.CommandArgs) (string, string, []string)
+
+	// RegisterSlashCommand is a helper used to call a provided callback function for a given trigger and passes action/parameters to the callback.
+	RegisterSlashCommand(args *model.CommandArgs, trigger string, callback func(string, []string, *model.CommandArgs) (*model.CommandResponse, *model.AppError)) (*model.CommandResponse, error)
 }
 
 type HelpersImpl struct {
