@@ -16,6 +16,68 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestGenerateRecovery(t *testing.T) {
+	user := &model.User{Id: model.NewId(), Roles: "system_user"}
+
+	config := model.Config{}
+	config.SetDefaults()
+	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(true)
+	configService := testutils.StaticConfigService{Cfg: &config}
+	storeMock := mocks.Store{}
+	userStoreMock := mocks.UserStore{}
+	userStoreMock.On("UpdateMfaRecovery", user.Id, mock.AnythingOfType("string")).Return(func(userId string, code string) *model.AppError {
+		return nil
+	})
+	storeMock.On("User").Return(&userStoreMock)
+
+	mfa := Mfa{configService, &storeMock}
+
+	codes, err := mfa.GenerateRecovery(user)
+	require.Nil(t, err)
+	assert.Len(t, codes, 5)
+	for i, c := range codes {
+		assert.Len(t, c, 10)
+		for j, cc := range codes {
+			if i == j {
+				continue
+			}
+			assert.NotEqual(t, c, cc)
+		}
+	}
+
+	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(false)
+	_, err = mfa.GenerateRecovery(user)
+	require.NotNil(t, err)
+}
+
+func TestLoginWithRecovery(t *testing.T) {
+	user := &model.User{Id: model.NewId(), Roles: "system_user", MfaActive: true, MfaRecovery: "['9Uy9Z9OK7p','7TQ7buuWq1','FB2tAOh2PK','3YS1AYkEKE']"}
+	code := "7TQ7buuWq1"
+	config := model.Config{}
+	config.SetDefaults()
+	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(true)
+	configService := testutils.StaticConfigService{Cfg: &config}
+	storeMock := mocks.Store{}
+	userStoreMock := mocks.UserStore{}
+	userStoreMock.On("UpdateMfaRecovery", user.Id, mock.AnythingOfType("string")).Return(func(userId string, codes string) *model.AppError {
+		return nil
+	})
+	storeMock.On("User").Return(&userStoreMock)
+
+	mfa := Mfa{configService, &storeMock}
+	err := mfa.LoginWithRecovery(user, "dummyCode")
+	require.NotNil(t, err)
+
+	user.MfaActive = false
+	err = mfa.LoginWithRecovery(user, code)
+	require.NotNil(t, err)
+
+	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(false)
+	err = mfa.LoginWithRecovery(user, "")
+	require.NotNil(t, err)
+
+}
+
 func TestGenerateSecret(t *testing.T) {
 	user := &model.User{Id: model.NewId(), Roles: "system_user"}
 

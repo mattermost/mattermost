@@ -87,9 +87,13 @@ func (m *Mfa) LoginWithRecovery(user *model.User, code string) *model.AppError {
 		return err
 	}
 
+	if !user.MfaActive {
+		return model.NewAppError("Recovery Codes Error", "mfa.login_with_recovery.mfa_inactive", nil, "MFA inactive", http.StatusInternalServerError)
+	}
+
 	var codes []string
 	if err := json.Unmarshal([]byte(user.MfaRecovery), &codes); err != nil {
-		return model.NewAppError("Recovery Codes Error", "mfa.generate_recovery.read_codes", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Recovery Codes Error", "mfa.login_with_recovery.read_codes", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	found := false
