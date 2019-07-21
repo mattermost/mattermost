@@ -82,6 +82,7 @@ type User struct {
 	Timezone               StringMap `json:"timezone"`
 	MfaActive              bool      `json:"mfa_active,omitempty"`
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
+	MfaRecovery            string    `json:"mfa_recovery,omitempty"`
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
@@ -467,6 +468,7 @@ func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.AuthData = NewString("")
 	u.MfaSecret = ""
+	u.MfaRecovery = ""
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
@@ -487,6 +489,7 @@ func (u *User) ClearNonProfileFields() {
 	u.Password = ""
 	u.AuthData = NewString("")
 	u.MfaSecret = ""
+	u.MfaRecovery = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
 	u.NotifyProps = StringMap{}

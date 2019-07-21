@@ -651,6 +651,21 @@ func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppErro
 	return mfaSecret, nil
 }
 
+func (a *App) GenerateRecovery(userId string) ([]string, *model.AppError) {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	mfaService := mfa.New(a, a.Srv.Store)
+	codes, err := mfaService.GenerateRecovery(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return codes, nil
+}
+
 func (a *App) ActivateMfa(userId, token string) *model.AppError {
 	user, err := a.Srv.Store.User().Get(userId)
 	if err != nil {
