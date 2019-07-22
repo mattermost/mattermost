@@ -713,7 +713,7 @@ func UpgradeDatabaseToVersion514(sqlStore SqlStore) {
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		sqlStore.GetMaster().Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Value text")
+		sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
 	}
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_14_0)
