@@ -481,7 +481,7 @@ type API interface {
 	// Returns (false, nil) if current value != old value or key already exists when inserting
 	// Returns (true, nil) if current value == old value or new key is inserted
 	//
-	// Minimum server version: 5.13
+	// Minimum server version: 5.14
 	KVCompareAndSetWithExpiry(key string, oldValue, newValue []byte, expireInSeconds int64) (bool, *model.AppError)
 
 	// KVGet will retrieve a value based on the key. Returns nil for non-existent keys.
