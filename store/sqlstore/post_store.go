@@ -580,8 +580,7 @@ func (s *SqlPostStore) GetPostsAfter(channelId string, postId string, limit int,
 }
 
 func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int, offset int, before bool) (*model.PostList, *model.AppError) {
-	var direction string
-	var sort string
+	var direction, sort string
 	if before {
 		direction = "<"
 		sort = "DESC"
@@ -590,8 +589,7 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 		sort = "ASC"
 	}
 
-	var posts []*model.Post
-	var parents []*model.Post
+	var posts, parents []*model.Post
 	_, err := s.GetReplica().Select(&posts,
 		`SELECT
 			*
@@ -608,38 +606,40 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 	}
-	_, err = s.GetReplica().Select(&parents,
-		`SELECT
-			q2.*
-		FROM
-			Posts q2
-				INNER JOIN
-			(SELECT DISTINCT
-				q3.Id, q3.RootId
-			FROM
-				(SELECT
-					Id, RootId
-				FROM
-					Posts
-				WHERE
-					CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
-					AND ChannelId = :ChannelId
-					AND DeleteAt = 0
-				ORDER BY CreateAt `+sort+`
-				LIMIT :Limit OFFSET :Offset) q3 -- q3 contains the Id and RootId of every post in posts
-			) q1 -- q1 is q3 with the duplicates removed
-			ON q1.RootId = q2.Id -- This is the root post of a thread that appears in posts
-				OR q1.Id = q2.RootId -- This is a comment on a post in posts
-				OR (q2.RootId != '' AND q1.RootId = q2.RootId) -- This is a comment on a thread that appears in posts
-		WHERE
-			ChannelId = :ChannelId
-			AND DeleteAt = 0
-		ORDER BY CreateAt DESC`,
-		map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
 
-	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	if len(posts) > 0 {
+		rootIds := []string{}
+		for _, post := range posts {
+			rootIds = append(rootIds, post.Id)
+			if post.RootId != "" {
+				rootIds = append(rootIds, post.RootId)
+			}
+		}
+
+		keys, params := MapStringsToQueryParams(rootIds, "PostId")
+
+		params["ChannelId"] = channelId
+		params["PostId"] = postId
+		params["Limit"] = limit
+		params["Offset"] = offset
+
+		_, err = s.GetReplica().Select(&parents,
+			`SELECT
+				*
+			FROM
+				Posts
+			WHERE
+				(Id IN `+keys+` OR RootId IN `+keys+`)
+				AND ChannelId = :ChannelId
+				AND DeleteAt = 0
+			ORDER BY CreateAt DESC`,
+			params)
+
+		if err != nil {
+			return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+		}
 	}
+
 	list := model.NewPostList()
 
 	// We need to flip the order if we selected backwards
@@ -659,6 +659,7 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 	for _, p := range parents {
 		list.AddPost(p)
 	}
+
 	return list, nil
 }
 

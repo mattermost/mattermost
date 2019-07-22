@@ -1524,12 +1524,12 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 	}
 
 	for _, item := range userIDChannelIDs {
-		res := <-ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      item[0],
 			ChannelId:   item[1],
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, res.Err)
+		require.Nil(t, err)
 	}
 
 	return &removalsData{
@@ -2382,14 +2382,14 @@ func testChannelMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 		users = append(users, user)
 
 		trueOrFalse := int(math.Mod(float64(i), 2)) == 0
-		res := <-ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   channel.Id,
 			UserId:      user.Id,
 			SchemeUser:  trueOrFalse,
 			SchemeAdmin: !trueOrFalse,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, res.Err)
+		require.Nil(t, err)
 	}
 
 	for i := 0; i < numberOfGroups; i++ {
