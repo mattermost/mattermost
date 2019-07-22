@@ -1105,11 +1105,17 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 	return count, nil
 }
 
-func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64) (int64, *model.AppError) {
+func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.UserCountOptions) (int64, *model.AppError) {
 
 	time := model.GetMillis() - timePeriod
 
-	query := "SELECT COUNT(*) FROM Status WHERE LastActivityAt > :Time"
+	query := "SELECT COUNT(*) FROM Status s"
+
+	if options.IncludeBotAccounts {
+		query += " WHERE LastActivityAt > :Time"
+	} else {
+		query += " LEFT JOIN Bots ON s.UserId = Bots.UserId WHERE Bots.UserId IS NULL AND LastActivityAt > :Time"
+	}
 
 	v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
 	if err != nil {
