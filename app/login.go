@@ -149,6 +149,11 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	session.AddProp(model.SESSION_PROP_PLATFORM, plat)
 	session.AddProp(model.SESSION_PROP_OS, os)
 	session.AddProp(model.SESSION_PROP_BROWSER, fmt.Sprintf("%v/%v", bname, bversion))
+	if user.IsGuest() {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
+	} else {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
+	}
 
 	var err *model.AppError
 	if session, err = a.CreateSession(session); err != nil {
