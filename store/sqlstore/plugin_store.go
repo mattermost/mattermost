@@ -86,12 +86,13 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 	} else {
 		// Update if oldValue is not nil
 		updateResult, err := ps.GetMaster().Exec(
-			`UPDATE PluginKeyValueStore SET PValue = :New WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`,
+			`UPDATE PluginKeyValueStore SET PValue = :New, ExpireAt = :ExpireAt WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`,
 			map[string]interface{}{
 				"PluginId": kv.PluginId,
 				"Key":      kv.Key,
 				"Old":      oldValue,
 				"New":      kv.Value,
+				"ExpireAt": kv.ExpireAt,
 			},
 		)
 		if err != nil {
