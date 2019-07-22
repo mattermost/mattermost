@@ -172,6 +172,9 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
+	InvalidateGuestCount(channelId string)
+	GetGuestCountFromCache(channelId string) int64
+	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	GetPinnedPosts(channelId string) (*model.PostList, *model.AppError)
 	RemoveMember(channelId string, userId string) *model.AppError
 	PermanentDeleteMembersByUser(userId string) *model.AppError
@@ -307,6 +310,8 @@ type UserStore interface {
 	Count(options model.UserCountOptions) (int64, *model.AppError)
 	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
 	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
+	PromoteGuestToUser(userID string) *model.AppError
+	DemoteUserToGuest(userID string) *model.AppError
 }
 
 type BotStore interface {
@@ -328,6 +333,7 @@ type SessionStore interface {
 	UpdateLastActivityAt(sessionId string, time int64) *model.AppError
 	UpdateRoles(userId string, roles string) (string, *model.AppError)
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError)
+	UpdateProps(session *model.Session) *model.AppError
 	AnalyticsSessionCount() (int64, *model.AppError)
 	Cleanup(expiryTime int64, batchSize int64)
 }
