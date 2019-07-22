@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -16,12 +17,65 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+// managedPluginFileName is the file name of the flag file that marks
+// a local plugin folder as "managed" by the file store.
+const managedPluginFileName = ".filestore"
+
+// fileStorePluginFolder is the folder name in the file store of the plugin bundles installed.
+const fileStorePluginFolder = "plugins"
+
+func (a *App) InstallPluginFromData(data model.PluginEventData) {
+	mlog.Debug("Installing plugin as per cluster message", mlog.String("plugin_id", data.Id))
+
+	fileStorePath := a.getBundleStorePath(data.Id)
+	reader, appErr := a.FileReader(fileStorePath)
+	if appErr != nil {
+		mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("path", fileStorePath), mlog.Err(appErr))
+	}
+	defer reader.Close()
+
+	if _, appErr = a.installPluginLocally(reader, true); appErr != nil {
+		mlog.Error("Failed to unpack plugin from filestore", mlog.Err(appErr), mlog.String("path", fileStorePath))
+	}
+}
+
+func (a *App) RemovePluginFromData(data model.PluginEventData) {
+	mlog.Debug("Removing plugin as per cluster message", mlog.String("plugin_id", data.Id))
+
+	if err := a.removePluginLocally(data.Id); err != nil {
+		mlog.Error("Failed to remove plugin locally", mlog.Err(err), mlog.String("id", data.Id))
+	}
+}
+
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	return a.installPlugin(pluginFile, replace)
 }
 
 func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+	manifest, appErr := a.installPluginLocally(pluginFile, replace)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Store bundle in the file store to allow access from other servers.
+	pluginFile.Seek(0, 0)
+
+	if _, err := a.WriteFile(pluginFile, a.getBundleStorePath(manifest.Id)); err != nil {
+		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	a.notifyClusterPluginEvent(
+		model.CLUSTER_EVENT_INSTALL_PLUGIN,
+		model.PluginEventData{
+			Id: manifest.Id,
+		},
+	)
+
+	return manifest, nil
+}
+
+func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -71,7 +125,7 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 				return nil, model.NewAppError("installPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
 			}
 
-			if err := a.RemovePlugin(manifest.Id); err != nil {
+			if err := a.removePluginLocally(manifest.Id); err != nil {
 				return nil, model.NewAppError("installPlugin", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
@@ -83,13 +137,12 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 		return nil, model.NewAppError("installPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// Store bundle in the file store to allow access from other servers.
-	pluginFile.Seek(0, 0)
-
-	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
-	if _, err := a.WriteFile(pluginFile, storePluginFileName); err != nil {
-		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+	// Flag plugin locally as managed by the filestore.
+	f, err := os.Create(filepath.Join(pluginPath, managedPluginFileName))
+	if err != nil {
+		return nil, model.NewAppError("uploadPlugin", "app.plugin.flag_managed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	f.Close()
 
 	if stashed != nil && stashed.Enable {
 		a.EnablePlugin(manifest.Id)
@@ -107,6 +160,34 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 }
 
 func (a *App) removePlugin(id string) *model.AppError {
+	if err := a.removePluginLocally(id); err != nil {
+		return err
+	}
+
+	// Remove bundle from the file store.
+	storePluginFileName := a.getBundleStorePath(id)
+	bundleExist, err := a.FileExists(storePluginFileName)
+	if err != nil {
+		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if !bundleExist {
+		return nil
+	}
+	if err := a.RemoveFile(storePluginFileName); err != nil {
+		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	a.notifyClusterPluginEvent(
+		model.CLUSTER_EVENT_REMOVE_PLUGIN,
+		model.PluginEventData{
+			Id: id,
+		},
+	)
+
+	return nil
+}
+
+func (a *App) removePluginLocally(id string) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("removePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -146,18 +227,9 @@ func (a *App) removePlugin(id string) *model.AppError {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// Remove bundle from the file store.
-	storePluginFileName := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
-	bundleExist, fileErr := a.FileExists(storePluginFileName)
-	if fileErr != nil {
-		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if bundleExist {
-		if err := a.RemoveFile(storePluginFileName); err != nil {
-			return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
-
 	return nil
+}
+
+func (a *App) getBundleStorePath(id string) string {
+	return filepath.Join(fileStorePluginFolder, fmt.Sprintf("%s.tar.gz", id))
 }

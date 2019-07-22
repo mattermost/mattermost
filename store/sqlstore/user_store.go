@@ -557,41 +557,37 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 	})
 }
 
-func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
-			LeftJoin("Status s ON ( s.UserId = u.Id )").
-			Where("cm.ChannelId = ?", channelId).
-			OrderBy(`
-				CASE s.Status
-					WHEN 'online' THEN 1
-					WHEN 'away' THEN 2
-					WHEN 'dnd' THEN 3
-					ELSE 4
-				END
+func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
+		LeftJoin("Status s ON ( s.UserId = u.Id )").
+		Where("cm.ChannelId = ?", channelId).
+		OrderBy(`
+			CASE s.Status
+				WHEN 'online' THEN 1
+				WHEN 'away' THEN 2
+				WHEN 'dnd' THEN 3
+				ELSE 4
+			END
 			`).
-			OrderBy("u.Username ASC").
-			Offset(uint64(offset)).Limit(uint64(limit))
+		OrderBy("u.Username ASC").
+		Offset(uint64(offset)).Limit(uint64(limit))
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfilesInChannelByStatus", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetProfilesInChannelByStatus", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var users []*model.User
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfilesInChannelByStatus", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetProfilesInChannelByStatus", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		for _, u := range users {
-			u.Sanitize(map[string]bool{})
-		}
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+	}
 
-		result.Data = users
-	})
+	return users, nil
 }
 
 func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
@@ -1070,7 +1066,7 @@ func (us SqlUserStore) PermanentDelete(userId string) *model.AppError {
 }
 
 func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppError) {
-	query := sq.Select("COUNT(DISTINCT u.Id)").From("Users AS u")
+	query := us.getQueryBuilder().Select("COUNT(DISTINCT u.Id)").From("Users AS u")
 
 	if !options.IncludeDeleted {
 		query = query.Where("u.DeleteAt = 0")
@@ -1109,11 +1105,17 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 	return count, nil
 }
 
-func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64) (int64, *model.AppError) {
+func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.UserCountOptions) (int64, *model.AppError) {
 
 	time := model.GetMillis() - timePeriod
 
-	query := "SELECT COUNT(*) FROM Status WHERE LastActivityAt > :Time"
+	query := "SELECT COUNT(*) FROM Status s"
+
+	if options.IncludeBotAccounts {
+		query += " WHERE LastActivityAt > :Time"
+	} else {
+		query += " LEFT JOIN Bots ON s.UserId = Bots.UserId WHERE Bots.UserId IS NULL AND LastActivityAt > :Time"
+	}
 
 	v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
 	if err != nil {
@@ -1641,4 +1643,141 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 	}
 
 	return resultQuery
+}
+
+func (us SqlUserStore) PromoteGuestToUser(userId string) *model.AppError {
+	transaction, err := us.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.promote_guest.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	user, appErr := us.Get(userId)
+	if appErr != nil {
+		return appErr
+	}
+
+	roles := user.GetRoles()
+
+	for idx, role := range roles {
+		if role == "system_guest" {
+			roles[idx] = "system_user"
+		}
+	}
+
+	query := us.getQueryBuilder().Update("Users").
+		Set("Roles", strings.Join(roles, " ")).
+		Where(sq.Eq{"Id": userId})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err = transaction.Exec(queryString, args...); err != nil {
+		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.promote_guest.user_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+	}
+
+	query = us.getQueryBuilder().Update("ChannelMembers").
+		Set("SchemeUser", true).
+		Set("SchemeGuest", false).
+		Where(sq.Eq{"UserId": userId})
+
+	queryString, args, err = query.ToSql()
+	if err != nil {
+		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err = transaction.Exec(queryString, args...); err != nil {
+		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.promote_guest.channel_members_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+	}
+
+	query = us.getQueryBuilder().Update("TeamMembers").
+		Set("SchemeUser", true).
+		Set("SchemeGuest", false).
+		Where(sq.Eq{"UserId": userId})
+
+	queryString, args, err = query.ToSql()
+	if err != nil {
+		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err := transaction.Exec(queryString, args...); err != nil {
+		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.promote_guest.team_members_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.promote_guest.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (us SqlUserStore) DemoteUserToGuest(userId string) *model.AppError {
+	transaction, err := us.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlUserStore.DemoteUserToGuest", "store.sql_user.demote_user_to_guest.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	user, appErr := us.Get(userId)
+	if appErr != nil {
+		return appErr
+	}
+
+	roles := user.GetRoles()
+
+	newRoles := []string{}
+	for _, role := range roles {
+		if role == "system_user" {
+			newRoles = append(newRoles, "system_guest")
+		} else if role != "system_admin" {
+			newRoles = append(newRoles, role)
+		}
+	}
+
+	query := us.getQueryBuilder().Update("Users").
+		Set("Roles", strings.Join(newRoles, " ")).
+		Where(sq.Eq{"Id": userId})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err = transaction.Exec(queryString, args...); err != nil {
+		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.demote_user_to_guest.user_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+	}
+
+	query = us.getQueryBuilder().Update("ChannelMembers").
+		Set("SchemeUser", false).
+		Set("SchemeGuest", true).
+		Where(sq.Eq{"UserId": userId})
+
+	queryString, args, err = query.ToSql()
+	if err != nil {
+		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err = transaction.Exec(queryString, args...); err != nil {
+		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.demote_user_to_guest.channel_members_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+	}
+
+	query = us.getQueryBuilder().Update("TeamMembers").
+		Set("SchemeUser", false).
+		Set("SchemeGuest", true).
+		Where(sq.Eq{"UserId": userId})
+
+	queryString, args, err = query.ToSql()
+	if err != nil {
+		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err := transaction.Exec(queryString, args...); err != nil {
+		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.demote_user_to_guest.team_members_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.demote_user_to_guest.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }

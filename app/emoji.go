@@ -14,12 +14,14 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"path"
 
 	"image/color/palette"
 
 	"github.com/disintegration/imaging"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -53,7 +55,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.other_user.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if existingEmoji, err := a.Srv.Store.Emoji().GetByName(emoji.Name); err == nil && existingEmoji != nil {
+	if existingEmoji, err := a.Srv.Store.Emoji().GetByName(emoji.Name, true); err == nil && existingEmoji != nil {
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -156,7 +158,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 }
 
 func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
-	if err := a.Srv.Store.Emoji().Delete(emoji.Id, model.GetMillis()); err != nil {
+	if err := a.Srv.Store.Emoji().Delete(emoji, model.GetMillis()); err != nil {
 		return err
 	}
 
@@ -186,7 +188,7 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Emoji().GetByName(emojiName)
+	return a.Srv.Store.Emoji().GetByName(emojiName, true)
 }
 
 func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
@@ -222,6 +224,22 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 	}
 
 	return a.Srv.Store.Emoji().Search(name, prefixOnly, limit)
+}
+
+// GetEmojiStaticUrl returns a relative static URL for system default emojis,
+// and the API route for custom ones. Errors if not found or if custom and deleted.
+func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
+	subPath, _ := utils.GetSubpathFromConfig(a.Config())
+
+	if id, found := model.GetSystemEmojiId(emojiName); found {
+		return path.Join(subPath, "/static/emoji", id+".png"), nil
+	}
+
+	if emoji, err := a.Srv.Store.Emoji().GetByName(emojiName, true); err == nil {
+		return path.Join(subPath, "/api/v4/emoji", emoji.Id, "image"), nil
+	} else {
+		return "", err
+	}
 }
 
 func resizeEmojiGif(gifImg *gif.GIF) *gif.GIF {

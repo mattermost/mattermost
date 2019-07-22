@@ -2290,6 +2290,136 @@ func TestInviteUsersToTeam(t *testing.T) {
 	})
 }
 
+func TestInviteGuestsToTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	guest1 := th.GenerateTestEmail()
+	guest2 := th.GenerateTestEmail()
+
+	emailList := []string{guest1, guest2}
+
+	//Delete all the messages before check the sample email
+	mailservice.DeleteMailBox(guest1)
+	mailservice.DeleteMailBox(guest2)
+
+	enableEmailInvitations := *th.App.Config().ServiceSettings.EnableEmailInvitations
+	restrictCreationToDomains := th.App.Config().TeamSettings.RestrictCreationToDomains
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableEmailInvitations = &enableEmailInvitations })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = restrictCreationToDomains })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
+	}()
+
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
+	_, resp := th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
+	assert.NotNil(t, resp.Error, "Should be disabled")
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
+	_, resp = th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
+	if resp.Error == nil {
+		t.Fatal("Should be disabled")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+
+	th.App.SetLicense(nil)
+
+	_, resp = th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
+	if resp.Error == nil {
+		t.Fatal("Should be disabled")
+	}
+
+	th.App.SetLicense(model.NewTestLicense(""))
+	defer th.App.SetLicense(nil)
+
+	okMsg, resp := th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
+	CheckNoError(t, resp)
+	if !okMsg {
+		t.Fatal("should return true")
+	}
+
+	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
+	expectedSubject := utils.T("api.templates.invite_guest_subject",
+		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"SiteName":        th.App.ClientConfig()["SiteName"]})
+
+	//Check if the email was send to the rigth email address
+	for _, email := range emailList {
+		var resultsMailbox mailservice.JSONMessageHeaderInbucket
+		err := mailservice.RetryInbucket(5, func() error {
+			var err error
+			resultsMailbox, err = mailservice.GetMailBox(email)
+			return err
+		})
+		if err != nil {
+			t.Log(err)
+			t.Log("No email was received, maybe due load on the server. Disabling this verification")
+		}
+		if err == nil && len(resultsMailbox) > 0 {
+			if !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email) {
+				t.Fatal("Wrong To recipient")
+			} else {
+				if resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
+					if resultsEmail.Subject != expectedSubject {
+						t.Log(resultsEmail.Subject)
+						t.Log(expectedSubject)
+						t.Fatal("Wrong Subject")
+					}
+				}
+			}
+		}
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "@global.com,@common.com" })
+
+	t.Run("restricted domains", func(t *testing.T) {
+		err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: emailList, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+
+		if err == nil {
+			t.Fatal("Adding users with non-restricted domains was allowed")
+		}
+		if err.Where != "InviteGuestsToChannels" || err.Id != "api.team.invite_members.invalid_email.app_error" {
+			t.Log(err)
+			t.Fatal("Got wrong error message!")
+		}
+	})
+
+	t.Run("override restricted domains", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "invalid.com,common.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err == nil {
+			t.Fatal("Should not update the team")
+		}
+
+		th.BasicTeam.AllowedDomains = "common.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		if err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"test@global.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id); err == nil || err.Where != "InviteGuestsToChannels" {
+			t.Log(err)
+			t.Fatal("Per team restriction should take precedence over the global restriction")
+		}
+
+		if err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"test@common.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id); err != nil {
+			t.Log(err)
+			t.Fatal("Failed to invite user which was common between team and global domain restriction")
+		}
+
+		if err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"test@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id); err == nil {
+			t.Log(err)
+			t.Fatal("Should not invite user")
+		}
+
+	})
+}
+
 func TestGetTeamInviteInfo(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

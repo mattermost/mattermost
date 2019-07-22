@@ -208,10 +208,26 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 		} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 			csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
+
+			sid := ""
+			userId := ""
+
+			if session != nil {
+				sid = session.Id
+				userId = session.UserId
+			}
+
+			fields := []mlog.Field{
+				mlog.String("path", r.URL.Path),
+				mlog.String("ip", r.RemoteAddr),
+				mlog.String("session_id", sid),
+				mlog.String("user_id", userId),
+			}
+
 			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-				c.Log.Warn(csrfErrorMessage)
+				c.Log.Warn(csrfErrorMessage, fields...)
 			} else {
-				c.Log.Debug(csrfErrorMessage)
+				c.Log.Debug(csrfErrorMessage, fields...)
 				csrfCheckPassed = true
 			}
 		}
