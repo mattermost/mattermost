@@ -193,6 +193,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(&user)
+	rguest := th.CreateGuest()
 
 	t.Run("invalid token", func(t *testing.T) {
 		if _, err := th.App.AddUserToTeamByToken(ruser.Id, "123"); err == nil {
@@ -217,7 +218,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
+		token.CreateAt = model.GetMillis() - INVITATION_EXPIRY_TIME - 1
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
@@ -261,6 +262,49 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		}
 		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
+
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, ruser.Id)
+		require.Nil(t, err)
+		assert.Len(t, *members, 2)
+	})
+
+	t.Run("invalid add a guest using a regular invite", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		_, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("invalid add a regular user using a guest invite", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
+		)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		_, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("valid request from guest invite", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
+		)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		if _, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token); err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
+
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, rguest.Id)
+		require.Nil(t, err)
+		require.Len(t, *members, 1)
+		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("group-constrained team", func(t *testing.T) {
