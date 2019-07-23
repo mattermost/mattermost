@@ -225,7 +225,7 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
-	c1, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	c1, err := ss.Channel().CreateDirectChannel(u1, u2)
 	if err != nil {
 		t.Fatal("couldn't create direct channel", err)
 	}
@@ -1163,7 +1163,9 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	_, err = ss.Channel().Save(&c3, -1)
 	require.Nil(t, err)
 
-	_, err = ss.Channel().CreateDirectChannel(model.NewId(), model.NewId())
+	u1 := model.User{Id: model.NewId()}
+	u2 := model.User{Id: model.NewId()}
+	_, err = ss.Channel().CreateDirectChannel(&u1, &u2)
 	require.Nil(t, err)
 
 	userIds := []string{model.NewId(), model.NewId(), model.NewId()}
@@ -2836,9 +2838,9 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 	_, err = ss.Channel().Save(&o5, -1)
 	require.Nil(t, err)
 
-	_, err = ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	_, err = ss.Channel().CreateDirectChannel(u1, u2)
 	require.Nil(t, err)
-	_, err = ss.Channel().CreateDirectChannel(u2.Id, u3.Id)
+	_, err = ss.Channel().CreateDirectChannel(u2, u3)
 	require.Nil(t, err)
 
 	tt := []struct {
@@ -3105,7 +3107,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	_, err = ss.User().Save(u2)
 	require.Nil(t, err)
 
-	d4, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	d4, err := ss.Channel().CreateDirectChannel(u1, u2)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

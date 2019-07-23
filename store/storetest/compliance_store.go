@@ -202,7 +202,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	c1, err = ss.Channel().Save(c1, -1)
 	require.Nil(t, err)
 
-	cDM, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	cDM, err := ss.Channel().CreateDirectChannel(u1, u2)
 	require.Nil(t, err)
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -497,7 +497,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 	}, -1))
 
 	// as well as a DM channel between those users
-	directMessageChannel, err := ss.Channel().CreateDirectChannel(user1.Id, user2.Id)
+	directMessageChannel, err := ss.Channel().CreateDirectChannel(user1, user2)
 	require.Nil(t, err)
 
 	// user1 also sends a DM to user2
