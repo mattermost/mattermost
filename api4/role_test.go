@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -194,9 +193,7 @@ func TestPatchRole(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 
 	// Add a license.
-	license := model.NewTestLicense()
-	license.Features.GuestAccountsPermissions = model.NewBool(false)
-	th.App.SetLicense(license)
+	th.App.SetLicense(model.NewTestLicense())
 
 	// Try again, should succeed
 	received, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
@@ -208,25 +205,4 @@ func TestPatchRole(t *testing.T) {
 	assert.Equal(t, received.Description, role.Description)
 	assert.EqualValues(t, received.Permissions, []string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"})
 	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
-
-	t.Run("Check guest permissions editing without E20 license", func(t *testing.T) {
-		license := model.NewTestLicense()
-		license.Features.GuestAccountsPermissions = model.NewBool(false)
-		th.App.SetLicense(license)
-
-		guestRole, err := th.App.Srv.Store.Role().GetByName("system_guest")
-		require.Nil(t, err)
-		received, resp = th.SystemAdminClient.PatchRole(guestRole.Id, patch)
-		CheckNotImplementedStatus(t, resp)
-	})
-
-	t.Run("Check guest permissions editing with E20 license", func(t *testing.T) {
-		license := model.NewTestLicense()
-		license.Features.GuestAccountsPermissions = model.NewBool(true)
-		th.App.SetLicense(license)
-		guestRole, err := th.App.Srv.Store.Role().GetByName("system_guest")
-		require.Nil(t, err)
-		_, resp = th.SystemAdminClient.PatchRole(guestRole.Id, patch)
-		CheckNoError(t, resp)
-	})
 }
