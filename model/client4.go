@@ -1078,6 +1078,26 @@ func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// PromoteGuestToUser convert a guest into a regular user
+func (c *Client4) PromoteGuestToUser(guestId string) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetUserRoute(guestId)+"/promote", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// DemoteUserToGuest convert a regular user into a guest
+func (c *Client4) DemoteUserToGuest(guestId string) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetUserRoute(guestId)+"/demote", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // UpdateUserRoles updates a user's roles in the system. A user can have "system_user" and "system_admin" roles.
 func (c *Client4) UpdateUserRoles(userId, roles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": roles}
@@ -1897,6 +1917,21 @@ func (c *Client4) ImportTeam(data []byte, filesize int, importFrom, filename, te
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (bool, *Response) {
 	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite/email", ArrayToJson(userEmails))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// InviteGuestsToTeam invite guest by email to some channels in a team.
+func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channels []string, message string) (bool, *Response) {
+	guestsInvite := GuestsInvite{
+		Emails:   userEmails,
+		Channels: channels,
+		Message:  message,
+	}
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite-guests/email", guestsInvite.ToJson())
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}

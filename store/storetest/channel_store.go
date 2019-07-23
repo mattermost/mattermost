@@ -65,6 +65,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetMember", func(t *testing.T) { testGetMember(t, ss) })
 	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, ss) })
 	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
+	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
@@ -2043,6 +2044,124 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	} else if count != 2 {
 		t.Fatalf("got incorrect member count %v", count)
 	}
+}
+
+func testGetGuestCount(t *testing.T, ss store.Store) {
+	teamId := model.NewId()
+
+	c1 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel1",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err := ss.Channel().Save(&c1, -1)
+	require.Nil(t, err)
+
+	c2 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel2",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&c2, -1)
+	require.Nil(t, err)
+
+	t.Run("Regular member doesn't count", func(t *testing.T) {
+		u1 := &model.User{
+			Email:    MakeEmail(),
+			DeleteAt: 0,
+			Roles:    model.SYSTEM_USER_ROLE_ID,
+		}
+		_, err = ss.User().Save(u1)
+		require.Nil(t, err)
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
+
+		m1 := model.ChannelMember{
+			ChannelId:   c1.Id,
+			UserId:      u1.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: false,
+		}
+		_, err = ss.Channel().SaveMember(&m1)
+		require.Nil(t, err)
+
+		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
+		require.Nil(t, channelErr)
+		require.Equal(t, count, int64(0))
+	})
+
+	t.Run("Guest member does count", func(t *testing.T) {
+		u2 := model.User{
+			Email:    MakeEmail(),
+			DeleteAt: 0,
+			Roles:    model.SYSTEM_GUEST_ROLE_ID,
+		}
+		_, err = ss.User().Save(&u2)
+		require.Nil(t, err)
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
+
+		m2 := model.ChannelMember{
+			ChannelId:   c1.Id,
+			UserId:      u2.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: true,
+		}
+		_, err = ss.Channel().SaveMember(&m2)
+		require.Nil(t, err)
+
+		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
+		require.Nil(t, channelErr)
+		require.Equal(t, count, int64(1))
+	})
+
+	t.Run("make sure members of other channels aren't counted", func(t *testing.T) {
+		u3 := model.User{
+			Email:    MakeEmail(),
+			DeleteAt: 0,
+			Roles:    model.SYSTEM_GUEST_ROLE_ID,
+		}
+		_, err = ss.User().Save(&u3)
+		require.Nil(t, err)
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+
+		m3 := model.ChannelMember{
+			ChannelId:   c2.Id,
+			UserId:      u3.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: true,
+		}
+		_, err = ss.Channel().SaveMember(&m3)
+		require.Nil(t, err)
+
+		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
+		require.Nil(t, channelErr)
+		require.Equal(t, count, int64(1))
+	})
+
+	t.Run("make sure inactive users aren't counted", func(t *testing.T) {
+		u4 := &model.User{
+			Email:    MakeEmail(),
+			DeleteAt: 10000,
+			Roles:    model.SYSTEM_GUEST_ROLE_ID,
+		}
+		_, err = ss.User().Save(u4)
+		require.Nil(t, err)
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1))
+
+		m4 := model.ChannelMember{
+			ChannelId:   c1.Id,
+			UserId:      u4.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: true,
+		}
+		_, err = ss.Channel().SaveMember(&m4)
+		require.Nil(t, err)
+
+		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
+		require.Nil(t, channelErr)
+		require.Equal(t, count, int64(1))
+	})
 }
 
 func testChannelStoreSearchMore(t *testing.T, ss store.Store) {

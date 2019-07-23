@@ -93,6 +93,27 @@ func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 	return a.Srv.Store.Session().GetSessions(userId)
 }
 
+func (a *App) UpdateSessionsIsGuest(userId string, isGuest bool) {
+	sessions, err := a.Srv.Store.Session().GetSessions(userId)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Unable to get user sessions: userId=%s err=%s", userId, err.Error()))
+	}
+
+	for _, session := range sessions {
+		if isGuest {
+			session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
+		} else {
+			session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
+		}
+		err := a.Srv.Store.Session().UpdateProps(session)
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Unable to update isGuest session: %s", err.Error()))
+			continue
+		}
+		a.AddSessionToCache(session)
+	}
+}
+
 func (a *App) RevokeAllSessions(userId string) *model.AppError {
 	sessions, err := a.Srv.Store.Session().GetSessions(userId)
 	if err != nil {
@@ -328,6 +349,11 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_USER_ACCESS_TOKEN)
 	if user.IsBot {
 		session.AddProp(model.SESSION_PROP_IS_BOT, model.SESSION_PROP_IS_BOT_VALUE)
+	}
+	if user.IsGuest() {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
+	} else {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
 	}
 	session.SetExpireInDays(model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
 

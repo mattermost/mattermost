@@ -421,11 +421,11 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
+	if token.Type != TOKEN_TYPE_TEAM_INVITATION && token.Type != TOKEN_TYPE_GUEST_INVITATION {
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+	if model.GetMillis()-token.CreateAt >= INVITATION_EXPIRY_TIME {
 		a.DeleteToken(token)
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -462,8 +462,29 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	}
 	user := result.Data.(*model.User)
 
+	if user.IsGuest() && token.Type == TOKEN_TYPE_TEAM_INVITATION {
+		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !user.IsGuest() && token.Type == TOKEN_TYPE_GUEST_INVITATION {
+		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.JoinUserToTeam(team, user, ""); err != nil {
 		return nil, err
+	}
+
+	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
+		channels, err := a.Srv.Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "))
+		if err != nil {
+			return nil, err
+		}
+
+		for _, channel := range channels {
+			_, err := a.AddUserToChannel(user, channel)
+			if err != nil {
+				mlog.Error(err.Error())
+			}
+		}
 	}
 
 	if err := a.DeleteToken(token); err != nil {
@@ -589,9 +610,11 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 
 	shouldBeAdmin := team.Email == user.Email
 
-	// Soft error if there is an issue joining the default channels
-	if err := a.JoinDefaultChannels(team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
-		mlog.Error(fmt.Sprintf("Encountered an issue joining default channels err=%v", err), mlog.String("user_id", user.Id), mlog.String("team_id", team.Id))
+	if !user.IsGuest() {
+		// Soft error if there is an issue joining the default channels
+		if err := a.JoinDefaultChannels(team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
+			mlog.Error(fmt.Sprintf("Encountered an issue joining default channels err=%v", err), mlog.String("user_id", user.Id), mlog.String("team_id", team.Id))
+		}
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
@@ -824,53 +847,17 @@ func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId strin
 	return nil
 }
 
-func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) *model.AppError {
-	teamMember, err := a.GetTeamMember(team.Id, user.Id)
-	if err != nil {
-		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
+func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId string) *model.AppError {
+	// Send the websocket message before we actually do the remove so the user being removed gets it.
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, teamMember.TeamId, "", "", nil)
+	message.Add("user_id", teamMember.UserId)
+	message.Add("team_id", teamMember.TeamId)
+	a.Publish(message)
 
-	var channelList *model.ChannelList
-
-	if channelList, err = a.Srv.Store.Channel().GetChannels(team.Id, user.Id, true); err != nil {
-		if err.Id == "store.sql_channel.get_channels.not_found.app_error" {
-			channelList = &model.ChannelList{}
-		} else {
-			return err
-		}
-	}
-
-	for _, channel := range *channelList {
-		if !channel.IsGroupOrDirect() {
-			a.InvalidateCacheForChannelMembers(channel.Id)
-			if err = a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
-				return err
-			}
-		}
-	}
-
-	channel, err := a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	user, err := a.Srv.Store.User().Get(teamMember.UserId)
 	if err != nil {
 		return err
 	}
-
-	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
-		if requestorId == user.Id {
-			if err := a.postLeaveTeamMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
-			}
-		} else {
-			if err := a.postRemoveFromTeamMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
-			}
-		}
-	}
-
-	// Send the websocket message before we actually do the remove so the user being removed gets it.
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, team.Id, "", "", nil)
-	message.Add("user_id", user.Id)
-	message.Add("team_id", team.Id)
-	a.Publish(message)
 
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()
@@ -908,13 +895,63 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	}
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
-	if err := a.Srv.Store.Preference().DeleteCategory(user.Id, team.Id); err != nil {
+	if err := a.Srv.Store.Preference().DeleteCategory(user.Id, teamMember.TeamId); err != nil {
 		return err
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
 	a.InvalidateCacheForUserTeams(user.Id)
+
+	return nil
+}
+
+func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) *model.AppError {
+	teamMember, err := a.GetTeamMember(team.Id, user.Id)
+	if err != nil {
+		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	var channelList *model.ChannelList
+
+	if channelList, err = a.Srv.Store.Channel().GetChannels(team.Id, user.Id, true); err != nil {
+		if err.Id == "store.sql_channel.get_channels.not_found.app_error" {
+			channelList = &model.ChannelList{}
+		} else {
+			return err
+		}
+	}
+
+	for _, channel := range *channelList {
+		if !channel.IsGroupOrDirect() {
+			a.InvalidateCacheForChannelMembers(channel.Id)
+			if err = a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
+				return err
+			}
+		}
+	}
+
+	channel, err := a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	if err != nil {
+		return err
+	}
+
+	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
+		if requestorId == user.Id {
+			if err = a.postLeaveTeamMessage(user, channel); err != nil {
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+			}
+		} else {
+			if err = a.postRemoveFromTeamMessage(user, channel); err != nil {
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+			}
+		}
+	}
+
+	err = a.RemoveTeamMemberFromTeam(teamMember, requestorId)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -1007,6 +1044,77 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 	a.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL())
+
+	return nil
+}
+
+func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if err := guestsInvite.IsValid(); err != nil {
+		return err
+	}
+
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(teamId)
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+	cchan := make(chan store.StoreResult, 1)
+	go func() {
+		channels, err := a.Srv.Store.Channel().GetChannelsByIds(guestsInvite.Channels)
+		cchan <- store.StoreResult{Data: channels, Err: err}
+		close(cchan)
+	}()
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(senderId)
+		uchan <- store.StoreResult{Data: user, Err: err}
+		close(uchan)
+	}()
+
+	result := <-cchan
+	if result.Err != nil {
+		return result.Err
+	}
+	channels := result.Data.([]*model.Channel)
+
+	result = <-uchan
+	if result.Err != nil {
+		return result.Err
+	}
+	user := result.Data.(*model.User)
+
+	result = <-tchan
+	if result.Err != nil {
+		return result.Err
+	}
+	team := result.Data.(*model.Team)
+
+	for _, channel := range channels {
+		if channel.TeamId != teamId {
+			return model.NewAppError("InviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	var invalidEmailList []string
+	for _, email := range guestsInvite.Emails {
+		if !a.isTeamEmailAddressAllowed(email, team.AllowedDomains) {
+			invalidEmailList = append(invalidEmailList, email)
+		}
+	}
+
+	if len(invalidEmailList) > 0 {
+		s := strings.Join(invalidEmailList, ", ")
+		err := model.NewAppError("InviteGuestsToChannels", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
+		return err
+	}
+
+	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
+	a.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message)
 
 	return nil
 }
@@ -1175,7 +1283,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+		if model.GetMillis()-token.CreateAt >= INVITATION_EXPIRY_TIME {
 			a.DeleteToken(token)
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}

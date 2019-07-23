@@ -1317,6 +1317,10 @@ func (a *App) GetChannelMemberCount(channelId string) (int64, *model.AppError) {
 	return a.Srv.Store.Channel().GetMemberCount(channelId, true)
 }
 
+func (a *App) GetChannelGuestCount(channelId string) (int64, *model.AppError) {
+	return a.Srv.Store.Channel().GetGuestCount(channelId, true)
+}
+
 func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
 	return a.Srv.Store.Channel().GetChannelCounts(teamId, userId)
 }
@@ -1577,8 +1581,16 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 }
 
 func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+	user, err := a.Srv.Store.User().Get(userIdToRemove)
+	if err != nil {
+		return err
+	}
+	isGuest := user.IsGuest()
+
 	if channel.Name == model.DEFAULT_CHANNEL {
-		return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
+		if !isGuest {
+			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
+		}
 	}
 
 	if channel.IsGroupConstrained() && userIdToRemove != removerUserId {
@@ -1601,6 +1613,23 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 	}
 	if err := a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); err != nil {
 		return err
+	}
+
+	if isGuest {
+		currentMembers, err := a.GetChannelMembersForUser(channel.TeamId, userIdToRemove)
+		if err != nil {
+			return err
+		}
+		if len(*currentMembers) == 0 {
+			teamMember, err := a.GetTeamMember(channel.TeamId, userIdToRemove)
+			if err != nil {
+				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+
+			if err = a.RemoveTeamMemberFromTeam(teamMember, removerUserId); err != nil {
+				return err
+			}
+		}
 	}
 
 	a.InvalidateCacheForUser(userIdToRemove)
