@@ -601,7 +601,7 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restricti
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
-	// query = applyTeamMemberViewRestrictionsFilter(query, teamId, restrictions)
+	query = applyTeamMemberViewRestrictionsFilter(query, teamId, restrictions)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
