@@ -184,10 +184,16 @@ func (s SqlWebhookStore) GetIncomingList(offset, limit int) ([]*model.IncomingWe
 
 }
 
-func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+func (s SqlWebhookStore) GetIncomingByTeam(teamId string, userId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError) {
 	var webhooks []*model.IncomingWebhook
 
-	if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
+	query := "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId"
+	if len(userId) > 0 {
+		query += " AND UserId = :UserId"
+	}
+	query += " AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
+
+	if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"TeamId": teamId, "UserId": userId, "Limit": limit, "Offset": offset}); err != nil {
 		return nil, model.NewAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 

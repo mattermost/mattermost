@@ -74,7 +74,6 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 }
 
-
 func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -96,7 +95,7 @@ func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 
 	require.Equal(t, rhook.ChannelId, hook.ChannelId)
 	require.Equal(t, rhook.UserId, th.BasicUser.Id)
-	require.Equal(t, rhook.TeamId,th.BasicTeam.Id)
+	require.Equal(t, rhook.TeamId, th.BasicTeam.Id)
 
 	team := th.CreateTeam()
 	team.AllowOpenInvite = false
@@ -168,6 +167,20 @@ func TestGetIncomingWebhooks(t *testing.T) {
 	if len(hooks) != 0 {
 		t.Fatal("no hooks should be returned")
 	}
+
+	// Test Team User Case: Permission to MANAGE_INCOMING_WEBHOOKS but not to MANAGE_OTHERS_INCOMING_WEBHOOKS
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	hooks, resp = Client.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, len(hooks), 0)
+
+	// Test Team User Case: Permission to MANAGE_OTHERS_INCOMING_WEBHOOKS
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	hooks, resp = Client.GetIncomingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, len(hooks), 1)
 
 	_, resp = Client.GetIncomingWebhooks(0, 1000, "")
 	CheckForbiddenStatus(t, resp)
@@ -695,7 +708,7 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 
 	require.Equal(t, rhook.ChannelId, hook.ChannelId)
 	require.Equal(t, rhook.UserId, th.BasicUser.Id)
-	require.Equal(t, rhook.TeamId,th.BasicTeam.Id)
+	require.Equal(t, rhook.TeamId, th.BasicTeam.Id)
 
 	team := th.CreateTeam()
 	team.AllowOpenInvite = false
@@ -922,7 +935,7 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 	CheckNoError(t, resp)
 
 	require.Equal(t, rhook.ChannelId, hook.ChannelId)
-	require.Equal(t, rhook.TeamId,th.BasicTeam.Id)
+	require.Equal(t, rhook.TeamId, th.BasicTeam.Id)
 
 	team := th.CreateTeam()
 	team.AllowOpenInvite = false

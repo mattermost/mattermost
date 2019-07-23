@@ -27,6 +27,7 @@ func TestWebhookStore(t *testing.T, ss store.Store) {
 	t.Run("GetOutgoingList", func(t *testing.T) { testWebhookStoreGetOutgoingList(t, ss) })
 	t.Run("GetOutgoingByChannel", func(t *testing.T) { testWebhookStoreGetOutgoingByChannel(t, ss) })
 	t.Run("GetOutgoingByTeam", func(t *testing.T) { testWebhookStoreGetOutgoingByTeam(t, ss) })
+	t.Run("GetOutgoingByTeamFilterByUser", func(t *testing.T) { TestWebhookStoreGetIncomingByTeamFilterByUser(t, ss) })
 	t.Run("DeleteOutgoing", func(t *testing.T) { testWebhookStoreDeleteOutgoing(t, ss) })
 	t.Run("DeleteOutgoingByChannel", func(t *testing.T) { testWebhookStoreDeleteOutgoingByChannel(t, ss) })
 	t.Run("DeleteOutgoingByUser", func(t *testing.T) { testWebhookStoreDeleteOutgoingByUser(t, ss) })
@@ -151,7 +152,8 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 	o1, err = ss.Webhook().SaveIncoming(o1)
 	require.Nil(t, err)
 
-	if hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); err != nil {
+	const anyUser string = ""
+	if hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, anyUser, 0, 100); err != nil {
 		t.Fatal(err)
 	} else {
 		if hooks[0].CreateAt != o1.CreateAt {
@@ -159,13 +161,43 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if hooks, err := ss.Webhook().GetIncomingByTeam("123", 0, 100); err != nil {
+	if hooks, err := ss.Webhook().GetIncomingByTeam("123", anyUser, 0, 100); err != nil {
 		t.Fatal(err)
 	} else {
 		if len(hooks) != 0 {
 			t.Fatal("no webhooks should have returned")
 		}
 	}
+}
+
+func TestWebhookStoreGetIncomingByTeamFilterByUser(t *testing.T, ss store.Store) {
+	var appErr *model.AppError
+
+	o1 := buildIncomingWebhook()
+	o1, appErr = ss.Webhook().SaveIncoming(o1)
+	require.Nil(t, appErr)
+
+	o2 := buildIncomingWebhook()
+	o2.TeamId = o1.TeamId //Set both to the same team
+	o2, appErr = ss.Webhook().SaveIncoming(o2)
+	require.Nil(t, appErr)
+
+	// check both are returned first
+	const allUsers string = ""
+	hooks, appErr := ss.Webhook().GetIncomingByTeam(o1.TeamId, allUsers, 0, 100)
+	require.Nil(t, appErr)
+	require.Equal(t, len(hooks), 2)
+
+	// Check it is filtered by user 01
+	hooks, appErr = ss.Webhook().GetIncomingByTeam(o1.TeamId, o1.UserId, 0, 100)
+	require.Nil(t, appErr)
+	require.Equal(t, len(hooks), 1)
+	require.Equal(t, hooks[0].CreateAt, o1.CreateAt)
+
+	// Check it is filtered by user unknown
+	hooks, appErr = ss.Webhook().GetIncomingByTeam(o2.TeamId, "123465", 0, 100)
+	require.Nil(t, appErr)
+	require.Equal(t, len(hooks), 0)
 }
 
 func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
