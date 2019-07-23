@@ -938,7 +938,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		}(userIds[i])
 	}
 
-	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id, nil); err != nil {
 		t.Fatal(err)
 	} else if int(totalMemberCount) != maxUsersPerTeam {
 		t.Fatalf("should start with 5 team members, had %v instead", totalMemberCount)
@@ -961,7 +961,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		t.Fatal("shouldn't be able to save member when at maximum members per team")
 	}
 
-	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id); teamErr != nil {
+	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id, nil); teamErr != nil {
 		t.Fatal(teamErr)
 	} else if int(totalMemberCount) != maxUsersPerTeam {
 		t.Fatalf("should still have 5 team members, had %v instead", totalMemberCount)
@@ -976,7 +976,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		panic(teamErr)
 	}
 
-	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id); teamErr != nil {
+	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id, nil); teamErr != nil {
 		t.Fatal(teamErr)
 	} else if int(totalMemberCount) != maxUsersPerTeam-1 {
 		t.Fatalf("should now only have 4 team members, had %v instead", totalMemberCount)
@@ -990,7 +990,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		}(newUserId)
 	}
 
-	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id); teamErr != nil {
+	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id, nil); teamErr != nil {
 		t.Fatal(teamErr)
 	} else if int(totalMemberCount) != maxUsersPerTeam {
 		t.Fatalf("should have 5 team members again, had %v instead", totalMemberCount)
@@ -1142,7 +1142,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: u2.Id}
 	store.Must(ss.Team().SaveMember(m2, -1))
 
-	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1); err != nil {
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1, nil); err != nil {
 		t.Fatal(err)
 	} else {
 		if totalMemberCount != 2 {
@@ -1150,7 +1150,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result, err := ss.Team().GetActiveMemberCount(teamId1); err != nil {
+	if result, err := ss.Team().GetActiveMemberCount(teamId1, nil); err != nil {
 		t.Fatal(err)
 	} else {
 		if result != 1 {
@@ -1161,7 +1161,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	m3 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	store.Must(ss.Team().SaveMember(m3, -1))
 
-	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1); err != nil {
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1, nil); err != nil {
 		t.Fatal(err)
 	} else {
 		if totalMemberCount != 2 {
@@ -1169,7 +1169,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result, err := ss.Team().GetActiveMemberCount(teamId1); err != nil {
+	if result, err := ss.Team().GetActiveMemberCount(teamId1, nil); err != nil {
 		t.Fatal(err)
 	} else {
 		if result != 1 {
