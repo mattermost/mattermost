@@ -4262,7 +4262,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
+		require.Nil(t, err)
 
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
@@ -4305,7 +4306,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
+		require.Nil(t, err)
 
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
@@ -4368,7 +4370,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
+		require.Nil(t, err)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
 		assert.Nil(t, err)
@@ -4396,7 +4399,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
+		require.Nil(t, err)
 
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
@@ -4439,7 +4443,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
+		require.Nil(t, err)
 
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
@@ -4482,7 +4487,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId1 := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: true, SchemeUser: false}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: true, SchemeUser: false}, 999)
+		require.Nil(t, err)
 
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId1,
@@ -4508,7 +4514,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId2 := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: true, SchemeUser: false}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: true, SchemeUser: false}, 999)
+		require.Nil(t, err)
 
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
@@ -4561,7 +4568,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
+		require.Nil(t, err)
 
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
@@ -4604,7 +4612,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
+		require.Nil(t, err)
 
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
@@ -4667,7 +4676,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
+		require.Nil(t, err)
 
 		err = ss.User().DemoteUserToGuest(user.Id)
 		assert.Nil(t, err)
@@ -4695,7 +4705,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
+		require.Nil(t, err)
 
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
@@ -4738,7 +4749,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
+		require.Nil(t, err)
 
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
@@ -4781,7 +4793,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId1 := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: false, SchemeUser: true}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: false, SchemeUser: true}, 999)
+		require.Nil(t, err)
 
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId1,
@@ -4807,7 +4820,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		teamId2 := model.NewId()
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: false, SchemeUser: true}, 999))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: false, SchemeUser: true}, 999)
+		require.Nil(t, err)
 
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)

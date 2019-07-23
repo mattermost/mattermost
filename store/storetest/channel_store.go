@@ -2093,7 +2093,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		}
 		_, err = ss.User().Save(u1)
 		require.Nil(t, err)
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
+		require.Nil(t, err)
 
 		m1 := model.ChannelMember{
 			ChannelId:   c1.Id,
@@ -2117,7 +2118,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		}
 		_, err = ss.User().Save(&u2)
 		require.Nil(t, err)
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
+		require.Nil(t, err)
 
 		m2 := model.ChannelMember{
 			ChannelId:   c1.Id,
@@ -2141,7 +2143,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		}
 		_, err = ss.User().Save(&u3)
 		require.Nil(t, err)
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
+		require.Nil(t, err)
 
 		m3 := model.ChannelMember{
 			ChannelId:   c2.Id,
@@ -2165,7 +2168,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		}
 		_, err = ss.User().Save(u4)
 		require.Nil(t, err)
-		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1))
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
+		require.Nil(t, err)
 
 		m4 := model.ChannelMember{
 			ChannelId:   c1.Id,
