@@ -342,11 +342,7 @@ func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *m
 	if err != nil {
 		return nil, err
 	}
-	guestCount, err := api.app.GetChannelMemberCount(channelId)
-	if err != nil {
-		return nil, err
-	}
-	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount, GuestCount: guestCount}, nil
+	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount}, nil
 }
 
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {

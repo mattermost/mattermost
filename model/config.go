@@ -2312,31 +2312,6 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 }
 
-type GuestAccountsSettings struct {
-	Enable                           *bool
-	AllowEmailAccounts               *bool
-	EnforceMultifactorAuthentication *bool
-	RestrictCreationToDomains        *string
-}
-
-func (s *GuestAccountsSettings) SetDefaults() {
-	if s.Enable == nil {
-		s.Enable = NewBool(false)
-	}
-
-	if s.AllowEmailAccounts == nil {
-		s.AllowEmailAccounts = NewBool(true)
-	}
-
-	if s.EnforceMultifactorAuthentication == nil {
-		s.EnforceMultifactorAuthentication = NewBool(false)
-	}
-
-	if s.RestrictCreationToDomains == nil {
-		s.RestrictCreationToDomains = NewString("")
-	}
-}
-
 type ImageProxySettings struct {
 	Enable                  *bool
 	ImageProxyType          *string
@@ -2413,7 +2388,6 @@ type Config struct {
 	JobSettings             JobSettings
 	PluginSettings          PluginSettings
 	DisplaySettings         DisplaySettings
-	GuestAccountsSettings   GuestAccountsSettings
 	ImageProxySettings      ImageProxySettings
 }
 
@@ -2497,7 +2471,6 @@ func (o *Config) SetDefaults() {
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
-	o.GuestAccountsSettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
 }
 
