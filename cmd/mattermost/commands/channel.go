@@ -403,7 +403,9 @@ func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *mod
 		return err
 	}
 
-	if incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+	const anyUser string = ""
+
+	if incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(oldTeamId, anyUser, 0, 10000000); err != nil {
 		return err
 	} else {
 		for _, webhook := range incomingWebhooks {
