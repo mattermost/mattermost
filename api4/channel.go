@@ -347,6 +347,22 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	otherUserId := userIds[0]
+	if c.App.Session.UserId == otherUserId {
+		otherUserId = userIds[1]
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, otherUserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		return
+	}
+
 	sc, err := c.App.GetOrCreateDirectChannel(userIds[0], userIds[1])
 	if err != nil {
 		c.Err = err
@@ -398,6 +414,25 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_CREATE_GROUP_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_CREATE_GROUP_CHANNEL)
+		return
+	}
+
+	canSeeAll := true
+	for _, id := range userIds {
+		if c.App.Session.UserId != id {
+			canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, id)
+			if err != nil {
+				c.Err = err
+				return
+			}
+			if !canSee {
+				canSeeAll = false
+			}
+		}
+	}
+
+	if !canSeeAll {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
