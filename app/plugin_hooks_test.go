@@ -622,7 +622,10 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 				p.API.LogDebug(buf.String())
 
 				outbuf := bytes.NewBufferString("changedtext")
-				io.Copy(output, outbuf)
+				_, err := io.Copy(output, outbuf)
+				if err != nil {
+					panic("io.Copy failed: " + err.Error())
+				}
 				info.Name = "modifiedinfo"
 				return info, ""
 			}
