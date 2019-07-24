@@ -265,21 +265,28 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit in
 	return webhooks, nil
 }
 
-func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s SqlWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
 	var webhooks []*model.OutgoingWebhook
 
-	query := ""
-	if limit < 0 || offset < 0 {
-		query = "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0"
-	} else {
-		query = "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
+	query := "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0"
+
+	if len(userId) > 0 {
+		query += " AND CreatorId = :UserId"
+	}
+	//query += " AND DeleteAt = 0"
+	if limit >= 0 || offset >= 0 {
+		query += " LIMIT :Limit OFFSET :Offset"
 	}
 
-	if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+	if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"TeamId": teamId, "UserId": userId, "Offset": offset, "Limit": limit}); err != nil {
 		return nil, model.NewAppError("SqlWebhookStore.GetOutgoingByTeam", "store.sql_webhooks.get_outgoing_by_team.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return webhooks, nil
+}
+
+func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+	return s.GetOutgoingByTeamByUser(teamId, "", offset, limit)
 }
 
 func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) *model.AppError {

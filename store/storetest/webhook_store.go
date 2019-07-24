@@ -19,6 +19,7 @@ func TestWebhookStore(t *testing.T, ss store.Store) {
 	t.Run("GetIncoming", func(t *testing.T) { testWebhookStoreGetIncoming(t, ss) })
 	t.Run("GetIncomingList", func(t *testing.T) { testWebhookStoreGetIncomingList(t, ss) })
 	t.Run("GetIncomingByTeam", func(t *testing.T) { testWebhookStoreGetIncomingByTeam(t, ss) })
+	t.Run("GetIncomingByTeamFilterByUser", func(t *testing.T) { TestWebhookStoreGetIncomingByTeamFilterByUser(t, ss) })
 	t.Run("DeleteIncoming", func(t *testing.T) { testWebhookStoreDeleteIncoming(t, ss) })
 	t.Run("DeleteIncomingByChannel", func(t *testing.T) { testWebhookStoreDeleteIncomingByChannel(t, ss) })
 	t.Run("DeleteIncomingByUser", func(t *testing.T) { testWebhookStoreDeleteIncomingByUser(t, ss) })
@@ -27,7 +28,7 @@ func TestWebhookStore(t *testing.T, ss store.Store) {
 	t.Run("GetOutgoingList", func(t *testing.T) { testWebhookStoreGetOutgoingList(t, ss) })
 	t.Run("GetOutgoingByChannel", func(t *testing.T) { testWebhookStoreGetOutgoingByChannel(t, ss) })
 	t.Run("GetOutgoingByTeam", func(t *testing.T) { testWebhookStoreGetOutgoingByTeam(t, ss) })
-	t.Run("GetOutgoingByTeamFilterByUser", func(t *testing.T) { TestWebhookStoreGetIncomingByTeamFilterByUser(t, ss) })
+	t.Run("GetOutgoingByTeamFilterByUser", func(t *testing.T) { TestWebhookStoreGetOutgoingByTeamFilterByUser(t, ss) })
 	t.Run("DeleteOutgoing", func(t *testing.T) { testWebhookStoreDeleteOutgoing(t, ss) })
 	t.Run("DeleteOutgoingByChannel", func(t *testing.T) { testWebhookStoreDeleteOutgoingByChannel(t, ss) })
 	t.Run("DeleteOutgoingByUser", func(t *testing.T) { testWebhookStoreDeleteOutgoingByUser(t, ss) })
@@ -444,6 +445,44 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
 			t.Fatal("no webhooks should have returned")
 		}
 	}
+}
+
+func TestWebhookStoreGetOutgoingByTeamFilterByUser(t *testing.T, ss store.Store) {
+	var appErr *model.AppError
+
+	o1 := &model.OutgoingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.CreatorId = model.NewId()
+	o1.TeamId = model.NewId()
+	o1.CallbackURLs = []string{"http://nowhere.com/"}
+
+	o1, appErr = ss.Webhook().SaveOutgoing(o1)
+	require.Nil(t, appErr)
+
+	o2 := &model.OutgoingWebhook{}
+	o2.ChannelId = model.NewId()
+	o2.CreatorId = model.NewId()
+	o2.TeamId = o1.TeamId
+	o2.CallbackURLs = []string{"http://nowhere.com/"}
+
+	o2, appErr = ss.Webhook().SaveOutgoing(o2)
+	require.Nil(t, appErr)
+
+	// check both are returned first
+	hooks, appErr := ss.Webhook().GetOutgoingByTeam(o1.TeamId, 0, 100)
+	require.Nil(t, appErr)
+	require.Equal(t, len(hooks), 2)
+
+	// Check it is filtered by user 01
+	hooks, appErr = ss.Webhook().GetOutgoingByTeamByUser(o1.TeamId, o1.CreatorId, 0, 100)
+	require.Nil(t, appErr)
+	require.Equal(t, len(hooks), 1)
+	require.Equal(t, hooks[0].CreateAt, o1.CreateAt)
+
+	// Check it is filtered by user unknown
+	hooks, appErr = ss.Webhook().GetOutgoingByTeamByUser(o2.TeamId, "123465", 0, 100)
+	require.Nil(t, appErr)
+	require.Equal(t, len(hooks), 0)
 }
 
 func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {

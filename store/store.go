@@ -410,6 +410,7 @@ type WebhookStore interface {
 	GetOutgoingByChannel(channelId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
+	GetOutgoingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	DeleteOutgoing(webhookId string, time int64) *model.AppError
 	PermanentDeleteOutgoingByChannel(channelId string) *model.AppError
 	PermanentDeleteOutgoingByUser(userId string) *model.AppError
