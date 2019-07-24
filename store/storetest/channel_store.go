@@ -1647,7 +1647,8 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 		_, err = ss.Channel().CreateDirectChannel(model.NewId(), model.NewId())
 		require.Nil(t, err)
 
-		members, err := ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+		var members *model.ChannelMembers
+		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
 		require.Nil(t, err)
 
 		assert.Len(t, *members, 4)
