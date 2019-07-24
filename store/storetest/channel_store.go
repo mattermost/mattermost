@@ -1631,7 +1631,8 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("with channels", func(t *testing.T) {
-		members, err := ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+		var members *model.ChannelMembers
+		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
 		require.Nil(t, err)
 
 		assert.Len(t, *members, 2)
@@ -1659,7 +1660,8 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 			DisplayName: "test",
 			Type:        model.CHANNEL_GROUP,
 		}
-		channel, err := ss.Channel().Save(group, 10000)
+		var channel *model.Channel
+		channel, err = ss.Channel().Save(group, 10000)
 		require.Nil(t, err)
 		for _, userId := range userIds {
 			cm := &model.ChannelMember{
@@ -1669,10 +1671,11 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 				SchemeUser:  true,
 			}
 
-			_, err := ss.Channel().SaveMember(cm)
+			_, err = ss.Channel().SaveMember(cm)
 			require.Nil(t, err)
 		}
-		members, err := ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+		var members *model.ChannelMembers
+		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
 		require.Nil(t, err)
 
 		assert.Len(t, *members, 5)
