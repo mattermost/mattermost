@@ -277,8 +277,7 @@ func (s SqlWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, o
 	if len(userId) > 0 {
 		query += " AND CreatorId = :UserId"
 	}
-	//query += " AND DeleteAt = 0"
-	if limit >= 0 || offset >= 0 {
+	if limit >= 0 && offset >= 0 {
 		query += " LIMIT :Limit OFFSET :Offset"
 	}
 
