@@ -184,7 +184,7 @@ func (s SqlWebhookStore) GetIncomingList(offset, limit int) ([]*model.IncomingWe
 
 }
 
-func (s SqlWebhookStore) GetIncomingByTeam(teamId string, userId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError) {
 	var webhooks []*model.IncomingWebhook
 
 	query := "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId"
@@ -198,6 +198,10 @@ func (s SqlWebhookStore) GetIncomingByTeam(teamId string, userId string, offset,
 	}
 
 	return webhooks, nil
+}
+
+func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+	return s.GetIncomingByTeamByUser(teamId, "", offset, limit)
 }
 
 func (s SqlWebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError) {

@@ -153,8 +153,7 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 	o1, err = ss.Webhook().SaveIncoming(o1)
 	require.Nil(t, err)
 
-	const anyUser string = ""
-	if hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, anyUser, 0, 100); err != nil {
+	if hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); err != nil {
 		t.Fatal(err)
 	} else {
 		if hooks[0].CreateAt != o1.CreateAt {
@@ -162,7 +161,7 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if hooks, err := ss.Webhook().GetIncomingByTeam("123", anyUser, 0, 100); err != nil {
+	if hooks, err := ss.Webhook().GetIncomingByTeam("123", 0, 100); err != nil {
 		t.Fatal(err)
 	} else {
 		if len(hooks) != 0 {
@@ -184,19 +183,18 @@ func TestWebhookStoreGetIncomingByTeamFilterByUser(t *testing.T, ss store.Store)
 	require.Nil(t, appErr)
 
 	// check both are returned first
-	const allUsers string = ""
-	hooks, appErr := ss.Webhook().GetIncomingByTeam(o1.TeamId, allUsers, 0, 100)
+	hooks, appErr := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100)
 	require.Nil(t, appErr)
 	require.Equal(t, len(hooks), 2)
 
 	// Check it is filtered by user 01
-	hooks, appErr = ss.Webhook().GetIncomingByTeam(o1.TeamId, o1.UserId, 0, 100)
+	hooks, appErr = ss.Webhook().GetIncomingByTeamByUser(o1.TeamId, o1.UserId, 0, 100)
 	require.Nil(t, appErr)
 	require.Equal(t, len(hooks), 1)
 	require.Equal(t, hooks[0].CreateAt, o1.CreateAt)
 
 	// Check it is filtered by user unknown
-	hooks, appErr = ss.Webhook().GetIncomingByTeam(o2.TeamId, "123465", 0, 100)
+	hooks, appErr = ss.Webhook().GetIncomingByTeamByUser(o2.TeamId, "123465", 0, 100)
 	require.Nil(t, appErr)
 	require.Equal(t, len(hooks), 0)
 }
