@@ -795,6 +795,60 @@ var specialSearchChar = []string{
 	":",
 }
 
+func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, queryParams map[string]interface{}) (string, map[string]interface{}) {
+	searchQuery := ""
+	// handle after: before: on: filters
+	if len(params.OnDate) > 0 {
+		onDateStart, onDateEnd := params.GetOnDateMillis()
+		queryParams["OnDateStart"] = strconv.FormatInt(onDateStart, 10)
+		queryParams["OnDateEnd"] = strconv.FormatInt(onDateEnd, 10)
+
+		// between `on date` start of day and end of day
+		searchQuery += "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd "
+	} else {
+
+		if len(params.ExcludedDate) > 0 {
+			excludedDateStart, excludedDateEnd := params.GetExcludedDateMillis()
+			queryParams["ExcludedDateStart"] = strconv.FormatInt(excludedDateStart, 10)
+			queryParams["ExcludedDateEnd"] = strconv.FormatInt(excludedDateEnd, 10)
+
+			searchQuery += "AND CreateAt NOT BETWEEN :ExcludedDateStart AND :ExcludedDateEnd "
+		}
+
+		if len(params.AfterDate) > 0 {
+			afterDate := params.GetAfterDateMillis()
+			queryParams["AfterDate"] = strconv.FormatInt(afterDate, 10)
+
+			// greater than `after date`
+			searchQuery += "AND CreateAt >= :AfterDate "
+		}
+
+		if len(params.BeforeDate) > 0 {
+			beforeDate := params.GetBeforeDateMillis()
+			queryParams["BeforeDate"] = strconv.FormatInt(beforeDate, 10)
+
+			// less than `before date`
+			searchQuery += "AND CreateAt <= :BeforeDate "
+		}
+
+		if len(params.ExcludedAfterDate) > 0 {
+			afterDate := params.GetExcludedAfterDateMillis()
+			queryParams["ExcludedAfterDate"] = strconv.FormatInt(afterDate, 10)
+
+			searchQuery += "AND CreateAt < :ExcludedAfterDate "
+		}
+
+		if len(params.ExcludedBeforeDate) > 0 {
+			beforeDate := params.GetExcludedBeforeDateMillis()
+			queryParams["ExcludedBeforeDate"] = strconv.FormatInt(beforeDate, 10)
+
+			searchQuery += "AND CreateAt > :ExcludedBeforeDate "
+		}
+	}
+
+	return searchQuery, queryParams
+}
+
 func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
 	if len(channels) == 0 {
 		return "", queryParams
@@ -918,6 +972,9 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 
 	postFilterClause, queryParams := s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams)
 	searchQuery = strings.Replace(searchQuery, "POST_FILTER", postFilterClause, 1)
+
+	createDateFilterClause, queryParams := s.buildCreateDateFilterClause(params, queryParams)
+	searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", createDateFilterClause, 1)
 
 	termMap := map[string]bool{}
 	terms := params.Terms
