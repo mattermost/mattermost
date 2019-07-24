@@ -27,10 +27,15 @@ import (
 type SlackChannel struct {
 	Id      string            `json:"id"`
 	Name    string            `json:"name"`
+	Creator string			  `json:"creator"`
 	Members []string          `json:"members"`
-	Topic   map[string]string `json:"topic"`
-	Purpose map[string]string `json:"purpose"`
+	Purpose SlackChannelSub   `json:"purpose"`
+	Topic   SlackChannelSub   `json:"topic"`
 	Type    string
+}
+
+type SlackChannelSub struct {
+	Value	string	`json:value`
 }
 
 type SlackProfile struct {
@@ -109,6 +114,7 @@ func SlackParseChannels(data io.Reader, channelType string) ([]SlackChannel, err
 
 	var channels []SlackChannel
 	if err := decoder.Decode(&channels); err != nil {
+		// TODO: investigate
 		mlog.Warn("Slack Import: Error occurred when parsing some Slack channels. Import may work anyway.")
 		return channels, err
 	}
@@ -475,6 +481,7 @@ func (a *App) addSlackUsersToChannel(members []string, users map[string]*model.U
 
 func SlackSanitiseChannelProperties(channel model.Channel) model.Channel {
 	if utf8.RuneCountInString(channel.DisplayName) > model.CHANNEL_DISPLAY_NAME_MAX_RUNES {
+		// TODO: Investigate
 		mlog.Warn(fmt.Sprintf("Slack Import: Channel %v display name exceeds the maximum length. It will be truncated when imported.", channel.DisplayName))
 		channel.DisplayName = truncateRunes(channel.DisplayName, model.CHANNEL_DISPLAY_NAME_MAX_RUNES)
 	}
@@ -509,8 +516,8 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 			Type:        sChannel.Type,
 			DisplayName: sChannel.Name,
 			Name:        SlackConvertChannelName(sChannel.Name, sChannel.Id),
-			Purpose:     sChannel.Purpose["value"],
-			Header:      sChannel.Topic["value"],
+			Purpose:     sChannel.Purpose.Value,
+			Header:      sChannel.Topic.Value,
 		}
 		newChannel = SlackSanitiseChannelProperties(newChannel)
 
@@ -527,7 +534,7 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 
 		if mChannel == nil {
 			// Haven't found an existing channel to merge with. Try importing it as a new one.
-			mChannel = a.OldImportChannel(&newChannel)
+			mChannel = a.OldImportChannel(&newChannel, sChannel, users)
 			if mChannel == nil {
 				mlog.Warn(fmt.Sprintf("Slack Import: Unable to import Slack channel: %s.", newChannel.DisplayName))
 				importerLog.WriteString(utils.T("api.slackimport.slack_add_channels.import_failed", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
@@ -535,7 +542,9 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 			}
 		}
 
-		a.addSlackUsersToChannel(sChannel.Members, users, mChannel, importerLog)
+		if sChannel.Type == model.CHANNEL_OPEN || sChannel.Type == model.CHANNEL_PRIVATE {
+			a.addSlackUsersToChannel(sChannel.Members, users, mChannel, importerLog)
+		}
 		importerLog.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
 		a.SlackAddPosts(teamId, mChannel, posts[sChannel.Name], users, uploads, botUser)
@@ -814,7 +823,39 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 	return ruser
 }
 
-func (a *App) OldImportChannel(channel *model.Channel) *model.Channel {
+func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, users map[string]*model.User) *model.Channel {
+	if channel.Type == model.CHANNEL_DIRECT {
+		sc, err := a.createDirectChannel(users[sChannel.Members[0]].Id, users[sChannel.Members[1]].Id)
+		if err != nil {
+			return nil
+		}
+		return sc
+	}
+	if channel.Type == model.CHANNEL_GROUP {
+		members := make([]string, len(sChannel.Members))
+		if len(members) < 8 {
+			for i := range sChannel.Members {
+				members[i] = users[sChannel.Members[i]].Id
+			}
+			sc, err := a.createGroupChannel(members, users[sChannel.Creator].Id)
+			if err != nil {
+				return nil
+			}
+
+			return sc
+		} else {
+			channel.Type = model.CHANNEL_PRIVATE
+		}
+	}
+
+	if channel.Type == model.CHANNEL_PRIVATE {
+		sc, err := a.CreateChannel(channel, false)
+		if err != nil {
+			return nil
+		}
+		return sc
+	}
+
 	sc, err := a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if err != nil {
 		return nil
