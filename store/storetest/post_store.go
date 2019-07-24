@@ -1173,7 +1173,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Username = "usera1"
 	u1.Email = MakeEmail()
-	u1, _ = (<-ss.User().Save(u1)).Data.(*model.User)
+	u1, _ = ss.User().Save(u1)
 
 	t1 := &model.TeamMember{}
 	t1.TeamId = teamId
@@ -1183,7 +1183,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	u2 := &model.User{}
 	u2.Username = "userb2"
 	u2.Email = MakeEmail()
-	u2, _ = (<-ss.User().Save(u2)).Data.(*model.User)
+	u2, _ = ss.User().Save(u2)
 
 	t2 := &model.TeamMember{}
 	t2.TeamId = teamId
@@ -1193,7 +1193,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	u3 := &model.User{}
 	u3.Username = "userc3"
 	u3.Email = MakeEmail()
-	u3, _ = (<-ss.User().Save(u3)).Data.(*model.User)
+	u3, _ = ss.User().Save(u3)
 
 	t3 := &model.TeamMember{}
 	t3.TeamId = teamId
