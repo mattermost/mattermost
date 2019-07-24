@@ -407,6 +407,51 @@ func TestCreateDirectChannel(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestCreateDirectChannelAsGuest(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	user1 := th.BasicUser
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.SetLicense(model.NewTestLicense())
+
+	id := model.NewId()
+	guest := &model.User{
+		Email:         "success+" + id + "@simulator.amazonses.com",
+		Username:      "un_" + id,
+		Nickname:      "nn_" + id,
+		Password:      "Password1",
+		EmailVerified: true,
+	}
+	guest, err := th.App.CreateGuest(guest)
+	require.Nil(t, err)
+
+	_, resp := Client.Login(guest.Username, "Password1")
+	CheckNoError(t, resp)
+
+	t.Run("Try to created DM with not visible user", func(t *testing.T) {
+		_, resp := Client.CreateDirectChannel(guest.Id, user1.Id)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp = Client.CreateDirectChannel(user1.Id, guest.Id)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Creating DM with visible user", func(t *testing.T) {
+		th.LinkUserToTeam(guest, th.BasicTeam)
+		th.AddUserToChannel(guest, th.BasicChannel)
+
+		_, resp := Client.CreateDirectChannel(guest.Id, user1.Id)
+		CheckNoError(t, resp)
+	})
+}
+
 func TestDeleteDirectChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
