@@ -154,7 +154,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 			userId = c.App.Session.UserId
 		}
 
-		hooks, err = c.App.GetIncomingWebhooksForTeamPage(teamId, userId, c.Params.Page, c.Params.PerPage)
+		hooks, err = c.App.GetIncomingWebhooksForTeamPageByUser(teamId, userId, c.Params.Page, c.Params.PerPage)
 	} else {
 		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)

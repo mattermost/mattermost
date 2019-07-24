@@ -380,12 +380,16 @@ func (a *App) GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.
 	return a.Srv.Store.Webhook().GetIncoming(hookId, true)
 }
 
-func (a *App) GetIncomingWebhooksForTeamPage(teamId string, userId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	return a.GetIncomingWebhooksForTeamPageByUser(teamId, "", page, perPage)
+}
+
+func (a *App) GetIncomingWebhooksForTeamPageByUser(teamId string, userId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksForTeamPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Webhook().GetIncomingByTeam(teamId, userId, page*perPage, perPage)
+	return a.Srv.Store.Webhook().GetIncomingByTeamByUser(teamId, userId, page*perPage, perPage)
 }
 
 func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {

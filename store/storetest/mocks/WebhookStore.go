@@ -145,8 +145,33 @@ func (_m *WebhookStore) GetIncomingByChannel(channelId string) ([]*model.Incomin
 	return r0, r1
 }
 
-// GetIncomingByTeam provides a mock function with given fields: teamId, userId, offset, limit
-func (_m *WebhookStore) GetIncomingByTeam(teamId string, userId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+// GetIncomingByTeam provides a mock function with given fields: teamId, offset, limit
+func (_m *WebhookStore) GetIncomingByTeam(teamId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+	ret := _m.Called(teamId, offset, limit)
+
+	var r0 []*model.IncomingWebhook
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.IncomingWebhook); ok {
+		r0 = rf(teamId, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.IncomingWebhook)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(teamId, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetIncomingByTeamByUser provides a mock function with given fields: teamId, userId, offset, limit
+func (_m *WebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
 	ret := _m.Called(teamId, userId, offset, limit)
 
 	var r0 []*model.IncomingWebhook
