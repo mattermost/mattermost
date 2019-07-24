@@ -40,26 +40,22 @@ const (
 	TOKEN_TYPE_PASSWORD_RECOVERY  = "password_recovery"
 	TOKEN_TYPE_VERIFY_EMAIL       = "verify_email"
 	TOKEN_TYPE_TEAM_INVITATION    = "team_invitation"
+	TOKEN_TYPE_GUEST_INVITATION   = "guest_invitation"
 	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60      // 1 hour
-	TEAM_INVITATION_EXPIRY_TIME   = 1000 * 60 * 60 * 48 // 48 hours
+	INVITATION_EXPIRY_TIME        = 1000 * 60 * 60 * 48 // 48 hours
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
-func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User, *model.AppError) {
+func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
-	token, err := a.Srv.Store.Token().GetByToken(tokenId)
-	if err != nil {
-		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
+	if token.Type != TOKEN_TYPE_TEAM_INVITATION && token.Type != TOKEN_TYPE_GUEST_INVITATION {
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+	if model.GetMillis()-token.CreateAt >= INVITATION_EXPIRY_TIME {
 		a.DeleteToken(token)
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -71,10 +67,20 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 		return nil, err
 	}
 
+	channels, err := a.Srv.Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "))
+	if err != nil {
+		return nil, err
+	}
+
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
-	ruser, err := a.CreateUser(user)
+	var ruser *model.User
+	if token.Type == TOKEN_TYPE_TEAM_INVITATION {
+		ruser, err = a.CreateUser(user)
+	} else {
+		ruser, err = a.CreateGuest(user)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +90,15 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 	}
 
 	a.AddDirectChannels(team.Id, ruser)
+
+	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
+		for _, channel := range channels {
+			_, err := a.AddUserToChannel(ruser, channel)
+			if err != nil {
+				mlog.Error(err.Error())
+			}
+		}
+	}
 
 	if err := a.DeleteToken(token); err != nil {
 		return nil, err
@@ -233,13 +248,17 @@ func (a *App) CreateGuest(user *model.User) (*model.User, *model.AppError) {
 }
 
 func (a *App) createUserOrGuest(user *model.User, guest bool) (*model.User, *model.AppError) {
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
-		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	user.Roles = model.SYSTEM_USER_ROLE_ID
 	if guest {
 		user.Roles = model.SYSTEM_GUEST_ROLE_ID
+	}
+
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
+		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && user.IsGuest() && !CheckUserDomain(user, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Below is a special case where the first user in the entire
@@ -505,11 +524,7 @@ func (a *App) GetUsersInChannel(channelId string, offset int, limit int) ([]*mod
 }
 
 func (a *App) GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesInChannelByStatus(channelId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetProfilesInChannelByStatus(channelId, offset, limit)
 }
 
 func (a *App) GetUsersInChannelMap(channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
@@ -583,11 +598,7 @@ func (a *App) GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool, viewR
 }
 
 func (a *App) GetUsersWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesWithoutTeam(offset, limit, viewRestrictions)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetProfilesWithoutTeam(offset, limit, viewRestrictions)
 }
 
 // GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
@@ -1064,13 +1075,13 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	adminCopyOfUser := user.DeepCopy()
 	a.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
-	adminMessage.Add("user", *adminCopyOfUser)
+	adminMessage.Add("user", &adminCopyOfUser)
 	adminMessage.Broadcast.ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
 	a.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
-	message.Add("user", user)
+	message.Add("user", &user)
 	message.Broadcast.ContainsSanitizedData = true
 	a.Publish(message)
 }
@@ -1431,6 +1442,10 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv.Store.Post().PermanentDeleteByUser(user.Id); err != nil {
+		return err
+	}
+
+	if err := a.Srv.Store.Bot().PermanentDelete(user.Id); err != nil {
 		return err
 	}
 
@@ -2202,6 +2217,61 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 	}
 
 	return listOfAllowedChannels, nil
+}
+
+// PromoteGuestToUser Convert user's roles and all his mermbership's roles from
+// guest roles to regular user roles.
+func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.AppError {
+	err := a.Srv.Store.User().PromoteGuestToUser(user.Id)
+	if err != nil {
+		return err
+	}
+	userTeams, err := a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+	if err != nil {
+		return err
+	}
+
+	for _, team := range userTeams {
+		// Soft error if there is an issue joining the default channels
+		if err = a.JoinDefaultChannels(team.Id, user, false, requestorId); err != nil {
+			mlog.Error(fmt.Sprintf("Encountered an issue joining default channels err=%v", err), mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.String("requestor_id", requestorId))
+		}
+	}
+
+	promotedUser, err := a.GetUser(user.Id)
+	if err != nil {
+		return err
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	message.Add("user", promotedUser)
+	a.Publish(message)
+
+	a.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest())
+
+	return nil
+}
+
+// DemoteUserToGuest Convert user's roles and all his mermbership's roles from
+// regular user roles to guest roles.
+func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
+	err := a.Srv.Store.User().DemoteUserToGuest(user.Id)
+	if err != nil {
+		return err
+	}
+
+	demotedUser, err := a.GetUser(user.Id)
+	if err != nil {
+		return err
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	message.Add("user", demotedUser)
+	a.Publish(message)
+
+	a.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest())
+
+	return nil
 }
 
 // invalidateUserCacheAndPublish Invalidates cache for a user and publishes user updated event

@@ -5,6 +5,9 @@ package app
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -12,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func TestCreateBot(t *testing.T) {
@@ -593,6 +597,165 @@ func TestConvertUserToBot(t *testing.T) {
 		defer th.App.PermanentDeleteBot(bot.UserId)
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
+	})
+}
+
+func TestSetBotIconImage(t *testing.T) {
+	t.Run("invalid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		path, _ := fileutils.FindDir("tests")
+		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
+		require.NoError(t, fileErr)
+		defer svgFile.Close()
+
+		err := th.App.SetBotIconImage("invalid_bot_id", svgFile)
+		require.NotNil(t, err)
+	})
+
+	t.Run("valid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Set an icon image
+		path, _ := fileutils.FindDir("tests")
+		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
+		require.NoError(t, fileErr)
+		defer svgFile.Close()
+
+		expectedData, fileErr := ioutil.ReadAll(svgFile)
+		require.Nil(t, fileErr)
+		require.NotNil(t, expectedData)
+
+		bot, err := th.App.ConvertUserToBot(&model.User{
+			Username: "username",
+			Id:       th.BasicUser.Id,
+		})
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
+		exists, err := th.App.FileExists(fpath)
+		require.Nil(t, err)
+		require.False(t, exists, "icon.svg shouldn't exist for the bot")
+
+		svgFile.Seek(0, 0)
+		err = th.App.SetBotIconImage(bot.UserId, svgFile)
+		require.Nil(t, err)
+
+		exists, err = th.App.FileExists(fpath)
+		require.Nil(t, err)
+		require.True(t, exists, "icon.svg should exist for the bot")
+
+		actualData, err := th.App.ReadFile(fpath)
+		require.Nil(t, err)
+		require.NotNil(t, actualData)
+
+		require.Equal(t, expectedData, actualData)
+	})
+}
+
+func TestGetBotIconImage(t *testing.T) {
+	t.Run("invalid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		actualData, err := th.App.GetBotIconImage("invalid_bot_id")
+		require.NotNil(t, err)
+		require.Nil(t, actualData)
+	})
+
+	t.Run("valid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Set an icon image
+		path, _ := fileutils.FindDir("tests")
+		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
+		require.NoError(t, fileErr)
+		defer svgFile.Close()
+
+		expectedData, fileErr := ioutil.ReadAll(svgFile)
+		require.Nil(t, fileErr)
+		require.NotNil(t, expectedData)
+
+		bot, err := th.App.ConvertUserToBot(&model.User{
+			Username: "username",
+			Id:       th.BasicUser.Id,
+		})
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		svgFile.Seek(0, 0)
+		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
+		_, err = th.App.WriteFile(svgFile, fpath)
+		require.Nil(t, err)
+
+		actualBytes, err := th.App.GetBotIconImage(bot.UserId)
+		require.Nil(t, err)
+		require.NotNil(t, actualBytes)
+
+		actualData, err := th.App.ReadFile(fpath)
+		require.Nil(t, err)
+		require.NotNil(t, actualData)
+
+		require.Equal(t, expectedData, actualData)
+	})
+}
+
+func TestDeleteBotIconImage(t *testing.T) {
+	t.Run("invalid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		err := th.App.DeleteBotIconImage("invalid_bot_id")
+		require.NotNil(t, err)
+	})
+
+	t.Run("valid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Set an icon image
+		path, _ := fileutils.FindDir("tests")
+		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
+		require.NoError(t, fileErr)
+		defer svgFile.Close()
+
+		expectedData, fileErr := ioutil.ReadAll(svgFile)
+		require.Nil(t, fileErr)
+		require.NotNil(t, expectedData)
+
+		bot, err := th.App.ConvertUserToBot(&model.User{
+			Username: "username",
+			Id:       th.BasicUser.Id,
+		})
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		// Set icon
+		svgFile.Seek(0, 0)
+		err = th.App.SetBotIconImage(bot.UserId, svgFile)
+		require.Nil(t, err)
+
+		// Get icon
+		actualData, err := th.App.GetBotIconImage(bot.UserId)
+		require.Nil(t, err)
+		require.NotNil(t, actualData)
+		require.Equal(t, expectedData, actualData)
+
+		// Bot icon should exist
+		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
+		exists, err := th.App.FileExists(fpath)
+		require.Nil(t, err)
+		require.True(t, exists, "icon.svg should exist for the bot")
+
+		// Delete icon
+		err = th.App.DeleteBotIconImage(bot.UserId)
+		require.Nil(t, err)
+
+		// Bot icon should not exist
+		exists, err = th.App.FileExists(fpath)
+		require.Nil(t, err)
+		require.False(t, exists, "icon.svg should be deleted for the bot")
 	})
 }
 
