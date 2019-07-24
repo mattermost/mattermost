@@ -227,6 +227,22 @@ func (_m *SessionStore) UpdateLastActivityAt(sessionId string, time int64) *mode
 	return r0
 }
 
+// UpdateProps provides a mock function with given fields: session
+func (_m *SessionStore) UpdateProps(session *model.Session) *model.AppError {
+	ret := _m.Called(session)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Session) *model.AppError); ok {
+		r0 = rf(session)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // UpdateRoles provides a mock function with given fields: userId, roles
 func (_m *SessionStore) UpdateRoles(userId string, roles string) (string, *model.AppError) {
 	ret := _m.Called(userId, roles)

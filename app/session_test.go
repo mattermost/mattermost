@@ -123,3 +123,57 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
 }
+
+func TestUpdateSessionOnPromoteDemote(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Promote Guest to User updates the session", func(t *testing.T) {
+		guest := th.CreateGuest()
+
+		session, err := th.App.CreateSession(&model.Session{UserId: guest.Id, Props: model.StringMap{model.SESSION_PROP_IS_GUEST: "true"}})
+		require.Nil(t, err)
+
+		rsession, err := th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
+
+		err = th.App.PromoteGuestToUser(guest, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		rsession, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		assert.Equal(t, "false", rsession.Props[model.SESSION_PROP_IS_GUEST])
+
+		th.App.ClearSessionCacheForUser(session.UserId)
+
+		rsession, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		assert.Equal(t, "false", rsession.Props[model.SESSION_PROP_IS_GUEST])
+	})
+
+	t.Run("Demote User to Guest updates the session", func(t *testing.T) {
+		user := th.CreateUser()
+
+		session, err := th.App.CreateSession(&model.Session{UserId: user.Id, Props: model.StringMap{model.SESSION_PROP_IS_GUEST: "false"}})
+		require.Nil(t, err)
+
+		rsession, err := th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		assert.Equal(t, "false", rsession.Props[model.SESSION_PROP_IS_GUEST])
+
+		err = th.App.DemoteUserToGuest(user)
+		require.Nil(t, err)
+
+		rsession, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
+
+		th.App.ClearSessionCacheForUser(session.UserId)
+		rsession, err = th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
+	})
+}
