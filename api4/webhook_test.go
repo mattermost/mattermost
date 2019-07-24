@@ -414,6 +414,20 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 		t.Fatal("missing hook")
 	}
 
+	// Test Team User Case: Permission to MANAGE_OUTGOING_WEBHOOKS but not to MANAGE_OTHERS_OUTGOING_WEBHOOKS
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	hooks, resp = Client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, len(hooks), 0)
+
+	// Test Team User Case: Permission to MANAGE_OTHERS_OUTGOING_WEBHOOKS
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	hooks, resp = Client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, len(hooks), 1)
+
 	_, resp = th.SystemAdminClient.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
 	CheckForbiddenStatus(t, resp)
 

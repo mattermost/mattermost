@@ -362,8 +362,14 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
 			return
 		}
+		var userId string
 
-		hooks, err = c.App.GetOutgoingWebhooksForTeamPage(teamId, c.Params.Page, c.Params.PerPage)
+		// Add userId to only return your own webhooks if there is no permission to manage others.
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
+			userId = c.App.Session.UserId
+		}
+
+		hooks, err = c.App.GetOutgoingWebhooksForTeamPageByUser(teamId, userId, c.Params.Page, c.Params.PerPage)
 	} else {
 		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
