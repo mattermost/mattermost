@@ -133,7 +133,7 @@ func splitWords(text string) []string {
 				location = i + 1
 			} else {
 				nextStart := i
-				if i-1 >= 0 && text[i-1] == '-' {
+				if i > 0 && text[i-1] == '-' {
 					nextStart = i - 1
 				}
 				words = append(words, strings.Fields(text[location:nextStart])...)

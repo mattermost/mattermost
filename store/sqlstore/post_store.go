@@ -796,56 +796,38 @@ var specialSearchChar = []string{
 }
 
 func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
-	if len(channels) > 1 {
-		clause := ":" + paramPrefix + "0"
-		queryParams[paramPrefix+"0"] = channels[0]
-		for i := 1; i < len(channels); i++ {
-			paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
-			clause += ", :" + paramName
-			queryParams[paramName] = channels[i]
-		}
-
-		if exclusion {
-			return "AND Name NOT IN (" + clause + ")", queryParams
-		}
-		return "AND Name IN (" + clause + ")", queryParams
+	if len(channels) == 0 {
+		return "", queryParams
 	}
 
-	if len(channels) == 1 {
-		queryParams[paramPrefix] = channels[0]
-		if exclusion {
-			return "AND Name <> :" + paramPrefix, queryParams
-		}
-		return "AND Name = :" + paramPrefix, queryParams
+	clauseSlice := []string{}
+	for i, channel := range channels {
+		paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
+		clauseSlice = append(clauseSlice, ":"+paramName)
+		queryParams[paramName] = channel
 	}
-	return "", queryParams
+	clause := strings.Join(clauseSlice, ", ")
+	if exclusion {
+		return "AND Name NOT IN (" + clause + ")", queryParams
+	}
+	return "AND Name IN (" + clause + ")", queryParams
 }
 
 func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
-	if len(users) > 1 {
-		clause := ":" + paramPrefix + "0"
-		queryParams[paramPrefix+"0"] = users[0]
-
-		for i := 1; i < len(users); i++ {
-			paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
-			clause += ", :" + paramName
-			queryParams[paramName] = users[i]
-		}
-
-		if exclusion {
-			return "AND Username NOT IN (" + clause + ")", queryParams
-		}
-		return "AND Username IN (" + clause + ")", queryParams
-
-	} else if len(users) == 1 {
-		queryParams[paramPrefix] = users[0]
-		if exclusion {
-			return "AND Username <> :" + paramPrefix, queryParams
-		}
-		return "AND Username = :" + paramPrefix, queryParams
+	if len(users) == 0 {
+		return "", queryParams
 	}
-
-	return "", queryParams
+	clauseSlice := []string{}
+	for i, user := range users {
+		paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
+		clauseSlice = append(clauseSlice, ":"+paramName)
+		queryParams[paramName] = user
+	}
+	clause := strings.Join(clauseSlice, ", ")
+	if exclusion {
+		return "AND Username NOT IN (" + clause + ")", queryParams
+	}
+	return "AND Username IN (" + clause + ")", queryParams
 }
 
 func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}) (string, map[string]interface{}) {
