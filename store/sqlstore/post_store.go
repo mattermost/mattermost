@@ -1314,7 +1314,7 @@ func (s *SqlPostStore) GetMaxPostSize() int {
 func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
 	for {
 		var parentPosts []*model.Post
-		_, err := s.GetReplica().Select(&parentPosts,
+		_, err := s.GetSearchReplica().Select(&parentPosts,
 			`SELECT
 				*
 			FROM
