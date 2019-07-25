@@ -519,6 +519,12 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 			Purpose:     sChannel.Purpose.Value,
 			Header:      sChannel.Topic.Value,
 		}
+
+		// needed to circumvent slacks model for dm chats, or else the messages won't get imported
+		if newChannel.Type == model.CHANNEL_DIRECT {
+			sChannel.Name = sChannel.Id
+		}
+
 		newChannel = SlackSanitiseChannelProperties(newChannel)
 
 		var mChannel *model.Channel
@@ -829,6 +835,7 @@ func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 		if err != nil {
 			return nil
 		}
+
 		return sc
 	}
 	if channel.Type == model.CHANNEL_GROUP {
