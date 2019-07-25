@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -26,6 +27,12 @@ func goMod(t *testing.T, dir string, args ...string) {
 }
 
 func CompileGo(t *testing.T, sourceCode, outputPath string) {
+	start := time.Now()
+	defer func() {
+		end := time.Now()
+		t.Logf("Compiling took %f seconds", float64(end.Sub(start))/float64(time.Second))
+	}()
+
 	dir, err := ioutil.TempDir(".", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
@@ -56,6 +63,7 @@ func CompileGo(t *testing.T, sourceCode, outputPath string) {
 	cmd.Dir = dir
 	cmd.Stdout = out
 	cmd.Stderr = out
+	cmd.Env = append(os.Environ(), "GOPROXY=off")
 	err = cmd.Run()
 	if err != nil {
 		t.Log("Go compile errors:\n", out.String())
