@@ -798,6 +798,10 @@ func TestPluginAPIKVCompareAndSetWithExpiry(t *testing.T) {
 			require.Nil(t, err)
 			require.Equal(t, output, tc.Output)
 
+			value, err := api.KVGet(key)
+			require.Nil(t, err)
+			require.Nil(t, value)
+
 			if tc.Expiry > 0 {
 				sleepTime := time.Second
 				time.Sleep(sleepTime)
