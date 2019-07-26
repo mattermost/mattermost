@@ -1630,13 +1630,57 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(&m2)
 	require.Nil(t, err)
 
-	members, err := ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
-	require.Nil(t, err)
+	t.Run("with channels", func(t *testing.T) {
+		var members *model.ChannelMembers
+		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+		require.Nil(t, err)
 
-	// no unread messages
-	if len(*members) != 2 {
-		t.Fatal("wrong number of members")
-	}
+		assert.Len(t, *members, 2)
+	})
+
+	t.Run("with channels and direct messages", func(t *testing.T) {
+		_, err = ss.Channel().CreateDirectChannel(model.NewId(), m1.UserId)
+		require.Nil(t, err)
+		_, err = ss.Channel().CreateDirectChannel(model.NewId(), m1.UserId)
+		require.Nil(t, err)
+		// other user direct message
+		_, err = ss.Channel().CreateDirectChannel(model.NewId(), model.NewId())
+		require.Nil(t, err)
+
+		var members *model.ChannelMembers
+		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+		require.Nil(t, err)
+
+		assert.Len(t, *members, 4)
+	})
+
+	t.Run("with channels, direct channels and group messages", func(t *testing.T) {
+		userIds := []string{model.NewId(), model.NewId(), model.NewId(), m1.UserId}
+		group := &model.Channel{
+			Name:        model.GetGroupNameFromUserIds(userIds),
+			DisplayName: "test",
+			Type:        model.CHANNEL_GROUP,
+		}
+		var channel *model.Channel
+		channel, err = ss.Channel().Save(group, 10000)
+		require.Nil(t, err)
+		for _, userId := range userIds {
+			cm := &model.ChannelMember{
+				UserId:      userId,
+				ChannelId:   channel.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+				SchemeUser:  true,
+			}
+
+			_, err = ss.Channel().SaveMember(cm)
+			require.Nil(t, err)
+		}
+		var members *model.ChannelMembers
+		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+		require.Nil(t, err)
+
+		assert.Len(t, *members, 5)
+	})
 }
 
 func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Store) {
