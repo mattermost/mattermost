@@ -938,7 +938,6 @@ func TestSearchChannels(t *testing.T) {
 		require.Contains(t, channelNames, th.BasicChannel.Name)
 	})
 
-
 	t.Run("Remove the user from BasicChannel and search again, should not be returned", func(t *testing.T) {
 		th.App.RemoveUserFromChannel(th.BasicUser.Id, th.BasicUser.Id, th.BasicChannel)
 
