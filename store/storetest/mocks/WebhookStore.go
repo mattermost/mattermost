@@ -370,6 +370,31 @@ func (_m *WebhookStore) GetOutgoingList(offset int, limit int) ([]*model.Outgoin
 	return r0, r1
 }
 
+// GetOutgoingListByUser provides a mock function with given fields: userId, offset, limit
+func (_m *WebhookStore) GetOutgoingListByUser(userId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+	ret := _m.Called(userId, offset, limit)
+
+	var r0 []*model.OutgoingWebhook
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.OutgoingWebhook); ok {
+		r0 = rf(userId, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.OutgoingWebhook)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(userId, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // InvalidateWebhookCache provides a mock function with given fields: webhook
 func (_m *WebhookStore) InvalidateWebhookCache(webhook string) {
 	_m.Called(webhook)

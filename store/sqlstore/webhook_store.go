@@ -254,14 +254,35 @@ func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, *model.
 	return &webhook, nil
 }
 
-func (s SqlWebhookStore) GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s SqlWebhookStore) GetOutgoingListByUser(userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
 	var webhooks []*model.OutgoingWebhook
 
-	if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM OutgoingWebhooks WHERE DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("OutgoingWebhooks").
+		Where(sq.And{
+			sq.Eq{"DeleteAt": int(0)},
+		}).Limit(uint64(limit)).Offset(uint64(offset))
+
+	if len(userId) > 0 {
+		query = query.Where(sq.Eq{"CreatorId": userId})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetOutgoingByChannel", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err := s.GetReplica().Select(&webhooks, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlWebhookStore.GetOutgoingList", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return webhooks, nil
+}
+
+func (s SqlWebhookStore) GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+	return s.GetOutgoingListByUser("", offset, limit)
+
 }
 
 func (s SqlWebhookStore) GetOutgoingByChannelByUser(channelId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
