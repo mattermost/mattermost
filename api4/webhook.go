@@ -356,7 +356,12 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		hooks, err = c.App.GetOutgoingWebhooksForChannelPage(channelId, c.Params.Page, c.Params.PerPage)
+		// Remove userId as a filter if they have permission to manage others.
+		if c.App.SessionHasPermissionToChannel(c.App.Session, channelId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
+			userId = ""
+		}
+
+		hooks, err = c.App.GetOutgoingWebhooksForChannelPageByUser(channelId, userId, c.Params.Page, c.Params.PerPage)
 	} else if len(teamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)

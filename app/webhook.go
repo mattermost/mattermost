@@ -505,12 +505,12 @@ func (a *App) GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebho
 	return a.Srv.Store.Webhook().GetOutgoingList(page*perPage, perPage)
 }
 
-func (a *App) GetOutgoingWebhooksForChannelPage(channelId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelId string, userId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Webhook().GetOutgoingByChannel(channelId, page*perPage, perPage)
+	return a.Srv.Store.Webhook().GetOutgoingByChannelByUser(channelId, userId, page*perPage, perPage)
 }
 
 func (a *App) GetOutgoingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
