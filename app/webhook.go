@@ -497,6 +497,10 @@ func (a *App) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.
 	return a.Srv.Store.Webhook().GetOutgoing(hookId)
 }
 
+func (a *App) GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	return a.GetOutgoingWebhooksPageByUser("", page, perPage)
+}
+
 func (a *App) GetOutgoingWebhooksPageByUser(userId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
