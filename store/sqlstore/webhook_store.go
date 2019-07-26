@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"net/http"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -187,13 +188,24 @@ func (s SqlWebhookStore) GetIncomingList(offset, limit int) ([]*model.IncomingWe
 func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError) {
 	var webhooks []*model.IncomingWebhook
 
-	query := "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId"
-	if len(userId) > 0 {
-		query += " AND UserId = :UserId"
-	}
-	query += " AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
+	query := s.getQueryBuilder().
+		Select("*").
+		From("IncomingWebhooks").
+		Where(sq.And{
+			sq.Eq{"TeamId": teamId},
+			sq.Eq{"DeleteAt": int(0)},
+		}).Limit(uint64(limit)).Offset(uint64(offset))
 
-	if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"TeamId": teamId, "UserId": userId, "Limit": limit, "Offset": offset}); err != nil {
+	if len(userId) > 0 {
+		query = query.Where(sq.Eq{"UserId": userId})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err := s.GetReplica().Select(&webhooks, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -272,16 +284,27 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit in
 func (s SqlWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
 	var webhooks []*model.OutgoingWebhook
 
-	query := "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0"
+	query := s.getQueryBuilder().
+		Select("*").
+		From("OutgoingWebhooks").
+		Where(sq.And{
+			sq.Eq{"TeamId": teamId},
+			sq.Eq{"DeleteAt": int(0)},
+		})
 
 	if len(userId) > 0 {
-		query += " AND CreatorId = :UserId"
+		query = query.Where(sq.Eq{"CreatorId": userId})
 	}
 	if limit >= 0 && offset >= 0 {
-		query += " LIMIT :Limit OFFSET :Offset"
+		query = query.Limit(uint64(limit)).Offset(uint64(offset))
 	}
 
-	if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"TeamId": teamId, "UserId": userId, "Offset": offset, "Limit": limit}); err != nil {
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetOutgoingByTeam", "store.sql_webhooks.get_outgoing_by_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err := s.GetReplica().Select(&webhooks, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlWebhookStore.GetOutgoingByTeam", "store.sql_webhooks.get_outgoing_by_team.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
