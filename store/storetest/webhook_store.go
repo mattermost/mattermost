@@ -26,6 +26,7 @@ func TestWebhookStore(t *testing.T, ss store.Store) {
 	t.Run("SaveOutgoing", func(t *testing.T) { testWebhookStoreSaveOutgoing(t, ss) })
 	t.Run("GetOutgoing", func(t *testing.T) { testWebhookStoreGetOutgoing(t, ss) })
 	t.Run("GetOutgoingList", func(t *testing.T) { testWebhookStoreGetOutgoingList(t, ss) })
+	t.Run("GetOutgoingListByUser", func(t *testing.T) { testWebhookStoreGetOutgoingListByUser(t, ss) })
 	t.Run("GetOutgoingByChannel", func(t *testing.T) { testWebhookStoreGetOutgoingByChannel(t, ss) })
 	t.Run("GetOutgoingByChannelByUser", func(t *testing.T) { testWebhookStoreGetOutgoingByChannelByUser(t, ss) })
 	t.Run("GetOutgoingByTeam", func(t *testing.T) { testWebhookStoreGetOutgoingByTeam(t, ss) })
@@ -344,6 +345,30 @@ func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
 	if _, err := ss.Webhook().GetOutgoing("123"); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
+}
+
+func testWebhookStoreGetOutgoingListByUser(t *testing.T, ss store.Store) {
+	o1 := &model.OutgoingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.CreatorId = model.NewId()
+	o1.TeamId = model.NewId()
+	o1.CallbackURLs = []string{"http://nowhere.com/"}
+
+	o1, appErr := ss.Webhook().SaveOutgoing(o1)
+	require.Nil(t, appErr)
+
+	t.Run("GetOutgoingListByUser, known user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetOutgoingListByUser(o1.CreatorId, 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, len(hooks))
+		require.Equal(t, o1.CreateAt, hooks[0].CreateAt)
+	})
+
+	t.Run("GetOutgoingListByUser, unknown user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetOutgoingListByUser("123465", 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, len(hooks))
+	})
 }
 
 func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
