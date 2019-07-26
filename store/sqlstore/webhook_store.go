@@ -264,21 +264,38 @@ func (s SqlWebhookStore) GetOutgoingList(offset, limit int) ([]*model.OutgoingWe
 	return webhooks, nil
 }
 
-func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s SqlWebhookStore) GetOutgoingByChannelByUser(channelId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
 	var webhooks []*model.OutgoingWebhook
 
-	query := ""
-	if limit < 0 || offset < 0 {
-		query = "SELECT * FROM OutgoingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0"
-	} else {
-		query = "SELECT * FROM OutgoingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
+	query := s.getQueryBuilder().
+		Select("*").
+		From("OutgoingWebhooks").
+		Where(sq.And{
+			sq.Eq{"ChannelId": channelId},
+			sq.Eq{"DeleteAt": int(0)},
+		})
+
+	if len(userId) > 0 {
+		query = query.Where(sq.Eq{"CreatorId": userId})
+	}
+	if limit >= 0 && offset >= 0 {
+		query = query.Limit(uint64(limit)).Offset(uint64(offset))
 	}
 
-	if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetOutgoingByChannel", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err := s.GetReplica().Select(&webhooks, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlWebhookStore.GetOutgoingByChannel", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, "channelId="+channelId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return webhooks, nil
+}
+
+func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+	return s.GetOutgoingByChannelByUser(channelId, "", offset, limit)
 }
 
 func (s SqlWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {

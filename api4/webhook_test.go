@@ -6,6 +6,8 @@ package api4
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-server/mlog"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -504,6 +506,52 @@ func TestGetOutgoingWebhooksByTeam(t *testing.T) {
 
 	//Re-check basic user that has no MANAGE_OTHERS permission
 	filteredHooks, resp := BasicClient.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, 1, len(filteredHooks))
+	assert.Equal(t, basicHook.Id, filteredHooks[0].Id)
+
+}
+
+func TestGetOutgoingWebhooksByChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	BasicClient := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	// Basic user webhook
+	bHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
+	basicHook, resp := BasicClient.CreateOutgoingWebhook(bHook)
+	CheckNoError(t, resp)
+
+	basicHooks, resp := BasicClient.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, 1, len(basicHooks))
+	assert.Equal(t, basicHook.Id, basicHooks[0].Id)
+	mlog.Debug("Basic HOOK: " + basicHook.Id)
+
+	// Admin User webhook
+	aHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
+	adminHook, resp := th.SystemAdminClient.CreateOutgoingWebhook(aHook)
+	CheckNoError(t, resp)
+	mlog.Debug("ADMIN HOOK: " + adminHook.Id)
+
+	adminHooks, resp := th.SystemAdminClient.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, 2, len(adminHooks))
+	mlog.Debug("ADMIN HOOKs: " + adminHooks[0].Id)
+
+	//Re-check basic user that has no MANAGE_OTHERS permission
+	filteredHooks, resp := BasicClient.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
 	CheckNoError(t, resp)
 	assert.Equal(t, 1, len(filteredHooks))
 	assert.Equal(t, basicHook.Id, filteredHooks[0].Id)
