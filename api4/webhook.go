@@ -160,7 +160,12 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		hooks, err = c.App.GetIncomingWebhooksPage(c.Params.Page, c.Params.PerPage)
+		// Remove userId as a filter if they have permission to manage others.
+		if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
+			userId = ""
+		}
+
+		hooks, err = c.App.GetIncomingWebhooksPageByUser(userId, c.Params.Page, c.Params.PerPage)
 	}
 
 	if err != nil {

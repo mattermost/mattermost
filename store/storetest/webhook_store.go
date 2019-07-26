@@ -18,6 +18,7 @@ func TestWebhookStore(t *testing.T, ss store.Store) {
 	t.Run("UpdateIncoming", func(t *testing.T) { testWebhookStoreUpdateIncoming(t, ss) })
 	t.Run("GetIncoming", func(t *testing.T) { testWebhookStoreGetIncoming(t, ss) })
 	t.Run("GetIncomingList", func(t *testing.T) { testWebhookStoreGetIncomingList(t, ss) })
+	t.Run("GetIncomingListByUser", func(t *testing.T) { testWebhookStoreGetIncomingListByUser(t, ss) })
 	t.Run("GetIncomingByTeam", func(t *testing.T) { testWebhookStoreGetIncomingByTeam(t, ss) })
 	t.Run("GetIncomingByTeamByUser", func(t *testing.T) { TestWebhookStoreGetIncomingByTeamByUser(t, ss) })
 	t.Run("DeleteIncoming", func(t *testing.T) { testWebhookStoreDeleteIncoming(t, ss) })
@@ -146,6 +147,29 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 			t.Fatal("only 1 should be returned")
 		}
 	}
+}
+
+func testWebhookStoreGetIncomingListByUser(t *testing.T, ss store.Store) {
+	o1 := &model.IncomingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.TeamId = model.NewId()
+
+	o1, appErr := ss.Webhook().SaveIncoming(o1)
+	require.Nil(t, appErr)
+
+	t.Run("GetIncomingListByUser, known user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetIncomingListByUser(o1.UserId, 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, len(hooks))
+		require.Equal(t, o1.CreateAt, hooks[0].CreateAt)
+	})
+
+	t.Run("GetIncomingListByUser, unknown user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetIncomingListByUser("123465", 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, len(hooks))
+	})
 }
 
 func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
