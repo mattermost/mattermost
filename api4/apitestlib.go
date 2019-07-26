@@ -88,6 +88,10 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
 		*cfg.EmailSettings.SendEmailNotifications = true
+
+		// Disable sniffing, otherwise elastic client fails to connect to docker node
+		// More details: https://github.com/olivere/elastic/wiki/Sniffing
+		*cfg.ElasticsearchSettings.Sniff = false
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
