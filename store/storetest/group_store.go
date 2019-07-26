@@ -510,19 +510,30 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
 	require.Nil(t, err)
 
+	u3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err := ss.User().Save(u3)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group.Id, user3.Id)
+	require.Nil(t, err)
+
 	// Check returns members
 	groupMembers, err := ss.Group().GetMemberUsersPage(group.Id, 0, 100)
 	require.Nil(t, err)
-	require.Equal(t, 2, len(groupMembers))
+	require.Equal(t, 3, len(groupMembers))
 
 	// Check page 1
-	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 1)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 2)
 	require.Nil(t, err)
-	require.Equal(t, 1, len(groupMembers))
-	require.Equal(t, user2.Id, groupMembers[0].Id)
+	require.Equal(t, 2, len(groupMembers))
+	require.Equal(t, user3.Id, groupMembers[0].Id)
+	require.Equal(t, user2.Id, groupMembers[1].Id)
 
 	// Check page 2
-	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 1)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 2)
 	require.Nil(t, err)
 	require.Equal(t, 1, len(groupMembers))
 	require.Equal(t, user1.Id, groupMembers[0].Id)
@@ -539,7 +550,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	// Should not return deleted members
 	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 100)
 	require.Nil(t, err)
-	require.Equal(t, 1, len(groupMembers))
+	require.Equal(t, 2, len(groupMembers))
 }
 
 func testUpsertMember(t *testing.T, ss store.Store) {
