@@ -25,17 +25,17 @@ import (
 )
 
 type SlackChannel struct {
-	Id      string            `json:"id"`
-	Name    string            `json:"name"`
-	Creator string			  `json:"creator"`
-	Members []string          `json:"members"`
-	Purpose SlackChannelSub   `json:"purpose"`
-	Topic   SlackChannelSub   `json:"topic"`
+	Id      string          `json:"id"`
+	Name    string          `json:"name"`
+	Creator string          `json:"creator"`
+	Members []string        `json:"members"`
+	Purpose SlackChannelSub `json:"purpose"`
+	Topic   SlackChannelSub `json:"topic"`
 	Type    string
 }
 
 type SlackChannelSub struct {
-	Value	string	`json:value`
+	Value 	string 	`json:"value"`
 }
 
 type SlackProfile struct {
@@ -114,7 +114,6 @@ func SlackParseChannels(data io.Reader, channelType string) ([]SlackChannel, err
 
 	var channels []SlackChannel
 	if err := decoder.Decode(&channels); err != nil {
-		// TODO: investigate
 		mlog.Warn("Slack Import: Error occurred when parsing some Slack channels. Import may work anyway.")
 		return channels, err
 	}
@@ -481,7 +480,6 @@ func (a *App) addSlackUsersToChannel(members []string, users map[string]*model.U
 
 func SlackSanitiseChannelProperties(channel model.Channel) model.Channel {
 	if utf8.RuneCountInString(channel.DisplayName) > model.CHANNEL_DISPLAY_NAME_MAX_RUNES {
-		// TODO: Investigate
 		mlog.Warn(fmt.Sprintf("Slack Import: Channel %v display name exceeds the maximum length. It will be truncated when imported.", channel.DisplayName))
 		channel.DisplayName = truncateRunes(channel.DisplayName, model.CHANNEL_DISPLAY_NAME_MAX_RUNES)
 	}
@@ -520,7 +518,7 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 			Header:      sChannel.Topic.Value,
 		}
 
-		// needed to circumvent slacks model for dm chats, or else the messages won't get imported
+		// Direct message channels don't have a name so we set the id as name or else the messages won't get imported.
 		if newChannel.Type == model.CHANNEL_DIRECT {
 			sChannel.Name = sChannel.Id
 		}
@@ -548,6 +546,7 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 			}
 		}
 
+		// Members for direct and group channels are added during the creation of the channel in the OldImportChannel function
 		if sChannel.Type == model.CHANNEL_OPEN || sChannel.Type == model.CHANNEL_PRIVATE {
 			a.addSlackUsersToChannel(sChannel.Members, users, mChannel, importerLog)
 		}
@@ -838,28 +837,28 @@ func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 
 		return sc
 	}
-	if channel.Type == model.CHANNEL_GROUP {
+
+	// check if direct channel has less than 8 members and if not import as public channel instead
+	if channel.Type == model.CHANNEL_GROUP && len(sChannel.Members) < 8 {
 		members := make([]string, len(sChannel.Members))
-		if len(members) < 8 {
-			for i := range sChannel.Members {
-				members[i] = users[sChannel.Members[i]].Id
-			}
-			sc, err := a.createGroupChannel(members, users[sChannel.Creator].Id)
-			if err != nil {
-				return nil
-			}
 
-			return sc
-		} else {
-			channel.Type = model.CHANNEL_PRIVATE
+		for i := range sChannel.Members {
+			members[i] = users[sChannel.Members[i]].Id
 		}
-	}
 
-	if channel.Type == model.CHANNEL_PRIVATE {
+		sc, err := a.createGroupChannel(members, users[sChannel.Creator].Id)
+		if err != nil {
+			return nil
+		}
+
+		return sc
+	} else if channel.Type == model.CHANNEL_GROUP {
+		channel.Type = model.CHANNEL_PRIVATE
 		sc, err := a.CreateChannel(channel, false)
 		if err != nil {
 			return nil
 		}
+
 		return sc
 	}
 
