@@ -54,6 +54,11 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_D
 LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
+GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
+MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
+MINIMUM_SUPPORTED_GO_MINOR_VERSION = 12
+GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
@@ -76,11 +81,11 @@ TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
-PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.0.6
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
@@ -177,7 +182,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-elasticsearch; \
-		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms250m -Xmx250m" -d mattermost/mattermost-elasticsearch-docker:6.5.1 > /dev/null; \
+		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" -d mattermost/mattermost-elasticsearch-docker:6.5.1 > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-elasticsearch; \
 		docker start mattermost-elasticsearch> /dev/null; \
@@ -318,7 +323,7 @@ gofmt: ## Runs gofmt against all packages.
 	@echo "gofmt success"; \
 
 megacheck: ## Run megacheck on codebasis
-	go get honnef.co/go/tools/cmd/megacheck
+	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
 	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -326,26 +331,30 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
-	go get -u github.com/mattermost/mattermost-utilities/mmgotool
+	env GO111MODULE=off go get -u github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOPATH)/bin/mmgotool i18n extract
 
 store-mocks: ## Creates mock files.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 filesstore-mocks: ## Creates mock files.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+
+einterfaces-mocks: ## Creates mock files for einterfaces.
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	go generate ./plugin
@@ -395,7 +404,7 @@ do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
 go-junit-report:
-	go get -u github.com/jstemmer/go-junit-report
+	env GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
 
 test-compile:
 	@echo COMPILE TESTS
@@ -436,7 +445,8 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=ecover.out
 
 test-data: start-docker ## Add test data to the local instance.
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) sampledata -w 1
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) config set TeamSettings.MaxUsersPerTeam 100
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) sampledata -w 4 -u 60
 
 	@echo You may need to restart the Mattermost server before using the following
 	@echo ========================================================================
@@ -444,7 +454,18 @@ test-data: start-docker ## Add test data to the local instance.
 	@echo Login with a regular account username=user-1 password=user-1
 	@echo ========================================================================
 
-run-server: start-docker ## Starts the server.
+validate-go-version: ## Validates the installed version of go against Mattermost's minimum requirement.
+	@if [ $(GO_MAJOR_VERSION) -gt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
+		exit 0 ;\
+	elif [ $(GO_MAJOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
+		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
+		exit 1; \
+	elif [ $(GO_MINOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MINOR_VERSION) ] ; then \
+		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
+		exit 1; \
+	fi
+
+run-server: validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -454,6 +475,15 @@ run-server: start-docker ## Starts the server.
 debug-server: start-docker
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
+		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+
+debug-server-headless: start-docker
+	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
+	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
 		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
 		-X \"github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)\"\
 		-X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
@@ -561,7 +591,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 	rm -f cmd/platform/cprofile*.out
 	rm -f cmd/mattermost/cprofile*.out
 
-nuke: clean clean-docker ## Clean plus removes persistant server data.
+nuke: clean clean-docker ## Clean plus removes persistent server data.
 	@echo BOOM
 
 	rm -rf data
@@ -574,9 +604,6 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 
 	# Update all dependencies (does not update across major versions)
 	go get -u
-
-	# Keep back because of breaking API changes
-	go get -u github.com/segmentio/analytics-go@2.1.1
 
 	# Tidy up
 	go mod tidy

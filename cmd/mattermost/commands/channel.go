@@ -79,7 +79,8 @@ var ListChannelsCmd = &cobra.Command{
 	Use:   "list [teams]",
 	Short: "List all channels on specified teams.",
 	Long: `List all channels on specified teams.
-Archived channels are appended with ' (archived)'.`,
+Archived channels are appended with ' (archived)'.
+Private channels are appended with ' (private)'.`,
 	Example: "  channel list myteam",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    listChannelsCmdF,
@@ -444,17 +445,18 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if result := <-a.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
+		if channels, chanErr := a.Srv.Store.Channel().GetAll(team.Id); chanErr != nil {
 			CommandPrintErrorln("Unable to list channels for '" + args[i] + "'")
 		} else {
-			channels := result.Data.([]*model.Channel)
-
 			for _, channel := range channels {
+				output := channel.Name
 				if channel.DeleteAt > 0 {
-					CommandPrettyPrintln(channel.Name + " (archived)")
-				} else {
-					CommandPrettyPrintln(channel.Name)
+					output += " (archived)"
 				}
+				if channel.Type == model.CHANNEL_PRIVATE {
+					output += " (private)"
+				}
+				CommandPrettyPrintln(output)
 			}
 		}
 	}
@@ -593,10 +595,14 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
+	output := fmt.Sprintf(`Channel Name: %s, Display Name: %s, Channel ID: %s`, channel.Name, channel.DisplayName, channel.Id)
 	if channel.DeleteAt > 0 {
-		CommandPrettyPrintln(fmt.Sprintf(`Channel Name :%s, Display Name :%s, Channel ID :%s (archived)`, channel.Name, channel.DisplayName, channel.Id))
-	} else {
-		CommandPrettyPrintln(fmt.Sprintf(`Channel Name :%s, Display Name :%s, Channel ID :%s`, channel.Name, channel.DisplayName, channel.Id))
+		output += " (archived)"
 	}
+	if channel.Type == model.CHANNEL_PRIVATE {
+		output += " (private)"
+	}
+	CommandPrettyPrintln(output)
+
 	return nil
 }

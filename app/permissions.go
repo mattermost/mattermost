@@ -18,33 +18,33 @@ const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents coll
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
-	if result := <-a.Srv.Store.Team().ResetAllTeamSchemes(); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().ResetAllTeamSchemes(); err != nil {
+		return err
 	}
 
 	// Reset all Channels to not have a scheme.
-	if result := <-a.Srv.Store.Channel().ResetAllChannelSchemes(); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Channel().ResetAllChannelSchemes(); err != nil {
+		return err
 	}
 
 	// Reset all Custom Role assignments to Users.
-	if result := <-a.Srv.Store.User().ClearAllCustomRoleAssignments(); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.User().ClearAllCustomRoleAssignments(); err != nil {
+		return err
 	}
 
 	// Reset all Custom Role assignments to TeamMembers.
-	if result := <-a.Srv.Store.Team().ClearAllCustomRoleAssignments(); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().ClearAllCustomRoleAssignments(); err != nil {
+		return err
 	}
 
 	// Reset all Custom Role assignments to ChannelMembers.
-	if result := <-a.Srv.Store.Channel().ClearAllCustomRoleAssignments(); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Channel().ClearAllCustomRoleAssignments(); err != nil {
+		return err
 	}
 
 	// Purge all schemes from the database.
-	if result := <-a.Srv.Store.Scheme().PermanentDeleteAll(); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Scheme().PermanentDeleteAll(); err != nil {
+		return err
 	}
 
 	// Purge all roles from the database.

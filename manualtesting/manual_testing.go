@@ -149,21 +149,19 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelID(a *app.App, channelname string, teamid string, userid string) (id string, err bool) {
+func getChannelID(a *app.App, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
-	result := <-a.Srv.Store.Channel().GetChannels(teamid, userid, false)
-	if result.Err != nil {
+	channels, err := a.Srv.Store.Channel().GetChannels(teamid, userid, false)
+	if err != nil {
 		mlog.Debug("Unable to get channels")
 		return "", false
 	}
 
-	data := result.Data.(model.ChannelList)
-
-	for _, channel := range data {
+	for _, channel := range *channels {
 		if channel.Name == channelname {
 			return channel.Id, true
 		}
 	}
-	mlog.Debug(fmt.Sprintf("Could not find channel: %v, %v possibilities searched", channelname, strconv.Itoa(len(data))))
+	mlog.Debug(fmt.Sprintf("Could not find channel: %v, %v possibilities searched", channelname, strconv.Itoa(len(*channels))))
 	return "", false
 }

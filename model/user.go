@@ -161,6 +161,17 @@ func (u UserSlice) IDs() []string {
 	return ids
 }
 
+func (u UserSlice) FilterWithoutBots() UserSlice {
+	var matches []*User
+
+	for _, user := range u {
+		if !user.IsBot {
+			matches = append(matches, user)
+		}
+	}
+	return UserSlice(matches)
+}
+
 func (u UserSlice) FilterByActive(active bool) UserSlice {
 	var matches []*User
 

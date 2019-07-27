@@ -10,14 +10,18 @@ import (
 )
 
 type PostList struct {
-	Order []string         `json:"order"`
-	Posts map[string]*Post `json:"posts"`
+	Order      []string         `json:"order"`
+	Posts      map[string]*Post `json:"posts"`
+	NextPostId string           `json:"next_post_id"`
+	PrevPostId string           `json:"prev_post_id"`
 }
 
 func NewPostList() *PostList {
 	return &PostList{
-		Order: make([]string, 0),
-		Posts: make(map[string]*Post),
+		Order:      make([]string, 0),
+		Posts:      make(map[string]*Post),
+		NextPostId: "",
+		PrevPostId: "",
 	}
 }
 
@@ -91,13 +95,29 @@ func (o *PostList) AddPost(post *Post) {
 	o.Posts[post.Id] = post
 }
 
-func (o *PostList) Extend(other *PostList) {
-	for _, postId := range other.Order {
-		if _, ok := o.Posts[postId]; !ok {
-			o.AddPost(other.Posts[postId])
-			o.AddOrder(postId)
+func (o *PostList) UniqueOrder() {
+	keys := make(map[string]bool)
+	order := []string{}
+	for _, postId := range o.Order {
+		if _, value := keys[postId]; !value {
+			keys[postId] = true
+			order = append(order, postId)
 		}
 	}
+
+	o.Order = order
+}
+
+func (o *PostList) Extend(other *PostList) {
+	for postId := range other.Posts {
+		o.AddPost(other.Posts[postId])
+	}
+
+	for _, postId := range other.Order {
+		o.AddOrder(postId)
+	}
+
+	o.UniqueOrder()
 }
 
 func (o *PostList) SortByCreateAt() {
