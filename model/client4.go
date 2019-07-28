@@ -80,8 +80,12 @@ func (c *Client4) Must(result interface{}, resp *Response) interface{} {
 	return result
 }
 
-func NewAPIv4Client(url string) *Client4 {
-	return &Client4{url, url + API_URL_SUFFIX, &http.Client{}, "", "", map[string]string{}}
+func NewAPIv4Client(url string, opts ...func(*Client4)) *Client4 {
+	client := &Client4{url, url + API_URL_SUFFIX, &http.Client{}, "", "", map[string]string{}}
+	for _, opt := range opts {
+		opt(client)
+	}
+	return client
 }
 
 func BuildErrorResponse(r *http.Response, err *AppError) *Response {
@@ -110,6 +114,11 @@ func BuildResponse(r *http.Response) *Response {
 		ServerVersion: r.Header.Get(HEADER_VERSION_ID),
 		Header:        r.Header,
 	}
+}
+
+func (c *Client4) SetPersonalAccessToken(token string) {
+	c.AuthToken = token
+	c.AuthType = HEADER_BEARER
 }
 
 func (c *Client4) MockSession(sessionToken string) {
