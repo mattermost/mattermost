@@ -88,6 +88,7 @@ func NewAPIv4Client(url string, opts ...func(*Client4)) *Client4 {
 	return client
 }
 
+
 func BuildErrorResponse(r *http.Response, err *AppError) *Response {
 	var statusCode int
 	var header http.Header
@@ -116,9 +117,11 @@ func BuildResponse(r *http.Response) *Response {
 	}
 }
 
-func (c *Client4) SetPersonalAccessToken(token string) {
-	c.AuthToken = token
-	c.AuthType = HEADER_BEARER
+func SetPersonalAccessToken(token string) func (*Client4) {
+	return func(c *Client4) {
+		c.AuthToken = token
+		c.AuthType = HEADER_BEARER
+	}
 }
 
 func (c *Client4) MockSession(sessionToken string) {
