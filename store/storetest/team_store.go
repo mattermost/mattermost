@@ -771,11 +771,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
 
-	if _, err := ss.Team().SaveMember(m1, -1); err != nil {
-		t.Fatal(err)
-	}
-
-	_, err := ss.Team().SaveMember(m2, -1)
+	_, err := ss.Team().SaveMember(m1, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m2, -1)
 	require.Nil(t, err)
 	_, err = ss.Team().SaveMember(m3, -1)
 	require.Nil(t, err)
