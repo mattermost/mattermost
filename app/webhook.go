@@ -588,7 +588,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	}
 
 	var channel *model.Channel
-	var cchan store.StoreChannel
+	var cchan chan store.StoreResult
 
 	if len(channelName) != 0 {
 		if channelName[0] == '@' {
@@ -602,14 +602,14 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 				}
 			}
 		} else if channelName[0] == '#' {
-			cchan = make(store.StoreChannel, 1)
+			cchan = make(chan store.StoreResult, 1)
 			go func() {
 				chnn, chnnErr := a.Srv.Store.Channel().GetByName(hook.TeamId, channelName[1:], true)
 				cchan <- store.StoreResult{Data: chnn, Err: chnnErr}
 				close(cchan)
 			}()
 		} else {
-			cchan = make(store.StoreChannel, 1)
+			cchan = make(chan store.StoreResult, 1)
 			go func() {
 				chnn, chnnErr := a.Srv.Store.Channel().GetByName(hook.TeamId, channelName, true)
 				cchan <- store.StoreResult{Data: chnn, Err: chnnErr}
