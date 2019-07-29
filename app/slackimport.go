@@ -518,7 +518,7 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 			Header:      sChannel.Topic.Value,
 		}
 
-		// Direct message channels don't have a name so we set the id as name or else the messages won't get imported.
+		// Direct message channels in Slack don't have a name so we set the id as name or else the messages won't get imported.
 		if newChannel.Type == model.CHANNEL_DIRECT {
 			sChannel.Name = sChannel.Id
 		}
@@ -838,7 +838,7 @@ func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 		return sc
 	}
 
-	// check if direct channel has less than 8 members and if not import as public channel instead
+	// check if direct channel has less than 8 members and if not import as private channel instead
 	if channel.Type == model.CHANNEL_GROUP && len(sChannel.Members) < 8 {
 		members := make([]string, len(sChannel.Members))
 
