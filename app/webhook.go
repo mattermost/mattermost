@@ -381,19 +381,27 @@ func (a *App) GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.
 }
 
 func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	return a.GetIncomingWebhooksForTeamPageByUser(teamId, "", page, perPage)
+}
+
+func (a *App) GetIncomingWebhooksForTeamPageByUser(teamId string, userId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksForTeamPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Webhook().GetIncomingByTeam(teamId, page*perPage, perPage)
+	return a.Srv.Store.Webhook().GetIncomingByTeamByUser(teamId, userId, page*perPage, perPage)
 }
 
-func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+func (a *App) GetIncomingWebhooksPageByUser(userId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Webhook().GetIncomingList(page*perPage, perPage)
+	return a.Srv.Store.Webhook().GetIncomingListByUser(userId, page*perPage, perPage)
+}
+
+func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	return a.GetIncomingWebhooksPageByUser("", page, perPage)
 }
 
 func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
@@ -494,27 +502,35 @@ func (a *App) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.
 }
 
 func (a *App) GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	return a.GetOutgoingWebhooksPageByUser("", page, perPage)
+}
+
+func (a *App) GetOutgoingWebhooksPageByUser(userId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Webhook().GetOutgoingList(page*perPage, perPage)
+	return a.Srv.Store.Webhook().GetOutgoingListByUser(userId, page*perPage, perPage)
 }
 
-func (a *App) GetOutgoingWebhooksForChannelPage(channelId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelId string, userId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Webhook().GetOutgoingByChannel(channelId, page*perPage, perPage)
+	return a.Srv.Store.Webhook().GetOutgoingByChannelByUser(channelId, userId, page*perPage, perPage)
 }
 
 func (a *App) GetOutgoingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	return a.GetOutgoingWebhooksForTeamPageByUser(teamId, "", page, perPage)
+}
+
+func (a *App) GetOutgoingWebhooksForTeamPageByUser(teamId string, userId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForTeamPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Webhook().GetOutgoingByTeam(teamId, page*perPage, perPage)
+	return a.Srv.Store.Webhook().GetOutgoingByTeamByUser(teamId, userId, page*perPage, perPage)
 }
 
 func (a *App) DeleteOutgoingWebhook(hookId string) *model.AppError {
