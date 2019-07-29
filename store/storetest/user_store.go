@@ -747,21 +747,21 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 	t.Run("get in channel 1, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesInChannel(c1.Id, 0, 100)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesInChannel(c1.Id, 0, 100)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, users)
 	})
 
 	t.Run("get in channel 1, offset 1, limit 2", func(t *testing.T) {
-		result := <-ss.User().GetProfilesInChannel(c1.Id, 1, 2)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesInChannel(c1.Id, 1, 2)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, users)
 	})
 
 	t.Run("get in channel 2, offset 0, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesInChannel(c2.Id, 0, 1)
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{sanitized(u1)}, result.Data.([]*model.User))
+		users, err := ss.User().GetProfilesInChannel(c2.Id, 0, 1)
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u1)}, users)
 	})
 }
 

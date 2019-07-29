@@ -68,6 +68,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
+	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
 	t.Run("AutocompleteInTeamForSearch", func(t *testing.T) { testChannelStoreAutocompleteInTeamForSearch(t, ss, s) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
@@ -1109,7 +1110,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = model.NewId()
+	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
@@ -1117,7 +1118,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 
 	t2 := model.Team{}
 	t2.DisplayName = "Name2"
-	t2.Name = model.NewId()
+	t2.Name = "zz" + model.NewId()
 	t2.Email = MakeEmail()
 	t2.Type = model.TEAM_OPEN
 	_, err = ss.Team().Save(&t2)
@@ -1594,7 +1595,7 @@ func testChannelStoreGetChannelCounts(t *testing.T, ss store.Store) {
 func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = model.NewId()
+	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
@@ -1630,19 +1631,63 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(&m2)
 	require.Nil(t, err)
 
-	members, err := ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
-	require.Nil(t, err)
+	t.Run("with channels", func(t *testing.T) {
+		var members *model.ChannelMembers
+		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+		require.Nil(t, err)
 
-	// no unread messages
-	if len(*members) != 2 {
-		t.Fatal("wrong number of members")
-	}
+		assert.Len(t, *members, 2)
+	})
+
+	t.Run("with channels and direct messages", func(t *testing.T) {
+		_, err = ss.Channel().CreateDirectChannel(model.NewId(), m1.UserId)
+		require.Nil(t, err)
+		_, err = ss.Channel().CreateDirectChannel(model.NewId(), m1.UserId)
+		require.Nil(t, err)
+		// other user direct message
+		_, err = ss.Channel().CreateDirectChannel(model.NewId(), model.NewId())
+		require.Nil(t, err)
+
+		var members *model.ChannelMembers
+		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+		require.Nil(t, err)
+
+		assert.Len(t, *members, 4)
+	})
+
+	t.Run("with channels, direct channels and group messages", func(t *testing.T) {
+		userIds := []string{model.NewId(), model.NewId(), model.NewId(), m1.UserId}
+		group := &model.Channel{
+			Name:        model.GetGroupNameFromUserIds(userIds),
+			DisplayName: "test",
+			Type:        model.CHANNEL_GROUP,
+		}
+		var channel *model.Channel
+		channel, err = ss.Channel().Save(group, 10000)
+		require.Nil(t, err)
+		for _, userId := range userIds {
+			cm := &model.ChannelMember{
+				UserId:      userId,
+				ChannelId:   channel.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+				SchemeUser:  true,
+			}
+
+			_, err = ss.Channel().SaveMember(cm)
+			require.Nil(t, err)
+		}
+		var members *model.ChannelMembers
+		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+		require.Nil(t, err)
+
+		assert.Len(t, *members, 5)
+	})
 }
 
 func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = model.NewId()
+	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
@@ -2524,12 +2569,118 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	}
 }
 
+func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
+	userId := model.NewId()
+	teamId := model.NewId()
+	otherTeamId := model.NewId()
+
+	// create 4 channels for the same team and one for other team
+	o1 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "test-dev-1",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err := ss.Channel().Save(&o1, -1)
+	require.Nil(t, err)
+
+	o2 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "test-dev-2",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o2, -1)
+	require.Nil(t, err)
+
+	o3 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "dev-3",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o3, -1)
+	require.Nil(t, err)
+
+	o4 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "dev-4",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o4, -1)
+	require.Nil(t, err)
+
+	o5 := model.Channel{
+		TeamId:      otherTeamId,
+		DisplayName: "other-team-dev-5",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o5, -1)
+	require.Nil(t, err)
+
+	// add the user to the first 3 channels and the other team channel
+	for _, c := range []model.Channel{o1, o2, o3, o5} {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   c.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+	}
+
+	searchAndCheck := func(t *testing.T, term string, includeDeleted bool, expectedDisplayNames []string) {
+		res, searchErr := ss.Channel().SearchForUserInTeam(userId, teamId, term, includeDeleted)
+		require.Nil(t, searchErr)
+		require.Len(t, *res, len(expectedDisplayNames))
+
+		resultDisplayNames := []string{}
+		for _, c := range *res {
+			resultDisplayNames = append(resultDisplayNames, c.DisplayName)
+		}
+		require.ElementsMatch(t, expectedDisplayNames, resultDisplayNames)
+	}
+
+	t.Run("Search for test, get channels 1 and 2", func(t *testing.T) {
+		searchAndCheck(t, "test", false, []string{o1.DisplayName, o2.DisplayName})
+	})
+
+	t.Run("Search for dev, get channels 1, 2 and 3", func(t *testing.T) {
+		searchAndCheck(t, "dev", false, []string{o1.DisplayName, o2.DisplayName, o3.DisplayName})
+	})
+
+	t.Run("After adding user to channel 4, search for dev, get channels 1, 2, 3 and 4", func(t *testing.T) {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   o4.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		searchAndCheck(t, "dev", false, []string{o1.DisplayName, o2.DisplayName, o3.DisplayName, o4.DisplayName})
+	})
+
+	t.Run("Mark channel 1 as deleted, search for dev, get channels 2, 3 and 4", func(t *testing.T) {
+		o1.DeleteAt = model.GetMillis()
+		o1.UpdateAt = o1.DeleteAt
+		err = ss.Channel().Delete(o1.Id, o1.DeleteAt)
+		require.Nil(t, err)
+
+		searchAndCheck(t, "dev", false, []string{o2.DisplayName, o3.DisplayName, o4.DisplayName})
+	})
+
+	t.Run("With includeDeleted, search for dev, get channels 1, 2, 3 and 4", func(t *testing.T) {
+		searchAndCheck(t, "dev", true, []string{o1.DisplayName, o2.DisplayName, o3.DisplayName, o4.DisplayName})
+	})
+}
+
 func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	cleanupChannels(t, ss)
 
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = model.NewId()
+	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
@@ -2537,7 +2688,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	t2 := model.Team{}
 	t2.DisplayName = "Name2"
-	t2.Name = model.NewId()
+	t2.Name = "zz" + model.NewId()
 	t2.Email = MakeEmail()
 	t2.Type = model.TEAM_OPEN
 	_, err = ss.Team().Save(&t2)
@@ -3626,7 +3777,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = model.NewId()
+	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
@@ -3658,7 +3809,7 @@ func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) 
 func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = model.NewId()
+	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
@@ -3715,7 +3866,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	// Set up all the objects needed in the store.
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = model.NewId()
+	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)

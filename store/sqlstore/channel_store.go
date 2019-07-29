@@ -1939,7 +1939,7 @@ func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType st
 
 func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError) {
 	var dbMembers channelMemberWithSchemeRolesList
-	_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.UserId = :UserId AND (Teams.Id = :TeamId OR Teams.Id IS NULL)", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+	_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.UserId = :UserId AND (Teams.Id = :TeamId OR Teams.Id = '' OR Teams.Id IS NULL)", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 	if err != nil {
 		return nil, model.NewAppError("SqlChannelStore.GetMembersForUser", "store.sql_channel.get_members.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
 	}
@@ -2118,6 +2118,35 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 		LIMIT 100
 		`, term, map[string]interface{}{
 		"TeamId": teamId,
+	})
+}
+
+func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	deleteFilter := "AND c.DeleteAt = 0"
+	if includeDeleted {
+		deleteFilter = ""
+	}
+
+	return s.performSearch(`
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			PublicChannels c ON (c.Id = Channels.Id)
+        JOIN
+            ChannelMembers cm ON (c.Id = cm.ChannelId)
+		WHERE
+			c.TeamId = :TeamId
+        AND
+            cm.UserId = :UserId
+			`+deleteFilter+`
+			SEARCH_CLAUSE
+		ORDER BY c.DisplayName
+		LIMIT 100
+		`, term, map[string]interface{}{
+		"TeamId": teamId,
+		"UserId": userId,
 	})
 }
 
