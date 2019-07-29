@@ -1420,6 +1420,31 @@ func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchO
 	return r0, r1
 }
 
+// SearchForUserInTeam provides a mock function with given fields: userId, teamId, term, includeDeleted
+func (_m *ChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	ret := _m.Called(userId, teamId, term, includeDeleted)
+
+	var r0 *model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) *model.ChannelList); ok {
+		r0 = rf(userId, teamId, term, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, string, bool) *model.AppError); ok {
+		r1 = rf(userId, teamId, term, includeDeleted)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SearchGroupChannels provides a mock function with given fields: userId, term
 func (_m *ChannelStore) SearchGroupChannels(userId string, term string) (*model.ChannelList, *model.AppError) {
 	ret := _m.Called(userId, term)
