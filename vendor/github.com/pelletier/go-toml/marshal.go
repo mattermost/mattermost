@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -329,7 +330,26 @@ func (e *Encoder) valueToTree(mtype reflect.Type, mval reflect.Value) (*Tree, er
 			}
 		}
 	case reflect.Map:
-		for _, key := range mval.MapKeys() {
+		keys := mval.MapKeys()
+		if e.order == OrderPreserve && len(keys) > 0 {
+			// Sorting []reflect.Value is not straight forward.
+			//
+			// OrderPreserve will support deterministic results when string is used
+			// as the key to maps.
+			typ := keys[0].Type()
+			kind := keys[0].Kind()
+			if kind == reflect.String {
+				ikeys := make([]string, len(keys))
+				for i := range keys {
+					ikeys[i] = keys[i].Interface().(string)
+				}
+				sort.Strings(ikeys)
+				for i := range ikeys {
+					keys[i] = reflect.ValueOf(ikeys[i]).Convert(typ)
+				}
+			}
+		}
+		for _, key := range keys {
 			mvalf := mval.MapIndex(key)
 			val, err := e.valueToToml(mtype.Elem(), mvalf)
 			if err != nil {
@@ -494,11 +514,19 @@ func (d *Decoder) SetTagName(v string) *Decoder {
 
 func (d *Decoder) unmarshal(v interface{}) error {
 	mtype := reflect.TypeOf(v)
-	if mtype.Kind() != reflect.Ptr || mtype.Elem().Kind() != reflect.Struct {
-		return errors.New("Only a pointer to struct can be unmarshaled from TOML")
+	if mtype.Kind() != reflect.Ptr {
+		return errors.New("only a pointer to struct or map can be unmarshaled from TOML")
 	}
 
-	sval, err := d.valueFromTree(mtype.Elem(), d.tval)
+	elem := mtype.Elem()
+
+	switch elem.Kind() {
+	case reflect.Struct, reflect.Map:
+	default:
+		return errors.New("only a pointer to struct or map can be unmarshaled from TOML")
+	}
+
+	sval, err := d.valueFromTree(elem, d.tval)
 	if err != nil {
 		return err
 	}
@@ -546,8 +574,8 @@ func (d *Decoder) valueFromTree(mtype reflect.Type, tval *Tree) (reflect.Value, 
 
 				if !found && opts.defaultValue != "" {
 					mvalf := mval.Field(i)
-					var val interface{} = nil
-					var err error = nil
+					var val interface{}
+					var err error
 					switch mvalf.Kind() {
 					case reflect.Bool:
 						val, err = strconv.ParseBool(opts.defaultValue)
@@ -587,7 +615,7 @@ func (d *Decoder) valueFromTree(mtype reflect.Type, tval *Tree) (reflect.Value, 
 			if err != nil {
 				return mval, formatError(err, tval.GetPosition(key))
 			}
-			mval.SetMapIndex(reflect.ValueOf(key), mvalf)
+			mval.SetMapIndex(reflect.ValueOf(key).Convert(mtype.Key()), mvalf)
 		}
 	}
 	return mval, nil
