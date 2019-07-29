@@ -464,8 +464,18 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 		s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
 	}
 
-	rpc := s.getRootPosts(channelId, offset, limit)
-	cpc := s.getParentsPosts(channelId, offset, limit)
+	rpc := make(chan store.StoreResult, 1)
+	go func() {
+		posts, err := s.getRootPosts(channelId, offset, limit)
+		rpc <- store.StoreResult{Data: posts, Err: err}
+		close(rpc)
+	}()
+	cpc := make(chan store.StoreResult, 1)
+	go func() {
+		posts, err := s.getParentsPosts(channelId, offset, limit)
+		cpc <- store.StoreResult{Data: posts, Err: err}
+		close(cpc)
+	}()
 
 	var err *model.AppError
 	list := model.NewPostList()
@@ -735,52 +745,46 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Po
 	return post, nil
 }
 
-func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_root_posts.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_root_posts.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
-func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts,
-			`SELECT
-			    q2.*
+func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts,
+		`SELECT
+			q2.*
+		FROM
+			Posts q2
+				INNER JOIN
+			(SELECT DISTINCT
+				q3.RootId
 			FROM
-			    Posts q2
-			        INNER JOIN
-			    (SELECT DISTINCT
-			        q3.RootId
-			    FROM
-			        (SELECT
-						RootId
-					FROM
-						Posts
-					WHERE
-						ChannelId = :ChannelId1
-							AND DeleteAt = 0
-					ORDER BY CreateAt DESC
-					LIMIT :Limit OFFSET :Offset) q3
-			    WHERE q3.RootId != '') q1
-			    ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
-			WHERE
-			    ChannelId = :ChannelId2
-			        AND DeleteAt = 0
-			ORDER BY CreateAt`,
-			map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+				(SELECT
+					RootId
+				FROM
+					Posts
+				WHERE
+					ChannelId = :ChannelId1
+						AND DeleteAt = 0
+				ORDER BY CreateAt DESC
+				LIMIT :Limit OFFSET :Offset) q3
+			WHERE q3.RootId != '') q1
+			ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
+		WHERE
+			ChannelId = :ChannelId2
+				AND DeleteAt = 0
+		ORDER BY CreateAt`,
+		map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
 var specialSearchChar = []string{
