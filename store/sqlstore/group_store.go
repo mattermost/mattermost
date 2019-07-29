@@ -228,7 +228,7 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.Ap
 	return groupMembers, nil
 }
 
-func (s *SqlGroupStore) GetMemberUsersPage(groupID string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
 	var groupMembers []*model.User
 
 	query := `
@@ -248,7 +248,7 @@ func (s *SqlGroupStore) GetMemberUsersPage(groupID string, offset int, limit int
 		OFFSET
 			:Offset`
 
-	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "Limit": limit, "Offset": offset}); err != nil {
+	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "Limit": perPage, "Offset": page * perPage}); err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GroupGetMemberUsersPage", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
