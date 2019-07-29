@@ -10,13 +10,6 @@ import (
 	"github.com/mattermost/mattermost-server/store/storetest/mocks"
 )
 
-// NewStoreChannel returns a channel that will receive the given result.
-func NewStoreChannel(result store.StoreResult) store.StoreChannel {
-	ch := make(store.StoreChannel, 1)
-	ch <- result
-	return ch
-}
-
 // Store can be used to provide mock stores for testing.
 type Store struct {
 	TeamStore                 mocks.TeamStore
