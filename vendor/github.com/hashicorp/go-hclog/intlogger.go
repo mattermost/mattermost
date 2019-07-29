@@ -21,6 +21,9 @@ import (
 // contains millisecond precision
 const TimeFormat = "2006-01-02T15:04:05.000Z0700"
 
+// errJsonUnsupportedTypeMsg is included in log json entries, if an arg cannot be serialized to json
+const errJsonUnsupportedTypeMsg = "logging contained values that don't serialize to json"
+
 var (
 	_levelToBracket = map[Level]string{
 		Debug: "[DEBUG]",
@@ -296,39 +299,7 @@ func (l *intLogger) renderSlice(v reflect.Value) string {
 
 // JSON logging function
 func (l *intLogger) logJSON(t time.Time, level Level, msg string, args ...interface{}) {
-	vals := map[string]interface{}{
-		"@message":   msg,
-		"@timestamp": t.Format("2006-01-02T15:04:05.000000Z07:00"),
-	}
-
-	var levelStr string
-	switch level {
-	case Error:
-		levelStr = "error"
-	case Warn:
-		levelStr = "warn"
-	case Info:
-		levelStr = "info"
-	case Debug:
-		levelStr = "debug"
-	case Trace:
-		levelStr = "trace"
-	default:
-		levelStr = "all"
-	}
-
-	vals["@level"] = levelStr
-
-	if l.name != "" {
-		vals["@module"] = l.name
-	}
-
-	if l.caller {
-		if _, file, line, ok := runtime.Caller(3); ok {
-			vals["@caller"] = fmt.Sprintf("%s:%d", file, line)
-		}
-	}
-
+	vals := l.jsonMapEntry(t, level, msg)
 	args = append(l.implied, args...)
 
 	if args != nil && len(args) > 0 {
@@ -369,8 +340,49 @@ func (l *intLogger) logJSON(t time.Time, level Level, msg string, args ...interf
 
 	err := json.NewEncoder(l.writer).Encode(vals)
 	if err != nil {
-		panic(err)
+		if _, ok := err.(*json.UnsupportedTypeError); ok {
+			plainVal := l.jsonMapEntry(t, level, msg)
+			plainVal["@warn"] = errJsonUnsupportedTypeMsg
+
+			json.NewEncoder(l.writer).Encode(plainVal)
+		}
 	}
+}
+
+func (l intLogger) jsonMapEntry(t time.Time, level Level, msg string) map[string]interface{} {
+	vals := map[string]interface{}{
+		"@message":   msg,
+		"@timestamp": t.Format("2006-01-02T15:04:05.000000Z07:00"),
+	}
+
+	var levelStr string
+	switch level {
+	case Error:
+		levelStr = "error"
+	case Warn:
+		levelStr = "warn"
+	case Info:
+		levelStr = "info"
+	case Debug:
+		levelStr = "debug"
+	case Trace:
+		levelStr = "trace"
+	default:
+		levelStr = "all"
+	}
+
+	vals["@level"] = levelStr
+
+	if l.name != "" {
+		vals["@module"] = l.name
+	}
+
+	if l.caller {
+		if _, file, line, ok := runtime.Caller(4); ok {
+			vals["@caller"] = fmt.Sprintf("%s:%d", file, line)
+		}
+	}
+	return vals
 }
 
 // Emit the message and args at DEBUG level
@@ -507,5 +519,9 @@ func (l *intLogger) StandardLogger(opts *StandardLoggerOptions) *log.Logger {
 }
 
 func (l *intLogger) StandardWriter(opts *StandardLoggerOptions) io.Writer {
-	return &stdlogAdapter{l, opts.InferLevels}
+	return &stdlogAdapter{
+		log:         l,
+		inferLevels: opts.InferLevels,
+		forceLevel:  opts.ForceLevel,
+	}
 }

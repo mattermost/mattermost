@@ -4,38 +4,12 @@
 package store
 
 import (
-	"time"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
 type StoreResult struct {
 	Data interface{}
 	Err  *model.AppError
-}
-
-type StoreChannel chan StoreResult
-
-func Do(f func(result *StoreResult)) StoreChannel {
-	storeChannel := make(StoreChannel, 1)
-	go func() {
-		result := StoreResult{}
-		f(&result)
-		storeChannel <- result
-		close(storeChannel)
-	}()
-	return storeChannel
-}
-
-func Must(sc StoreChannel) interface{} {
-	r := <-sc
-	if r.Err != nil {
-
-		time.Sleep(time.Second)
-		panic(r.Err)
-	}
-
-	return r.Data
 }
 
 type Store interface {
@@ -100,7 +74,7 @@ type TeamStore interface {
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
 	PermanentDelete(teamId string) *model.AppError
 	AnalyticsTeamCount() (int64, *model.AppError)
-	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
+	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
 	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
 	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
@@ -172,6 +146,9 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
+	InvalidateGuestCount(channelId string)
+	GetGuestCountFromCache(channelId string) int64
+	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	GetPinnedPosts(channelId string) (*model.PostList, *model.AppError)
 	RemoveMember(channelId string, userId string) *model.AppError
 	PermanentDeleteMembersByUser(userId string) *model.AppError
@@ -185,6 +162,7 @@ type ChannelStore interface {
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
 	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
 	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
@@ -263,7 +241,7 @@ type UserStore interface {
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
-	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
+	GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
 	GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError)
 	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
@@ -285,7 +263,7 @@ type UserStore interface {
 	UpdateFailedPasswordAttempts(userId string, attempts int) *model.AppError
 	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
 	PermanentDelete(userId string) *model.AppError
-	AnalyticsActiveCount(time int64) (int64, *model.AppError)
+	AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError)
 	GetUnreadCount(userId string) (int64, error)
 	GetUnreadCountForChannel(userId string, channelId string) (int64, *model.AppError)
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, *model.AppError)
@@ -307,6 +285,8 @@ type UserStore interface {
 	Count(options model.UserCountOptions) (int64, *model.AppError)
 	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
 	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
+	PromoteGuestToUser(userID string) *model.AppError
+	DemoteUserToGuest(userID string) *model.AppError
 }
 
 type BotStore interface {
@@ -328,6 +308,7 @@ type SessionStore interface {
 	UpdateLastActivityAt(sessionId string, time int64) *model.AppError
 	UpdateRoles(userId string, roles string) (string, *model.AppError)
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError)
+	UpdateProps(session *model.Session) *model.AppError
 	AnalyticsSessionCount() (int64, *model.AppError)
 	Cleanup(expiryTime int64, batchSize int64)
 }
@@ -392,7 +373,9 @@ type WebhookStore interface {
 	SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingList(offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
+	GetIncomingListByUser(userId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
 	GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
+	GetIncomingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
 	DeleteIncoming(webhookId string, time int64) *model.AppError
@@ -402,8 +385,11 @@ type WebhookStore interface {
 	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingByChannel(channelId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
+	GetOutgoingByChannelByUser(channelId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
+	GetOutgoingListByUser(userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
+	GetOutgoingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	DeleteOutgoing(webhookId string, time int64) *model.AppError
 	PermanentDeleteOutgoingByChannel(channelId string) *model.AppError
 	PermanentDeleteOutgoingByUser(userId string) *model.AppError
@@ -585,7 +571,7 @@ type GroupStore interface {
 	Delete(groupID string) (*model.Group, *model.AppError)
 
 	GetMemberUsers(groupID string) ([]*model.User, *model.AppError)
-	GetMemberUsersPage(groupID string, offset int, limit int) ([]*model.User, *model.AppError)
+	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError)
 	GetMemberCount(groupID string) (int64, *model.AppError)
 	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
