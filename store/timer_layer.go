@@ -1637,6 +1637,23 @@ func (s *TimerLayerChannelStore) SearchAllChannels(term string, opts ChannelSear
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.ChannelStore.SearchForUserInTeam(userId, teamId, term, includeDeleted)
+
+	t := timemodule.Now()
+	elapsed := t.Sub(start)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.SearchForUserInTeam", success, float64(elapsed))
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerChannelStore) SearchGroupChannels(userId string, term string) (*model.ChannelList, *model.AppError) {
 	start := timemodule.Now()
 
@@ -2980,10 +2997,10 @@ func (s *TimerLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User, *m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersPage(groupID, offset, limit)
+	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
@@ -5955,21 +5972,21 @@ func (s *TimerLayerTeamStore) Save(team *model.Team) (*model.Team, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel {
+func (s *TimerLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0 := s.TeamStore.SaveMember(member, maxUsersPerTeam)
+	resultVar0, resultVar1 := s.TeamStore.SaveMember(member, maxUsersPerTeam)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if true {
+		if resultVar1 == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.SaveMember", success, float64(elapsed))
 	}
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (s *TimerLayerTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
@@ -6720,21 +6737,21 @@ func (s *TimerLayerUserStore) GetProfilesByUsernames(usernames []string, viewRes
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserStore) GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel {
+func (s *TimerLayerUserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0 := s.UserStore.GetProfilesInChannel(channelId, offset, limit)
+	resultVar0, resultVar1 := s.UserStore.GetProfilesInChannel(channelId, offset, limit)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if true {
+		if resultVar1 == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetProfilesInChannel", success, float64(elapsed))
 	}
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (s *TimerLayerUserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
