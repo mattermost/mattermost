@@ -69,7 +69,7 @@
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "브랜드 이미지 파일을 찾을 수가 없어 삭제하지 못하였습니다."
+    "translation": "브랜드 이미지 파일을 찾을 수 없어 삭제하지 못하였습니다."
   },
   {
     "id": "api.admin.file_read_error",
@@ -81,7 +81,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "OAuth2 앱을 삭제하는 동안 오류가 발생하였습니다."
+    "translation": "인증서를 삭제하는 동안 오류가 발생하였습니다."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -169,7 +169,7 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
+    "translation": "나를 대화하기를 원하는 팀과 채널에 추가하여주세요. 이렇게하려면 브라우저 또는 Mattermost 데스크탑 앱을 사용하십시오."
   },
   {
     "id": "api.channel.add_member.added",
@@ -181,7 +181,7 @@
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "그룹 제약으로 인해 다음 사용자들의 채널 구성원이 거부 되었습니다 : {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "채널 헤더 업데이트 중 사용자를 가져오는 데 실패함"
+    "translation": "채널 헤더 업데이트 중 사용자를 가져오는데 실패함"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -345,7 +345,7 @@
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "그룹 제약으로 인해 다음 사용자들의 채널 구성원 제거가 거부되었습니다 : {{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
@@ -369,11 +369,11 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "Invalid channel member update: You can't add or remove the guest role manually"
+    "translation": "잘못된 채널 멤버 수정 : 손님 역할을 수동으로 추가하거나 삭제 할수 없습니다."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-    "translation": "Invalid channel member update: A user must be a guest or a user but not both."
+    "translation": "잘못된 채널 멤버 수정 : 사용자는 손님 혹은 사용자여야 하며 둘다 될수는 없습니다."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "Invalid team member update: You can't add or remove the guest role manually"
+    "translation": "잘못된 팀 멤버 수정 : 손님 역할을 수동으로 추가하거나 삭제 할수 없습니다."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -960,7 +960,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
+    "translation": "이 채널에 연결된 그룹의 회원이므로 사용자가 채널에서 삭제할 수 없습니다. 이 채널에서 제거하려면 연결된 그룹에서 제거해야합니다."
   },
   {
     "id": "api.command_remove.hint",
@@ -1084,11 +1084,11 @@
   },
   {
     "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
-    "translation": "Custom terms of service feature is disabled"
+    "translation": "고객 서비스 약관 기능이 비활성화 되었습니다."
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
-    "translation": "Please enter text for your Custom Terms of Service."
+    "translation": "고객 서비스 약관에 대한 텍스트를 입력하여 주십시오."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1274,7 +1274,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "파일을 업로드 할 수 없습니다. {{.NumFiles}} 파일에 {{.NumClientIds}} 개의 client_ids가 있어야합니다."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1286,7 +1286,7 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "{{.Filename}} 은(는) 한도 ({{.Width}} x {{.Height}} pixels) 크기를 초과합니다."
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
@@ -1302,7 +1302,7 @@
   },
   {
     "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
+    "translation": "파일을 업로드 할 수 없습니다. {{.Filename}}. 은 플러그인에 의해 거부되었습니다 : {{.Reason}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1314,7 +1314,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "{{.Filename}} 파일을 업로드 할 수 없습니다. {{.Length}} bytes 가 허용된 최대 {{.Limit}} bytes 를 초과합니다."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1342,11 +1342,11 @@
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "LDAP 그룹을 찾을 수 없습니다."
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
+    "translation": "LDAP 그룹을 지원하지 않는 라이센스입니다."
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1390,7 +1390,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "변환 오류"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1502,15 +1502,15 @@
   },
   {
     "id": "api.plugin.install.insecure_url.app_error",
-    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
+    "translation": "플러그인을 다운로드하는데 안전하지 않은 URL이 제공되었습니다. 보안 URL을 제공하거나 PluginSettings.AllowInsecureDownloadUrl 설정을 활성화 시켜주세요."
   },
   {
     "id": "api.plugin.install.invalid_url.app_error",
-    "translation": "An invalid url was given to download the plugin."
+    "translation": "플러그인을 다운로드하는데 잘못된 URL이 제공되었습니다."
   },
   {
     "id": "api.plugin.install.reading_stream_failed.app_error",
-    "translation": "An error ocurred reading the plugin file stream."
+    "translation": "플러그인 파일 스트림을 읽는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1526,19 +1526,19 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Usernames}} 및 @{{.LastUsername}}은 채널에 없기 때문에 이 멘션에 의해 알림을 받지 못했습니다. 연결된 그룹의 멤버가 아니기 때문에 채널에 추가 할 수 없습니다. 이 채널에 추가하려면 연결된 그룹에 추가해야합니다."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Username}}은 채널에 없으므로 이 멘션의 알림을받지 못했습니다. 연결된 그룹의 구성원이 아니기 때문에 채널에 추가 할 수 없습니다. 이 채널에 추가하려면 연결된 그룹에 추가해야합니다."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel."
+    "translation": "@{{.Usernames}} 과 @{{.LastUsername}}은 채널에 없으므로 멘션의 알림을 받지 못했습니다. "
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
+    "translation": "@{{.Username}}은 채널에 없으므로 멘션의 알림을받지 못했습니다."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1566,11 +1566,11 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "동일 요청을 반복하는 클라이언트를 중복 제거한 후 원래 게시물을 가져 오는 데 실패했습니다."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "다른 클라이언트가 동일한 요청을 한 이후에 게시물을 거부했습니다."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
@@ -1692,7 +1692,7 @@
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "An error occurred sending the receipt delivery to the push notification service"
+    "translation": "푸시 알림 서비스에 수신 내용을 전달 하던 중 오류가 발생했습니다."
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1852,7 +1852,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "그룹 제약으로 인해 다음 사용자들의 팀 구성원이 거부되었습니다 : {{ .UserIDs }}"
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -2024,7 +2024,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": "Invalid team member update: A user must be a guest or a user but not both."
+    "translation": "팀 멤버 업데이트가 잘못되었습니다. 사용자는 게스트 또는 사용자여야 하며 둘 다 될 수는 없습니다."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2232,11 +2232,11 @@
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .SiteName }}] Email Verification"
+    "translation": "[{{ .SiteName }}] 이메일 확인"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "최상의 환경을 위해 PC, Mac, iOS 및 Android 용 앱을 다음 위치에서 다운로드하십시오."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2252,7 +2252,7 @@
   },
   {
     "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving."
+    "translation": "Mattermost는 즉시 검색 및 보관과 함께 PC 또는 전화에서 메시지 및 파일을 공유 할 수 있습니다."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -2268,7 +2268,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+    "translation": "user_id = {{. UserId}}, team_id = {{. TeamId}}, err = {{Error}} 사용자에 대한 개인 채널 설정을 추가하지 못했습니다."
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2328,7 +2328,7 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "이메일 확인을 위한 토큰 데이터 생성에 실패했습니다."
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2344,7 +2344,7 @@
   },
   {
     "id": "api.user.create_password_token.error",
-    "translation": "Unable to create password recovery token"
+    "translation": "비밀번호 복구 토큰 생성 실패"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2416,11 +2416,11 @@
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate"
+    "translation": "유효한 인증서 제공 없이 실험 기능인 ClientSideCert를 사용하여 로그인을 시도했습니다."
   },
   {
     "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license"
+    "translation": "유효한 엔터프라이즈 라이센스 없이 실험 기능인 ClientSideCertEnable 사용을 시도하였습니다."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "api.user.reset_password.token_parse.error",
-    "translation": "Unable to parse the reset password token"
+    "translation": "재설정된 비밀번호 토큰을 분석 할 수 없습니다."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2552,7 +2552,7 @@
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
+    "translation": "이 기능을 사용할 수 없기 때문에 자신을 비활성화 할 수 없습니다. 시스템 관리자에게 문의하십시오."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
