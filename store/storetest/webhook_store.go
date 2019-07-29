@@ -18,15 +18,20 @@ func TestWebhookStore(t *testing.T, ss store.Store) {
 	t.Run("UpdateIncoming", func(t *testing.T) { testWebhookStoreUpdateIncoming(t, ss) })
 	t.Run("GetIncoming", func(t *testing.T) { testWebhookStoreGetIncoming(t, ss) })
 	t.Run("GetIncomingList", func(t *testing.T) { testWebhookStoreGetIncomingList(t, ss) })
+	t.Run("GetIncomingListByUser", func(t *testing.T) { testWebhookStoreGetIncomingListByUser(t, ss) })
 	t.Run("GetIncomingByTeam", func(t *testing.T) { testWebhookStoreGetIncomingByTeam(t, ss) })
+	t.Run("GetIncomingByTeamByUser", func(t *testing.T) { TestWebhookStoreGetIncomingByTeamByUser(t, ss) })
 	t.Run("DeleteIncoming", func(t *testing.T) { testWebhookStoreDeleteIncoming(t, ss) })
 	t.Run("DeleteIncomingByChannel", func(t *testing.T) { testWebhookStoreDeleteIncomingByChannel(t, ss) })
 	t.Run("DeleteIncomingByUser", func(t *testing.T) { testWebhookStoreDeleteIncomingByUser(t, ss) })
 	t.Run("SaveOutgoing", func(t *testing.T) { testWebhookStoreSaveOutgoing(t, ss) })
 	t.Run("GetOutgoing", func(t *testing.T) { testWebhookStoreGetOutgoing(t, ss) })
 	t.Run("GetOutgoingList", func(t *testing.T) { testWebhookStoreGetOutgoingList(t, ss) })
+	t.Run("GetOutgoingListByUser", func(t *testing.T) { testWebhookStoreGetOutgoingListByUser(t, ss) })
 	t.Run("GetOutgoingByChannel", func(t *testing.T) { testWebhookStoreGetOutgoingByChannel(t, ss) })
+	t.Run("GetOutgoingByChannelByUser", func(t *testing.T) { testWebhookStoreGetOutgoingByChannelByUser(t, ss) })
 	t.Run("GetOutgoingByTeam", func(t *testing.T) { testWebhookStoreGetOutgoingByTeam(t, ss) })
+	t.Run("GetOutgoingByTeamByUser", func(t *testing.T) { testWebhookStoreGetOutgoingByTeamByUser(t, ss) })
 	t.Run("DeleteOutgoing", func(t *testing.T) { testWebhookStoreDeleteOutgoing(t, ss) })
 	t.Run("DeleteOutgoingByChannel", func(t *testing.T) { testWebhookStoreDeleteOutgoingByChannel(t, ss) })
 	t.Run("DeleteOutgoingByUser", func(t *testing.T) { testWebhookStoreDeleteOutgoingByUser(t, ss) })
@@ -144,6 +149,29 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 	}
 }
 
+func testWebhookStoreGetIncomingListByUser(t *testing.T, ss store.Store) {
+	o1 := &model.IncomingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.TeamId = model.NewId()
+
+	o1, appErr := ss.Webhook().SaveIncoming(o1)
+	require.Nil(t, appErr)
+
+	t.Run("GetIncomingListByUser, known user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetIncomingListByUser(o1.UserId, 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, len(hooks))
+		require.Equal(t, o1.CreateAt, hooks[0].CreateAt)
+	})
+
+	t.Run("GetIncomingListByUser, unknown user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetIncomingListByUser("123465", 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, len(hooks))
+	})
+}
+
 func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 	var err *model.AppError
 
@@ -166,6 +194,38 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 			t.Fatal("no webhooks should have returned")
 		}
 	}
+}
+
+func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, ss store.Store) {
+	var appErr *model.AppError
+
+	o1 := buildIncomingWebhook()
+	o1, appErr = ss.Webhook().SaveIncoming(o1)
+	require.Nil(t, appErr)
+
+	o2 := buildIncomingWebhook()
+	o2.TeamId = o1.TeamId //Set both to the same team
+	o2, appErr = ss.Webhook().SaveIncoming(o2)
+	require.Nil(t, appErr)
+
+	t.Run("GetIncomingByTeamByUser, no user filter", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, len(hooks), 2)
+	})
+
+	t.Run("GetIncomingByTeamByUser, known user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetIncomingByTeamByUser(o1.TeamId, o1.UserId, 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, len(hooks), 1)
+		require.Equal(t, hooks[0].CreateAt, o1.CreateAt)
+	})
+
+	t.Run("GetIncomingByTeamByUser, unknown user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetIncomingByTeamByUser(o2.TeamId, "123465", 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, len(hooks), 0)
+	})
 }
 
 func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
@@ -311,6 +371,30 @@ func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
 	}
 }
 
+func testWebhookStoreGetOutgoingListByUser(t *testing.T, ss store.Store) {
+	o1 := &model.OutgoingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.CreatorId = model.NewId()
+	o1.TeamId = model.NewId()
+	o1.CallbackURLs = []string{"http://nowhere.com/"}
+
+	o1, appErr := ss.Webhook().SaveOutgoing(o1)
+	require.Nil(t, appErr)
+
+	t.Run("GetOutgoingListByUser, known user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetOutgoingListByUser(o1.CreatorId, 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, len(hooks))
+		require.Equal(t, o1.CreateAt, hooks[0].CreateAt)
+	})
+
+	t.Run("GetOutgoingListByUser, unknown user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetOutgoingListByUser("123465", 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, len(hooks))
+	})
+}
+
 func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
@@ -388,6 +472,45 @@ func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
 	}
 }
 
+func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, ss store.Store) {
+	o1 := &model.OutgoingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.CreatorId = model.NewId()
+	o1.TeamId = model.NewId()
+	o1.CallbackURLs = []string{"http://nowhere.com/"}
+
+	o1, appErr := ss.Webhook().SaveOutgoing(o1)
+	require.Nil(t, appErr)
+
+	o2 := &model.OutgoingWebhook{}
+	o2.ChannelId = o1.ChannelId
+	o2.CreatorId = model.NewId()
+	o2.TeamId = model.NewId()
+	o2.CallbackURLs = []string{"http://nowhere.com/"}
+
+	o2, appErr = ss.Webhook().SaveOutgoing(o2)
+	require.Nil(t, appErr)
+
+	t.Run("GetOutgoingByChannelByUser, no user filter", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetOutgoingByChannel(o1.ChannelId, 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, len(hooks), 2)
+	})
+
+	t.Run("GetOutgoingByChannelByUser, known user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetOutgoingByChannelByUser(o1.ChannelId, o1.CreatorId, 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, len(hooks))
+		require.Equal(t, o1.CreateAt, hooks[0].CreateAt)
+	})
+
+	t.Run("GetOutgoingByChannelByUser, unknown user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetOutgoingByChannelByUser(o1.ChannelId, "123465", 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, len(hooks))
+	})
+}
+
 func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
@@ -412,6 +535,47 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
 			t.Fatal("no webhooks should have returned")
 		}
 	}
+}
+
+func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, ss store.Store) {
+	var appErr *model.AppError
+
+	o1 := &model.OutgoingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.CreatorId = model.NewId()
+	o1.TeamId = model.NewId()
+	o1.CallbackURLs = []string{"http://nowhere.com/"}
+
+	o1, appErr = ss.Webhook().SaveOutgoing(o1)
+	require.Nil(t, appErr)
+
+	o2 := &model.OutgoingWebhook{}
+	o2.ChannelId = model.NewId()
+	o2.CreatorId = model.NewId()
+	o2.TeamId = o1.TeamId
+	o2.CallbackURLs = []string{"http://nowhere.com/"}
+
+	o2, appErr = ss.Webhook().SaveOutgoing(o2)
+	require.Nil(t, appErr)
+
+	t.Run("GetOutgoingByTeamByUser, no user filter", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetOutgoingByTeam(o1.TeamId, 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, len(hooks), 2)
+	})
+
+	t.Run("GetOutgoingByTeamByUser, known user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetOutgoingByTeamByUser(o1.TeamId, o1.CreatorId, 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, len(hooks), 1)
+		require.Equal(t, hooks[0].CreateAt, o1.CreateAt)
+	})
+
+	t.Run("GetOutgoingByTeamByUser, unknown user filtered", func(t *testing.T) {
+		hooks, appErr := ss.Webhook().GetOutgoingByTeamByUser(o2.TeamId, "123465", 0, 100)
+		require.Nil(t, appErr)
+		require.Equal(t, len(hooks), 0)
+	})
 }
 
 func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {
