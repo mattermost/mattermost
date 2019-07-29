@@ -206,6 +206,23 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 	return deviceId, nil
 }
 
+func (me SqlSessionStore) UpdateProps(session *model.Session) *model.AppError {
+	oldSession, appErr := me.Get(session.Id)
+	if appErr != nil {
+		return appErr
+	}
+	oldSession.Props = session.Props
+
+	count, err := me.GetMaster().Update(oldSession)
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.UpdateProps", "store.sql_session.update_props.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if count != 1 {
+		return model.NewAppError("SqlSessionStore.UpdateProps", "store.sql_session.update_props.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (me SqlSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
 	query :=
 		`SELECT

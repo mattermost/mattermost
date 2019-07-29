@@ -56,8 +56,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(privateChan)
 		}()
 
-		var userChan store.StoreChannel
-		var userInactiveChan store.StoreChannel
+		var userChan chan store.StoreResult
+		var userInactiveChan chan store.StoreResult
 		if teamId == "" {
 			userInactiveChan = make(chan store.StoreResult, 1)
 			go func() {
@@ -74,7 +74,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			}()
 		}
 
-		var postChan store.StoreChannel
+		var postChan chan store.StoreResult
 		if !skipIntensiveQueries {
 			postChan = make(chan store.StoreResult, 1)
 			go func() {
@@ -257,8 +257,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(sessionChan)
 		}()
 
-		var fileChan store.StoreChannel
-		var hashtagChan store.StoreChannel
+		var fileChan chan store.StoreResult
+		var hashtagChan chan store.StoreResult
 
 		if !skipIntensiveQueries {
 			fileChan = make(chan store.StoreResult, 1)

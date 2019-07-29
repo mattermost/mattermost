@@ -1863,6 +1863,14 @@
     "translation": "Parameter required to add user to team."
   },
   {
+    "id": "api.team.demote_user_to_guest.disabled.error",
+    "translation": "Guest accounts are disabled."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "Your license does not support guest accounts"
+  },
+  {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Invite is invalid because this is not an open team."
   },
@@ -1907,6 +1915,18 @@
     "translation": "Error invalidating email invites."
   },
   {
+    "id": "api.team.invate_guests_to_channels.disabled.error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "api.team.invate_guests_to_channels.license.error",
+    "translation": "Your license does not support guest accounts"
+  },
+  {
+    "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+    "translation": "The channels of the invite must be part of the team of the invite."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email invitations are disabled."
   },
@@ -1949,6 +1969,14 @@
   {
     "id": "api.team.move_channel.success",
     "translation": "This channel has been moved to this team from %v."
+  },
+  {
+    "id": "api.team.promote_guest_to_user.disabled.error",
+    "translation": "Guest accounts are disabled."
+  },
+  {
+    "id": "api.team.promote_guest_to_user.license.error",
+    "translation": "Your license does not support guest accounts"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
@@ -2117,6 +2145,14 @@
   {
     "id": "api.templates.invite_body.title",
     "translation": "You've been invited"
+  },
+  {
+    "id": "api.templates.invite_body_guest.info",
+    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join the team {{ .TeamDisplayName }} as a guest"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2367,6 +2403,18 @@
     "translation": "User creation is disabled."
   },
   {
+    "id": "api.user.create_user.guest_accounts.disabled.app_error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "Your license does not support guest accounts"
+  },
+  {
+    "id": "api.user.create_user.invalid_invitation_type.app_error",
+    "translation": "Unable to create the user, invalid invitation."
+  },
+  {
     "id": "api.user.create_user.no_open_server",
     "translation": "This server does not allow open signups.  Please speak with your Administrator to receive an invitation."
   },
@@ -2381,6 +2429,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "The signup link does not appear to be valid"
+  },
+  {
+    "id": "api.user.demote_user_to_guest.already_guest.app_error",
+    "translation": "Unable to convert the user to guest because is already a guest"
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
@@ -2421,6 +2473,14 @@
   {
     "id": "api.user.login.client_side_cert.license.app_error",
     "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license"
+  },
+  {
+    "id": "api.user.login.guest_accounts.disabled.error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "Your license does not support guest accounts"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2473,6 +2533,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.no_guest.app_error",
+    "translation": "Unable to convert the guest to regular user because is not a guest"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -4803,6 +4867,22 @@
     "translation": "invalid type property for group syncable"
   },
   {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "Invalid channel"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "Invalid channels"
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "Invalid email"
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "Invalid emails"
+  },
+  {
     "id": "model.incoming_hook.channel_id.app_error",
     "translation": "Invalid channel id"
   },
@@ -6515,6 +6595,10 @@
     "translation": "Unable to update the last_activity_at"
   },
   {
+    "id": "store.sql_session.update_props.app_error",
+    "translation": "Unable to update session props"
+  },
+  {
     "id": "store.sql_session.update_roles.app_error",
     "translation": "Unable to update the roles"
   },
@@ -6811,6 +6895,26 @@
     "translation": "UserCountOptions don't make sense"
   },
   {
+    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
+    "translation": "Failed to update the user channels memberships"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
+    "translation": "Failed to begin the database transaction"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
+    "translation": "Failed to update the user teams memberships"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
+    "translation": "Failed to update the user"
+  },
+  {
     "id": "store.sql_user.get.app_error",
     "translation": "We encountered an error finding the account"
   },
@@ -6889,6 +6993,26 @@
   {
     "id": "store.sql_user.permanent_delete.app_error",
     "translation": "Unable to delete the existing account"
+  },
+  {
+    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
+    "translation": "Failed to update the user channels memberships"
+  },
+  {
+    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_user.promote_guest.open_transaction.app_error",
+    "translation": "Failed to begin the database transaction"
+  },
+  {
+    "id": "store.sql_user.promote_guest.team_members_update.app_error",
+    "translation": "Failed to update the user teams memberships"
+  },
+  {
+    "id": "store.sql_user.promote_guest.user_update.app_error",
+    "translation": "Failed to update the user"
   },
   {
     "id": "store.sql_user.save.app_error",
