@@ -123,14 +123,14 @@ func (a *App) trackActivity() {
 
 	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
 	go func() {
-		count, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
 		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersDailyCountChan)
 	}()
 
 	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
 	go func() {
-		count, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
 		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersMonthlyCountChan)
 	}()
@@ -524,6 +524,9 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_CLUSTER, map[string]interface{}{
 		"enable":                  *cfg.ClusterSettings.Enable,
+		"network_interface":       isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
+		"bind_address":            isDefault(*cfg.ClusterSettings.BindAddress, ""),
+		"advertise_address":       isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
 		"use_ip_address":          *cfg.ClusterSettings.UseIpAddress,
 		"use_experimental_gossip": *cfg.ClusterSettings.UseExperimentalGossip,
 		"read_only_config":        *cfg.ClusterSettings.ReadOnlyConfig,
@@ -826,10 +829,7 @@ func (a *App) trackPermissions() {
 				channelGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 
-			var count int64 = 0
-			if res := <-a.Srv.Store.Team().AnalyticsGetTeamCountForScheme(scheme.Id); res.Err == nil {
-				count = res.Data.(int64)
-			}
+			count, _ := a.Srv.Store.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
 
 			a.SendDiagnostic(TRACK_PERMISSIONS_TEAM_SCHEMES, map[string]interface{}{
 				"scheme_id":                 scheme.Id,

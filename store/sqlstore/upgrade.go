@@ -710,6 +710,12 @@ func UpgradeDatabaseToVersion514(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.14.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_13_0, VERSION_5_14_0) {
 
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		sqlStore.GetMaster().Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
+	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
+	}
+
 	// 	saveSchemaVersion(sqlStore, VERSION_5_14_0)
 	// }
 }

@@ -437,6 +437,63 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	assert.NotNil(t, histories[0].LeaveTime)
 }*/
 
+func TestLeaveDefaultChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	guest := th.CreateGuest()
+	th.LinkUserToTeam(guest, th.BasicTeam)
+
+	townSquare, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, false)
+	require.Nil(t, err)
+	th.AddUserToChannel(guest, townSquare)
+	th.AddUserToChannel(th.BasicUser, townSquare)
+
+	t.Run("User tries to leave the default channel", func(t *testing.T) {
+		err = th.App.LeaveChannel(townSquare.Id, th.BasicUser.Id)
+		assert.NotNil(t, err, "It should fail to remove a regular user from the default channel")
+		assert.Equal(t, err.Id, "api.channel.remove.default.app_error")
+		_, err = th.App.GetChannelMember(townSquare.Id, th.BasicUser.Id)
+		assert.Nil(t, err)
+	})
+
+	t.Run("Guest leaves the default channel", func(t *testing.T) {
+		err = th.App.LeaveChannel(townSquare.Id, guest.Id)
+		assert.Nil(t, err, "It should allow to remove a guest user from the default channel")
+		_, err = th.App.GetChannelMember(townSquare.Id, guest.Id)
+		assert.NotNil(t, err)
+	})
+}
+
+func TestLeaveLastChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	guest := th.CreateGuest()
+	th.LinkUserToTeam(guest, th.BasicTeam)
+
+	townSquare, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, false)
+	require.Nil(t, err)
+	th.AddUserToChannel(guest, townSquare)
+	th.AddUserToChannel(guest, th.BasicChannel)
+
+	t.Run("Guest leaves not last channel", func(t *testing.T) {
+		err = th.App.LeaveChannel(townSquare.Id, guest.Id)
+		require.Nil(t, err)
+		_, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		assert.Nil(t, err, "It should maintain the team membership")
+	})
+
+	t.Run("Guest leaves last channel", func(t *testing.T) {
+		err = th.App.LeaveChannel(th.BasicChannel.Id, guest.Id)
+		assert.Nil(t, err, "It should allow to remove a guest user from the default channel")
+		_, err = th.App.GetChannelMember(th.BasicChannel.Id, guest.Id)
+		assert.NotNil(t, err)
+		_, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		assert.Nil(t, err, "It should remove the team membership")
+	})
+}
+
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -930,4 +987,57 @@ func TestDefaultChannelNames(t *testing.T) {
 	actual = th.App.DefaultChannelNames()
 	expect = []string{"town-square", "foo", "bar"}
 	require.ElementsMatch(t, expect, actual)
+}
+
+func TestSearchChannelsForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	c1, err := th.App.CreateChannel(&model.Channel{DisplayName: "test-dev-1", Name: "test-dev-1", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+
+	c2, err := th.App.CreateChannel(&model.Channel{DisplayName: "test-dev-2", Name: "test-dev-2", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+
+	c3, err := th.App.CreateChannel(&model.Channel{DisplayName: "dev-3", Name: "dev-3", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+
+	defer func() {
+		th.App.PermanentDeleteChannel(c1)
+		th.App.PermanentDeleteChannel(c2)
+		th.App.PermanentDeleteChannel(c3)
+	}()
+
+	// add user to test-dev-1 and dev3
+	_, err = th.App.AddUserToChannel(th.BasicUser, c1)
+	require.Nil(t, err)
+	_, err = th.App.AddUserToChannel(th.BasicUser, c3)
+	require.Nil(t, err)
+
+	searchAndCheck := func(t *testing.T, term string, expectedDisplayNames []string) {
+		res, searchErr := th.App.SearchChannelsForUser(th.BasicUser.Id, th.BasicTeam.Id, term)
+		require.Nil(t, searchErr)
+		require.Len(t, *res, len(expectedDisplayNames))
+
+		resultDisplayNames := []string{}
+		for _, c := range *res {
+			resultDisplayNames = append(resultDisplayNames, c.Name)
+		}
+		require.ElementsMatch(t, expectedDisplayNames, resultDisplayNames)
+	}
+
+	t.Run("Search for test, only test-dev-1 should be returned", func(t *testing.T) {
+		searchAndCheck(t, "test", []string{"test-dev-1"})
+	})
+
+	t.Run("Search for dev, both test-dev-1 and dev-3 should be returned", func(t *testing.T) {
+		searchAndCheck(t, "dev", []string{"test-dev-1", "dev-3"})
+	})
+
+	t.Run("After adding user to test-dev-2, search for dev, the three channels should be returned", func(t *testing.T) {
+		_, err = th.App.AddUserToChannel(th.BasicUser, c2)
+		require.Nil(t, err)
+
+		searchAndCheck(t, "dev", []string{"test-dev-1", "test-dev-2", "dev-3"})
+	})
 }

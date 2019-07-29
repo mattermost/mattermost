@@ -63,8 +63,8 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) *model.AppError
 
 	defer finalizeTransaction(transaction)
 	for _, preference := range *preferences {
-		if appErr := s.save(transaction, &preference); appErr != nil {
-			return appErr
+		if upsertErr := s.save(transaction, &preference); upsertErr != nil {
+			return upsertErr
 		}
 	}
 
@@ -198,9 +198,9 @@ func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, *model.App
 
 func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
 	query :=
-		`DELETE FROM 
-			Preferences 
-		WHERE 
+		`DELETE FROM
+			Preferences
+		WHERE
 			UserId = :UserId`
 
 	if _, err := s.GetMaster().Exec(query, map[string]interface{}{"UserId": userId}); err != nil {

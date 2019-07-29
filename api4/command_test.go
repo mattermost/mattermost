@@ -627,7 +627,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	expectedCommandResponse := &model.CommandResponse{
@@ -677,7 +677,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	expectedCommandResponse := &model.CommandResponse{
@@ -732,7 +732,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	// create a team that the user isn't a part of
@@ -792,7 +792,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	// create a team that the user isn't a part of

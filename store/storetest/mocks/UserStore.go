@@ -13,20 +13,20 @@ type UserStore struct {
 	mock.Mock
 }
 
-// AnalyticsActiveCount provides a mock function with given fields: time
-func (_m *UserStore) AnalyticsActiveCount(time int64) (int64, *model.AppError) {
-	ret := _m.Called(time)
+// AnalyticsActiveCount provides a mock function with given fields: time, options
+func (_m *UserStore) AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError) {
+	ret := _m.Called(time, options)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(int64) int64); ok {
-		r0 = rf(time)
+	if rf, ok := ret.Get(0).(func(int64, model.UserCountOptions) int64); ok {
+		r0 = rf(time, options)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64) *model.AppError); ok {
-		r1 = rf(time)
+	if rf, ok := ret.Get(1).(func(int64, model.UserCountOptions) *model.AppError); ok {
+		r1 = rf(time, options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -124,6 +124,22 @@ func (_m *UserStore) Count(options model.UserCountOptions) (int64, *model.AppErr
 	}
 
 	return r0, r1
+}
+
+// DemoteUserToGuest provides a mock function with given fields: userID
+func (_m *UserStore) DemoteUserToGuest(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // Get provides a mock function with given fields: id
@@ -350,19 +366,28 @@ func (_m *UserStore) GetByEmail(email string) (*model.User, *model.AppError) {
 }
 
 // GetByUsername provides a mock function with given fields: username
-func (_m *UserStore) GetByUsername(username string) store.StoreChannel {
+func (_m *UserStore) GetByUsername(username string) (*model.User, *model.AppError) {
 	ret := _m.Called(username)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.User
+	if rf, ok := ret.Get(0).(func(string) *model.User); ok {
 		r0 = rf(username)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(username)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetChannelGroupUsers provides a mock function with given fields: channelID
@@ -583,35 +608,53 @@ func (_m *UserStore) GetProfilesByUsernames(usernames []string, viewRestrictions
 }
 
 // GetProfilesInChannel provides a mock function with given fields: channelId, offset, limit
-func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit int) store.StoreChannel {
+func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
 	ret := _m.Called(channelId, offset, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
 		r0 = rf(channelId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(channelId, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetProfilesInChannelByStatus provides a mock function with given fields: channelId, offset, limit
-func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) store.StoreChannel {
+func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
 	ret := _m.Called(channelId, offset, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
 		r0 = rf(channelId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(channelId, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetProfilesNotInChannel provides a mock function with given fields: teamId, channelId, groupConstrained, offset, limit, viewRestrictions
@@ -665,19 +708,28 @@ func (_m *UserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, 
 }
 
 // GetProfilesWithoutTeam provides a mock function with given fields: offset, limit, viewRestrictions
-func (_m *UserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+func (_m *UserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	ret := _m.Called(offset, limit, viewRestrictions)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(int, int, *model.ViewUsersRestrictions) []*model.User); ok {
 		r0 = rf(offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int, *model.ViewUsersRestrictions) *model.AppError); ok {
+		r1 = rf(offset, limit, viewRestrictions)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetRecentlyActiveUsersForTeam provides a mock function with given fields: teamId, offset, limit, viewRestrictions
@@ -777,19 +829,26 @@ func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
 }
 
 // GetUnreadCountForChannel provides a mock function with given fields: userId, channelId
-func (_m *UserStore) GetUnreadCountForChannel(userId string, channelId string) store.StoreChannel {
+func (_m *UserStore) GetUnreadCountForChannel(userId string, channelId string) (int64, *model.AppError) {
 	ret := _m.Called(userId, channelId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, string) int64); ok {
 		r0 = rf(userId, channelId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userId, channelId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // GetUsersBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
@@ -862,6 +921,22 @@ func (_m *UserStore) PermanentDelete(userId string) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// PromoteGuestToUser provides a mock function with given fields: userID
+func (_m *UserStore) PromoteGuestToUser(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -1118,15 +1193,15 @@ func (_m *UserStore) UpdateLastPictureUpdate(userId string) *model.AppError {
 }
 
 // UpdateMfaActive provides a mock function with given fields: userId, active
-func (_m *UserStore) UpdateMfaActive(userId string, active bool) store.StoreChannel {
+func (_m *UserStore) UpdateMfaActive(userId string, active bool) *model.AppError {
 	ret := _m.Called(userId, active)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
 		r0 = rf(userId, active)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
