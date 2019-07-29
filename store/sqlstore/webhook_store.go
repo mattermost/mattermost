@@ -184,9 +184,7 @@ func (s SqlWebhookStore) GetIncomingListByUser(userId string, offset, limit int)
 	query := s.getQueryBuilder().
 		Select("*").
 		From("IncomingWebhooks").
-		Where(sq.And{
-			sq.Eq{"DeleteAt": int(0)},
-		}).Limit(uint64(limit)).Offset(uint64(offset))
+		Where(sq.Eq{"DeleteAt": int(0)}).Limit(uint64(limit)).Offset(uint64(offset))
 
 	if len(userId) > 0 {
 		query = query.Where(sq.Eq{"UserId": userId})
