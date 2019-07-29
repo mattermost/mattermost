@@ -783,11 +783,22 @@ func IsValidLocale(locale string) bool {
 
 type UserWithGroups struct {
 	User
-	GroupIDs    string   `json:"-"`
+	GroupIDs    *string  `json:"-"`
 	Groups      []*Group `json:"groups"`
 	SchemeGuest bool     `json:"scheme_guest"`
 	SchemeUser  bool     `json:"scheme_user"`
 	SchemeAdmin bool     `json:"scheme_admin"`
+}
+
+func (u *UserWithGroups) GetGroupIDs() []string {
+	if u.GroupIDs == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*u.GroupIDs)
+	if len(trimmed) == 0 {
+		return nil
+	}
+	return strings.Split(trimmed, ",")
 }
 
 type UsersWithGroupsAndCount struct {

@@ -992,8 +992,8 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 		Join("Teams ON Teams.Id = TeamMembers.TeamId").
 		Join("Users ON Users.Id = TeamMembers.UserId").
 		LeftJoin("Bots ON Bots.UserId = TeamMembers.UserId").
-		Join("GroupMembers ON GroupMembers.UserId = Users.Id").
-		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		LeftJoin("GroupMembers ON GroupMembers.UserId = Users.Id").
+		LeftJoin("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Where("TeamMembers.DeleteAt = 0").
 		Where("Teams.DeleteAt = 0").
 		Where("Users.DeleteAt = 0").
@@ -1070,8 +1070,8 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 		Join("Channels ON Channels.Id = ChannelMembers.ChannelId").
 		Join("Users ON Users.Id = ChannelMembers.UserId").
 		LeftJoin("Bots ON Bots.UserId = ChannelMembers.UserId").
-		Join("GroupMembers ON GroupMembers.UserId = Users.Id").
-		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		LeftJoin("GroupMembers ON GroupMembers.UserId = Users.Id").
+		LeftJoin("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Where("Channels.DeleteAt = 0").
 		Where("Users.DeleteAt = 0").
 		Where("Bots.UserId IS NULL").
