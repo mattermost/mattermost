@@ -582,13 +582,9 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 	require.Zero(t, d2.DeleteAt)
 
 	// Duplicate composite key (GroupId, UserId)
-	// MySQL's implementation of RowsAffected returns 0 if the
-	// row exists but no actual changes were made.
-	// Retrying till call succeeds or runs out of attempts.
-	err = retry(func() *model.AppError {
-		_, upsertErr := ss.Group().UpsertMember(group.Id, user.Id)
-		return upsertErr
-	})
+	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
+	time.Sleep(1 * time.Millisecond)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.Nil(t, err)
 
 	// Invalid GroupId
@@ -596,10 +592,9 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 	require.Equal(t, err.Id, "store.insert_error")
 
 	// Restores a deleted member
-	err = retry(func() *model.AppError {
-		_, upsertErr := ss.Group().UpsertMember(group.Id, user.Id)
-		return upsertErr
-	})
+	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
+	time.Sleep(1 * time.Millisecond)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.Nil(t, err)
 
 	_, err = ss.Group().DeleteMember(group.Id, user.Id)
@@ -2526,17 +2521,4 @@ func testChannelMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 			require.Equal(t, tc.expectedTotalCount, actualCount)
 		})
 	}
-}
-
-// retry retries till func call succeeds or runs out of retry attempts.
-func retry(f func() *model.AppError) (err *model.AppError) {
-	for i := 0; i < 5; i++ {
-		if err = f(); err == nil {
-			return nil
-		}
-
-		fmt.Println("Retrying ", i)
-		time.Sleep(10 * time.Millisecond)
-	}
-	return
 }

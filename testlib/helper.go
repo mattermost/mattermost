@@ -6,7 +6,6 @@ package testlib
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
@@ -121,10 +120,6 @@ func (h *MainHelper) Close() error {
 	}
 	if h.testResourcePath != "" {
 		os.RemoveAll(h.testResourcePath)
-	}
-
-	if r := recover(); r != nil {
-		log.Fatalln(r)
 	}
 
 	os.Exit(h.status)
