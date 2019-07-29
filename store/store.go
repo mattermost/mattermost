@@ -4,38 +4,12 @@
 package store
 
 import (
-	"time"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
 type StoreResult struct {
 	Data interface{}
 	Err  *model.AppError
-}
-
-type StoreChannel chan StoreResult
-
-func Do(f func(result *StoreResult)) StoreChannel {
-	storeChannel := make(StoreChannel, 1)
-	go func() {
-		result := StoreResult{}
-		f(&result)
-		storeChannel <- result
-		close(storeChannel)
-	}()
-	return storeChannel
-}
-
-func Must(sc StoreChannel) interface{} {
-	r := <-sc
-	if r.Err != nil {
-
-		time.Sleep(time.Second)
-		panic(r.Err)
-	}
-
-	return r.Data
 }
 
 type Store interface {
@@ -100,7 +74,7 @@ type TeamStore interface {
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
 	PermanentDelete(teamId string) *model.AppError
 	AnalyticsTeamCount() (int64, *model.AppError)
-	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
+	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
 	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
 	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
@@ -188,6 +162,7 @@ type ChannelStore interface {
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
 	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
 	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
@@ -266,7 +241,7 @@ type UserStore interface {
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
-	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
+	GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
 	GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError)
 	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
@@ -591,7 +566,7 @@ type GroupStore interface {
 	Delete(groupID string) (*model.Group, *model.AppError)
 
 	GetMemberUsers(groupID string) ([]*model.User, *model.AppError)
-	GetMemberUsersPage(groupID string, offset int, limit int) ([]*model.User, *model.AppError)
+	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError)
 	GetMemberCount(groupID string) (int64, *model.AppError)
 	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
