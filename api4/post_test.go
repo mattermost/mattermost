@@ -1907,6 +1907,49 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		NextPostId: "",
 		PrevPostId: post7.Id,
 	}, posts)
+
+	// Set channel member's last viewed to just before a new reply to a previous thread, not
+	// otherwise in the requested window.
+	post11 := th.CreatePost()
+	post12, resp := Client.CreatePost(&model.Post{
+		ChannelId: channelId,
+		Message:   model.NewId(),
+		RootId:    post4.Id,
+		ParentId:  post4.Id,
+	})
+	CheckNoError(t, resp)
+	post13 := th.CreatePost()
+
+	postIdNames[post11.Id] = "post11"
+	postIdNames[post12.Id] = "post12 (reply to post4)"
+	postIdNames[post13.Id] = "post13"
+
+	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	require.Nil(t, err)
+	channelMember.LastViewedAt = post12.CreateAt - 1
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
+	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 1, 2)
+	CheckNoError(t, resp)
+
+	assertPostList(t, &model.PostList{
+		Order: []string{post13.Id, post12.Id, post11.Id},
+		Posts: map[string]*model.Post{
+			post4.Id:  post4,
+			post6.Id:  post6,
+			post7.Id:  post7,
+			post8.Id:  post8,
+			post9.Id:  post9,
+			post10.Id: post10,
+			post11.Id: post11,
+			post12.Id: post12,
+			post13.Id: post13,
+		},
+		NextPostId: "",
+		PrevPostId: post10.Id,
+	}, posts)
 }
 
 func TestGetPost(t *testing.T) {
