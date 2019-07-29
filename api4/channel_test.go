@@ -909,13 +909,48 @@ func TestSearchChannels(t *testing.T) {
 
 	search.Term = th.BasicChannel.Name
 	_, resp = Client.SearchChannels(model.NewId(), search)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.SearchChannels("junk", search)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.SearchChannels(th.BasicTeam.Id, search)
 	CheckNoError(t, resp)
+
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Remove list channels permission from the user
+	th.RemovePermissionFromRole(model.PERMISSION_LIST_TEAM_CHANNELS.Id, model.TEAM_USER_ROLE_ID)
+
+	t.Run("Search for a BasicChannel, which the user is a member of", func(t *testing.T) {
+		search.Term = th.BasicChannel.Name
+		channelList, resp := Client.SearchChannels(th.BasicTeam.Id, search)
+		CheckNoError(t, resp)
+
+		channelNames := []string{}
+		for _, c := range channelList {
+			channelNames = append(channelNames, c.Name)
+		}
+		require.Contains(t, channelNames, th.BasicChannel.Name)
+	})
+
+	t.Run("Remove the user from BasicChannel and search again, should not be returned", func(t *testing.T) {
+		th.App.RemoveUserFromChannel(th.BasicUser.Id, th.BasicUser.Id, th.BasicChannel)
+
+		search.Term = th.BasicChannel.Name
+		channelList, resp := Client.SearchChannels(th.BasicTeam.Id, search)
+		CheckNoError(t, resp)
+
+		channelNames := []string{}
+		for _, c := range channelList {
+			channelNames = append(channelNames, c.Name)
+		}
+		require.NotContains(t, channelNames, th.BasicChannel.Name)
+	})
 }
 
 func TestSearchAllChannels(t *testing.T) {

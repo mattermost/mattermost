@@ -188,6 +188,7 @@ type ChannelStore interface {
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
 	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
 	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
