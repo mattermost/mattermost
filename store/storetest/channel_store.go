@@ -3406,8 +3406,6 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Scheme().Save(s1)
 	require.Nil(t, err)
-	s1, err = ss.Scheme().Save(s1)
-	require.Nil(t, err)
 	s2, err = ss.Scheme().Save(s2)
 	require.Nil(t, err)
 
