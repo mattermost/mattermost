@@ -1732,10 +1732,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	// All returned posts are all read by the user, since it's created by the user itself.
 	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
 	CheckNoError(t, resp)
-
-	if len(posts.Order) != 12 {
-		t.Fatal("Should return 12 posts only since there's no unread post")
-	}
+	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
 
 	// Set channel member's last viewed to 0.
 	// All returned posts are latest posts as if all previous posts were already read by the user.
@@ -1749,9 +1746,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 12 {
-		t.Fatal("Should return 12 posts only since there's no unread post")
-	}
+	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
 
 	// get the first system post generated before the created posts above
 	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
@@ -1769,15 +1764,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 5 || posts.Order[0] != post3.Id || posts.Order[4] != systemPostId1 {
-		t.Fatal("Should return 5 posts and match order")
-	}
-	if posts.NextPostId != post4.Id {
-		t.Fatal("should return post4.Id as NextPostId")
-	}
-	if posts.PrevPostId != "" {
-		t.Fatal("should return an empty PrevPostId")
-	}
+	require.Len(t, posts.Order, 5, "should return 5 posts")
+	require.Equal(t, post3.Id, posts.Order[0], "post3 should be first")
+	require.Equal(t, systemPostId1, posts.Order[4], "system post should be last")
+	require.Equal(t, post4.Id, posts.NextPostId, "should return post4.Id as NextPostId")
+	require.Empty(t, posts.PrevPostId, "should return an empty PrevPostId")
 
 	// Set channel member's last viewed before post6.
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
@@ -1790,15 +1781,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 6 || posts.Order[0] != post8.Id || posts.Order[5] != post3.Id {
-		t.Fatal("Should return 6 posts and match order")
-	}
-	if posts.NextPostId != post9.Id {
-		t.Fatal("should return post8.Id as NextPostId")
-	}
-	if posts.PrevPostId != post2.Id {
-		t.Fatal("should return post2.Id as PrevPostId")
-	}
+	require.Len(t, posts.Order, 6, "should return 6 posts")
+	require.Equal(t, post8.Id, posts.Order[0], "post8 should be first")
+	require.Equal(t, post3.Id, posts.Order[5], "post3 should be last")
+	require.Equal(t, post9.Id, posts.NextPostId, "should return post9.Id as NextPostId")
+	require.Equal(t, post2.Id, posts.PrevPostId, "should return post2.Id as PrevPostId")
 
 	// Set channel member's last viewed before post10.
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
@@ -1811,15 +1798,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 4 || posts.Order[0] != post10.Id || posts.Order[3] != post7.Id {
-		t.Fatal("Should return 4 posts and match order")
-	}
-	if posts.NextPostId != "" {
-		t.Fatal("should return an empty NextPostId")
-	}
-	if posts.PrevPostId != post6.Id {
-		t.Fatal("should return post6.Id as PrevPostId")
-	}
+	require.Len(t, posts.Order, 4)
+	require.Equal(t, post10.Id, posts.Order[0], "post10 should be first")
+	require.Equal(t, post7.Id, posts.Order[3], "post7 should be last")
+	require.Empty(t, posts.NextPostId, "should return an empty PrevPostId")
+	require.Equal(t, post6.Id, posts.PrevPostId, "should return post6.Id as PrevPostId")
 
 	// Set channel member's last viewed equal to post10.
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
@@ -1832,15 +1815,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 3 || posts.Order[0] != post10.Id || posts.Order[2] != post8.Id {
-		t.Fatal("Should return 3 posts and match order")
-	}
-	if posts.NextPostId != "" {
-		t.Fatal("should return an empty NextPostId")
-	}
-	if posts.PrevPostId != post7.Id {
-		t.Fatal("should return post7.Id as PrevPostId")
-	}
+	require.Len(t, posts.Order, 3, "should return 3 posts")
+	require.Equal(t, post10.Id, posts.Order[0], "post10 should be first")
+	require.Equal(t, post8.Id, posts.Order[2], "post8 should be last")
+	require.Empty(t, posts.NextPostId, "should return an empty NextPostId")
+	require.Equal(t, post7.Id, posts.PrevPostId, "should return post7.Id as PrevPostId")
 }
 
 func TestGetPost(t *testing.T) {
