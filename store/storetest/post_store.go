@@ -2370,7 +2370,7 @@ func testGetMaxPostSize(t *testing.T, ss store.Store) {
 func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = model.NewId()
+	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
@@ -2419,7 +2419,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = model.NewId()
+	t1.Name = "zz" + model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)

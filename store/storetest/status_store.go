@@ -107,7 +107,7 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 
 	team1 := model.Team{}
 	team1.DisplayName = model.NewId()
-	team1.Name = model.NewId()
+	team1.Name = "zz" + model.NewId()
 	team1.Email = MakeEmail()
 	team1.Type = model.TEAM_OPEN
 
@@ -117,7 +117,7 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 
 	team2 := model.Team{}
 	team2.DisplayName = model.NewId()
-	team2.Name = model.NewId()
+	team2.Name = "zz" + model.NewId()
 	team2.Email = MakeEmail()
 	team2.Type = model.TEAM_OPEN
 

@@ -1823,6 +1823,14 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 	return a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
 }
 
+func (a *App) SearchChannelsForUser(userId, teamId, term string) (*model.ChannelList, *model.AppError) {
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+
+	term = strings.TrimSpace(term)
+
+	return a.Srv.Store.Channel().SearchForUserInTeam(userId, teamId, term, includeDeleted)
+}
+
 func (a *App) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {
 	if term == "" {
 		return &model.ChannelList{}, nil
