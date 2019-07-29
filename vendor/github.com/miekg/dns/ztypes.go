@@ -240,12 +240,16 @@ func (rr *X25) Header() *RR_Header        { return &rr.Hdr }
 // len() functions
 func (rr *A) len(off int, compression map[string]struct{}) int {
 	l := rr.Hdr.len(off, compression)
-	l += net.IPv4len // A
+	if len(rr.A) != 0 {
+		l += net.IPv4len
+	}
 	return l
 }
 func (rr *AAAA) len(off int, compression map[string]struct{}) int {
 	l := rr.Hdr.len(off, compression)
-	l += net.IPv6len // AAAA
+	if len(rr.AAAA) != 0 {
+		l += net.IPv6len
+	}
 	return l
 }
 func (rr *AFSDB) len(off int, compression map[string]struct{}) int {
@@ -308,12 +312,12 @@ func (rr *DS) len(off int, compression map[string]struct{}) int {
 	l += 2 // KeyTag
 	l++    // Algorithm
 	l++    // DigestType
-	l += len(rr.Digest)/2 + 1
+	l += len(rr.Digest) / 2
 	return l
 }
 func (rr *EID) len(off int, compression map[string]struct{}) int {
 	l := rr.Hdr.len(off, compression)
-	l += len(rr.Endpoint)/2 + 1
+	l += len(rr.Endpoint) / 2
 	return l
 }
 func (rr *EUI48) len(off int, compression map[string]struct{}) int {
@@ -364,8 +368,10 @@ func (rr *KX) len(off int, compression map[string]struct{}) int {
 }
 func (rr *L32) len(off int, compression map[string]struct{}) int {
 	l := rr.Hdr.len(off, compression)
-	l += 2           // Preference
-	l += net.IPv4len // Locator32
+	l += 2 // Preference
+	if len(rr.Locator32) != 0 {
+		l += net.IPv4len
+	}
 	return l
 }
 func (rr *L64) len(off int, compression map[string]struct{}) int {
@@ -446,7 +452,7 @@ func (rr *NID) len(off int, compression map[string]struct{}) int {
 }
 func (rr *NIMLOC) len(off int, compression map[string]struct{}) int {
 	l := rr.Hdr.len(off, compression)
-	l += len(rr.Locator)/2 + 1
+	l += len(rr.Locator) / 2
 	return l
 }
 func (rr *NINFO) len(off int, compression map[string]struct{}) int {
@@ -499,7 +505,7 @@ func (rr *PX) len(off int, compression map[string]struct{}) int {
 }
 func (rr *RFC3597) len(off int, compression map[string]struct{}) int {
 	l := rr.Hdr.len(off, compression)
-	l += len(rr.Rdata)/2 + 1
+	l += len(rr.Rdata) / 2
 	return l
 }
 func (rr *RKEY) len(off int, compression map[string]struct{}) int {
@@ -540,7 +546,7 @@ func (rr *SMIMEA) len(off int, compression map[string]struct{}) int {
 	l++ // Usage
 	l++ // Selector
 	l++ // MatchingType
-	l += len(rr.Certificate)/2 + 1
+	l += len(rr.Certificate) / 2
 	return l
 }
 func (rr *SOA) len(off int, compression map[string]struct{}) int {
@@ -573,7 +579,7 @@ func (rr *SSHFP) len(off int, compression map[string]struct{}) int {
 	l := rr.Hdr.len(off, compression)
 	l++ // Algorithm
 	l++ // Type
-	l += len(rr.FingerPrint)/2 + 1
+	l += len(rr.FingerPrint) / 2
 	return l
 }
 func (rr *TA) len(off int, compression map[string]struct{}) int {
@@ -581,7 +587,7 @@ func (rr *TA) len(off int, compression map[string]struct{}) int {
 	l += 2 // KeyTag
 	l++    // Algorithm
 	l++    // DigestType
-	l += len(rr.Digest)/2 + 1
+	l += len(rr.Digest) / 2
 	return l
 }
 func (rr *TALINK) len(off int, compression map[string]struct{}) int {
@@ -608,7 +614,7 @@ func (rr *TLSA) len(off int, compression map[string]struct{}) int {
 	l++ // Usage
 	l++ // Selector
 	l++ // MatchingType
-	l += len(rr.Certificate)/2 + 1
+	l += len(rr.Certificate) / 2
 	return l
 }
 func (rr *TSIG) len(off int, compression map[string]struct{}) int {

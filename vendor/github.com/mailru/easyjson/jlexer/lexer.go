@@ -1152,7 +1152,7 @@ func (r *Lexer) Interface() interface{} {
 	} else if r.token.delimValue == '[' {
 		r.consume()
 
-		var ret []interface{}
+		ret := []interface{}{}
 		for !r.IsDelim(']') {
 			ret = append(ret, r.Interface())
 			r.WantComma()

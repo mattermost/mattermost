@@ -19,3 +19,11 @@ func (l *responseLogger) Push(target string, opts *http.PushOptions) error {
 	}
 	return p.Push(target, opts)
 }
+
+func (c *compressResponseWriter) Push(target string, opts *http.PushOptions) error {
+	p, ok := c.ResponseWriter.(http.Pusher)
+	if !ok {
+		return fmt.Errorf("compressResponseWriter does not implement http.Pusher")
+	}
+	return p.Push(target, opts)
+}
