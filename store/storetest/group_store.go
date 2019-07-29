@@ -2403,7 +2403,7 @@ func testChannelMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 		users = append(users, user)
 
 		trueOrFalse := int(math.Mod(float64(i), 2)) == 0
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   channel.Id,
 			UserId:      user.Id,
 			SchemeUser:  trueOrFalse,
