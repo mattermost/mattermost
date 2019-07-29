@@ -6,7 +6,6 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -52,7 +51,9 @@ func (a *App) CreateBasicUser(client *model.Client4) *model.AppError {
 		if err != nil {
 			return err
 		}
-		store.Must(a.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam))
+		if _, err = a.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam); err != nil {
+			return err
+		}
 	}
 	return nil
 }

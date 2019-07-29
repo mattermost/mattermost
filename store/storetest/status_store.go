@@ -126,20 +126,20 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 	}
 
 	team1Member1 := &model.TeamMember{TeamId: team1.Id, UserId: model.NewId()}
-	if response := <-ss.Team().SaveMember(team1Member1, -1); response.Err != nil {
-		t.Fatal(response.Err)
+	if _, err := ss.Team().SaveMember(team1Member1, -1); err != nil {
+		t.Fatal(err)
 	}
 	team1Member2 := &model.TeamMember{TeamId: team1.Id, UserId: model.NewId()}
-	if response := <-ss.Team().SaveMember(team1Member2, -1); response.Err != nil {
-		t.Fatal(response.Err)
+	if _, err := ss.Team().SaveMember(team1Member2, -1); err != nil {
+		t.Fatal(err)
 	}
 	team2Member1 := &model.TeamMember{TeamId: team2.Id, UserId: model.NewId()}
-	if response := <-ss.Team().SaveMember(team2Member1, -1); response.Err != nil {
-		t.Fatal(response.Err)
+	if _, err := ss.Team().SaveMember(team2Member1, -1); err != nil {
+		t.Fatal(err)
 	}
 	team2Member2 := &model.TeamMember{TeamId: team2.Id, UserId: model.NewId()}
-	if response := <-ss.Team().SaveMember(team2Member2, -1); response.Err != nil {
-		t.Fatal(response.Err)
+	if _, err := ss.Team().SaveMember(team2Member2, -1); err != nil {
+		t.Fatal(err)
 	}
 
 	team1Member1Status := &model.Status{UserId: team1Member1.UserId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}

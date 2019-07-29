@@ -547,11 +547,12 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 	rtm, err := a.Srv.Store.Team().GetMember(team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
-		tmr := <-a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
-		if tmr.Err != nil {
-			return nil, false, tmr.Err
+		var tmr *model.TeamMember
+		tmr, err = a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
+		if err != nil {
+			return nil, false, err
 		}
-		return tmr.Data.(*model.TeamMember), false, nil
+		return tmr, false, nil
 	}
 
 	// Membership already exists.  Check if deleted and update, otherwise do nothing
