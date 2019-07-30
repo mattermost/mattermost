@@ -6375,10 +6375,6 @@
     "translation": "Unable to save the preference"
   },
   {
-    "id": "store.sql_preference.is_feature_enabled.app_error",
-    "translation": "We encountered an error while finding a pre release feature preference"
-  },
-  {
     "id": "store.sql_preference.permanent_delete_by_user.app_error",
     "translation": "We encountered an error while deleteing preferences"
   },
@@ -6611,18 +6607,6 @@
     "translation": "No entry for that status exists"
   },
   {
-    "id": "store.sql_status.get_online.app_error",
-    "translation": "Encountered an error retrieving all the online statuses"
-  },
-  {
-    "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Encountered an error retrieving all the online/away statuses"
-  },
-  {
-    "id": "store.sql_status.get_team_statuses.app_error",
-    "translation": "Encountered an error retrieving all statuses from the team members"
-  },
-  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "We could not count the active users"
   },
@@ -6829,10 +6813,6 @@
   {
     "id": "store.sql_team.update.updating.app_error",
     "translation": "We encountered an error updating the team"
-  },
-  {
-    "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Unable to update the team name"
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
