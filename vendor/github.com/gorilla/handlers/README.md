@@ -25,7 +25,7 @@ with Go's `net/http` package (or any framework supporting `http.Handler`), inclu
 * [**RecoveryHandler**](https://godoc.org/github.com/gorilla/handlers#RecoveryHandler) for recovering from unexpected panics.
 
 Other handlers are documented [on the Gorilla
-website](http://www.gorillatoolkit.org/pkg/handlers).
+website](https://www.gorillatoolkit.org/pkg/handlers).
 
 ## Example
 

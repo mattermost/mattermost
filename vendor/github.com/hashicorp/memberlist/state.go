@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/armon/go-metrics"
+	metrics "github.com/armon/go-metrics"
 )
 
 type nodeStateType int
@@ -891,6 +891,7 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 
 	// Check if we've never seen this node before, and if not, then
 	// store this node in our node map.
+	var updatesNode bool
 	if !ok {
 		state = &nodeState{
 			Node: Node{
@@ -926,29 +927,40 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 
 		// Update numNodes after we've added a new node
 		atomic.AddUint32(&m.numNodes, 1)
-	}
+	} else {
+		// Check if this address is different than the existing node unless the old node is dead.
+		if !bytes.Equal([]byte(state.Addr), a.Addr) || state.Port != a.Port {
+			// If DeadNodeReclaimTime is configured, check if enough time has elapsed since the node died.
+			canReclaim := (m.config.DeadNodeReclaimTime > 0 &&
+				time.Since(state.StateChange) > m.config.DeadNodeReclaimTime)
 
-	// Check if this address is different than the existing node
-	if !bytes.Equal([]byte(state.Addr), a.Addr) || state.Port != a.Port {
-		m.logger.Printf("[ERR] memberlist: Conflicting address for %s. Mine: %v:%d Theirs: %v:%d",
-			state.Name, state.Addr, state.Port, net.IP(a.Addr), a.Port)
+			// Allow the address to be updated if a dead node is being replaced.
+			if state.State == stateDead && canReclaim {
+				m.logger.Printf("[INFO] memberlist: Updating address for failed node %s from %v:%d to %v:%d",
+					state.Name, state.Addr, state.Port, net.IP(a.Addr), a.Port)
+				updatesNode = true
+			} else {
+				m.logger.Printf("[ERR] memberlist: Conflicting address for %s. Mine: %v:%d Theirs: %v:%d Old state: %v",
+					state.Name, state.Addr, state.Port, net.IP(a.Addr), a.Port, state.State)
 
-		// Inform the conflict delegate if provided
-		if m.config.Conflict != nil {
-			other := Node{
-				Name: a.Node,
-				Addr: a.Addr,
-				Port: a.Port,
-				Meta: a.Meta,
+				// Inform the conflict delegate if provided
+				if m.config.Conflict != nil {
+					other := Node{
+						Name: a.Node,
+						Addr: a.Addr,
+						Port: a.Port,
+						Meta: a.Meta,
+					}
+					m.config.Conflict.NotifyConflict(&state.Node, &other)
+				}
+				return
 			}
-			m.config.Conflict.NotifyConflict(&state.Node, &other)
 		}
-		return
 	}
 
 	// Bail if the incarnation number is older, and this is not about us
 	isLocalNode := state.Name == m.config.Name
-	if a.Incarnation <= state.Incarnation && !isLocalNode {
+	if a.Incarnation <= state.Incarnation && !isLocalNode && !updatesNode {
 		return
 	}
 
@@ -1006,6 +1018,8 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 		// Update the state and incarnation number
 		state.Incarnation = a.Incarnation
 		state.Meta = a.Meta
+		state.Addr = a.Addr
+		state.Port = a.Port
 		if state.State != stateAlive {
 			state.State = stateAlive
 			state.StateChange = time.Now()
