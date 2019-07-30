@@ -137,6 +137,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := r.URL.Query().Get("team_id")
+	userId := c.App.Session.UserId
 
 	var hooks []*model.IncomingWebhook
 	var err *model.AppError
@@ -147,14 +148,24 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		hooks, err = c.App.GetIncomingWebhooksForTeamPage(teamId, c.Params.Page, c.Params.PerPage)
+		// Remove userId as a filter if they have permission to manage others.
+		if c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
+			userId = ""
+		}
+
+		hooks, err = c.App.GetIncomingWebhooksForTeamPageByUser(teamId, userId, c.Params.Page, c.Params.PerPage)
 	} else {
 		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)
 			return
 		}
 
-		hooks, err = c.App.GetIncomingWebhooksPage(c.Params.Page, c.Params.PerPage)
+		// Remove userId as a filter if they have permission to manage others.
+		if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
+			userId = ""
+		}
+
+		hooks, err = c.App.GetIncomingWebhooksPageByUser(userId, c.Params.Page, c.Params.PerPage)
 	}
 
 	if err != nil {
@@ -339,6 +350,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelId := r.URL.Query().Get("channel_id")
 	teamId := r.URL.Query().Get("team_id")
+	userId := c.App.Session.UserId
 
 	var hooks []*model.OutgoingWebhook
 	var err *model.AppError
@@ -349,21 +361,36 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		hooks, err = c.App.GetOutgoingWebhooksForChannelPage(channelId, c.Params.Page, c.Params.PerPage)
+		// Remove userId as a filter if they have permission to manage others.
+		if c.App.SessionHasPermissionToChannel(c.App.Session, channelId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
+			userId = ""
+		}
+
+		hooks, err = c.App.GetOutgoingWebhooksForChannelPageByUser(channelId, userId, c.Params.Page, c.Params.PerPage)
 	} else if len(teamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
 			return
 		}
 
-		hooks, err = c.App.GetOutgoingWebhooksForTeamPage(teamId, c.Params.Page, c.Params.PerPage)
+		// Remove userId as a filter if they have permission to manage others.
+		if c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
+			userId = ""
+		}
+
+		hooks, err = c.App.GetOutgoingWebhooksForTeamPageByUser(teamId, userId, c.Params.Page, c.Params.PerPage)
 	} else {
 		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
 			return
 		}
 
-		hooks, err = c.App.GetOutgoingWebhooksPage(c.Params.Page, c.Params.PerPage)
+		// Remove userId as a filter if they have permission to manage others.
+		if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
+			userId = ""
+		}
+
+		hooks, err = c.App.GetOutgoingWebhooksPageByUser(userId, c.Params.Page, c.Params.PerPage)
 	}
 
 	if err != nil {

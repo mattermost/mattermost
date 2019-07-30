@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -510,19 +511,30 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
 	require.Nil(t, err)
 
+	u3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err := ss.User().Save(u3)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group.Id, user3.Id)
+	require.Nil(t, err)
+
 	// Check returns members
 	groupMembers, err := ss.Group().GetMemberUsersPage(group.Id, 0, 100)
 	require.Nil(t, err)
-	require.Equal(t, 2, len(groupMembers))
+	require.Equal(t, 3, len(groupMembers))
 
 	// Check page 1
-	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 1)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 2)
 	require.Nil(t, err)
-	require.Equal(t, 1, len(groupMembers))
-	require.Equal(t, user2.Id, groupMembers[0].Id)
+	require.Equal(t, 2, len(groupMembers))
+	require.Equal(t, user3.Id, groupMembers[0].Id)
+	require.Equal(t, user2.Id, groupMembers[1].Id)
 
 	// Check page 2
-	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 1)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 2)
 	require.Nil(t, err)
 	require.Equal(t, 1, len(groupMembers))
 	require.Equal(t, user1.Id, groupMembers[0].Id)
@@ -539,7 +551,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	// Should not return deleted members
 	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 100)
 	require.Nil(t, err)
-	require.Equal(t, 1, len(groupMembers))
+	require.Equal(t, 2, len(groupMembers))
 }
 
 func testUpsertMember(t *testing.T, ss store.Store) {
@@ -570,6 +582,8 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 	require.Zero(t, d2.DeleteAt)
 
 	// Duplicate composite key (GroupId, UserId)
+	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
+	time.Sleep(1 * time.Millisecond)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.Nil(t, err)
 
@@ -578,6 +592,8 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 	require.Equal(t, err.Id, "store.insert_error")
 
 	// Restores a deleted member
+	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
+	time.Sleep(1 * time.Millisecond)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.Nil(t, err)
 
@@ -1051,11 +1067,11 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Len(t, teamMembers, 1)
 
 	// adding team membership stops returning result
-	res := <-ss.Team().SaveMember(&model.TeamMember{
+	_, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user.Id,
 	}, 999)
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, err)
 	require.Len(t, teamMembers, 0)
@@ -1506,11 +1522,11 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 	}
 
 	for _, item := range userIDTeamIDs {
-		res := <-ss.Team().SaveMember(&model.TeamMember{
+		_, err = ss.Team().SaveMember(&model.TeamMember{
 			UserId: item[0],
 			TeamId: item[1],
 		}, 99)
-		require.Nil(t, res.Err)
+		require.Nil(t, err)
 	}
 
 	// add users to channels
@@ -2236,8 +2252,8 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 		users = append(users, user)
 
 		trueOrFalse := int(math.Mod(float64(i), 2)) == 0
-		res := <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id, SchemeUser: trueOrFalse, SchemeAdmin: !trueOrFalse}, 999)
-		require.Nil(t, res.Err)
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id, SchemeUser: trueOrFalse, SchemeAdmin: !trueOrFalse}, 999)
+		require.Nil(t, err)
 	}
 
 	for i := 0; i < numberOfGroups; i++ {

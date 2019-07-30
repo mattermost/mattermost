@@ -22,7 +22,11 @@ var (
 // to be used in more specific contexts.
 func Default() Logger {
 	protect.Do(func() {
-		def = New(DefaultOptions)
+		// If SetDefault was used before Default() was called, we need to
+		// detect that here.
+		if def == nil {
+			def = New(DefaultOptions)
+		}
 	})
 
 	return def
@@ -31,4 +35,14 @@ func Default() Logger {
 // L is a short alias for Default().
 func L() Logger {
 	return Default()
+}
+
+// SetDefault changes the logger to be returned by Default()and L()
+// to the one given. This allows packages to use the default logger
+// and have higher level packages change it to match the execution
+// environment. It returns any old default if there is one.
+func SetDefault(log Logger) Logger {
+	old := def
+	def = log
+	return old
 }
