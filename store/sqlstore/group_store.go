@@ -1012,7 +1012,7 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 // groups.
 func (s *SqlGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	query := s.teamMembersMinusGroupMembersQuery(teamID, groupIDs, false)
-	query = query.OrderBy("Users.Id").Limit(uint64(perPage)).Offset(uint64(page * perPage))
+	query = query.OrderBy("Users.Username ASC").Limit(uint64(perPage)).Offset(uint64(page * perPage))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1089,7 +1089,7 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 // groups.
 func (s *SqlGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	query := s.channelMembersMinusGroupMembersQuery(channelID, groupIDs, false)
-	query = query.OrderBy("Users.Id").Limit(uint64(perPage)).Offset(uint64(page * perPage))
+	query = query.OrderBy("Users.Username ASC").Limit(uint64(perPage)).Offset(uint64(page * perPage))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
