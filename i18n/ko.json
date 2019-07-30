@@ -2268,7 +2268,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "user_id = {{. UserId}}, team_id = {{. TeamId}}, err = {{Error}} 사용자에 대한 개인 채널 설정을 추가하지 못했습니다."
+    "translation": "user_id = {{.UserId}}, team_id = {{.TeamId}}, err = {{.Error}} 사용자에 대한 개인 채널 설정을 추가하지 못했습니다."
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
