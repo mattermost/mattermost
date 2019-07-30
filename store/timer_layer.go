@@ -4527,23 +4527,6 @@ func (s *TimerLayerPreferenceStore) GetCategory(userId string, category string) 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPreferenceStore) IsFeatureEnabled(feature string, userId string) (bool, *model.AppError) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.PreferenceStore.IsFeatureEnabled(feature, userId)
-
-	t := timemodule.Now()
-	elapsed := t.Sub(start)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.IsFeatureEnabled", success, float64(elapsed))
-	}
-	return resultVar0, resultVar1
-}
-
 func (s *TimerLayerPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
 	start := timemodule.Now()
 
@@ -5139,23 +5122,6 @@ func (s *TimerLayerStatusStore) Get(userId string) (*model.Status, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerStatusStore) GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.StatusStore.GetAllFromTeam(teamId)
-
-	t := timemodule.Now()
-	elapsed := t.Sub(start)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.GetAllFromTeam", success, float64(elapsed))
-	}
-	return resultVar0, resultVar1
-}
-
 func (s *TimerLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
 	start := timemodule.Now()
 
@@ -5169,40 +5135,6 @@ func (s *TimerLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, *mo
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.GetByIds", success, float64(elapsed))
-	}
-	return resultVar0, resultVar1
-}
-
-func (s *TimerLayerStatusStore) GetOnline() ([]*model.Status, *model.AppError) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.StatusStore.GetOnline()
-
-	t := timemodule.Now()
-	elapsed := t.Sub(start)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.GetOnline", success, float64(elapsed))
-	}
-	return resultVar0, resultVar1
-}
-
-func (s *TimerLayerStatusStore) GetOnlineAway() ([]*model.Status, *model.AppError) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.StatusStore.GetOnlineAway()
-
-	t := timemodule.Now()
-	elapsed := t.Sub(start)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.GetOnlineAway", success, float64(elapsed))
 	}
 	return resultVar0, resultVar1
 }
@@ -6006,23 +5938,6 @@ func (s *TimerLayerTeamStore) SearchAll(term string) ([]*model.Team, *model.AppE
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTeamStore) SearchByName(name string) ([]*model.Team, *model.AppError) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.TeamStore.SearchByName(name)
-
-	t := timemodule.Now()
-	elapsed := t.Sub(start)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.SearchByName", success, float64(elapsed))
-	}
-	return resultVar0, resultVar1
-}
-
 func (s *TimerLayerTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	start := timemodule.Now()
 
@@ -6072,23 +5987,6 @@ func (s *TimerLayerTeamStore) Update(team *model.Team) (*model.Team, *model.AppE
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.Update", success, float64(elapsed))
 	}
 	return resultVar0, resultVar1
-}
-
-func (s *TimerLayerTeamStore) UpdateDisplayName(name string, teamId string) *model.AppError {
-	start := timemodule.Now()
-
-	resultVar0 := s.TeamStore.UpdateDisplayName(name, teamId)
-
-	t := timemodule.Now()
-	elapsed := t.Sub(start)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar0 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.UpdateDisplayName", success, float64(elapsed))
-	}
-	return resultVar0
 }
 
 func (s *TimerLayerTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError {
@@ -7655,6 +7553,23 @@ func (s *TimerLayerWebhookStore) GetIncomingByTeam(teamId string, offset int, li
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.WebhookStore.GetIncomingByTeamByUser(teamId, userId, offset, limit)
+
+	t := timemodule.Now()
+	elapsed := t.Sub(start)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.GetIncomingByTeamByUser", success, float64(elapsed))
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
 	start := timemodule.Now()
 
@@ -7668,6 +7583,23 @@ func (s *TimerLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*mode
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.GetIncomingList", success, float64(elapsed))
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerWebhookStore) GetIncomingListByUser(userId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.WebhookStore.GetIncomingListByUser(userId, offset, limit)
+
+	t := timemodule.Now()
+	elapsed := t.Sub(start)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.GetIncomingListByUser", success, float64(elapsed))
 	}
 	return resultVar0, resultVar1
 }
@@ -7706,6 +7638,23 @@ func (s *TimerLayerWebhookStore) GetOutgoingByChannel(channelId string, offset i
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerWebhookStore) GetOutgoingByChannelByUser(channelId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingByChannelByUser(channelId, userId, offset, limit)
+
+	t := timemodule.Now()
+	elapsed := t.Sub(start)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.GetOutgoingByChannelByUser", success, float64(elapsed))
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerWebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
 	start := timemodule.Now()
 
@@ -7723,6 +7672,23 @@ func (s *TimerLayerWebhookStore) GetOutgoingByTeam(teamId string, offset int, li
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingByTeamByUser(teamId, userId, offset, limit)
+
+	t := timemodule.Now()
+	elapsed := t.Sub(start)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.GetOutgoingByTeamByUser", success, float64(elapsed))
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
 	start := timemodule.Now()
 
@@ -7736,6 +7702,23 @@ func (s *TimerLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*mode
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.GetOutgoingList", success, float64(elapsed))
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerWebhookStore) GetOutgoingListByUser(userId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingListByUser(userId, offset, limit)
+
+	t := timemodule.Now()
+	elapsed := t.Sub(start)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.GetOutgoingListByUser", success, float64(elapsed))
 	}
 	return resultVar0, resultVar1
 }
