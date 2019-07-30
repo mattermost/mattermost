@@ -577,13 +577,13 @@ func (_m *GroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.AppE
 	return r0, r1
 }
 
-// GetMemberUsersPage provides a mock function with given fields: groupID, offset, limit
-func (_m *GroupStore) GetMemberUsersPage(groupID string, offset int, limit int) ([]*model.User, *model.AppError) {
-	ret := _m.Called(groupID, offset, limit)
+// GetMemberUsersPage provides a mock function with given fields: groupID, page, perPage
+func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
+	ret := _m.Called(groupID, page, perPage)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
-		r0 = rf(groupID, offset, limit)
+		r0 = rf(groupID, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -592,7 +592,7 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, offset int, limit int) 
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(groupID, offset, limit)
+		r1 = rf(groupID, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
