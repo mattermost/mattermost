@@ -516,11 +516,7 @@ func (a *App) GetUsersNotInTeamEtag(teamId string, restrictionsHash string) stri
 }
 
 func (a *App) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesInChannel(channelId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetProfilesInChannel(channelId, offset, limit)
 }
 
 func (a *App) GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {

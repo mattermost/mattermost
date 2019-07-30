@@ -76,7 +76,7 @@ TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
 # Packages lists
-TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
+TE_PACKAGES=$(shell go list ./...)
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
