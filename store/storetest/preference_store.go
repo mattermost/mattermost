@@ -19,7 +19,6 @@ func TestPreferenceStore(t *testing.T, ss store.Store) {
 	t.Run("PreferenceGetCategory", func(t *testing.T) { testPreferenceGetCategory(t, ss) })
 	t.Run("PreferenceGetAll", func(t *testing.T) { testPreferenceGetAll(t, ss) })
 	t.Run("PreferenceDeleteByUser", func(t *testing.T) { testPreferenceDeleteByUser(t, ss) })
-	t.Run("IsFeatureEnabled", func(t *testing.T) { testIsFeatureEnabled(t, ss) })
 	t.Run("PreferenceDelete", func(t *testing.T) { testPreferenceDelete(t, ss) })
 	t.Run("PreferenceDeleteCategory", func(t *testing.T) { testPreferenceDeleteCategory(t, ss) })
 	t.Run("PreferenceDeleteCategoryAndName", func(t *testing.T) { testPreferenceDeleteCategoryAndName(t, ss) })
@@ -242,77 +241,6 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 
 	if err := ss.Preference().PermanentDeleteByUser(userId); err != nil {
 		t.Fatal(err)
-	}
-}
-
-func testIsFeatureEnabled(t *testing.T, ss store.Store) {
-	feature1 := "testFeat1"
-	feature2 := "testFeat2"
-	feature3 := "testFeat3"
-
-	userId := model.NewId()
-	category := model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS
-
-	features := model.Preferences{
-		{
-			UserId:   userId,
-			Category: category,
-			Name:     store.FEATURE_TOGGLE_PREFIX + feature1,
-			Value:    "true",
-		},
-		{
-			UserId:   userId,
-			Category: category,
-			Name:     model.NewId(),
-			Value:    "false",
-		},
-		{
-			UserId:   userId,
-			Category: model.NewId(),
-			Name:     store.FEATURE_TOGGLE_PREFIX + feature1,
-			Value:    "false",
-		},
-		{
-			UserId:   model.NewId(),
-			Category: category,
-			Name:     store.FEATURE_TOGGLE_PREFIX + feature2,
-			Value:    "false",
-		},
-		{
-			UserId:   model.NewId(),
-			Category: category,
-			Name:     store.FEATURE_TOGGLE_PREFIX + feature3,
-			Value:    "foobar",
-		},
-	}
-
-	err := ss.Preference().Save(&features)
-	require.Nil(t, err)
-
-	if data, err := ss.Preference().IsFeatureEnabled(feature1, userId); err != nil {
-		t.Fatal(err)
-	} else if !data {
-		t.Fatalf("got incorrect setting for feature1, %v=%v", true, data)
-	}
-
-	if data, err := ss.Preference().IsFeatureEnabled(feature2, userId); err != nil {
-		t.Fatal(err)
-	} else if data {
-		t.Fatalf("got incorrect setting for feature2, %v=%v", false, data)
-	}
-
-	// make sure we get false if something different than "true" or "false" has been saved to database
-	if data, err := ss.Preference().IsFeatureEnabled(feature3, userId); err != nil {
-		t.Fatal(err)
-	} else if data {
-		t.Fatalf("got incorrect setting for feature3, %v=%v", false, data)
-	}
-
-	// make sure false is returned if a non-existent feature is queried
-	if data, err := ss.Preference().IsFeatureEnabled("someOtherFeature", userId); err != nil {
-		t.Fatal(err)
-	} else if data {
-		t.Fatalf("got incorrect setting for non-existent feature 'someOtherFeature', %v=%v", false, data)
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -581,6 +582,8 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 	require.Zero(t, d2.DeleteAt)
 
 	// Duplicate composite key (GroupId, UserId)
+	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
+	time.Sleep(1 * time.Millisecond)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.Nil(t, err)
 
@@ -589,6 +592,8 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 	require.Equal(t, err.Id, "store.insert_error")
 
 	// Restores a deleted member
+	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
+	time.Sleep(1 * time.Millisecond)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.Nil(t, err)
 

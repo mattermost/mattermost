@@ -253,14 +253,6 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 	return team, nil
 }
 
-func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) *model.AppError {
-	if _, err := s.GetMaster().Exec("UPDATE Teams SET DisplayName = :Name WHERE Id = :Id", map[string]interface{}{"Name": name, "Id": teamId}); err != nil {
-		return model.NewAppError("SqlTeamStore.UpdateName", "store.sql_team.update_display_name.app_error", nil, "team_id="+teamId, http.StatusInternalServerError)
-	}
-
-	return nil
-}
-
 func (s SqlTeamStore) Get(id string) (*model.Team, *model.AppError) {
 	obj, err := s.GetReplica().Get(model.Team{}, id)
 	if err != nil {
@@ -296,16 +288,6 @@ func (s SqlTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 		return nil, model.NewAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return &team, nil
-}
-
-func (s SqlTeamStore) SearchByName(name string) ([]*model.Team, *model.AppError) {
-	var teams []*model.Team
-
-	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Name", map[string]interface{}{"Name": name + "%"}); err != nil {
-		return nil, model.NewAppError("SqlTeamStore.SearchByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
-	}
-
-	return teams, nil
 }
 
 func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
