@@ -35,7 +35,7 @@ type SlackChannel struct {
 }
 
 type SlackChannelSub struct {
-	Value 	string 	`json:"value"`
+	Value string `json:"value"`
 }
 
 type SlackProfile struct {
