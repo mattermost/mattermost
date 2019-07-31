@@ -1,3 +1,13 @@
+# 1.4.2
+  * Fixes build break for plan9, nacl, solaris
+# 1.4.1
+This new release introduces:
+  * Enhance TextFormatter to not print caller information when they are empty (#944)
+  * Remove dependency on golang.org/x/crypto (#932, #943) 
+
+Fixes:
+  * Fix Entry.WithContext method to return a copy of the initial entry (#941)
+
 # 1.4.0
 This new release introduces:
   * Add `DeferExitHandler`, similar to `RegisterExitHandler` but prepending the handler to the list of handlers (semantically like `defer`) (#848).

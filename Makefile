@@ -76,16 +76,16 @@ TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
 # Packages lists
-TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
+TE_PACKAGES=$(shell go list ./...)
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.2
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
-PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.0.6
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
@@ -182,7 +182,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-elasticsearch; \
-		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms250m -Xmx250m" -d mattermost/mattermost-elasticsearch-docker:6.5.1 > /dev/null; \
+		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" -d mattermost/mattermost-elasticsearch-docker:6.5.1 > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-elasticsearch; \
 		docker start mattermost-elasticsearch> /dev/null; \

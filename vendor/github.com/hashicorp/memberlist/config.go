@@ -215,6 +215,11 @@ type Config struct {
 	// This is a legacy name for backward compatibility but should really be
 	// called PacketBufferSize now that we have generalized the transport.
 	UDPBufferSize int
+
+	// DeadNodeReclaimTime controls the time before a dead node's name can be
+	// reclaimed by one with a different address or port. By default, this is 0,
+	// meaning nodes cannot be reclaimed this way.
+	DeadNodeReclaimTime time.Duration
 }
 
 // DefaultLANConfig returns a sane set of configurations for Memberlist.

@@ -56,8 +56,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(privateChan)
 		}()
 
-		var userChan store.StoreChannel
-		var userInactiveChan store.StoreChannel
+		var userChan chan store.StoreResult
+		var userInactiveChan chan store.StoreResult
 		if teamId == "" {
 			userInactiveChan = make(chan store.StoreResult, 1)
 			go func() {
@@ -74,7 +74,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			}()
 		}
 
-		var postChan store.StoreChannel
+		var postChan chan store.StoreResult
 		if !skipIntensiveQueries {
 			postChan = make(chan store.StoreResult, 1)
 			go func() {
@@ -93,14 +93,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		dailyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			dailyActive, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+			dailyActive, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
 			dailyActiveChan <- store.StoreResult{Data: dailyActive, Err: err}
 			close(dailyActiveChan)
 		}()
 
 		monthlyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			monthlyActive, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+			monthlyActive, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
 			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, Err: err}
 			close(monthlyActiveChan)
 		}()
@@ -257,8 +257,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(sessionChan)
 		}()
 
-		var fileChan store.StoreChannel
-		var hashtagChan store.StoreChannel
+		var fileChan chan store.StoreResult
+		var hashtagChan chan store.StoreResult
 
 		if !skipIntensiveQueries {
 			fileChan = make(chan store.StoreResult, 1)

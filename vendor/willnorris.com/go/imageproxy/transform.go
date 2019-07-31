@@ -29,6 +29,7 @@ import (
 	"github.com/muesli/smartcrop"
 	"github.com/muesli/smartcrop/nfnt"
 	"github.com/rwcarlsen/goexif/exif"
+	"golang.org/x/image/bmp"    // register bmp format
 	"golang.org/x/image/tiff"   // register tiff format
 	_ "golang.org/x/image/webp" // register webp format
 	"willnorris.com/go/gifresize"
@@ -79,6 +80,12 @@ func Transform(img []byte, opt Options) ([]byte, error) {
 	// transform and encode image
 	buf := new(bytes.Buffer)
 	switch format {
+	case "bmp":
+		m = transformImage(m, opt)
+		err = bmp.Encode(buf, m)
+		if err != nil {
+			return nil, err
+		}
 	case "gif":
 		fn := func(img image.Image) image.Image {
 			return transformImage(img, opt)

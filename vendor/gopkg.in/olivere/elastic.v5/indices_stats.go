@@ -208,8 +208,9 @@ type IndicesStatsResponse struct {
 
 // IndexStats is index stats for a specific index.
 type IndexStats struct {
-	Primaries *IndexStatsDetails `json:"primaries,omitempty"`
-	Total     *IndexStatsDetails `json:"total,omitempty"`
+	Primaries *IndexStatsDetails              `json:"primaries,omitempty"`
+	Total     *IndexStatsDetails              `json:"total,omitempty"`
+	Shards    map[string][]*IndexStatsDetails `json:"shards,omitempty"`
 }
 
 type IndexStatsDetails struct {
