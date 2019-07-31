@@ -18,15 +18,22 @@ func TestReactionsOfPost(t *testing.T) {
 
 	post := th.BasicPost
 	post.HasReactions = true
-
+	th.BasicUser2.DeleteAt = 1234
 	reactionObject := model.Reaction{
 		UserId:    th.BasicUser.Id,
 		PostId:    post.Id,
 		EmojiName: "emoji",
 		CreateAt:  model.GetMillis(),
 	}
+	reactionObjectDeleted := model.Reaction{
+		UserId:    th.BasicUser2.Id,
+		PostId:    post.Id,
+		EmojiName: "emoji",
+		CreateAt:  model.GetMillis(),
+	}
 
 	th.App.SaveReactionForPost(&reactionObject)
+	th.App.SaveReactionForPost(&reactionObjectDeleted)
 	reactionsOfPost, err := th.App.BuildPostReactions(post.Id)
 	require.Nil(t, err)
 
