@@ -259,7 +259,7 @@ func (t *Tree) writeTo(w io.Writer, indent, keyspace string, bytesCount int64, a
 }
 
 func (t *Tree) writeToOrdered(w io.Writer, indent, keyspace string, bytesCount int64, arraysOneElementPerLine bool, ord marshalOrder) (int64, error) {
-	orderedVals := make([]sortNode, 0)
+	var orderedVals []sortNode
 
 	switch ord {
 	case OrderPreserve:

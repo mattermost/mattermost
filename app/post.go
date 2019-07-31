@@ -158,9 +158,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	post.SanitizeProps()
 
-	var pchan store.StoreChannel
+	var pchan chan store.StoreResult
 	if len(post.RootId) > 0 {
-		pchan = make(store.StoreChannel, 1)
+		pchan = make(chan store.StoreResult, 1)
 		go func() {
 			r, pErr := a.Srv.Store.Post().Get(post.RootId)
 			pchan <- store.StoreResult{Data: r, Err: pErr}
@@ -771,26 +771,32 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 		return model.NewPostList(), nil
 	}
 
-	lastUnreadPost, err := a.GetPostAfterTime(channelId, member.LastViewedAt)
+	lastUnreadPostId, err := a.GetPostIdAfterTime(channelId, member.LastViewedAt)
 	if err != nil {
 		return nil, err
-	} else if lastUnreadPost == nil {
+	} else if lastUnreadPostId == "" {
 		return model.NewPostList(), nil
 	}
 
-	var postList *model.PostList
-	if postList, err = a.GetPostsBeforePost(channelId, lastUnreadPost.Id, PAGE_DEFAULT, limitBefore); err != nil {
+	postList, err := a.GetPostThread(lastUnreadPostId)
+	if err != nil {
 		return nil, err
 	}
+	// Reset order to only include the last unread post: if the thread appears in the centre
+	// channel organically, those replies will be added below.
+	postList.Order = []string{lastUnreadPostId}
 
-	if postListAfter, err := a.GetPostsAfterPost(channelId, lastUnreadPost.Id, PAGE_DEFAULT, limitAfter-1); err != nil {
+	if postListBefore, err := a.GetPostsBeforePost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitBefore); err != nil {
+		return nil, err
+	} else if postListBefore != nil {
+		postList.Extend(postListBefore)
+	}
+
+	if postListAfter, err := a.GetPostsAfterPost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitAfter-1); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
 		postList.Extend(postListAfter)
 	}
-
-	postList.AddPost(lastUnreadPost)
-	postList.AddOrder(lastUnreadPost.Id)
 
 	postList.SortByCreateAt()
 	return postList, nil

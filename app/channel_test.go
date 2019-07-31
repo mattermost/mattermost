@@ -988,3 +988,56 @@ func TestDefaultChannelNames(t *testing.T) {
 	expect = []string{"town-square", "foo", "bar"}
 	require.ElementsMatch(t, expect, actual)
 }
+
+func TestSearchChannelsForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	c1, err := th.App.CreateChannel(&model.Channel{DisplayName: "test-dev-1", Name: "test-dev-1", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+
+	c2, err := th.App.CreateChannel(&model.Channel{DisplayName: "test-dev-2", Name: "test-dev-2", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+
+	c3, err := th.App.CreateChannel(&model.Channel{DisplayName: "dev-3", Name: "dev-3", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+
+	defer func() {
+		th.App.PermanentDeleteChannel(c1)
+		th.App.PermanentDeleteChannel(c2)
+		th.App.PermanentDeleteChannel(c3)
+	}()
+
+	// add user to test-dev-1 and dev3
+	_, err = th.App.AddUserToChannel(th.BasicUser, c1)
+	require.Nil(t, err)
+	_, err = th.App.AddUserToChannel(th.BasicUser, c3)
+	require.Nil(t, err)
+
+	searchAndCheck := func(t *testing.T, term string, expectedDisplayNames []string) {
+		res, searchErr := th.App.SearchChannelsForUser(th.BasicUser.Id, th.BasicTeam.Id, term)
+		require.Nil(t, searchErr)
+		require.Len(t, *res, len(expectedDisplayNames))
+
+		resultDisplayNames := []string{}
+		for _, c := range *res {
+			resultDisplayNames = append(resultDisplayNames, c.Name)
+		}
+		require.ElementsMatch(t, expectedDisplayNames, resultDisplayNames)
+	}
+
+	t.Run("Search for test, only test-dev-1 should be returned", func(t *testing.T) {
+		searchAndCheck(t, "test", []string{"test-dev-1"})
+	})
+
+	t.Run("Search for dev, both test-dev-1 and dev-3 should be returned", func(t *testing.T) {
+		searchAndCheck(t, "dev", []string{"test-dev-1", "dev-3"})
+	})
+
+	t.Run("After adding user to test-dev-2, search for dev, the three channels should be returned", func(t *testing.T) {
+		_, err = th.App.AddUserToChannel(th.BasicUser, c2)
+		require.Nil(t, err)
+
+		searchAndCheck(t, "dev", []string{"test-dev-1", "test-dev-2", "dev-3"})
+	})
+}
