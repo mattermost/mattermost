@@ -1651,12 +1651,17 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("with channels and direct messages", func(t *testing.T) {
-		_, err = ss.Channel().CreateDirectChannel(model.NewId(), m1.UserId)
+		user := model.User{Id: m1.UserId}
+		u1 := model.User{Id: model.NewId()}
+		u2 := model.User{Id: model.NewId()}
+		u3 := model.User{Id: model.NewId()}
+		u4 := model.User{Id: model.NewId()}
+		_, err = ss.Channel().CreateDirectChannel(&u1, &user)
 		require.Nil(t, err)
-		_, err = ss.Channel().CreateDirectChannel(model.NewId(), m1.UserId)
+		_, err = ss.Channel().CreateDirectChannel(&u2, &user)
 		require.Nil(t, err)
 		// other user direct message
-		_, err = ss.Channel().CreateDirectChannel(model.NewId(), model.NewId())
+		_, err = ss.Channel().CreateDirectChannel(&u3, &u4)
 		require.Nil(t, err)
 
 		var members *model.ChannelMembers
