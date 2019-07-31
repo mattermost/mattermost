@@ -302,7 +302,7 @@ pipeline {
                         docker-compose --no-ansi down -v
                     """
                 }
-                archiveArtifacts 'docker_logs.zip'
+                archiveArtifacts 'docker_logs.tar.gz'
             }
         }
         cleanup {
