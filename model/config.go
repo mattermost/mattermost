@@ -248,7 +248,7 @@ type ServiceSettings struct {
 	EnableIncomingWebhooks                            *bool
 	EnableOutgoingWebhooks                            *bool
 	EnableCommands                                    *bool
-	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool `json:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
 	EnablePostUsernameOverride                        *bool
 	EnablePostIconOverride                            *bool
 	EnableLinkPreviews                                *bool
@@ -278,9 +278,9 @@ type ServiceSettings struct {
 	EnableGifPicker                                   *bool
 	GfycatApiKey                                      *string
 	GfycatApiSecret                                   *string
-	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string `json:"RestrictCustomEmojiCreation"` // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string `json:"RestrictPostDelete"`          // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_AllowEditPost               *string `json:"AllowEditPost"`               // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_AllowEditPost               *string `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // This field is deprecated and must not be used.
 	PostEditTimeLimit                                 *int
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64 `restricted:"true"`
 	EnablePostSearch                                  *bool  `restricted:"true"`
@@ -1468,7 +1468,7 @@ func (s *ThemeSettings) SetDefaults() {
 type TeamSettings struct {
 	SiteName                                                  *string
 	MaxUsersPerTeam                                           *int
-	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool `json:"EnableTeamCreation"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // This field is deprecated and must not be used.
 	EnableUserCreation                                        *bool
 	EnableOpenServer                                          *bool
 	EnableUserDeactivation                                    *bool
@@ -1477,14 +1477,14 @@ type TeamSettings struct {
 	CustomBrandText                                           *string
 	CustomDescriptionText                                     *string
 	RestrictDirectMessage                                     *string
-	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string `json:"RestrictTeamInvite"`                  // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string `json:"RestrictPublicChannelManagement"`     // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string `json:"RestrictPrivateChannelManagement"`    // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation       *string `json:"RestrictPublicChannelCreation"`       // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation      *string `json:"RestrictPrivateChannelCreation"`      // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string `json:"RestrictPublicChannelDeletion"`       // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string `json:"RestrictPrivateChannelDeletion"`      // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string `json:"RestrictPrivateChannelManageMembers"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string `json:"RestrictTeamInvite" mapstructure:"RestrictTeamInvite"`                                   // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string `json:"RestrictPublicChannelManagement" mapstructure:"RestrictPublicChannelManagement"`         // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string `json:"RestrictPrivateChannelManagement" mapstructure:"RestrictPrivateChannelManagement"`       // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation       *string `json:"RestrictPublicChannelCreation" mapstructure:"RestrictPublicChannelCreation"`             // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation      *string `json:"RestrictPrivateChannelCreation" mapstructure:"RestrictPrivateChannelCreation"`           // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string `json:"RestrictPublicChannelDeletion" mapstructure:"RestrictPublicChannelDeletion"`             // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string `json:"RestrictPrivateChannelDeletion" mapstructure:"RestrictPrivateChannelDeletion"`           // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // This field is deprecated and must not be used.
 	EnableXToLeaveChannelsFromLHS                             *bool
 	UserStatusAwayTimeout                                     *int64
 	MaxChannelsPerTeam                                        *int64
