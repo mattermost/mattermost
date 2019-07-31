@@ -16,7 +16,7 @@ import (
 
 // Logging
 
-// FormatterParams is the structure any formatter will be handed when time to log comes
+// LogFormatterParams is the structure any formatter will be handed when time to log comes
 type LogFormatterParams struct {
 	Request    *http.Request
 	URL        url.URL

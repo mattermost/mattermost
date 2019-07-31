@@ -832,6 +832,37 @@ func TestGetAllChannels(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestGetAllChannelsWithCount(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	channels, total, resp := th.SystemAdminClient.GetAllChannelsWithCount(0, 20, "")
+	CheckNoError(t, resp)
+
+	// At least, all the not-deleted channels created during the InitBasic
+	require.True(t, len(*channels) >= 3)
+	for _, c := range *channels {
+		require.NotEqual(t, c.TeamId, "")
+	}
+	require.Equal(t, int64(5), total)
+
+	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(0, 10, "")
+	CheckNoError(t, resp)
+	require.True(t, len(*channels) >= 3)
+
+	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(1, 1, "")
+	CheckNoError(t, resp)
+	require.Len(t, *channels, 1)
+
+	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(10000, 10000, "")
+	CheckNoError(t, resp)
+	require.Len(t, *channels, 0)
+
+	_, _, resp = Client.GetAllChannelsWithCount(0, 20, "")
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestSearchChannels(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -878,13 +909,48 @@ func TestSearchChannels(t *testing.T) {
 
 	search.Term = th.BasicChannel.Name
 	_, resp = Client.SearchChannels(model.NewId(), search)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.SearchChannels("junk", search)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.SearchChannels(th.BasicTeam.Id, search)
 	CheckNoError(t, resp)
+
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Remove list channels permission from the user
+	th.RemovePermissionFromRole(model.PERMISSION_LIST_TEAM_CHANNELS.Id, model.TEAM_USER_ROLE_ID)
+
+	t.Run("Search for a BasicChannel, which the user is a member of", func(t *testing.T) {
+		search.Term = th.BasicChannel.Name
+		channelList, resp := Client.SearchChannels(th.BasicTeam.Id, search)
+		CheckNoError(t, resp)
+
+		channelNames := []string{}
+		for _, c := range channelList {
+			channelNames = append(channelNames, c.Name)
+		}
+		require.Contains(t, channelNames, th.BasicChannel.Name)
+	})
+
+	t.Run("Remove the user from BasicChannel and search again, should not be returned", func(t *testing.T) {
+		th.App.RemoveUserFromChannel(th.BasicUser.Id, th.BasicUser.Id, th.BasicChannel)
+
+		search.Term = th.BasicChannel.Name
+		channelList, resp := Client.SearchChannels(th.BasicTeam.Id, search)
+		CheckNoError(t, resp)
+
+		channelNames := []string{}
+		for _, c := range channelList {
+			channelNames = append(channelNames, c.Name)
+		}
+		require.NotContains(t, channelNames, th.BasicChannel.Name)
+	})
 }
 
 func TestSearchAllChannels(t *testing.T) {
@@ -916,6 +982,64 @@ func TestSearchAllChannels(t *testing.T) {
 	search.Term = th.BasicChannel.Name
 	_, resp = Client.SearchAllChannels(search)
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestSearchGroupChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	u1 := th.CreateUserWithClient(th.SystemAdminClient)
+
+	// Create a group channel in which base user belongs but not sysadmin
+	gc1, resp := th.Client.CreateGroupChannel([]string{th.BasicUser.Id, th.BasicUser2.Id, u1.Id})
+	CheckNoError(t, resp)
+	defer th.Client.DeleteChannel(gc1.Id)
+
+	gc2, resp := th.Client.CreateGroupChannel([]string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id})
+	CheckNoError(t, resp)
+	defer th.Client.DeleteChannel(gc2.Id)
+
+	search := &model.ChannelSearch{Term: th.BasicUser2.Username}
+
+	// sysadmin should only find gc2 as he doesn't belong to gc1
+	channels, resp := th.SystemAdminClient.SearchGroupChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, channels, 1)
+	assert.Equal(t, channels[0].Id, gc2.Id)
+
+	// basic user should find both
+	Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+	channels, resp = Client.SearchGroupChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, channels, 2)
+	channelIds := []string{}
+	for _, c := range channels {
+		channelIds = append(channelIds, c.Id)
+	}
+	assert.ElementsMatch(t, channelIds, []string{gc1.Id, gc2.Id})
+
+	// searching for sysadmin, it should only find gc1
+	search = &model.ChannelSearch{Term: th.SystemAdminUser.Username}
+	channels, resp = Client.SearchGroupChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, channels, 1)
+	assert.Equal(t, channels[0].Id, gc2.Id)
+
+	// with an empty search, response should be empty
+	search = &model.ChannelSearch{Term: ""}
+	channels, resp = Client.SearchGroupChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, channels, 0)
+
+	// search unprivileged, forbidden
+	th.Client.Logout()
+	_, resp = Client.SearchAllChannels(search)
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestDeleteChannel(t *testing.T) {
@@ -2089,7 +2213,7 @@ func TestAddChannelMember(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Add user to group
-	_, appErr = th.App.CreateOrRestoreGroupMember(th.Group.Id, user.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Group.Id, user.Id)
 	require.Nil(t, appErr)
 
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
@@ -2659,9 +2783,9 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 	group1 := th.CreateGroup()
 	group2 := th.CreateGroup()
 
-	_, err = th.App.CreateOrRestoreGroupMember(group1.Id, user1.Id)
+	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
 	require.Nil(t, err)
-	_, err = th.App.CreateOrRestoreGroupMember(group2.Id, user2.Id)
+	_, err = th.App.UpsertGroupMember(group2.Id, user2.Id)
 	require.Nil(t, err)
 
 	// No permissions

@@ -10,12 +10,14 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
@@ -185,7 +187,7 @@ func testCreatePostWithOutgoingHook(
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	var hook *model.OutgoingWebhook
@@ -911,6 +913,13 @@ func TestGetPostsForChannel(t *testing.T) {
 		t.Log(posts.Posts)
 		t.Fatal("should return 2 posts")
 	}
+	// "since" query to return empty NextPostId and PrevPostId
+	if posts.NextPostId != "" {
+		t.Fatal("should return an empty NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return an empty PrevPostId")
+	}
 
 	found := make([]bool, 2)
 	for _, p := range posts.Posts {
@@ -945,6 +954,97 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
 	CheckNoError(t, resp)
+
+	// more tests for next_post_id, prev_post_id, and order
+	// There are 12 posts composed of first 2 system messages and 10 created posts
+	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	th.CreatePost() // post6
+	post7 := th.CreatePost()
+	post8 := th.CreatePost()
+	th.CreatePost() // post9
+	post10 := th.CreatePost()
+
+	// get the system post IDs posted before the created posts above
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
+	systemPostId1 := posts.Order[1]
+
+	// similar to '/posts'
+	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 12 || posts.Order[0] != post10.Id || posts.Order[11] != systemPostId1 {
+		t.Fatal("should return 12 posts and match order")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should return an empty NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return an empty PrevPostId")
+	}
+
+	// similar to '/posts?per_page=3'
+	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 || posts.Order[0] != post10.Id || posts.Order[2] != post8.Id {
+		t.Fatal("should return 3 posts and match order")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should return an empty NextPostId")
+	}
+	if posts.PrevPostId != post7.Id {
+		t.Fatal("should return post7.Id as PrevPostId")
+	}
+
+	// similar to '/posts?per_page=3&page=1'
+	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 1, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 || posts.Order[0] != post7.Id || posts.Order[2] != post5.Id {
+		t.Fatal("should return 3 posts and match order")
+	}
+	if posts.NextPostId != post8.Id {
+		t.Fatal("should return post8.Id as NextPostId")
+	}
+	if posts.PrevPostId != post4.Id {
+		t.Fatal("should return post4.Id as PrevPostId")
+	}
+
+	// similar to '/posts?per_page=3&page=2'
+	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 2, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 || posts.Order[0] != post4.Id || posts.Order[2] != post2.Id {
+		t.Fatal("should return 3 posts and match order")
+	}
+	if posts.NextPostId != post5.Id {
+		t.Fatal("should return post5.Id as NextPostId")
+	}
+	if posts.PrevPostId != post1.Id {
+		t.Fatal("should return post1.Id as PrevPostId")
+	}
+
+	// similar to '/posts?per_page=3&page=3'
+	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 3, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 || posts.Order[0] != post1.Id || posts.Order[2] != systemPostId1 {
+		t.Fatal("should return 3 posts and match order")
+	}
+	if posts.NextPostId != post2.Id {
+		t.Fatal("should return post2.Id as NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return an empty PrevPostId")
+	}
+
+	// similar to '/posts?per_page=3&page=4'
+	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 4, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 0 {
+		t.Fatal("should return 0 post")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should return an empty NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return an empty PrevPostId")
+	}
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
@@ -1190,7 +1290,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
-func TestGetPostsAfterAndBefore(t *testing.T) {
+func TestGetPostsBefore(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
@@ -1223,24 +1323,208 @@ func TestGetPostsAfterAndBefore(t *testing.T) {
 		}
 	}
 
-	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post3.Id, 1, 1, "")
+	if posts.NextPostId != post3.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should match empty PrevPostId")
+	}
+
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post4.Id, 1, 1, "")
 	CheckNoError(t, resp)
 
 	if len(posts.Posts) != 1 {
 		t.Fatal("too many posts returned")
 	}
-
-	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, "junk", 1, 1, "")
-	CheckNoError(t, resp)
-
-	if len(posts.Posts) != 0 {
-		t.Fatal("should have no posts")
+	if posts.Order[0] != post2.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != post3.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PrevPostId != post1.Id {
+		t.Fatal("should match PrevPostId")
 	}
 
-	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 0, 100, "")
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, "junk", 1, 1, "")
+	CheckBadRequestStatus(t, resp)
+
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post5.Id, 0, 3, "")
 	CheckNoError(t, resp)
 
-	found = make([]bool, 2)
+	if len(posts.Posts) != 3 {
+		t.Fatal("should match length of posts returned")
+	}
+	if posts.Order[0] != post4.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.Order[2] != post2.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != post5.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PrevPostId != post1.Id {
+		t.Fatal("should match PrevPostId")
+	}
+
+	// get the system post IDs posted before the created posts above
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
+	CheckNoError(t, resp)
+	systemPostId2 := posts.Order[0]
+	systemPostId1 := posts.Order[1]
+
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post5.Id, 1, 3, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 3 {
+		t.Fatal("should match length of posts returned")
+	}
+	if posts.Order[0] != post1.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.Order[1] != systemPostId2 {
+		t.Fatal("should match returned post")
+	}
+	if posts.Order[2] != systemPostId1 {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != post2.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return empty PrevPostId")
+	}
+
+	// more tests for next_post_id, prev_post_id, and order
+	// There are 12 posts composed of first 2 system messages and 10 created posts
+	post6 := th.CreatePost()
+	th.CreatePost() // post7
+	post8 := th.CreatePost()
+	post9 := th.CreatePost()
+	th.CreatePost() // post10
+
+	// similar to '/posts?before=post9'
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post9.Id, 0, 60, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 10 || posts.Order[0] != post8.Id || posts.Order[9] != systemPostId1 {
+		t.Fatal("should return 10 posts and match order")
+	}
+	if posts.NextPostId != post9.Id {
+		t.Fatal("should return post9.Id as NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return an empty PrevPostId")
+	}
+
+	// similar to '/posts?before=post9&per_page=3'
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post9.Id, 0, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 || posts.Order[0] != post8.Id || posts.Order[2] != post6.Id {
+		t.Fatal("should return 3 posts and match order")
+	}
+	if posts.NextPostId != post9.Id {
+		t.Fatal("should return post9.Id as NextPostId")
+	}
+	if posts.PrevPostId != post5.Id {
+		t.Fatal("should return post5.Id as PrevPostId")
+	}
+
+	// similar to '/posts?before=post9&per_page=3&page=1'
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post9.Id, 1, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 || posts.Order[0] != post5.Id || posts.Order[2] != post3.Id {
+		t.Fatal("should return 3 posts and match order")
+	}
+	if posts.NextPostId != post6.Id {
+		t.Fatal("should return post6.Id as NextPostId")
+	}
+	if posts.PrevPostId != post2.Id {
+		t.Fatal("should return post2.Id as PrevPostId")
+	}
+
+	// similar to '/posts?before=post9&per_page=3&page=2'
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post9.Id, 2, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 || posts.Order[0] != post2.Id || posts.Order[2] != systemPostId2 {
+		t.Fatal("should return 3 posts and match order")
+	}
+	if posts.NextPostId != post3.Id {
+		t.Fatal("should return post3.Id as NextPostId")
+	}
+	if posts.PrevPostId != systemPostId1 {
+		t.Fatal("should return systemPostId1 as PrevPostId")
+	}
+
+	// similar to '/posts?before=post1&per_page=3'
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 2 || posts.Order[0] != systemPostId2 || posts.Order[1] != systemPostId1 {
+		t.Fatal("should return 2 posts and match order")
+	}
+	if posts.NextPostId != post1.Id {
+		t.Fatal("should return post1.Id as NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return an empty PrevPostId")
+	}
+
+	// similar to '/posts?before=systemPostId1'
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, systemPostId1, 0, 60, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 0 {
+		t.Fatal("should return 0 post")
+	}
+	if posts.NextPostId != systemPostId1 {
+		t.Fatal("should return systemPostId1 as NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return an empty PrevPostId")
+	}
+
+	// similar to '/posts?before=systemPostId1&per_page=60&page=1'
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, systemPostId1, 1, 60, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 0 {
+		t.Fatal("should return 0 post")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should return an empty NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return an empty PrevPostId")
+	}
+
+	// similar to '/posts?before=non-existent-post'
+	nonExistentPostId := model.NewId()
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, nonExistentPostId, 0, 60, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 0 {
+		t.Fatal("should return 0 post")
+	}
+	if posts.NextPostId != nonExistentPostId {
+		t.Fatal("should return nonExistentPostId as NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return an empty PrevPostId")
+	}
+}
+
+func TestGetPostsAfter(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	post1 := th.CreatePost()
+	post2 := th.CreatePost()
+	post3 := th.CreatePost()
+	post4 := th.CreatePost()
+	post5 := th.CreatePost()
+
+	posts, resp := Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 0, 100, "")
+	CheckNoError(t, resp)
+
+	found := make([]bool, 2)
 	for _, p := range posts.Posts {
 		if p.Id == post4.Id {
 			found[0] = true
@@ -1259,19 +1543,413 @@ func TestGetPostsAfterAndBefore(t *testing.T) {
 		}
 	}
 
-	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 1, 1, "")
+	if posts.NextPostId != "" {
+		t.Fatal("should match empty NextPostId")
+	}
+	if posts.PrevPostId != post3.Id {
+		t.Fatal("should match PrevPostId")
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post2.Id, 1, 1, "")
 	CheckNoError(t, resp)
 
 	if len(posts.Posts) != 1 {
 		t.Fatal("too many posts returned")
 	}
+	if posts.Order[0] != post4.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != post5.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PrevPostId != post3.Id {
+		t.Fatal("should match PrevPostId")
+	}
 
 	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, "junk", 1, 1, "")
+	CheckBadRequestStatus(t, resp)
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post1.Id, 0, 3, "")
 	CheckNoError(t, resp)
 
-	if len(posts.Posts) != 0 {
-		t.Fatal("should have no posts")
+	if len(posts.Posts) != 3 {
+		t.Fatal("should match length of posts returned")
 	}
+	if posts.Order[0] != post4.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.Order[2] != post2.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != post5.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PrevPostId != post1.Id {
+		t.Fatal("should match PrevPostId")
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post1.Id, 1, 3, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 1 {
+		t.Fatal("should match length of posts returned")
+	}
+	if posts.Order[0] != post5.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PrevPostId != post4.Id {
+		t.Fatal("should match PrevPostId")
+	}
+
+	// more tests for next_post_id, prev_post_id, and order
+	// There are 12 posts composed of first 2 system messages and 10 created posts
+	post6 := th.CreatePost()
+	th.CreatePost() // post7
+	post8 := th.CreatePost()
+	post9 := th.CreatePost()
+	post10 := th.CreatePost()
+
+	// similar to '/posts?after=post2'
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post2.Id, 0, 60, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 8 || posts.Order[0] != post10.Id || posts.Order[7] != post3.Id {
+		t.Fatal("should return 8 posts and match order")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should return an empty NextPostId")
+	}
+	if posts.PrevPostId != post2.Id {
+		t.Fatal("should return post2.Id as PrevPostId")
+	}
+
+	// similar to '/posts?after=post2&per_page=3'
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post2.Id, 0, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 || posts.Order[0] != post5.Id || posts.Order[2] != post3.Id {
+		t.Fatal("should return 3 posts and match order")
+	}
+	if posts.NextPostId != post6.Id {
+		t.Fatal("should return post6.Id as NextPostId")
+	}
+	if posts.PrevPostId != post2.Id {
+		t.Fatal("should return post2.Id as PrevPostId")
+	}
+
+	// similar to '/posts?after=post2&per_page=3&page=1'
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post2.Id, 1, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 || posts.Order[0] != post8.Id || posts.Order[2] != post6.Id {
+		t.Fatal("should return 3 posts and match order")
+	}
+	if posts.NextPostId != post9.Id {
+		t.Fatal("should return post9.Id as NextPostId")
+	}
+	if posts.PrevPostId != post5.Id {
+		t.Fatal("should return post5.Id as PrevPostId")
+	}
+
+	// similar to '/posts?after=post2&per_page=3&page=2'
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post2.Id, 2, 3, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 2 || posts.Order[0] != post10.Id || posts.Order[1] != post9.Id {
+		t.Fatal("should return 2 posts and match order")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should return an empty NextPostId")
+	}
+	if posts.PrevPostId != post8.Id {
+		t.Fatal("should return post8.Id as PrevPostId")
+	}
+
+	// similar to '/posts?after=post10'
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post10.Id, 0, 60, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 0 {
+		t.Fatal("should return 0 post")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should return an empty NextPostId")
+	}
+	if posts.PrevPostId != post10.Id {
+		t.Fatal("should return post10.Id as PrevPostId")
+	}
+
+	// similar to '/posts?after=post10&page=1'
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post10.Id, 1, 60, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 0 {
+		t.Fatal("should return 0 post")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should return an empty NextPostId")
+	}
+	if posts.PrevPostId != "" {
+		t.Fatal("should return an empty PrevPostId")
+	}
+
+	// similar to '/posts?after=non-existent-post'
+	nonExistentPostId := model.NewId()
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, nonExistentPostId, 0, 60, "")
+	CheckNoError(t, resp)
+	if len(posts.Order) != 0 {
+		t.Fatal("should return 0 post")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should return an empty NextPostId")
+	}
+	if posts.PrevPostId != nonExistentPostId {
+		t.Fatal("should return nonExistentPostId as PrevPostId")
+	}
+}
+
+func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	userId := th.BasicUser.Id
+	channelId := th.BasicChannel.Id
+
+	// 12 posts = 2 systems posts + 10 created posts below
+	post1 := th.CreatePost()
+	post2 := th.CreatePost()
+	post3 := th.CreatePost()
+	post4 := th.CreatePost()
+	post5 := th.CreatePost()
+	replyPost := &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post4.Id, ParentId: post4.Id}
+	post6, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post7, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post8, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post9, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post10, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+
+	postIdNames := map[string]string{
+		post1.Id:  "post1",
+		post2.Id:  "post2",
+		post3.Id:  "post3",
+		post4.Id:  "post4",
+		post5.Id:  "post5",
+		post6.Id:  "post6 (reply to post4)",
+		post7.Id:  "post7 (reply to post4)",
+		post8.Id:  "post8 (reply to post4)",
+		post9.Id:  "post9 (reply to post4)",
+		post10.Id: "post10 (reply to post4)",
+	}
+
+	namePost := func(postId string) string {
+		name, ok := postIdNames[postId]
+		if ok {
+			return name
+		}
+
+		return fmt.Sprintf("unknown (%s)", postId)
+	}
+
+	namePosts := func(postIds []string) []string {
+		namedPostIds := make([]string, 0, len(postIds))
+		for _, postId := range postIds {
+			namedPostIds = append(namedPostIds, namePost(postId))
+		}
+
+		return namedPostIds
+	}
+
+	namePostsMap := func(posts map[string]*model.Post) []string {
+		namedPostIds := make([]string, 0, len(posts))
+		for postId := range posts {
+			namedPostIds = append(namedPostIds, namePost(postId))
+		}
+		sort.Strings(namedPostIds)
+
+		return namedPostIds
+	}
+
+	assertPostList := func(t *testing.T, expected, actual *model.PostList) {
+		t.Helper()
+
+		require.Equal(t, namePosts(expected.Order), namePosts(actual.Order), "unexpected post order")
+		require.Equal(t, namePostsMap(expected.Posts), namePostsMap(actual.Posts), "unexpected posts")
+		require.Equal(t, namePost(expected.NextPostId), namePost(actual.NextPostId), "unexpected next post id")
+		require.Equal(t, namePost(expected.PrevPostId), namePost(actual.PrevPostId), "unexpected prev post id")
+	}
+
+	// All returned posts are all read by the user, since it's created by the user itself.
+	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
+	CheckNoError(t, resp)
+	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
+
+	// Set channel member's last viewed to 0.
+	// All returned posts are latest posts as if all previous posts were already read by the user.
+	channelMember, err := th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	require.Nil(t, err)
+	channelMember.LastViewedAt = 0
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
+	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
+	CheckNoError(t, resp)
+
+	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
+
+	// get the first system post generated before the created posts above
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
+	CheckNoError(t, resp)
+	systemPost0 := posts.Posts[posts.Order[0]]
+	postIdNames[systemPost0.Id] = "system post 0"
+	systemPost1 := posts.Posts[posts.Order[1]]
+	postIdNames[systemPost1.Id] = "system post 1"
+
+	// Set channel member's last viewed before post1.
+	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	require.Nil(t, err)
+	channelMember.LastViewedAt = post1.CreateAt - 1
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
+	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
+	CheckNoError(t, resp)
+
+	assertPostList(t, &model.PostList{
+		Order: []string{post3.Id, post2.Id, post1.Id, systemPost0.Id, systemPost1.Id},
+		Posts: map[string]*model.Post{
+			systemPost0.Id: systemPost0,
+			systemPost1.Id: systemPost1,
+			post1.Id:       post1,
+			post2.Id:       post2,
+			post3.Id:       post3,
+		},
+		NextPostId: post4.Id,
+		PrevPostId: "",
+	}, posts)
+
+	// Set channel member's last viewed before post6.
+	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	require.Nil(t, err)
+	channelMember.LastViewedAt = post6.CreateAt - 1
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
+	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
+	CheckNoError(t, resp)
+
+	assertPostList(t, &model.PostList{
+		Order: []string{post8.Id, post7.Id, post6.Id, post5.Id, post4.Id, post3.Id},
+		Posts: map[string]*model.Post{
+			post3.Id:  post3,
+			post4.Id:  post4,
+			post5.Id:  post5,
+			post6.Id:  post6,
+			post7.Id:  post7,
+			post8.Id:  post8,
+			post9.Id:  post9,
+			post10.Id: post10,
+		},
+		NextPostId: post9.Id,
+		PrevPostId: post2.Id,
+	}, posts)
+
+	// Set channel member's last viewed before post10.
+	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	require.Nil(t, err)
+	channelMember.LastViewedAt = post10.CreateAt - 1
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
+	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
+	CheckNoError(t, resp)
+
+	assertPostList(t, &model.PostList{
+		Order: []string{post10.Id, post9.Id, post8.Id, post7.Id},
+		Posts: map[string]*model.Post{
+			post4.Id:  post4,
+			post6.Id:  post6,
+			post7.Id:  post7,
+			post8.Id:  post8,
+			post9.Id:  post9,
+			post10.Id: post10,
+		},
+		NextPostId: "",
+		PrevPostId: post6.Id,
+	}, posts)
+
+	// Set channel member's last viewed equal to post10.
+	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	require.Nil(t, err)
+	channelMember.LastViewedAt = post10.CreateAt
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
+	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
+	CheckNoError(t, resp)
+
+	assertPostList(t, &model.PostList{
+		Order: []string{post10.Id, post9.Id, post8.Id},
+		Posts: map[string]*model.Post{
+			post4.Id:  post4,
+			post6.Id:  post6,
+			post7.Id:  post7,
+			post8.Id:  post8,
+			post9.Id:  post9,
+			post10.Id: post10,
+		},
+		NextPostId: "",
+		PrevPostId: post7.Id,
+	}, posts)
+
+	// Set channel member's last viewed to just before a new reply to a previous thread, not
+	// otherwise in the requested window.
+	post11 := th.CreatePost()
+	post12, resp := Client.CreatePost(&model.Post{
+		ChannelId: channelId,
+		Message:   model.NewId(),
+		RootId:    post4.Id,
+		ParentId:  post4.Id,
+	})
+	CheckNoError(t, resp)
+	post13 := th.CreatePost()
+
+	postIdNames[post11.Id] = "post11"
+	postIdNames[post12.Id] = "post12 (reply to post4)"
+	postIdNames[post13.Id] = "post13"
+
+	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	require.Nil(t, err)
+	channelMember.LastViewedAt = post12.CreateAt - 1
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
+	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 1, 2)
+	CheckNoError(t, resp)
+
+	assertPostList(t, &model.PostList{
+		Order: []string{post13.Id, post12.Id, post11.Id},
+		Posts: map[string]*model.Post{
+			post4.Id:  post4,
+			post6.Id:  post6,
+			post7.Id:  post7,
+			post8.Id:  post8,
+			post9.Id:  post9,
+			post10.Id: post10,
+			post11.Id: post11,
+			post12.Id: post12,
+			post13.Id: post13,
+		},
+		NextPostId: "",
+		PrevPostId: post10.Id,
+	}, posts)
 }
 
 func TestGetPost(t *testing.T) {

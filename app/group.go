@@ -4,95 +4,56 @@
 package app
 
 import (
-	"strings"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().Get(id)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Group), nil
+	return a.Srv.Store.Group().Get(id)
 }
 
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetByRemoteID(remoteID, groupSource)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Group), nil
+	return a.Srv.Store.Group().GetByRemoteID(remoteID, groupSource)
 }
 
 func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetAllBySource(groupSource)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Group), nil
+	return a.Srv.Store.Group().GetAllBySource(groupSource)
 }
 
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().Create(group)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Group), nil
+	return a.Srv.Store.Group().Create(group)
 }
 
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().Update(group)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Group), nil
+	return a.Srv.Store.Group().Update(group)
 }
 
 func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().Delete(groupID)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Group), nil
+	return a.Srv.Store.Group().Delete(groupID)
 }
 
 func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetMemberUsers(groupID)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.Group().GetMemberUsers(groupID)
 }
 
 func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetMemberUsersPage(groupID, page, perPage)
-	if result.Err != nil {
-		return nil, 0, result.Err
+	members, err := a.Srv.Store.Group().GetMemberUsersPage(groupID, page, perPage)
+	if err != nil {
+		return nil, 0, err
 	}
-	members := result.Data.([]*model.User)
-	result = <-a.Srv.Store.Group().GetMemberCount(groupID)
-	if result.Err != nil {
-		return nil, 0, result.Err
+
+	count, err := a.Srv.Store.Group().GetMemberCount(groupID)
+	if err != nil {
+		return nil, 0, err
 	}
-	count := int(result.Data.(int64))
-	return members, count, nil
+	return members, int(count), nil
 }
 
-func (a *App) CreateOrRestoreGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	result := <-a.Srv.Store.Group().CreateOrRestoreMember(groupID, userID)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupMember), nil
+func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	return a.Srv.Store.Group().UpsertMember(groupID, userID)
 }
 
 func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	result := <-a.Srv.Store.Group().DeleteMember(groupID, userID)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupMember), nil
+	return a.Srv.Store.Group().DeleteMember(groupID, userID)
 }
 
 func (a *App) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
@@ -177,7 +138,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 	// parse all group ids of all users
 	allUsersGroupIDMap := map[string]bool{}
 	for _, user := range users {
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			allUsersGroupIDMap[groupID] = true
 		}
 	}
@@ -203,7 +164,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 	// populate each instance's groups field
 	for _, user := range users {
 		user.Groups = []*model.Group{}
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			group, ok := groupMap[groupID]
 			if ok {
 				user.Groups = append(user.Groups, group)
@@ -236,7 +197,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 	// parse all group ids of all users
 	allUsersGroupIDMap := map[string]bool{}
 	for _, user := range users {
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			allUsersGroupIDMap[groupID] = true
 		}
 	}
@@ -262,7 +223,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 	// populate each instance's groups field
 	for _, user := range users {
 		user.Groups = []*model.Group{}
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			group, ok := groupMap[groupID]
 			if ok {
 				user.Groups = append(user.Groups, group)

@@ -88,6 +88,10 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
 		*cfg.EmailSettings.SendEmailNotifications = true
+
+		// Disable sniffing, otherwise elastic client fails to connect to docker node
+		// More details: https://github.com/olivere/elastic/wiki/Sniffing
+		*cfg.ElasticsearchSettings.Sniff = false
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
@@ -750,9 +754,9 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 
 	if cm, err := me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
-		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
+		if _, err = me.App.Srv.Store.Channel().UpdateMember(cm); err != nil {
 			utils.EnableDebugLogForTest()
-			panic(sr.Err)
+			panic(err)
 		}
 	} else {
 		utils.EnableDebugLogForTest()

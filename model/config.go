@@ -174,11 +174,12 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
 
-	COMPLIANCE_EXPORT_TYPE_CSV         = "csv"
-	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
-	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
-	GLOBALRELAY_CUSTOMER_TYPE_A9       = "A9"
-	GLOBALRELAY_CUSTOMER_TYPE_A10      = "A10"
+	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
+	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
+	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY     = "globalrelay"
+	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY_ZIP = "globalrelay-zip"
+	GLOBALRELAY_CUSTOMER_TYPE_A9           = "A9"
+	GLOBALRELAY_CUSTOMER_TYPE_A10          = "A10"
 
 	CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH   = "primary"
 	CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH = "secondary"
@@ -673,6 +674,8 @@ type ClusterSettings struct {
 	ClusterName                 *string `restricted:"true"`
 	OverrideHostname            *string `restricted:"true"`
 	NetworkInterface            *string `restricted:"true"`
+	BindAddress                 *string `restricted:"true"`
+	AdvertiseAddress            *string `restricted:"true"`
 	UseIpAddress                *bool   `restricted:"true"`
 	UseExperimentalGossip       *bool   `restricted:"true"`
 	ReadOnlyConfig              *bool   `restricted:"true"`
@@ -698,6 +701,14 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.NetworkInterface == nil {
 		s.NetworkInterface = NewString("")
+	}
+
+	if s.BindAddress == nil {
+		s.BindAddress = NewString("")
+	}
+
+	if s.AdvertiseAddress == nil {
+		s.AdvertiseAddress = NewString("")
 	}
 
 	if s.UseIpAddress == nil {
@@ -2033,6 +2044,7 @@ type ElasticsearchSettings struct {
 	LiveIndexingBatchSize         *int    `restricted:"true"`
 	BulkIndexingTimeWindowSeconds *int    `restricted:"true"`
 	RequestTimeoutSeconds         *int    `restricted:"true"`
+	SkipTLSVerification           *bool   `restricted:"true"`
 	Trace                         *string `restricted:"true"`
 }
 
@@ -2113,6 +2125,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 		s.RequestTimeoutSeconds = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS)
 	}
 
+	if s.SkipTLSVerification == nil {
+		s.SkipTLSVerification = NewBool(false)
+	}
+
 	if s.Trace == nil {
 		s.Trace = NewString("")
 	}
@@ -2168,13 +2184,13 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable            *bool
-	EnableUploads     *bool   `restricted:"true"`
-	EnableHealthCheck *bool   `restricted:"true"`
-	Directory         *string `restricted:"true"`
-	ClientDirectory   *string `restricted:"true"`
-	Plugins           map[string]map[string]interface{}
-	PluginStates      map[string]*PluginState
+	Enable                   *bool
+	EnableUploads            *bool   `restricted:"true"`
+	AllowInsecureDownloadUrl *bool   `restricted:"true"`
+	Directory                *string `restricted:"true"`
+	ClientDirectory          *string `restricted:"true"`
+	Plugins                  map[string]map[string]interface{}
+	PluginStates             map[string]*PluginState
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2186,8 +2202,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.EnableUploads = NewBool(false)
 	}
 
-	if s.EnableHealthCheck == nil {
-		s.EnableHealthCheck = NewBool(true)
+	if s.AllowInsecureDownloadUrl == nil {
+		s.AllowInsecureDownloadUrl = NewBool(false)
 	}
 
 	if s.Directory == nil {
@@ -2296,6 +2312,31 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 }
 
+type GuestAccountsSettings struct {
+	Enable                           *bool
+	AllowEmailAccounts               *bool
+	EnforceMultifactorAuthentication *bool
+	RestrictCreationToDomains        *string
+}
+
+func (s *GuestAccountsSettings) SetDefaults() {
+	if s.Enable == nil {
+		s.Enable = NewBool(false)
+	}
+
+	if s.AllowEmailAccounts == nil {
+		s.AllowEmailAccounts = NewBool(true)
+	}
+
+	if s.EnforceMultifactorAuthentication == nil {
+		s.EnforceMultifactorAuthentication = NewBool(false)
+	}
+
+	if s.RestrictCreationToDomains == nil {
+		s.RestrictCreationToDomains = NewString("")
+	}
+}
+
 type ImageProxySettings struct {
 	Enable                  *bool
 	ImageProxyType          *string
@@ -2372,6 +2413,7 @@ type Config struct {
 	JobSettings             JobSettings
 	PluginSettings          PluginSettings
 	DisplaySettings         DisplaySettings
+	GuestAccountsSettings   GuestAccountsSettings
 	ImageProxySettings      ImageProxySettings
 }
 
@@ -2455,6 +2497,7 @@ func (o *Config) SetDefaults() {
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
+	o.GuestAccountsSettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
 }
 
@@ -2979,8 +3022,13 @@ func (o *Config) Sanitize() {
 	}
 
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
+
 	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
+	}
+
+	if o.EmailSettings.SMTPPassword != nil && len(*o.EmailSettings.SMTPPassword) > 0 {
+		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
 	if len(*o.GitLabSettings.Secret) > 0 {
@@ -2990,6 +3038,8 @@ func (o *Config) Sanitize() {
 	*o.SqlSettings.DataSource = FAKE_SETTING
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
+	*o.ElasticsearchSettings.Password = FAKE_SETTING
+
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
 	}
@@ -2997,6 +3047,4 @@ func (o *Config) Sanitize() {
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
-
-	*o.ElasticsearchSettings.Password = FAKE_SETTING
 }

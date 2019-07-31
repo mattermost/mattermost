@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -20,6 +21,7 @@ import (
 const (
 	PENDING_POST_IDS_CACHE_SIZE = 25000
 	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
+	PAGE_DEFAULT                = 0
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
@@ -156,9 +158,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	post.SanitizeProps()
 
-	var pchan store.StoreChannel
+	var pchan chan store.StoreResult
 	if len(post.RootId) > 0 {
-		pchan = make(store.StoreChannel, 1)
+		pchan = make(chan store.StoreResult, 1)
 		go func() {
 			r, pErr := a.Srv.Store.Post().Get(post.RootId)
 			pchan <- store.StoreResult{Data: r, Err: pErr}
@@ -674,6 +676,132 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
 }
 
+func (a *App) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+	return a.Srv.Store.Post().GetPostAfterTime(channelId, time)
+}
+
+func (a *App) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+	return a.Srv.Store.Post().GetPostIdAfterTime(channelId, time)
+}
+
+func (a *App) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+	return a.Srv.Store.Post().GetPostIdBeforeTime(channelId, time)
+}
+
+func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
+	if len(postList.Order) > 0 {
+		firstPostId := postList.Order[0]
+		firstPost := postList.Posts[firstPostId]
+		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt)
+		if err != nil {
+			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
+		}
+
+		return nextPostId
+	}
+
+	return ""
+}
+
+func (a *App) GetPrevPostIdFromPostList(postList *model.PostList) string {
+	if len(postList.Order) > 0 {
+		lastPostId := postList.Order[len(postList.Order)-1]
+		lastPost := postList.Posts[lastPostId]
+		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt)
+		if err != nil {
+			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
+		}
+
+		return previousPostId
+	}
+
+	return ""
+}
+
+// AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
+// The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
+// and only query to database whenever necessary.
+func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int) {
+	prevPostIdSet := false
+	prevPostId := ""
+	nextPostIdSet := false
+	nextPostId := ""
+
+	if since > 0 { // "since" query to return empty NextPostId and PrevPostId
+		nextPostIdSet = true
+		prevPostIdSet = true
+	} else if afterPost != "" {
+		if page == 0 {
+			prevPostId = afterPost
+			prevPostIdSet = true
+		}
+
+		if len(originalList.Order) < perPage {
+			nextPostIdSet = true
+		}
+	} else if beforePost != "" {
+		if page == 0 {
+			nextPostId = beforePost
+			nextPostIdSet = true
+		}
+
+		if len(originalList.Order) < perPage {
+			prevPostIdSet = true
+		}
+	}
+
+	if !nextPostIdSet {
+		nextPostId = a.GetNextPostIdFromPostList(originalList)
+	}
+
+	if !prevPostIdSet {
+		prevPostId = a.GetPrevPostIdFromPostList(originalList)
+	}
+
+	originalList.NextPostId = nextPostId
+	originalList.PrevPostId = prevPostId
+}
+
+func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int) (*model.PostList, *model.AppError) {
+	var member *model.ChannelMember
+	var err *model.AppError
+	if member, err = a.GetChannelMember(channelId, userId); err != nil {
+		return nil, err
+	} else if member.LastViewedAt == 0 {
+		return model.NewPostList(), nil
+	}
+
+	lastUnreadPostId, err := a.GetPostIdAfterTime(channelId, member.LastViewedAt)
+	if err != nil {
+		return nil, err
+	} else if lastUnreadPostId == "" {
+		return model.NewPostList(), nil
+	}
+
+	postList, err := a.GetPostThread(lastUnreadPostId)
+	if err != nil {
+		return nil, err
+	}
+	// Reset order to only include the last unread post: if the thread appears in the centre
+	// channel organically, those replies will be added below.
+	postList.Order = []string{lastUnreadPostId}
+
+	if postListBefore, err := a.GetPostsBeforePost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitBefore); err != nil {
+		return nil, err
+	} else if postListBefore != nil {
+		postList.Extend(postListBefore)
+	}
+
+	if postListAfter, err := a.GetPostsAfterPost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitAfter-1); err != nil {
+		return nil, err
+	} else if postListAfter != nil {
+		postList.Extend(postListAfter)
+	}
+
+	postList.SortByCreateAt()
+	return postList, nil
+}
+
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
 	post, err := a.Srv.Store.Post().GetSingle(postId)
 	if err != nil {
@@ -774,7 +902,9 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 }
 
 func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
-	channels := []store.StoreChannel{}
+	var wg sync.WaitGroup
+
+	pchan := make(chan store.StoreResult, len(paramsList))
 
 	for _, params := range paramsList {
 		// Don't allow users to search for everything.
@@ -782,12 +912,21 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 			continue
 		}
 		modifierFun(params)
-		channels = append(channels, a.Srv.Store.Post().Search(teamId, userId, params))
+		wg.Add(1)
+
+		go func(params *model.SearchParams) {
+			defer wg.Done()
+			postList, err := a.Srv.Store.Post().Search(teamId, userId, params)
+			pchan <- store.StoreResult{Data: postList, Err: err}
+		}(params)
 	}
 
+	wg.Wait()
+	close(pchan)
+
 	posts := model.NewPostList()
-	for _, channel := range channels {
-		result := <-channel
+
+	for result := range pchan {
 		if result.Err != nil {
 			return nil, result.Err
 		}
@@ -879,6 +1018,10 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 	var err *model.AppError
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 
+	if !*a.Config().ServiceSettings.EnablePostSearch {
+		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
+	}
+
 	if a.IsESSearchEnabled() {
 		postSearchResults, err = a.esSearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
 		if err != nil {
@@ -886,16 +1029,12 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		}
 	}
 
-	if !*a.Config().ServiceSettings.EnablePostSearch {
-		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
-	}
-
-	// Since we don't support paging we just return nothing for later pages
-	if page > 0 {
-		return model.MakePostSearchResults(model.NewPostList(), nil), nil
-	}
-
 	if !a.IsESSearchEnabled() || err != nil {
+		// Since we don't support paging for DB search, we just return nothing for later pages
+		if page > 0 {
+			return model.MakePostSearchResults(model.NewPostList(), nil), nil
+		}
+
 		includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 		posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
 			params.IncludeDeletedChannels = includeDeleted
@@ -954,7 +1093,7 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 }
 
 func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
-	return a.Srv.Store.FileInfo().GetForPost(postId, fromMaster, true)
+	return a.Srv.Store.FileInfo().GetForPost(postId, fromMaster, false, true)
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {

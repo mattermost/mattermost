@@ -93,6 +93,27 @@ func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 	return a.Srv.Store.Session().GetSessions(userId)
 }
 
+func (a *App) UpdateSessionsIsGuest(userId string, isGuest bool) {
+	sessions, err := a.Srv.Store.Session().GetSessions(userId)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Unable to get user sessions: userId=%s err=%s", userId, err.Error()))
+	}
+
+	for _, session := range sessions {
+		if isGuest {
+			session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
+		} else {
+			session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
+		}
+		err := a.Srv.Store.Session().UpdateProps(session)
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Unable to update isGuest session: %s", err.Error()))
+			continue
+		}
+		a.AddSessionToCache(session)
+	}
+}
+
 func (a *App) RevokeAllSessions(userId string) *model.AppError {
 	sessions, err := a.Srv.Store.Session().GetSessions(userId)
 	if err != nil {
@@ -113,6 +134,23 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 	return nil
 }
 
+// RevokeSessionsFromAllUsers will go through all the sessions active
+// in the server and revoke them
+func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
+	// revoke tokens before sessions so they can't be used to relogin
+	tErr := a.Srv.Store.OAuth().RemoveAllAccessData()
+	if tErr != nil {
+		return tErr
+	}
+	err := a.Srv.Store.Session().RemoveAllSessions()
+	if err != nil {
+		return err
+	}
+	a.ClearSessionCacheForAllUsers()
+
+	return nil
+}
+
 func (a *App) ClearSessionCacheForUser(userId string) {
 	a.ClearSessionCacheForUserSkipClusterSend(userId)
 
@@ -121,6 +159,18 @@ func (a *App) ClearSessionCacheForUser(userId string) {
 			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER,
 			SendType: model.CLUSTER_SEND_RELIABLE,
 			Data:     userId,
+		}
+		a.Cluster.SendClusterMessage(msg)
+	}
+}
+
+func (a *App) ClearSessionCacheForAllUsers() {
+	a.ClearSessionCacheForAllUsersSkipClusterSend()
+
+	if a.Cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS,
+			SendType: model.CLUSTER_SEND_RELIABLE,
 		}
 		a.Cluster.SendClusterMessage(msg)
 	}
@@ -142,6 +192,11 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 	}
 
 	a.InvalidateWebConnSessionCacheForUser(userId)
+}
+
+func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
+	mlog.Info("Purging sessions cache")
+	a.Srv.sessionCache.Purge()
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {
@@ -244,11 +299,10 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	token.Token = model.NewId()
 
-	result := <-a.Srv.Store.UserAccessToken().Save(token)
-	if result.Err != nil {
-		return nil, result.Err
+	token, err = a.Srv.Store.UserAccessToken().Save(token)
+	if err != nil {
+		return nil, err
 	}
-	token = result.Data.(*model.UserAccessToken)
 
 	// Don't send emails to bot users.
 	if !user.IsBot {
@@ -296,6 +350,11 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	if user.IsBot {
 		session.AddProp(model.SESSION_PROP_IS_BOT, model.SESSION_PROP_IS_BOT_VALUE)
 	}
+	if user.IsGuest() {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
+	} else {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
+	}
 	session.SetExpireInDays(model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
 
 	session, err = a.Srv.Store.Session().Save(session)
@@ -313,8 +372,8 @@ func (a *App) RevokeUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	var session *model.Session
 	session, _ = a.Srv.Store.Session().Get(token.Token)
 
-	if result := <-a.Srv.Store.UserAccessToken().Delete(token.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.UserAccessToken().Delete(token.Id); err != nil {
+		return err
 	}
 
 	if session == nil {
@@ -328,8 +387,8 @@ func (a *App) DisableUserAccessToken(token *model.UserAccessToken) *model.AppErr
 	var session *model.Session
 	session, _ = a.Srv.Store.Session().Get(token.Token)
 
-	if result := <-a.Srv.Store.UserAccessToken().UpdateTokenDisable(token.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.UserAccessToken().UpdateTokenDisable(token.Id); err != nil {
+		return err
 	}
 
 	if session == nil {
@@ -343,8 +402,9 @@ func (a *App) EnableUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	var session *model.Session
 	session, _ = a.Srv.Store.Session().Get(token.Token)
 
-	if result := <-a.Srv.Store.UserAccessToken().UpdateTokenEnable(token.Id); result.Err != nil {
-		return result.Err
+	err := a.Srv.Store.UserAccessToken().UpdateTokenEnable(token.Id)
+	if err != nil {
+		return err
 	}
 
 	if session == nil {
@@ -368,11 +428,10 @@ func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, 
 }
 
 func (a *App) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
-	result := <-a.Srv.Store.UserAccessToken().GetByUser(userId, page*perPage, perPage)
-	if result.Err != nil {
-		return nil, result.Err
+	tokens, err := a.Srv.Store.UserAccessToken().GetByUser(userId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
 	}
-	tokens := result.Data.([]*model.UserAccessToken)
 	for _, token := range tokens {
 		token.Token = ""
 	}
@@ -394,14 +453,12 @@ func (a *App) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAcce
 }
 
 func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
-	result := <-a.Srv.Store.UserAccessToken().Search(term)
-	if result.Err != nil {
-		return nil, result.Err
+	tokens, err := a.Srv.Store.UserAccessToken().Search(term)
+	if err != nil {
+		return nil, err
 	}
-	tokens := result.Data.([]*model.UserAccessToken)
 	for _, token := range tokens {
 		token.Token = ""
 	}
 	return tokens, nil
-
 }

@@ -50,8 +50,11 @@ const (
 	POST_CUSTOM_TYPE_PREFIX     = "custom_"
 	POST_ME                     = "me"
 	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
-	POST_PROPS_ADDED_USER_ID    = "addedUserId"
-	POST_PROPS_DELETE_BY        = "deleteBy"
+
+	POST_PROPS_ADDED_USER_ID       = "addedUserId"
+	POST_PROPS_DELETE_BY           = "deleteBy"
+	POST_PROPS_OVERRIDE_ICON_URL   = "override_icon_url"
+	POST_PROPS_OVERRIDE_ICON_EMOJI = "override_icon_emoji"
 )
 
 type Post struct {
@@ -106,6 +109,12 @@ type SearchParameter struct {
 	Page                   *int    `json:"page"`
 	PerPage                *int    `json:"per_page"`
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
+}
+
+type AnalyticsPostCountsOptions struct {
+	TeamId        string
+	BotsOnly      bool
+	YesterdayOnly bool
 }
 
 func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {

@@ -336,12 +336,12 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if webCon.AllChannelMembers == nil {
-			result := <-webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false)
-			if result.Err != nil {
-				mlog.Error("webhub.shouldSendEvent: " + result.Err.Error())
+			result, err := webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false)
+			if err != nil {
+				mlog.Error("webhub.shouldSendEvent: " + err.Error())
 				return false
 			}
-			webCon.AllChannelMembers = result.Data.(map[string]string)
+			webCon.AllChannelMembers = result
 			webCon.LastAllChannelMembersTime = model.GetMillis()
 		}
 
@@ -354,6 +354,15 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// Only report events to users who are in the team for the event
 	if len(msg.Broadcast.TeamId) > 0 {
 		return webCon.IsMemberOfTeam(msg.Broadcast.TeamId)
+	}
+
+	if msg.Event == model.WEBSOCKET_EVENT_USER_UPDATED && webCon.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
+		canSee, err := webCon.App.UserCanSeeOtherUser(webCon.UserId, msg.Data["user"].(*model.User).Id)
+		if err != nil {
+			mlog.Error("webhub.shouldSendEvent: " + err.Error())
+			return false
+		}
+		return canSee
 	}
 
 	return true

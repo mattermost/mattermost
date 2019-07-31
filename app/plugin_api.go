@@ -342,7 +342,11 @@ func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *m
 	if err != nil {
 		return nil, err
 	}
-	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount}, nil
+	guestCount, err := api.app.GetChannelMemberCount(channelId)
+	if err != nil {
+		return nil, err
+	}
+	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount, GuestCount: guestCount}, nil
 }
 
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
@@ -500,12 +504,7 @@ func (api *PluginAPI) SetProfileImage(userId string, data []byte) *model.AppErro
 		return err
 	}
 
-	fileReader := bytes.NewReader(data)
-	err = api.app.SetProfileImageFromFile(userId, fileReader)
-	if err != nil {
-		return err
-	}
-	return nil
+	return api.app.SetProfileImageFromFile(userId, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
@@ -580,12 +579,7 @@ func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
 		return err
 	}
 
-	fileReader := bytes.NewReader(data)
-	err = api.app.SetTeamIconFromFile(team, fileReader)
-	if err != nil {
-		return err
-	}
-	return nil
+	return api.app.SetTeamIconFromFile(team, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
@@ -620,7 +614,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
 	}
 
-	return api.app.SendMail(to, subject, htmlBody)
+	return api.app.SendNotificationMail(to, subject, htmlBody)
 }
 
 // Plugin Section
@@ -755,4 +749,28 @@ func (api *PluginAPI) UpdateBotActive(userId string, active bool) (*model.Bot, *
 
 func (api *PluginAPI) PermanentDeleteBot(userId string) *model.AppError {
 	return api.app.PermanentDeleteBot(userId)
+}
+
+func (api *PluginAPI) GetBotIconImage(userId string) ([]byte, *model.AppError) {
+	if _, err := api.app.GetBot(userId, true); err != nil {
+		return nil, err
+	}
+
+	return api.app.GetBotIconImage(userId)
+}
+
+func (api *PluginAPI) SetBotIconImage(userId string, data []byte) *model.AppError {
+	if _, err := api.app.GetBot(userId, true); err != nil {
+		return err
+	}
+
+	return api.app.SetBotIconImage(userId, bytes.NewReader(data))
+}
+
+func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
+	if _, err := api.app.GetBot(userId, true); err != nil {
+		return err
+	}
+
+	return api.app.DeleteBotIconImage(userId)
 }

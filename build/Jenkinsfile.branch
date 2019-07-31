@@ -116,11 +116,20 @@ pipeline {
     }
 
     stage ('Build Docker mattermost-enterprise-edition') {
+      agent {
+        label 'default-mm-builder'
+      }
       steps {
-        script {
-          platformStages.platformCheckoutDockerRepo('master')
-          def MMBINARYPATH="https://releases.mattermost.com/mattermost-platform/" + env.BRANCH_NAME + "/mattermost-enterprise-linux-amd64.tar.gz"
-          platformStages.platformBuildDockerImage(MMBINARYPATH, env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT)
+        dir('src/github.com/mattermost/mattermost-server') {
+          withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
+            sh """
+            export TAG='${env.BRANCH_NAME}.${env.BUILD_NUMBER}.${SERVER_GIT_COMMIT}'
+            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:\${TAG} build
+            docker push mattermost/mattermost-enterprise-edition:\${TAG}
+            docker logout
+            """
+          }
         }
       }
     }

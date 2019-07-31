@@ -203,7 +203,7 @@ func printConfigValues(configMap map[string]interface{}, configSetting []string,
 	switch value.Kind() {
 	case reflect.Map:
 		if len(configSetting) == 1 {
-			return printMap(value, 0), nil
+			return printStringMap(value, 0), nil
 		}
 		return printConfigValues(res.(map[string]interface{}), configSetting[1:], name)
 	default:
@@ -250,20 +250,8 @@ func configMigrateCmdF(command *cobra.Command, args []string) error {
 	from := args[0]
 	to := args[1]
 
-	// Get source config store - invalid config will throw error here
-	fromConfigStore, err := config.NewStore(from, false)
-	if err != nil {
-		return errors.Wrapf(err, "failed to access config %s", from)
-	}
+	err := config.Migrate(from, to)
 
-	// Get destination config store
-	toConfigStore, err := config.NewStore(to, false)
-	if err != nil {
-		return errors.Wrapf(err, "failed to access config %s", to)
-	}
-
-	// Copy config from source to destination
-	_, err = toConfigStore.Set(fromConfigStore.Get())
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate config")
 	}

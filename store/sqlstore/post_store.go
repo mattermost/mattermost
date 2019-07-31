@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -463,8 +464,18 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 		s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
 	}
 
-	rpc := s.getRootPosts(channelId, offset, limit)
-	cpc := s.getParentsPosts(channelId, offset, limit)
+	rpc := make(chan store.StoreResult, 1)
+	go func() {
+		posts, err := s.getRootPosts(channelId, offset, limit)
+		rpc <- store.StoreResult{Data: posts, Err: err}
+		close(rpc)
+	}()
+	cpc := make(chan store.StoreResult, 1)
+	go func() {
+		posts, err := s.getParentsPosts(channelId, offset, limit)
+		cpc <- store.StoreResult{Data: posts, Err: err}
+		close(cpc)
+	}()
 
 	var err *model.AppError
 	list := model.NewPostList()
@@ -553,7 +564,7 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 
 	list := model.NewPostList()
 
-	var latestUpdate int64 = 0
+	latestUpdate := time
 
 	for _, p := range posts {
 		list.AddPost(p)
@@ -579,8 +590,7 @@ func (s *SqlPostStore) GetPostsAfter(channelId string, postId string, limit int,
 }
 
 func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int, offset int, before bool) (*model.PostList, *model.AppError) {
-	var direction string
-	var sort string
+	var direction, sort string
 	if before {
 		direction = "<"
 		sort = "DESC"
@@ -589,8 +599,7 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 		sort = "ASC"
 	}
 
-	var posts []*model.Post
-	var parents []*model.Post
+	var posts, parents []*model.Post
 	_, err := s.GetReplica().Select(&posts,
 		`SELECT
 			*
@@ -607,38 +616,40 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 	}
-	_, err = s.GetReplica().Select(&parents,
-		`SELECT
-			q2.*
-		FROM
-			Posts q2
-				INNER JOIN
-			(SELECT DISTINCT
-				q3.Id, q3.RootId
-			FROM
-				(SELECT
-					Id, RootId
-				FROM
-					Posts
-				WHERE
-					CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
-					AND ChannelId = :ChannelId
-					AND DeleteAt = 0
-				ORDER BY CreateAt `+sort+`
-				LIMIT :Limit OFFSET :Offset) q3 -- q3 contains the Id and RootId of every post in posts
-			) q1 -- q1 is q3 with the duplicates removed
-			ON q1.RootId = q2.Id -- This is the root post of a thread that appears in posts
-				OR q1.Id = q2.RootId -- This is a comment on a post in posts
-				OR (q2.RootId != '' AND q1.RootId = q2.RootId) -- This is a comment on a thread that appears in posts
-		WHERE
-			ChannelId = :ChannelId
-			AND DeleteAt = 0
-		ORDER BY CreateAt DESC`,
-		map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
 
-	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	if len(posts) > 0 {
+		rootIds := []string{}
+		for _, post := range posts {
+			rootIds = append(rootIds, post.Id)
+			if post.RootId != "" {
+				rootIds = append(rootIds, post.RootId)
+			}
+		}
+
+		keys, params := MapStringsToQueryParams(rootIds, "PostId")
+
+		params["ChannelId"] = channelId
+		params["PostId"] = postId
+		params["Limit"] = limit
+		params["Offset"] = offset
+
+		_, err = s.GetReplica().Select(&parents,
+			`SELECT
+				*
+			FROM
+				Posts
+			WHERE
+				(Id IN `+keys+` OR RootId IN `+keys+`)
+				AND ChannelId = :ChannelId
+				AND DeleteAt = 0
+			ORDER BY CreateAt DESC`,
+			params)
+
+		if err != nil {
+			return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+		}
 	}
+
 	list := model.NewPostList()
 
 	// We need to flip the order if we selected backwards
@@ -658,55 +669,122 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 	for _, p := range parents {
 		list.AddPost(p)
 	}
+
 	return list, nil
 }
 
-func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_root_posts.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+	return s.getPostIdAroundTime(channelId, time, true)
 }
 
-func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts,
-			`SELECT
-			    q2.*
-			FROM
-			    Posts q2
-			        INNER JOIN
-			    (SELECT DISTINCT
-			        q3.RootId
-			    FROM
-			        (SELECT
-						RootId
-					FROM
-						Posts
-					WHERE
-						ChannelId = :ChannelId1
-							AND DeleteAt = 0
-					ORDER BY CreateAt DESC
-					LIMIT :Limit OFFSET :Offset) q3
-			    WHERE q3.RootId != '') q1
-			    ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
-			WHERE
-			    ChannelId = :ChannelId2
-			        AND DeleteAt = 0
-			ORDER BY CreateAt`,
-			map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
+func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+	return s.getPostIdAroundTime(channelId, time, false)
+}
+
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool) (string, *model.AppError) {
+	var direction sq.Sqlizer
+	var sort string
+	if before {
+		direction = sq.Lt{"CreateAt": time}
+		sort = "DESC"
+	} else {
+		direction = sq.Gt{"CreateAt": time}
+		sort = "ASC"
+	}
+
+	query := s.getQueryBuilder().
+		Select("Id").
+		From("Posts").
+		Where(sq.And{
+			direction,
+			sq.Eq{"ChannelId": channelId},
+			sq.Eq{"DeleteAt": int(0)},
+		}).
+		OrderBy("CreateAt " + sort).
+		Limit(1)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return "", model.NewAppError("SqlPostStore.getPostIdAroundTime", "store.sql_post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var postId string
+	if err := s.GetMaster().SelectOne(&postId, queryString, args...); err != nil {
+		if err != sql.ErrNoRows {
+			return "", model.NewAppError("SqlPostStore.getPostIdAroundTime", "store.sql_post.get_post_id_around.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 		}
-	})
+	}
+
+	return postId, nil
+}
+
+func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.And{
+			sq.Gt{"CreateAt": time},
+			sq.Eq{"ChannelId": channelId},
+			sq.Eq{"DeleteAt": int(0)},
+		}).
+		OrderBy("CreateAt ASC").
+		Limit(1)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostAfterTime", "store.sql_post.get_post_after_time.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var post *model.Post
+	if err := s.GetMaster().SelectOne(&post, queryString, args...); err != nil {
+		if err != sql.ErrNoRows {
+			return nil, model.NewAppError("SqlPostStore.GetPostAfterTime", "store.sql_post.get_post_after_time.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return post, nil
+}
+
+func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_root_posts.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
+}
+
+func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts,
+		`SELECT
+			q2.*
+		FROM
+			Posts q2
+				INNER JOIN
+			(SELECT DISTINCT
+				q3.RootId
+			FROM
+				(SELECT
+					RootId
+				FROM
+					Posts
+				WHERE
+					ChannelId = :ChannelId1
+						AND DeleteAt = 0
+				ORDER BY CreateAt DESC
+				LIMIT :Limit OFFSET :Offset) q3
+			WHERE q3.RootId != '') q1
+			ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
+		WHERE
+			ChannelId = :ChannelId2
+				AND DeleteAt = 0
+		ORDER BY CreateAt`,
+		map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
 var specialSearchChar = []string{
@@ -721,47 +799,46 @@ var specialSearchChar = []string{
 	":",
 }
 
-func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		queryParams := map[string]interface{}{
-			"TeamId": teamId,
-			"UserId": userId,
+func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
+	queryParams := map[string]interface{}{
+		"TeamId": teamId,
+		"UserId": userId,
+	}
+
+	termMap := map[string]bool{}
+	terms := params.Terms
+	list := model.NewPostList()
+
+	if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 && len(params.OnDate) == 0 && len(params.AfterDate) == 0 && len(params.BeforeDate) == 0 {
+		return list, nil
+	}
+
+	searchType := "Message"
+	if params.IsHashtag {
+		searchType = "Hashtags"
+		for _, term := range strings.Split(terms, " ") {
+			termMap[strings.ToUpper(term)] = true
 		}
+	}
 
-		termMap := map[string]bool{}
-		terms := params.Terms
+	// these chars have special meaning and can be treated as spaces
+	for _, c := range specialSearchChar {
+		terms = strings.Replace(terms, c, " ", -1)
+	}
 
-		if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 && len(params.OnDate) == 0 && len(params.AfterDate) == 0 && len(params.BeforeDate) == 0 {
-			result.Data = []*model.Post{}
-			return
-		}
+	var posts []*model.Post
 
-		searchType := "Message"
-		if params.IsHashtag {
-			searchType = "Hashtags"
-			for _, term := range strings.Split(terms, " ") {
-				termMap[strings.ToUpper(term)] = true
-			}
-		}
+	deletedQueryPart := "AND DeleteAt = 0"
+	if params.IncludeDeletedChannels {
+		deletedQueryPart = ""
+	}
 
-		// these chars have special meaning and can be treated as spaces
-		for _, c := range specialSearchChar {
-			terms = strings.Replace(terms, c, " ", -1)
-		}
+	userIdPart := "AND UserId = :UserId"
+	if params.SearchWithoutUserId {
+		userIdPart = ""
+	}
 
-		var posts []*model.Post
-
-		deletedQueryPart := "AND DeleteAt = 0"
-		if params.IncludeDeletedChannels {
-			deletedQueryPart = ""
-		}
-
-		userIdPart := "AND UserId = :UserId"
-		if params.SearchWithoutUserId {
-			userIdPart = ""
-		}
-
-		searchQuery := `
+	searchQuery := `
 			SELECT
 				*
 			FROM
@@ -787,35 +864,35 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 				ORDER BY CreateAt DESC
 			LIMIT 100`
 
-		if len(params.InChannels) > 1 {
-			inClause := ":InChannel0"
-			queryParams["InChannel0"] = params.InChannels[0]
+	if len(params.InChannels) > 1 {
+		inClause := ":InChannel0"
+		queryParams["InChannel0"] = params.InChannels[0]
 
-			for i := 1; i < len(params.InChannels); i++ {
-				paramName := "InChannel" + strconv.FormatInt(int64(i), 10)
-				inClause += ", :" + paramName
-				queryParams[paramName] = params.InChannels[i]
-			}
-
-			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name IN ("+inClause+")", 1)
-		} else if len(params.InChannels) == 1 {
-			queryParams["InChannel"] = params.InChannels[0]
-			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name = :InChannel", 1)
-		} else {
-			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "", 1)
+		for i := 1; i < len(params.InChannels); i++ {
+			paramName := "InChannel" + strconv.FormatInt(int64(i), 10)
+			inClause += ", :" + paramName
+			queryParams[paramName] = params.InChannels[i]
 		}
 
-		if len(params.FromUsers) > 1 {
-			inClause := ":FromUser0"
-			queryParams["FromUser0"] = params.FromUsers[0]
+		searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name IN ("+inClause+")", 1)
+	} else if len(params.InChannels) == 1 {
+		queryParams["InChannel"] = params.InChannels[0]
+		searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name = :InChannel", 1)
+	} else {
+		searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "", 1)
+	}
 
-			for i := 1; i < len(params.FromUsers); i++ {
-				paramName := "FromUser" + strconv.FormatInt(int64(i), 10)
-				inClause += ", :" + paramName
-				queryParams[paramName] = params.FromUsers[i]
-			}
+	if len(params.FromUsers) > 1 {
+		inClause := ":FromUser0"
+		queryParams["FromUser0"] = params.FromUsers[0]
 
-			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
+		for i := 1; i < len(params.FromUsers); i++ {
+			paramName := "FromUser" + strconv.FormatInt(int64(i), 10)
+			inClause += ", :" + paramName
+			queryParams[paramName] = params.FromUsers[i]
+		}
+
+		searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
 				AND UserId IN (
 					SELECT
 						Id
@@ -826,9 +903,9 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 						TeamMembers.TeamId = :TeamId
 						AND Users.Id = TeamMembers.UserId
 						AND Username IN (`+inClause+`))`, 1)
-		} else if len(params.FromUsers) == 1 {
-			queryParams["FromUser"] = params.FromUsers[0]
-			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
+	} else if len(params.FromUsers) == 1 {
+		queryParams["FromUser"] = params.FromUsers[0]
+		searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
 				AND UserId IN (
 					SELECT
 						Id
@@ -839,106 +916,104 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 						TeamMembers.TeamId = :TeamId
 						AND Users.Id = TeamMembers.UserId
 						AND Username = :FromUser)`, 1)
-		} else {
-			searchQuery = strings.Replace(searchQuery, "POST_FILTER", "", 1)
+	} else {
+		searchQuery = strings.Replace(searchQuery, "POST_FILTER", "", 1)
+	}
+
+	// handle after: before: on: filters
+	if len(params.AfterDate) > 1 || len(params.BeforeDate) > 1 || len(params.OnDate) > 1 {
+		if len(params.OnDate) > 1 {
+			onDateStart, onDateEnd := params.GetOnDateMillis()
+			queryParams["OnDateStart"] = strconv.FormatInt(onDateStart, 10)
+			queryParams["OnDateEnd"] = strconv.FormatInt(onDateEnd, 10)
+
+			// between `on date` start of day and end of day
+			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd ", 1)
+		} else if len(params.AfterDate) > 1 && len(params.BeforeDate) > 1 {
+			afterDate := params.GetAfterDateMillis()
+			beforeDate := params.GetBeforeDateMillis()
+			queryParams["OnDateStart"] = strconv.FormatInt(afterDate, 10)
+			queryParams["OnDateEnd"] = strconv.FormatInt(beforeDate, 10)
+
+			// between clause
+			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd ", 1)
+		} else if len(params.AfterDate) > 1 {
+			afterDate := params.GetAfterDateMillis()
+			queryParams["AfterDate"] = strconv.FormatInt(afterDate, 10)
+
+			// greater than `after date`
+			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt >= :AfterDate ", 1)
+		} else if len(params.BeforeDate) > 1 {
+			beforeDate := params.GetBeforeDateMillis()
+			queryParams["BeforeDate"] = strconv.FormatInt(beforeDate, 10)
+
+			// less than `before date`
+			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt <= :BeforeDate ", 1)
+		}
+	} else {
+		// no create date filters set
+		searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "", 1)
+	}
+
+	if terms == "" {
+		// we've already confirmed that we have a channel or user to search for
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		// Parse text for wildcards
+		if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
+			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 		}
 
-		// handle after: before: on: filters
-		if len(params.AfterDate) > 1 || len(params.BeforeDate) > 1 || len(params.OnDate) > 1 {
-			if len(params.OnDate) > 1 {
-				onDateStart, onDateEnd := params.GetOnDateMillis()
-				queryParams["OnDateStart"] = strconv.FormatInt(onDateStart, 10)
-				queryParams["OnDateEnd"] = strconv.FormatInt(onDateEnd, 10)
-
-				// between `on date` start of day and end of day
-				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd ", 1)
-			} else if len(params.AfterDate) > 1 && len(params.BeforeDate) > 1 {
-				afterDate := params.GetAfterDateMillis()
-				beforeDate := params.GetBeforeDateMillis()
-				queryParams["OnDateStart"] = strconv.FormatInt(afterDate, 10)
-				queryParams["OnDateEnd"] = strconv.FormatInt(beforeDate, 10)
-
-				// between clause
-				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd ", 1)
-			} else if len(params.AfterDate) > 1 {
-				afterDate := params.GetAfterDateMillis()
-				queryParams["AfterDate"] = strconv.FormatInt(afterDate, 10)
-
-				// greater than `after date`
-				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt >= :AfterDate ", 1)
-			} else if len(params.BeforeDate) > 1 {
-				beforeDate := params.GetBeforeDateMillis()
-				queryParams["BeforeDate"] = strconv.FormatInt(beforeDate, 10)
-
-				// less than `before date`
-				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt <= :BeforeDate ", 1)
-			}
+		if params.OrTerms {
+			terms = strings.Join(strings.Fields(terms), " | ")
 		} else {
-			// no create date filters set
-			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "", 1)
+			terms = strings.Join(strings.Fields(terms), " & ")
 		}
 
-		if terms == "" {
-			// we've already confirmed that we have a channel or user to search for
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-		} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			// Parse text for wildcards
-			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
-				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
+		searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery(:Terms)", searchType)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+
+		if !params.OrTerms {
+			splitTerms := strings.Fields(terms)
+			for i, t := range strings.Fields(terms) {
+				splitTerms[i] = "+" + t
 			}
 
-			if params.OrTerms {
-				terms = strings.Join(strings.Fields(terms), " | ")
-			} else {
-				terms = strings.Join(strings.Fields(terms), " & ")
-			}
+			terms = strings.Join(splitTerms, " ")
+		}
+	}
 
-			searchClause := fmt.Sprintf("AND %s @@  to_tsquery(:Terms)", searchType)
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	queryParams["Terms"] = terms
 
-			if !params.OrTerms {
-				splitTerms := strings.Fields(terms)
-				for i, t := range strings.Fields(terms) {
-					splitTerms[i] = "+" + t
+	_, err := s.GetSearchReplica().Select(&posts, searchQuery, queryParams)
+	if err != nil {
+		mlog.Warn(fmt.Sprintf("Query error searching posts: %v", err.Error()))
+		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
+		return list, nil
+	}
+
+	for _, p := range posts {
+		if searchType == "Hashtags" {
+			exactMatch := false
+			for _, tag := range strings.Split(p.Hashtags, " ") {
+				if termMap[strings.ToUpper(tag)] {
+					exactMatch = true
 				}
-
-				terms = strings.Join(splitTerms, " ")
+			}
+			if !exactMatch {
+				continue
 			}
 		}
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
 
-		queryParams["Terms"] = terms
+	list.MakeNonNil()
 
-		list := model.NewPostList()
-
-		_, err := s.GetSearchReplica().Select(&posts, searchQuery, queryParams)
-		if err != nil {
-			mlog.Warn(fmt.Sprintf("Query error searching posts: %v", err.Error()))
-			// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
-		} else {
-			for _, p := range posts {
-				if searchType == "Hashtags" {
-					exactMatch := false
-					for _, tag := range strings.Split(p.Hashtags, " ") {
-						if termMap[strings.ToUpper(tag)] {
-							exactMatch = true
-						}
-					}
-					if !exactMatch {
-						continue
-					}
-				}
-				list.AddPost(p)
-				list.AddOrder(p.Id)
-			}
-		}
-
-		list.MakeNonNil()
-
-		result.Data = list
-	})
+	return list, nil
 }
 
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
@@ -991,14 +1066,19 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 	return rows, nil
 }
 
-func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
+func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, *model.AppError) {
+
 	query :=
 		`SELECT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 		        COUNT(Posts.Id) AS Value
 		    FROM Posts`
 
-	if len(teamId) > 0 {
+	if options.BotsOnly {
+		query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
+	}
+
+	if len(options.TeamId) > 0 {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
 	} else {
 		query += " WHERE"
@@ -1016,7 +1096,11 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsR
 				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
 			FROM Posts`
 
-		if len(teamId) > 0 {
+		if options.BotsOnly {
+			query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
+		}
+
+		if len(options.TeamId) > 0 {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
 		} else {
 			query += " WHERE"
@@ -1031,12 +1115,15 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsR
 
 	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
 	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
+	if options.YesterdayOnly {
+		start = utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -1)))
+	}
 
 	var rows model.AnalyticsRows
 	_, err := s.GetReplica().Select(
 		&rows,
 		query,
-		map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
+		map[string]interface{}{"TeamId": options.TeamId, "StartTime": start, "EndTime": end})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "store.sql_post.analytics_posts_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1229,42 +1316,68 @@ func (s *SqlPostStore) GetMaxPostSize() int {
 }
 
 func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
-	var posts []*model.PostForExport
-	_, err := s.GetSearchReplica().Select(&posts, `
-                SELECT
-                    p1.*,
-                    Users.Username as Username,
-                    Teams.Name as TeamName,
-                    Channels.Name as ChannelName
-                FROM
-                    Posts p1
-                INNER JOIN
-                    Channels ON p1.ChannelId = Channels.Id
-                INNER JOIN
-                    Teams ON Channels.TeamId = Teams.Id
-                INNER JOIN
-                    Users ON p1.UserId = Users.Id
-                WHERE
-                    p1.Id > :AfterId
-                    AND p1.ParentId = ''
-                    AND p1.DeleteAt = 0
-					AND Channels.DeleteAt = 0
-					AND Teams.DeleteAt = 0
-                ORDER BY
-                    p1.Id
-                LIMIT
-                    :Limit`,
-		map[string]interface{}{"Limit": limit, "AfterId": afterId})
+	for {
+		var rootIds []string
+		_, err := s.GetReplica().Select(&rootIds,
+			`SELECT
+				Id
+			FROM
+				Posts
+			WHERE
+				Id > :AfterId
+				AND RootId = ''
+				AND DeleteAt = 0
+			ORDER BY Id
+			LIMIT :Limit`,
+			map[string]interface{}{"Limit": limit, "AfterId": afterId})
+		if err != nil {
+			return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error",
+				nil, err.Error(), http.StatusInternalServerError)
+		}
 
-	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error",
-			nil, err.Error(), http.StatusInternalServerError)
+		var postsForExport []*model.PostForExport
+		if len(rootIds) == 0 {
+			return postsForExport, nil
+		}
+
+		keys, params := MapStringsToQueryParams(rootIds, "PostId")
+		_, err = s.GetSearchReplica().Select(&postsForExport, `
+			SELECT
+				p1.*,
+				Users.Username as Username,
+				Teams.Name as TeamName,
+				Channels.Name as ChannelName
+			FROM
+				(Select * FROM Posts WHERE Id IN `+keys+`) p1
+			INNER JOIN
+				Channels ON p1.ChannelId = Channels.Id
+			INNER JOIN
+				Teams ON Channels.TeamId = Teams.Id
+			INNER JOIN
+				Users ON p1.UserId = Users.Id
+			WHERE
+				Channels.DeleteAt = 0
+				AND Teams.DeleteAt = 0
+			ORDER BY
+				p1.Id`,
+			params)
+		if err != nil {
+			return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error",
+				nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if len(postsForExport) == 0 {
+			// All of the posts were in channels or teams that were deleted.
+			// Update the afterId and try again.
+			afterId = rootIds[len(rootIds)-1]
+			continue
+		}
+
+		return postsForExport, nil
 	}
-	return posts, nil
 }
 
-func (s *SqlPostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError) {
-
+func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExport, *model.AppError) {
 	var posts []*model.ReplyForExport
 	_, err := s.GetSearchReplica().Select(&posts, `
 			SELECT
@@ -1275,11 +1388,11 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForEx
 			INNER JOIN
 				Users ON Posts.UserId = Users.Id
 			WHERE
-				Posts.ParentId = :ParentId
+				Posts.RootId = :RootId
 				AND Posts.DeleteAt = 0
 			ORDER BY
 				Posts.Id`,
-		map[string]interface{}{"ParentId": parentId})
+		map[string]interface{}{"RootId": rootId})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error", nil, err.Error(), http.StatusInternalServerError)

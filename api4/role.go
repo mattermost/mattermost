@@ -97,6 +97,10 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.License() == nil && patch.Permissions != nil {
+		if oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest" {
+			c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
+			return
+		}
 		allowedPermissions := []string{
 			model.PERMISSION_CREATE_TEAM.Id,
 			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
@@ -123,6 +127,11 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+
+	if c.App.License() != nil && (oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest") && !*c.App.License().Features.GuestAccountsPermissions {
+		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
+		return
 	}
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {

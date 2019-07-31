@@ -9,6 +9,7 @@ import (
 
 func (api *API) InitUser() {
 	api.Router.Handle("user_typing", api.ApiWebSocketHandler(api.userTyping))
+	api.Router.Handle("user_update_active_status", api.ApiWebSocketHandler(api.userUpdateActiveStatus))
 }
 
 func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -30,6 +31,27 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 	event.Add("parent_id", parentId)
 	event.Add("user_id", req.Session.UserId)
 	api.App.Publish(event)
+
+	return nil, nil
+}
+
+func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var ok bool
+	var userIsActive bool
+	if userIsActive, ok = req.Data["user_is_active"].(bool); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "user_is_active")
+	}
+
+	var manual bool
+	if manual, ok = req.Data["manual"].(bool); !ok {
+		manual = false
+	}
+
+	if userIsActive {
+		api.App.SetStatusOnline(req.Session.UserId, manual)
+	} else {
+		api.App.SetStatusAwayIfNeeded(req.Session.UserId, manual)
+	}
 
 	return nil, nil
 }
