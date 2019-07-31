@@ -1416,9 +1416,9 @@ func TestGetLinkMetadata(t *testing.T) {
 			w.Write([]byte("</html>"))
 		} else if strings.HasPrefix(r.URL.Path, "/mixed") {
 			for _, acceptedType := range r.Header["Accept"] {
-				if acceptedType == "image/*" || acceptedType == "image/png" {
+				if strings.HasPrefix(acceptedType, "image/*") || strings.HasPrefix(acceptedType, "image/png") {
 					writeImage(10, 10)
-				} else if acceptedType == "text/html" {
+				} else if strings.HasPrefix(acceptedType, "text/html") {
 					writeHTML("mixed")
 				}
 			}
