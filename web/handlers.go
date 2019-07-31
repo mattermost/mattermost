@@ -16,33 +16,41 @@ import (
 
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
-		App:            w.App,
-		HandleFunc:     h,
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            false,
 	}
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
+	// on server start and intentionally requires a restart to take effect.
+	subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
+
 	return &Handler{
-		App:            w.App,
-		HandleFunc:     h,
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       true,
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            true,
+
+		cspShaDirective: utils.GetSubpathScriptHash(subpath),
 	}
 }
 
 type Handler struct {
-	App            *app.App
-	HandleFunc     func(*Context, http.ResponseWriter, *http.Request)
-	RequireSession bool
-	TrustRequester bool
-	RequireMfa     bool
-	IsStatic       bool
+	GetGlobalAppOptions app.AppOptionCreator
+	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
+	RequireSession      bool
+	TrustRequester      bool
+	RequireMfa          bool
+	IsStatic            bool
+
+	cspShaDirective string
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -50,29 +58,23 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path))
 
 	c := &Context{}
-	c.App = h.App
-	c.T, _ = utils.GetTranslationsAndLocale(w, r)
-	c.RequestId = model.NewId()
-	c.IpAddress = utils.GetIpAddress(r)
+	c.App = app.New(
+		h.GetGlobalAppOptions()...,
+	)
+	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
+	c.App.RequestId = model.NewId()
+	c.App.IpAddress = utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader)
+	c.App.UserAgent = r.UserAgent()
+	c.App.AcceptLanguage = r.Header.Get("Accept-Language")
 	c.Params = ParamsFromRequest(r)
-	c.Path = r.URL.Path
+	c.App.Path = r.URL.Path
 	c.Log = c.App.Log
-
-	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
-
-	// CSRF Check
-	if tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester {
-		if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
-			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
-			token = ""
-		}
-	}
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
 
-	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
+	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
@@ -82,7 +84,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.IsStatic {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-		w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
+		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
+		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
+			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
+			h.cspShaDirective,
+		))
 	} else {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")
@@ -92,9 +98,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
+
 	if len(token) != 0 {
 		session, err := c.App.GetSession(token)
-
 		if err != nil {
 			c.Log.Info("Invalid session", mlog.Err(err))
 			if err.StatusCode == http.StatusInternalServerError {
@@ -106,20 +113,22 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
-			c.Session = *session
+			c.App.Session = *session
 		}
 
 		// Rate limit by UserID
-		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.Session.UserId, w) {
+		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.App.Session.UserId, w) {
 			return
 		}
+
+		h.checkCSRFToken(c, r, token, tokenLocation, session)
 	}
 
 	c.Log = c.App.Log.With(
-		mlog.String("path", c.Path),
-		mlog.String("request_id", c.RequestId),
-		mlog.String("ip_addr", c.IpAddress),
-		mlog.String("user_id", c.Session.UserId),
+		mlog.String("path", c.App.Path),
+		mlog.String("request_id", c.App.RequestId),
+		mlog.String("ip_addr", c.App.IpAddress),
+		mlog.String("user_id", c.App.Session.UserId),
 		mlog.String("method", r.Method),
 	)
 
@@ -137,8 +146,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Handle errors that have occurred
 	if c.Err != nil {
-		c.Err.Translate(c.T)
-		c.Err.RequestId = c.RequestId
+		c.Err.Translate(c.App.T)
+		c.Err.RequestId = c.App.RequestId
 
 		if c.Err.Id == "api.context.session_expired.app_error" {
 			c.LogInfo(c.Err)
@@ -163,7 +172,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err.IsOAuth = false
 		}
 
-		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || len(r.Header.Get("X-Mobile-App")) > 0 {
+		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || len(r.Header.Get("X-Mobile-App")) > 0 {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
@@ -183,4 +192,51 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
 		}
 	}
+}
+
+// checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
+// a CSRF check occurred and whether or not it succeeded.
+func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
+	csrfCheckNeeded := c.Err == nil && tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester && r.Method != "GET"
+	csrfCheckPassed := false
+
+	if csrfCheckNeeded {
+		csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
+
+		if csrfHeader == session.GetCSRF() {
+			csrfCheckPassed = true
+		} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
+			csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
+
+			sid := ""
+			userId := ""
+
+			if session != nil {
+				sid = session.Id
+				userId = session.UserId
+			}
+
+			fields := []mlog.Field{
+				mlog.String("path", r.URL.Path),
+				mlog.String("ip", r.RemoteAddr),
+				mlog.String("session_id", sid),
+				mlog.String("user_id", userId),
+			}
+
+			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
+				c.Log.Warn(csrfErrorMessage, fields...)
+			} else {
+				c.Log.Debug(csrfErrorMessage, fields...)
+				csrfCheckPassed = true
+			}
+		}
+
+		if !csrfCheckPassed {
+			c.App.Session = model.Session{}
+			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
+		}
+	}
+
+	return csrfCheckNeeded, csrfCheckPassed
 }

@@ -165,5 +165,5 @@ func (s *IndicesFlushService) Do(ctx context.Context) (*IndicesFlushResponse, er
 // -- Result of a flush request.
 
 type IndicesFlushResponse struct {
-	Shards shardsInfo `json:"_shards"`
+	Shards *ShardsInfo `json:"_shards"`
 }

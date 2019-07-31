@@ -91,6 +91,15 @@ const (
 	LensModel                  FieldName = "LensModel"
 )
 
+// Windows-specific tags
+const (
+	XPTitle    FieldName = "XPTitle"
+	XPComment  FieldName = "XPComment"
+	XPAuthor   FieldName = "XPAuthor"
+	XPKeywords FieldName = "XPKeywords"
+	XPSubject  FieldName = "XPSubject"
+)
+
 // thumbnail fields
 const (
 	ThumbJPEGInterchangeFormat       FieldName = "ThumbJPEGInterchangeFormat"       // offset to thumb jpeg SOI
@@ -165,6 +174,13 @@ var exifFields = map[uint16]FieldName{
 	0x0131: Software,
 	0x013B: Artist,
 	0x8298: Copyright,
+
+	// Windows-specific tags
+	0x9c9b: XPTitle,
+	0x9c9c: XPComment,
+	0x9c9d: XPAuthor,
+	0x9c9e: XPKeywords,
+	0x9c9f: XPSubject,
 
 	// private tags
 	exifPointer: ExifIFDPointer,

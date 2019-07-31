@@ -79,12 +79,12 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucked_create.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	mlog.Info("Connection to S3 or minio is good. Bucket exists.")
+	mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
 	return nil
 }
 
 // Caller must close the first return value
-func (b *S3FileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
+func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, *model.AppError) {
 	s3Clnt, err := b.s3New()
 	if err != nil {
 		return nil, model.NewAppError("Reader", "api.file.reader.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -238,9 +238,13 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) 
 	}
 
 	doneCh := make(chan struct{})
-
 	defer close(doneCh)
 
+	if !strings.HasSuffix(path, "/") && len(path) > 0 {
+		// s3Clnt returns only the path itself when "/" is not present
+		// appending "/" to make it consistent across all filesstores
+		path = path + "/"
+	}
 	for object := range s3Clnt.ListObjects(b.bucket, path, false, doneCh) {
 		if object.Err != nil {
 			return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, object.Err.Error(), http.StatusInternalServerError)
@@ -281,13 +285,13 @@ func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
 }
 
 func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	if len(settings.AmazonS3Bucket) == 0 {
+	if settings.AmazonS3Bucket == nil || len(*settings.AmazonS3Bucket) == 0 {
 		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
 	}
 
 	// if S3 endpoint is not set call the set defaults to set that
-	if len(settings.AmazonS3Endpoint) == 0 {
-		settings.SetDefaults()
+	if settings.AmazonS3Endpoint == nil || len(*settings.AmazonS3Endpoint) == 0 {
+		settings.SetDefaults(true)
 	}
 
 	return nil

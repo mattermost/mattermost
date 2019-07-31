@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 type AutoPostCreator struct {
@@ -43,7 +44,7 @@ func NewAutoPostCreator(client *model.Client4, channelid string) *AutoPostCreato
 func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 	filename := cfg.ImageFilenames[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(cfg.ImageFilenames) - 1})]
 
-	path, _ := utils.FindDir("web/static/images")
+	path, _ := fileutils.FindDir("web/static/images")
 	file, err := os.Open(filepath.Join(path, filename))
 	if err != nil {
 		return nil, false

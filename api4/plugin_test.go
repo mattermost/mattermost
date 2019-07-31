@@ -6,68 +6,118 @@ package api4
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/testlib"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPlugin(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	enablePlugins := *th.App.Config().PluginSettings.Enable
-	enableUploadPlugins := *th.App.Config().PluginSettings.EnableUploads
 	statesJson, _ := json.Marshal(th.App.Config().PluginSettings.PluginStates)
 	states := map[string]*model.PluginState{}
 	json.Unmarshal(statesJson, &states)
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = enablePlugins
-			*cfg.PluginSettings.EnableUploads = enableUploadPlugins
-			cfg.PluginSettings.PluginStates = states
-		})
-		th.App.SaveConfig(th.App.Config(), false)
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.AllowInsecureDownloadUrl = true
 	})
 
-	path, _ := utils.FindDir("tests")
-	file, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file.Close()
+
+	// Install from URL
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(tarData)
+	}))
+	defer func() { testServer.Close() }()
+
+	url := testServer.URL
+
+	manifest, resp := th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	CheckNoError(t, resp)
+	assert.Equal(t, "testplugin", manifest.Id)
+
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	CheckBadRequestStatus(t, resp)
+
+	manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(url, true)
+	CheckNoError(t, resp)
+	assert.Equal(t, "testplugin", manifest.Id)
+
+	// Stored in File Store: Install Plugin from URL case
+	pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+	assert.Nil(t, err)
+	assert.True(t, pluginStored)
+
+	th.App.RemovePlugin(manifest.Id)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
+
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+
+	_, resp = th.Client.InstallPluginFromUrl(url, false)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl("http://nodata", false)
+	CheckBadRequestStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.AllowInsecureDownloadUrl = false })
+
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	CheckBadRequestStatus(t, resp)
 
 	// Successful upload
-	manifest, resp := th.SystemAdminClient.UploadPlugin(file)
+	manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	CheckNoError(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
+
+	manifest, resp = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
 	defer os.RemoveAll("plugins/testplugin")
 	CheckNoError(t, resp)
 
 	assert.Equal(t, "testplugin", manifest.Id)
+
+	// Stored in File Store: Upload Plugin case
+	pluginStored, err = th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+	assert.Nil(t, err)
+	assert.True(t, pluginStored)
 
 	// Upload error cases
 	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader([]byte("badfile")))
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-	_, resp = th.SystemAdminClient.UploadPlugin(file)
+	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = false
 	})
-	_, resp = th.SystemAdminClient.UploadPlugin(file)
+	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
-	_, resp = th.Client.UploadPlugin(file)
+	_, resp = th.Client.UploadPlugin(bytes.NewReader(tarData))
 	CheckForbiddenStatus(t, resp)
 
 	// Successful gets
@@ -185,4 +235,76 @@ func TestPlugin(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.RemovePlugin("bad.id")
 	CheckBadRequestStatus(t, resp)
+}
+
+func TestNotifyClusterPluginEvent(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	testCluster := &testlib.FakeClusterInterface{}
+	th.Server.Cluster = testCluster
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Successful upload
+	manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	CheckNoError(t, resp)
+	require.Equal(t, "testplugin", manifest.Id)
+
+	// Stored in File Store: Upload Plugin case
+	expectedPath := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
+	pluginStored, err := th.App.FileExists(expectedPath)
+	require.Nil(t, err)
+	require.True(t, pluginStored)
+
+	expectedPluginData := model.PluginEventData{
+		Id: manifest.Id,
+	}
+	expectedInstallMessage := &model.ClusterMessage{
+		Event:            model.CLUSTER_EVENT_INSTALL_PLUGIN,
+		SendType:         model.CLUSTER_SEND_RELIABLE,
+		WaitForAllToSend: true,
+		Data:             expectedPluginData.ToJson(),
+	}
+	expectedMessages := findClusterMessages(model.CLUSTER_EVENT_INSTALL_PLUGIN, testCluster.GetMessages())
+	require.Equal(t, []*model.ClusterMessage{expectedInstallMessage}, expectedMessages)
+
+	// Successful remove
+	testCluster.ClearMessages()
+
+	ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
+	CheckNoError(t, resp)
+	require.True(t, ok)
+
+	expectedRemoveMessage := &model.ClusterMessage{
+		Event:            model.CLUSTER_EVENT_REMOVE_PLUGIN,
+		SendType:         model.CLUSTER_SEND_RELIABLE,
+		WaitForAllToSend: true,
+		Data:             expectedPluginData.ToJson(),
+	}
+	expectedMessages = findClusterMessages(model.CLUSTER_EVENT_REMOVE_PLUGIN, testCluster.GetMessages())
+	require.Equal(t, []*model.ClusterMessage{expectedRemoveMessage}, expectedMessages)
+
+	pluginStored, err = th.App.FileExists(expectedPath)
+	require.Nil(t, err)
+	require.False(t, pluginStored)
+}
+
+func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.ClusterMessage {
+	var result []*model.ClusterMessage
+	for _, msg := range msgs {
+		if msg.Event == event {
+			result = append(result, msg)
+		}
+	}
+	return result
 }

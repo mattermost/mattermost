@@ -12,7 +12,7 @@ import (
 )
 
 func TestClusterDiscoveryService(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	ds := th.App.NewClusterDiscoveryService()

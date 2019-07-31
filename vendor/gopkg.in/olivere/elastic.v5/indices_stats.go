@@ -196,7 +196,7 @@ func (s *IndicesStatsService) Do(ctx context.Context) (*IndicesStatsResponse, er
 // IndicesStatsResponse is the response of IndicesStatsService.Do.
 type IndicesStatsResponse struct {
 	// Shards provides information returned from shards.
-	Shards shardsInfo `json:"_shards"`
+	Shards *ShardsInfo `json:"_shards"`
 
 	// All provides summary stats about all indices.
 	All *IndexStats `json:"_all,omitempty"`
@@ -208,8 +208,9 @@ type IndicesStatsResponse struct {
 
 // IndexStats is index stats for a specific index.
 type IndexStats struct {
-	Primaries *IndexStatsDetails `json:"primaries,omitempty"`
-	Total     *IndexStatsDetails `json:"total,omitempty"`
+	Primaries *IndexStatsDetails              `json:"primaries,omitempty"`
+	Total     *IndexStatsDetails              `json:"total,omitempty"`
+	Shards    map[string][]*IndexStatsDetails `json:"shards,omitempty"`
 }
 
 type IndexStatsDetails struct {
@@ -292,7 +293,6 @@ type IndexStatsSearch struct {
 	SuggestTimeInMillis int64  `json:"suggest_time_in_millis,omitempty"`
 	SuggestCurrent      int64  `json:"suggest_current,omitempty"`
 }
-
 
 type IndexStatsMerges struct {
 	Current            int64  `json:"current,omitempty"`

@@ -7,4 +7,5 @@ package imports
 
 import (
 	_ "github.com/mattermost/mattermost-server/migrations"
+	_ "github.com/mattermost/mattermost-server/plugin/scheduler"
 )

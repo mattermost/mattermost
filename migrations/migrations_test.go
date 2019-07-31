@@ -4,55 +4,13 @@
 package migrations
 
 import (
-	"flag"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils"
 )
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-
-	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
-	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	}))
-
-	utils.TranslationsPreInit()
-
-	// In the case where a dev just wants to run a single test, it's faster to just use the default
-	// store.
-	if filter := flag.Lookup("test.run").Value.String(); filter != "" && filter != "." {
-		mlog.Info("-test.run used, not creating temporary containers")
-		os.Exit(m.Run())
-	}
-
-	status := 0
-
-	container, settings, err := storetest.NewMySQLContainer()
-	if err != nil {
-		panic(err)
-	}
-
-	UseTestStore(container, settings)
-
-	defer func() {
-		StopTestStore()
-		os.Exit(status)
-	}()
-
-	status = m.Run()
-}
 
 func TestGetMigrationState(t *testing.T) {
 	th := Setup()
@@ -73,16 +31,16 @@ func TestGetMigrationState(t *testing.T) {
 		Name:  migrationKey,
 		Value: "true",
 	}
-	res1 := <-th.App.Srv.Store.System().Save(&system)
-	assert.Nil(t, res1.Err)
+	err = th.App.Srv.Store.System().Save(&system)
+	assert.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)
 	assert.Nil(t, job)
 	assert.Equal(t, "completed", state)
 
-	res2 := <-th.App.Srv.Store.System().PermanentDeleteByName(migrationKey)
-	assert.Nil(t, res2.Err)
+	_, err = th.App.Srv.Store.System().PermanentDeleteByName(migrationKey)
+	assert.Nil(t, err)
 
 	// Test with a job scheduled in "pending" state.
 	j1 := &model.Job{
@@ -95,7 +53,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j1 = (<-th.App.Srv.Store.Job().Save(j1)).Data.(*model.Job)
+	j1, err = th.App.Srv.Store.Job().Save(j1)
+	require.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)
@@ -113,7 +72,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j2 = (<-th.App.Srv.Store.Job().Save(j2)).Data.(*model.Job)
+	j2, err = th.App.Srv.Store.Job().Save(j2)
+	require.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)
@@ -131,7 +91,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j3 = (<-th.App.Srv.Store.Job().Save(j3)).Data.(*model.Job)
+	j3, err = th.App.Srv.Store.Job().Save(j3)
+	require.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)

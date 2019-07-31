@@ -31,6 +31,7 @@ func init() {
 	SampleDataCmd.Flags().IntP("teams", "t", 2, "The number of sample teams.")
 	SampleDataCmd.Flags().Int("channels-per-team", 10, "The number of sample channels per team.")
 	SampleDataCmd.Flags().IntP("users", "u", 15, "The number of sample users.")
+	SampleDataCmd.Flags().IntP("guests", "g", 1, "The number of sample guests.")
 	SampleDataCmd.Flags().Int("team-memberships", 2, "The number of sample team memberships per user.")
 	SampleDataCmd.Flags().Int("channel-memberships", 5, "The number of sample channel memberships per user in a team.")
 	SampleDataCmd.Flags().Int("posts-per-channel", 100, "The number of sample post per channel.")
@@ -164,6 +165,10 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	if err != nil || users < 0 {
 		return errors.New("Invalid users parameter")
 	}
+	guests, err := command.Flags().GetInt("guests")
+	if err != nil || guests < 0 {
+		return errors.New("Invalid guests parameter")
+	}
 	teamMemberships, err := command.Flags().GetInt("team-memberships")
 	if err != nil || teamMemberships < 0 {
 		return errors.New("Invalid team-memberships parameter")
@@ -202,14 +207,16 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	}
 	profileImages := []string{}
 	if profileImagesPath != "" {
-		profileImagesStat, err := os.Stat(profileImagesPath)
+		var profileImagesStat os.FileInfo
+		profileImagesStat, err = os.Stat(profileImagesPath)
 		if os.IsNotExist(err) {
 			return errors.New("Profile images folder doesn't exists.")
 		}
 		if !profileImagesStat.IsDir() {
 			return errors.New("profile-images parameters must be a folder path.")
 		}
-		profileImagesFiles, err := ioutil.ReadDir(profileImagesPath)
+		var profileImagesFiles []os.FileInfo
+		profileImagesFiles, err = ioutil.ReadDir(profileImagesPath)
 		if err != nil {
 			return errors.New("Invalid profile-images parameter")
 		}
@@ -276,7 +283,12 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 
 	allUsers := []string{}
 	for i := 0; i < users; i++ {
-		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages)
+		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, false)
+		encoder.Encode(userLine)
+		allUsers = append(allUsers, *userLine.User.Username)
+	}
+	for i := 0; i < guests; i++ {
+		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, true)
 		encoder.Encode(userLine)
 		allUsers = append(allUsers, *userLine.User.Username)
 	}
@@ -343,22 +355,35 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndChannels map[string][]string, profileImages []string) app.LineImportData {
+func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndChannels map[string][]string, profileImages []string, guest bool) app.LineImportData {
 	password := fmt.Sprintf("user-%d", idx)
 	email := fmt.Sprintf("user-%d@sample.mattermost.com", idx)
+	if guest {
+		password = fmt.Sprintf("guest-%d", idx)
+		email = fmt.Sprintf("guest-%d@sample.mattermost.com", idx)
+	}
 	firstName := fake.FirstName()
 	lastName := fake.LastName()
 	username := fmt.Sprintf("%s.%s", strings.ToLower(firstName), strings.ToLower(lastName))
-	if idx == 0 {
+	if guest {
+		if idx == 0 {
+			username = "guest"
+			password = "guest"
+			email = "guest@sample.mattermost.com"
+		}
+	} else if idx == 0 {
 		username = "sysadmin"
 		password = "sysadmin"
 		email = "sysadmin@sample.mattermost.com"
 	} else if idx == 1 {
 		username = "user-1"
 	}
+
 	position := fake.JobTitle()
 	roles := "system_user"
-	if idx%5 == 0 {
+	if guest {
+		roles = "system_guest"
+	} else if idx%5 == 0 {
 		roles = "system_admin system_user"
 	}
 
@@ -397,15 +422,18 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		nickname = fake.Company()
 	}
 
-	// Half of users skip tutorial
+	// sysadmin, user-1 and user-2 users skip tutorial steps
+	// Other half of users also skip tutorial steps
 	tutorialStep := "999"
-	switch rand.Intn(6) {
-	case 1:
-		tutorialStep = "1"
-	case 2:
-		tutorialStep = "2"
-	case 3:
-		tutorialStep = "3"
+	if idx > 2 {
+		switch rand.Intn(6) {
+		case 1:
+			tutorialStep = "1"
+		case 2:
+			tutorialStep = "2"
+		case 3:
+			tutorialStep = "3"
+		}
 	}
 
 	teams := []app.UserTeamImportData{}
@@ -422,7 +450,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		team := possibleTeams[position]
 		possibleTeams = append(possibleTeams[:position], possibleTeams[position+1:]...)
 		if teamChannels, err := teamsAndChannels[team]; err {
-			teams = append(teams, createTeamMembership(channelMemberships, teamChannels, &team))
+			teams = append(teams, createTeamMembership(channelMemberships, teamChannels, &team, guest))
 		}
 	}
 
@@ -449,9 +477,11 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	}
 }
 
-func createTeamMembership(numOfchannels int, teamChannels []string, teamName *string) app.UserTeamImportData {
+func createTeamMembership(numOfchannels int, teamChannels []string, teamName *string, guest bool) app.UserTeamImportData {
 	roles := "team_user"
-	if rand.Intn(5) == 0 {
+	if guest {
+		roles = "team_guest"
+	} else if rand.Intn(5) == 0 {
 		roles = "team_user team_admin"
 	}
 	channels := []app.UserChannelImportData{}
@@ -463,7 +493,7 @@ func createTeamMembership(numOfchannels int, teamChannels []string, teamName *st
 		position := rand.Intn(len(teamChannelsCopy))
 		channelName := teamChannelsCopy[position]
 		teamChannelsCopy = append(teamChannelsCopy[:position], teamChannelsCopy[position+1:]...)
-		channels = append(channels, createChannelMembership(channelName))
+		channels = append(channels, createChannelMembership(channelName, guest))
 	}
 
 	return app.UserTeamImportData{
@@ -473,9 +503,11 @@ func createTeamMembership(numOfchannels int, teamChannels []string, teamName *st
 	}
 }
 
-func createChannelMembership(channelName string) app.UserChannelImportData {
+func createChannelMembership(channelName string, guest bool) app.UserChannelImportData {
 	roles := "channel_user"
-	if rand.Intn(5) == 0 {
+	if guest {
+		roles = "channel_guest"
+	} else if rand.Intn(5) == 0 {
 		roles = "channel_user channel_admin"
 	}
 	favorite := rand.Intn(5) == 0

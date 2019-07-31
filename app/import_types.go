@@ -55,6 +55,7 @@ type UserImportData struct {
 	UseMarkdownPreview *string `json:"feature_enabled_markdown_preview,omitempty"`
 	UseFormatting      *string `json:"formatting,omitempty"`
 	ShowUnreadSection  *string `json:"show_unread_section,omitempty"`
+	DeleteAt           *int64  `json:"delete_at,omitempty"`
 
 	Teams *[]UserTeamImportData `json:"teams,omitempty"`
 
@@ -166,8 +167,10 @@ type SchemeImportData struct {
 	Scope                   *string         `json:"scope"`
 	DefaultTeamAdminRole    *RoleImportData `json:"default_team_admin_role"`
 	DefaultTeamUserRole     *RoleImportData `json:"default_team_user_role"`
+	DefaultTeamGuestRole    *RoleImportData `json:"default_team_guest_role"`
 	DefaultChannelAdminRole *RoleImportData `json:"default_channel_admin_role"`
 	DefaultChannelUserRole  *RoleImportData `json:"default_channel_user_role"`
+	DefaultChannelGuestRole *RoleImportData `json:"default_channel_guest_role"`
 }
 
 type RoleImportData struct {
@@ -189,4 +192,9 @@ type LineImportWorkerError struct {
 
 type AttachmentImportData struct {
 	Path *string `json:"path"`
+}
+
+type ComparablePreference struct {
+	Category string
+	Name     string
 }

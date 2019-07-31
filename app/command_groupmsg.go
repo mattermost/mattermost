@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type groupmsgProvider struct {
@@ -47,10 +47,9 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 	for _, username := range users {
 		username = strings.TrimSpace(username)
 		username = strings.TrimPrefix(username, "@")
-		if result := <-a.Srv.Store.User().GetByUsername(username); result.Err != nil {
+		if targetUser, err := a.Srv.Store.User().GetByUsername(username); err != nil {
 			invalidUsernames = append(invalidUsernames, username)
 		} else {
-			targetUser := result.Data.(*model.User)
 			_, exists := targetUsers[targetUser.Id]
 			if !exists && targetUser.Id != args.UserId {
 				targetUsers[targetUser.Id] = targetUser

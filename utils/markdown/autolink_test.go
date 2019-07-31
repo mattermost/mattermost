@@ -130,6 +130,18 @@ func TestParseURLAutolink(t *testing.T) {
 			Position:    14,
 			Expected:    "http://example.com",
 		},
+		{
+			Description: "bad link protocol",
+			Input:       "://///",
+			Position:    0,
+			Expected:    "",
+		},
+		{
+			Description: "position greater than input length",
+			Input:       "there is no colon",
+			Position:    1000,
+			Expected:    "",
+		},
 	}
 
 	for _, testCase := range testCases {

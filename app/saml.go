@@ -4,14 +4,17 @@
 package app
 
 import (
-	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+)
+
+const (
+	SamlPublicCertificateName = "saml-public.crt"
+	SamlPrivateKeyName        = "saml-private.key"
+	SamlIdpCertificateName    = "saml-idp.crt"
 )
 
 func (a *App) GetSamlMetadata() (string, *model.AppError) {
@@ -27,100 +30,87 @@ func (a *App) GetSamlMetadata() (string, *model.AppError) {
 	return result, nil
 }
 
-func WriteSamlFile(fileData *multipart.FileHeader) *model.AppError {
-	filename := filepath.Base(fileData.Filename)
-
-	if filename == "." || filename == string(filepath.Separator) {
-		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusBadRequest)
-	}
-
+func (a *App) writeSamlFile(filename string, fileData *multipart.FileHeader) *model.AppError {
 	file, err := fileData.Open()
 	if err != nil {
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer file.Close()
 
-	configDir, _ := utils.FindDir("config")
-	out, err := os.Create(filepath.Join(configDir, filename))
+	data, err := ioutil.ReadAll(file)
 	if err != nil {
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	defer out.Close()
 
-	io.Copy(out, file)
+	err = a.Srv.configStore.SetFile(filename, data)
+	if err != nil {
+		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	return nil
 }
 
 func (a *App) AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := WriteSamlFile(fileData); err != nil {
+	if err := a.writeSamlFile(SamlPublicCertificateName, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PublicCertificateFile = fileData.Filename
+	*cfg.SamlSettings.PublicCertificateFile = SamlPublicCertificateName
 
 	if err := cfg.IsValid(); err != nil {
 		return err
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
 
 func (a *App) AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := WriteSamlFile(fileData); err != nil {
+	if err := a.writeSamlFile(SamlPrivateKeyName, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PrivateKeyFile = fileData.Filename
+	*cfg.SamlSettings.PrivateKeyFile = SamlPrivateKeyName
 
 	if err := cfg.IsValid(); err != nil {
 		return err
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
 
 func (a *App) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := WriteSamlFile(fileData); err != nil {
+	if err := a.writeSamlFile(SamlIdpCertificateName, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.SamlSettings.IdpCertificateFile = fileData.Filename
+	*cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName
 
 	if err := cfg.IsValid(); err != nil {
 		return err
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
 
-func RemoveSamlFile(filename string) *model.AppError {
-	filename = filepath.Base(filename)
-
-	if filename == "." || filename == string(filepath.Separator) {
-		return model.NewAppError("AddSamlCertificate", "api.admin.remove_certificate.delete.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if err := os.Remove(utils.FindConfigFile(filename)); err != nil {
-		return model.NewAppError("removeCertificate", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
+func (a *App) removeSamlFile(filename string) *model.AppError {
+	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
+		return model.NewAppError("RemoveSamlFile", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
 }
 
 func (a *App) RemoveSamlPublicCertificate() *model.AppError {
-	if err := RemoveSamlFile(*a.Config().SamlSettings.PublicCertificateFile); err != nil {
+	if err := a.removeSamlFile(*a.Config().SamlSettings.PublicCertificateFile); err != nil {
 		return err
 	}
 
@@ -133,13 +123,12 @@ func (a *App) RemoveSamlPublicCertificate() *model.AppError {
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
 
 func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
-	if err := RemoveSamlFile(*a.Config().SamlSettings.PrivateKeyFile); err != nil {
+	if err := a.removeSamlFile(*a.Config().SamlSettings.PrivateKeyFile); err != nil {
 		return err
 	}
 
@@ -152,13 +141,12 @@ func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
 
 func (a *App) RemoveSamlIdpCertificate() *model.AppError {
-	if err := RemoveSamlFile(*a.Config().SamlSettings.IdpCertificateFile); err != nil {
+	if err := a.removeSamlFile(*a.Config().SamlSettings.IdpCertificateFile); err != nil {
 		return err
 	}
 
@@ -171,7 +159,6 @@ func (a *App) RemoveSamlIdpCertificate() *model.AppError {
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
@@ -179,9 +166,9 @@ func (a *App) RemoveSamlIdpCertificate() *model.AppError {
 func (a *App) GetSamlCertificateStatus() *model.SamlCertificateStatus {
 	status := &model.SamlCertificateStatus{}
 
-	status.IdpCertificateFile = utils.FileExistsInConfigFolder(*a.Config().SamlSettings.IdpCertificateFile)
-	status.PrivateKeyFile = utils.FileExistsInConfigFolder(*a.Config().SamlSettings.PrivateKeyFile)
-	status.PublicCertificateFile = utils.FileExistsInConfigFolder(*a.Config().SamlSettings.PublicCertificateFile)
+	status.IdpCertificateFile, _ = a.Srv.configStore.HasFile(*a.Config().SamlSettings.IdpCertificateFile)
+	status.PrivateKeyFile, _ = a.Srv.configStore.HasFile(*a.Config().SamlSettings.PrivateKeyFile)
+	status.PublicCertificateFile, _ = a.Srv.configStore.HasFile(*a.Config().SamlSettings.PublicCertificateFile)
 
 	return status
 }

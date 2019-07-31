@@ -25,7 +25,6 @@ const (
 	CHANNEL_DISPLAY_NAME_MAX_RUNES = 64
 	CHANNEL_NAME_MIN_LENGTH        = 2
 	CHANNEL_NAME_MAX_LENGTH        = 64
-	CHANNEL_NAME_UI_MAX_LENGTH     = 22
 	CHANNEL_HEADER_MAX_RUNES       = 1024
 	CHANNEL_PURPOSE_MAX_RUNES      = 250
 	CHANNEL_CACHE_SIZE             = 25000
@@ -35,35 +34,68 @@ const (
 )
 
 type Channel struct {
-	Id            string                 `json:"id"`
-	CreateAt      int64                  `json:"create_at"`
-	UpdateAt      int64                  `json:"update_at"`
-	DeleteAt      int64                  `json:"delete_at"`
-	TeamId        string                 `json:"team_id"`
-	Type          string                 `json:"type"`
-	DisplayName   string                 `json:"display_name"`
-	Name          string                 `json:"name"`
-	Header        string                 `json:"header"`
-	Purpose       string                 `json:"purpose"`
-	LastPostAt    int64                  `json:"last_post_at"`
-	TotalMsgCount int64                  `json:"total_msg_count"`
-	ExtraUpdateAt int64                  `json:"extra_update_at"`
-	CreatorId     string                 `json:"creator_id"`
-	SchemeId      *string                `json:"scheme_id"`
-	Props         map[string]interface{} `json:"props" db:"-"`
+	Id               string                 `json:"id"`
+	CreateAt         int64                  `json:"create_at"`
+	UpdateAt         int64                  `json:"update_at"`
+	DeleteAt         int64                  `json:"delete_at"`
+	TeamId           string                 `json:"team_id"`
+	Type             string                 `json:"type"`
+	DisplayName      string                 `json:"display_name"`
+	Name             string                 `json:"name"`
+	Header           string                 `json:"header"`
+	Purpose          string                 `json:"purpose"`
+	LastPostAt       int64                  `json:"last_post_at"`
+	TotalMsgCount    int64                  `json:"total_msg_count"`
+	ExtraUpdateAt    int64                  `json:"extra_update_at"`
+	CreatorId        string                 `json:"creator_id"`
+	SchemeId         *string                `json:"scheme_id"`
+	Props            map[string]interface{} `json:"props" db:"-"`
+	GroupConstrained *bool                  `json:"group_constrained"`
+}
+
+type ChannelWithTeamData struct {
+	Channel
+	TeamDisplayName string `json:"team_display_name"`
+	TeamName        string `json:"team_name"`
+	TeamUpdateAt    int64  `json:"team_update_at"`
+}
+
+type ChannelsWithCount struct {
+	Channels   *ChannelListWithTeamData `json:"channels"`
+	TotalCount int64                    `json:"total_count"`
 }
 
 type ChannelPatch struct {
-	DisplayName *string `json:"display_name"`
-	Name        *string `json:"name"`
-	Header      *string `json:"header"`
-	Purpose     *string `json:"purpose"`
+	DisplayName      *string `json:"display_name"`
+	Name             *string `json:"name"`
+	Header           *string `json:"header"`
+	Purpose          *string `json:"purpose"`
+	GroupConstrained *bool   `json:"group_constrained"`
 }
 
 type ChannelForExport struct {
 	Channel
 	TeamName   string
 	SchemeName *string
+}
+
+type DirectChannelForExport struct {
+	Channel
+	Members *[]string
+}
+
+// ChannelSearchOpts contains options for searching channels.
+//
+// NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
+// ExcludeDefaultChannels will exclude the configured default channels (ex 'town-square' and 'off-topic').
+// IncludeDeleted will include channel records where DeleteAt != 0.
+// ExcludeChannelNames will exclude channels from the results by name.
+//
+type ChannelSearchOpts struct {
+	NotAssociatedToGroup   string
+	ExcludeDefaultChannels bool
+	IncludeDeleted         bool
+	ExcludeChannelNames    []string
 }
 
 func (o *Channel) DeepCopy() *Channel {
@@ -82,6 +114,17 @@ func (o *Channel) ToJson() string {
 func (o *ChannelPatch) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
+}
+
+func (o *ChannelsWithCount) ToJson() []byte {
+	b, _ := json.Marshal(o)
+	return b
+}
+
+func ChannelsWithCountFromJson(data io.Reader) *ChannelsWithCount {
+	var o *ChannelsWithCount
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func ChannelFromJson(data io.Reader) *Channel {
@@ -174,6 +217,10 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 	if patch.Purpose != nil {
 		o.Purpose = *patch.Purpose
 	}
+
+	if patch.GroupConstrained != nil {
+		o.GroupConstrained = patch.GroupConstrained
+	}
 }
 
 func (o *Channel) MakeNonNil() {
@@ -186,6 +233,10 @@ func (o *Channel) AddProp(key string, value interface{}) {
 	o.MakeNonNil()
 
 	o.Props[key] = value
+}
+
+func (o *Channel) IsGroupConstrained() bool {
+	return o.GroupConstrained != nil && *o.GroupConstrained
 }
 
 func GetDMNameFromIds(userId1, userId2 string) string {

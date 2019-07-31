@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/stretchr/testify/assert"
 )
 
 func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
@@ -126,4 +127,15 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestOpenGraphDecodeHtmlEntities(t *testing.T) {
+	og := opengraph.NewOpenGraph()
+	og.Title = "Test&#39;s are the best.&copy;"
+	og.Description = "Test&#39;s are the worst.&copy;"
+
+	openGraphDecodeHtmlEntities(og)
+
+	assert.Equal(t, og.Title, "Test's are the best.©")
+	assert.Equal(t, og.Description, "Test's are the worst.©")
 }

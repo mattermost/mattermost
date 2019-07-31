@@ -10,19 +10,13 @@ import (
 	"github.com/mattermost/mattermost-server/store/storetest/mocks"
 )
 
-// NewStoreChannel returns a channel that will receive the given result.
-func NewStoreChannel(result store.StoreResult) store.StoreChannel {
-	ch := make(store.StoreChannel, 1)
-	ch <- result
-	return ch
-}
-
 // Store can be used to provide mock stores for testing.
 type Store struct {
 	TeamStore                 mocks.TeamStore
 	ChannelStore              mocks.ChannelStore
 	PostStore                 mocks.PostStore
 	UserStore                 mocks.UserStore
+	BotStore                  mocks.BotStore
 	AuditStore                mocks.AuditStore
 	ClusterDiscoveryStore     mocks.ClusterDiscoveryStore
 	ComplianceStore           mocks.ComplianceStore
@@ -46,13 +40,16 @@ type Store struct {
 	RoleStore                 mocks.RoleStore
 	SchemeStore               mocks.SchemeStore
 	TermsOfServiceStore       mocks.TermsOfServiceStore
+	GroupStore                mocks.GroupStore
 	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
+	LinkMetadataStore         mocks.LinkMetadataStore
 }
 
 func (s *Store) Team() store.TeamStore                             { return &s.TeamStore }
 func (s *Store) Channel() store.ChannelStore                       { return &s.ChannelStore }
 func (s *Store) Post() store.PostStore                             { return &s.PostStore }
 func (s *Store) User() store.UserStore                             { return &s.UserStore }
+func (s *Store) Bot() store.BotStore                               { return &s.BotStore }
 func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }
 func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore     { return &s.ClusterDiscoveryStore }
 func (s *Store) Compliance() store.ComplianceStore                 { return &s.ComplianceStore }
@@ -79,14 +76,16 @@ func (s *Store) UserTermsOfService() store.UserTermsOfServiceStore { return &s.U
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
-func (s *Store) MarkSystemRanUnitTests()       { /* do nothing */ }
-func (s *Store) Close()                        { /* do nothing */ }
-func (s *Store) LockToMaster()                 { /* do nothing */ }
-func (s *Store) UnlockFromMaster()             { /* do nothing */ }
-func (s *Store) DropAllTables()                { /* do nothing */ }
-func (s *Store) TotalMasterDbConnections() int { return 1 }
-func (s *Store) TotalReadDbConnections() int   { return 1 }
-func (s *Store) TotalSearchDbConnections() int { return 1 }
+func (s *Store) Group() store.GroupStore               { return &s.GroupStore }
+func (s *Store) LinkMetadata() store.LinkMetadataStore { return &s.LinkMetadataStore }
+func (s *Store) MarkSystemRanUnitTests()               { /* do nothing */ }
+func (s *Store) Close()                                { /* do nothing */ }
+func (s *Store) LockToMaster()                         { /* do nothing */ }
+func (s *Store) UnlockFromMaster()                     { /* do nothing */ }
+func (s *Store) DropAllTables()                        { /* do nothing */ }
+func (s *Store) TotalMasterDbConnections() int         { return 1 }
+func (s *Store) TotalReadDbConnections() int           { return 1 }
+func (s *Store) TotalSearchDbConnections() int         { return 1 }
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
@@ -94,6 +93,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ChannelStore,
 		&s.PostStore,
 		&s.UserStore,
+		&s.BotStore,
 		&s.AuditStore,
 		&s.ClusterDiscoveryStore,
 		&s.ComplianceStore,

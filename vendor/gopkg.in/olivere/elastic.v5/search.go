@@ -421,7 +421,7 @@ type SearchResult struct {
 	TimedOut     bool           `json:"timed_out"`         // true if the search timed out
 	Error        *ErrorDetails  `json:"error,omitempty"`   // only used in MultiGet
 	Profile      *SearchProfile `json:"profile,omitempty"` // profiling results, if optional Profile API was active for this search
-	Shards       *shardsInfo    `json:"_shards,omitempty"` // shard information
+	Shards       *ShardsInfo    `json:"_shards,omitempty"` // shard information
 }
 
 // TotalHits is a convenience function to return the number of hits for

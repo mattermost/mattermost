@@ -4,7 +4,7 @@
 package app
 
 import (
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -67,10 +67,10 @@ func (me *RenameProvider) DoCommand(a *App, args *model.CommandArgs, message str
 			Text:         args.T("api.command_channel_rename.message.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
-	} else if len(message) > model.CHANNEL_NAME_UI_MAX_LENGTH {
+	} else if len(message) > model.CHANNEL_NAME_MAX_LENGTH {
 		return &model.CommandResponse{
 			Text: args.T("api.command_channel_rename.too_long.app_error", map[string]interface{}{
-				"Length": model.CHANNEL_NAME_UI_MAX_LENGTH,
+				"Length": model.CHANNEL_NAME_MAX_LENGTH,
 			}),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}

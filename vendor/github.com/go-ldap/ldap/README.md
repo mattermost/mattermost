@@ -1,4 +1,4 @@
-[![GoDoc](https://godoc.org/gopkg.in/ldap.v2?status.svg)](https://godoc.org/gopkg.in/ldap.v2)
+[![GoDoc](https://godoc.org/gopkg.in/ldap.v3?status.svg)](https://godoc.org/gopkg.in/ldap.v3)
 [![Build Status](https://travis-ci.org/go-ldap/ldap.svg)](https://travis-ci.org/go-ldap/ldap)
 
 # Basic LDAP v3 functionality for the GO programming language.
@@ -7,11 +7,11 @@
 
 For the latest version use:
 
-    go get gopkg.in/ldap.v2
+    go get gopkg.in/ldap.v3
 
 Import the latest version with:
 
-    import "gopkg.in/ldap.v2"
+    import "gopkg.in/ldap.v3"
 
 ## Required Libraries:
 
@@ -27,6 +27,7 @@ Import the latest version with:
  - Modify Requests / Responses
  - Add Requests / Responses
  - Delete Requests / Responses
+ - Modify DN Requests / Responses
 
 ## Examples:
 

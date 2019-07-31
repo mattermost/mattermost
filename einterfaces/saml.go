@@ -8,7 +8,7 @@ import (
 )
 
 type SamlInterface interface {
-	ConfigureSP() *model.AppError
+	ConfigureSP() error
 	BuildRequest(relayState string) (*model.SamlAuthRequest, *model.AppError)
 	DoLogin(encodedXML string, relayState map[string]string) (*model.User, *model.AppError)
 	GetMetadata() (string, *model.AppError)

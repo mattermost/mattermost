@@ -397,6 +397,8 @@ func removeExcluded(info *PluginInterfaceInfo) *PluginInterfaceInfo {
 			"LoadPluginConfiguration",
 			"ServeHTTP",
 			"FileWillBeUploaded",
+			"MessageWillBePosted",
+			"MessageWillBeUpdated",
 		}
 		for _, exclusion := range excluded {
 			if exclusion == item {

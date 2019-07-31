@@ -12,13 +12,17 @@ import (
 const (
 	SESSION_COOKIE_TOKEN              = "MMAUTHTOKEN"
 	SESSION_COOKIE_USER               = "MMUSERID"
+	SESSION_COOKIE_CSRF               = "MMCSRF"
 	SESSION_CACHE_SIZE                = 35000
 	SESSION_PROP_PLATFORM             = "platform"
 	SESSION_PROP_OS                   = "os"
 	SESSION_PROP_BROWSER              = "browser"
 	SESSION_PROP_TYPE                 = "type"
 	SESSION_PROP_USER_ACCESS_TOKEN_ID = "user_access_token_id"
+	SESSION_PROP_IS_BOT               = "is_bot"
+	SESSION_PROP_IS_BOT_VALUE         = "true"
 	SESSION_TYPE_USER_ACCESS_TOKEN    = "UserAccessToken"
+	SESSION_PROP_IS_GUEST             = "is_guest"
 	SESSION_ACTIVITY_TIMEOUT          = 1000 * 60 * 5 // 5 minutes
 	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years
 )

@@ -202,7 +202,7 @@ func TestOutgoingWebhookResponseJson(t *testing.T) {
 	o.Text = NewString("some text")
 
 	json := o.ToJson()
-	ro := OutgoingWebhookResponseFromJson(strings.NewReader(json))
+	ro, _ := OutgoingWebhookResponseFromJson(strings.NewReader(json))
 
 	if *o.Text != *ro.Text {
 		t.Fatal("Text does not match")

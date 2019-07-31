@@ -29,8 +29,10 @@ type Scheme struct {
 	Scope                   string `json:"scope"`
 	DefaultTeamAdminRole    string `json:"default_team_admin_role"`
 	DefaultTeamUserRole     string `json:"default_team_user_role"`
+	DefaultTeamGuestRole    string `json:"default_team_guest_role"`
 	DefaultChannelAdminRole string `json:"default_channel_admin_role"`
 	DefaultChannelUserRole  string `json:"default_channel_user_role"`
+	DefaultChannelGuestRole string `json:"default_channel_guest_role"`
 }
 
 type SchemePatch struct {
@@ -51,8 +53,10 @@ type SchemeConveyor struct {
 	Scope        string  `json:"scope"`
 	TeamAdmin    string  `json:"default_team_admin_role"`
 	TeamUser     string  `json:"default_team_user_role"`
+	TeamGuest    string  `json:"default_team_guest_role"`
 	ChannelAdmin string  `json:"default_channel_admin_role"`
 	ChannelUser  string  `json:"default_channel_user_role"`
+	ChannelGuest string  `json:"default_channel_guest_role"`
 	Roles        []*Role `json:"roles"`
 }
 
@@ -64,14 +68,17 @@ func (sc *SchemeConveyor) Scheme() *Scheme {
 		Scope:                   sc.Scope,
 		DefaultTeamAdminRole:    sc.TeamAdmin,
 		DefaultTeamUserRole:     sc.TeamUser,
+		DefaultTeamGuestRole:    sc.TeamGuest,
 		DefaultChannelAdminRole: sc.ChannelAdmin,
 		DefaultChannelUserRole:  sc.ChannelUser,
+		DefaultChannelGuestRole: sc.ChannelGuest,
 	}
 }
 
 type SchemeRoles struct {
 	SchemeAdmin bool `json:"scheme_admin"`
 	SchemeUser  bool `json:"scheme_user"`
+	SchemeGuest bool `json:"scheme_guest"`
 }
 
 func (scheme *Scheme) ToJson() string {
@@ -134,12 +141,20 @@ func (scheme *Scheme) IsValidForCreate() bool {
 		return false
 	}
 
+	if !IsValidRoleName(scheme.DefaultChannelGuestRole) {
+		return false
+	}
+
 	if scheme.Scope == SCHEME_SCOPE_TEAM {
 		if !IsValidRoleName(scheme.DefaultTeamAdminRole) {
 			return false
 		}
 
 		if !IsValidRoleName(scheme.DefaultTeamUserRole) {
+			return false
+		}
+
+		if !IsValidRoleName(scheme.DefaultTeamGuestRole) {
 			return false
 		}
 	}
@@ -150,6 +165,10 @@ func (scheme *Scheme) IsValidForCreate() bool {
 		}
 
 		if len(scheme.DefaultTeamUserRole) != 0 {
+			return false
+		}
+
+		if len(scheme.DefaultTeamGuestRole) != 0 {
 			return false
 		}
 	}

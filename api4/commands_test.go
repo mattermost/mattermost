@@ -163,12 +163,12 @@ func TestLoadTestHelpCommands(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	enableTesting := th.App.Config().ServiceSettings.EnableTesting
+	enableTesting := *th.App.Config().ServiceSettings.EnableTesting
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = enableTesting })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = enableTesting })
 	}()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test help")).(*model.CommandResponse)
 	if !strings.Contains(rs.Text, "Mattermost testing commands to help") {
@@ -185,12 +185,12 @@ func TestLoadTestSetupCommands(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	enableTesting := th.App.Config().ServiceSettings.EnableTesting
+	enableTesting := *th.App.Config().ServiceSettings.EnableTesting
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = enableTesting })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = enableTesting })
 	}()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test setup fuzz 1 1 1")).(*model.CommandResponse)
 	if rs.Text != "Created environment" {
@@ -207,12 +207,12 @@ func TestLoadTestUsersCommands(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	enableTesting := th.App.Config().ServiceSettings.EnableTesting
+	enableTesting := *th.App.Config().ServiceSettings.EnableTesting
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = enableTesting })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = enableTesting })
 	}()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test users fuzz 1 2")).(*model.CommandResponse)
 	if rs.Text != "Added users" {
@@ -229,12 +229,12 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	enableTesting := th.App.Config().ServiceSettings.EnableTesting
+	enableTesting := *th.App.Config().ServiceSettings.EnableTesting
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = enableTesting })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = enableTesting })
 	}()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test channels fuzz 1 2")).(*model.CommandResponse)
 	if rs.Text != "Added channels" {
@@ -251,12 +251,12 @@ func TestLoadTestPostsCommands(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	enableTesting := th.App.Config().ServiceSettings.EnableTesting
+	enableTesting := *th.App.Config().ServiceSettings.EnableTesting
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = enableTesting })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = enableTesting })
 	}()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test posts fuzz 2 3 2")).(*model.CommandResponse)
 	if rs.Text != "Added posts" {
@@ -350,9 +350,16 @@ func TestMeCommand(t *testing.T) {
 	if len(p1.Order) != 2 {
 		t.Fatal("Command failed to send")
 	} else {
-		if p1.Posts[p1.Order[0]].Message != `*hello*` {
-			t.Log(p1.Posts[p1.Order[0]].Message)
-			t.Fatal("invalid shrug response")
+		pt := p1.Posts[p1.Order[0]].Type
+		if pt != model.POST_ME {
+			t.Log(pt)
+			t.Fatalf("invalid post type, got '%s', wanted '%s'", pt, model.POST_ME)
+		}
+		msg := p1.Posts[p1.Order[0]].Message
+		want := "*hello*"
+		if msg != want {
+			t.Log(msg)
+			t.Fatalf("invalid me response message, got '%s', wanted '%s'", msg, want)
 		}
 	}
 }

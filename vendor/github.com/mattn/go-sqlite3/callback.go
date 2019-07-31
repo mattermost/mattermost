@@ -77,6 +77,12 @@ func updateHookTrampoline(handle uintptr, op int, db *C.char, table *C.char, row
 	callback(op, C.GoString(db), C.GoString(table), rowid)
 }
 
+//export authorizerTrampoline
+func authorizerTrampoline(handle uintptr, op int, arg1 *C.char, arg2 *C.char, arg3 *C.char) int {
+	callback := lookupHandle(handle).(func(int, string, string, string) int)
+	return callback(op, C.GoString(arg1), C.GoString(arg2), C.GoString(arg3))
+}
+
 // Use handles to avoid passing Go pointers to C.
 
 type handleVal struct {
@@ -362,7 +368,7 @@ func callbackRet(typ reflect.Type) (callbackRetConverter, error) {
 func callbackError(ctx *C.sqlite3_context, err error) {
 	cstr := C.CString(err.Error())
 	defer C.free(unsafe.Pointer(cstr))
-	C.sqlite3_result_error(ctx, cstr, -1)
+	C.sqlite3_result_error(ctx, cstr, C.int(-1))
 }
 
 // Test support code. Tests are not allowed to import "C", so we can't

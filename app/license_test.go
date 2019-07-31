@@ -7,10 +7,11 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadLicense(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.LoadLicense()
@@ -20,7 +21,7 @@ func TestLoadLicense(t *testing.T) {
 }
 
 func TestSaveLicense(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	b1 := []byte("junk")
@@ -31,7 +32,7 @@ func TestSaveLicense(t *testing.T) {
 }
 
 func TestRemoveLicense(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	if err := th.App.RemoveLicense(); err != nil {
@@ -40,7 +41,7 @@ func TestRemoveLicense(t *testing.T) {
 }
 
 func TestSetLicense(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	l1 := &model.License{}
@@ -50,15 +51,6 @@ func TestSetLicense(t *testing.T) {
 	l1.ExpiresAt = model.GetMillis() + 100000
 	if ok := th.App.SetLicense(l1); !ok {
 		t.Fatal("license should have worked")
-	}
-
-	l2 := &model.License{}
-	l2.Features = &model.Features{}
-	l2.Customer = &model.Customer{}
-	l2.StartsAt = model.GetMillis() - 1000
-	l2.ExpiresAt = model.GetMillis() - 100
-	if ok := th.App.SetLicense(l2); ok {
-		t.Fatal("license should have failed")
 	}
 
 	l3 := &model.License{}
@@ -72,7 +64,7 @@ func TestSetLicense(t *testing.T) {
 }
 
 func TestClientLicenseEtag(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	etag1 := th.App.GetClientLicenseEtag(false)
@@ -93,20 +85,25 @@ func TestClientLicenseEtag(t *testing.T) {
 }
 
 func TestGetSanitizedClientLicense(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	l1 := &model.License{}
 	l1.Features = &model.Features{}
 	l1.Customer = &model.Customer{}
 	l1.Customer.Name = "TestName"
+	l1.SkuName = "SKU NAME"
+	l1.SkuShortName = "SKU SHORT NAME"
 	l1.StartsAt = model.GetMillis() - 1000
 	l1.ExpiresAt = model.GetMillis() + 100000
 	th.App.SetLicense(l1)
 
 	m := th.App.GetSanitizedClientLicense()
 
-	if _, ok := m["Name"]; ok {
-		t.Fatal("should have been sanatized")
-	}
+	_, ok := m["Name"]
+	assert.False(t, ok)
+	_, ok = m["SkuName"]
+	assert.False(t, ok)
+	_, ok = m["SkuShortName"]
+	assert.False(t, ok)
 }

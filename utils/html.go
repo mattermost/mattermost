@@ -15,8 +15,9 @@ import (
 	"sync/atomic"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 type HTMLTemplateWatcher struct {
@@ -26,7 +27,7 @@ type HTMLTemplateWatcher struct {
 }
 
 func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
-	templatesDir, _ := FindDir(directory)
+	templatesDir, _ := fileutils.FindDir(directory)
 	mlog.Debug(fmt.Sprintf("Parsing server templates at %v", templatesDir))
 
 	ret := &HTMLTemplateWatcher{

@@ -15,6 +15,7 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	m := f.ToMap()
 
 	CheckTrue(t, m["ldap"].(bool))
+	CheckTrue(t, m["ldap_groups"].(bool))
 	CheckTrue(t, m["mfa"].(bool))
 	CheckTrue(t, m["google"].(bool))
 	CheckTrue(t, m["office365"].(bool))
@@ -37,6 +38,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 
 	CheckInt(t, *f.Users, 0)
 	CheckTrue(t, *f.LDAP)
+	CheckTrue(t, *f.LDAPGroups)
 	CheckTrue(t, *f.MFA)
 	CheckTrue(t, *f.GoogleOAuth)
 	CheckTrue(t, *f.Office365OAuth)
@@ -50,6 +52,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.DataRetention)
 	CheckTrue(t, *f.MessageExport)
 	CheckTrue(t, *f.CustomPermissionsSchemes)
+	CheckTrue(t, *f.GuestAccountsPermissions)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}
@@ -58,6 +61,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.Users = 300
 	*f.FutureFeatures = false
 	*f.LDAP = true
+	*f.LDAPGroups = true
 	*f.MFA = true
 	*f.GoogleOAuth = true
 	*f.Office365OAuth = true
@@ -70,12 +74,14 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.DataRetention = true
 	*f.MessageExport = true
 	*f.CustomPermissionsSchemes = true
+	*f.GuestAccountsPermissions = true
 	*f.EmailNotificationContents = true
 
 	f.SetDefaults()
 
 	CheckInt(t, *f.Users, 300)
 	CheckTrue(t, *f.LDAP)
+	CheckTrue(t, *f.LDAPGroups)
 	CheckTrue(t, *f.MFA)
 	CheckTrue(t, *f.GoogleOAuth)
 	CheckTrue(t, *f.Office365OAuth)
@@ -89,6 +95,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.DataRetention)
 	CheckTrue(t, *f.MessageExport)
 	CheckTrue(t, *f.CustomPermissionsSchemes)
+	CheckTrue(t, *f.GuestAccountsPermissions)
 	CheckFalse(t, *f.FutureFeatures)
 }
 
@@ -159,6 +166,7 @@ func TestLicenseToFromJson(t *testing.T) {
 
 	CheckInt(t, *f1.Users, *f.Users)
 	CheckBool(t, *f1.LDAP, *f.LDAP)
+	CheckBool(t, *f1.LDAPGroups, *f.LDAPGroups)
 	CheckBool(t, *f1.MFA, *f.MFA)
 	CheckBool(t, *f1.GoogleOAuth, *f.GoogleOAuth)
 	CheckBool(t, *f1.Office365OAuth, *f.Office365OAuth)
@@ -171,6 +179,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.DataRetention, *f.DataRetention)
 	CheckBool(t, *f1.MessageExport, *f.MessageExport)
 	CheckBool(t, *f1.CustomPermissionsSchemes, *f.CustomPermissionsSchemes)
+	CheckBool(t, *f1.GuestAccountsPermissions, *f.GuestAccountsPermissions)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
 
 	invalid := `{"asdf`

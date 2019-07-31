@@ -7,8 +7,12 @@
 
 package utils
 
-import "testing"
-import "time"
+import (
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestLRU(t *testing.T) {
 	l := NewLru(128)
@@ -78,4 +82,52 @@ func TestLRUExpire(t *testing.T) {
 	if _, ok2 := l.Get(3); !ok2 {
 		t.Fatal("should exist")
 	}
+}
+
+func TestLRUGetOrAdd(t *testing.T) {
+	l := NewLru(128)
+
+	// First GetOrAdd should save
+	value, loaded := l.GetOrAdd(1, 1, 0)
+	assert.Equal(t, 1, value)
+	assert.False(t, loaded)
+
+	// Second GetOrAdd should load original value, ignoring new value
+	value, loaded = l.GetOrAdd(1, 10, 0)
+	assert.Equal(t, 1, value)
+	assert.True(t, loaded)
+
+	// Third GetOrAdd should still load original value
+	value, loaded = l.GetOrAdd(1, 1, 0)
+	assert.Equal(t, 1, value)
+	assert.True(t, loaded)
+
+	// First GetOrAdd on a new key should save
+	value, loaded = l.GetOrAdd(2, 2, 0)
+	assert.Equal(t, 2, value)
+	assert.False(t, loaded)
+
+	l.Remove(1)
+
+	// GetOrAdd after a remove should save
+	value, loaded = l.GetOrAdd(1, 10, 0)
+	assert.Equal(t, 10, value)
+	assert.False(t, loaded)
+
+	// GetOrAdd after another key was removed should load original value for key
+	value, loaded = l.GetOrAdd(2, 2, 0)
+	assert.Equal(t, 2, value)
+	assert.True(t, loaded)
+
+	// GetOrAdd should expire
+	value, loaded = l.GetOrAdd(3, 3, 500*time.Millisecond)
+	assert.Equal(t, 3, value)
+	assert.False(t, loaded)
+	value, loaded = l.GetOrAdd(3, 4, 500*time.Millisecond)
+	assert.Equal(t, 3, value)
+	assert.True(t, loaded)
+	time.Sleep(1 * time.Second)
+	value, loaded = l.GetOrAdd(3, 5, 500*time.Millisecond)
+	assert.Equal(t, 5, value)
+	assert.False(t, loaded)
 }

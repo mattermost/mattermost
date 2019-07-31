@@ -21,12 +21,14 @@ type LicenseRecord struct {
 }
 
 type License struct {
-	Id        string    `json:"id"`
-	IssuedAt  int64     `json:"issued_at"`
-	StartsAt  int64     `json:"starts_at"`
-	ExpiresAt int64     `json:"expires_at"`
-	Customer  *Customer `json:"customer"`
-	Features  *Features `json:"features"`
+	Id           string    `json:"id"`
+	IssuedAt     int64     `json:"issued_at"`
+	StartsAt     int64     `json:"starts_at"`
+	ExpiresAt    int64     `json:"expires_at"`
+	Customer     *Customer `json:"customer"`
+	Features     *Features `json:"features"`
+	SkuName      string    `json:"sku_name"`
+	SkuShortName string    `json:"sku_short_name"`
 }
 
 type Customer struct {
@@ -40,6 +42,7 @@ type Customer struct {
 type Features struct {
 	Users                     *int  `json:"users"`
 	LDAP                      *bool `json:"ldap"`
+	LDAPGroups                *bool `json:"ldap_groups"`
 	MFA                       *bool `json:"mfa"`
 	GoogleOAuth               *bool `json:"google_oauth"`
 	Office365OAuth            *bool `json:"office365_oauth"`
@@ -56,6 +59,7 @@ type Features struct {
 	MessageExport             *bool `json:"message_export"`
 	CustomPermissionsSchemes  *bool `json:"custom_permissions_schemes"`
 	CustomTermsOfService      *bool `json:"custom_terms_of_service"`
+	GuestAccountsPermissions  *bool `json:"guest_accounts_permissions"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -64,6 +68,7 @@ type Features struct {
 func (f *Features) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"ldap":                        *f.LDAP,
+		"ldap_groups":                 *f.LDAPGroups,
 		"mfa":                         *f.MFA,
 		"google":                      *f.GoogleOAuth,
 		"office365":                   *f.Office365OAuth,
@@ -77,6 +82,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"data_retention":              *f.DataRetention,
 		"message_export":              *f.MessageExport,
 		"custom_permissions_schemes":  *f.CustomPermissionsSchemes,
+		"guest_accounts_permissions":  *f.GuestAccountsPermissions,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -92,6 +98,10 @@ func (f *Features) SetDefaults() {
 
 	if f.LDAP == nil {
 		f.LDAP = NewBool(*f.FutureFeatures)
+	}
+
+	if f.LDAPGroups == nil {
+		f.LDAPGroups = NewBool(*f.FutureFeatures)
 	}
 
 	if f.MFA == nil {
@@ -152,6 +162,10 @@ func (f *Features) SetDefaults() {
 
 	if f.CustomPermissionsSchemes == nil {
 		f.CustomPermissionsSchemes = NewBool(*f.FutureFeatures)
+	}
+
+	if f.GuestAccountsPermissions == nil {
+		f.GuestAccountsPermissions = NewBool(*f.FutureFeatures)
 	}
 
 	if f.CustomTermsOfService == nil {

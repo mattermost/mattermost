@@ -52,8 +52,20 @@ func (vb *VaryBy) Key(r *http.Request) string {
 	if sep == "" {
 		sep = "\n" // Separator defaults to newline
 	}
-	if vb.RemoteAddr {
-		buf.WriteString(strings.ToLower(r.RemoteAddr) + sep)
+	if vb.RemoteAddr && len(r.RemoteAddr) > 0 {
+		// RemoteAddr usually looks something like `IP:port`. For example,
+		// `[::]:1234`. However, it seems to occasionally degenerately appear
+		// as just IP (or other), so be conservative with how we extract it.
+		index := strings.LastIndex(r.RemoteAddr, ":")
+
+		var ip string
+		if index == -1 {
+			ip = r.RemoteAddr
+		} else {
+			ip = r.RemoteAddr[:index]
+		}
+
+		buf.WriteString(strings.ToLower(ip) + sep)
 	}
 	if vb.Method {
 		buf.WriteString(strings.ToLower(r.Method) + sep)

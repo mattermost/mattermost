@@ -5,9 +5,10 @@ package human
 
 import (
 	"fmt"
-	"github.com/mattermost/mattermost-server/mlog"
 	"strings"
 	"time"
+
+	"github.com/mattermost/mattermost-server/mlog"
 )
 
 type LogEntry struct {

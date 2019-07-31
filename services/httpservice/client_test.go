@@ -11,12 +11,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestHTTPClient(t *testing.T) {
 	for _, allowInternal := range []bool{true, false} {
-		c := NewHTTPClient(false, func(_ string) bool { return false }, func(ip net.IP) bool { return allowInternal || !IsReservedIP(ip) })
+		c := NewHTTPClient(NewTransport(false, func(_ string) bool { return false }, func(ip net.IP) bool { return allowInternal || !IsReservedIP(ip) }))
 		for _, tc := range []struct {
 			URL        string
 			IsInternal bool
@@ -56,9 +59,9 @@ func TestHTTPClientWithProxy(t *testing.T) {
 	proxy := createProxyServer()
 	defer proxy.Close()
 
-	c := NewHTTPClient(true, nil, nil)
+	c := NewHTTPClient(NewTransport(true, nil, nil))
 	purl, _ := url.Parse(proxy.URL)
-	c.Transport.(*http.Transport).Proxy = http.ProxyURL(purl)
+	c.Transport.(*MattermostTransport).Transport.(*http.Transport).Proxy = http.ProxyURL(purl)
 
 	resp, err := c.Get("http://acme.com")
 	if err != nil {
@@ -132,10 +135,98 @@ func TestUserAgentIsSet(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	client := NewHTTPClient(true, nil, nil)
+	client := NewHTTPClient(NewTransport(true, nil, nil))
 	req, err := http.NewRequest("GET", ts.URL, nil)
 	if err != nil {
 		t.Fatal("NewRequest failed", err)
 	}
 	client.Do(req)
+}
+
+func NewHTTPClient(transport http.RoundTripper) *http.Client {
+	return &http.Client{
+		Transport: transport,
+	}
+}
+
+func TestIsReservedIP(t *testing.T) {
+	tests := []struct {
+		name string
+		ip   net.IP
+		want bool
+	}{
+		{"127.8.3.5", net.IPv4(127, 8, 3, 5), true},
+		{"192.168.0.1", net.IPv4(192, 168, 0, 1), true},
+		{"169.254.0.6", net.IPv4(169, 254, 0, 6), true},
+		{"127.120.6.3", net.IPv4(127, 120, 6, 3), true},
+		{"8.8.8.8", net.IPv4(8, 8, 8, 8), false},
+		{"9.9.9.9", net.IPv4(9, 9, 9, 8), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsReservedIP(tt.ip); got != tt.want {
+				t.Errorf("IsReservedIP() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsOwnIP(t *testing.T) {
+	tests := []struct {
+		name string
+		ip   net.IP
+		want bool
+	}{
+		{"127.0.0.1", net.IPv4(127, 0, 0, 1), true},
+		{"8.8.8.8", net.IPv4(8, 0, 0, 8), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got, _ := IsOwnIP(tt.ip); got != tt.want {
+				t.Errorf("IsOwnIP() = %v, want %v", got, tt.want)
+				t.Errorf(tt.ip.String())
+			}
+		})
+	}
+}
+
+func TestSplitHostnames(t *testing.T) {
+	var config string
+	var hostnames []string
+
+	config = ""
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{}, hostnames)
+
+	config = "127.0.0.1 localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1,localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1,,localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1  localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1 , localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1  localhost  "
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = " 127.0.0.1  ,,localhost  , , ,,"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1 localhost, 192.168.1.0"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost", "192.168.1.0"}, hostnames)
 }

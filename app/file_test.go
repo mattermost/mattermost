@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -41,7 +41,7 @@ func TestGeneratePublicLinkHash(t *testing.T) {
 }
 
 func TestDoUploadFile(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	teamId := model.NewId()
@@ -55,7 +55,7 @@ func TestDoUploadFile(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+			th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
 			th.App.RemoveFile(info1.Path)
 		}()
 	}
@@ -69,7 +69,7 @@ func TestDoUploadFile(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-th.App.Srv.Store.FileInfo().PermanentDelete(info2.Id)
+			th.App.Srv.Store.FileInfo().PermanentDelete(info2.Id)
 			th.App.RemoveFile(info2.Path)
 		}()
 	}
@@ -83,7 +83,7 @@ func TestDoUploadFile(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
+			th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
 			th.App.RemoveFile(info3.Path)
 		}()
 	}
@@ -97,8 +97,8 @@ func TestDoUploadFile(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
-			th.App.RemoveFile(info3.Path)
+			th.App.Srv.Store.FileInfo().PermanentDelete(info4.Id)
+			th.App.RemoveFile(info4.Path)
 		}()
 	}
 
@@ -108,7 +108,7 @@ func TestDoUploadFile(t *testing.T) {
 }
 
 func TestUploadFile(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	channelId := model.NewId()
@@ -120,7 +120,7 @@ func TestUploadFile(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+			th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
 			th.App.RemoveFile(info1.Path)
 		}()
 	}
@@ -132,7 +132,7 @@ func TestUploadFile(t *testing.T) {
 }
 
 func TestGetInfoForFilename(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := th.BasicPost
@@ -146,7 +146,7 @@ func TestGetInfoForFilename(t *testing.T) {
 }
 
 func TestFindTeamIdForFilename(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	teamId := th.App.FindTeamIdForFilename(th.BasicPost, fmt.Sprintf("/%v/%v/%v/blargh.png", th.BasicChannel.Id, th.BasicUser.Id, "someid"))
@@ -160,7 +160,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 }
 
 func TestMigrateFilenamesToFileInfos(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := th.BasicPost
@@ -171,7 +171,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	infos = th.App.MigrateFilenamesToFileInfos(post)
 	assert.Equal(t, 0, len(infos))
 
-	path, _ := utils.FindDir("tests")
+	path, _ := fileutils.FindDir("tests")
 	file, fileErr := os.Open(filepath.Join(path, "test.png"))
 	require.Nil(t, fileErr)
 	defer file.Close()
@@ -187,7 +187,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 }
 
 func TestCopyFileInfos(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	teamId := model.NewId()
@@ -199,7 +199,7 @@ func TestCopyFileInfos(t *testing.T) {
 	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	require.Nil(t, err)
 	defer func() {
-		<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -209,7 +209,7 @@ func TestCopyFileInfos(t *testing.T) {
 	info2, err := th.App.GetFileInfo(infoIds[0])
 	require.Nil(t, err)
 	defer func() {
-		<-th.App.Srv.Store.FileInfo().PermanentDelete(info2.Id)
+		th.App.Srv.Store.FileInfo().PermanentDelete(info2.Id)
 		th.App.RemoveFile(info2.Path)
 	}()
 

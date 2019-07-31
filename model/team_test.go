@@ -59,6 +59,7 @@ func TestTeamIsValid(t *testing.T) {
 
 	o.Name = "zzzzz"
 	o.Type = TEAM_OPEN
+	o.InviteId = NewId()
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}
@@ -128,5 +129,45 @@ func TestCleanTeamName(t *testing.T) {
 
 	if CleanTeamName("super-duper-guys") != "super-duper-guys" {
 		t.Fatal("didn't clean name properly")
+	}
+}
+
+func TestTeamPatch(t *testing.T) {
+	p := &TeamPatch{
+		DisplayName:      new(string),
+		Description:      new(string),
+		CompanyName:      new(string),
+		AllowedDomains:   new(string),
+		AllowOpenInvite:  new(bool),
+		GroupConstrained: new(bool),
+	}
+
+	*p.DisplayName = NewId()
+	*p.Description = NewId()
+	*p.CompanyName = NewId()
+	*p.AllowedDomains = NewId()
+	*p.AllowOpenInvite = true
+	*p.GroupConstrained = true
+
+	o := Team{Id: NewId()}
+	o.Patch(p)
+
+	if *p.DisplayName != o.DisplayName {
+		t.Fatal("DisplayName did not update")
+	}
+	if *p.Description != o.Description {
+		t.Fatal("Description did not update")
+	}
+	if *p.CompanyName != o.CompanyName {
+		t.Fatal("CompanyName did not update")
+	}
+	if *p.AllowedDomains != o.AllowedDomains {
+		t.Fatal("AllowedDomains did not update")
+	}
+	if *p.AllowOpenInvite != o.AllowOpenInvite {
+		t.Fatal("AllowOpenInvite did not update")
+	}
+	if *p.GroupConstrained != *o.GroupConstrained {
+		t.Fatalf("expected %v got %v", *p.GroupConstrained, *o.GroupConstrained)
 	}
 }

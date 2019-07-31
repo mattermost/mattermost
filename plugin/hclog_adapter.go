@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"strings"
 
@@ -96,6 +97,10 @@ func (h *hclogAdapter) ResetNamed(name string) hclog.Logger {
 
 func (h *hclogAdapter) StandardLogger(opts *hclog.StandardLoggerOptions) *log.Logger {
 	return h.wrappedLogger.StdLog()
+}
+
+func (h *hclogAdapter) StandardWriter(opts *hclog.StandardLoggerOptions) io.Writer {
+	return h.wrappedLogger.StdLogWriter()
 }
 
 func (h *hclogAdapter) SetLevel(hclog.Level) {}

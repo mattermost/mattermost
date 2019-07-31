@@ -6,7 +6,7 @@ package app
 import (
 	"strings"
 
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -43,12 +43,10 @@ func (me *JoinProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		channelName = message[1:]
 	}
 
-	result := <-a.Srv.Store.Channel().GetByName(args.TeamId, channelName, true)
-	if result.Err != nil {
+	channel, err := a.Srv.Store.Channel().GetByName(args.TeamId, channelName, true)
+	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_join.list.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
-
-	channel := result.Data.(*model.Channel)
 
 	if channel.Name != channelName {
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_join.missing.app_error")}
@@ -67,7 +65,7 @@ func (me *JoinProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if err := a.JoinChannel(channel, args.UserId); err != nil {
+	if err = a.JoinChannel(channel, args.UserId); err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

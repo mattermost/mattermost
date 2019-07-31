@@ -7,11 +7,12 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPluginCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	args := &model.CommandArgs{}
@@ -65,6 +66,8 @@ func TestPluginCommand(t *testing.T) {
 					TeamId: p.configuration.TeamId,
 					Trigger: "plugin",
 					DisplayName: "Plugin Command",
+					AutoComplete: true,
+					AutoCompleteDesc: "autocomplete",
 				})
 				if err != nil {
 					p.API.LogError("error", "err", err)
@@ -93,6 +96,16 @@ func TestPluginCommand(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
 		require.Equal(t, "text", resp.Text)
+
+		err2 := th.App.DisablePlugin(pluginIds[0])
+		require.Nil(t, err2)
+
+		commands, err3 := th.App.ListAutocompleteCommands(args.TeamId, utils.T)
+		require.Nil(t, err3)
+
+		for _, commands := range commands {
+			require.NotEqual(t, "plugin", commands.Trigger)
+		}
 
 		th.App.RemovePlugin(pluginIds[0])
 	})

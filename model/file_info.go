@@ -112,6 +112,24 @@ func (o *FileInfo) IsImage() bool {
 	return strings.HasPrefix(o.MimeType, "image")
 }
 
+func NewInfo(name string) *FileInfo {
+	info := &FileInfo{
+		Name: name,
+	}
+
+	extension := strings.ToLower(filepath.Ext(name))
+	info.MimeType = mime.TypeByExtension(extension)
+
+	if extension != "" && extension[0] == '.' {
+		// The client expects a file extension without the leading period
+		info.Extension = extension[1:]
+	} else {
+		info.Extension = extension
+	}
+
+	return info
+}
+
 func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
 	info := &FileInfo{
 		Name: name,

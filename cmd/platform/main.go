@@ -8,7 +8,7 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func main() {
@@ -25,9 +25,9 @@ The platform binary will be removed in a future version.
 	args[0] = "mattermost"
 	args = append(args, "--platform")
 
-	realMattermost := utils.FindFile("mattermost")
+	realMattermost := fileutils.FindFile("mattermost")
 	if realMattermost == "" {
-		realMattermost = utils.FindFile("bin/mattermost")
+		realMattermost = fileutils.FindFile("bin/mattermost")
 	}
 
 	if realMattermost == "" {

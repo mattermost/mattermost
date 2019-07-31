@@ -21,6 +21,7 @@ type CommandResponse struct {
 	ResponseType   string             `json:"response_type"`
 	Text           string             `json:"text"`
 	Username       string             `json:"username"`
+	ChannelId      string             `json:"channel_id"`
 	IconURL        string             `json:"icon_url"`
 	Type           string             `json:"type"`
 	Props          StringInterface    `json:"props"`

@@ -12,7 +12,7 @@ import (
 )
 
 func TestInviteProvider(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)

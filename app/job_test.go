@@ -7,20 +7,19 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetJob(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	status := &model.Job{
 		Id:     model.NewId(),
 		Status: model.NewId(),
 	}
-	if result := <-th.App.Srv.Store.Job().Save(status); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err := th.App.Srv.Store.Job().Save(status)
+	require.Nil(t, err)
 
 	defer th.App.Srv.Store.Job().Delete(status.Id)
 
@@ -32,7 +31,7 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestGetJobByType(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	jobType := model.NewId()
@@ -56,7 +55,8 @@ func TestGetJobByType(t *testing.T) {
 	}
 
 	for _, status := range statuses {
-		store.Must(th.App.Srv.Store.Job().Save(status))
+		_, err := th.App.Srv.Store.Job().Save(status)
+		require.Nil(t, err)
 		defer th.App.Srv.Store.Job().Delete(status.Id)
 	}
 

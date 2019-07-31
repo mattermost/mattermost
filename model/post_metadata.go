@@ -3,6 +3,10 @@
 
 package model
 
+import (
+	"encoding/json"
+)
+
 type PostMetadata struct {
 	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
 	// for links in the post.
@@ -27,4 +31,15 @@ type PostMetadata struct {
 type PostImage struct {
 	Width  int `json:"width"`
 	Height int `json:"height"`
+
+	// Format is the name of the image format as used by image/go such as "png", "gif", or "jpeg".
+	Format string `json:"format"`
+
+	// FrameCount stores the number of frames in this image, if it is an animated gif. It will be 0 for other formats.
+	FrameCount int `json:"frame_count"`
+}
+
+func (o *PostImage) ToJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }

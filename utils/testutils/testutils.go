@@ -9,11 +9,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func ReadTestFile(name string) ([]byte, error) {
-	path, _ := utils.FindDir("tests")
+	path, _ := fileutils.FindDir("tests")
 	file, err := os.Open(filepath.Join(path, name))
 	if err != nil {
 		return nil, err

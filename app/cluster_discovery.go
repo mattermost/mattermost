@@ -32,21 +32,24 @@ func (a *App) NewClusterDiscoveryService() *ClusterDiscoveryService {
 }
 
 func (me *ClusterDiscoveryService) Start() {
+	err := me.app.Srv.Store.ClusterDiscovery().Cleanup()
+	if err != nil {
+		mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to cleanup the outdated cluster discovery information err=%v", err))
+	}
 
-	<-me.app.Srv.Store.ClusterDiscovery().Cleanup()
-
-	if cresult := <-me.app.Srv.Store.ClusterDiscovery().Exists(&me.ClusterDiscovery); cresult.Err != nil {
-		mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to check if row exists for %v with err=%v", me.ClusterDiscovery.ToJson(), cresult.Err))
+	exists, err := me.app.Srv.Store.ClusterDiscovery().Exists(&me.ClusterDiscovery)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to check if row exists for %v with err=%v", me.ClusterDiscovery.ToJson(), err))
 	} else {
-		if cresult.Data.(bool) {
-			if u := <-me.app.Srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); u.Err != nil {
-				mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to start clean for %v with err=%v", me.ClusterDiscovery.ToJson(), u.Err))
+		if exists {
+			if _, err := me.app.Srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); err != nil {
+				mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to start clean for %v with err=%v", me.ClusterDiscovery.ToJson(), err))
 			}
 		}
 	}
 
-	if result := <-me.app.Srv.Store.ClusterDiscovery().Save(&me.ClusterDiscovery); result.Err != nil {
-		mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to save for %v with err=%v", me.ClusterDiscovery.ToJson(), result.Err))
+	if err := me.app.Srv.Store.ClusterDiscovery().Save(&me.ClusterDiscovery); err != nil {
+		mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to save for %v with err=%v", me.ClusterDiscovery.ToJson(), err))
 		return
 	}
 
@@ -55,8 +58,8 @@ func (me *ClusterDiscoveryService) Start() {
 		ticker := time.NewTicker(DISCOVERY_SERVICE_WRITE_PING)
 		defer func() {
 			ticker.Stop()
-			if u := <-me.app.Srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); u.Err != nil {
-				mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to cleanup for %v with err=%v", me.ClusterDiscovery.ToJson(), u.Err))
+			if _, err := me.app.Srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); err != nil {
+				mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to cleanup for %v with err=%v", me.ClusterDiscovery.ToJson(), err))
 			}
 			mlog.Debug(fmt.Sprintf("ClusterDiscoveryService ping writer stopped for %v", me.ClusterDiscovery.ToJson()))
 		}()
@@ -64,8 +67,8 @@ func (me *ClusterDiscoveryService) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				if u := <-me.app.Srv.Store.ClusterDiscovery().SetLastPingAt(&me.ClusterDiscovery); u.Err != nil {
-					mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to write ping for %v with err=%v", me.ClusterDiscovery.ToJson(), u.Err))
+				if err := me.app.Srv.Store.ClusterDiscovery().SetLastPingAt(&me.ClusterDiscovery); err != nil {
+					mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to write ping for %v with err=%v", me.ClusterDiscovery.ToJson(), err))
 				}
 			case <-me.stop:
 				return

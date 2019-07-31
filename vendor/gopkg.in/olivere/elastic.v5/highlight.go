@@ -125,7 +125,7 @@ func (hl *Highlight) Fragmenter(fragmenter string) *Highlight {
 	return hl
 }
 
-func (hl *Highlight) HighlighQuery(highlightQuery Query) *Highlight {
+func (hl *Highlight) HighlightQuery(highlightQuery Query) *Highlight {
 	hl.highlightQuery = highlightQuery
 	return hl
 }

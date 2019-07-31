@@ -21,6 +21,9 @@ const (
 	SCHEME_CACHE_SIZE = 20000
 	SCHEME_CACHE_SEC  = 30 * 60
 
+	GROUP_CACHE_SIZE = 20000
+	GROUP_CACHE_SEC  = 30 * 60
+
 	CLEAR_CACHE_MESSAGE_DATA = ""
 )
 
@@ -31,6 +34,18 @@ type LocalCacheSupplier struct {
 	schemeCache   *utils.Cache
 	metrics       einterfaces.MetricsInterface
 	cluster       einterfaces.ClusterInterface
+}
+
+// Caching Interface
+type ObjectCache interface {
+	AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64)
+	AddWithDefaultExpires(key, value interface{})
+	Purge()
+	Get(key interface{}) (value interface{}, ok bool)
+	Remove(key interface{})
+	Len() int
+	Name() string
+	GetInvalidateClusterEvent() string
 }
 
 func NewLocalCacheSupplier(metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) *LocalCacheSupplier {
@@ -58,7 +73,7 @@ func (s *LocalCacheSupplier) Next() LayeredStoreSupplier {
 	return s.next
 }
 
-func (s *LocalCacheSupplier) doStandardReadCache(ctx context.Context, cache utils.ObjectCache, key string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *LocalCacheSupplier) doStandardReadCache(ctx context.Context, cache ObjectCache, key string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	if hintsContains(hints, LSH_NO_CACHE) {
 		if s.metrics != nil {
 			s.metrics.IncrementMemCacheMissCounter(cache.Name())
@@ -82,13 +97,13 @@ func (s *LocalCacheSupplier) doStandardReadCache(ctx context.Context, cache util
 	return nil
 }
 
-func (s *LocalCacheSupplier) doStandardAddToCache(ctx context.Context, cache utils.ObjectCache, key string, result *LayeredStoreSupplierResult, hints ...LayeredStoreHint) {
+func (s *LocalCacheSupplier) doStandardAddToCache(ctx context.Context, cache ObjectCache, key string, result *LayeredStoreSupplierResult, hints ...LayeredStoreHint) {
 	if result.Err == nil && result.Data != nil {
 		cache.AddWithDefaultExpires(key, result.Data)
 	}
 }
 
-func (s *LocalCacheSupplier) doInvalidateCacheCluster(cache utils.ObjectCache, key string) {
+func (s *LocalCacheSupplier) doInvalidateCacheCluster(cache ObjectCache, key string) {
 	cache.Remove(key)
 	if s.cluster != nil {
 		msg := &model.ClusterMessage{
@@ -100,7 +115,7 @@ func (s *LocalCacheSupplier) doInvalidateCacheCluster(cache utils.ObjectCache, k
 	}
 }
 
-func (s *LocalCacheSupplier) doClearCacheCluster(cache utils.ObjectCache) {
+func (s *LocalCacheSupplier) doClearCacheCluster(cache ObjectCache) {
 	cache.Purge()
 	if s.cluster != nil {
 		msg := &model.ClusterMessage{

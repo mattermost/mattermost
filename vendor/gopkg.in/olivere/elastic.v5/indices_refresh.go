@@ -90,5 +90,5 @@ func (s *RefreshService) Do(ctx context.Context) (*RefreshResult, error) {
 
 // RefreshResult is the outcome of RefreshService.Do.
 type RefreshResult struct {
-	Shards shardsInfo `json:"_shards,omitempty"`
+	Shards *ShardsInfo `json:"_shards,omitempty"`
 }

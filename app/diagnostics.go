@@ -12,19 +12,20 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 const (
-	SEGMENT_KEY = "fwb7VPbFeQ7SKp3wHm1RzFUuXZudqVok"
+	SEGMENT_KEY = "placeholder_segment_key"
 
 	TRACK_CONFIG_SERVICE            = "config_service"
 	TRACK_CONFIG_TEAM               = "config_team"
 	TRACK_CONFIG_CLIENT_REQ         = "config_client_requirements"
 	TRACK_CONFIG_SQL                = "config_sql"
 	TRACK_CONFIG_LOG                = "config_log"
+	TRACK_CONFIG_NOTIFICATION_LOG   = "config_notifications_log"
 	TRACK_CONFIG_FILE               = "config_file"
 	TRACK_CONFIG_RATE               = "config_rate"
-	TRACK_CONFIG_EXTENSION          = "config_extension"
 	TRACK_CONFIG_EMAIL              = "config_email"
 	TRACK_CONFIG_PRIVACY            = "config_privacy"
 	TRACK_CONFIG_THEME              = "config_theme"
@@ -46,7 +47,7 @@ const (
 	TRACK_CONFIG_DATA_RETENTION     = "config_data_retention"
 	TRACK_CONFIG_MESSAGE_EXPORT     = "config_message_export"
 	TRACK_CONFIG_DISPLAY            = "config_display"
-	TRACK_CONFIG_TIMEZONE           = "config_timezone"
+	TRACK_CONFIG_IMAGE_PROXY        = "config_image_proxy"
 	TRACK_PERMISSIONS_GENERAL       = "permissions_general"
 	TRACK_PERMISSIONS_SYSTEM_SCHEME = "permissions_system_scheme"
 	TRACK_PERMISSIONS_TEAM_SCHEMES  = "permissions_team_schemes"
@@ -57,11 +58,13 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
-var client *analytics.Client
-
 func (a *App) SendDailyDiagnostics() {
-	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() {
-		a.initDiagnostics("")
+	a.sendDailyDiagnostics(false)
+}
+
+func (a *App) sendDailyDiagnostics(override bool) {
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
+		a.Srv.initDiagnostics("")
 		a.trackActivity()
 		a.trackConfig()
 		a.trackLicense()
@@ -71,24 +74,8 @@ func (a *App) SendDailyDiagnostics() {
 	}
 }
 
-func (a *App) initDiagnostics(endpoint string) {
-	if client == nil {
-		client = analytics.New(SEGMENT_KEY)
-		client.Logger = a.Log.StdLog(mlog.String("source", "segment"))
-		// For testing
-		if endpoint != "" {
-			client.Endpoint = endpoint
-			client.Verbose = true
-			client.Size = 1
-		}
-		client.Identify(&analytics.Identify{
-			UserId: a.DiagnosticId(),
-		})
-	}
-}
-
 func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
-	client.Track(&analytics.Track{
+	a.Srv.diagnosticClient.Enqueue(&analytics.Track{
 		Event:      event,
 		UserId:     a.DiagnosticId(),
 		Properties: properties,
@@ -120,66 +107,108 @@ func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string
 
 func (a *App) trackActivity() {
 	var userCount int64
-	var activeUsersDailyCount int64
-	var activeUsersMonthlyCount int64
+	var botAccountsCount int64
 	var inactiveUserCount int64
-	var teamCount int64
 	var publicChannelCount int64
 	var privateChannelCount int64
 	var directChannelCount int64
 	var deletedPublicChannelCount int64
 	var deletedPrivateChannelCount int64
 	var postsCount int64
+	var postsCountPreviousDay int64
+	var botPostsCountPreviousDay int64
+	var slashCommandsCount int64
+	var incomingWebhooksCount int64
+	var outgoingWebhooksCount int64
 
-	dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
-	monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
+	go func() {
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
+		close(activeUsersDailyCountChan)
+	}()
 
-	if r := <-dailyActiveChan; r.Err == nil {
+	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
+	go func() {
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
+		close(activeUsersMonthlyCountChan)
+	}()
+
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+		userCount = count
+	}
+
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
+		botAccountsCount = count
+	}
+
+	if iucr, err := a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); err == nil {
+		inactiveUserCount = iucr
+	}
+
+	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	if ucc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "O"); err == nil {
+		publicChannelCount = ucc
+	}
+
+	if pcc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "P"); err == nil {
+		privateChannelCount = pcc
+	}
+
+	if dcc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "D"); err == nil {
+		directChannelCount = dcc
+	}
+
+	if duccr, err := a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
+		deletedPublicChannelCount = duccr
+	}
+
+	if dpccr, err := a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
+		deletedPrivateChannelCount = dpccr
+	}
+
+	postsCount, _ = a.Srv.Store.Post().AnalyticsPostCount("", false, false)
+
+	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
+	postCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	postsCountPreviousDay = 0
+	if len(postCountsYesterday) > 0 {
+		postsCountPreviousDay = int64(postCountsYesterday[0].Value)
+	}
+
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: true, YesterdayOnly: true}
+	botPostCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	botPostsCountPreviousDay = 0
+	if len(botPostCountsYesterday) > 0 {
+		botPostsCountPreviousDay = int64(botPostCountsYesterday[0].Value)
+	}
+
+	slashCommandsCount, _ = a.Srv.Store.Command().AnalyticsCommandCount("")
+
+	if c, err := a.Srv.Store.Webhook().AnalyticsIncomingCount(""); err == nil {
+		incomingWebhooksCount = c
+	}
+
+	outgoingWebhooksCount, _ = a.Srv.Store.Webhook().AnalyticsOutgoingCount("")
+
+	var activeUsersDailyCount int64
+	if r := <-activeUsersDailyCountChan; r.Err == nil {
 		activeUsersDailyCount = r.Data.(int64)
 	}
 
-	if r := <-monthlyActiveChan; r.Err == nil {
+	var activeUsersMonthlyCount int64
+	if r := <-activeUsersMonthlyCountChan; r.Err == nil {
 		activeUsersMonthlyCount = r.Data.(int64)
-	}
-
-	if ucr := <-a.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-		userCount = ucr.Data.(int64)
-	}
-
-	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
-		inactiveUserCount = iucr.Data.(int64)
-	}
-
-	if tcr := <-a.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-		teamCount = tcr.Data.(int64)
-	}
-
-	if ucc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "O"); ucc.Err == nil {
-		publicChannelCount = ucc.Data.(int64)
-	}
-
-	if pcc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "P"); pcc.Err == nil {
-		privateChannelCount = pcc.Data.(int64)
-	}
-
-	if dcc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "D"); dcc.Err == nil {
-		directChannelCount = dcc.Data.(int64)
-	}
-
-	if duccr := <-a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "O"); duccr.Err == nil {
-		deletedPublicChannelCount = duccr.Data.(int64)
-	}
-
-	if dpccr := <-a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "P"); dpccr.Err == nil {
-		deletedPrivateChannelCount = dpccr.Data.(int64)
-	}
-
-	if pcr := <-a.Srv.Store.Post().AnalyticsPostCount("", false, false); pcr.Err == nil {
-		postsCount = pcr.Data.(int64)
 	}
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
+		"bot_accounts":                 botAccountsCount,
 		"active_users_daily":           activeUsersDailyCount,
 		"active_users_monthly":         activeUsersMonthlyCount,
 		"registered_deactivated_users": inactiveUserCount,
@@ -189,7 +218,12 @@ func (a *App) trackActivity() {
 		"direct_message_channels":      directChannelCount,
 		"public_channels_deleted":      deletedPublicChannelCount,
 		"private_channels_deleted":     deletedPrivateChannelCount,
+		"posts_previous_day":           postsCountPreviousDay,
+		"bot_posts_previous_day":       botPostsCountPreviousDay,
 		"posts":                        postsCount,
+		"slash_commands":               slashCommandsCount,
+		"incoming_webhooks":            incomingWebhooksCount,
+		"outgoing_webhooks":            outgoingWebhooksCount,
 	})
 }
 
@@ -219,6 +253,7 @@ func (a *App) trackConfig() {
 		"enforce_multifactor_authentication":                      *cfg.ServiceSettings.EnforceMultifactorAuthentication,
 		"enable_oauth_service_provider":                           cfg.ServiceSettings.EnableOAuthServiceProvider,
 		"connection_security":                                     *cfg.ServiceSettings.ConnectionSecurity,
+		"tls_strict_transport":                                    *cfg.ServiceSettings.TLSStrictTransport,
 		"uses_letsencrypt":                                        *cfg.ServiceSettings.UseLetsEncrypt,
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
@@ -246,21 +281,24 @@ func (a *App) trackConfig() {
 		"time_between_user_typing_updates_milliseconds":           *cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
 		"cluster_log_timeout_milliseconds":                        *cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
+		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
 		"close_unused_direct_messages":                            *cfg.ServiceSettings.CloseUnusedDirectMessages,
 		"enable_preview_features":                                 *cfg.ServiceSettings.EnablePreviewFeatures,
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
 		"experimental_group_unread_channels":                      *cfg.ServiceSettings.ExperimentalGroupUnreadChannels,
-		"isdefault_image_proxy_type":                              isDefault(*cfg.ServiceSettings.ImageProxyType, ""),
-		"isdefault_image_proxy_url":                               isDefault(*cfg.ServiceSettings.ImageProxyURL, ""),
-		"isdefault_image_proxy_options":                           isDefault(*cfg.ServiceSettings.ImageProxyOptions, ""),
 		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
+		"disable_legacy_mfa":                                      *cfg.ServiceSettings.DisableLegacyMFA,
+		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
+		"experimental_ldap_group_sync":                            *cfg.ServiceSettings.ExperimentalLdapGroupSync,
+		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
+		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -327,6 +365,16 @@ func (a *App) trackConfig() {
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 	})
 
+	a.SendDiagnostic(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
+		"enable_console":          *cfg.NotificationLogSettings.EnableConsole,
+		"console_level":           *cfg.NotificationLogSettings.ConsoleLevel,
+		"console_json":            *cfg.NotificationLogSettings.ConsoleJson,
+		"enable_file":             *cfg.NotificationLogSettings.EnableFile,
+		"file_level":              *cfg.NotificationLogSettings.FileLevel,
+		"file_json":               *cfg.NotificationLogSettings.FileJson,
+		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
+	})
+
 	a.SendDiagnostic(TRACK_CONFIG_PASSWORD, map[string]interface{}{
 		"minimum_length": *cfg.PasswordSettings.MinimumLength,
 		"lowercase":      *cfg.PasswordSettings.Lowercase,
@@ -338,8 +386,8 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
 		"enable_public_links":     cfg.FileSettings.EnablePublicLink,
 		"driver_name":             *cfg.FileSettings.DriverName,
-		"isdefault_directory":     isDefault(cfg.FileSettings.Directory, model.FILE_SETTINGS_DEFAULT_DIRECTORY),
-		"isabsolute_directory":    filepath.IsAbs(cfg.FileSettings.Directory),
+		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FILE_SETTINGS_DEFAULT_DIRECTORY),
+		"isabsolute_directory":    filepath.IsAbs(*cfg.FileSettings.Directory),
 		"amazon_s3_ssl":           *cfg.FileSettings.AmazonS3SSL,
 		"amazon_s3_sse":           *cfg.FileSettings.AmazonS3SSE,
 		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,
@@ -368,15 +416,12 @@ func (a *App) trackConfig() {
 		"enable_preview_mode_banner":           *cfg.EmailSettings.EnablePreviewModeBanner,
 		"isdefault_feedback_name":              isDefault(cfg.EmailSettings.FeedbackName, ""),
 		"isdefault_feedback_email":             isDefault(cfg.EmailSettings.FeedbackEmail, ""),
+		"isdefault_reply_to_address":           isDefault(cfg.EmailSettings.ReplyToAddress, ""),
 		"isdefault_feedback_organization":      isDefault(*cfg.EmailSettings.FeedbackOrganization, model.EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION),
 		"skip_server_certificate_verification": *cfg.EmailSettings.SkipServerCertificateVerification,
 		"isdefault_login_button_color":         isDefault(*cfg.EmailSettings.LoginButtonColor, ""),
 		"isdefault_login_button_border_color":  isDefault(*cfg.EmailSettings.LoginButtonBorderColor, ""),
 		"isdefault_login_button_text_color":    isDefault(*cfg.EmailSettings.LoginButtonTextColor, ""),
-	})
-
-	a.SendDiagnostic(TRACK_CONFIG_EXTENSION, map[string]interface{}{
-		"enable_experimental_extensions": *cfg.ExtensionSettings.EnableExperimentalExtensions,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
@@ -419,25 +464,28 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
-		"enable":                              *cfg.LdapSettings.Enable,
-		"enable_sync":                         *cfg.LdapSettings.EnableSync,
-		"connection_security":                 *cfg.LdapSettings.ConnectionSecurity,
-		"skip_certificate_verification":       *cfg.LdapSettings.SkipCertificateVerification,
-		"sync_interval_minutes":               *cfg.LdapSettings.SyncIntervalMinutes,
-		"query_timeout":                       *cfg.LdapSettings.QueryTimeout,
-		"max_page_size":                       *cfg.LdapSettings.MaxPageSize,
-		"isdefault_first_name_attribute":      isDefault(*cfg.LdapSettings.FirstNameAttribute, model.LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
-		"isdefault_last_name_attribute":       isDefault(*cfg.LdapSettings.LastNameAttribute, model.LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
-		"isdefault_email_attribute":           isDefault(*cfg.LdapSettings.EmailAttribute, model.LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
-		"isdefault_username_attribute":        isDefault(*cfg.LdapSettings.UsernameAttribute, model.LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
-		"isdefault_nickname_attribute":        isDefault(*cfg.LdapSettings.NicknameAttribute, model.LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
-		"isdefault_id_attribute":              isDefault(*cfg.LdapSettings.IdAttribute, model.LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE),
-		"isdefault_position_attribute":        isDefault(*cfg.LdapSettings.PositionAttribute, model.LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
-		"isdefault_login_id_attribute":        isDefault(*cfg.LdapSettings.LoginIdAttribute, ""),
-		"isdefault_login_field_name":          isDefault(*cfg.LdapSettings.LoginFieldName, model.LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME),
-		"isdefault_login_button_color":        isDefault(*cfg.LdapSettings.LoginButtonColor, ""),
-		"isdefault_login_button_border_color": isDefault(*cfg.LdapSettings.LoginButtonBorderColor, ""),
-		"isdefault_login_button_text_color":   isDefault(*cfg.LdapSettings.LoginButtonTextColor, ""),
+		"enable":                                 *cfg.LdapSettings.Enable,
+		"enable_sync":                            *cfg.LdapSettings.EnableSync,
+		"connection_security":                    *cfg.LdapSettings.ConnectionSecurity,
+		"skip_certificate_verification":          *cfg.LdapSettings.SkipCertificateVerification,
+		"sync_interval_minutes":                  *cfg.LdapSettings.SyncIntervalMinutes,
+		"query_timeout":                          *cfg.LdapSettings.QueryTimeout,
+		"max_page_size":                          *cfg.LdapSettings.MaxPageSize,
+		"isdefault_first_name_attribute":         isDefault(*cfg.LdapSettings.FirstNameAttribute, model.LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
+		"isdefault_last_name_attribute":          isDefault(*cfg.LdapSettings.LastNameAttribute, model.LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
+		"isdefault_email_attribute":              isDefault(*cfg.LdapSettings.EmailAttribute, model.LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
+		"isdefault_username_attribute":           isDefault(*cfg.LdapSettings.UsernameAttribute, model.LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
+		"isdefault_nickname_attribute":           isDefault(*cfg.LdapSettings.NicknameAttribute, model.LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
+		"isdefault_id_attribute":                 isDefault(*cfg.LdapSettings.IdAttribute, model.LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE),
+		"isdefault_position_attribute":           isDefault(*cfg.LdapSettings.PositionAttribute, model.LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
+		"isdefault_login_id_attribute":           isDefault(*cfg.LdapSettings.LoginIdAttribute, ""),
+		"isdefault_login_field_name":             isDefault(*cfg.LdapSettings.LoginFieldName, model.LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME),
+		"isdefault_login_button_color":           isDefault(*cfg.LdapSettings.LoginButtonColor, ""),
+		"isdefault_login_button_border_color":    isDefault(*cfg.LdapSettings.LoginButtonBorderColor, ""),
+		"isdefault_login_button_text_color":      isDefault(*cfg.LdapSettings.LoginButtonTextColor, ""),
+		"isempty_group_filter":                   isDefault(*cfg.LdapSettings.GroupFilter, ""),
+		"isdefault_group_display_name_attribute": isDefault(*cfg.LdapSettings.GroupDisplayNameAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE),
+		"isdefault_group_id_attribute":           isDefault(*cfg.LdapSettings.GroupIdAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
@@ -457,6 +505,7 @@ func (a *App) trackConfig() {
 		"enable_sync_with_ldap_include_auth":  *cfg.SamlSettings.EnableSyncWithLdapIncludeAuth,
 		"verify":                              *cfg.SamlSettings.Verify,
 		"encrypt":                             *cfg.SamlSettings.Encrypt,
+		"sign_request":                        *cfg.SamlSettings.SignRequest,
 		"isdefault_scoping_idp_provider_id":   isDefault(*cfg.SamlSettings.ScopingIDPProviderId, ""),
 		"isdefault_scoping_idp_name":          isDefault(*cfg.SamlSettings.ScopingIDPName, ""),
 		"isdefault_id_attribute":              isDefault(*cfg.SamlSettings.IdAttribute, model.SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE),
@@ -475,6 +524,9 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_CLUSTER, map[string]interface{}{
 		"enable":                  *cfg.ClusterSettings.Enable,
+		"network_interface":       isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
+		"bind_address":            isDefault(*cfg.ClusterSettings.BindAddress, ""),
+		"advertise_address":       isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
 		"use_ip_address":          *cfg.ClusterSettings.UseIpAddress,
 		"use_experimental_gossip": *cfg.ClusterSettings.UseExperimentalGossip,
 		"read_only_config":        *cfg.ClusterSettings.ReadOnlyConfig,
@@ -492,8 +544,11 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
-		"client_side_cert_enable":          *cfg.ExperimentalSettings.ClientSideCertEnable,
-		"isdefault_client_side_cert_check": isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
+		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
+		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
+		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
+		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
+		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
@@ -513,20 +568,35 @@ func (a *App) trackConfig() {
 		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD),
 		"enable_indexing":                   *cfg.ElasticsearchSettings.EnableIndexing,
 		"enable_searching":                  *cfg.ElasticsearchSettings.EnableSearching,
+		"enable_autocomplete":               *cfg.ElasticsearchSettings.EnableAutocomplete,
 		"sniff":                             *cfg.ElasticsearchSettings.Sniff,
 		"post_index_replicas":               *cfg.ElasticsearchSettings.PostIndexReplicas,
 		"post_index_shards":                 *cfg.ElasticsearchSettings.PostIndexShards,
+		"channel_index_replicas":            *cfg.ElasticsearchSettings.ChannelIndexReplicas,
+		"channel_index_shards":              *cfg.ElasticsearchSettings.ChannelIndexShards,
+		"user_index_replicas":               *cfg.ElasticsearchSettings.UserIndexReplicas,
+		"user_index_shards":                 *cfg.ElasticsearchSettings.UserIndexShards,
 		"isdefault_index_prefix":            isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX),
 		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
 		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
 		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
+		"skip_tls_verification":             *cfg.ElasticsearchSettings.SkipTLSVerification,
+		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
-		"enable_jira":    pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
-		"enable_zoom":    pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
-		"enable":         *cfg.PluginSettings.Enable,
-		"enable_uploads": *cfg.PluginSettings.EnableUploads,
+		"enable_autolink":               pluginActivated(cfg.PluginSettings.PluginStates, "mattermost-autolink"),
+		"enable_aws_sns":                pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.aws-sns"),
+		"enable_custom_user_attributes": pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.custom-attributes"),
+		"enable_github":                 pluginActivated(cfg.PluginSettings.PluginStates, "github"),
+		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
+		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
+		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
+		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
+		"enable":                        *cfg.PluginSettings.Enable,
+		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
+		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
@@ -551,11 +621,14 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
-		"isdefault_custom_url_schemes": len(*cfg.DisplaySettings.CustomUrlSchemes) != 0,
+		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomUrlSchemes) != 0,
 	})
 
-	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
-		"isdefault_supported_timezones_path": isDefault(*cfg.TimezoneSettings.SupportedTimezonesPath, model.TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH),
+	a.SendDiagnostic(TRACK_CONFIG_IMAGE_PROXY, map[string]interface{}{
+		"enable":                               *cfg.ImageProxySettings.Enable,
+		"image_proxy_type":                     *cfg.ImageProxySettings.ImageProxyType,
+		"isdefault_remote_image_proxy_url":     isDefault(*cfg.ImageProxySettings.RemoteImageProxyURL, ""),
+		"isdefault_remote_image_proxy_options": isDefault(*cfg.ImageProxySettings.RemoteImageProxyOptions, ""),
 	})
 }
 
@@ -568,6 +641,7 @@ func (a *App) trackLicense() {
 			"start":       license.StartsAt,
 			"expire":      license.ExpiresAt,
 			"users":       *license.Features.Users,
+			"edition":     license.SkuShortName,
 		}
 
 		features := license.Features.ToMap()
@@ -649,8 +723,8 @@ func (a *App) trackServer() {
 		"operating_system": runtime.GOOS,
 	}
 
-	if scr := <-a.Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {
-		data["system_admins"] = scr.Data.(int64)
+	if scr, err := a.Srv.Store.User().AnalyticsGetSystemAdminCount(); err == nil {
+		data["system_admins"] = scr
 	}
 
 	a.SendDiagnostic(TRACK_SERVER, data)
@@ -658,12 +732,12 @@ func (a *App) trackServer() {
 
 func (a *App) trackPermissions() {
 	phase1Complete := false
-	if ph1res := <-a.Srv.Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); ph1res.Err == nil {
+	if _, err := a.Srv.Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
 		phase1Complete = true
 	}
 
 	phase2Complete := false
-	if ph2res := <-a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); ph2res.Err == nil {
+	if _, err := a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err == nil {
 		phase2Complete = true
 	}
 
@@ -692,6 +766,11 @@ func (a *App) trackPermissions() {
 		teamUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
+	teamGuestPermissions := ""
+	if role, err := a.GetRoleByName(model.TEAM_GUEST_ROLE_ID); err == nil {
+		teamGuestPermissions = strings.Join(role.Permissions, " ")
+	}
+
 	channelAdminPermissions := ""
 	if role, err := a.GetRoleByName(model.CHANNEL_ADMIN_ROLE_ID); err == nil {
 		channelAdminPermissions = strings.Join(role.Permissions, " ")
@@ -699,7 +778,12 @@ func (a *App) trackPermissions() {
 
 	channelUserPermissions := ""
 	if role, err := a.GetRoleByName(model.CHANNEL_USER_ROLE_ID); err == nil {
-		systemAdminPermissions = strings.Join(role.Permissions, " ")
+		channelUserPermissions = strings.Join(role.Permissions, " ")
+	}
+
+	channelGuestPermissions := ""
+	if role, err := a.GetRoleByName(model.CHANNEL_GUEST_ROLE_ID); err == nil {
+		channelGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	a.SendDiagnostic(TRACK_PERMISSIONS_SYSTEM_SCHEME, map[string]interface{}{
@@ -707,8 +791,10 @@ func (a *App) trackPermissions() {
 		"system_user_permissions":   systemUserPermissions,
 		"team_admin_permissions":    teamAdminPermissions,
 		"team_user_permissions":     teamUserPermissions,
+		"team_guest_permissions":    teamGuestPermissions,
 		"channel_admin_permissions": channelAdminPermissions,
 		"channel_user_permissions":  channelUserPermissions,
+		"channel_guest_permissions": channelGuestPermissions,
 	})
 
 	if schemes, err := a.GetSchemes(model.SCHEME_SCOPE_TEAM, 0, 100); err == nil {
@@ -723,6 +809,11 @@ func (a *App) trackPermissions() {
 				teamUserPermissions = strings.Join(role.Permissions, " ")
 			}
 
+			teamGuestPermissions := ""
+			if role, err := a.GetRoleByName(scheme.DefaultTeamGuestRole); err == nil {
+				teamGuestPermissions = strings.Join(role.Permissions, " ")
+			}
+
 			channelAdminPermissions := ""
 			if role, err := a.GetRoleByName(scheme.DefaultChannelAdminRole); err == nil {
 				channelAdminPermissions = strings.Join(role.Permissions, " ")
@@ -730,20 +821,24 @@ func (a *App) trackPermissions() {
 
 			channelUserPermissions := ""
 			if role, err := a.GetRoleByName(scheme.DefaultChannelUserRole); err == nil {
-				systemAdminPermissions = strings.Join(role.Permissions, " ")
+				channelUserPermissions = strings.Join(role.Permissions, " ")
 			}
 
-			var count int64 = 0
-			if res := <-a.Srv.Store.Team().AnalyticsGetTeamCountForScheme(scheme.Id); res.Err == nil {
-				count = res.Data.(int64)
+			channelGuestPermissions := ""
+			if role, err := a.GetRoleByName(scheme.DefaultChannelGuestRole); err == nil {
+				channelGuestPermissions = strings.Join(role.Permissions, " ")
 			}
+
+			count, _ := a.Srv.Store.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
 
 			a.SendDiagnostic(TRACK_PERMISSIONS_TEAM_SCHEMES, map[string]interface{}{
 				"scheme_id":                 scheme.Id,
 				"team_admin_permissions":    teamAdminPermissions,
 				"team_user_permissions":     teamUserPermissions,
+				"team_guest_permissions":    teamGuestPermissions,
 				"channel_admin_permissions": channelAdminPermissions,
 				"channel_user_permissions":  channelUserPermissions,
+				"channel_guest_permissions": channelGuestPermissions,
 				"team_count":                count,
 			})
 		}

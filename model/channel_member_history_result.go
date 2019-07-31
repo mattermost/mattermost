@@ -12,4 +12,5 @@ type ChannelMemberHistoryResult struct {
 	// these two fields are never set in the database - when we SELECT, we join on Users to get them
 	UserEmail string `db:"Email"`
 	Username  string
+	IsBot     bool
 }

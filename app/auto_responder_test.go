@@ -12,7 +12,7 @@ import (
 )
 
 func TestSetAutoResponderStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -51,7 +51,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 }
 
 func TestDisableAutoResponder(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -80,7 +80,7 @@ func TestDisableAutoResponder(t *testing.T) {
 }
 
 func TestSendAutoResponseSuccess(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -117,7 +117,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 }
 
 func TestSendAutoResponseFailure(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()

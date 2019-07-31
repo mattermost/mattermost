@@ -20,15 +20,15 @@ type Watcher struct {
 	srv     *JobServer
 	workers *Workers
 
-	stop            chan bool
-	stopped         chan bool
+	stop            chan struct{}
+	stopped         chan struct{}
 	pollingInterval int
 }
 
 func (srv *JobServer) MakeWatcher(workers *Workers, pollingInterval int) *Watcher {
 	return &Watcher{
-		stop:            make(chan bool, 1),
-		stopped:         make(chan bool, 1),
+		stop:            make(chan struct{}),
+		stopped:         make(chan struct{}),
 		pollingInterval: pollingInterval,
 		workers:         workers,
 		srv:             srv,
@@ -45,7 +45,7 @@ func (watcher *Watcher) Start() {
 
 	defer func() {
 		mlog.Debug("Watcher Finished")
-		watcher.stopped <- true
+		close(watcher.stopped)
 	}()
 
 	for {
@@ -61,58 +61,65 @@ func (watcher *Watcher) Start() {
 
 func (watcher *Watcher) Stop() {
 	mlog.Debug("Watcher Stopping")
-	watcher.stop <- true
+	close(watcher.stop)
 	<-watcher.stopped
 }
 
 func (watcher *Watcher) PollAndNotify() {
-	if result := <-watcher.srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Error occurred getting all pending statuses: %v", result.Err.Error()))
-	} else {
-		jobs := result.Data.([]*model.Job)
+	jobs, err := watcher.srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Error occurred getting all pending statuses: %v", err.Error()))
+		return
+	}
 
-		for _, job := range jobs {
-			if job.Type == model.JOB_TYPE_DATA_RETENTION {
-				if watcher.workers.DataRetention != nil {
-					select {
-					case watcher.workers.DataRetention.JobChannel() <- *job:
-					default:
-					}
+	for _, job := range jobs {
+		if job.Type == model.JOB_TYPE_DATA_RETENTION {
+			if watcher.workers.DataRetention != nil {
+				select {
+				case watcher.workers.DataRetention.JobChannel() <- *job:
+				default:
 				}
-			} else if job.Type == model.JOB_TYPE_MESSAGE_EXPORT {
-				if watcher.workers.MessageExport != nil {
-					select {
-					case watcher.workers.MessageExport.JobChannel() <- *job:
-					default:
-					}
+			}
+		} else if job.Type == model.JOB_TYPE_MESSAGE_EXPORT {
+			if watcher.workers.MessageExport != nil {
+				select {
+				case watcher.workers.MessageExport.JobChannel() <- *job:
+				default:
 				}
-			} else if job.Type == model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING {
-				if watcher.workers.ElasticsearchIndexing != nil {
-					select {
-					case watcher.workers.ElasticsearchIndexing.JobChannel() <- *job:
-					default:
-					}
+			}
+		} else if job.Type == model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING {
+			if watcher.workers.ElasticsearchIndexing != nil {
+				select {
+				case watcher.workers.ElasticsearchIndexing.JobChannel() <- *job:
+				default:
 				}
-			} else if job.Type == model.JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION {
-				if watcher.workers.ElasticsearchAggregation != nil {
-					select {
-					case watcher.workers.ElasticsearchAggregation.JobChannel() <- *job:
-					default:
-					}
+			}
+		} else if job.Type == model.JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION {
+			if watcher.workers.ElasticsearchAggregation != nil {
+				select {
+				case watcher.workers.ElasticsearchAggregation.JobChannel() <- *job:
+				default:
 				}
-			} else if job.Type == model.JOB_TYPE_LDAP_SYNC {
-				if watcher.workers.LdapSync != nil {
-					select {
-					case watcher.workers.LdapSync.JobChannel() <- *job:
-					default:
-					}
+			}
+		} else if job.Type == model.JOB_TYPE_LDAP_SYNC {
+			if watcher.workers.LdapSync != nil {
+				select {
+				case watcher.workers.LdapSync.JobChannel() <- *job:
+				default:
 				}
-			} else if job.Type == model.JOB_TYPE_MIGRATIONS {
-				if watcher.workers.Migrations != nil {
-					select {
-					case watcher.workers.Migrations.JobChannel() <- *job:
-					default:
-					}
+			}
+		} else if job.Type == model.JOB_TYPE_MIGRATIONS {
+			if watcher.workers.Migrations != nil {
+				select {
+				case watcher.workers.Migrations.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_PLUGINS {
+			if watcher.workers.Plugins != nil {
+				select {
+				case watcher.workers.Plugins.JobChannel() <- *job:
+				default:
 				}
 			}
 		}

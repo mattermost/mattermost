@@ -117,7 +117,7 @@ func (c *cache) get(t reflect.Type) *structInfo {
 	info := c.m[t]
 	c.l.RUnlock()
 	if info == nil {
-		info = c.create(t, nil)
+		info = c.create(t, "")
 		c.l.Lock()
 		c.m[t] = info
 		c.l.Unlock()
@@ -126,37 +126,40 @@ func (c *cache) get(t reflect.Type) *structInfo {
 }
 
 // create creates a structInfo with meta-data about a struct.
-func (c *cache) create(t reflect.Type, info *structInfo) *structInfo {
-	if info == nil {
-		info = &structInfo{fields: []*fieldInfo{}}
-	}
+func (c *cache) create(t reflect.Type, parentAlias string) *structInfo {
+	info := &structInfo{}
+	var anonymousInfos []*structInfo
 	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		if field.Anonymous {
-			ft := field.Type
-			if ft.Kind() == reflect.Ptr {
-				ft = ft.Elem()
-			}
-			if ft.Kind() == reflect.Struct {
-				bef := len(info.fields)
-				c.create(ft, info)
-				for _, fi := range info.fields[bef:len(info.fields)] {
-					// exclude required check because duplicated to embedded field
-					fi.isRequired = false
-				}
+		if f := c.createField(t.Field(i), parentAlias); f != nil {
+			info.fields = append(info.fields, f)
+			if ft := indirectType(f.typ); ft.Kind() == reflect.Struct && f.isAnonymous {
+				anonymousInfos = append(anonymousInfos, c.create(ft, f.canonicalAlias))
 			}
 		}
-		c.createField(field, info)
+	}
+	for i, a := range anonymousInfos {
+		others := []*structInfo{info}
+		others = append(others, anonymousInfos[:i]...)
+		others = append(others, anonymousInfos[i+1:]...)
+		for _, f := range a.fields {
+			if !containsAlias(others, f.alias) {
+				info.fields = append(info.fields, f)
+			}
+		}
 	}
 	return info
 }
 
 // createField creates a fieldInfo for the given field.
-func (c *cache) createField(field reflect.StructField, info *structInfo) {
+func (c *cache) createField(field reflect.StructField, parentAlias string) *fieldInfo {
 	alias, options := fieldAlias(field, c.tag)
 	if alias == "-" {
 		// Ignore this field.
-		return
+		return nil
+	}
+	canonicalAlias := alias
+	if parentAlias != "" {
+		canonicalAlias = parentAlias + "." + alias
 	}
 	// Check if the type is supported and don't cache it if not.
 	// First let's get the basic type.
@@ -181,19 +184,20 @@ func (c *cache) createField(field reflect.StructField, info *structInfo) {
 	if isStruct = ft.Kind() == reflect.Struct; !isStruct {
 		if c.converter(ft) == nil && builtinConverters[ft.Kind()] == nil {
 			// Type is not supported.
-			return
+			return nil
 		}
 	}
 
-	info.fields = append(info.fields, &fieldInfo{
+	return &fieldInfo{
 		typ:              field.Type,
 		name:             field.Name,
 		alias:            alias,
+		canonicalAlias:   canonicalAlias,
 		unmarshalerInfo:  m,
 		isSliceOfStructs: isSlice && isStruct,
 		isAnonymous:      field.Anonymous,
 		isRequired:       options.Contains("required"),
-	})
+	}
 }
 
 // converter returns the converter for a type.
@@ -216,11 +220,26 @@ func (i *structInfo) get(alias string) *fieldInfo {
 	return nil
 }
 
+func containsAlias(infos []*structInfo, alias string) bool {
+	for _, info := range infos {
+		if info.get(alias) != nil {
+			return true
+		}
+	}
+	return false
+}
+
 type fieldInfo struct {
 	typ reflect.Type
 	// name is the field name in the struct.
 	name  string
 	alias string
+	// canonicalAlias is almost the same as the alias, but is prefixed with
+	// an embedded struct field alias in dotted notation if this field is
+	// promoted from the struct.
+	// For instance, if the alias is "N" and this field is an embedded field
+	// in a struct "X", canonicalAlias will be "X.N".
+	canonicalAlias string
 	// unmarshalerInfo contains information regarding the
 	// encoding.TextUnmarshaler implementation of the field type.
 	unmarshalerInfo unmarshaler
@@ -231,6 +250,13 @@ type fieldInfo struct {
 	isRequired  bool
 }
 
+func (f *fieldInfo) paths(prefix string) []string {
+	if f.alias == f.canonicalAlias {
+		return []string{prefix + f.alias}
+	}
+	return []string{prefix + f.alias, prefix + f.canonicalAlias}
+}
+
 type pathPart struct {
 	field *fieldInfo
 	path  []string // path to the field: walks structs using field names.
@@ -238,6 +264,13 @@ type pathPart struct {
 }
 
 // ----------------------------------------------------------------------------
+
+func indirectType(typ reflect.Type) reflect.Type {
+	if typ.Kind() == reflect.Ptr {
+		return typ.Elem()
+	}
+	return typ
+}
 
 // fieldAlias parses a field tag to get a field alias.
 func fieldAlias(field reflect.StructField, tagName string) (alias string, options tagOptions) {

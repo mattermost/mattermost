@@ -25,7 +25,8 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	}
 
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly && channel.Name == model.DEFAULT_CHANNEL {
-		user, err := a.GetUser(reaction.UserId)
+		var user *model.User
+		user, err = a.GetUser(reaction.UserId)
 		if err != nil {
 			return nil, err
 		}
@@ -35,12 +36,10 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 		}
 	}
 
-	result := <-a.Srv.Store.Reaction().Save(reaction)
-	if result.Err != nil {
-		return nil, result.Err
+	reaction, err = a.Srv.Store.Reaction().Save(reaction)
+	if err != nil {
+		return nil, err
 	}
-
-	reaction = result.Data.(*model.Reaction)
 
 	// The post is always modified since the UpdateAt always changes
 	a.InvalidateCacheForChannelPosts(post.ChannelId)
@@ -53,11 +52,35 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 }
 
 func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
-	result := <-a.Srv.Store.Reaction().GetForPost(postId, true)
-	if result.Err != nil {
-		return nil, result.Err
+	return a.Srv.Store.Reaction().GetForPost(postId, true)
+}
+
+func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
+	reactions := make(map[string][]*model.Reaction)
+
+	allReactions, err := a.Srv.Store.Reaction().BulkGetForPosts(postIds)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.([]*model.Reaction), nil
+
+	for _, reaction := range allReactions {
+		reactionsForPost := reactions[reaction.PostId]
+		reactionsForPost = append(reactionsForPost, reaction)
+
+		reactions[reaction.PostId] = reactionsForPost
+	}
+
+	reactions = populateEmptyReactions(postIds, reactions)
+	return reactions, nil
+}
+
+func populateEmptyReactions(postIds []string, reactions map[string][]*model.Reaction) map[string][]*model.Reaction {
+	for _, postId := range postIds {
+		if _, present := reactions[postId]; !present {
+			reactions[postId] = []*model.Reaction{}
+		}
+	}
+	return reactions
 }
 
 func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
@@ -91,8 +114,8 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 		hasReactions = false
 	}
 
-	if result := <-a.Srv.Store.Reaction().Delete(reaction); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.Reaction().Delete(reaction); err != nil {
+		return err
 	}
 
 	// The post is always modified since the UpdateAt always changes
@@ -110,13 +133,4 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
 	message.Add("reaction", reaction.ToJson())
 	a.Publish(message)
-
-	post.HasReactions = hasReactions
-	post.UpdateAt = model.GetMillis()
-
-	clientPost := a.PreparePostForClient(post)
-
-	umessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	umessage.Add("post", clientPost.ToJson())
-	a.Publish(umessage)
 }

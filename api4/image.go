@@ -12,12 +12,11 @@ func (api *API) InitImage() {
 }
 
 func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Only redirect to our image proxy if one is enabled. Arbitrary redirects are not allowed for
-	// security reasons.
-	if transform := c.App.ImageProxyAdder(); transform != nil {
-		http.Redirect(w, r, transform(r.URL.Query().Get("url")), http.StatusFound)
-		return
-	}
+	url := r.URL.Query().Get("url")
 
-	http.NotFound(w, r)
+	if *c.App.Config().ImageProxySettings.Enable {
+		c.App.ImageProxy.GetImage(w, r, url)
+	} else {
+		http.Redirect(w, r, url, http.StatusFound)
+	}
 }

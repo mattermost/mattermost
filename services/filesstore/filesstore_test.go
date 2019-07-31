@@ -42,7 +42,7 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 	suite.Run(t, &FileBackendTestSuite{
 		settings: model.FileSettings{
 			DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
-			Directory:  dir,
+			Directory:  &dir,
 		},
 	})
 }
@@ -56,7 +56,7 @@ func TestS3FileBackendTestSuiteWithEncryption(t *testing.T) {
 }
 
 func runBackendTest(t *testing.T, encrypt bool) {
-	s3Host := os.Getenv("CI_HOST")
+	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
 		s3Host = "dockerhost"
 	}
@@ -71,10 +71,11 @@ func runBackendTest(t *testing.T, encrypt bool) {
 	suite.Run(t, &FileBackendTestSuite{
 		settings: model.FileSettings{
 			DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-			AmazonS3AccessKeyId:     model.MINIO_ACCESS_KEY,
-			AmazonS3SecretAccessKey: model.MINIO_SECRET_KEY,
-			AmazonS3Bucket:          model.MINIO_BUCKET,
-			AmazonS3Endpoint:        s3Endpoint,
+			AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
+			AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+			AmazonS3Bucket:          model.NewString(model.MINIO_BUCKET),
+			AmazonS3Region:          model.NewString(""),
+			AmazonS3Endpoint:        model.NewString(s3Endpoint),
 			AmazonS3SSL:             model.NewBool(false),
 			AmazonS3SSE:             model.NewBool(encrypt),
 		},
@@ -236,17 +237,29 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	path1 := "19700101/" + model.NewId()
 	path2 := "19800101/" + model.NewId()
 
+	paths, err := s.backend.ListDirectory("19700101")
+	s.Nil(err)
+	s.Len(*paths, 0)
+
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
-	defer s.backend.RemoveFile(path1)
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), path2)
 	s.Nil(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
-	defer s.backend.RemoveFile(path2)
 
-	paths, err := s.backend.ListDirectory("")
+	paths, err = s.backend.ListDirectory("19700101")
+	s.Nil(err)
+	s.Len(*paths, 1)
+	s.Equal(path1, (*paths)[0])
+
+	paths, err = s.backend.ListDirectory("19700101/")
+	s.Nil(err)
+	s.Len(*paths, 1)
+	s.Equal(path1, (*paths)[0])
+
+	paths, err = s.backend.ListDirectory("")
 	s.Nil(err)
 
 	found1 := false
@@ -260,6 +273,9 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	}
 	s.True(found1)
 	s.True(found2)
+
+	s.backend.RemoveFile(path1)
+	s.backend.RemoveFile(path2)
 }
 
 func (s *FileBackendTestSuite) TestRemoveDirectory() {
