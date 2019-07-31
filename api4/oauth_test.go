@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"testing"
@@ -629,4 +630,11 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 
 	_, resp = AdminClient.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
 	CheckNoError(t, resp)
+}
+
+func closeBody(r *http.Response) {
+	if r != nil && r.Body != nil {
+		ioutil.ReadAll(r.Body)
+		r.Body.Close()
+	}
 }
