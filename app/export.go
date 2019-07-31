@@ -404,7 +404,7 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 		var user *model.User
 		user, err = a.Srv.Store.User().Get(reaction.UserId)
 		if err != nil {
-			return nil, err
+			continue // this is a valid case, the user that reacted might've been deleted by now
 		}
 		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}
