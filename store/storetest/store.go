@@ -86,6 +86,7 @@ func (s *Store) DropAllTables()                        { /* do nothing */ }
 func (s *Store) TotalMasterDbConnections() int         { return 1 }
 func (s *Store) TotalReadDbConnections() int           { return 1 }
 func (s *Store) TotalSearchDbConnections() int         { return 1 }
+func (s *Store) GetCurrentSchemaVersion() string       { return "" }
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
