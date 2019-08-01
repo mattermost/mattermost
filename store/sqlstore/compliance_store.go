@@ -240,28 +240,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
 			Posts.CreateAt > :StartTime AND
-			Posts.Type NOT IN ('slack_attachment',
-							   'system_generic',
-							   'system_join_leave',
-							   'system_join_channel',
-							   'system_leave_channel',
-							   'system_join_team',
-							   'system_leave_team',
-							   'system_auto_responder',
-							   'system_add_remove',
-							   'system_add_to_channel',
-							   'system_remove_from_channel',
-							   'system_move_channel',
-							   'system_add_to_team',
-							   'system_remove_from_team',
-							   'system_header_change',
-							   'system_displayname_change',
-							   'system_convert_channel',
-							   'system_purpose_change',
-							   'system_channel_deleted',
-							   'system_ephemeral',
-							   'system_change_chan_privacy',
-							   'add_bot_teams_channels')
+			Posts.Type NOT LIKE 'system_%'
 		ORDER BY PostCreateAt
 		LIMIT :Limit`
 
