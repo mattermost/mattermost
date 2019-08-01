@@ -6,6 +6,7 @@ package model
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,12 +59,24 @@ func TestClient4CreatePost(t *testing.T) {
 }
 
 func TestClient4SetToken(t *testing.T) {
-	client := NewAPIv4Client("http://example.com")
-	token := NewId()
+	expected := NewId()
 
-	client.AuthToken = token
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get(HEADER_AUTH)
+
+		token := strings.Split(authHeader, HEADER_BEARER)
+
+		if len(token) < 2 {
+			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, HEADER_BEARER, expected)
+		}
+
+		assert.Equal(t, expected, strings.TrimSpace(token[1]))
+	}))
+
+	client := NewAPIv4Client(server.URL)
+	client.AuthToken = expected
 	client.AuthType = HEADER_BEARER
 
-	assert.Equal(t, token, client.AuthToken)
-	assert.Equal(t, HEADER_BEARER, client.AuthType)
+	_, resp := client.GetMe("")
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
