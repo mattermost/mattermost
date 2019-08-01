@@ -213,6 +213,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Posts.CreateAt AS PostCreateAt,
 			Posts.Message AS PostMessage,
 			Posts.Type AS PostType,
+			Posts.Props AS PostProps,
 			Posts.OriginalId AS PostOriginalId,
 			Posts.RootId AS PostRootId,
 			Posts.Props AS PostProps,
