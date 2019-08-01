@@ -5394,10 +5394,10 @@ func (s *TimerLayerTeamStore) Get(id string) (*model.Team, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTeamStore) GetActiveMemberCount(teamId string) (int64, *model.AppError) {
+func (s *TimerLayerTeamStore) GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.TeamStore.GetActiveMemberCount(teamId)
+	resultVar0, resultVar1 := s.TeamStore.GetActiveMemberCount(teamId, restrictions)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
@@ -5734,10 +5734,10 @@ func (s *TimerLayerTeamStore) GetTeamsForUserWithPagination(userId string, page 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTeamStore) GetTotalMemberCount(teamId string) (int64, *model.AppError) {
+func (s *TimerLayerTeamStore) GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.TeamStore.GetTotalMemberCount(teamId)
+	resultVar0, resultVar1 := s.TeamStore.GetTotalMemberCount(teamId, restrictions)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
