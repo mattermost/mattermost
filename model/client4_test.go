@@ -56,3 +56,14 @@ func TestClient4CreatePost(t *testing.T) {
 	_, resp := client.CreatePost(post)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
+
+func TestClient4SetToken(t *testing.T) {
+	client := NewAPIv4Client("http://example.com")
+	token := NewId()
+
+	client.AuthToken = token
+	client.AuthType = HEADER_BEARER
+
+	assert.Equal(t, token, client.AuthToken)
+	assert.Equal(t, HEADER_BEARER, client.AuthType)
+}

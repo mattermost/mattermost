@@ -112,14 +112,8 @@ func BuildResponse(r *http.Response) *Response {
 	}
 }
 
-// SetToken sets token e.g. Personal Access Token
 func (c *Client4) SetToken(token string) {
 	c.AuthToken = token
-	c.AuthType = HEADER_BEARER
-}
-
-func (c *Client4) MockSession(sessionToken string) {
-	c.AuthToken = sessionToken
 	c.AuthType = HEADER_BEARER
 }
 
