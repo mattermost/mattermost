@@ -1812,6 +1812,65 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	return times, nil
 }
 
+// CountUnreadSince gives the number of posts that a channel has since some date, this doesn't follow any threads.
+func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int, *model.AppError) {
+	countUnreadQuery := `
+	SELECT count(*)
+	FROM Posts
+	WHERE
+		ChannelId = :channelID
+		AND CreateAt <= :createAt
+		AND Deleteat = 0
+	`
+	countParams := map[string]interface{}{
+		"channelID": channelID,
+		"createAt":  since,
+	}
+
+	unread := new(int)
+	_, err := s.GetReplica().Select(unread, countUnreadQuery, countParams)
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.UpdateLastViewedAtPost", "store.sql_channel.UpdateLastViewedAtPost.app_error", countParams, "Error while counting unreads for "+channelID+" as unread", http.StatusInternalServerError)
+	}
+	return 0, nil
+}
+
+// UpdateLastViewedAtPost sets a channel as unread for a user at the time of the post selected and update the MentionCount
+func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID string, mentionCount int) *model.AppError {
+	// TODO: tests: time is consistent, channel is the one expected, mentioncount set to the one specified, error if no post
+
+	unread, appErr := s.CountUnreadSince(unreadPost.ChannelId, unreadPost.CreateAt)
+	if appErr != nil {
+		return appErr
+	}
+
+	params := map[string]interface{}{
+		"mentions":     mentionCount,
+		"msgCount":     unread,
+		"lastViewedAt": unreadPost.CreateAt,
+		"userID":       userID,
+		"channelID":    unreadPost.ChannelId,
+	}
+
+	setUnreadQuery := `
+	UPDATE
+		ChannelMembers
+	SET
+		MentionCount = :mentions
+		MsgCount = :msgCount
+		LastViewedAt = :lastViewedAt
+		LastUpdateAt = :lastViewedAt
+	WHERE
+		UserId = :userID
+		AND ChannelId = :channelID
+	`
+	_, err := s.GetMaster().Exec(setUnreadQuery, params)
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.UpdateLastViewedAtPost", "store.sql_channel.UpdateLastViewedAtPost.app_error", params, "Error while setting channel "+unreadPost.ChannelId+" as unread", http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) *model.AppError {
 	_, err := s.GetMaster().Exec(
 		`UPDATE

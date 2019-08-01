@@ -28,6 +28,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequired(searchPosts)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.ApiSessionRequired(patchPost)).Methods("PUT")
+	api.BaseRoutes.Post.Handle("/set-unread", api.ApiSessionRequired(setChannelUnread)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/pin", api.ApiSessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.ApiSessionRequired(unpinPost)).Methods("POST")
 }
@@ -574,6 +575,26 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(patchedPost.ToJson()))
+}
+
+func setChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	err = c.App.MarkChannelAsUnreadFromPost(post, c.App.Session.User.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinned bool) {
