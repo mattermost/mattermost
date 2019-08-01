@@ -6944,7 +6944,7 @@
   },
   {
     "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Échec de l'ouverture de la connexion sql"
+    "translation": "Échec de l'ouverture de la connexion SMTP"
   },
   {
     "id": "utils.mail.connect_smtp.open_tls.app_error",
