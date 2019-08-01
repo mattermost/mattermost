@@ -25,7 +25,7 @@ services:
       POSTGRES_DB: mattermost_test
     tmpfs: /var/lib/postgresql/data
   minio:
-    image: "minio/minio:RELEASE.2019-04-23T23-50-36Z"
+    image: "minio/minio:RELEASE.2019-07-31T18-57-56Z"
     command: "server /data"
     networks:
       - mm-test
