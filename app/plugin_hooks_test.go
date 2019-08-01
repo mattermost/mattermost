@@ -606,6 +606,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 			import (
 				"io"
+				"fmt"
 				"bytes"
 				"github.com/mattermost/mattermost-server/plugin"
 				"github.com/mattermost/mattermost-server/model"
@@ -622,7 +623,13 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 				p.API.LogDebug(buf.String())
 
 				outbuf := bytes.NewBufferString("changedtext")
-				io.Copy(output, outbuf)
+				n, err := io.Copy(output, outbuf)
+				if err != nil {
+					panic(fmt.Sprintf("io.Copy failed after %d bytes: %s", n, err.Error()))
+				}
+				if n != 11 {
+					panic(fmt.Sprintf("io.Copy only copied %d bytes", n))
+				}
 				info.Name = "modifiedinfo"
 				return info, ""
 			}
