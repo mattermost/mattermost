@@ -61,9 +61,6 @@ services:
       LDAP_ORGANISATION: "Mattermost Test"
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
-    volumes:
-      - "../tests/test-data.ldif:/test-data.ldif"
-      - "../tests/qa-data.ldif:/qa-data.ldif"
   elasticsearch:
     image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
     networks:
