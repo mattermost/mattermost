@@ -117,7 +117,7 @@ ifeq ($(IS_CI),false)
 	@echo Starting docker containers
 
 	docker-compose --no-ansi -f ./build/docker-compose.yml run --rm start_dependencies
-	docker-compose --no-ansi -f ./build/docker-compose.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /${LDAP_DATA}-data.ldif || true';
+	cat tests/${LDAP_DATA}-data.ldif | docker-compose --no-ansi -f ./build/docker-compose.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 
 else
 	@echo CI Build: skipping docker start
@@ -290,8 +290,8 @@ test-data: start-docker ## Add test data to the local instance.
 
 	@echo You may need to restart the Mattermost server before using the following
 	@echo ========================================================================
-	@echo Login with a system admin account username=sysadmin password=sysadmin
-	@echo Login with a regular account username=user-1 password=user-1
+	@echo Login with a system admin account username=sysadmin password=Sys@dmin-sample1
+	@echo Login with a regular account username=user-1 password=SampleUs@r-1
 	@echo ========================================================================
 
 validate-go-version: ## Validates the installed version of go against Mattermost's minimum requirement.
