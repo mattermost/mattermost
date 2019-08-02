@@ -587,7 +587,7 @@ func setChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.MarkChannelAsUnreadFromPost(post, c.App.Session.User.Id)
+	err := c.App.MarkChannelAsUnreadFromPost(c.Params.PostId, c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return

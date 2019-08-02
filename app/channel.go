@@ -1755,9 +1755,10 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) *model.A
 	}
 
 	unreadMentions := 1 // TODO: calculate this value, setting it to one for now.
-	if _, err = a.Srv.Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions); err != nil {
+	if err = a.Srv.Store.Channel().UpdateLastViewedAtPost(*post, userID, unreadMentions); err != nil {
 		return err
 	}
+	return nil
 }
 
 func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {

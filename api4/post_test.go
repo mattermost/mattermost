@@ -2527,3 +2527,51 @@ func TestGetFileInfosForPost(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetFileInfosForPost(th.BasicPost.Id, "")
 	CheckNoError(t, resp)
 }
+
+func TestSetChannelUnread(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	u1 := th.BasicUser
+	u2 := th.BasicUser2
+	s2, _ := th.App.GetSession(th.Client.AuthToken)
+	th.Client.Login(u1.Email, u1.Password)
+	th.Client.Login(u1.Email, u1.Password)
+	c1 := th.BasicChannel
+	c2toc1 := &model.ChannelView{ChannelId: c1.Id, PrevChannelId: th.BasicChannel2.Id}
+	//c1toc2 := model.ChannelView{ChannelId: c2.Id, PrevChannelId: c1.Id}
+
+	p1 := th.CreateMessagePost("AAA")
+	require.NotNil(t, p1)
+	p2 := th.CreateMessagePost("BBB")
+	require.NotNil(t, p2)
+	p3 := th.CreateMessagePost("CCC")
+	require.NotNil(t, p3)
+
+	t.Run("Check that post have been read", func(t *testing.T) {
+		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+		unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), unread.MsgCount)
+		view, err := th.App.ViewChannel(c2toc1, u2.Id, s2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, view)
+		//require.Equal(t, p3.CreateAt, view["last_viewed_at_times"])
+		unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), unread.MsgCount)
+	})
+
+	t.Run("Unread last one", func(t *testing.T) {
+		r := th.Client.SetChannelUnread(p3.Id)
+		assert.Nil(t, r)
+		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(1), unread.MsgCount)
+		unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(0), unread.MsgCount)
+	})
+}

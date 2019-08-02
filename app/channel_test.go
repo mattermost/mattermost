@@ -1041,3 +1041,7 @@ func TestSearchChannelsForUser(t *testing.T) {
 		searchAndCheck(t, "dev", []string{"test-dev-1", "test-dev-2", "dev-3"})
 	})
 }
+
+func TestMarkChannelAsUnreadFromPost(t *testing.T) {
+
+}

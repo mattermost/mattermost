@@ -1813,7 +1813,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 }
 
 // CountUnreadSince gives the number of posts that a channel has since some date, this doesn't follow any threads.
-func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int, *model.AppError) {
+func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int64, *model.AppError) {
 	countUnreadQuery := `
 	SELECT count(*)
 	FROM Posts
@@ -1827,12 +1827,11 @@ func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int, *
 		"createAt":  since,
 	}
 
-	unread := new(int)
-	_, err := s.GetReplica().Select(unread, countUnreadQuery, countParams)
+	unread, err := s.GetReplica().SelectInt(countUnreadQuery, countParams)
 	if err != nil {
-		return 0, model.NewAppError("SqlChannelStore.UpdateLastViewedAtPost", "store.sql_channel.UpdateLastViewedAtPost.app_error", countParams, "Error while counting unreads for "+channelID+" as unread", http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlChannelStore.CountUnreadSince", "store.sql_channel.CountUnreadSince.app_error", countParams, fmt.Sprintf("Error while counting unreads for %s since %d", channelID, since), http.StatusInternalServerError)
 	}
-	return 0, nil
+	return unread, nil
 }
 
 // UpdateLastViewedAtPost sets a channel as unread for a user at the time of the post selected and update the MentionCount
@@ -1856,10 +1855,10 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID st
 	UPDATE
 		ChannelMembers
 	SET
-		MentionCount = :mentions
-		MsgCount = :msgCount
-		LastViewedAt = :lastViewedAt
-		LastUpdateAt = :lastViewedAt
+		MentionCount = :mentions,
+		MsgCount = :msgCount,
+		LastViewedAt = :lastViewedAt,
+		LastUpdateAt = :lastViewedAt,
 	WHERE
 		UserId = :userID
 		AND ChannelId = :channelID
