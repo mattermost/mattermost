@@ -98,7 +98,12 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 	trigger = strings.ToLower(trigger)
 
 	a.Srv.pluginCommandsLock.RLock()
-	defer a.Srv.pluginCommandsLock.RUnlock()
+	locked := true
+	defer func() {
+		if locked {
+			a.Srv.pluginCommandsLock.RUnlock()
+		}
+	}()
 
 	for _, pc := range a.Srv.pluginCommands {
 		if (pc.Command.TeamId == "" || pc.Command.TeamId == args.TeamId) && pc.Command.Trigger == trigger {
@@ -107,6 +112,8 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 				if err != nil {
 					return pc.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 				}
+				a.Srv.pluginCommandsLock.RUnlock()
+				locked = false
 				response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)
 				return pc.Command, response, appErr
 			}
