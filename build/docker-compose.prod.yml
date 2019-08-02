@@ -1,0 +1,16 @@
+version: '3.4'
+services:
+  mysql:
+    container_name: ''
+  postgres:
+    container_name: ''
+  minio:
+    container_name: ''
+  inbucket:
+    container_name: ''
+  openldap:
+    container_name: ''
+  elasticsearch:
+    container_name: ''
+  redis:
+    container_name: ''

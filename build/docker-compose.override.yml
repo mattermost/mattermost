@@ -1,0 +1,16 @@
+version: '3.4'
+services:
+  mysql:
+    container_name: mattermost-mysql
+  postgres:
+    container_name: mattermost-postgres
+  minio:
+    container_name: mattermost-minio
+  inbucket:
+    container_name: mattermost-inbucket
+  openldap:
+    container_name: mattermost-openldap
+  elasticsearch:
+    container_name: mattermost-elasticsearch
+  redis:
+    container_name: mattermost-redis
