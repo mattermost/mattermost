@@ -117,7 +117,7 @@ ifeq ($(IS_CI),false)
 	@echo Starting docker containers
 
 	docker-compose --no-ansi -f ./build/docker-compose.yml run --rm start_dependencies
-	docker-compose --no-ansi -f ./build/docker-compose.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /${LDAP_DATA}-data.ldif || true';
+	cat tests/${LDAP_DATA}-data.ldif | docker-compose --no-ansi -f ./build/docker-compose.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 
 else
 	@echo CI Build: skipping docker start
