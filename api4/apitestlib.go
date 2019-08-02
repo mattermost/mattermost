@@ -524,10 +524,10 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 }
 
 func (me *TestHelper) GenerateTestEmail() string {
-	if *me.App.Config().EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
+	if *me.App.Config().EmailSettings.SMTPServer != "localhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
 		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
 	}
-	return strings.ToLower(model.NewId() + "@dockerhost")
+	return strings.ToLower(model.NewId() + "@localhost")
 }
 
 func (me *TestHelper) CreateGroup() *model.Group {
