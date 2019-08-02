@@ -73,19 +73,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	updateMentionChans := []chan *model.AppError{}
 
 	if channel.Type == model.CHANNEL_DIRECT {
-		var otherUserId string
+		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
 
-		userIds := strings.Split(channel.Name, "__")
-
-		if userIds[0] != userIds[1] {
-			if userIds[0] == post.UserId {
-				otherUserId = userIds[1]
-			} else {
-				otherUserId = userIds[0]
-			}
-		}
-
-		otherUser, ok := profileMap[otherUserId]
+		_, ok := profileMap[otherUserId]
 		if ok {
 			mentionedUserIds[otherUserId] = true
 		}
@@ -93,13 +83,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		if post.Props["from_webhook"] == "true" {
 			mentionedUserIds[post.UserId] = true
 		}
-
-		if post.Type != model.POST_AUTO_RESPONDER {
-			a.Srv.Go(func() {
-				a.SendAutoResponse(channel, otherUser)
-			})
-		}
-
 	} else {
 		keywords := a.getMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
 

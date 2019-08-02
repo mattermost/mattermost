@@ -393,6 +393,10 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		return err
 	}
 
+	a.Srv.Go(func() {
+		_, _ = a.SendAutoResponseIfNecessary(channel, user)
+	})
+
 	if triggerWebhooks {
 		a.Srv.Go(func() {
 			if err := a.handleWebhookEvents(post, team, channel, user); err != nil {
