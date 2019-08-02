@@ -76,7 +76,7 @@ TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
 # Packages lists
-TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
+TE_PACKAGES=$(shell go list ./...)
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
@@ -182,7 +182,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-elasticsearch; \
-		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms250m -Xmx250m" -d mattermost/mattermost-elasticsearch-docker:6.5.1 > /dev/null; \
+		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" -d mattermost/mattermost-elasticsearch-docker:6.5.1 > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-elasticsearch; \
 		docker start mattermost-elasticsearch> /dev/null; \
@@ -337,6 +337,9 @@ i18n-extract: ## Extract strings for translation from the source code
 store-mocks: ## Creates mock files.
 	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+
+store-layers: ## Generate layers for the store
+	go generate ./store
 
 filesstore-mocks: ## Creates mock files.
 	env GO111MODULE=off go get -u github.com/vektra/mockery/...

@@ -25,12 +25,17 @@ import (
 )
 
 type SlackChannel struct {
-	Id      string            `json:"id"`
-	Name    string            `json:"name"`
-	Members []string          `json:"members"`
-	Topic   map[string]string `json:"topic"`
-	Purpose map[string]string `json:"purpose"`
+	Id      string          `json:"id"`
+	Name    string          `json:"name"`
+	Creator string          `json:"creator"`
+	Members []string        `json:"members"`
+	Purpose SlackChannelSub `json:"purpose"`
+	Topic   SlackChannelSub `json:"topic"`
 	Type    string
+}
+
+type SlackChannelSub struct {
+	Value string `json:"value"`
 }
 
 type SlackProfile struct {
@@ -509,9 +514,15 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 			Type:        sChannel.Type,
 			DisplayName: sChannel.Name,
 			Name:        SlackConvertChannelName(sChannel.Name, sChannel.Id),
-			Purpose:     sChannel.Purpose["value"],
-			Header:      sChannel.Topic["value"],
+			Purpose:     sChannel.Purpose.Value,
+			Header:      sChannel.Topic.Value,
 		}
+
+		// Direct message channels in Slack don't have a name so we set the id as name or else the messages won't get imported.
+		if newChannel.Type == model.CHANNEL_DIRECT {
+			sChannel.Name = sChannel.Id
+		}
+
 		newChannel = SlackSanitiseChannelProperties(newChannel)
 
 		var mChannel *model.Channel
@@ -527,7 +538,7 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 
 		if mChannel == nil {
 			// Haven't found an existing channel to merge with. Try importing it as a new one.
-			mChannel = a.OldImportChannel(&newChannel)
+			mChannel = a.OldImportChannel(&newChannel, sChannel, users)
 			if mChannel == nil {
 				mlog.Warn(fmt.Sprintf("Slack Import: Unable to import Slack channel: %s.", newChannel.DisplayName))
 				importerLog.WriteString(utils.T("api.slackimport.slack_add_channels.import_failed", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
@@ -535,7 +546,10 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 			}
 		}
 
-		a.addSlackUsersToChannel(sChannel.Members, users, mChannel, importerLog)
+		// Members for direct and group channels are added during the creation of the channel in the OldImportChannel function
+		if sChannel.Type == model.CHANNEL_OPEN || sChannel.Type == model.CHANNEL_PRIVATE {
+			a.addSlackUsersToChannel(sChannel.Members, users, mChannel, importerLog)
+		}
 		importerLog.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
 		a.SlackAddPosts(teamId, mChannel, posts[sChannel.Name], users, uploads, botUser)
@@ -814,7 +828,40 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 	return ruser
 }
 
-func (a *App) OldImportChannel(channel *model.Channel) *model.Channel {
+func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, users map[string]*model.User) *model.Channel {
+	if channel.Type == model.CHANNEL_DIRECT {
+		sc, err := a.createDirectChannel(users[sChannel.Members[0]].Id, users[sChannel.Members[1]].Id)
+		if err != nil {
+			return nil
+		}
+
+		return sc
+	}
+
+	// check if direct channel has less than 8 members and if not import as private channel instead
+	if channel.Type == model.CHANNEL_GROUP && len(sChannel.Members) < 8 {
+		members := make([]string, len(sChannel.Members))
+
+		for i := range sChannel.Members {
+			members[i] = users[sChannel.Members[i]].Id
+		}
+
+		sc, err := a.createGroupChannel(members, users[sChannel.Creator].Id)
+		if err != nil {
+			return nil
+		}
+
+		return sc
+	} else if channel.Type == model.CHANNEL_GROUP {
+		channel.Type = model.CHANNEL_PRIVATE
+		sc, err := a.CreateChannel(channel, false)
+		if err != nil {
+			return nil
+		}
+
+		return sc
+	}
+
 	sc, err := a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if err != nil {
 		return nil

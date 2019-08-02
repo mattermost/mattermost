@@ -547,11 +547,12 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 	rtm, err := a.Srv.Store.Team().GetMember(team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
-		tmr := <-a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
-		if tmr.Err != nil {
-			return nil, false, tmr.Err
+		var tmr *model.TeamMember
+		tmr, err = a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
+		if err != nil {
+			return nil, false, err
 		}
-		return tmr.Data.(*model.TeamMember), false, nil
+		return tmr, false, nil
 	}
 
 	// Membership already exists.  Check if deleted and update, otherwise do nothing
@@ -560,7 +561,7 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		return rtm, true, nil
 	}
 
-	membersCount, err := a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId)
+	membersCount, err := a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId, nil)
 	if err != nil {
 		return nil, false, err
 	}
@@ -1237,16 +1238,16 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 	return nil
 }
 
-func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+func (a *App) GetTeamStats(teamId string, restrictions *model.ViewUsersRestrictions) (*model.TeamStats, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
-		totalMemberCount, err := a.Srv.Store.Team().GetTotalMemberCount(teamId)
+		totalMemberCount, err := a.Srv.Store.Team().GetTotalMemberCount(teamId, restrictions)
 		tchan <- store.StoreResult{Data: totalMemberCount, Err: err}
 		close(tchan)
 	}()
 	achan := make(chan store.StoreResult, 1)
 	go func() {
-		memberCount, err := a.Srv.Store.Team().GetActiveMemberCount(teamId)
+		memberCount, err := a.Srv.Store.Team().GetActiveMemberCount(teamId, restrictions)
 		achan <- store.StoreResult{Data: memberCount, Err: err}
 		close(achan)
 	}()

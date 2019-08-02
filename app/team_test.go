@@ -816,12 +816,64 @@ func TestGetTeamStats(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id)
-	require.Nil(t, err)
-	require.NotNil(t, teamStats)
-	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
-	require.Nil(t, err)
-	assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
+	t.Run("without view restrictions", func(t *testing.T) {
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, nil)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
+		require.Nil(t, err)
+		assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(len(members)), teamStats.ActiveMemberCount)
+	})
+
+	t.Run("with view restrictions by this team", func(t *testing.T) {
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{th.BasicTeam.Id}}
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
+		require.Nil(t, err)
+		assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(len(members)), teamStats.ActiveMemberCount)
+	})
+
+	t.Run("with view restrictions by valid channel", func(t *testing.T) {
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{th.BasicChannel.Id}}
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		members, err := th.App.GetChannelMembersPage(th.BasicChannel.Id, 0, 5)
+		require.Nil(t, err)
+		assert.Equal(t, int64(len(*members)), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(len(*members)), teamStats.ActiveMemberCount)
+	})
+
+	t.Run("with view restrictions to not see anything", func(t *testing.T) {
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{}}
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		assert.Equal(t, int64(0), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(0), teamStats.ActiveMemberCount)
+	})
+
+	t.Run("with view restrictions by other team", func(t *testing.T) {
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{"other-team-id"}}
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		assert.Equal(t, int64(0), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(0), teamStats.ActiveMemberCount)
+	})
+
+	t.Run("with view restrictions by not-existing channel", func(t *testing.T) {
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{"test"}}
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		assert.Equal(t, int64(0), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(0), teamStats.ActiveMemberCount)
+	})
 }
 
 func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {

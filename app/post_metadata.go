@@ -379,7 +379,8 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
 		body, contentType, err = a.ImageProxy.GetImageDirect(a.ImageProxy.GetUnproxiedImageURL(request.URL.String()))
 	} else {
-		request.Header.Add("Accept", "image/*, text/html")
+		request.Header.Add("Accept", "image/*")
+		request.Header.Add("Accept", "text/html;q=0.8")
 
 		client := a.HTTPService.MakeClient(false)
 		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
