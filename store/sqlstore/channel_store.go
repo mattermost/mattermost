@@ -1812,14 +1812,15 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	return times, nil
 }
 
-// CountUnreadSince gives the number of posts that a channel has since some date, this doesn't follow any threads.
-func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int64, *model.AppError) {
+// CountReadSince gives the number of posts that a channel has since some date, this doesn't follow any threads.
+// this allows us to know how many posts have bean read already.
+func (s SqlChannelStore) CountReadSince(channelID string, since int64) (int64, *model.AppError) {
 	countUnreadQuery := `
 	SELECT count(*)
 	FROM Posts
 	WHERE
 		ChannelId = :channelID
-		AND CreateAt <= :createAt
+		AND CreateAt >= :createAt
 		AND Deleteat = 0
 	`
 	countParams := map[string]interface{}{
@@ -1838,7 +1839,7 @@ func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int64,
 func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID string, mentionCount int) *model.AppError {
 	// TODO: tests: time is consistent, channel is the one expected, mentioncount set to the one specified, error if no post
 
-	unread, appErr := s.CountUnreadSince(unreadPost.ChannelId, unreadPost.CreateAt)
+	unread, appErr := s.CountReadSince(unreadPost.ChannelId, unreadPost.CreateAt)
 	if appErr != nil {
 		return appErr
 	}
