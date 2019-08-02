@@ -561,7 +561,7 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		return rtm, true, nil
 	}
 
-	membersCount, err := a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId)
+	membersCount, err := a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId, nil)
 	if err != nil {
 		return nil, false, err
 	}
@@ -1238,16 +1238,16 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 	return nil
 }
 
-func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+func (a *App) GetTeamStats(teamId string, restrictions *model.ViewUsersRestrictions) (*model.TeamStats, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
-		totalMemberCount, err := a.Srv.Store.Team().GetTotalMemberCount(teamId)
+		totalMemberCount, err := a.Srv.Store.Team().GetTotalMemberCount(teamId, restrictions)
 		tchan <- store.StoreResult{Data: totalMemberCount, Err: err}
 		close(tchan)
 	}()
 	achan := make(chan store.StoreResult, 1)
 	go func() {
-		memberCount, err := a.Srv.Store.Team().GetActiveMemberCount(teamId)
+		memberCount, err := a.Srv.Store.Team().GetActiveMemberCount(teamId, restrictions)
 		achan <- store.StoreResult{Data: memberCount, Err: err}
 		close(achan)
 	}()

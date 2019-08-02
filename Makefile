@@ -338,6 +338,9 @@ store-mocks: ## Creates mock files.
 	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
+store-layers: ## Generate layers for the store
+	go generate ./store
+
 filesstore-mocks: ## Creates mock files.
 	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'

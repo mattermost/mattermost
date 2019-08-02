@@ -99,8 +99,8 @@ func (m *Mfa) Activate(user *model.User, token string) *model.AppError {
 		return model.NewAppError("Activate", "mfa.activate.bad_token.app_error", nil, "", http.StatusUnauthorized)
 	}
 
-	if err = m.Store.User().UpdateMfaActive(user.Id, true); err != nil {
-		return model.NewAppError("Activate", "mfa.activate.save_active.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if appErr := m.Store.User().UpdateMfaActive(user.Id, true); appErr != nil {
+		return model.NewAppError("Activate", "mfa.activate.save_active.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
