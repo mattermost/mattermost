@@ -724,15 +724,16 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	})
 
 	t.Run("with a slow response", func(t *testing.T) {
-		timeout := 100 * time.Millisecond
+		releaseHandler := make(chan interface{})
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(timeout + time.Millisecond)
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			// Don't actually handle the response, allowing the app to timeout.
+			<-releaseHandler
 		}))
 		defer server.Close()
+		defer close(releaseHandler)
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = timeout
+		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 500 * time.Millisecond
 		defer func() {
 			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
 		}()

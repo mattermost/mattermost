@@ -58,6 +58,10 @@ func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsIn
 
 type QueryFunction func(LayeredStoreSupplier) *LayeredStoreSupplierResult
 
+func (s *LayeredStore) GetCurrentSchemaVersion() string {
+	return s.DatabaseLayer.GetCurrentSchemaVersion()
+}
+
 func (s *LayeredStore) Team() TeamStore {
 	return s.DatabaseLayer.Team()
 }

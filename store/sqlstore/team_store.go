@@ -590,35 +590,43 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restricti
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlTeamStore) GetTotalMemberCount(teamId string) (int64, *model.AppError) {
-	count, err := s.GetReplica().SelectInt(`
-			SELECT
-				count(*)
-			FROM
-				TeamMembers,
-				Users
-			WHERE
-				TeamMembers.UserId = Users.Id
-				AND TeamMembers.TeamId = :TeamId
-				AND TeamMembers.DeleteAt = 0`, map[string]interface{}{"TeamId": teamId})
+func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("count(DISTINCT TeamMembers.UserId)").
+		From("TeamMembers, Users").
+		Where("TeamMembers.DeleteAt = 0").
+		Where("TeamMembers.UserId = Users.Id").
+		Where(sq.Eq{"TeamMembers.TeamId": teamId})
+
+	query = applyTeamMemberViewRestrictionsFilterForStats(query, teamId, restrictions)
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return int64(0), model.NewAppError("SqlTeamStore.GetTotalMemberCount", "store.sql_team.get_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	count, err := s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
 		return int64(0), model.NewAppError("SqlTeamStore.GetTotalMemberCount", "store.sql_team.get_member_count.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
 	}
 	return count, nil
 }
 
-func (s SqlTeamStore) GetActiveMemberCount(teamId string) (int64, *model.AppError) {
-	count, err := s.GetReplica().SelectInt(`
-		SELECT
-			count(*)
-		FROM
-			TeamMembers,
-			Users
-		WHERE
-			TeamMembers.UserId = Users.Id
-			AND TeamMembers.TeamId = :TeamId
-			AND TeamMembers.DeleteAt = 0
-			AND Users.DeleteAt = 0`, map[string]interface{}{"TeamId": teamId})
+func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("count(DISTINCT TeamMembers.UserId)").
+		From("TeamMembers, Users").
+		Where("TeamMembers.DeleteAt = 0").
+		Where("TeamMembers.UserId = Users.Id").
+		Where("Users.DeleteAt = 0").
+		Where(sq.Eq{"TeamMembers.TeamId": teamId})
+
+	query = applyTeamMemberViewRestrictionsFilterForStats(query, teamId, restrictions)
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return 0, model.NewAppError("SqlTeamStore.GetActiveMemberCount", "store.sql_team.get_active_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	count, err := s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
 		return 0, model.NewAppError("SqlTeamStore.GetActiveMemberCount", "store.sql_team.get_active_member_count.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
 	}
@@ -1056,4 +1064,34 @@ func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, teamId string
 	}
 
 	return resultQuery.Distinct()
+}
+
+func applyTeamMemberViewRestrictionsFilterForStats(query sq.SelectBuilder, teamId string, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {
+	if restrictions == nil {
+		return query
+	}
+
+	// If you have no access to teams or channels, return and empty result.
+	if restrictions.Teams != nil && len(restrictions.Teams) == 0 && restrictions.Channels != nil && len(restrictions.Channels) == 0 {
+		return query.Where("1 = 0")
+	}
+
+	teams := make([]interface{}, len(restrictions.Teams))
+	for i, v := range restrictions.Teams {
+		teams[i] = v
+	}
+	channels := make([]interface{}, len(restrictions.Channels))
+	for i, v := range restrictions.Channels {
+		channels[i] = v
+	}
+
+	resultQuery := query
+	if restrictions.Teams != nil && len(restrictions.Teams) > 0 {
+		resultQuery = resultQuery.Join(fmt.Sprintf("TeamMembers rtm ON ( rtm.UserId = Users.Id AND rtm.DeleteAt = 0 AND rtm.TeamId IN (%s))", sq.Placeholders(len(teams))), teams...)
+	}
+	if restrictions.Channels != nil && len(restrictions.Channels) > 0 {
+		resultQuery = resultQuery.Join(fmt.Sprintf("ChannelMembers rcm ON ( rcm.UserId = Users.Id AND rcm.ChannelId IN (%s))", sq.Placeholders(len(channels))), channels...)
+	}
+
+	return resultQuery
 }

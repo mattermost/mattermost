@@ -293,9 +293,16 @@ pipeline {
             dir('src/github.com/mattermost/mattermost-server/build') {
                 ansiColor('xterm') {
                     sh """
+                        # Capture docker logs
+                        docker-compose logs --tail="all" -t --no-color > docker-compose_logs
+                        docker ps -a --no-trunc > docker_ps
+                        docker stats -a --no-stream > docker_stats
+                        tar -czvf docker_logs.tar.gz docker-compose_logs docker_ps docker_stats 
+
                         docker-compose --no-ansi down -v
                     """
                 }
+                archiveArtifacts 'docker_logs.tar.gz'
             }
         }
         cleanup {
