@@ -2536,42 +2536,65 @@ func TestSetChannelUnread(t *testing.T) {
 	u2 := th.BasicUser2
 	s2, _ := th.App.GetSession(th.Client.AuthToken)
 	th.Client.Login(u1.Email, u1.Password)
-	th.Client.Login(u1.Email, u1.Password)
 	c1 := th.BasicChannel
-	c2toc1 := &model.ChannelView{ChannelId: c1.Id, PrevChannelId: th.BasicChannel2.Id}
-	//c1toc2 := model.ChannelView{ChannelId: c2.Id, PrevChannelId: c1.Id}
+	//c2toc1 := &model.ChannelView{ChannelId: c1.Id, PrevChannelId: th.BasicChannel2.Id}
+	c1toc2 := &model.ChannelView{ChannelId: th.BasicChannel2.Id, PrevChannelId: c1.Id}
 
-	p1 := th.CreateMessagePost("AAA")
+	p1 := th.CreateMessagePostNoClient(c1, "AAA", utils.MillisFromTime(time.Now()))
 	require.NotNil(t, p1)
-	p2 := th.CreateMessagePost("BBB")
+	p2 := th.CreateMessagePostNoClient(c1, "BBB", utils.MillisFromTime(time.Now()))
 	require.NotNil(t, p2)
-	p3 := th.CreateMessagePost("CCC")
+	p3 := th.CreateMessagePostNoClient(c1, "CCC", utils.MillisFromTime(time.Now()))
 	require.NotNil(t, p3)
+
+	pp1 := th.CreateMessagePostNoClient(th.BasicPrivateChannel, "Sssh!", utils.MillisFromTime(time.Now()))
+	th.CreateMessagePostNoClient(th.BasicPrivateChannel, "You Sssh!", utils.MillisFromTime(time.Now()))
 
 	t.Run("Check that post have been read", func(t *testing.T) {
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
-		require.Equal(t, int64(0), unread.MsgCount)
+		require.Equal(t, int64(4), unread.MsgCount)
 		unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), unread.MsgCount)
-		view, err := th.App.ViewChannel(c2toc1, u2.Id, s2.Id)
+		_, err = th.App.ViewChannel(c1toc2, u2.Id, s2.Id)
 		require.Nil(t, err)
-		require.NotNil(t, view)
-		//require.Equal(t, p3.CreateAt, view["last_viewed_at_times"])
 		unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 	})
 
 	t.Run("Unread last one", func(t *testing.T) {
-		r := th.Client.SetChannelUnread(p3.Id)
-		assert.Nil(t, r)
+		r := th.Client.SetChannelUnread(p2.Id)
+		assert.Equal(t, 200, r.StatusCode)
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
-		assert.Equal(t, int64(1), unread.MsgCount)
+		assert.Equal(t, int64(2), unread.MsgCount)
 		unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(0), unread.MsgCount)
+	})
+
+	t.Run("Unread on a private channel", func(t *testing.T) {
+		th.Client.Login(u1.Email, u1.Password)
+		r := th.Client.SetChannelUnread(pp1.Id)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err := th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(1), unread.MsgCount)
+	})
+
+	t.Run("Can't unread an imaginary post", func(t *testing.T) {
+		th.Client.Login(u1.Email, u1.Password)
+		r := th.Client.SetChannelUnread("invalid4ofngungryquinj976y")
+		assert.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("Can't unread channels you don't belong to", func(t *testing.T) {
+		u3 := th.CreateUser()
+		c3 := th.CreateClient()
+		c3.Login(u3.Email, u3.Password)
+		r := c3.SetChannelUnread(pp1.Id)
+		assert.Equal(t, 403, r.StatusCode)
 	})
 }
