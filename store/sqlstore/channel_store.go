@@ -1858,14 +1858,15 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID st
 		MentionCount = :mentions,
 		MsgCount = :msgCount,
 		LastViewedAt = :lastViewedAt,
-		LastUpdateAt = :lastViewedAt,
+		LastUpdateAt = :lastViewedAt
 	WHERE
 		UserId = :userID
 		AND ChannelId = :channelID
 	`
 	_, err := s.GetMaster().Exec(setUnreadQuery, params)
 	if err != nil {
-		return model.NewAppError("SqlChannelStore.UpdateLastViewedAtPost", "store.sql_channel.UpdateLastViewedAtPost.app_error", params, "Error while setting channel "+unreadPost.ChannelId+" as unread", http.StatusInternalServerError)
+		mlog.Info(fmt.Sprintf("DELETE ME: params used %v", params))
+		return model.NewAppError("SqlChannelStore.UpdateLastViewedAtPost", "store.sql_channel.UpdateLastViewedAtPost.app_error", params, "Error setting channel "+unreadPost.ChannelId+" as unread: "+err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
