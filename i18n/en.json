@@ -5407,6 +5407,14 @@
     "translation": "Unable to set the user status. Unknown user status."
   },
   {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.create_user.accepted_guest_domain.app_error",
+    "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
+  },
+  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Bot user cannot create bot user."
   },

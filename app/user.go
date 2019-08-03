@@ -1089,8 +1089,14 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	}
 
 	if !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
-		if !prev.IsLDAPUser() && !prev.IsSAMLUser() && user.Email != prev.Email {
-			return nil, model.NewAppError("UpdateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+		if !prev.IsGuest() && !prev.IsLDAPUser() && !prev.IsSAMLUser() && user.Email != prev.Email {
+			return nil, model.NewAppError("UpdateUser", "api.user.update_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if !CheckUserDomain(user, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+		if prev.IsGuest() && !prev.IsLDAPUser() && !prev.IsSAMLUser() && user.Email != prev.Email {
+			return nil, model.NewAppError("UpdateUser", "api.user.update_user.accepted_guest_domain.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

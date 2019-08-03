@@ -147,11 +147,43 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	})
 
 	_, err := th.App.UpdateUser(user, false)
-	assert.True(t, err == nil)
+	assert.Nil(t, err)
 
 	user.Email = "asdf@ghjk.l"
 	_, err = th.App.UpdateUser(user, false)
-	assert.False(t, err == nil)
+	assert.NotNil(t, err)
+
+	t.Run("Restricted Domains must be ignored for guest users", func(t *testing.T) {
+		guest := th.CreateGuest()
+		defer th.App.PermanentDeleteUser(guest)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
+		})
+
+		guest.Email = "asdf@bar.com"
+		updatedGuest, err := th.App.UpdateUser(guest, false)
+		require.Nil(t, err)
+		require.Equal(t, updatedGuest.Email, guest.Email)
+	})
+
+	t.Run("Guest users should be affected by guest restricted domains", func(t *testing.T) {
+		guest := th.CreateGuest()
+		defer th.App.PermanentDeleteUser(guest)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.RestrictCreationToDomains = "foo.com"
+		})
+
+		guest.Email = "asdf@bar.com"
+		_, err := th.App.UpdateUser(guest, false)
+		require.NotNil(t, err)
+
+		guest.Email = "asdf@foo.com"
+		updatedGuest, err := th.App.UpdateUser(guest, false)
+		require.Nil(t, err)
+		require.Equal(t, updatedGuest.Email, guest.Email)
+	})
 }
 
 func TestUpdateUserActive(t *testing.T) {
