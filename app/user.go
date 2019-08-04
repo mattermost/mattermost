@@ -404,8 +404,8 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string)
 	return ruser, nil
 }
 
-// CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
-func CheckUserDomain(user *model.User, domains string) bool {
+// CheckEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
+func CheckEmailDomain(email string, domains string) bool {
 	if len(domains) == 0 {
 		return true
 	}
@@ -413,12 +413,17 @@ func CheckUserDomain(user *model.User, domains string) bool {
 	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
 
 	for _, d := range domainArray {
-		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
+		if strings.HasSuffix(strings.ToLower(email), "@"+d) {
 			return true
 		}
 	}
 
 	return false
+}
+
+// CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
+func CheckUserDomain(user *model.User, domains string) bool {
+	return CheckEmailDomain(user.Email, domains)
 }
 
 // IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
