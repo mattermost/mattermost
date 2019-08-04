@@ -920,27 +920,29 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 		buf := bytes.NewBuffer(nil)
 		_, _ = io.Copy(buf, file)
 		// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
-		if oldFiles, err := a.GetFileInfosForPost(post.Id, true); err == nil {
-			for _, oldFile := range oldFiles {
-				if oldFile.Name != path.Base(file.Name()) || oldFile.Size != int64(buf.Len()) {
-					continue
-				}
-				// check md5
-				newHash := sha1.Sum(buf.Bytes())
-				oldFileData, err := a.GetFile(oldFile.Id)
-				if err != nil {
-					return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
-				}
-				oldHash := sha1.Sum(oldFileData)
+		if post.Id != "" {
+			if oldFiles, err := a.GetFileInfosForPost(post.Id, true); err == nil {
+				for _, oldFile := range oldFiles {
+					if oldFile.Name != path.Base(file.Name()) || oldFile.Size != int64(buf.Len()) {
+						continue
+					}
+					// check md5
+					newHash := sha1.Sum(buf.Bytes())
+					oldFileData, err := a.GetFile(oldFile.Id)
+					if err != nil {
+						return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+					}
+					oldHash := sha1.Sum(oldFileData)
 
-				if bytes.Equal(oldHash[:], newHash[:]) {
-					mlog.Info(fmt.Sprintf("Skipping uploading of file with name %s, already exists", file.Name()))
-					return nil, nil
-				}
+					if bytes.Equal(oldHash[:], newHash[:]) {
+						mlog.Info(fmt.Sprintf("Skipping uploading of file with name %s, already exists", file.Name()))
+						return nil, nil
+					}
 
+				}
+			} else {
+				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}
-		} else {
-			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}
 		fileInfo, err := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
 
