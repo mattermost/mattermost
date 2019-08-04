@@ -109,7 +109,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 			Name:           GenerateTestTeamName(),
 			Email:          th.GenerateTestEmail(),
 			Type:           model.TEAM_OPEN,
-			AllowedDomains: "simulator.amazonses.com,dockerhost",
+			AllowedDomains: "simulator.amazonses.com,localhost",
 		}
 
 		rteam, resp := th.Client.CreateTeam(team)
@@ -125,7 +125,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 			Name:           GenerateTestTeamName(),
 			Email:          th.GenerateTestEmail(),
 			Type:           model.TEAM_OPEN,
-			AllowedDomains: "simulator.amazonses.com,dockerhost",
+			AllowedDomains: "simulator.amazonses.com,localhost",
 		}
 
 		rteam, resp := th.SystemAdminClient.CreateTeam(team)
@@ -192,7 +192,7 @@ func TestGetTeamSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -375,7 +375,7 @@ func TestUpdateTeamSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -480,7 +480,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -736,7 +736,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		Name:            GenerateTestTeamName(),
 		Email:           th.GenerateTestEmail(),
 		Type:            model.TEAM_OPEN,
-		AllowedDomains:  "simulator.amazonses.com,dockerhost",
+		AllowedDomains:  "simulator.amazonses.com,localhost",
 		AllowOpenInvite: true,
 	})
 	CheckNoError(t, resp)
@@ -745,7 +745,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		Name:            GenerateTestTeamName(),
 		Email:           th.GenerateTestEmail(),
 		Type:            model.TEAM_OPEN,
-		AllowedDomains:  "simulator.amazonses.com,dockerhost",
+		AllowedDomains:  "simulator.amazonses.com,localhost",
 		AllowOpenInvite: true,
 	})
 	CheckNoError(t, resp)
@@ -848,7 +848,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -973,7 +973,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 	team2, resp := th.Client.CreateTeam(&model.Team{
@@ -981,7 +981,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -1091,7 +1091,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 	team2, resp := th.Client.CreateTeam(&model.Team{
@@ -1099,7 +1099,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
