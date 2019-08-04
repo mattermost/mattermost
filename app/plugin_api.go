@@ -96,7 +96,10 @@ func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
 	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
-	return api.app.SaveConfig(cfg, true)
+	api.LogError("<><><><><> PluginAPI.SavePluginConfig before App.SaveConfig")
+	apperr := api.app.SaveConfig(cfg, true)
+	api.LogError("<><><><><> PluginAPI.SavePluginConfig after App.SaveConfig")
+	return apperr
 }
 
 func (api *PluginAPI) GetBundlePath() (string, error) {

@@ -375,7 +375,9 @@ func (a *App) GetEnvironmentConfig() map[string]interface{} {
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	a.Log.Error("<><><><><> App.SaveConfig before a.Srv.configStore.Set(newCfg)")
 	oldCfg, err := a.Srv.configStore.Set(newCfg)
+	a.Log.Error(fmt.Sprintf("<><><><><> App.SaveConfig after a.Srv.configStore.Set(newCfg), err: %v", err))
 	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
 		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
 	} else if err != nil {

@@ -8,6 +8,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
 )
@@ -79,7 +80,9 @@ func (cs *commonStore) set(newCfg *model.Config, validate func(*model.Config) er
 
 	// Notify listeners synchronously. Ideally, this would be asynchronous, but existing code
 	// assumes this and there would be increased complexity to avoid racing updates.
+	mlog.Error("<><><><><> commonStore.set: before invokeConfigListeners")
 	cs.invokeConfigListeners(oldCfg, newCfg)
+	mlog.Error("<><><><><> commonStore.set: after invokeConfigListeners")
 
 	return oldCfg, nil
 }

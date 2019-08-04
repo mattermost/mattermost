@@ -112,7 +112,6 @@ func (s *hooksRPCServer) ExecuteCommand(args *Z_ExecuteCommandArgs, returns *Z_E
 		ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.ExecuteCommand(args.A, args.B)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook ExecuteCommand called but not implemented."))
 	}
@@ -664,7 +663,9 @@ func (s *apiRPCServer) SavePluginConfig(args *Z_SavePluginConfigArgs, returns *Z
 	if hook, ok := s.impl.(interface {
 		SavePluginConfig(config map[string]interface{}) *model.AppError
 	}); ok {
+		s.impl.LogError("<><><><><> SERVER SavePluginConfig 1\n")
 		returns.A = hook.SavePluginConfig(args.A)
+		s.impl.LogError(fmt.Sprintf("<><><><><> SERVER SavePluginConfig 2 returns.A: %+v\n", returns.A))
 	} else {
 		return encodableError(fmt.Errorf("API SavePluginConfig called but not implemented."))
 	}
