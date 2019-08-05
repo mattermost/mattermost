@@ -134,9 +134,9 @@ pipeline {
                 dir('src/github.com/mattermost/mattermost-server') {
                     ansiColor('xterm') {
                         sh """
-                        /usr/local/bin/docker-compose --no-ansi -f ./build/docker-compose.yml run --rm start_dependencies
-                        /usr/local/bin/docker-compose --no-ansi -f ./build/docker-compose.yml ps
-                        cat tests/${LDAP_DATA}-data.ldif | /usr/local/bin/docker-compose --no-ansi -f ./build/docker-compose.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                        /usr/local/bin/docker-compose --no-ansi -f ./build/docker-compose-ci.yml run --rm start_dependencies
+                        /usr/local/bin/docker-compose --no-ansi -f ./build/docker-compose-ci.yml ps
+                        cat tests/${LDAP_DATA}-data.ldif | /usr/local/bin/docker-compose --no-ansi -f ./build/docker-compose-ci.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
                         """
                     }
                 }
@@ -294,12 +294,12 @@ pipeline {
                 ansiColor('xterm') {
                     sh """
                         # Capture docker logs
-                        docker-compose logs --tail="all" -t --no-color > docker-compose_logs
+                        docker-compose logs -f docker-compose-ci.yml --tail="all" -t --no-color > docker-compose_logs
                         docker ps -a --no-trunc > docker_ps
                         docker stats -a --no-stream > docker_stats
                         tar -czvf docker_logs.tar.gz docker-compose_logs docker_ps docker_stats
 
-                        docker-compose --no-ansi down -v
+                        docker-compose --no-ansi -f docker-compose-ci.yml down -v
                     """
                 }
                 archiveArtifacts 'docker_logs.tar.gz'
