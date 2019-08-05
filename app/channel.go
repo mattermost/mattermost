@@ -1526,10 +1526,18 @@ func (a *App) postLeaveChannelMessage(user *model.User, channel *model.Channel) 
 }
 
 func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+	message := fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username)
+	postType := model.POST_ADD_TO_CHANNEL
+
+	if addedUser.IsGuest() {
+		message = fmt.Sprintf(utils.T("api.channel.add_guest.added"), addedUser.Username, user.Username)
+		postType = model.POST_ADD_GUEST_TO_CHANNEL
+	}
+
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username),
-		Type:      model.POST_ADD_TO_CHANNEL,
+		Message:   message,
+		Type:      postType,
 		UserId:    user.Id,
 		RootId:    postRootId,
 		Props: model.StringInterface{

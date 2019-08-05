@@ -28,6 +28,7 @@ const (
 	POST_AUTO_RESPONDER         = "system_auto_responder"
 	POST_ADD_REMOVE             = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
 	POST_ADD_TO_CHANNEL         = "system_add_to_channel"
+	POST_ADD_GUEST_TO_CHANNEL   = "system_add_guest_to_chan"
 	POST_REMOVE_FROM_CHANNEL    = "system_remove_from_channel"
 	POST_MOVE_CHANNEL           = "system_move_channel"
 	POST_ADD_TO_TEAM            = "system_add_to_team"
@@ -237,6 +238,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_JOIN_TEAM,
 		POST_LEAVE_TEAM,
 		POST_ADD_TO_CHANNEL,
+		POST_ADD_GUEST_TO_CHANNEL,
 		POST_REMOVE_FROM_CHANNEL,
 		POST_MOVE_CHANNEL,
 		POST_ADD_TO_TEAM,
