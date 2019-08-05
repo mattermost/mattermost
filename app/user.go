@@ -2236,14 +2236,31 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 
 	promotedUser, err := a.GetUser(user.Id)
 	if err != nil {
-		return err
+		mlog.Error(err.Error())
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
-	message.Add("user", promotedUser)
-	a.Publish(message)
-
+	a.sendUpdatedUserEvent(*promotedUser)
 	a.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest())
+
+	teamMembers, err := a.GetTeamMembersForUser(user.Id)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	for _, member := range teamMembers {
+		a.sendUpdatedMemberRoleEvent(user.Id, member)
+
+		channelMembers, err := a.GetChannelMembersForUser(member.TeamId, user.Id)
+		if err != nil {
+			mlog.Error(err.Error())
+		}
+
+		for _, member := range *channelMembers {
+			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
+			evt.Add("channelMember", member.ToJson())
+			a.Publish(evt)
+		}
+	}
 
 	return nil
 }
@@ -2258,14 +2275,31 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 
 	demotedUser, err := a.GetUser(user.Id)
 	if err != nil {
-		return err
+		mlog.Error(err.Error())
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
-	message.Add("user", demotedUser)
-	a.Publish(message)
-
+	a.sendUpdatedUserEvent(*demotedUser)
 	a.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest())
+
+	teamMembers, err := a.GetTeamMembersForUser(user.Id)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	for _, member := range teamMembers {
+		a.sendUpdatedMemberRoleEvent(user.Id, member)
+
+		channelMembers, err := a.GetChannelMembersForUser(member.TeamId, user.Id)
+		if err != nil {
+			mlog.Error(err.Error())
+		}
+
+		for _, member := range *channelMembers {
+			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
+			evt.Add("channelMember", member.ToJson())
+			a.Publish(evt)
+		}
+	}
 
 	return nil
 }
