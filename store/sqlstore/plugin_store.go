@@ -111,6 +111,40 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 	return true, nil
 }
 
+func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+	if err := kv.IsValid(); err != nil {
+		return false, err
+	}
+
+	query := `DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`
+	if oldValue == nil {
+		query = `DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND PValue IS NULL`
+	}
+
+	deleteResult, err := ps.GetMaster().Exec(
+		query,
+		map[string]interface{}{
+			"PluginId": kv.PluginId,
+			"Key":      kv.Key,
+			"Old":      oldValue,
+		},
+	)
+	if err != nil {
+		return false, model.NewAppError("SqlPluginStore.CompareAndDelete", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if rowsAffected, err := deleteResult.RowsAffected(); err != nil {
+		// Failed to update
+		return false, model.NewAppError("SqlPluginStore.CompareAndDelete", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else if rowsAffected == 0 {
+		// No rows were affected by the update, where condition was not satisfied,
+		// return false, but no error.
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError) {
 	var kv *model.PluginKeyValue
 	currentTime := model.GetMillis()
