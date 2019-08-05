@@ -2651,6 +2651,14 @@
     "translation": "Update password failed because we couldn't find a valid account"
   },
   {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.user.upload_profile_user.array.app_error",
     "translation": "Empty array under 'image' in request"
   },
@@ -5405,14 +5413,6 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
-  },
-  {
-    "id": "api.user.update_user.accepted_domain.app_error",
-    "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
-  },
-  {
-    "id": "api.user.create_user.accepted_guest_domain.app_error",
-    "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
