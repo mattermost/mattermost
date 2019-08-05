@@ -1838,7 +1838,6 @@ func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int64,
 
 // UpdateLastViewedAtPost sets a channel as unread for a user at the time of the post selected and update the MentionCount
 func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID string, mentionCount int) *model.AppError {
-	// TODO: tests: time is consistent, channel is the one expected, mentioncount set to the one specified, error if no post
 
 	unread, appErr := s.CountUnreadSince(unreadPost.ChannelId, unreadPost.CreateAt)
 	if appErr != nil {
@@ -1853,6 +1852,8 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID st
 		"channelID":    unreadPost.ChannelId,
 	}
 
+	// msg count uses the value from channels to prevent counting on older channels where no. of messages can be high.
+	// we only count the unread which will be a lot less in 99% cases
 	setUnreadQuery := `
 	UPDATE
 		ChannelMembers
@@ -1866,7 +1867,6 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID st
 		AND ChannelId = :channelID
 	`
 	_, err := s.GetMaster().Exec(setUnreadQuery, params)
-	mlog.Info(fmt.Sprintf("DELETE ME: params used %v", params))
 	if err != nil {
 		return model.NewAppError("SqlChannelStore.UpdateLastViewedAtPost", "store.sql_channel.UpdateLastViewedAtPost.app_error", params, "Error setting channel "+unreadPost.ChannelId+" as unread: "+err.Error(), http.StatusInternalServerError)
 	}

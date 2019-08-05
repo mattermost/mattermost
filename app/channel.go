@@ -1748,7 +1748,6 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) *model.AppError {
 
-	// DELETEME: if we end up needing to get the previous post, remember to check that this is not the first post in a channel.
 	post, err := a.GetSinglePost(postID)
 	if err != nil {
 		return err

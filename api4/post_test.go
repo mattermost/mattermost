@@ -2537,7 +2537,6 @@ func TestSetChannelUnread(t *testing.T) {
 	s2, _ := th.App.GetSession(th.Client.AuthToken)
 	th.Client.Login(u1.Email, u1.Password)
 	c1 := th.BasicChannel
-	//c2toc1 := &model.ChannelView{ChannelId: c1.Id, PrevChannelId: th.BasicChannel2.Id}
 	c1toc2 := &model.ChannelView{ChannelId: th.BasicChannel2.Id, PrevChannelId: c1.Id}
 	now := utils.MillisFromTime(time.Now())
 	p1 := th.CreateMessagePostNoClient(c1, "AAA", now)
