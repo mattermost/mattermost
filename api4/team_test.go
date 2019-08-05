@@ -2394,6 +2394,13 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		err = th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.Nil(t, err, "whitelisted guest user email should be allowed by the guest domain restrictions")
 	})
+
+	t.Run("guest restrictions should not affect inviting new team members", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "@guest.com" })
+
+		err := th.App.InviteNewUsersToTeam([]string{"user@global.com"}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Nil(t, err, "non guest user invites should not be affected by the guest domain restrictions")
+	})
 }
 
 func TestGetTeamInviteInfo(t *testing.T) {
