@@ -2539,16 +2539,18 @@ func TestSetChannelUnread(t *testing.T) {
 	c1 := th.BasicChannel
 	//c2toc1 := &model.ChannelView{ChannelId: c1.Id, PrevChannelId: th.BasicChannel2.Id}
 	c1toc2 := &model.ChannelView{ChannelId: th.BasicChannel2.Id, PrevChannelId: c1.Id}
-
-	p1 := th.CreateMessagePostNoClient(c1, "AAA", utils.MillisFromTime(time.Now()))
+	now := utils.MillisFromTime(time.Now())
+	p1 := th.CreateMessagePostNoClient(c1, "AAA", now)
 	require.NotNil(t, p1)
-	p2 := th.CreateMessagePostNoClient(c1, "BBB", utils.MillisFromTime(time.Now()))
+	p2 := th.CreateMessagePostNoClient(c1, "BBB", now+10)
 	require.NotNil(t, p2)
-	p3 := th.CreateMessagePostNoClient(c1, "CCC", utils.MillisFromTime(time.Now()))
+	p3 := th.CreateMessagePostNoClient(c1, "CCC", now+20)
 	require.NotNil(t, p3)
 
-	pp1 := th.CreateMessagePostNoClient(th.BasicPrivateChannel, "Sssh!", utils.MillisFromTime(time.Now()))
-	th.CreateMessagePostNoClient(th.BasicPrivateChannel, "You Sssh!", utils.MillisFromTime(time.Now()))
+	pp1 := th.CreateMessagePostNoClient(th.BasicPrivateChannel, "Sssh!", now)
+	pp2 := th.CreateMessagePostNoClient(th.BasicPrivateChannel, "You Sssh!", now+10)
+	require.NotNil(t, pp1)
+	require.NotNil(t, pp2)
 
 	t.Run("Check that post have been read", func(t *testing.T) {
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
@@ -2570,14 +2572,16 @@ func TestSetChannelUnread(t *testing.T) {
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(2), unread.MsgCount)
-		unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
+	})
+	t.Run("Other users are unaffected", func(t *testing.T) {
+		unread, err := th.App.GetChannelUnread(c1.Id, u2.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(0), unread.MsgCount)
+
 	})
 
 	t.Run("Unread on a private channel", func(t *testing.T) {
-		th.Client.Login(u1.Email, u1.Password)
-		r := th.Client.SetChannelUnread(pp1.Id)
+		r := th.Client.SetChannelUnread(pp2.Id)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, err := th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, err)
