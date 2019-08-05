@@ -21,6 +21,7 @@ const (
 	POST_SYSTEM_GENERIC         = "system_generic"
 	POST_JOIN_LEAVE             = "system_join_leave" // Deprecated, use POST_JOIN_CHANNEL or POST_LEAVE_CHANNEL instead
 	POST_JOIN_CHANNEL           = "system_join_channel"
+	POST_GUEST_JOIN_CHANNEL     = "system_guest_join_channel"
 	POST_LEAVE_CHANNEL          = "system_leave_channel"
 	POST_JOIN_TEAM              = "system_join_team"
 	POST_LEAVE_TEAM             = "system_leave_team"
@@ -231,6 +232,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_AUTO_RESPONDER,
 		POST_ADD_REMOVE,
 		POST_JOIN_CHANNEL,
+		POST_GUEST_JOIN_CHANNEL,
 		POST_LEAVE_CHANNEL,
 		POST_JOIN_TEAM,
 		POST_LEAVE_TEAM,

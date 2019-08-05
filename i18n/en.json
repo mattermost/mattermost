@@ -176,6 +176,10 @@
     "translation": "%v added to the channel by %v."
   },
   {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v added to the channel as guest by %v."
+  },
+  {
     "id": "api.channel.add_members.error",
     "translation": "Error adding channel member(s)."
   },
@@ -266,6 +270,10 @@
   {
     "id": "api.channel.join_channel.post_and_forget",
     "translation": "%v joined the channel."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v joined the channel as guest."
   },
   {
     "id": "api.channel.leave.default.app_error",

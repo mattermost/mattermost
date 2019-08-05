@@ -1400,10 +1400,18 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 }
 
 func (a *App) postJoinChannelMessage(user *model.User, channel *model.Channel) *model.AppError {
+	message := fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username)
+	postType := model.POST_JOIN_CHANNEL
+
+	if user.IsGuest() {
+		message = fmt.Sprintf(utils.T("api.channel.guest_join_channel.post_and_forget"), user.Username)
+		postType = model.POST_GUEST_JOIN_CHANNEL
+	}
+
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username),
-		Type:      model.POST_JOIN_CHANNEL,
+		Message:   message,
+		Type:      postType,
 		UserId:    user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,
