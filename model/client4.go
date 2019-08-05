@@ -2477,7 +2477,7 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 
 // SetChannelUnread marks channel where post belongs as unread on the time of the provided post.
 func (c *Client4) SetChannelUnread(postID string) *Response {
-	r, err := c.DoApiPost(c.GetPostRoute(postID) + "/set-unread", "")
+	r, err := c.DoApiPost(c.GetPostRoute(postID)+"/set-unread", "")
 	if err != nil {
 		return BuildErrorResponse(r, err)
 	}
