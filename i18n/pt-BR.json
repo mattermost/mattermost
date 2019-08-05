@@ -145,7 +145,7 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Não foi possível enviar a imagem do perfil"
+    "translation": "Não foi possível fazer o upload da imagem do ícone"
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
@@ -153,7 +153,7 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Nenhum arquivo em 'image' no pedido"
+    "translation": "Nenhum arquivo em 'image' no requisição"
   },
   {
     "id": "api.bot.set_bot_icon_image.open.app_error",
@@ -165,11 +165,11 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Não foi possível enviar a imagem do perfil. Arquivo muito grande."
+    "translation": "Não foi possível enviar a imagem do ícone. Arquivo muito grande."
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
+    "translation": "Por favor, adicione-me às equipes e canais nos quais você quer que eu interaja. Para fazer isso, use o navegador ou o aplicativo Mattermost Desktop."
   },
   {
     "id": "api.channel.add_member.added",
@@ -1498,19 +1498,19 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "An error occurred while downloading the plugin."
+    "translation": "Ocorreu um erro durante o download do plugin."
   },
   {
     "id": "api.plugin.install.insecure_url.app_error",
-    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
+    "translation": "Uma URL insegura foi dada para baixar o plugin. Forneça uma URL segura ou ative PluginSettings.AllowInsecureDownloadUrl na sua configuração."
   },
   {
     "id": "api.plugin.install.invalid_url.app_error",
-    "translation": "An invalid url was given to download the plugin."
+    "translation": "Uma url inválida foi dada para baixar o plugin."
   },
   {
     "id": "api.plugin.install.reading_stream_failed.app_error",
-    "translation": "An error ocurred reading the plugin file stream."
+    "translation": "Ocorreu um erro ao ler o fluxo do arquivo do plugin."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -3388,7 +3388,7 @@
   },
   {
     "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
+    "translation": "Não é possível definir o plugin como gerenciado pelo armazenamento de arquivos."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -3436,19 +3436,19 @@
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
-    "translation": "Unable to remove plugin bundle from file store."
+    "translation": "Não é possível remover o pacote do plugin do armazenamento de arquivos."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
-    "translation": "Unable to store the plugin to the configured file store."
+    "translation": "Não é possível armazenar o plugin no armazenamento de arquivos configurado."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Error reading files from the plugins folder in the file store."
+    "translation": "Erro ao ler os arquivos da pasta de plugins no armazenamento de arquivos."
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
-    "translation": "Error reading local plugins folder."
+    "translation": "Erro ao ler a pasta local de plugins."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -5728,7 +5728,7 @@
   },
   {
     "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term"
+    "translation": "Não é possível obter o grupo de canais para o usuário e termo fornecidos"
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
@@ -6180,11 +6180,11 @@
   },
   {
     "id": "store.sql_post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound"
+    "translation": "Não é possível obter a publicação após o tempo limite"
   },
   {
     "id": "store.sql_post.get_post_id_around.app_error",
-    "translation": "Unable to get post around time bound"
+    "translation": "Não é possível obter a publicação em um tempo determinado"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
