@@ -5503,6 +5503,14 @@
     "translation": "We encountered an error updating the bot"
   },
   {
+    "id": "store.sql_channel.CountUnreadSince.app_error",
+    "translation": "Unable to assert messages unread"
+  },
+  {
+    "id": "store.sql_channel.UpdateLastViewedAtPost.app_error",
+    "translation": "Unable to mark channel as unread"
+  },
+  {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
     "translation": "Unable to get deleted channel type counts"
   },
