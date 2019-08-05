@@ -246,7 +246,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			}
 
 			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-				
+
 				post.Message = "prefix_" + post.Message
 				return post, ""
 			}
@@ -610,8 +610,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 			import (
 				"io"
-				"bytes"
 				"fmt"
+				"bytes"
 				"github.com/mattermost/mattermost-server/plugin"
 				"github.com/mattermost/mattermost-server/model"
 			)
@@ -624,13 +624,16 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 				var buf bytes.Buffer
 				n, err := buf.ReadFrom(file)
 				if err != nil {
-					return info, fmt.Sprintf("FAILED to read input file n: %v, err: %v", n, err)
+					panic(fmt.Sprintf("buf.ReadFrom failed, reading %d bytes: %s", err.Error()))
 				}
 
 				outbuf := bytes.NewBufferString("changedtext")
 				n, err = io.Copy(output, outbuf)
-				if int(n) != len("changedtext") || err != nil {
-					return info, fmt.Sprintf("FAILED to write output file n: %v, err: %v", n, err)
+				if err != nil {
+					panic(fmt.Sprintf("io.Copy failed after %d bytes: %s", n, err.Error()))
+				}
+				if n != 11 {
+					panic(fmt.Sprintf("io.Copy only copied %d bytes", n))
 				}
 				info.Name = "modifiedinfo"
 				return info, ""

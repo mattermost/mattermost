@@ -661,7 +661,13 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stats, err := c.App.GetTeamStats(c.Params.TeamId)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	stats, err := c.App.GetTeamStats(c.Params.TeamId, restrictions)
 	if err != nil {
 		c.Err = err
 		return
