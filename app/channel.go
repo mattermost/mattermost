@@ -1746,18 +1746,19 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 }
 
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
-func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) *model.AppError {
+func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnread, *model.AppError) {
 
 	post, err := a.GetSinglePost(postID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	unreadMentions := 1 // TODO: calculate this value, setting it to one for now.
-	if err = a.Srv.Store.Channel().UpdateLastViewedAtPost(*post, userID, unreadMentions); err != nil {
-		return err
+	state, err := a.Srv.Store.Channel().UpdateLastViewedAtPost(*post, userID, unreadMentions)
+	if err != nil {
+		return state, err
 	}
-	return nil
+	return state, nil
 }
 
 func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {

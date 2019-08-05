@@ -1837,11 +1837,12 @@ func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int64,
 }
 
 // UpdateLastViewedAtPost sets a channel as unread for a user at the time of the post selected and update the MentionCount
-func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID string, mentionCount int) *model.AppError {
+// it returns a channelunread so redux can update the apps easily.
+func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID string, mentionCount int) (*model.ChannelUnread, *model.AppError) {
 
 	unread, appErr := s.CountUnreadSince(unreadPost.ChannelId, unreadPost.CreateAt)
 	if appErr != nil {
-		return appErr
+		return nil, appErr
 	}
 
 	params := map[string]interface{}{
@@ -1868,9 +1869,10 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID st
 	`
 	_, err := s.GetMaster().Exec(setUnreadQuery, params)
 	if err != nil {
-		return model.NewAppError("SqlChannelStore.UpdateLastViewedAtPost", "store.sql_channel.UpdateLastViewedAtPost.app_error", params, "Error setting channel "+unreadPost.ChannelId+" as unread: "+err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAtPost", "store.sql_channel.UpdateLastViewedAtPost.app_error", params, "Error setting channel "+unreadPost.ChannelId+" as unread: "+err.Error(), http.StatusInternalServerError)
 	}
-	return nil
+
+	return s.GetChannelUnread(unreadPost.ChannelId, userID)
 }
 
 func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) *model.AppError {

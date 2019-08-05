@@ -587,14 +587,12 @@ func setChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.MarkChannelAsUnreadFromPost(c.Params.PostId, c.App.Session.UserId)
+	state, err := c.App.MarkChannelAsUnreadFromPost(c.Params.PostId, c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
-
-	ReturnStatusOK(w)
-
+	w.Write([]byte(state.ToJson()))
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinned bool) {
