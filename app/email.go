@@ -317,8 +317,6 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 
 	for _, invite := range invites {
 		if len(invite) > 0 {
-			senderRole := utils.T("api.team.invite_members.member")
-
 			subject := utils.T("api.templates.invite_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
@@ -328,7 +326,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
-				map[string]interface{}{"SenderStatus": senderRole, "SenderName": senderName, "TeamDisplayName": team.DisplayName})
+				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
 			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
@@ -380,8 +378,6 @@ func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 
 	for _, invite := range invites {
 		if len(invite) > 0 {
-			senderRole := utils.T("api.team.invite_members.member")
-
 			subject := utils.T("api.templates.invite_guest_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
@@ -391,8 +387,10 @@ func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body_guest.info",
-				map[string]interface{}{"SenderStatus": senderRole, "SenderName": senderName, "TeamDisplayName": team.DisplayName})
+				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
+			bodyPage.Props["SenderName"] = senderName
+			bodyPage.Props["SenderId"] = senderUserId
 			bodyPage.Props["Message"] = ""
 			if message != "" {
 				bodyPage.Props["Message"] = message
