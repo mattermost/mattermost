@@ -2656,7 +2656,7 @@
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": ""
+    "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
