@@ -20,6 +20,8 @@ import (
 )
 
 const (
+	VERSION_5_16_0           = "5.16.0"
+	VERSION_5_15_0           = "5.15.0"
 	VERSION_5_14_0           = "5.14.0"
 	VERSION_5_13_0           = "5.13.0"
 	VERSION_5_12_0           = "5.12.0"
@@ -160,6 +162,8 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	UpgradeDatabaseToVersion512(sqlStore)
 	UpgradeDatabaseToVersion513(sqlStore)
 	UpgradeDatabaseToVersion514(sqlStore)
+	UpgradeDatabaseToVersion515(sqlStore)
+	UpgradeDatabaseToVersion516(sqlStore)
 
 	return nil
 }
@@ -707,8 +711,22 @@ func UpgradeDatabaseToVersion513(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion514(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.14.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_13_0, VERSION_5_14_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_13_0, VERSION_5_14_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_14_0)
+	}
+}
+
+func UpgradeDatabaseToVersion515(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.15.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_14_0, VERSION_5_15_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_15_0)
+	// }
+}
+
+func UpgradeDatabaseToVersion516(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.16.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_15_0, VERSION_5_16_0) {
 
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		sqlStore.GetMaster().Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
@@ -716,6 +734,6 @@ func UpgradeDatabaseToVersion514(sqlStore SqlStore) {
 		sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
 	}
 
-	// 	saveSchemaVersion(sqlStore, VERSION_5_14_0)
+	// 	saveSchemaVersion(sqlStore, VERSION_5_16_0)
 	// }
 }
