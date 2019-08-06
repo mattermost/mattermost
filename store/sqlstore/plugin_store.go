@@ -71,6 +71,11 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 		return false, err
 	}
 
+	if kv.Value == nil {
+		// Setting a key to nil is the same as removing it
+		return ps.CompareAndDelete(kv, oldValue)
+	}
+
 	if oldValue == nil {
 		// Insert if oldValue is nil
 		if err := ps.GetMaster().Insert(kv); err != nil {
@@ -116,13 +121,13 @@ func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []b
 		return false, err
 	}
 
-	query := `DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`
 	if oldValue == nil {
-		query = `DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND PValue IS NULL`
+		// nil can't be stored. Return showing that we didn't do anything
+		return false, nil
 	}
 
 	deleteResult, err := ps.GetMaster().Exec(
-		query,
+		`DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`,
 		map[string]interface{}{
 			"PluginId": kv.PluginId,
 			"Key":      kv.Key,
