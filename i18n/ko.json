@@ -2764,7 +2764,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "이모지 이미지 가져오기 파일을 읽는 중 오류가 발생했습니다. 이모지 이름: \"{{. EmojiName}}\""
+    "translation": "이모지 이미지 가져오기 파일을 읽는 중 오류가 발생했습니다. 이모지 이름: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2776,7 +2776,7 @@
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
-    "translation": "채널을 가져 오는 중 오류가 발생했습니다. 이름이 \"{{. TeamName}}\"인 팀을 찾을 수 없습니다."
+    "translation": "채널을 가져 오는 중 오류가 발생했습니다. 이름이 \"{{.TeamName}}\"인 팀을 찾을 수 없습니다."
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
@@ -2852,7 +2852,7 @@
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": "게시물을 가져 오는 중 오류가 발생했습니다. \"{{. 채널 이름}}\" 이름의 채널을 찾을 수 없습니다."
+    "translation": "게시물을 가져 오는 중 오류가 발생했습니다. \"{{.ChannelName}}\" 이름의 채널을 찾을 수 없습니다."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
@@ -2860,11 +2860,11 @@
   },
   {
     "id": "app.import.import_post.team_not_found.error",
-    "translation": "게시물을 가져 오는 중 오류가 발생했습니다. 이름이 \"{{. TeamName}}\"인 팀을 찾을 수 없습니다."
+    "translation": "게시물을 가져 오는 중 오류가 발생했습니다. 이름이 \"{{.TeamName}}\"인 팀을 찾을 수 없습니다."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": "게시물을 가져 오는 중 오류가 발생했습니다. 사용자명이 \"{{. TeamName}}\"인 사용자를 찾을 수 없습니다."
+    "translation": "게시물을 가져 오는 중 오류가 발생했습니다. 사용자명이 \"{{.Username}}\"인 사용자를 찾을 수 없습니다."
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
