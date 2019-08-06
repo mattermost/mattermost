@@ -2551,7 +2551,15 @@ func TestSetChannelUnread(t *testing.T) {
 	require.NotNil(t, pp1)
 	require.NotNil(t, pp2)
 
-	t.Run("Check that post have been read", func(t *testing.T) {
+	t.Run("Can't unread if user is not logged in", func(t *testing.T) {
+		th.Client.Logout()
+		response := th.Client.SetChannelUnread(p2.Id)
+		checkHTTPStatus(t, response, http.StatusUnauthorized, true)
+	})
+
+	th.Client.Login(u1.Email, u1.Password)
+
+	t.Run("Ensure that post have been read", func(t *testing.T) {
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), unread.MsgCount)
@@ -2567,7 +2575,7 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Unread last one", func(t *testing.T) {
 		r := th.Client.SetChannelUnread(p2.Id)
-		assert.Equal(t, 200, r.StatusCode)
+		checkHTTPStatus(t, r, 200, false)
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(2), unread.MsgCount)
