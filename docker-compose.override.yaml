@@ -1,40 +1,37 @@
-version: '2.4'
+version: '3.4'
 services:
   mysql:
     container_name: mattermost-mysql
-    extends:
-        file: build/docker-compose.yml
-        service: mysql
+    ports:
+      - "3306:3306"
   postgres:
     container_name: mattermost-postgres
-    extends:
-        file: build/docker-compose.yml
-        service: postgres
+    ports:
+      - "5432:5432"
   minio:
     container_name: mattermost-minio
-    extends:
-        file: build/docker-compose.yml
-        service: minio
+    ports:
+      - "9000:9000"
   inbucket:
     container_name: mattermost-inbucket
-    extends:
-        file: build/docker-compose.yml
-        service: inbucket
+    ports:
+      - "10025:10025"
+      - "10080:10080"
+      - "10110:10110"
   openldap:
     container_name: mattermost-openldap
-    extends:
-        file: build/docker-compose.yml
-        service: openldap
+    ports:
+      - "389:389"
+      - "636:636"
   elasticsearch:
     container_name: mattermost-elasticsearch
-    extends:
-        file: build/docker-compose.yml
-        service: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
   redis:
     container_name: mattermost-redis
-    extends:
-        file: build/docker-compose.yml
-        service: redis
+    ports:
+      - "6379:6379"
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
     networks:
