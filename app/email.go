@@ -71,7 +71,7 @@ func (a *App) SendChangeUsernameEmail(oldUsername, newUsername, email, locale, s
 		map[string]interface{}{"TeamDisplayName": a.Config().TeamSettings.SiteName, "NewUsername": newUsername})
 	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
-	if err := a.SendNotificationMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendChangeUsernameEmail", "api.user.send_email_change_username_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -95,7 +95,7 @@ func (a *App) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token st
 	bodyPage.Props["VerifyUrl"] = link
 	bodyPage.Props["VerifyButton"] = T("api.templates.email_change_verify_body.button")
 
-	if err := a.SendNotificationMail(newUserEmail, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(newUserEmail, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendEmailChangeVerifyEmail", "api.user.send_email_change_verify_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -116,7 +116,7 @@ func (a *App) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *
 		map[string]interface{}{"TeamDisplayName": a.Config().TeamSettings.SiteName, "NewEmail": newEmail})
 	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
-	if err := a.SendNotificationMail(oldEmail, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(oldEmail, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendEmailChangeEmail", "api.user.send_email_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -140,7 +140,7 @@ func (a *App) SendVerifyEmail(userEmail, locale, siteURL, token string) *model.A
 	bodyPage.Props["VerifyUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
 
-	if err := a.SendNotificationMail(userEmail, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(userEmail, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -160,7 +160,7 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"], "Method": method})
 	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
-	if err := a.SendNotificationMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -199,7 +199,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 		bodyPage.Props["VerifyUrl"] = link
 	}
 
-	if err := a.SendNotificationMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -220,7 +220,7 @@ func (a *App) SendPasswordChangeEmail(email, method, locale, siteURL string) *mo
 		map[string]interface{}{"TeamDisplayName": a.Config().TeamSettings.SiteName, "TeamURL": siteURL, "Method": method})
 	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
-	if err := a.SendNotificationMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendPasswordChangeEmail", "api.user.send_password_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -240,7 +240,7 @@ func (a *App) SendUserAccessTokenAddedEmail(email, locale, siteURL string) *mode
 		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"], "SiteURL": siteURL})
 	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
-	if err := a.SendNotificationMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendUserAccessTokenAddedEmail", "api.user.send_user_access_token.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -263,7 +263,7 @@ func (a *App) SendPasswordResetEmail(email string, token *model.Token, locale, s
 	bodyPage.Props["ResetUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
 
-	if err := a.SendNotificationMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 	}
 
@@ -288,7 +288,7 @@ func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL s
 	}
 	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
-	if err := a.SendNotificationMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendMfaChangeEmail", "api.user.send_mfa_change_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -482,7 +482,7 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 		map[string]interface{}{"SiteURL": siteURL})
 	bodyPage.Props["Warning"] = T("api.templates.deactivate_body.warning")
 
-	if err := a.SendNotificationMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendDeactivateEmail", "api.user.send_deactivate_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
