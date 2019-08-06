@@ -123,7 +123,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	})
 }
 
-func TestCheckForOutOfChannelMentions(t *testing.T) {
+func TestSendOutOfChannelMentions(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -136,7 +136,7 @@ func TestCheckForOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{user2.Username}
 
-		sent, err := th.App.checkForOutOfChannelMentions(user1, post, channel, potentialMentions)
+		sent, err := th.App.sendOutOfChannelMentions(user1, post, channel, potentialMentions)
 
 		assert.Nil(t, err)
 		assert.True(t, sent)
@@ -146,7 +146,7 @@ func TestCheckForOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{"not a user"}
 
-		sent, err := th.App.checkForOutOfChannelMentions(user1, post, channel, potentialMentions)
+		sent, err := th.App.sendOutOfChannelMentions(user1, post, channel, potentialMentions)
 
 		assert.Nil(t, err)
 		assert.False(t, sent)

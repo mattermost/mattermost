@@ -141,7 +141,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		go func() {
-			_, _ = a.checkForOutOfChannelMentions(sender, post, channel, m.OtherPotentialMentions)
+			_, _ = a.sendOutOfChannelMentions(sender, post, channel, m.OtherPotentialMentions)
 		}()
 
 		// find which users in the channel are set up to always receive mobile notifications
@@ -387,9 +387,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	return mentionedUsersList, nil
 }
 
-// checkForOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
+// sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
 // are outside of the post's channel. Returns whether or not an ephemeral post was sent.
-func (a *App) checkForOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
+func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
 	outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(sender, post, channel, potentialMentions)
 	if err != nil {
 		return false, err
