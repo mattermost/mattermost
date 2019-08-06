@@ -583,7 +583,7 @@ func (s *TimerLayerChannelStore) ClearCaches() {
 	return
 }
 
-func (s *TimerLayerChannelStore) CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.CreateDirectChannel(userId, otherUserId)
