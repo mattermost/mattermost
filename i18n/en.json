@@ -1935,10 +1935,6 @@
     "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
   },
   {
-    "id": "api.team.invite_members.member",
-    "translation": "member"
-  },
-  {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "No one to invite."
   },
@@ -2140,7 +2136,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2148,7 +2144,7 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
   },
   {
     "id": "api.templates.invite_guest_subject",
