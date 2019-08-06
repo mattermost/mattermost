@@ -108,7 +108,7 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
+        "DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
@@ -169,7 +169,7 @@
         "EnableSMTPAuth": false,
         "SMTPUsername": "",
         "SMTPPassword": "",
-        "SMTPServer": "dockerhost",
+        "SMTPServer": "localhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
         "SendPushNotifications": false,
@@ -339,7 +339,7 @@
         "MaxUsersForStatistics": 2500
     },
     "ElasticsearchSettings": {
-        "ConnectionUrl": "http://dockerhost:9200",
+        "ConnectionUrl": "http://localhost:9200",
         "Username": "elastic",
         "Password": "changeme",
         "EnableIndexing": false,

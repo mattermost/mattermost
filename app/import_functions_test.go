@@ -5,6 +5,8 @@ package app
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -2843,6 +2845,14 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 
 	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
+	testImage2 := filepath.Join(testsDir, "test.svg")
+	// create a temp file with same name as original but with a different first byte
+	tmpFolder, _ := ioutil.TempDir("", "imgFake")
+	testImageFake := filepath.Join(tmpFolder, "test.png")
+	fakeFileData, _ := ioutil.ReadFile(testImage)
+	fakeFileData[0] = 0
+	_ = ioutil.WriteFile(testImageFake, fakeFileData, 0644)
+	defer os.RemoveAll(tmpFolder)
 
 	// Create a user.
 	username := model.NewId()
@@ -2877,12 +2887,63 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		Attachments: &[]AttachmentImportData{{Path: &testImage}},
 	}
 
-	if err := th.App.ImportDirectPost(directImportData, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	t.Run("Regular import of attachment", func(t *testing.T) {
+		if err := th.App.ImportDirectPost(directImportData, false); err != nil {
+			t.Fatalf("Expected success.")
+		}
 
-	attachments := GetAttachments(user1.Id, th, t)
-	assert.Equal(t, len(attachments), 1)
-	assert.Contains(t, attachments[0].Path, "noteam")
-	AssertFileIdsInPost(attachments, th, t)
+		attachments := GetAttachments(user1.Id, th, t)
+		assert.Equal(t, len(attachments), 1)
+		assert.Contains(t, attachments[0].Path, "noteam")
+		AssertFileIdsInPost(attachments, th, t)
+	})
+
+	t.Run("Attempt to import again with same file entirely, should NOT add an attachment", func(t *testing.T) {
+		if err := th.App.ImportDirectPost(directImportData, false); err != nil {
+			t.Fatalf("Expected success.")
+		}
+
+		attachments := GetAttachments(user1.Id, th, t)
+		assert.Equal(t, len(attachments), 1)
+	})
+
+	t.Run("Attempt to import again with same name and size but different content, SHOULD add an attachment", func(t *testing.T) {
+		directImportDataFake := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				user1.Username,
+				user2.Username,
+			},
+			User:        &user1.Username,
+			Message:     ptrStr("Direct message"),
+			CreateAt:    ptrInt64(model.GetMillis()),
+			Attachments: &[]AttachmentImportData{{Path: &testImageFake}},
+		}
+
+		if err := th.App.ImportDirectPost(directImportDataFake, false); err != nil {
+			t.Fatalf("Expected success.")
+		}
+
+		attachments := GetAttachments(user1.Id, th, t)
+		assert.Equal(t, len(attachments), 2)
+	})
+
+	t.Run("Attempt to import again with same data, SHOULD add an attachment, since it's different name", func(t *testing.T) {
+		directImportData2 := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				user1.Username,
+				user2.Username,
+			},
+			User:        &user1.Username,
+			Message:     ptrStr("Direct message"),
+			CreateAt:    ptrInt64(model.GetMillis()),
+			Attachments: &[]AttachmentImportData{{Path: &testImage2}},
+		}
+
+		if err := th.App.ImportDirectPost(directImportData2, false); err != nil {
+			t.Fatalf("Expected success.")
+		}
+
+		attachments := GetAttachments(user1.Id, th, t)
+		assert.Equal(t, len(attachments), 3)
+	})
 }

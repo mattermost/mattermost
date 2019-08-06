@@ -93,7 +93,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 
 	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
 		for _, channel := range channels {
-			_, err := a.AddUserToChannel(ruser, channel)
+			_, err := a.AddChannelMember(ruser.Id, channel, "", "")
 			if err != nil {
 				mlog.Error(err.Error())
 			}
