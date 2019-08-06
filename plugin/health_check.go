@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	HEALTH_CHECK_INTERVAL         = 30 // seconds. How often the health check should run
-	HEALTH_CHECK_DISABLE_DURATION = 60 // minutes. How long we wait for num fails to incur before disabling the plugin
-	HEALTH_CHECK_PING_FAIL_LIMIT  = 3  // How many times we call RPC ping in a row before it is considered a failure
-	HEALTH_CHECK_RESTART_LIMIT    = 3  // How many times we restart a plugin before we disable it
+	HEALTH_CHECK_INTERVAL         = 30 * time.Second // How often the health check should run
+	HEALTH_CHECK_DISABLE_DURATION = 60 * time.Minute // How long we wait for num fails to incur before disabling the plugin
+	HEALTH_CHECK_PING_FAIL_LIMIT  = 3                // How many times we call RPC ping in a row before it is considered a failure
+	HEALTH_CHECK_RESTART_LIMIT    = 3                // How many times we restart a plugin before we disable it
 )
 
 type PluginHealthCheckJob struct {
@@ -28,6 +28,8 @@ type PluginHealthCheckJob struct {
 func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 	// Config is set to enable. No job exists, start a new job.
 	if enable && env.pluginHealthCheckJob == nil {
+		mlog.Debug("Enabling plugin health check job", mlog.Duration("interval_s", HEALTH_CHECK_INTERVAL))
+
 		job := newPluginHealthCheckJob(env)
 		env.pluginHealthCheckJob = job
 		job.Start()
@@ -35,6 +37,8 @@ func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 
 	// Config is set to disable. Job exists, kill existing job.
 	if !enable && env.pluginHealthCheckJob != nil {
+		mlog.Debug("Disabling plugin health check job")
+
 		env.pluginHealthCheckJob.Cancel()
 		env.pluginHealthCheckJob = nil
 	}
@@ -42,13 +46,12 @@ func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 
 // Start continuously runs health checks on all active plugins, on a timer.
 func (job *PluginHealthCheckJob) Start() {
-	interval := time.Duration(HEALTH_CHECK_INTERVAL) * time.Second
-	mlog.Debug(fmt.Sprintf("Plugin health check job starting. Sending health check pings every %v seconds.", interval))
+	mlog.Debug("Plugin health check job starting.")
 
 	go func() {
 		defer close(job.cancelled)
 
-		ticker := time.NewTicker(interval)
+		ticker := time.NewTicker(HEALTH_CHECK_INTERVAL)
 		defer func() {
 			ticker.Stop()
 		}()
@@ -134,7 +137,7 @@ func shouldDeactivatePlugin(rp *registeredPlugin) bool {
 		index := len(rp.failTimeStamps) - HEALTH_CHECK_RESTART_LIMIT
 		t := rp.failTimeStamps[index]
 		now := time.Now()
-		elapsed := now.Sub(t).Minutes()
+		elapsed := now.Sub(t)
 		if elapsed <= HEALTH_CHECK_DISABLE_DURATION {
 			return true
 		}
