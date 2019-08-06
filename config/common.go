@@ -6,6 +6,7 @@ package config
 import (
 	"bytes"
 	"io"
+	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -59,7 +60,7 @@ func (cs *commonStore) set(newCfg *model.Config, allowEnvironmentOverrides bool,
 	// To both clone and re-apply the environment variable overrides we marshal and then
 	// unmarshal the config again.
 	var err error
-	newCfg, _, err = unmarshalConfig(bytes.NewReader([]byte(newCfg.ToJson())), allowEnvironmentOverrides)
+	newCfg, _, err = unmarshalConfig(strings.NewReader(newCfg.ToJson()), allowEnvironmentOverrides)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to unmarshal config with env overrides")
 	}
