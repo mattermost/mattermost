@@ -109,20 +109,29 @@ func SlackConvertChannelName(channelName string, channelId string) string {
 	return strings.ToLower(channelId)
 }
 
-func SlackParseChannels(data io.Reader, channelType string) ([]SlackChannel, error) {
+func SlackParseChannels(data io.Reader, channelType string) ([]SlackChannel, []string, error) {
 	decoder := json.NewDecoder(data)
 
 	var channels []SlackChannel
+	var users []string
+
 	if err := decoder.Decode(&channels); err != nil {
 		mlog.Warn("Slack Import: Error occurred when parsing some Slack channels. Import may work anyway.")
-		return channels, err
+
+		for i := range channels {
+			channels[i].Type = channelType
+			users = append(users, channels[i].Members...)
+		}
+
+		return channels, users, err
 	}
 
 	for i := range channels {
 		channels[i].Type = channelType
+		users = append(users, channels[i].Members...)
 	}
 
-	return channels, nil
+	return channels, users, nil
 }
 
 func SlackParseUsers(data io.Reader) ([]SlackUser, error) {
@@ -147,7 +156,7 @@ func SlackParsePosts(data io.Reader) ([]SlackPost, error) {
 	return posts, nil
 }
 
-func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *bytes.Buffer) map[string]*model.User {
+func (a *App) SlackAddUsers(teamId string, slackUsers []SlackUser, importerLog *bytes.Buffer) map[string]*model.User {
 	// Log header
 	importerLog.WriteString(utils.T("api.slackimport.slack_add_users.created"))
 	importerLog.WriteString("===============\r\n\r\n")
@@ -161,7 +170,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 		return addedUsers
 	}
 
-	for _, sUser := range slackusers {
+	for _, sUser := range slackUsers {
 		firstName := sUser.Profile.FirstName
 		lastName := sUser.Profile.LastName
 		email := sUser.Profile.Email
@@ -465,6 +474,34 @@ func (a *App) deactivateSlackBotUser(user *model.User) {
 	}
 }
 
+// Compares users from channels and users.json and adds dummy users in case channels reference missing users
+func addDeletedUsers(users []SlackUser, channelUsers []string) []SlackUser {
+	userMap := make(map[string]string)
+
+	for i := range users {
+		userMap[users[i].Id] = users[i].Id
+	}
+
+	for i := range channelUsers {
+		if _, ok := userMap[channelUsers[i]]; !ok {
+			users = append(users,
+				SlackUser{
+					Id:       channelUsers[i],
+					Username: channelUsers[i],
+					Profile: SlackProfile{
+						FirstName: "deletedUser",
+						LastName:  "deletedUser",
+						Email:     fmt.Sprintf("%s@example.com", channelUsers[i]),
+					},
+				})
+			userMap[channelUsers[i]] = channelUsers[i]
+			mlog.Warn(fmt.Sprintf("Slack Import: User %s was missing from users.json. Added dummy user to prevent channel import from failing.", channelUsers[i]))
+		}
+	}
+
+	return users
+}
+
 func (a *App) addSlackUsersToChannel(members []string, users map[string]*model.User, channel *model.Channel, log *bytes.Buffer) {
 	for _, member := range members {
 		user, ok := users[member]
@@ -502,13 +539,13 @@ func SlackSanitiseChannelProperties(channel model.Channel) model.Channel {
 	return channel
 }
 
-func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel {
+func (a *App) SlackAddChannels(teamId string, slackChannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel {
 	// Write Header
 	importerLog.WriteString(utils.T("api.slackimport.slack_add_channels.added"))
 	importerLog.WriteString("=================\r\n\r\n")
 
 	addedChannels := make(map[string]*model.Channel)
-	for _, sChannel := range slackchannels {
+	for _, sChannel := range slackChannels {
 		newChannel := model.Channel{
 			TeamId:      teamId,
 			Type:        sChannel.Type,
@@ -689,6 +726,14 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	var groupChannels []SlackChannel
 	var directChannels []SlackChannel
 
+	// We collect all users from the channels first to compare to the users.json.
+	// This is to prevent the importer from crashing due to nil pointers when users have been deleted from slack.
+	var channelUsers []string
+	var publicChannelUsers []string
+	var directChannelUsers []string
+	var privateChannelUsers []string
+	var groupChannelUsers []string
+
 	var users []SlackUser
 	posts := make(map[string][]SlackPost)
 	uploads := make(map[string]*zip.File)
@@ -699,17 +744,21 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
 		}
 		if file.Name == "channels.json" {
-			publicChannels, _ = SlackParseChannels(reader, model.CHANNEL_OPEN)
+			publicChannels, publicChannelUsers, _ = SlackParseChannels(reader, model.CHANNEL_OPEN)
 			channels = append(channels, publicChannels...)
+			channelUsers = append(channelUsers, publicChannelUsers...)
 		} else if file.Name == "dms.json" {
-			directChannels, _ = SlackParseChannels(reader, model.CHANNEL_DIRECT)
+			directChannels, directChannelUsers, _ = SlackParseChannels(reader, model.CHANNEL_DIRECT)
 			channels = append(channels, directChannels...)
+			channelUsers = append(channelUsers, directChannelUsers...)
 		} else if file.Name == "groups.json" {
-			privateChannels, _ = SlackParseChannels(reader, model.CHANNEL_PRIVATE)
+			privateChannels, privateChannelUsers, _ = SlackParseChannels(reader, model.CHANNEL_PRIVATE)
 			channels = append(channels, privateChannels...)
+			channelUsers = append(channelUsers, privateChannelUsers...)
 		} else if file.Name == "mpims.json" {
-			groupChannels, _ = SlackParseChannels(reader, model.CHANNEL_GROUP)
+			groupChannels, groupChannelUsers, _ = SlackParseChannels(reader, model.CHANNEL_GROUP)
 			channels = append(channels, groupChannels...)
+			channelUsers = append(channelUsers, groupChannelUsers...)
 		} else if file.Name == "users.json" {
 			users, _ = SlackParseUsers(reader)
 		} else {
@@ -731,6 +780,8 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	posts = SlackConvertUserMentions(users, posts)
 	posts = SlackConvertChannelMentions(channels, posts)
 	posts = SlackConvertPostsMarkup(posts)
+
+	users = addDeletedUsers(users, channelUsers)
 
 	addedUsers := a.SlackAddUsers(teamID, users, log)
 	botUser := a.SlackAddBotUser(teamID, log)
@@ -832,6 +883,7 @@ func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 	if channel.Type == model.CHANNEL_DIRECT {
 		sc, err := a.createDirectChannel(users[sChannel.Members[0]].Id, users[sChannel.Members[1]].Id)
 		if err != nil {
+			mlog.Warn(fmt.Sprintf("Slack Import: Error creating channel %s. %s", sChannel.Id, err.Message))
 			return nil
 		}
 
@@ -848,6 +900,7 @@ func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 
 		sc, err := a.createGroupChannel(members, users[sChannel.Creator].Id)
 		if err != nil {
+			mlog.Warn(fmt.Sprintf("Slack Import: Error creating channel %s. %s", sChannel.Id, err.Message))
 			return nil
 		}
 
@@ -856,6 +909,7 @@ func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 		channel.Type = model.CHANNEL_PRIVATE
 		sc, err := a.CreateChannel(channel, false)
 		if err != nil {
+			mlog.Warn(fmt.Sprintf("Slack Import: Error creating channel %s. %s", sChannel.Id, err.Message))
 			return nil
 		}
 
@@ -864,6 +918,7 @@ func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 
 	sc, err := a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if err != nil {
+		mlog.Warn(fmt.Sprintf("Slack Import: Error creating channel %s. %s", sChannel.Id, err.Message))
 		return nil
 	}
 
