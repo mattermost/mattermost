@@ -474,7 +474,7 @@ type API interface {
 	// Returns (false, nil) if current value != oldValue or key does not exist when deleting
 	// Returns (true, nil) if current value == oldValue and the key was deleted
 	//
-	// Minimum server version: TBD
+	// Minimum server version: 5.16
 	KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError)
 
 	// KVSet stores a key-value pair with an expiry time, unique per plugin.

@@ -27,7 +27,7 @@ type Helpers interface {
 	// Returns (false, nil) if current value != oldValue or the key was already deleted
 	// Returns (true, nil) if current value == oldValue
 	//
-	// Minimum server version: TBD
+	// Minimum server version: 5.16
 	KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error)
 
 	// KVGetJSON retrieves a value based on the key, unique per plugin, unmarshalling the previously set JSON string into the given value. Returns true if the key exists.
