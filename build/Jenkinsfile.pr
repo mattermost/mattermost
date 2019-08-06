@@ -131,12 +131,12 @@ pipeline {
             }
 
             steps {
-                dir('src/github.com/mattermost/mattermost-server') {
+                dir('src/github.com/mattermost/mattermost-server/build') {
                     ansiColor('xterm') {
                         sh """
-                        /usr/local/bin/docker-compose --no-ansi -f ./build/docker-compose.yml run --rm start_dependencies
-                        /usr/local/bin/docker-compose --no-ansi -f ./build/docker-compose.yml ps
-                        cat tests/${LDAP_DATA}-data.ldif | /usr/local/bin/docker-compose --no-ansi -f ./build/docker-compose.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                        /usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
+                        /usr/local/bin/docker-compose --no-ansi ps
+                        cat ../tests/${LDAP_DATA}-data.ldif | /usr/local/bin/docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
                         """
                     }
                 }
