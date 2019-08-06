@@ -74,8 +74,29 @@ func TestClient4SetToken(t *testing.T) {
 	}))
 
 	client := NewAPIv4Client(server.URL)
-	client.AuthToken = expected
-	client.AuthType = HEADER_BEARER
+	client.SetToken(expected)
+
+	_, resp := client.GetMe("")
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestClient4MockSession(t *testing.T) {
+	expected := NewId()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get(HEADER_AUTH)
+
+		token := strings.Split(authHeader, HEADER_BEARER)
+
+		if len(token) < 2 {
+			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, HEADER_BEARER, expected)
+		}
+
+		assert.Equal(t, expected, strings.TrimSpace(token[1]))
+	}))
+
+	client := NewAPIv4Client(server.URL)
+	client.MockSession(expected)
 
 	_, resp := client.GetMe("")
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
