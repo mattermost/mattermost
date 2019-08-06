@@ -1820,7 +1820,7 @@ func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int64,
 	FROM Posts
 	WHERE
 		ChannelId = :channelID
-		AND CreateAt < :createAt
+		AND CreateAt > :createAt
 		AND Type = ""
 		AND Deleteat = 0
 	`
