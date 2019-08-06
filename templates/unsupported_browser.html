@@ -139,6 +139,13 @@
         <img src="/static/images/warning.png" alt="warning" class="exclamation-triangle" ></img>
       </div>
       <h2 >
+        <span>
+          {{if (eq .Props.OSVersion "OSWindows")}}
+            You're on Windows!
+          {{end}}
+        </span>
+      </h2>
+      <h2 >
         <span>{{.Props.Title}}</span>
       </h2>
       <div>

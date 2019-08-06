@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/avct/uasurfer"
 	"github.com/NYTimes/gziphandler"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -64,6 +65,9 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		page := utils.NewHTMLTemplate(c.App.HTMLTemplates(), "unsupported_browser")
 		page.Props["Title"] = c.App.T("web.error.unsupported_browser.title")
 		page.Props["Message"] = c.App.T("web.error.unsupported_browser.message")
+
+		ua := uasurfer.Parse(r.UserAgent())
+		page.Props["OSVersion"] = ua.OS.Name.String()
 		page.RenderToWriter(w)
 		return
 	}
