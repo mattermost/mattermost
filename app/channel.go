@@ -340,15 +340,19 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		close(uc2)
 	}()
 
-	if result := <-uc1; result.Err != nil {
+	result := <-uc1
+	if result.Err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, userId, http.StatusBadRequest)
 	}
+	user := result.Data.(*model.User)
 
-	if result := <-uc2; result.Err != nil {
+	result = <-uc2
+	if result.Err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId, http.StatusBadRequest)
 	}
+	otherUser := result.Data.(*model.User)
 
-	channel, err := a.Srv.Store.Channel().CreateDirectChannel(userId, otherUserId)
+	channel, err := a.Srv.Store.Channel().CreateDirectChannel(user, otherUser)
 	if err != nil {
 		if err.Id == store.CHANNEL_EXISTS_ERROR {
 			return channel, err
