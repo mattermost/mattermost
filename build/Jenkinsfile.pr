@@ -134,9 +134,9 @@ pipeline {
                 dir('src/github.com/mattermost/mattermost-server/build') {
                     ansiColor('xterm') {
                         sh """
-                            docker-compose --no-ansi run --rm start_dependencies
-                            docker-compose --no-ansi ps
-                            docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /${LDAP_DATA}-data.ldif';
+                        /usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
+                        /usr/local/bin/docker-compose --no-ansi ps
+                        cat ../tests/${LDAP_DATA}-data.ldif | /usr/local/bin/docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
                         """
                     }
                 }
@@ -293,9 +293,16 @@ pipeline {
             dir('src/github.com/mattermost/mattermost-server/build') {
                 ansiColor('xterm') {
                     sh """
+                        # Capture docker logs
+                        docker-compose logs --tail="all" -t --no-color > docker-compose_logs
+                        docker ps -a --no-trunc > docker_ps
+                        docker stats -a --no-stream > docker_stats
+                        tar -czvf docker_logs.tar.gz docker-compose_logs docker_ps docker_stats
+
                         docker-compose --no-ansi down -v
                     """
                 }
+                archiveArtifacts 'docker_logs.tar.gz'
             }
         }
         cleanup {
