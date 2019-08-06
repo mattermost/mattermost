@@ -64,67 +64,56 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
 
-	mentionedUserIds := make(map[string]bool)
-	threadMentionedUserIds := make(map[string]string)
+	mentions := &ExplicitMentions{}
 	allActivityPushUserIds := []string{}
-	hereNotification := false
-	channelNotification := false
-	allNotification := false
-	updateMentionChans := []chan *model.AppError{}
 
 	if channel.Type == model.CHANNEL_DIRECT {
 		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
 
 		_, ok := profileMap[otherUserId]
 		if ok {
-			mentionedUserIds[otherUserId] = true
+			mentions.addMention(otherUserId, DMMention)
 		}
 
 		if post.Props["from_webhook"] == "true" {
-			mentionedUserIds[post.UserId] = true
+			mentions.addMention(post.UserId, DMMention)
 		}
 	} else {
 		keywords := a.getMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
 
-		m := getExplicitMentions(post, keywords)
+		mentions = getExplicitMentions(post, keywords)
 
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.POST_ADD_TO_CHANNEL {
-			val := post.Props[model.POST_PROPS_ADDED_USER_ID]
-			if val != nil {
-				uid := val.(string)
-				m.MentionedUserIds[uid] = true
+			addedUserId, ok := post.Props[model.POST_PROPS_ADDED_USER_ID].(string)
+			if ok {
+				mentions.addMention(addedUserId, KeywordMention)
 			}
 		}
-
-		mentionedUserIds, hereNotification, channelNotification, allNotification = m.MentionedUserIds, m.HereMentioned, m.ChannelMentioned, m.AllMentioned
 
 		// get users that have comment thread mentions enabled
 		if len(post.RootId) > 0 && parentPostList != nil {
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
 				if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == THREAD_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == THREAD_ROOT && threadPost.Id == parentPostList.Order[0])) {
+					mentionType := ThreadMention
 					if threadPost.Id == parentPostList.Order[0] {
-						threadMentionedUserIds[threadPost.UserId] = THREAD_ROOT
-					} else {
-						threadMentionedUserIds[threadPost.UserId] = THREAD_ANY
+						mentionType = CommentMention
 					}
 
-					if _, ok := mentionedUserIds[threadPost.UserId]; !ok {
-						mentionedUserIds[threadPost.UserId] = false
-					}
+					mentions.addMention(threadPost.UserId, mentionType)
 				}
 			}
 		}
 
 		// prevent the user from mentioning themselves
 		if post.Props["from_webhook"] != "true" {
-			delete(mentionedUserIds, post.UserId)
+			mentions.removeMention(post.UserId)
 		}
 
 		go func() {
-			_, err := a.sendOutOfChannelMentions(sender, post, channel, m.OtherPotentialMentions)
+			_, err := a.sendOutOfChannelMentions(sender, post, channel, mentions.OtherPotentialMentions)
 			if err != nil {
 				mlog.Error("Failed to send warning for out of channel mentions", mlog.String("user_id", sender.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
@@ -141,9 +130,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	mentionedUsersList := make([]string, 0, len(mentionedUserIds))
-	for id := range mentionedUserIds {
+	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
+	updateMentionChans := []chan *model.AppError{}
+
+	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
+
 		umc := make(chan *model.AppError, 1)
 		go func(userId string) {
 			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, userId)
@@ -209,8 +201,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	T := utils.GetUserTranslations(sender.Locale)
 
 	// If the channel has more than 1K users then @here is disabled
-	if hereNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		hereNotification = false
+	if mentions.HereMentioned && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
@@ -222,7 +213,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	// If the channel has more than 1K users then @channel is disabled
-	if channelNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+	if mentions.ChannelMentioned && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
@@ -234,7 +225,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	// If the channel has more than 1K users then @all is disabled
-	if allNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+	if mentions.AllMentioned && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
@@ -278,16 +269,20 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
+				mentionType := mentions.Mentions[id]
+
 				replyToThreadType := ""
-				if value, ok := threadMentionedUserIds[id]; ok {
-					replyToThreadType = value
+				if mentionType == ThreadMention {
+					replyToThreadType = THREAD_ANY
+				} else if mentionType == CommentMention {
+					replyToThreadType = THREAD_ROOT
 				}
 
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
-					mentionedUserIds[id],
-					(channelNotification || hereNotification || allNotification),
+					mentionType == KeywordMention || mentionType == ChannelMention || mentionType == DMMention,
+					mentionType == ChannelMention,
 					replyToThreadType,
 				)
 			} else {
@@ -307,7 +302,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				continue
 			}
 
-			if _, ok := mentionedUserIds[id]; !ok {
+			if _, ok := mentions.Mentions[id]; !ok {
 				var status *model.Status
 				var err *model.AppError
 				if status, err = a.GetStatus(id); err != nil {
@@ -517,8 +512,8 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 }
 
 type ExplicitMentions struct {
-	// MentionedUserIds contains a key for each user mentioned by keyword.
-	MentionedUserIds map[string]bool
+	// Mentions contains the ID of each user that was mentioned and how they were mentioned.
+	Mentions map[string]MentionType
 
 	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
 	// a corresponding keyword.
@@ -534,12 +529,53 @@ type ExplicitMentions struct {
 	ChannelMentioned bool
 }
 
+const (
+	// Different types of mentions ordered by their priority from lowest to highest
+
+	// The post is in a thread that the user has commented on
+	ThreadMention MentionType = iota
+
+	// The post is a comment on a thread started by the user
+	CommentMention
+
+	// The post contains an at-channel, at-all, or at-here
+	ChannelMention
+
+	// The post is a DM
+	DMMention
+
+	// The post contains an at-mention for the user
+	KeywordMention
+)
+
+type MentionType int
+
+func (m *ExplicitMentions) addMention(userId string, mentionType MentionType) {
+	if m.Mentions == nil {
+		m.Mentions = make(map[string]MentionType)
+	}
+
+	if currentType, ok := m.Mentions[userId]; ok && currentType >= mentionType {
+		return
+	}
+
+	m.Mentions[userId] = mentionType
+}
+
+func (m *ExplicitMentions) addMentions(userIds []string, mentionType MentionType) {
+	for _, userId := range userIds {
+		m.addMention(userId, mentionType)
+	}
+}
+
+func (m *ExplicitMentions) removeMention(userId string) {
+	delete(m.Mentions, userId)
+}
+
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
 func getExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
-	ret := &ExplicitMentions{
-		MentionedUserIds: make(map[string]bool),
-	}
+	ret := &ExplicitMentions{}
 
 	buf := ""
 	mentionsEnabledFields := getMentionsEnabledFields(post)
@@ -673,34 +709,32 @@ func (n *postNotification) GetSenderName(userNameFormat string, overridesAllowed
 	return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 }
 
-// addMentionedUsers will add the mentioned user id in the struct's list for mentioned users
-func (e *ExplicitMentions) addMentionedUsers(ids []string) {
-	for _, id := range ids {
-		e.MentionedUserIds[id] = true
-	}
-}
-
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
 func (e *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
 	isMention := false
 
+	mentionType := KeywordMention
+
 	switch strings.ToLower(word) {
 	case "@here":
 		e.HereMentioned = true
+		mentionType = ChannelMention
 	case "@channel":
 		e.ChannelMentioned = true
+		mentionType = ChannelMention
 	case "@all":
 		e.AllMentioned = true
+		mentionType = ChannelMention
 	}
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
-		e.addMentionedUsers(ids)
+		e.addMentions(ids, mentionType)
 		isMention = true
 	}
 
 	// Case-sensitive check for first name
 	if ids, match := keywords[word]; match {
-		e.addMentionedUsers(ids)
+		e.addMentions(ids, mentionType)
 		isMention = true
 	}
 
@@ -779,8 +813,9 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 				}
 			}
 		}
+
 		if ids, match := isKeywordMultibyte(keywords, word); match {
-			e.addMentionedUsers(ids)
+			e.addMentions(ids, KeywordMention)
 		}
 	}
 }
