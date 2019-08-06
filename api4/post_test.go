@@ -2578,19 +2578,18 @@ func TestSetChannelUnread(t *testing.T) {
 		checkHTTPStatus(t, r, 200, false)
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
-		assert.Equal(t, int64(2), unread.MsgCount)
-	})
-	t.Run("Other users are unaffected", func(t *testing.T) {
-		unread, err := th.App.GetChannelUnread(c1.Id, u2.Id)
-		require.Nil(t, err)
-		assert.Equal(t, int64(0), unread.MsgCount)
-
+		assert.Equal(t, int64(1), unread.MsgCount)
 	})
 
 	t.Run("Unread on a private channel", func(t *testing.T) {
 		r := th.Client.SetChannelUnread(pp2.Id)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, err := th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(0), unread.MsgCount)
+		r = th.Client.SetChannelUnread(pp1.Id)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(1), unread.MsgCount)
 	})
