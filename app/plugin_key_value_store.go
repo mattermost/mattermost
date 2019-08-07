@@ -44,13 +44,7 @@ func (a *App) SetPluginKeyWithOptions(pluginId string, key string, value interfa
 		return false, err
 	}
 
-	kv, err := options.GetPluginKeyValue(pluginId, key, value)
-	if err != nil {
-		mlog.Error("Failed to set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
-		return false, err
-	}
-
-	updated, err := a.Srv.Store.Plugin().SetWithOptions(kv, options)
+	updated, err := a.Srv.Store.Plugin().SetWithOptions(pluginId, key, value, options)
 	if err != nil {
 		mlog.Error("Failed to set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 		return updated, err

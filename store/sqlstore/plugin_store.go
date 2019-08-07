@@ -112,11 +112,13 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 	return true, nil
 }
 
-func (ps SqlPluginStore) SetWithOptions(kv *model.PluginKeyValue, options *model.PluginKVSetOptions) (bool, *model.AppError) {
-	if err := kv.IsValid(); err != nil {
+func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value interface{}, options *model.PluginKVSetOptions) (bool, *model.AppError) {
+	if err := options.IsValid(); err != nil {
 		return false, err
 	}
-	if err := options.IsValid(); err != nil {
+
+	kv, err := options.GetPluginKeyValue(pluginId, key, value)
+	if err != nil {
 		return false, err
 	}
 
