@@ -2553,7 +2553,7 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Can't unread if user is not logged in", func(t *testing.T) {
 		th.Client.Logout()
-		response := th.Client.SetChannelUnread(p2.Id)
+		response := th.Client.SetPostUnread(u1.Id, p2.Id)
 		checkHTTPStatus(t, response, http.StatusUnauthorized, true)
 	})
 
@@ -2574,7 +2574,7 @@ func TestSetChannelUnread(t *testing.T) {
 	})
 
 	t.Run("Unread last one", func(t *testing.T) {
-		r := th.Client.SetChannelUnread(p2.Id)
+		r := th.Client.SetPostUnread(u1.Id, p2.Id)
 		checkHTTPStatus(t, r, 200, false)
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
@@ -2582,12 +2582,12 @@ func TestSetChannelUnread(t *testing.T) {
 	})
 
 	t.Run("Unread on a private channel", func(t *testing.T) {
-		r := th.Client.SetChannelUnread(pp2.Id)
+		r := th.Client.SetPostUnread(u1.Id, pp2.Id)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, err := th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(0), unread.MsgCount)
-		r = th.Client.SetChannelUnread(pp1.Id)
+		r = th.Client.SetPostUnread(u1.Id, pp1.Id)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, err = th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, err)
@@ -2596,7 +2596,7 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Can't unread an imaginary post", func(t *testing.T) {
 		th.Client.Login(u1.Email, u1.Password)
-		r := th.Client.SetChannelUnread("invalid4ofngungryquinj976y")
+		r := th.Client.SetPostUnread(u1.Id, "invalid4ofngungryquinj976y")
 		assert.Equal(t, 403, r.StatusCode)
 	})
 
@@ -2604,7 +2604,7 @@ func TestSetChannelUnread(t *testing.T) {
 		u3 := th.CreateUser()
 		c3 := th.CreateClient()
 		c3.Login(u3.Email, u3.Password)
-		r := c3.SetChannelUnread(pp1.Id)
+		r := c3.SetPostUnread(u1.Id, pp1.Id)
 		assert.Equal(t, 403, r.StatusCode)
 	})
 }
