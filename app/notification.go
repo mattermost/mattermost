@@ -141,7 +141,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		go func() {
-			_, _ = a.sendOutOfChannelMentions(sender, post, channel, m.OtherPotentialMentions)
+			_, err := a.sendOutOfChannelMentions(sender, post, channel, m.OtherPotentialMentions)
+			if err != nil {
+				mlog.Error("Failed to send warning for out of channel mentions", mlog.String("user_id", sender.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+			}
 		}()
 
 		// find which users in the channel are set up to always receive mobile notifications
