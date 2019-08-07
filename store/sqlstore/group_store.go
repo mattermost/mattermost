@@ -82,6 +82,10 @@ func (s *SqlGroupStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
 	s.CreateIndexIfNotExists("idx_usergroups_remote_id", "UserGroups", "RemoteId")
 	s.CreateIndexIfNotExists("idx_usergroups_delete_at", "UserGroups", "DeleteAt")
+	s.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
+	s.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
+	s.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(1)", "boolean")
+	s.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(1)", "boolean")
 }
 
 func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, *model.AppError) {

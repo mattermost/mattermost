@@ -150,7 +150,7 @@ pipeline {
                             cat config/config.json
 
                             make test-server BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE=
-
+                            make test-db-migration
                         """
                     }
                     withCredentials([string(credentialsId: 'CODECOV_TOKEN', variable: 'CODECOV')]) {
