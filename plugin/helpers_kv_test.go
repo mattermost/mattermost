@@ -105,34 +105,15 @@ func TestKVSetJSON(t *testing.T) {
 }
 
 func TestKVCompareAndSetJSON(t *testing.T) {
-	t.Run("old value JSON marshal error", func(t *testing.T) {
-		api := &plugintest.API{}
-		api.AssertNotCalled(t, "KVCompareAndSet")
-		p := &plugin.HelpersImpl{API: api}
-
-		ok, err := p.KVCompareAndSetJSON("test-key", func() { return }, map[string]interface{}{})
-
-		api.AssertExpectations(t)
-		assert.Equal(t, false, ok)
-		assert.NotNil(t, err)
-	})
-
-	t.Run("new value JSON marshal error", func(t *testing.T) {
-		api := &plugintest.API{}
-		api.AssertNotCalled(t, "KVCompareAndSet")
-
-		p := &plugin.HelpersImpl{API: api}
-
-		ok, err := p.KVCompareAndSetJSON("test-key", map[string]interface{}{}, func() { return })
-
-		api.AssertExpectations(t)
-		assert.False(t, ok)
-		assert.NotNil(t, err)
-	})
-
 	t.Run("old value nil", func(t *testing.T) {
 		api := &plugintest.API{}
-		api.On("KVCompareAndSet", "test-key", []byte(nil), []byte(`{"val-b":20}`)).Return(true, nil)
+		api.On("KVSetWithOptions", "test-key", map[string]interface{}{
+			"val-b": 20,
+		}, &model.PluginKVSetOptions{
+			EncodeJSON: true,
+			Atomic:     true,
+			OldValue:   nil,
+		}).Return(true, nil)
 		p := &plugin.HelpersImpl{API: api}
 
 		ok, err := p.KVCompareAndSetJSON("test-key", nil, map[string]interface{}{
@@ -146,7 +127,15 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 
 	t.Run("old value non-nil", func(t *testing.T) {
 		api := &plugintest.API{}
-		api.On("KVCompareAndSet", "test-key", []byte(`{"val-a":10}`), []byte(`{"val-b":20}`)).Return(true, nil)
+		api.On("KVSetWithOptions", "test-key", map[string]interface{}{
+			"val-b": 20,
+		}, &model.PluginKVSetOptions{
+			EncodeJSON: true,
+			Atomic:     true,
+			OldValue: map[string]interface{}{
+				"val-a": 10,
+			},
+		}).Return(true, nil)
 		p := &plugin.HelpersImpl{API: api}
 
 		ok, err := p.KVCompareAndSetJSON("test-key", map[string]interface{}{
@@ -162,7 +151,13 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 
 	t.Run("new value nil", func(t *testing.T) {
 		api := &plugintest.API{}
-		api.On("KVCompareAndSet", "test-key", []byte(`{"val-a":10}`), []byte(nil)).Return(true, nil)
+		api.On("KVSetWithOptions", "test-key", nil, &model.PluginKVSetOptions{
+			EncodeJSON: true,
+			Atomic:     true,
+			OldValue: map[string]interface{}{
+				"val-a": 10,
+			},
+		}).Return(true, nil)
 		p := &plugin.HelpersImpl{API: api}
 
 		ok, err := p.KVCompareAndSetJSON("test-key", map[string]interface{}{
@@ -176,21 +171,14 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 }
 
 func TestKVSetWithExpiryJSON(t *testing.T) {
-	t.Run("JSON marshal error", func(t *testing.T) {
-		api := &plugintest.API{}
-		api.AssertNotCalled(t, "KVSetWithExpiry")
-
-		p := &plugin.HelpersImpl{API: api}
-
-		err := p.KVSetWithExpiryJSON("test-key", func() { return }, 100)
-
-		api.AssertExpectations(t)
-		assert.NotNil(t, err)
-	})
-
 	t.Run("wellformed JSON", func(t *testing.T) {
 		api := &plugintest.API{}
-		api.On("KVSetWithExpiry", "test-key", []byte(`{"val-a":10}`), int64(100)).Return(nil)
+		api.On("KVSetWithOptions", "test-key", map[string]interface{}{
+			"val-a": float64(10),
+		}, &model.PluginKVSetOptions{
+			EncodeJSON:      true,
+			ExpiryInSeconds: 100,
+		}).Return(true, nil)
 
 		p := &plugin.HelpersImpl{API: api}
 

@@ -6,7 +6,7 @@ package plugin
 import (
 	"encoding/json"
 
-	"github.com/pkg/errors"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 // KVGetJSON is a wrapper around KVGet to simplify reading a JSON object from the key value store.
@@ -39,32 +39,21 @@ func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 
 // KVCompareAndSetJSON is a wrapper around KVCompareAndSet to simplify atomically writing a JSON object to the key value store.
 func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error) {
-	var oldData, newData []byte
-	var err error
-
-	if oldValue != nil {
-		oldData, err = json.Marshal(oldValue)
-		if err != nil {
-			return false, errors.Wrap(err, "unable to marshal old value")
-		}
+	options := &model.PluginKVSetOptions{
+		EncodeJSON: true,
+		Atomic:     true,
+		OldValue:   oldValue,
 	}
-
-	if newValue != nil {
-		newData, err = json.Marshal(newValue)
-		if err != nil {
-			return false, errors.Wrap(err, "unable to marshal new value")
-		}
-	}
-
-	return p.API.KVCompareAndSet(key, oldData, newData)
+	return p.API.KVSetWithOptions(key, newValue, options)
 }
 
 // KVSetWithExpiryJSON is a wrapper around KVSetWithExpiry to simplify atomically writing a JSON object with expiry to the key value store.
 func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error {
-	data, err := json.Marshal(value)
-	if err != nil {
-		return err
+	options := &model.PluginKVSetOptions{
+		EncodeJSON:      true,
+		ExpiryInSeconds: expireInSeconds,
 	}
 
-	return p.API.KVSetWithExpiry(key, data, expireInSeconds)
+	_, err := p.API.KVSetWithOptions(key, value, options)
+	return err
 }

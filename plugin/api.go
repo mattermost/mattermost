@@ -469,6 +469,14 @@ type API interface {
 	// Minimum server version: 5.12
 	KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError)
 
+	// KVSetWithOptions updates a key-value pair, unique per plugin, according to the given options.
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if the value was not set
+	// Returns (true, nil) if it was set
+	//
+	// Minimum server version: 5.16
+	KVSetWithOptions(key string, newValue interface{}, options *model.PluginKVSetOptions) (bool, *model.AppError)
+
 	// KVSet stores a key-value pair with an expiry time, unique per plugin.
 	//
 	// Minimum server version: 5.6

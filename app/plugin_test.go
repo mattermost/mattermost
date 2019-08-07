@@ -186,6 +186,142 @@ func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
 	assert.Equal(t, []byte("test2"), ret)
 }
 
+func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginId := "testpluginid"
+
+	defer func() {
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
+	}()
+
+	// fails with a non-serializable object as the new value
+	result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", func() { return }, &model.PluginKVSetOptions{
+		EncodeJSON: true,
+	})
+	assert.False(t, result)
+	assert.NotNil(t, err)
+
+	// verify that after the failure it was not set
+	ret, err := th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(nil), ret)
+
+	// fails with a non-serializable object as the old value
+	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
+		"val-a": 10,
+	}, &model.PluginKVSetOptions{
+		EncodeJSON: true,
+		Atomic:     true,
+		OldValue:   func() { return },
+	})
+	assert.False(t, result)
+	assert.NotNil(t, err)
+
+	// verify that after the failure it was not set
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(nil), ret)
+
+	// storing a value json encoded works
+	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
+		"val-a": 10,
+	}, &model.PluginKVSetOptions{
+		EncodeJSON: true,
+	})
+	assert.True(t, result)
+	assert.Nil(t, err)
+
+	// and I can get it back!
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`{"val-a":10}`), ret)
+
+	// test that setting it atomic when it doesn't match doesn't change anything
+	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
+		"val-a": 30,
+	}, &model.PluginKVSetOptions{
+		EncodeJSON: true,
+		Atomic:     true,
+		OldValue: map[string]interface{}{
+			"val-a": 20,
+		},
+	})
+	assert.False(t, result)
+	assert.Nil(t, err)
+
+	// test that the value didn't change
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`{"val-a":10}`), ret)
+
+	// now do the atomic change with the proper old value
+	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
+		"val-a": 30,
+	}, &model.PluginKVSetOptions{
+		EncodeJSON: true,
+		Atomic:     true,
+		OldValue: map[string]interface{}{
+			"val-a": 10,
+		},
+	})
+	assert.True(t, result)
+	assert.Nil(t, err)
+
+	// test that the value did change
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`{"val-a":30}`), ret)
+}
+
+func TestPluginKeyValueStoreSetWithOptionsByteArray(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginId := "testpluginid"
+
+	defer func() {
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
+	}()
+
+	// storing a value works
+	result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`myvalue`), &model.PluginKVSetOptions{})
+	assert.True(t, result)
+	assert.Nil(t, err)
+
+	// and I can get it back!
+	ret, err := th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`myvalue`), ret)
+
+	// test that setting it atomic when it doesn't match doesn't change anything
+	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`newvalue`), &model.PluginKVSetOptions{
+		Atomic:   true,
+		OldValue: []byte(`differentvalue`),
+	})
+	assert.False(t, result)
+	assert.Nil(t, err)
+
+	// test that the value didn't change
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`myvalue`), ret)
+
+	// now do the atomic change with the proper old value
+	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`newvalue`), &model.PluginKVSetOptions{
+		Atomic:   true,
+		OldValue: []byte(`myvalue`),
+	})
+	assert.True(t, result)
+	assert.Nil(t, err)
+
+	// test that the value did change
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`newvalue`), ret)
+}
+
 func TestServePluginRequest(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

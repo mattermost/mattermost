@@ -157,3 +157,26 @@ func (_m *PluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.Plugin
 
 	return r0, r1
 }
+
+// SetWithOptions provides a mock function with given fields: keyVal, options
+func (_m *PluginStore) SetWithOptions(keyVal *model.PluginKeyValue, options *model.PluginKVSetOptions) (bool, *model.AppError) {
+	ret := _m.Called(keyVal, options)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.PluginKeyValue, *model.PluginKVSetOptions) bool); ok {
+		r0 = rf(keyVal, options)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.PluginKeyValue, *model.PluginKVSetOptions) *model.AppError); ok {
+		r1 = rf(keyVal, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}

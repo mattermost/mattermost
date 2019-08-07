@@ -652,6 +652,10 @@ func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.Ap
 
 // KV Store Section
 
+func (api *PluginAPI) KVSetWithOptions(key string, value interface{}, options *model.PluginKVSetOptions) (bool, *model.AppError) {
+	return api.app.SetPluginKeyWithOptions(api.id, key, value, options)
+}
+
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)
 }
