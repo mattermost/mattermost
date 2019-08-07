@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
@@ -1821,13 +1822,13 @@ func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int64,
 	SELECT count(*)
 	FROM Posts
 	WHERE
-		ChannelId = :channelID
+		ChannelId = :channelId
 		AND CreateAt > :createAt
-		AND Type = ""
-		AND Deleteat = 0
+		AND Type = ''
+		AND DeleteAt = 0
 	`
 	countParams := map[string]interface{}{
-		"channelID": channelID,
+		"channelId": channelID,
 		"createAt":  since,
 	}
 
@@ -1851,8 +1852,9 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID st
 		"mentions":     mentionCount,
 		"unreadCount":  unread,
 		"lastViewedAt": unreadPost.CreateAt,
-		"userID":       userID,
-		"channelID":    unreadPost.ChannelId,
+		"userId":       userID,
+		"channelId":    unreadPost.ChannelId,
+		"updatedAt":    utils.MillisFromTime(time.Now()),
 	}
 
 	// msg count uses the value from channels to prevent counting on older channels where no. of messages can be high.
@@ -1862,12 +1864,12 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID st
 		ChannelMembers
 	SET
 		MentionCount = :mentions,
-		MsgCount = (SELECT TotalMsgCount FROM Channels WHERE ID = :channelID) - :unreadCount,
+		MsgCount = (SELECT TotalMsgCount FROM Channels WHERE ID = :channelId) - :unreadCount,
 		LastViewedAt = :lastViewedAt,
-		LastUpdateAt = :lastViewedAt
+		LastUpdateAt = :updatedAt
 	WHERE
-		UserId = :userID
-		AND ChannelId = :channelID
+		UserId = :userId
+		AND ChannelId = :channelId
 	`
 	_, err := s.GetMaster().Exec(setUnreadQuery, params)
 	if err != nil {

@@ -1060,7 +1060,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 
 	pp1 := th.CreatePost(pc1)
 	require.NotNil(t, pp1)
-	_ = th.CreatePost(pc1)
+	pp2 := th.CreatePost(pc1)
 
 	t.Run("Ensure that post have been read", func(t *testing.T) {
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
@@ -1079,7 +1079,8 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 
 	t.Run("Unread last one", func(t *testing.T) {
 		response, err := th.App.MarkChannelAsUnreadFromPost(p2.Id, u1.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
+		require.NotNil(t, response)
 		assert.Equal(t, int64(1), response.MsgCount)
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
