@@ -177,7 +177,7 @@ func TestKVSetWithExpiryJSON(t *testing.T) {
 			"val-a": float64(10),
 		}, &model.PluginKVSetOptions{
 			EncodeJSON:      true,
-			ExpiryInSeconds: 100,
+			ExpireInSeconds: 100,
 		}).Return(true, nil)
 
 		p := &plugin.HelpersImpl{API: api}

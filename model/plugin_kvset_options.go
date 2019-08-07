@@ -12,7 +12,7 @@ type PluginKVSetOptions struct {
 	EncodeJSON      bool
 	Atomic          bool
 	OldValue        interface{}
-	ExpiryInSeconds int64
+	ExpireInSeconds int64
 }
 
 func (opt *PluginKVSetOptions) IsValid() *AppError {
@@ -30,8 +30,8 @@ func (opt *PluginKVSetOptions) GetPluginKeyValue(pluginId string, key string, va
 	}
 
 	expireAt := int64(0)
-	if opt.ExpiryInSeconds > 0 {
-		expireAt = GetMillis() + (opt.ExpiryInSeconds * 1000)
+	if opt.ExpireInSeconds > 0 {
+		expireAt = GetMillis() + (opt.ExpireInSeconds * 1000)
 	}
 
 	kv := &PluginKeyValue{

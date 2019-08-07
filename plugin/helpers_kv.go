@@ -51,7 +51,7 @@ func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newV
 func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error {
 	options := &model.PluginKVSetOptions{
 		EncodeJSON:      true,
-		ExpiryInSeconds: expireInSeconds,
+		ExpireInSeconds: expireInSeconds,
 	}
 
 	_, err := p.API.KVSetWithOptions(key, value, options)

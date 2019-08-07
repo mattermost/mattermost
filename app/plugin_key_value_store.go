@@ -24,7 +24,7 @@ func (a *App) SetPluginKey(pluginId string, key string, value []byte) *model.App
 
 func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, expireInSeconds int64) *model.AppError {
 	options := &model.PluginKVSetOptions{
-		ExpiryInSeconds: expireInSeconds,
+		ExpireInSeconds: expireInSeconds,
 	}
 	_, err := a.SetPluginKeyWithOptions(pluginId, key, value, options)
 	return err
