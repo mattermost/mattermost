@@ -139,11 +139,8 @@ func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []b
 	}
 
 	if rowsAffected, err := deleteResult.RowsAffected(); err != nil {
-		// Failed to delete
 		return false, model.NewAppError("SqlPluginStore.CompareAndDelete", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else if rowsAffected == 0 {
-		// No rows were affected by the delete, where condition was not satisfied,
-		// return false, but no error.
 		return false, nil
 	}
 
