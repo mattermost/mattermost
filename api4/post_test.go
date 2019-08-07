@@ -537,13 +537,8 @@ func TestUpdatePost(t *testing.T) {
 	rpost, resp := Client.CreatePost(post)
 	CheckNoError(t, resp)
 
-	if rpost.Message != post.Message {
-		t.Fatal("full name didn't match")
-	}
-
-	if rpost.EditAt != 0 {
-		t.Fatal("Newly created post shouldn't have EditAt set")
-	}
+	assert.Equal(t, post.Message, rpost.Message, "full name didn't match")
+	assert.EqualValues(t, 0, rpost.EditAt, "Newly created post shouldn't have EditAt set")
 
 	msg := "zz" + model.NewId() + " update post"
 	rpost.Message = msg
@@ -552,12 +547,8 @@ func TestUpdatePost(t *testing.T) {
 	rupost, resp := Client.UpdatePost(rpost.Id, rpost)
 	CheckNoError(t, resp)
 
-	if rupost.Message != msg {
-		t.Fatal("failed to updates")
-	}
-	if rupost.EditAt == 0 {
-		t.Fatal("EditAt not updated for post")
-	}
+	assert.Equal(t, rupost.Message, msg, "failed to updates")
+	assert.NotEqual(t, 0, rupost.EditAt, "EditAt not updated for post")
 
 	msg1 := "#hashtag a" + model.NewId() + " update post again"
 	rpost.Message = msg1
@@ -565,27 +556,19 @@ func TestUpdatePost(t *testing.T) {
 	rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
 	CheckNoError(t, resp)
 
-	if rrupost.Message != msg1 && rrupost.Hashtags != "#hashtag" {
-		t.Fatal("failed to updates")
-	}
-
-	if rrupost.Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
-		t.Fatal("failed to sanitize Props['add_channel_member'], should be nil")
-	}
+	assert.Equal(t, msg1, rrupost.Message, "failed to update message")
+	assert.Equal(t, "#hashtag", rrupost.Hashtags, "failed to update hashtags")
+	assert.Nil(t, rrupost.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
 
 	rpost2, err := th.App.CreatePost(&model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE, UserId: th.BasicUser.Id}, channel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	up2 := &model.Post{Id: rpost2.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 2"}
 	_, resp = Client.UpdatePost(rpost2.Id, up2)
 	CheckBadRequestStatus(t, resp)
 
 	rpost3, err := th.App.CreatePost(&model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", UserId: th.BasicUser.Id}, channel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	fileIds := model.StringArray{"abcdef", "geh"}
 	up3 := &model.Post{Id: rpost3.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 3", FileIds: fileIds}
@@ -671,39 +654,19 @@ func TestPatchPost(t *testing.T) {
 
 	patch.IsPinned = model.NewBool(false)
 	patch.Message = model.NewString("#otherhashtag other message")
-	patch.Props = new(model.StringInterface)
-	*patch.Props = model.StringInterface{"channel_header": "new_header"}
-	patch.FileIds = new(model.StringArray)
-	*patch.FileIds = model.StringArray{"file1", "otherfile2", "otherfile3"}
+	patch.Props = &model.StringInterface{"channel_header": "new_header"}
+	patch.FileIds = &model.StringArray{"file1", "otherfile2", "otherfile3"}
 	patch.HasReactions = model.NewBool(false)
 
 	rpost, resp := Client.PatchPost(post.Id, patch)
 	CheckNoError(t, resp)
 
-	if rpost.IsPinned {
-		t.Fatal("IsPinned did not update properly")
-	}
-	if rpost.Message != "#otherhashtag other message" {
-		t.Fatal("Message did not update properly")
-	}
-	if len(rpost.Props) != 1 {
-		t.Fatal("Props did not update properly")
-	}
-	if !reflect.DeepEqual(rpost.Props, *patch.Props) {
-		t.Fatal("Props did not update properly")
-	}
-	if rpost.Hashtags != "#otherhashtag" {
-		t.Fatal("Message did not update properly")
-	}
-	if len(rpost.FileIds) == 3 {
-		t.Fatal("FileIds should not update properly")
-	}
-	if reflect.DeepEqual(rpost.FileIds, *patch.FileIds) {
-		t.Fatal("FileIds should not update")
-	}
-	if rpost.HasReactions {
-		t.Fatal("HasReactions did not update properly")
-	}
+	assert.False(t, rpost.IsPinned, "IsPinned did not update properly")
+	assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
+	assert.Equal(t, *patch.Props, rpost.Props, "Props did not update properly")
+	assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
+	assert.Empty(t, rpost.FileIds, "FileIds should not update")
+	assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
 
 	patch2 := &model.PostPatch{}
 	attachments := []model.SlackAttachment{
@@ -711,23 +674,16 @@ func TestPatchPost(t *testing.T) {
 			Text: "Hello World",
 		},
 	}
-	patch2.Props = new(model.StringInterface)
-	*patch2.Props = model.StringInterface{"attachments": attachments}
+	patch2.Props = &model.StringInterface{"attachments": attachments}
 
 	rpost2, resp := Client.PatchPost(post.Id, patch2)
 	CheckNoError(t, resp)
 	assert.NotEmpty(t, rpost2.Props["attachments"])
 	assert.NotEqual(t, rpost.EditAt, rpost2.EditAt)
 
-	if r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage"); err == nil {
-		t.Fatal("should have errored")
-	} else {
-		if r.StatusCode != http.StatusBadRequest {
-			t.Log("actual: " + strconv.Itoa(r.StatusCode))
-			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
-			t.Fatal("wrong status code")
-		}
-	}
+	r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage")
+	require.EqualError(t, err, ": Invalid or missing post in request body, ")
+	require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
 	_, resp = Client.PatchPost("junk", patch)
 	CheckBadRequestStatus(t, resp)
