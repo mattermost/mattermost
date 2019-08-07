@@ -17,11 +17,6 @@ import (
 	"github.com/mattermost/mattermost-server/utils/markdown"
 )
 
-const (
-	THREAD_ANY  = "any"
-	THREAD_ROOT = "root"
-)
-
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
@@ -96,7 +91,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		if len(post.RootId) > 0 && parentPostList != nil {
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
-				if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == THREAD_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == THREAD_ROOT && threadPost.Id == parentPostList.Order[0])) {
+				if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ROOT && threadPost.Id == parentPostList.Order[0])) {
 					mentionType := ThreadMention
 					if threadPost.Id == parentPostList.Order[0] {
 						mentionType = CommentMention
@@ -273,9 +268,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 				replyToThreadType := ""
 				if mentionType == ThreadMention {
-					replyToThreadType = THREAD_ANY
+					replyToThreadType = model.COMMENTS_NOTIFY_ANY
 				} else if mentionType == CommentMention {
-					replyToThreadType = THREAD_ROOT
+					replyToThreadType = model.COMMENTS_NOTIFY_ROOT
 				}
 
 				a.sendPushNotification(
