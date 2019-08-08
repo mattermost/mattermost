@@ -69,7 +69,7 @@
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Unable to delete brand image, not found."
+    "translation": "Impossible de supprimer l'image de marque. Image introuvable."
   },
   {
     "id": "api.admin.file_read_error",
@@ -133,27 +133,27 @@
   },
   {
     "id": "api.bot.create_disabled",
-    "translation": "Bot creation has been disabled."
+    "translation": "La création de bots a été désactivée."
   },
   {
     "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Impossible d'envoyer la photo de profil"
+    "translation": "Impossible de supprimer le fichier d'image"
   },
   {
     "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Unable to read icon image file"
+    "translation": "Impossible de lire le fichier d'image"
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Impossible d'envoyer la photo de profil"
+    "translation": "Impossible d'envoyer le fichier d'image"
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Aucune image transmise dans la requête"
+    "translation": "Tableau vide dans le champ « image » de la requête"
   },
   {
     "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Aucun fichier dans le champ « image » de la requête."
+    "translation": "Aucun fichier dans le champ « image » de la requête"
   },
   {
     "id": "api.bot.set_bot_icon_image.open.app_error",
@@ -161,15 +161,15 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Impossible d'interpréter le formulaire multipart."
+    "translation": "Impossible d'interpréter le formulaire multipart"
   },
   {
     "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Impossible d'envoyer le fichier. Le fichier est trop volumineux."
+    "translation": "Impossible d'envoyer le fichier d'image. Le fichier est trop volumineux."
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
+    "translation": "Veuillez m'ajouter aux équipes et canaux dans lesquels vous voulez que j’interagisse. Pour faire ça, utilisez votre navigateur ou l'application de bureau Mattermost."
   },
   {
     "id": "api.channel.add_member.added",
@@ -177,11 +177,11 @@
   },
   {
     "id": "api.channel.add_members.error",
-    "translation": "Error adding channel member(s)."
+    "translation": "Erreur lors de l'ajout de membres au canal."
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "L'ajout en tant que membre au canal a été refusé pour les utilisateurs suivants à cause de restrictions de groupe : {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -329,7 +329,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Impossible de supprimer l'utilisateur du canal par défaut {{.Channel}}"
+    "translation": "Impossible de retirer l'utilisateur du canal par défaut {{.Channel}}"
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.channel.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained channel."
+    "translation": "Impossible de retirer un utilisateur d'un canal d'un groupe disposant de restrictions."
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -345,11 +345,11 @@
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "Le retrait en tant que membre au canal a été refusé pour les utilisateurs suivants à cause de restrictions de groupe : {{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "Impossible d'ajouter l'utilisateur à ce type de canal"
+    "translation": "Impossible de retirer l'utilisateur de ce type de canal"
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
@@ -369,11 +369,11 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "Invalid channel member update: You can't add or remove the guest role manually"
+    "translation": "Mise à jour des membres du canal invalide : Vous ne pouvez pas ajouter ou retirer le rôle invité manuellement."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-    "translation": "Invalid channel member update: A user must be a guest or a user but not both."
+    "translation": "Mise à jour des membres du canal invalide : Un utilisateur doit être un invité ou un utilisateur, mais pas les deux à la fois."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "Invalid team member update: You can't add or remove the guest role manually"
+    "translation": "Mise à jour des membres d'équipe invalide : Vous ne pouvez pas ajouter ou retirer le rôle invité manuellement"
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -752,7 +752,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "User cannot be added to this channel because it is constrained to group members only."
+    "translation": "L'utilisateur ne peut pas être ajouté à ce canal parce ce canal est uniquement restreint aux membres de ce groupe."
   },
   {
     "id": "api.command_invite.hint",
@@ -960,7 +960,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
+    "translation": "Vous ne pouvez pas retirer l'utilisateur de ce canal, car il est membre d'un groupé lié à ce canal. Pour retirer l'utilisateur de ce canal, il doit d'abord être retiré de tous groupes liés."
   },
   {
     "id": "api.command_remove.hint",
@@ -1498,19 +1498,19 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "An error occurred while downloading the plugin."
+    "translation": "Une erreur s'est produite lors du téléchargement du plugin."
   },
   {
     "id": "api.plugin.install.insecure_url.app_error",
-    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
+    "translation": "Une URL non sécurisée a été spécifiée pour télécharger le plugin. Veuillez spécifier une URL sécurisée ou activer le paramètre PluginSettings.AllowInsecureDownloadUrl dans votre configuration."
   },
   {
     "id": "api.plugin.install.invalid_url.app_error",
-    "translation": "An invalid url was given to download the plugin."
+    "translation": "Une URL invalide a été spécifiée pour télécharger le plugin."
   },
   {
     "id": "api.plugin.install.reading_stream_failed.app_error",
-    "translation": "An error ocurred reading the plugin file stream."
+    "translation": "Une erreur s'est produite lors de la lecture du flux du plugin."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1526,19 +1526,19 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Usernames}} et @{{.LastUsername}} n'ont pas été notifiés par cette mention, car ils ne sont pas dans ce canal. Ils ne peuvent pas être ajoutés à ce canal, car ils ne sont pas membres des groupes liés. Pour les ajouter à ce canal, ils doivent d'abord être ajoutés aux groupes liés à ce canal."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Username}} n'a pas été notifié par cette mention, car il n'est pas membre de ce canal. Il ne peut pas être ajouté à ce canal, car il n'est pas membre des groupes liés. Pour l'ajouter à ce canal, il doit d'abord être ajouté aux groupes liés."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel."
+    "translation": "@{{.Usernames}} et @{{.LastUsername}} n'ont pas été notifiés par cette mention, car ils ne sont pas dans le canal."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
+    "translation": "@{{.Username}} n'a pas été notifié par cette mention, car il n'est pas dans le canal."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1688,11 +1688,11 @@
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": "Push Notifications are disabled on this server."
+    "translation": "Les notifications push sont désactivées sur ce serveur."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "An error occurred sending the receipt delivery to the push notification service"
+    "translation": "Une erreur s'est produite lors de l'envoi de l'accusé de réception au serveur de notification push"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1708,7 +1708,7 @@
   },
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
-    "translation": "Vous ne pouvez pas sauvegarder la réaction pour l'autre utilisateur."
+    "translation": "Vous ne pouvez pas enregistrer la réaction pour l'autre utilisateur."
   },
   {
     "id": "api.reaction.town_square_read_only",
@@ -1848,11 +1848,11 @@
   },
   {
     "id": "api.team.add_members.error",
-    "translation": "Error adding team member(s)."
+    "translation": "Une erreur s'est produite lors de l'ajout de membres d'équipe."
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "L'ajout à une équipe a été refusé pour les utilisateurs suivants à cause de restrictions de groupe : {{ .UserIDs }}"
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained team."
+    "translation": "Impossible de retirer un utilisateur d'une équipe disposant de restrictions de groupe."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -2024,7 +2024,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": "Invalid team member update: A user must be a guest or a user but not both."
+    "translation": "Mise à jour des membres d'équipe invalide : Un utilisateur doit être un invité ou un utilisateur, mais pas les deux à la fois."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2344,7 +2344,7 @@
   },
   {
     "id": "api.user.create_password_token.error",
-    "translation": "Unable to create password recovery token"
+    "translation": "Impossible de créer le jeton de récupération de mot de passe"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2428,19 +2428,19 @@
   },
   {
     "id": "api.user.login.invalid_credentials_email",
-    "translation": "Enter a valid email and/or password"
+    "translation": "Spécifiez une adresse e­­-mail et/ou un mot de passe valide"
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Enter a valid email or username and/or password."
+    "translation": "Spécifiez une adresse e­­-mail, un nom d'utilisateur et/ou un mot de passe valide."
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+    "translation": "Spécifiez une adresse e­­-mail, un nom d'utilisateur et/ou un mot de passe valide, ou connectez-vous à l'aide d'une autre méthode d'authentification.\n"
   },
   {
     "id": "api.user.login.invalid_credentials_username",
-    "translation": "Enter a valid username and/or password."
+    "translation": "Spécifiez un nom d’utilisateur et/ou mot de passe valide."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "api.user.reset_password.token_parse.error",
-    "translation": "Unable to parse the reset password token"
+    "translation": "Impossible d'interpréter le jeton de réinitialisation du mot de passe"
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2540,7 +2540,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Impossible d'envoyer l'email indiquant que le jeton d'accès personnel a été ajouté"
+    "translation": "Impossible d'envoyer l'e­-mail indiquant que le jeton d'accès personnel a été ajouté"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -2596,7 +2596,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossible de sauvegarder l'image de profil. Le fichier ne semble pas être un fichier d'image valide."
+    "translation": "Impossible d'enregistrer l'image de profil. Le fichier ne semble pas être un fichier d'image valide."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2732,7 +2732,7 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Unable to copy custom emoji images"
+    "translation": "Impossible de copier les images d'émoticônes personnalisées "
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -2808,7 +2808,7 @@
   },
   {
     "id": "app.import.import_direct_post.save_preferences.error",
-    "translation": "Une erreur s'est produite lors de l'importation du message personnel. Impossible de sauvegarder les préférences."
+    "translation": "Une erreur s'est produite lors de l'importation du message personnel. Impossible d'enregistrer les préférences."
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
@@ -2856,7 +2856,7 @@
   },
   {
     "id": "app.import.import_post.save_preferences.error",
-    "translation": "Une erreur s'est produite lors de l'importation du message. Impossible de sauvegarder les préférences."
+    "translation": "Une erreur s'est produite lors de l'importation du message. Impossible d'enregistrer les préférences."
   },
   {
     "id": "app.import.import_post.team_not_found.error",
@@ -2880,15 +2880,15 @@
   },
   {
     "id": "app.import.import_user.save_preferences.error",
-    "translation": "Une erreur s'est produite lors de l'importation des préférences utilisateur. Impossible de sauvegarder les préférences."
+    "translation": "Une erreur s'est produite lors de l'importation des préférences utilisateur. Impossible d'enregistrer les préférences."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
-    "translation": "Une erreur s'est produite lors de l'importation des membres du canal. Impossible de sauvegarder les préférences."
+    "translation": "Une erreur s'est produite lors de l'importation des membres du canal. Impossible d'enregistrer les préférences."
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
-    "translation": "Unable to save the team theme preferences"
+    "translation": "Impossible d'enregistrer les préférences du thème d'équipe"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -3184,19 +3184,19 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": "Invalid email batching interval setting for User"
+    "translation": "Paramètre d'intervalle d'envoi d'e-mails par lots invalide pour l'utilisateur"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Invalid markdown preview setting for User"
+    "translation": "Paramètre de prévisualisation de Markdown invalide pour l'utilisateur"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-    "translation": "Invalid post formatting setting for User"
+    "translation": "Paramètre de formatage de message invalide pour l'utilisateur"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": "Invalid show unread section setting for User"
+    "translation": "Paramètre d'affichage de section non lue invalide pour l'utilisateur"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -3284,11 +3284,11 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
-    "translation": "Invalid team theme for the User"
+    "translation": "Thème d'équipe invalide pour l'utilisateur"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": "Le nom d'équipe est manquant de la liste des canaux de l'utilisateur."
+    "translation": "Le nom d'équipe est manquant de la liste des équipes de l'utilisateur."
   },
   {
     "id": "app.notification.body.intro.direct.full",
@@ -3388,7 +3388,7 @@
   },
   {
     "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
+    "translation": "Impossible de définir le plugin comme géré par le gestionnaire de fichiers."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -3436,19 +3436,19 @@
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
-    "translation": "Unable to remove plugin bundle from file store."
+    "translation": "Impossible de retirer le paquet de plugin du gestionnaire de fichiers."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
-    "translation": "Unable to store the plugin to the configured file store."
+    "translation": "Impossible de sauvegarder le plugin dans le gestionnaire de fichiers spécifié."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Error reading files from the plugins folder in the file store."
+    "translation": "Une erreur s'est produite lors de la lecture des fichiers du dossier de plugins provenant du gestionnaire de fichiers."
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
-    "translation": "Error reading local plugins folder."
+    "translation": "Une erreur s'et produite lors de la lecture du dossier local de plugins."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3476,11 +3476,11 @@
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by invite."
+    "translation": "Impossible de rejoindre par invitation une équipe disposant de restrictions de groupe."
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by token."
+    "translation": "Impossible de rejoindre par un jeton une équipe disposant de restrictions de groupe."
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3488,7 +3488,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Unable to rename the team, the name is already in use"
+    "translation": "Impossible de renommer l'équipe. Le nom spécifié est déjà utilisé."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3632,15 +3632,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Impossible de créer un modèle Elasticsearch pour les canaux"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Impossible de créer un modèle Elasticsearch pour les messages"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Impossible de créer un modèle Elasticsearch pour les utilisateurs"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3652,7 +3652,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": "Impossible de modifier le canal"
+    "translation": "Impossible de supprimer le canal"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3660,7 +3660,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": "Impossible de supprimer le message"
+    "translation": "Impossible de supprimer l'utilisateur"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -3668,7 +3668,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": "Impossible de modifier le canal"
+    "translation": "Impossible d'indexer le canal"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3676,7 +3676,7 @@
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": "Impossible d'indexer le message"
+    "translation": "Impossible d'indexer l'utilisateur"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3816,7 +3816,7 @@
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
+    "translation": "Une erreur s'est produite lors de la suppression des membres d'équipe ou de canal"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
@@ -3836,7 +3836,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Taille limite dépassée. Veuillez vérifier votre [taille maximale de page](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -4412,7 +4412,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Le paramètre IndexingEnabled d'ElasticSearch doit être activé lorsque la propriété SearchEnabled d'ElasticSearch est activée."
+    "translation": "Le paramètre IndexingEnabled d'ElasticSearch doit être activé lorsque la propriété AutocompleteEnabled d'Elasticsearch est activée."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -5204,7 +5204,7 @@
   },
   {
     "id": "model.user.is_valid.locale.app_error",
-    "translation": "Rôle invalide"
+    "translation": "Région/langue (« locale ») invalide"
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -5288,7 +5288,7 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Le nom d'utilisateur doit commencer par une lettre et contenir entre 3 et 22 caractères constitués de nombres, lettres minuscules et des symboles « . », « - » et « _ »."
+    "translation": "Le nom d'utilisateur doit commencer par une lettre et contenir entre 3 et 22 caractères constitués de nombres, lettres et des symboles « . », « - » et « _ »."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -5320,7 +5320,7 @@
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": "Unable to get the users, invalid sorting criteria"
+    "translation": "Impossible de récupérer les utilisateurs, critère de tri invalide"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5328,7 +5328,7 @@
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
-    "translation": "Bot user cannot create bot user."
+    "translation": "L'utilisateur de bot ne peut pas créer un autre utilisateur de bot."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5360,7 +5360,7 @@
   },
   {
     "id": "store.sql.build_query.app_error",
-    "translation": "Impossible de construire la requête"
+    "translation": "impossible de construire la requête"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5412,7 +5412,7 @@
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "Impossible de sauvegarder le bot"
+    "translation": "Impossible d'enregistrer le bot"
   },
   {
     "id": "store.sql_bot.update.app_error",
@@ -5468,7 +5468,7 @@
   },
   {
     "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Impossible de récupérer tous les canaux"
+    "translation": "Impossible de récupérer tous les canaux de messages personnels"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -5500,7 +5500,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.app_error",
-    "translation": "Impossible d'obtenir les canaux"
+    "translation": "Impossible de récupérer les canaux par leur identifiant"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -5688,7 +5688,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Impossible de sauvegarder le canal"
+    "translation": "Impossible d'enregistrer le canal"
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
@@ -5720,7 +5720,7 @@
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "Impossible de sauvegarder le membre du canal"
+    "translation": "Impossible d'enregistrer le membre du canal"
   },
   {
     "id": "store.sql_channel.search.app_error",
@@ -5728,7 +5728,7 @@
   },
   {
     "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term"
+    "translation": "Impossible de récupérer les canaux de groupe pour l'utilisateur et les termes spécifiés"
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
@@ -5784,7 +5784,7 @@
   },
   {
     "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels"
+    "translation": "Impossible de déterminer si l'utilisateur appartient à une liste de canaux"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
@@ -5852,7 +5852,7 @@
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "Impossible de sauvegarder la commande"
+    "translation": "Impossible d'enregistrer la commande"
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -5868,7 +5868,7 @@
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "Impossible de sauvegarder le webhook"
+    "translation": "Impossible d'enregistrer le webhook"
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
@@ -5916,7 +5916,7 @@
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Impossible de sauvegarder l'émoticône"
+    "translation": "Impossible d'enregistrer l'émoticône"
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
@@ -5956,11 +5956,11 @@
   },
   {
     "id": "store.sql_file_info.save.app_error",
-    "translation": "Impossible de sauvegarder les informations du fichier"
+    "translation": "Impossible d'enregistrer les informations du fichier"
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "Impossible de construire la requête"
+    "translation": "impossible de construire la requête"
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
@@ -6004,7 +6004,7 @@
   },
   {
     "id": "store.sql_job.save.app_error",
-    "translation": "Impossible de sauvegarder la tâche"
+    "translation": "Impossible d'enregistrer la tâche"
   },
   {
     "id": "store.sql_job.update.app_error",
@@ -6024,11 +6024,11 @@
   },
   {
     "id": "store.sql_link_metadata.get.app_error",
-    "translation": "Unable to get the link metadata"
+    "translation": "Impossible de récupérer le lien des métadonnées"
   },
   {
     "id": "store.sql_link_metadata.save.app_error",
-    "translation": "Unable to save the link metadata"
+    "translation": "Impossible d'enregistrer le lien des métadonnées"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
@@ -6092,7 +6092,7 @@
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "Impossible de sauvegarder le jeton d'accès"
+    "translation": "Impossible d'enregistrer le jeton d'accès"
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
@@ -6100,7 +6100,7 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Impossible de sauvegarder l'application"
+    "translation": "Impossible d'enregistrer l'application"
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
@@ -6136,11 +6136,11 @@
   },
   {
     "id": "store.sql_plugin_store.list.app_error",
-    "translation": "Unable to list all the plugin keys"
+    "translation": "Impossible de lister toutes les clés du plugin"
   },
   {
     "id": "store.sql_plugin_store.save.app_error",
-    "translation": "Impossible de supprimer ou mettre à jour le couple clé-valeur du plugin"
+    "translation": "Impossible d'enregistrer ou mettre à jour le couple clé-valeur du plugin"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
@@ -6168,7 +6168,7 @@
   },
   {
     "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Impossible de récupérer les messages"
+    "translation": "Impossible de récupérer les messages personnels"
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
@@ -6180,11 +6180,11 @@
   },
   {
     "id": "store.sql_post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound"
+    "translation": "Impossible de récupérer le message situé après la limite de temps"
   },
   {
     "id": "store.sql_post.get_post_id_around.app_error",
-    "translation": "Unable to get post around time bound"
+    "translation": "Impossible de récupérer le message situé aux alentours de cette limite de temps"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
@@ -6252,7 +6252,7 @@
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "Impossible de sauvegarder le message"
+    "translation": "Impossible d'enregistrer le message"
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -6292,7 +6292,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Impossible de sauvegarder les préférences"
+    "translation": "Impossible d'enregistrer les préférences"
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
@@ -6304,7 +6304,7 @@
   },
   {
     "id": "store.sql_preference.save.commit_transaction.app_error",
-    "translation": "Impossible de valider la transaction d'enregistrement des préférences"
+    "translation": "Impossible de valider la transaction pour enregistrer les préférences"
   },
   {
     "id": "store.sql_preference.save.missing_driver.app_error",
@@ -6364,7 +6364,7 @@
   },
   {
     "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Impossible de sauvegarder cette réaction"
+    "translation": "Impossible d'enregistrer cette réaction"
   },
   {
     "id": "store.sql_recover.delete.app_error",
@@ -6380,7 +6380,7 @@
   },
   {
     "id": "store.sql_recover.save.app_error",
-    "translation": "Impossible de sauvegarder le jeton"
+    "translation": "Impossible d'enregistrer le jeton"
   },
   {
     "id": "store.sql_role.delete.update.app_error",
@@ -6392,7 +6392,7 @@
   },
   {
     "id": "store.sql_role.get_all.app_error",
-    "translation": "Impossible de récupérer tous les canaux"
+    "translation": "Impossible de récupérer tous les rôles"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
@@ -6408,7 +6408,7 @@
   },
   {
     "id": "store.sql_role.save.insert.app_error",
-    "translation": "Impossible de sauvegarder le nouveau rôle"
+    "translation": "Impossible d'enregistrer le nouveau rôle"
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
@@ -6500,7 +6500,7 @@
   },
   {
     "id": "store.sql_session.save.app_error",
-    "translation": "Impossible de sauvegarder la session"
+    "translation": "Impossible d'enregistrer la session"
   },
   {
     "id": "store.sql_session.save.existing.app_error",
@@ -6668,7 +6668,7 @@
   },
   {
     "id": "store.sql_team.get_user_team_ids.app_error",
-    "translation": "Unable to get the list of teams of a user"
+    "translation": "Impossible de récupérer la liste des équipes d'un utilisateur"
   },
   {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
@@ -6700,7 +6700,7 @@
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "Impossible de sauvegarder l'équipe"
+    "translation": "Impossible d'enregistrer l'équipe"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
@@ -6716,7 +6716,7 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Impossible de sauvegarder le membre d'équipe"
+    "translation": "Impossible d'enregistrer le membre d'équipe"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
@@ -6756,11 +6756,11 @@
   },
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams"
+    "translation": "Impossible de déterminer si l'utilisateur apparient à une liste d'équipes"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
-    "translation": "Impossible de sauvegarder les conditions d'utilisation."
+    "translation": "Impossible d'enregistrer les conditions d'utilisation."
   },
   {
     "id": "store.sql_terms_of_service_store.get.app_error",
@@ -6772,7 +6772,7 @@
   },
   {
     "id": "store.sql_terms_of_service_store.save.existing.app_error",
-    "translation": "La sauvegarde ne doit pas être appelée pour les conditions d'utilisation actuelles."
+    "translation": "L'enregistrement ne doit pas être appelé pour les conditions d'utilisation actuelles."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -6808,7 +6808,7 @@
   },
   {
     "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions don't make sense"
+    "translation": "UserCountOptions n'a aucun sens"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -6892,7 +6892,7 @@
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "Impossible de sauvegarder le compte."
+    "translation": "Impossible d'enregistrer le compte."
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -7048,7 +7048,7 @@
   },
   {
     "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Impossible de sauvegarder les conditions d'utilisation."
+    "translation": "Impossible d'enregistrer les conditions d'utilisation."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7108,7 +7108,7 @@
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Impossible de sauvegarder le webhook entrant"
+    "translation": "Impossible d'enregistrer le webhook entrant"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
@@ -7116,7 +7116,7 @@
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Impossible de sauvegarder le webhook sortant"
+    "translation": "Impossible d'enregistrer le webhook sortant"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
