@@ -2601,7 +2601,7 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 		user, err = ss.User().Save(user)
 		require.Nil(t, err)
 
-		_, err := ss.Group().UpsertMember(group.Id, user.Id)
+		_, err = ss.Group().UpsertMember(group.Id, user.Id)
 		require.Nil(t, err)
 	}
 
