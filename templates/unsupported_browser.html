@@ -1,15 +1,52 @@
-{{define "chrome"}}
-  <div class='browser-container' onmouseover='onHover(this, "browser")' onmouseleave='onUnHover(this, "browser")'>
+
+{{define "unsupported_browser-browser"}}
+  <div class='browser-container' data-mattermost-hover="browser">
       <div class="browser">
-          <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
-          <div class='browser-top-text'>Google Chrome</div>
-          <div class='browser-bottom-text'>Version 61+</div>
+          <img class='browser-image' src='{{.LogoSrc}}'/>
+          <div class='browser-top-text'>{{.Title}}</div>
+          <div class='browser-bottom-text'>{{.SupportedVersionString}}</div>
       </div>
-      <div class="browser browser-hover hidden" onclick="getBrowser('chrome')">
-          <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
-          <div class='browser-top-text'>Get the latest Chrome browser</div>
+      <div class="browser browser-hover hidden" data-mattermost-click="{{.Src}}">
+          <img class='browser-image' src='{{.LogoSrc}}'/>
+          <div class='browser-top-text'>{{.GetLatestString}}</div>
       </div>
   </div>
+{{end}}
+{{define "unsupported_browser-system_browser"}}
+<div class='browser-container' data-mattermost-hover="browser">
+    <div class="browser">
+        <img class='browser-image' src='{{.LogoSrc}}'/>
+        <div class='browser-top-text'>{{.Title}}</div>
+        <div class='browser-bottom-text'>{{.SupportedVersionString}}</div>
+    </div>
+    <div class="browser browser-hover no-pointer hidden">
+        <img class='browser-image' src='{{.LogoSrc}}'/>
+        <div class='browser-top-text pointer' data-mattermost-click="{{.LinkOpen}}">{{.LabelOpen}}</div>
+        <div class='browser-bottom-text'>or</div>
+        <div class='browser-top-text pointer' data-mattermost-click="{{.LinkMakeDefault}}">Make default</div>
+    </div>
+</div>
+{{end}}
+{{define "unsupported_browser-app"}}
+<div 
+    class='windows-container' 
+    data-mattermost-hover="windows"
+>
+    <div class='windows'>
+        <img class='windows-image' src='{{.LogoSrc}}'/>
+        <div class='browser-top-text'>{{.Title}}</div>
+        <div class='browser-bottom-text'>{{.SupportedVersionString}}</div>
+    </div>
+    <div class='windows windows-hover hidden'>
+        <img class='windows-image' src='{{.LogoSrc}}'/>
+        <button class='windows-button' data-mattermost-click="{{.Link64Bit}}">{{.Label64Bit}}</button>
+        <div class="windows-hover-alt">
+            <a href="{{.Link32Bit}}">{{.Label32Bit}}</a>
+            &nbsp;|&nbsp;
+            <a href="{{.InstallGuideLink}}">{{.InstallGuide}}</a>
+        </div>
+    </div>
+</div>
 {{end}}
 {{define "unsupported_browser"}}
 <head>
@@ -177,38 +214,7 @@
         }
     </style>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet"/>
-    <script type='text/javascript'>
-        function onHover(element, prefix) {
-            element.classList.add('container-hover');
-            let unHoverElement = element.querySelector('.' + prefix + ':not(.hidden)');
-            let hoverElement = element.querySelector('.' + prefix + '-hover.hidden');
-            if (unHoverElement && hoverElement) {
-                unHoverElement.classList.add('hidden');
-                hoverElement.classList.remove('hidden');
-            }
-        }
-        function onUnHover(element, prefix) {
-            element.classList.remove('container-hover');
-            let unHoverElement = element.querySelector('.' + prefix + '.hidden');
-            let hoverElement = element.querySelector('.' + prefix + '-hover:not(.hidden)');
-            if (unHoverElement && hoverElement) {
-                hoverElement.classList.add('hidden');
-                unHoverElement.classList.remove('hidden');
-            }
-        }
-        function getBrowser(browserName) {
-            window.location.href = "http://www.google.com/chrome";
-        }
-        function getApp() {
-            window.location.href = "http://www.google.com/chrome";
-        }
-        function openBrowser() {
-            window.location.href = "http://www.google.com/chrome";
-        }
-        function setDefault() {
-            window.location.href = "http://www.google.com/chrome";
-        }
-    </script>
+    <script type="text/javascript" src="/unsupported_browser.js"></script>
     </head>
   <body>
     <div class='content'>
@@ -219,42 +225,12 @@
         Download the Mattermost app or use a supported browser for a better experience.
       </div>
       <div class="downloads">
-        <div 
-            class='windows-container' 
-            onmouseover='onHover(this, "windows");' 
-            onmouseleave='onUnHover(this, "windows");'
-        >
-            <div class='windows'>
-                <img class='windows-image' src='/static/images/favicon/android-chrome-192x192.png'/>
-                <div class='browser-top-text'>Test Line</div>
-                <div class='browser-bottom-text'>Test Line 2</div>
-            </div>
-            <div class='windows windows-hover hidden'>
-                <img class='windows-image' src='/static/images/favicon/android-chrome-192x192.png'/>
-                <button class='windows-button' onclick="getApp()">Download 64-bit</button>
-                <div class="windows-hover-alt">
-                    <a href="http://www.google.com/chrome">32-Bit</a>
-                    &nbsp;|&nbsp;
-                    <a href="http://www.google.com/chrome">Install Guide</a>
-                </div>
-            </div>
-        </div>
+        {{template "unsupported_browser-app" .Props.App}}
         <div class="vr"></div>
-        {{template "browser" "chrome"}}
-        <div class='browser-container' onmouseover='onHover(this, "browser")' onmouseleave='onUnHover(this, "browser")'>
-            <div class="browser">
-                <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
-                <div class='browser-top-text'>Test Line</div>
-                <div class='browser-bottom-text'>Test Line 2</div>
-            </div>
-            <div class="browser browser-hover no-pointer hidden">
-                <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
-                <div class='browser-top-text pointer' onclick="openBrowser()">Open Edge</div>
-                <div class='browser-bottom-text'>or</div>
-                <div class='browser-top-text pointer' onclick="setDefault()">Make default</div>
-            </div>
-        </div>
-      </div>
+        {{range .Props.Browsers}}
+          {{template "unsupported_browser-browser" .}}
+        {{end}}
+        {{template "unsupported_browser-system_browser" .Props.SystemBrowser}}
       <div class="learn-more-about-sup">
             <a href='http://google.com'>Learn more about supported browsers.</a>
       </div>
