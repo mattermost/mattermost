@@ -204,7 +204,7 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) *model
 		WHERE
 			Id = :Id
 			AND PostId = ''
-			AND CreatorId = :CreatorId
+			AND (CreatorId = :CreatorId OR CreatorId = 'nouser')
 	`, map[string]interface{}{
 		"PostId":    postId,
 		"Id":        fileId,
