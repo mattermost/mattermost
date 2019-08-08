@@ -1749,7 +1749,7 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 	return nil
 }
 
-//MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
+// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnread, *model.AppError) {
 
 	post, err := a.GetSinglePost(postID)
@@ -1757,8 +1757,8 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		return nil, err
 	}
 
-	unreadMentions := 1 // TODO: calculate this value, setting it to one for now.
-	return a.Srv.Store.Channel().UpdateLastViewedAtPost(*post, userID, unreadMentions)
+	unreadMentions := 0 // TODO: calculate this value, setting it to zero for now.
+	return a.Srv.Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions)
 }
 
 func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {

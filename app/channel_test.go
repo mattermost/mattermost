@@ -1054,9 +1054,9 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	th.AddUserToChannel(u1, pc1)
 	th.AddUserToChannel(u2, pc1)
 
-	_ = th.CreatePost(c1)
+	p1 := th.CreatePost(c1)
 	p2 := th.CreatePost(c1)
-	_ = th.CreatePost(c1)
+	p3 := th.CreatePost(c1)
 
 	pp1 := th.CreatePost(pc1)
 	require.NotNil(t, pp1)
@@ -1077,7 +1077,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		require.Equal(t, int64(0), unread.MsgCount)
 	})
 
-	t.Run("Unread last one", func(t *testing.T) {
+	t.Run("Unread but last one", func(t *testing.T) {
 		response, err := th.App.MarkChannelAsUnreadFromPost(p2.Id, u1.Id)
 		require.Nil(t, err)
 		require.NotNil(t, response)
@@ -1085,6 +1085,26 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(1), unread.MsgCount)
+	})
+
+	t.Run("Unread last one", func(t *testing.T) {
+		response, err := th.App.MarkChannelAsUnreadFromPost(p3.Id, u1.Id)
+		require.Nil(t, err)
+		require.NotNil(t, response)
+		assert.Equal(t, int64(0), response.MsgCount)
+		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(0), unread.MsgCount)
+	})
+
+	t.Run("Unread first one", func(t *testing.T) {
+		response, err := th.App.MarkChannelAsUnreadFromPost(p1.Id, u1.Id)
+		require.Nil(t, err)
+		require.NotNil(t, response)
+		assert.Equal(t, int64(2), response.MsgCount)
+		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(2), unread.MsgCount)
 	})
 
 	t.Run("Other users are unaffected", func(t *testing.T) {

@@ -582,12 +582,10 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if c.App.Session.UserId != c.Params.UserId {
-		// we might support in the future to change other people unread position, but not for now.
-		// having both is due to make it consistent and obvious.
+	if c.App.Session.UserId != c.Params.UserId && c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
 	}
-
 	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return

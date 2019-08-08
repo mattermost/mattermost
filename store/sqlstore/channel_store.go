@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
@@ -1815,9 +1814,8 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	return times, nil
 }
 
-// CountUnreadSince gives the number of posts that a channel has since some date, this doesn't follow any threads.
-// this allows us to know how many posts have bean read already.
-func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int64, *model.AppError) {
+// CountPostsSince gives the number of posts in a channel created since a given date.
+func (s SqlChannelStore) CountPostsSince(channelID string, since int64) (int64, *model.AppError) {
 	countUnreadQuery := `
 	SELECT count(*)
 	FROM Posts
@@ -1834,16 +1832,16 @@ func (s SqlChannelStore) CountUnreadSince(channelID string, since int64) (int64,
 
 	unread, err := s.GetReplica().SelectInt(countUnreadQuery, countParams)
 	if err != nil {
-		return 0, model.NewAppError("SqlChannelStore.CountUnreadSince", "store.sql_channel.CountUnreadSince.app_error", countParams, fmt.Sprintf("Error while counting unreads for %s since %d", channelID, since), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlChannelStore.CountPostsSince", "store.sql_channel.count_posts_since.app_error", countParams, fmt.Sprintf("channel_id=%s, since=%d, err=%s", channelID, since, err), http.StatusInternalServerError)
 	}
 	return unread, nil
 }
 
 // UpdateLastViewedAtPost sets a channel as unread for a user at the time of the post selected and update the MentionCount
 // it returns a channelunread so redux can update the apps easily.
-func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID string, mentionCount int) (*model.ChannelUnread, *model.AppError) {
+func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnread, *model.AppError) {
 
-	unread, appErr := s.CountUnreadSince(unreadPost.ChannelId, unreadPost.CreateAt)
+	unread, appErr := s.CountPostsSince(unreadPost.ChannelId, unreadPost.CreateAt)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1854,7 +1852,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID st
 		"lastViewedAt": unreadPost.CreateAt,
 		"userId":       userID,
 		"channelId":    unreadPost.ChannelId,
-		"updatedAt":    utils.MillisFromTime(time.Now()),
+		"updatedAt":    model.GetMillis(),
 	}
 
 	// msg count uses the value from channels to prevent counting on older channels where no. of messages can be high.
@@ -1873,7 +1871,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost model.Post, userID st
 	`
 	_, err := s.GetMaster().Exec(setUnreadQuery, params)
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAtPost", "store.sql_channel.UpdateLastViewedAtPost.app_error", params, "Error setting channel "+unreadPost.ChannelId+" as unread: "+err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAtPost", "store.sql_channel.update_last_viewed_at_post.app_error", params, "Error setting channel "+unreadPost.ChannelId+" as unread: "+err.Error(), http.StatusInternalServerError)
 	}
 
 	return s.GetChannelUnread(unreadPost.ChannelId, userID)

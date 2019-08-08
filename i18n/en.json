@@ -5499,11 +5499,11 @@
     "translation": "We encountered an error updating the bot"
   },
   {
-    "id": "store.sql_channel.CountUnreadSince.app_error",
-    "translation": "Unable to assert messages unread"
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
   },
   {
-    "id": "store.sql_channel.UpdateLastViewedAtPost.app_error",
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
     "translation": "Unable to mark channel as unread"
   },
   {

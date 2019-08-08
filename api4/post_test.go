@@ -2539,39 +2539,27 @@ func TestSetChannelUnread(t *testing.T) {
 	c1 := th.BasicChannel
 	c1toc2 := &model.ChannelView{ChannelId: th.BasicChannel2.Id, PrevChannelId: c1.Id}
 	now := utils.MillisFromTime(time.Now())
-	p1 := th.CreateMessagePostNoClient(c1, "AAA", now)
-	require.NotNil(t, p1)
+	th.CreateMessagePostNoClient(c1, "AAA", now)
 	p2 := th.CreateMessagePostNoClient(c1, "BBB", now+10)
-	require.NotNil(t, p2)
-	p3 := th.CreateMessagePostNoClient(c1, "CCC", now+20)
-	require.NotNil(t, p3)
+	th.CreateMessagePostNoClient(c1, "CCC", now+20)
 
 	pp1 := th.CreateMessagePostNoClient(th.BasicPrivateChannel, "Sssh!", now)
 	pp2 := th.CreateMessagePostNoClient(th.BasicPrivateChannel, "You Sssh!", now+10)
 	require.NotNil(t, pp1)
 	require.NotNil(t, pp2)
 
-	t.Run("Can't unread if user is not logged in", func(t *testing.T) {
-		th.Client.Logout()
-		response := th.Client.SetPostUnread(u1.Id, p2.Id)
-		checkHTTPStatus(t, response, http.StatusUnauthorized, true)
-	})
-
-	th.Client.Login(u1.Email, u1.Password)
-
-	t.Run("Ensure that post have been read", func(t *testing.T) {
-		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
-		require.Nil(t, err)
-		require.Equal(t, int64(4), unread.MsgCount)
-		unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
-		require.Nil(t, err)
-		require.Equal(t, int64(4), unread.MsgCount)
-		_, err = th.App.ViewChannel(c1toc2, u2.Id, s2.Id)
-		require.Nil(t, err)
-		unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
-		require.Nil(t, err)
-		require.Equal(t, int64(0), unread.MsgCount)
-	})
+	// Ensure that post have been read
+	unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(4), unread.MsgCount)
+	unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(4), unread.MsgCount)
+	_, err = th.App.ViewChannel(c1toc2, u2.Id, s2.Id)
+	require.Nil(t, err)
+	unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(0), unread.MsgCount)
 
 	t.Run("Unread last one", func(t *testing.T) {
 		r := th.Client.SetPostUnread(u1.Id, p2.Id)
@@ -2595,7 +2583,6 @@ func TestSetChannelUnread(t *testing.T) {
 	})
 
 	t.Run("Can't unread an imaginary post", func(t *testing.T) {
-		th.Client.Login(u1.Email, u1.Password)
 		r := th.Client.SetPostUnread(u1.Id, "invalid4ofngungryquinj976y")
 		assert.Equal(t, 403, r.StatusCode)
 	})
@@ -2606,5 +2593,11 @@ func TestSetChannelUnread(t *testing.T) {
 		c3.Login(u3.Email, u3.Password)
 		r := c3.SetPostUnread(u1.Id, pp1.Id)
 		assert.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("Can't unread if user is not logged in", func(t *testing.T) {
+		th.Client.Logout()
+		response := th.Client.SetPostUnread(u1.Id, p2.Id)
+		checkHTTPStatus(t, response, http.StatusUnauthorized, true)
 	})
 }
