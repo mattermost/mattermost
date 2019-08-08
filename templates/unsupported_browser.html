@@ -1,3 +1,16 @@
+{{define "chrome"}}
+  <div class='browser-container' onmouseover='onHover(this, "browser")' onmouseleave='onUnHover(this, "browser")'>
+      <div class="browser">
+          <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
+          <div class='browser-top-text'>Google Chrome</div>
+          <div class='browser-bottom-text'>Version 61+</div>
+      </div>
+      <div class="browser browser-hover hidden" onclick="getBrowser('chrome')">
+          <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
+          <div class='browser-top-text'>Get the latest Chrome browser</div>
+      </div>
+  </div>
+{{end}}
 {{define "unsupported_browser"}}
 <head>
     <style>
@@ -227,28 +240,7 @@
             </div>
         </div>
         <div class="vr"></div>
-        <div class='browser-container' onmouseover='onHover(this, "browser")' onmouseleave='onUnHover(this, "browser")'>
-            <div class="browser">
-                <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
-                <div class='browser-top-text'>Test Line</div>
-                <div class='browser-bottom-text'>Test Line 2</div>
-            </div>
-            <div class="browser browser-hover hidden" onclick="getBrowser()">
-                <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
-                <div class='browser-top-text'>Get the latest Chrome browser</div>
-            </div>
-        </div>
-        <div class='browser-container' onmouseover='onHover(this, "browser")' onmouseleave='onUnHover(this, "browser")'>
-            <div class="browser">
-                <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
-                <div class='browser-top-text'>Test Line</div>
-                <div class='browser-bottom-text'>Test Line 2</div>
-            </div>
-            <div class="browser browser-hover hidden" onclick="getBrowser()">
-                <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
-                <div class='browser-top-text'>Get the latest Chrome browser</div>
-            </div>
-        </div>
+        {{template "chrome"}}
         <div class='browser-container' onmouseover='onHover(this, "browser")' onmouseleave='onUnHover(this, "browser")'>
             <div class="browser">
                 <img class='browser-image' src='/static/images/favicon/android-chrome-192x192.png'/>
