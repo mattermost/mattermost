@@ -5499,14 +5499,6 @@
     "translation": "We encountered an error updating the bot"
   },
   {
-    "id": "store.sql_channel.count_posts_since.app_error",
-    "translation": "Unable to count messages since given date"
-  },
-  {
-    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-    "translation": "Unable to mark channel as unread"
-  },
-  {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
     "translation": "Unable to get deleted channel type counts"
   },
@@ -5529,6 +5521,10 @@
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
     "translation": "Failed to update the channel member"
+  },
+  {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
@@ -5861,6 +5857,10 @@
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "Unable to update the last viewed at time"
+  },
+  {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread"
   },
   {
     "id": "store.sql_channel.update_member.app_error",
