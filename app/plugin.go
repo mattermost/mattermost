@@ -99,10 +99,11 @@ func (a *App) SyncPluginsActiveState() {
 					continue
 				}
 
-				if activated && updatedManifest.HasClient() {
-					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
-					message.Add("manifest", updatedManifest.ClientManifest())
-					a.Publish(message)
+				if activated {
+					// Notify all cluster clients if ready
+					if err := a.notifyPluginEnabled(updatedManifest); err != nil {
+						a.Log.Error("Unable to notify plugin enabled", mlog.Err(err))
+					}
 				}
 			}
 		}
@@ -316,7 +317,8 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
 	})
 
-	// This call will cause SyncPluginsActiveState to be called and the plugin to be activated
+	// This call will implicitly invoke SyncPluginsActiveState which will activate enabled plugins.
+	// This will also notify cluster peers sync.
 	if err := a.SaveConfig(a.Config(), true); err != nil {
 		if err.Id == "ent.cluster.save_config.error" {
 			return model.NewAppError("EnablePlugin", "app.plugin.cluster.save_config.app_error", nil, "", http.StatusInternalServerError)
@@ -358,6 +360,8 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	})
 	a.UnregisterPluginCommands(id)
 
+	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
+	// This will also notify cluster peers sync.
 	if err := a.SaveConfig(a.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -393,4 +397,49 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	}
 
 	return resp, nil
+}
+
+// notifyPluginEnabled notifies web clients for all cluster peers if
+// manifest version is same across all peers, including self.
+func (a *App) notifyPluginEnabled(manifest *model.Manifest) *model.AppError {
+	if manifest.HasClient() {
+		var statuses model.PluginStatuses
+		expectedPeers := 1
+		actualPeers := 0
+
+		if a.Cluster != nil {
+			var err *model.AppError
+			statuses, err = a.Cluster.GetPluginStatuses()
+			if err != nil {
+				return err
+			}
+			if infos := len(a.Cluster.GetClusterInfos()); infos > 0 {
+				expectedPeers = infos
+			}
+		}
+
+		localStatus, err := a.GetPluginStatus(manifest.Id)
+		if err != nil {
+			return err
+		}
+		statuses = append(statuses, localStatus)
+
+		for _, status := range statuses {
+			// Count consistent peers
+			isPeerConsistent := status.Version == manifest.Version &&
+				localStatus.State == model.PluginStateRunning && localStatus.State == status.State
+			if status.PluginId == manifest.Id && isPeerConsistent {
+				actualPeers++
+			}
+		}
+
+		// Notify all cluster peer clients.
+		if actualPeers == expectedPeers {
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
+			message.Add("manifest", manifest.ClientManifest())
+			a.Publish(message)
+		}
+	}
+
+	return nil
 }

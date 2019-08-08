@@ -240,7 +240,9 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		}
 
 		hash := fnv.New64a()
-		hash.Write(sourceBundleFileContents)
+		if _, err := hash.Write(sourceBundleFileContents); err != nil {
+			return nil, false, errors.Wrapf(err, "unable to generate hash for webapp bundle: %v", id)
+		}
 		pluginInfo.Manifest.Webapp.BundleHash = hash.Sum([]byte{})
 
 		if err := os.Rename(
