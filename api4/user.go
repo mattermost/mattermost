@@ -1190,8 +1190,7 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.Session.IsOAuth {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		c.Err.DetailedError += ", attempted access by oauth app"
+		c.Err = model.NewAppError("generateMfaSecret", "api.user.generate_mfa_secret.oauth", nil, "Session is OAuth", http.StatusBadRequest)
 		return
 	}
 
