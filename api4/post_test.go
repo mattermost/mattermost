@@ -716,71 +716,105 @@ func TestPatchPost(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense())
 
+	fileIds := make([]string, 3)
+	data, err := testutils.ReadTestFile("test.png")
+	require.Nil(t, err)
+	for i := 0; i < len(fileIds); i++ {
+		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
+		CheckNoError(t, resp)
+		fileIds[i] = fileResp.FileInfos[0].Id
+	}
+
 	post := &model.Post{
 		ChannelId:    channel.Id,
 		IsPinned:     true,
 		Message:      "#hashtag a message",
 		Props:        model.StringInterface{"channel_header": "old_header"},
-		FileIds:      model.StringArray{"file1", "file2"},
+		FileIds:      fileIds[0:2],
 		HasReactions: true,
 	}
 	post, _ = Client.CreatePost(post)
 
-	patch := &model.PostPatch{}
+	var rpost *model.Post
+	t.Run("new message, props, files, HasReactions bit", func(t *testing.T) {
+		patch := &model.PostPatch{}
 
-	patch.IsPinned = model.NewBool(false)
-	patch.Message = model.NewString("#otherhashtag other message")
-	patch.Props = &model.StringInterface{"channel_header": "new_header"}
-	patch.FileIds = &model.StringArray{"file1", "otherfile2", "otherfile3"}
-	patch.HasReactions = model.NewBool(false)
+		patch.IsPinned = model.NewBool(false)
+		patch.Message = model.NewString("#otherhashtag other message")
+		patch.Props = &model.StringInterface{"channel_header": "new_header"}
+		patchFileIds := model.StringArray(fileIds) // one extra file
+		patch.FileIds = &patchFileIds
+		patch.HasReactions = model.NewBool(false)
 
-	rpost, resp := Client.PatchPost(post.Id, patch)
-	CheckNoError(t, resp)
+		var resp *model.Response
+		rpost, resp = Client.PatchPost(post.Id, patch)
+		CheckNoError(t, resp)
 
-	assert.False(t, rpost.IsPinned, "IsPinned did not update properly")
-	assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
-	assert.Equal(t, *patch.Props, rpost.Props, "Props did not update properly")
-	assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
-	assert.Equal(t, model.StringArray{"file1", "file2"}, rpost.FileIds, "FileIds should not update")
-	assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
+		assert.False(t, rpost.IsPinned, "IsPinned did not update properly")
+		assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
+		assert.Equal(t, *patch.Props, rpost.Props, "Props did not update properly")
+		assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
+		assert.Equal(t, model.StringArray(fileIds[0:2]), rpost.FileIds, "FileIds should not update")
+		assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
+	})
 
-	patch2 := &model.PostPatch{}
-	attachments := []model.SlackAttachment{
-		{
-			Text: "Hello World",
-		},
-	}
-	patch2.Props = &model.StringInterface{"attachments": attachments}
+	t.Run("add slack attachments", func(t *testing.T) {
+		patch2 := &model.PostPatch{}
+		attachments := []model.SlackAttachment{
+			{
+				Text: "Hello World",
+			},
+		}
+		patch2.Props = &model.StringInterface{"attachments": attachments}
 
-	rpost2, resp := Client.PatchPost(post.Id, patch2)
-	CheckNoError(t, resp)
-	assert.NotEmpty(t, rpost2.Props["attachments"])
-	assert.NotEqual(t, rpost.EditAt, rpost2.EditAt)
+		rpost2, resp := Client.PatchPost(post.Id, patch2)
+		CheckNoError(t, resp)
+		assert.NotEmpty(t, rpost2.Props["attachments"])
+		assert.NotEqual(t, rpost.EditAt, rpost2.EditAt)
+	})
 
-	r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage")
-	require.EqualError(t, err, ": Invalid or missing post in request body, ")
-	require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
+	t.Run("invalid requests", func(t *testing.T) {
+		r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage")
+		require.EqualError(t, err, ": Invalid or missing post in request body, ")
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
-	_, resp = Client.PatchPost("junk", patch)
-	CheckBadRequestStatus(t, resp)
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost("junk", patch)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	_, resp = Client.PatchPost(GenerateTestId(), patch)
-	CheckForbiddenStatus(t, resp)
+	t.Run("unknown post", func(t *testing.T) {
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost(GenerateTestId(), patch)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	Client.Logout()
-	_, resp = Client.PatchPost(post.Id, patch)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("logged out", func(t *testing.T) {
+		Client.Logout()
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost(post.Id, patch)
+		CheckUnauthorizedStatus(t, resp)
+	})
 
-	th.LoginBasic2()
-	_, resp = Client.PatchPost(post.Id, patch)
-	CheckForbiddenStatus(t, resp)
+	t.Run("different user", func(t *testing.T) {
+		th.LoginBasic2()
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost(post.Id, patch)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	th.LoginTeamAdmin()
-	_, resp = Client.PatchPost(post.Id, patch)
-	CheckForbiddenStatus(t, resp)
+	t.Run("different user, but team admin", func(t *testing.T) {
+		th.LoginTeamAdmin()
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost(post.Id, patch)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.PatchPost(post.Id, patch)
-	CheckNoError(t, resp)
+	t.Run("different user, but system admin", func(t *testing.T) {
+		patch := &model.PostPatch{}
+		_, resp := th.SystemAdminClient.PatchPost(post.Id, patch)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestPinPost(t *testing.T) {
