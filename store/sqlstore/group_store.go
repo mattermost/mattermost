@@ -992,8 +992,8 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 		Join("Teams ON Teams.Id = TeamMembers.TeamId").
 		Join("Users ON Users.Id = TeamMembers.UserId").
 		LeftJoin("Bots ON Bots.UserId = TeamMembers.UserId").
-		Join("GroupMembers ON GroupMembers.UserId = Users.Id").
-		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		LeftJoin("GroupMembers ON GroupMembers.UserId = Users.Id").
+		LeftJoin("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Where("TeamMembers.DeleteAt = 0").
 		Where("Teams.DeleteAt = 0").
 		Where("Users.DeleteAt = 0").
@@ -1012,7 +1012,7 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 // groups.
 func (s *SqlGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	query := s.teamMembersMinusGroupMembersQuery(teamID, groupIDs, false)
-	query = query.OrderBy("Users.Id").Limit(uint64(perPage)).Offset(uint64(page * perPage))
+	query = query.OrderBy("Users.Username ASC").Limit(uint64(perPage)).Offset(uint64(page * perPage))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1070,8 +1070,8 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 		Join("Channels ON Channels.Id = ChannelMembers.ChannelId").
 		Join("Users ON Users.Id = ChannelMembers.UserId").
 		LeftJoin("Bots ON Bots.UserId = ChannelMembers.UserId").
-		Join("GroupMembers ON GroupMembers.UserId = Users.Id").
-		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		LeftJoin("GroupMembers ON GroupMembers.UserId = Users.Id").
+		LeftJoin("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Where("Channels.DeleteAt = 0").
 		Where("Users.DeleteAt = 0").
 		Where("Bots.UserId IS NULL").
@@ -1089,7 +1089,7 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 // groups.
 func (s *SqlGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	query := s.channelMembersMinusGroupMembersQuery(channelID, groupIDs, false)
-	query = query.OrderBy("Users.Id").Limit(uint64(perPage)).Offset(uint64(page * perPage))
+	query = query.OrderBy("Users.Username ASC").Limit(uint64(perPage)).Offset(uint64(page * perPage))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
