@@ -77,7 +77,7 @@ func (a *App) CompareAndDeletePluginKey(pluginId string, key string, oldValue []
 	deleted, err := a.Srv.Store.Plugin().CompareAndDelete(kv, oldValue)
 	if err != nil {
 		mlog.Error("Failed to compare and delete plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
-		return false, err
+		return deleted, err
 	}
 
 	// Clean up a previous entry using the hashed key, if it exists.
