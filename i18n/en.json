@@ -3427,6 +3427,10 @@
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
   {
+    "id": "app.plugin.compatibility_check.app_error",
+    "translation": "Could not perform the compatibility check for a plugin."
+  },
+  {
     "id": "app.plugin.config.app_error",
     "translation": "Error saving plugin state in config"
   },
@@ -3485,6 +3489,10 @@
   {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
+  },
+  {
+    "id": "app.plugin.not_compatible.app_error",
+    "translation": "Plugin is not compatible with the system configuration."
   },
   {
     "id": "app.plugin.not_installed.app_error",

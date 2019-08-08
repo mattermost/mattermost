@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
@@ -312,6 +314,18 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	isCompatible, err := utils.IsPluginManifestCompatibleWithConfig(manifest, a.Config())
+	if err != nil {
+		return model.NewAppError("EnablePlugin", "app.plugin.compatibility_check.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if !isCompatible {
+		details := fmt.Sprintf("Could not enable plugin %s because its requirements are not met. It needs the following configuration settings: %s", id, manifest.GetRequiresConfigString())
+
+		mlog.Error(details)
+		return model.NewAppError("EnablePlugin", "app.plugin.not_compatible.app_error", nil, details, http.StatusInternalServerError)
+	}
+
 	a.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
 	})
@@ -376,13 +390,20 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 		return nil, model.NewAppError("GetPlugins", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	resp := &model.PluginsResponse{Active: []*model.PluginInfo{}, Inactive: []*model.PluginInfo{}}
+	config := a.Config()
 	for _, plugin := range availablePlugins {
 		if plugin.Manifest == nil {
 			continue
 		}
 
+		isCompatible, err := utils.IsPluginManifestCompatibleWithConfig(plugin.Manifest, config)
+		if err != nil {
+			return nil, model.NewAppError("GetPlugins", "app.plugin.compatibility_check.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
 		info := &model.PluginInfo{
-			Manifest: *plugin.Manifest,
+			IsCompatible: isCompatible,
+			Manifest:     *plugin.Manifest,
 		}
 
 		if pluginsEnvironment.IsActive(plugin.Manifest.Id) {
@@ -393,4 +414,38 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	}
 
 	return resp, nil
+}
+
+// IsPluginCompatible returns true or false if the plugins' RequiresConfig requirements are met
+func (a *App) IsPluginCompatible(id string) (bool, *model.AppError) {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return false, model.NewAppError("IsPluginCompatible", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return false, model.NewAppError("IsPluginCompatible", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	id = strings.ToLower(id)
+
+	var manifest *model.Manifest
+	for _, p := range plugins {
+		if p.Manifest.Id == id {
+			manifest = p.Manifest
+			break
+		}
+	}
+
+	if manifest == nil {
+		return false, model.NewAppError("IsPluginCompatible", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	isCompatible, err := utils.IsPluginManifestCompatibleWithConfig(manifest, a.Config())
+	if err != nil {
+		return false, model.NewAppError("IsPluginCompatible", "app.plugin.compatibility_check.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return isCompatible, nil
 }

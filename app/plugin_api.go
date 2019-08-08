@@ -650,6 +650,10 @@ func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.Ap
 	return api.app.GetPluginStatus(id)
 }
 
+func (api *PluginAPI) IsPluginCompatible(id string) (bool, *model.AppError) {
+	return api.app.IsPluginCompatible(id)
+}
+
 // KV Store Section
 
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {

@@ -110,6 +110,18 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*mod
 		return nil, model.NewAppError("installPlugin", "app.plugin.invalid_id.app_error", map[string]interface{}{"Min": plugin.MinIdLength, "Max": plugin.MaxIdLength, "Regex": plugin.ValidIdRegex}, "", http.StatusBadRequest)
 	}
 
+	isCompatible, err := utils.IsPluginManifestCompatibleWithConfig(manifest, a.Config())
+	if err != nil {
+		return nil, model.NewAppError("installPlugin", "app.plugin.compatibility_check.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if !isCompatible {
+		details := fmt.Sprintf("Could not install plugin %s because its requirements are not met. It needs the following configuration settings: %s", manifest.Id, manifest.GetRequiresConfigString())
+
+		mlog.Error(details)
+		return nil, model.NewAppError("installPlugin", "app.plugin.not_compatible.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	// Stash the previous state of the plugin, if available
 	stashed := a.Config().PluginSettings.PluginStates[manifest.Id]
 
