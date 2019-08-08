@@ -533,78 +533,154 @@ func TestUpdatePost(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense())
 
-	post := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a"}
-	rpost, resp := Client.CreatePost(post)
-	CheckNoError(t, resp)
+	fileIds := make([]string, 3)
+	data, err := testutils.ReadTestFile("test.png")
+	require.Nil(t, err)
+	for i := 0; i < len(fileIds); i++ {
+		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
+		CheckNoError(t, resp)
+		fileIds[i] = fileResp.FileInfos[0].Id
+	}
 
-	assert.Equal(t, post.Message, rpost.Message, "full name didn't match")
+	rpost, err := th.App.CreatePost(&model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   "zz" + model.NewId() + "a",
+		FileIds:   fileIds,
+	}, channel, false)
+	require.Nil(t, err)
+
+	assert.Equal(t, rpost.Message, rpost.Message, "full name didn't match")
 	assert.EqualValues(t, 0, rpost.EditAt, "Newly created post shouldn't have EditAt set")
+	assert.Equal(t, model.StringArray(fileIds), rpost.FileIds, "FileIds should have been set")
 
-	msg := "zz" + model.NewId() + " update post"
-	rpost.Message = msg
-	rpost.UserId = ""
+	t.Run("same message, fewer files", func(t *testing.T) {
+		msg := "zz" + model.NewId() + " update post"
+		rpost.Message = msg
+		rpost.UserId = ""
 
-	rupost, resp := Client.UpdatePost(rpost.Id, rpost)
-	CheckNoError(t, resp)
+		rupost, resp := Client.UpdatePost(rpost.Id, &model.Post{
+			Id:      rpost.Id,
+			Message: rpost.Message,
+			FileIds: fileIds[0:2], // one fewer file id
+		})
+		CheckNoError(t, resp)
 
-	assert.Equal(t, rupost.Message, msg, "failed to updates")
-	assert.NotEqual(t, 0, rupost.EditAt, "EditAt not updated for post")
+		assert.Equal(t, rupost.Message, msg, "failed to updates")
+		assert.NotEqual(t, 0, rupost.EditAt, "EditAt not updated for post")
+		assert.Empty(t, rupost.FileIds, "FileIds should have not have been updated")
 
-	msg1 := "#hashtag a" + model.NewId() + " update post again"
-	rpost.Message = msg1
-	rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
-	rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
-	CheckNoError(t, resp)
+		actual, resp := Client.GetPost(rpost.Id, "")
+		CheckNoError(t, resp)
 
-	assert.Equal(t, msg1, rrupost.Message, "failed to update message")
-	assert.Equal(t, "#hashtag", rrupost.Hashtags, "failed to update hashtags")
-	assert.Nil(t, rrupost.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
-
-	rpost2, err := th.App.CreatePost(&model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE, UserId: th.BasicUser.Id}, channel, false)
-	require.Nil(t, err)
-
-	up2 := &model.Post{Id: rpost2.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 2"}
-	_, resp = Client.UpdatePost(rpost2.Id, up2)
-	CheckBadRequestStatus(t, resp)
-
-	rpost3, err := th.App.CreatePost(&model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", UserId: th.BasicUser.Id}, channel, false)
-	require.Nil(t, err)
-
-	fileIds := model.StringArray{"abcdef", "geh"}
-	up3 := &model.Post{Id: rpost3.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 3", FileIds: fileIds}
-	rrupost3, resp := Client.UpdatePost(rpost3.Id, up3)
-	CheckNoError(t, resp)
-	assert.Empty(t, rrupost3.FileIds)
-
-	up4 := &model.Post{Id: rpost3.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 3"}
-	up4.AddProp("attachments", []model.SlackAttachment{
-		{
-			Text: "Hello World",
-		},
+		assert.Equal(t, actual.Message, msg, "failed to updates")
+		assert.NotEqual(t, 0, actual.EditAt, "EditAt not updated for post")
+		assert.Empty(t, actual.FileIds, "FileIds should have not have been updated")
 	})
-	rrupost3, resp = Client.UpdatePost(rpost3.Id, up4)
-	CheckNoError(t, resp)
-	assert.NotEqual(t, rpost3.EditAt, rrupost3.EditAt)
-	assert.NotEqual(t, rpost3.Attachments(), rrupost3.Attachments())
 
-	Client.Logout()
-	_, resp = Client.UpdatePost(rpost.Id, rpost)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("new message, invalid props", func(t *testing.T) {
+		msg1 := "#hashtag a" + model.NewId() + " update post again"
+		rpost.Message = msg1
+		rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
+		rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
+		CheckNoError(t, resp)
 
-	th.LoginBasic2()
-	_, resp = Client.UpdatePost(rpost.Id, rpost)
-	CheckForbiddenStatus(t, resp)
+		assert.Equal(t, msg1, rrupost.Message, "failed to update message")
+		assert.Equal(t, "#hashtag", rrupost.Hashtags, "failed to update hashtags")
+		assert.Nil(t, rrupost.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
 
-	Client.Logout()
+		actual, resp := Client.GetPost(rpost.Id, "")
+		CheckNoError(t, resp)
 
-	th.LoginTeamAdmin()
-	_, resp = Client.UpdatePost(rpost.Id, rpost)
-	CheckForbiddenStatus(t, resp)
+		assert.Equal(t, msg1, actual.Message, "failed to update message")
+		assert.Equal(t, "#hashtag", actual.Hashtags, "failed to update hashtags")
+		assert.Nil(t, actual.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
+	})
 
-	Client.Logout()
+	t.Run("join/leave post", func(t *testing.T) {
+		rpost2, err := th.App.CreatePost(&model.Post{
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			Type:      model.POST_JOIN_LEAVE,
+			UserId:    th.BasicUser.Id,
+		}, channel, false)
+		require.Nil(t, err)
 
-	_, resp = th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
-	CheckNoError(t, resp)
+		up2 := &model.Post{
+			Id:        rpost2.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + " update post 2",
+		}
+		_, resp := Client.UpdatePost(rpost2.Id, up2)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	rpost3, err := th.App.CreatePost(&model.Post{
+		ChannelId: channel.Id,
+		Message:   "zz" + model.NewId() + "a",
+		UserId:    th.BasicUser.Id,
+	}, channel, false)
+	require.Nil(t, err)
+
+	t.Run("new message, add files", func(t *testing.T) {
+		up3 := &model.Post{
+			Id:        rpost3.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + " update post 3",
+			FileIds:   fileIds[0:2],
+		}
+		rrupost3, resp := Client.UpdatePost(rpost3.Id, up3)
+		CheckNoError(t, resp)
+		assert.Empty(t, rrupost3.FileIds)
+
+		actual, resp := Client.GetPost(rpost.Id, "")
+		CheckNoError(t, resp)
+		assert.Empty(t, actual.FileIds)
+	})
+
+	t.Run("add slack attachments", func(t *testing.T) {
+		up4 := &model.Post{
+			Id:        rpost3.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + " update post 3",
+		}
+		up4.AddProp("attachments", []model.SlackAttachment{
+			{
+				Text: "Hello World",
+			},
+		})
+		rrupost3, resp := Client.UpdatePost(rpost3.Id, up4)
+		CheckNoError(t, resp)
+		assert.NotEqual(t, rpost3.EditAt, rrupost3.EditAt)
+		assert.NotEqual(t, rpost3.Attachments(), rrupost3.Attachments())
+	})
+
+	t.Run("logged out", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.UpdatePost(rpost.Id, rpost)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("different user", func(t *testing.T) {
+		th.LoginBasic2()
+		_, resp := Client.UpdatePost(rpost.Id, rpost)
+		CheckForbiddenStatus(t, resp)
+
+		Client.Logout()
+	})
+
+	t.Run("different user, but team admin", func(t *testing.T) {
+		th.LoginTeamAdmin()
+		_, resp := Client.UpdatePost(rpost.Id, rpost)
+		CheckForbiddenStatus(t, resp)
+
+		Client.Logout()
+	})
+
+	t.Run("different user, but system admin", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
@@ -665,7 +741,7 @@ func TestPatchPost(t *testing.T) {
 	assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
 	assert.Equal(t, *patch.Props, rpost.Props, "Props did not update properly")
 	assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
-	assert.Empty(t, rpost.FileIds, "FileIds should not update")
+	assert.Equal(t, model.StringArray{"file1", "file2"}, rpost.FileIds, "FileIds should not update")
 	assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
 
 	patch2 := &model.PostPatch{}
