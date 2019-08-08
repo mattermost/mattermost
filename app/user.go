@@ -677,20 +677,6 @@ func (a *App) GenerateRecovery(userId string) ([]string, *model.AppError) {
 	return codes, nil
 }
 
-func (a *App) LoginWithRecovery(userId, code string) *model.AppError {
-	user, err := a.GetUser(userId)
-	if err != nil {
-		return err
-	}
-
-	mfaService := mfa.New(a, a.Srv.Store)
-	if err := mfaService.LoginWithRecovery(user, code); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (a *App) ActivateMfa(userId, token string) *model.AppError {
 	user, err := a.Srv.Store.User().Get(userId)
 	if err != nil {

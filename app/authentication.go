@@ -173,7 +173,7 @@ func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
 	}
 
 	mfaService := mfa.New(a, a.Srv.Store)
-	ok, err := mfaService.ValidateToken(user.MfaSecret, token)
+	ok, err := mfaService.ValidateToken(user.MfaSecret, token, user)
 	if err != nil {
 		return err
 	}

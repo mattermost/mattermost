@@ -4,14 +4,13 @@
 package mfa
 
 import (
+	"crypto/rand"
 	b32 "encoding/base32"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/mattermost/mattermost-server/model"
@@ -56,11 +55,14 @@ func getIssuerFromUrl(uri string) string {
 
 func generateCode(n int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = charset[rand.Int63()%int64(len(charset))]
+	bytes := make([]byte, n)
+	rand.Read(bytes)
+
+	for i, b := range bytes {
+		bytes[i] = charset[b%byte(len(charset))]
 	}
-	return string(b)
+
+	return string(bytes)
 }
 
 func (m *Mfa) GenerateRecovery(user *model.User) ([]string, *model.AppError) {
@@ -68,7 +70,6 @@ func (m *Mfa) GenerateRecovery(user *model.User) ([]string, *model.AppError) {
 		return nil, err
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	codes := make([]string, 5)
 	for i := range codes {
 		codes[i] = generateCode(10)
@@ -194,7 +195,7 @@ func (m *Mfa) Deactivate(userId string) *model.AppError {
 	return nil
 }
 
-func (m *Mfa) ValidateToken(secret, token string) (bool, *model.AppError) {
+func (m *Mfa) ValidateToken(secret, token string, user *model.User) (bool, *model.AppError) {
 	if err := m.checkConfig(); err != nil {
 		return false, err
 	}
@@ -208,7 +209,11 @@ func (m *Mfa) ValidateToken(secret, token string) (bool, *model.AppError) {
 	trimmedToken := strings.TrimSpace(token)
 	ok, err := otpConfig.Authenticate(trimmedToken)
 	if err != nil {
-		return false, model.NewAppError("ValidateToken", "mfa.validate_token.authenticate.app_error", nil, err.Error(), http.StatusBadRequest)
+		//try recovery code, if otp fails
+		recErr := m.LoginWithRecovery(user, token)
+		if recErr != nil {
+			return false, model.NewAppError("ValidateToken", "mfa.validate_token.authenticate.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	return ok, nil
