@@ -568,14 +568,14 @@ func TestUpdatePost(t *testing.T) {
 
 		assert.Equal(t, rupost.Message, msg, "failed to updates")
 		assert.NotEqual(t, 0, rupost.EditAt, "EditAt not updated for post")
-		assert.Empty(t, rupost.FileIds, "FileIds should have not have been updated")
+		assert.Equal(t, model.StringArray(fileIds), rupost.FileIds, "FileIds should have not have been updated")
 
 		actual, resp := Client.GetPost(rpost.Id, "")
 		CheckNoError(t, resp)
 
 		assert.Equal(t, actual.Message, msg, "failed to updates")
 		assert.NotEqual(t, 0, actual.EditAt, "EditAt not updated for post")
-		assert.Empty(t, actual.FileIds, "FileIds should have not have been updated")
+		assert.Equal(t, model.StringArray(fileIds), actual.FileIds, "FileIds should have not have been updated")
 	})
 
 	t.Run("new message, invalid props", func(t *testing.T) {
@@ -635,7 +635,7 @@ func TestUpdatePost(t *testing.T) {
 
 		actual, resp := Client.GetPost(rpost.Id, "")
 		CheckNoError(t, resp)
-		assert.Empty(t, actual.FileIds)
+		assert.Equal(t, model.StringArray(fileIds), actual.FileIds)
 	})
 
 	t.Run("add slack attachments", func(t *testing.T) {
