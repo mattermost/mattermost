@@ -1656,7 +1656,6 @@ func (s SqlChannelStore) GetPinnedPostCountFromCache(channelId string) int64 {
 	return count
 }
 
-
 func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
 	if allowFromCache {
 		if cacheItem, ok := channelPinnedPostCountsCache.Get(channelId); ok {
