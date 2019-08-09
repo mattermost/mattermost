@@ -12,6 +12,27 @@ type Helpers struct {
 	mock.Mock
 }
 
+// CheckRequiredConfig provides a mock function with given fields: requiredConfig, actualConfig
+func (_m *Helpers) CheckRequiredConfig(requiredConfig *model.Config, actualConfig *model.Config) (bool, error) {
+	ret := _m.Called(requiredConfig, actualConfig)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.Config, *model.Config) bool); ok {
+		r0 = rf(requiredConfig, actualConfig)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Config, *model.Config) error); ok {
+		r1 = rf(requiredConfig, actualConfig)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // EnsureBot provides a mock function with given fields: bot
 func (_m *Helpers) EnsureBot(bot *model.Bot) (string, error) {
 	ret := _m.Called(bot)
