@@ -2492,7 +2492,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+    "translation": "Enter a valid email or username and/or password, or sign in using another method."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
