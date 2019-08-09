@@ -943,3 +943,47 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		}
 	})
 }
+
+func TestInvalidateAllEmailInvites(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t1 := model.Token{
+		Token:    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+		CreateAt: model.GetMillis(),
+		Type:     TOKEN_TYPE_GUEST_INVITATION,
+		Extra:    "",
+	}
+	err := th.App.Srv.Store.Token().Save(&t1)
+	require.Nil(t, err)
+
+	t2 := model.Token{
+		Token:    "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+		CreateAt: model.GetMillis(),
+		Type:     TOKEN_TYPE_TEAM_INVITATION,
+		Extra:    "",
+	}
+	err = th.App.Srv.Store.Token().Save(&t2)
+	require.Nil(t, err)
+
+	t3 := model.Token{
+		Token:    "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+		CreateAt: model.GetMillis(),
+		Type:     "other",
+		Extra:    "",
+	}
+	err = th.App.Srv.Store.Token().Save(&t3)
+	require.Nil(t, err)
+
+	err = th.App.InvalidateAllEmailInvites()
+	require.Nil(t, err)
+
+	_, err = th.App.Srv.Store.Token().GetByToken(t1.Token)
+	require.NotNil(t, err)
+
+	_, err = th.App.Srv.Store.Token().GetByToken(t2.Token)
+	require.NotNil(t, err)
+
+	_, err = th.App.Srv.Store.Token().GetByToken(t3.Token)
+	require.Nil(t, err)
+}
