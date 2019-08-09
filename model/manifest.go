@@ -290,7 +290,7 @@ func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
 
 func (m *Manifest) GetRequiresConfigString() string {
 	if m.RequiresConfig == nil {
-		return ""
+		return "{}"
 	}
 
 	// remove the nulls, the {}s and the empty strings from the json response. Need to do this multiple times

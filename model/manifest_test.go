@@ -675,3 +675,37 @@ func TestManifestMeetMinServerVersion(t *testing.T) {
 		})
 	}
 }
+
+func TestManifestRequiresConfigString(t *testing.T) {
+	t.Run("should return the empty object when there are no requirements", func(t *testing.T) {
+		manifest := &Manifest{
+			RequiresConfig: nil,
+		}
+
+		str := manifest.GetRequiresConfigString()
+		assert.Equal(t, "{}", str)
+
+		manifest = &Manifest{
+			RequiresConfig: &Config{},
+		}
+		str = manifest.GetRequiresConfigString()
+		assert.Equal(t, "{}", str)
+	})
+
+	t.Run("should generate a json with all the required fields", func(t *testing.T) {
+		manifest := &Manifest{
+			RequiresConfig: &Config{
+				SqlSettings: SqlSettings{
+					DriverName: NewString("postgres"),
+				},
+				ServiceSettings: ServiceSettings{
+					EnablePostUsernameOverride: NewBool(true),
+					EnablePostIconOverride:     NewBool(false),
+				},
+			},
+		}
+
+		str := manifest.GetRequiresConfigString()
+		assert.Equal(t, `{"ServiceSettings":{"EnablePostUsernameOverride":true,"EnablePostIconOverride":false},"SqlSettings":{"DriverName":"postgres"}}`, str)
+	})
+}
