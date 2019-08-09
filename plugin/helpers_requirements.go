@@ -5,9 +5,9 @@ package plugin
 
 import (
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (p *HelpersImpl) CheckRequiredConfig(requiredConfig, actualConfig *model.Config) (bool, error) {
-	// appConfig := p.API.GetConfig()
-	return false, nil
+	return utils.CheckRequiredConfig(requiredConfig, actualConfig)
 }
