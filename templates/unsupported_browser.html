@@ -22,8 +22,8 @@
     <div class="browser browser-hover no-pointer hidden">
         <img class='browser-image' src='{{.LogoSrc}}'/>
         <div class='browser-top-text pointer' data-mattermost-click="{{.LinkOpen}}">{{.LabelOpen}}</div>
-        <div class='browser-bottom-text'>or</div>
-        <div class='browser-top-text pointer' data-mattermost-click="{{.LinkMakeDefault}}">Make default</div>
+        <div class='browser-bottom-text'>{{.OrString}}</div>
+        <div class='browser-top-text pointer' data-mattermost-click="{{.LinkMakeDefault}}">{{.MakeDefaultString}}</div>
     </div>
 </div>
 {{end}}
@@ -41,8 +41,10 @@
         <img class='windows-image' src='{{.LogoSrc}}'/>
         <button class='windows-button' data-mattermost-click="{{.Link64Bit}}">{{.Label64Bit}}</button>
         <div class="windows-hover-alt">
-            <a href="{{.Link32Bit}}">{{.Label32Bit}}</a>
-            &nbsp;|&nbsp;
+            {{if .Label32Bit}}
+              <a href="{{.Link32Bit}}">{{.Label32Bit}}</a>
+              &nbsp;|&nbsp;
+            {{end}}
             <a href="{{.InstallGuideLink}}">{{.InstallGuide}}</a>
         </div>
     </div>
@@ -219,10 +221,10 @@
   <body>
     <div class='content'>
       <div class='we-no-longer-support'>
-        We no longer support this browser
+        {{.Props.NoLongerSupportString}}
       </div>
       <div class='download-the-matterm'>
-        Download the Mattermost app or use a supported browser for a better experience.
+          {{.Props.DownloadAppOrUpgradeBrowserString}}
       </div>
       <div class="downloads">
         {{template "unsupported_browser-app" .Props.App}}
@@ -232,7 +234,7 @@
         {{end}}
         {{template "unsupported_browser-system_browser" .Props.SystemBrowser}}
       <div class="learn-more-about-sup">
-            <a href='http://google.com'>Learn more about supported browsers.</a>
+            <a href='http://google.com'>{{.Props.LearnMoreString}}</a>
       </div>
     </div>
   </body>

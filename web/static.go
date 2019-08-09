@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/avct/uasurfer"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -62,69 +61,7 @@ func (w *Web) InitStatic() {
 func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !CheckClientCompatability(r.UserAgent()) {
-		w.Header().Set("Cache-Control", "no-store")
-		page := utils.NewHTMLTemplate(c.App.HTMLTemplates(), "unsupported_browser")
-		page.Props["Title"] = c.App.T("web.error.unsupported_browser.title")
-		page.Props["Message"] = c.App.T("web.error.unsupported_browser.message")
-		page.Props["App"] = struct {
-			LogoSrc                string
-			Title                  string
-			SupportedVersionString string
-			Label64Bit             string
-			Link64Bit              string
-			Label32Bit             string
-			Link32Bit              string
-			InstallGuide           string
-			InstallGuideLink       string
-		}{
-			"/static/images/browser-icons/mac.png",
-			"Download the App",
-			"Version 4.2.1",
-			"Download 64-Bit",
-			"http://www.mattermost.com",
-			"Download 32-Bit",
-			"http://www.mattermost.com",
-			"Install Guide",
-			"http://www.mattermost.com",
-		}
-		page.Props["Browsers"] = []struct {
-			LogoSrc                string
-			Title                  string
-			SupportedVersionString string
-			Src                    string
-			GetLatestString        string
-		}{{
-			"/static/images/browser-icons/chrome.png",
-			"Google Chrome",
-			"Version 61+",
-			"http://www.google.com/chrome",
-			"Get the latest Chrome browser",
-		}, {
-			"/static/images/browser-icons/firefox.png",
-			"Mozilla Firefox",
-			"Version 61+",
-			"http://www.google.com/chrome",
-			"Get the latest Firefox browser",
-		}}
-		page.Props["SystemBrowser"] = struct {
-			LogoSrc                string
-			Title                  string
-			SupportedVersionString string
-			LabelOpen              string
-			LinkOpen               string
-			LinkMakeDefault        string
-		}{
-			"/static/images/browser-icons/safari.png",
-			"Apple Safari",
-			"Version 9+",
-			"Open Safari",
-			"http://www.google.com/chrome",
-			"http://www.google.com/chrome",
-		}
-
-		ua := uasurfer.Parse(r.UserAgent())
-		page.Props["OSVersion"] = ua.OS.Name.String()
-		page.RenderToWriter(w)
+		renderUnsuppportedBrowser(c.App, w, r)
 		return
 	}
 

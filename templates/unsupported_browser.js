@@ -18,17 +18,21 @@ function onUnHover(element, prefix) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll("div[data-mattermost-hover]").forEach(function(element) {
+    var hovers = document.querySelectorAll("div[data-mattermost-hover]");
+    for (var i = 0; i < hovers.length; i++) {
+        var element = hovers[i];
         element.addEventListener("mouseover", function() {
             onHover(element, element.getAttribute("data-mattermost-hover"));
         });
         element.addEventListener("mouseleave", function() {
             onUnHover(element, element.getAttribute("data-mattermost-hover"))
         });
-    });
-    document.querySelectorAll("div[data-mattermost-click]").forEach(function(element) {
+    }
+    var clicks = document.querySelectorAll("div[data-mattermost-click]");
+    for (var i = 0; i < clicks.length; i++) {
+        var element = clicks[i];
         element.addEventListener("click", function() {
             window.location.href = element.getAttribute("data-mattermost-click");
         });
-    });
+    };
 });
