@@ -11,8 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/utils"
-
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -93,39 +91,6 @@ func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 		return pluginConfig
 	}
 	return map[string]interface{}{}
-}
-
-func (api *PluginAPI) CheckRequiredConfig() (bool, string, *model.AppError) {
-	pluginsEnvironment := api.app.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return false, "", model.NewAppError("CheckRequiredConfig", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	plugins, err := pluginsEnvironment.Available()
-	if err != nil {
-		return false, "", model.NewAppError("CheckRequiredConfig", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	id := strings.ToLower(api.id)
-
-	var manifest *model.Manifest
-	for _, p := range plugins {
-		if p.Manifest.Id == id {
-			manifest = p.Manifest
-			break
-		}
-	}
-
-	if manifest == nil {
-		return false, "", model.NewAppError("CheckRequiredConfig", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	isCompatible, err := utils.CheckRequiredConfig(manifest.RequiresConfig, api.app.Config())
-	if err != nil {
-		return false, "", model.NewAppError("CheckRequiredConfig", "app.plugin.compatibility_check.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return isCompatible, manifest.GetRequiresConfigString(), nil
 }
 
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {

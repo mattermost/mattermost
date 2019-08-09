@@ -9,7 +9,6 @@ import (
 )
 
 type PluginInfo struct {
-	IsCompatible bool `json:"is_compatible"`
 	Manifest
 }
 

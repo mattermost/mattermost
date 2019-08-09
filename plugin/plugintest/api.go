@@ -62,36 +62,6 @@ func (_m *API) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.Ap
 	return r0, r1
 }
 
-// CheckRequiredConfig provides a mock function with given fields:
-func (_m *API) CheckRequiredConfig() (bool, string, *model.AppError) {
-	ret := _m.Called()
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func() bool); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	var r1 string
-	if rf, ok := ret.Get(1).(func() string); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Get(1).(string)
-	}
-
-	var r2 *model.AppError
-	if rf, ok := ret.Get(2).(func() *model.AppError); ok {
-		r2 = rf()
-	} else {
-		if ret.Get(2) != nil {
-			r2 = ret.Get(2).(*model.AppError)
-		}
-	}
-
-	return r0, r1, r2
-}
-
 // CopyFileInfos provides a mock function with given fields: userId, fileIds
 func (_m *API) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
 	ret := _m.Called(userId, fileIds)

@@ -643,35 +643,6 @@ func (s *apiRPCServer) GetPluginConfig(args *Z_GetPluginConfigArgs, returns *Z_G
 	return nil
 }
 
-type Z_CheckRequiredConfigArgs struct {
-}
-
-type Z_CheckRequiredConfigReturns struct {
-	A bool
-	B string
-	C *model.AppError
-}
-
-func (g *apiRPCClient) CheckRequiredConfig() (bool, string, *model.AppError) {
-	_args := &Z_CheckRequiredConfigArgs{}
-	_returns := &Z_CheckRequiredConfigReturns{}
-	if err := g.client.Call("Plugin.CheckRequiredConfig", _args, _returns); err != nil {
-		log.Printf("RPC call to CheckRequiredConfig API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B, _returns.C
-}
-
-func (s *apiRPCServer) CheckRequiredConfig(args *Z_CheckRequiredConfigArgs, returns *Z_CheckRequiredConfigReturns) error {
-	if hook, ok := s.impl.(interface {
-		CheckRequiredConfig() (bool, string, *model.AppError)
-	}); ok {
-		returns.A, returns.B, returns.C = hook.CheckRequiredConfig()
-	} else {
-		return encodableError(fmt.Errorf("API CheckRequiredConfig called but not implemented."))
-	}
-	return nil
-}
-
 type Z_SavePluginConfigArgs struct {
 	A map[string]interface{}
 }

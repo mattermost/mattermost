@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
@@ -377,20 +376,13 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 		return nil, model.NewAppError("GetPlugins", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	resp := &model.PluginsResponse{Active: []*model.PluginInfo{}, Inactive: []*model.PluginInfo{}}
-	config := a.Config()
 	for _, plugin := range availablePlugins {
 		if plugin.Manifest == nil {
 			continue
 		}
 
-		isCompatible, err := utils.CheckRequiredConfig(plugin.Manifest.RequiresConfig, config)
-		if err != nil {
-			return nil, model.NewAppError("GetPlugins", "app.plugin.compatibility_check.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
 		info := &model.PluginInfo{
-			IsCompatible: isCompatible,
-			Manifest:     *plugin.Manifest,
+			Manifest: *plugin.Manifest,
 		}
 
 		if pluginsEnvironment.IsActive(plugin.Manifest.Id) {

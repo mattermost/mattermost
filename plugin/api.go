@@ -39,11 +39,6 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPluginConfig() map[string]interface{}
 
-	// CheckRequiredConfig checks if the plugin requires_config element is met by the system config
-	//
-	// Minimum server version: 5.16
-	CheckRequiredConfig() (bool, string, *model.AppError)
-
 	// SavePluginConfig sets the given config for plugin and persists the changes
 	//
 	// Minimum server version: 5.6
