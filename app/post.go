@@ -394,7 +394,10 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	a.Srv.Go(func() {
-		_, _ = a.SendAutoResponseIfNecessary(channel, user)
+		_, err := a.SendAutoResponseIfNecessary(channel, user)
+		if err != nil {
+			mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+		}
 	})
 
 	if triggerWebhooks {
