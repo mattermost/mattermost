@@ -140,33 +140,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			delete(mentionedUserIds, post.UserId)
 		}
 
-		if len(m.OtherPotentialMentions) > 0 && !post.IsSystemMessage() {
-			if users, err := a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, &model.ViewUsersRestrictions{Teams: []string{team.Id}}); err == nil {
-				channelMentions := model.UserSlice(users).FilterByActive(true)
-
-				var outOfChannelMentions model.UserSlice
-				var outOfGroupsMentions model.UserSlice
-
-				if channel.IsGroupConstrained() {
-					nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
-					if err != nil {
-						return nil, err
-					}
-
-					outOfChannelMentions = channelMentions.FilterWithoutID(nonMemberIDs)
-					outOfGroupsMentions = channelMentions.FilterByID(nonMemberIDs)
-				} else {
-					outOfChannelMentions = channelMentions
-				}
-				outOfChannelMentions = outOfChannelMentions.FilterWithoutBots()
-
-				if channel.Type != model.CHANNEL_GROUP {
-					a.Srv.Go(func() {
-						a.sendOutOfChannelMentions(sender, post, outOfChannelMentions, outOfGroupsMentions)
-					})
-				}
+		go func() {
+			_, err := a.sendOutOfChannelMentions(sender, post, channel, m.OtherPotentialMentions)
+			if err != nil {
+				mlog.Error("Failed to send warning for out of channel mentions", mlog.String("user_id", sender.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
-		}
+		}()
 
 		// find which users in the channel are set up to always receive mobile notifications
 		for _, profile := range profileMap {
@@ -411,11 +390,68 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	return mentionedUsersList, nil
 }
 
-func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, outOfChannelUsers, outOfGroupsUsers []*model.User) *model.AppError {
-	if len(outOfChannelUsers) == 0 && len(outOfGroupsUsers) == 0 {
-		return nil
+// sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
+// are outside of the post's channel. Returns whether or not an ephemeral post was sent.
+func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
+	outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(sender, post, channel, potentialMentions)
+	if err != nil {
+		return false, err
 	}
 
+	if len(outOfChannelUsers) == 0 && len(outOfGroupsUsers) == 0 {
+		return false, nil
+	}
+
+	a.SendEphemeralPost(post.UserId, makeOutOfChannelMentionPost(sender, post, outOfChannelUsers, outOfGroupsUsers))
+
+	return true, nil
+}
+
+func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
+	if post.IsSystemMessage() {
+		return nil, nil, nil
+	}
+
+	if channel.TeamId == "" || channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+		return nil, nil, nil
+	}
+
+	if len(potentialMentions) == 0 {
+		return nil, nil, nil
+	}
+
+	users, err := a.Srv.Store.User().GetProfilesByUsernames(potentialMentions, &model.ViewUsersRestrictions{Teams: []string{channel.TeamId}})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Filter out inactive users and bots
+	allUsers := model.UserSlice(users).FilterByActive(true)
+	allUsers = allUsers.FilterWithoutBots()
+
+	if len(allUsers) == 0 {
+		return nil, nil, nil
+	}
+
+	// Differentiate between users who can and can't be added to the channel
+	var outOfChannelUsers model.UserSlice
+	var outOfGroupsUsers model.UserSlice
+	if channel.IsGroupConstrained() {
+		nonMemberIDs, err := a.FilterNonGroupChannelMembers(allUsers.IDs(), channel)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		outOfChannelUsers = allUsers.FilterWithoutID(nonMemberIDs)
+		outOfGroupsUsers = allUsers.FilterByID(nonMemberIDs)
+	} else {
+		outOfChannelUsers = users
+	}
+
+	return outOfChannelUsers, outOfGroupsUsers, nil
+}
+
+func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChannelUsers, outOfGroupsUsers []*model.User) *model.Post {
 	allUsers := model.UserSlice(append(outOfChannelUsers, outOfGroupsUsers...))
 
 	ocUsers := model.UserSlice(outOfChannelUsers)
@@ -478,19 +514,14 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, out
 		},
 	}
 
-	a.SendEphemeralPost(
-		post.UserId,
-		&model.Post{
-			Id:        ephemeralPostId,
-			RootId:    post.RootId,
-			ChannelId: post.ChannelId,
-			Message:   message,
-			CreateAt:  post.CreateAt + 1,
-			Props:     props,
-		},
-	)
-
-	return nil
+	return &model.Post{
+		Id:        ephemeralPostId,
+		RootId:    post.RootId,
+		ChannelId: post.ChannelId,
+		Message:   message,
+		CreateAt:  post.CreateAt + 1,
+		Props:     props,
+	}
 }
 
 func splitAtFinal(items []string) (preliminary []string, final string) {
