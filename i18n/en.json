@@ -7323,6 +7323,10 @@
     "translation": "Get the latest Firefox browser"
   },
   {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "Get the latest Safari browser"
+  },
+  {
     "id": "web.error.unsupported_browser.browser_title.chrome",
     "translation": "Google Chrome"
   },
@@ -7336,7 +7340,7 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_title.safari",
-    "translation": "Apple Safari"
+    "translation": "Safari"
   },
   {
     "id": "web.error.unsupported_browser.download_32.windows",
@@ -7405,10 +7409,6 @@
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
     "translation": "Open Edge"
-  },
-  {
-    "id": "web.error.unsupported_browser.open_system_browser.safari",
-    "translation": "Open Safari"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",

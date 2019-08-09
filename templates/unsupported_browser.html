@@ -21,9 +21,9 @@
     </div>
     <div class="browser browser-hover no-pointer hidden">
         <img class='browser-image' src='{{.LogoSrc}}'/>
-        <div class='browser-top-text pointer' data-mattermost-click="{{.LinkOpen}}">{{.LabelOpen}}</div>
+        <div class='browser-top-text pointer' data-mattermost-click="{{.LinkOpen}}"><p>{{.LabelOpen}}</p></div>
         <div class='browser-bottom-text'>{{.OrString}}</div>
-        <div class='browser-top-text pointer' data-mattermost-click="{{.LinkMakeDefault}}">{{.MakeDefaultString}}</div>
+        <div class='browser-top-text pointer' data-mattermost-click="{{.LinkMakeDefault}}"><p>{{.MakeDefaultString}}</p></div>
     </div>
 </div>
 {{end}}
@@ -51,6 +51,8 @@
 </div>
 {{end}}
 {{define "unsupported_browser"}}
+<!DOCTYPE html>
+<html>
 <head>
     <style>
         body {
@@ -101,13 +103,13 @@
             bottom: 0px;
         }
         .learn-more-about-sup a {	
-            color: rgba(61,60,64,0.7);
+            color: #145DBF;
             text-decoration: none;
             font-family: "Open Sans";	
             font-size: 14px;	
         }
         .learn-more-about-sup a:hover {
-            color: #145DBF;
+            text-decoration: underline;
         }
         .vr {
             display: inline-block;
@@ -167,6 +169,12 @@
             line-height: 22px;
             text-align: center;
         }
+        .browser-top-text p {
+            margin: 0;
+        }
+        .browser-top-text p:hover {
+            text-decoration: underline;
+        }
         .container-hover {
             background-color: #EDF2FA;
             border-radius: 4px;
@@ -214,6 +222,9 @@
             text-decoration: none;
             color: #145DBF;	
         }
+        .windows-hover-alt a:hover {
+            text-decoration: underline;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet"/>
     <script type="text/javascript" src="/unsupported_browser.js"></script>
@@ -232,11 +243,13 @@
         {{range .Props.Browsers}}
           {{template "unsupported_browser-browser" .}}
         {{end}}
-        {{template "unsupported_browser-system_browser" .Props.SystemBrowser}}
+        {{if .Props.SystemBrowser}}
+            {{template "unsupported_browser-system_browser" .Props.SystemBrowser}}
+        {{end}}
       <div class="learn-more-about-sup">
-            <a href='http://google.com'>{{.Props.LearnMoreString}}</a>
+            <a href='https://docs.mattermost.com/install/requirements.html#pc-web'>{{.Props.LearnMoreString}}</a>
       </div>
     </div>
   </body>
-
+</html>
 {{end}}

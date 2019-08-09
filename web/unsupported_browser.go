@@ -50,7 +50,7 @@ func renderUnsuppportedBrowser(app *app.App, w http.ResponseWriter, r *http.Requ
 	ua := uasurfer.Parse(r.UserAgent())
 	isWindows := ua.OS.Platform.String() == "PlatformWindows"
 	isWindows10 := isWindows && ua.OS.Version.Major == 10
-	isMacOSX := ua.OS.Name.String() == "OSMacOSX" && ua.OS.Version.Major == 10 && ua.OS.Version.Minor >= 9
+	isMacOSX := ua.OS.Name.String() == "OSMacOSX" && ua.OS.Version.Major == 10
 
 	if ua.Browser.Name.String() == "BrowserSafari" {
 		page.Props["NoLongerSupportString"] = app.T("web.error.unsupported_browser.no_longer_support_version")
@@ -66,13 +66,15 @@ func renderUnsuppportedBrowser(app *app.App, w http.ResponseWriter, r *http.Requ
 		page.Props["App"] = renderMattermostAppMac(app)
 	}
 
-	page.Props["Browsers"] = []Browser{renderBrowserChrome(app), renderBrowserFirefox(app)}
-	if isWindows10 {
-		page.Props["SystemBrowser"] = renderSystemBrowserEdge(app)
-	} else if isMacOSX {
-		page.Props["SystemBrowser"] = renderSystemBrowserSafari(app)
+	browsers := []Browser{renderBrowserChrome(app), renderBrowserFirefox(app)}
+	if (ua.Browser.Name.String() == "BrowserSafari") {
+		browsers = append(browsers, renderBrowserSafari(app))
 	}
-
+	page.Props["Browsers"] = browsers
+	
+	if isWindows10 {
+		page.Props["SystemBrowser"] = renderSystemBrowserEdge(app, r)
+	}
 	page.RenderToWriter(w)
 }
 
@@ -82,11 +84,11 @@ func renderMattermostAppMac(app *app.App) MattermostApp {
 		app.T("web.error.unsupported_browser.download_the_app"),
 		app.T("web.error.unsupported_browser.min_os_version.mac"),
 		app.T("web.error.unsupported_browser.download_64.mac"),
-		"http://www.mattermost.com", //TODO
+		"https://releases.mattermost.com/desktop/4.2.1/mattermost-desktop-4.2.1-mac.zip",
 		"",                          // No 32-bit Mac version
 		"",
 		app.T("web.error.unsupported_browser.install_guide.mac"),
-		"http://www.mattermost.com", //TODO
+		"https://docs.mattermost.com/install/desktop.html#mac-os-x-10-9",
 	}
 }
 
@@ -96,11 +98,11 @@ func renderMattermostAppWindows(app *app.App) MattermostApp {
 		app.T("web.error.unsupported_browser.download_the_app"),
 		app.T("web.error.unsupported_browser.min_os_version.windows"),
 		app.T("web.error.unsupported_browser.download_64.windows"),
-		"http://www.mattermost.com", //TODO
+		"https://releases.mattermost.com/desktop/4.2.1/mattermost-setup-4.2.1-win64.exe",
 		app.T("web.error.unsupported_browser.download_32.windows"),
-		"http://www.mattermost.com", //TODO
+		"https://releases.mattermost.com/desktop/4.2.1/mattermost-setup-4.2.1-win32.exe",
 		app.T("web.error.unsupported_browser.install_guide.windows"),
-		"http://www.mattermost.com", //TODO
+		"https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7",
 	}
 }
 
@@ -119,32 +121,29 @@ func renderBrowserFirefox(app *app.App) Browser {
 		"/static/images/browser-icons/firefox.png",
 		app.T("web.error.unsupported_browser.browser_title.firefox"),
 		app.T("web.error.unsupported_browser.min_browser_version.firefox"),
-		"http://www.google.com/chrome", //TODO
+		"https://www.mozilla.org/en-CA/firefox/new/",
 		app.T("web.error.unsupported_browser.browser_get_latest.firefox"),
 	}
 }
 
-func renderSystemBrowserSafari(app *app.App) SystemBrowser {
-	return SystemBrowser{
+func renderBrowserSafari(app *app.App) Browser {
+	return Browser{
 		"/static/images/browser-icons/safari.png",
 		app.T("web.error.unsupported_browser.browser_title.safari"),
 		app.T("web.error.unsupported_browser.min_browser_version.safari"),
-		app.T("web.error.unsupported_browser.open_system_browser.safari"),
-		"http://www.google.com/chrome", //TODO
-		"http://www.google.com/chrome", //TODO
-		app.T("web.error.unsupported_browser.system_browser_or"),
-		app.T("web.error.unsupported_browser.system_browser_make_default"),
+		"macappstore://showUpdatesPage",
+		app.T("web.error.unsupported_browser.browser_get_latest.safari"),
 	}
 }
 
-func renderSystemBrowserEdge(app *app.App) SystemBrowser {
+func renderSystemBrowserEdge(app *app.App, r *http.Request) SystemBrowser {
 	return SystemBrowser{
 		"/static/images/browser-icons/edge.png",
 		app.T("web.error.unsupported_browser.browser_title.edge"),
 		app.T("web.error.unsupported_browser.min_browser_version.edge"),
 		app.T("web.error.unsupported_browser.open_system_browser.edge"),
-		"http://www.google.com/chrome", //TODO
-		"http://www.google.com/chrome", //TODO
+		"microsoft-edge:http://" + r.Host + r.RequestURI, //TODO: Can we get HTTP or HTTPS? If someone's server doesn't have a redirect this won't work
+		"ms-settings:defaultapps",
 		app.T("web.error.unsupported_browser.system_browser_or"),
 		app.T("web.error.unsupported_browser.system_browser_make_default"),
 	}
