@@ -35,6 +35,9 @@ const (
 	CHANNEL_GUESTS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
 	CHANNEL_GUESTS_COUNTS_CACHE_SEC  = 1800 // 30 mins
 
+	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
+	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC  = 1800 // 30 mins
+
 	CHANNEL_CACHE_SEC = 900 // 15 mins
 )
 
@@ -281,7 +284,7 @@ type publicChannel struct {
 }
 
 var channelMemberCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
-var channelPinnedPostCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
+var channelPinnedPostCountsCache = utils.NewLru(CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE)
 var channelGuestCountsCache = utils.NewLru(CHANNEL_GUESTS_COUNTS_CACHE_SIZE)
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
@@ -1679,11 +1682,11 @@ func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache boo
 			AND DeleteAt = 0 ORDER BY CreateAt ASC`, map[string]interface{}{"ChannelId": channelId})
 
 	if err != nil {
-		return 0, model.NewAppError("SqlChannelStore.GetPinnedPostCount", "store.sql_channel.get_pinned_post_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlChannelStore.GetPinnedPostCount", "store.sql_channel.get_pinnedpost_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
 	}
 
 	if allowFromCache {
-		channelPinnedPostCountsCache.AddWithExpiresInSecs(channelId, count, CHANNEL_MEMBERS_COUNTS_CACHE_SEC)
+		channelPinnedPostCountsCache.AddWithExpiresInSecs(channelId, count, CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC)
 	}
 
 	return count, nil
