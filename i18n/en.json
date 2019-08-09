@@ -4468,15 +4468,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search AutocompleteEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elastic Search AutocompleteEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
