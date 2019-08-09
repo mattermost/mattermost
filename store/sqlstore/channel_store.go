@@ -1679,7 +1679,7 @@ func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache boo
 		WHERE
 			IsPinned = true
 			AND ChannelId = :ChannelId 
-			AND DeleteAt = 0 ORDER BY CreateAt ASC`, map[string]interface{}{"ChannelId": channelId})
+			AND DeleteAt = 0`, map[string]interface{}{"ChannelId": channelId})
 
 	if err != nil {
 		return 0, model.NewAppError("SqlChannelStore.GetPinnedPostCount", "store.sql_channel.get_pinnedpost_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
