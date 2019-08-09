@@ -941,3 +941,29 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceReplicas[0])
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceSearchReplicas[0])
 }
+
+func TestConfigToJsonWithoutEmptyFields(t *testing.T) {
+	t.Run("should return the empty object when there are no requirements", func(t *testing.T) {
+		config := &Config{}
+		str := ConfigToJsonWithoutEmptyFields(config)
+		assert.Equal(t, "{}", str)
+
+		str = ConfigToJsonWithoutEmptyFields(nil)
+		assert.Equal(t, "{}", str)
+	})
+
+	t.Run("should generate a json with all the required fields", func(t *testing.T) {
+		config := &Config{
+			SqlSettings: SqlSettings{
+				DriverName: NewString("postgres"),
+			},
+			ServiceSettings: ServiceSettings{
+				EnablePostUsernameOverride: NewBool(true),
+				EnablePostIconOverride:     NewBool(false),
+			},
+		}
+
+		str := ConfigToJsonWithoutEmptyFields(config)
+		assert.Equal(t, `{"ServiceSettings":{"EnablePostUsernameOverride":true,"EnablePostIconOverride":false},"SqlSettings":{"DriverName":"postgres"}}`, str)
+	})
+}

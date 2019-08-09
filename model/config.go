@@ -2430,6 +2430,27 @@ func (o *Config) ToJson() string {
 	return string(b)
 }
 
+func ConfigToJsonWithoutEmptyFields(o *Config) string {
+	if o == nil {
+		return "{}"
+	}
+
+	// remove the nulls, the {}s and the empty strings from the json response. Need to do this multiple times
+	// because we have nested structures
+	re := regexp.MustCompile(`"[^"]+":((null)|(\{\})|("")),?`)
+
+	previous := o.ToJson()
+	for {
+		current := re.ReplaceAllString(previous, "")
+
+		if current == previous {
+			return strings.ReplaceAll(current, ",}", "}")
+		}
+
+		previous = current
+	}
+}
+
 func (o *Config) GetSSOService(service string) *SSOSettings {
 	switch service {
 	case SERVICE_GITLAB:

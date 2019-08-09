@@ -10,6 +10,8 @@ type Helpers interface {
 	// Returns the id of the resulting bot.
 	EnsureBot(bot *model.Bot) (string, error)
 
+	CheckRequiredConfig(requiredConfig, actualConfig *model.Config) (bool, error)
+
 	// KVSetJSON stores a key-value pair, unique per plugin, marshalling the given value as a JSON string.
 	KVSetJSON(key string, value interface{}) error
 

@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/blang/semver"
@@ -156,7 +155,7 @@ type Manifest struct {
 	Props map[string]interface{} `json:"props,omitempty" yaml:"props,omitempty"`
 
 	// Plugins can require system configurations
-	RequiresConfig *Config `json:"requires_config,omitempty" yaml:"requires_config,omitempty"`
+	RequiredConfig *Config `json:"required_config,omitempty" yaml:"required_config,omitempty"`
 }
 
 type ManifestServer struct {
@@ -286,27 +285,6 @@ func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
-}
-
-func (m *Manifest) GetRequiresConfigString() string {
-	if m.RequiresConfig == nil {
-		return "{}"
-	}
-
-	// remove the nulls, the {}s and the empty strings from the json response. Need to do this multiple times
-	// because we have nested structures
-	re := regexp.MustCompile(`"[^"]+":((null)|(\{\})|("")),?`)
-
-	previous := m.RequiresConfig.ToJson()
-	for {
-		current := re.ReplaceAllString(previous, "")
-
-		if current == previous {
-			return strings.ReplaceAll(current, ",}", "}")
-		}
-
-		previous = current
-	}
 }
 
 // FindManifest will find and parse the manifest in a given directory.
