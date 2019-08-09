@@ -451,6 +451,37 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Copy everything to vendor directory
 	go mod vendor
 
+run-ha-server1: validate-go-version ## Starts a first server configured for high-availability.
+	@echo Running first mattermost server for HA development
+
+	MM_SERVICESETTINGS_SITEURL=http://127.0.0.1:8065 \
+	    MM_SERVICESETTINGS_LISTENADDRESS=127.0.0.1:8065 \
+	    MM_CLUSTERSETTINGS_ENABLE=true \
+	    MM_CLUSTERSETTINGS_CLUSTERNAME=dev-ha \
+	    MM_CLUSTERSETTINGS_USEIPADDRESS=true \
+	    MM_CLUSTERSETTINGS_OVERRIDEHOSTNAME=127.0.0.1 \
+	    MM_CLUSTERSETTINGS_BINDADDRESS=127.0.0.1 \
+	    MM_CLUSTERSETTINGS_ADVERTISEADDRESS=127.0.0.1 \
+	    MM_CLUSTERSETTINGS_USEEXPERIMENTALGOSSIP=true \
+	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) --disableconfigwatch | \
+	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) logs --logrus
+
+run-ha-server2: validate-go-version ## Starts a second server configured for high-availability.
+	@echo Running second mattermost server for HA development
+	@echo Execute 'sudo ifconfig lo0 alias 127.0.0.2' to create the necessary loopback alias
+
+	MM_SERVICESETTINGS_SITEURL=http://127.0.0.2:8065 \
+	    MM_SERVICESETTINGS_LISTENADDRESS=127.0.0.2:8065 \
+	    MM_CLUSTERSETTINGS_ENABLE=true \
+	    MM_CLUSTERSETTINGS_CLUSTERNAME=dev-ha \
+	    MM_CLUSTERSETTINGS_USEIPADDRESS=true \
+	    MM_CLUSTERSETTINGS_OVERRIDEHOSTNAME=127.0.0.2 \
+	    MM_CLUSTERSETTINGS_BINDADDRESS=127.0.0.2 \
+	    MM_CLUSTERSETTINGS_ADVERTISEADDRESS=127.0.0.2 \
+	    MM_CLUSTERSETTINGS_USEEXPERIMENTALGOSSIP=true \
+	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) --disableconfigwatch | \
+	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) logs --logrus
+
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
@@ -466,4 +497,4 @@ endif
 
 ## Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
