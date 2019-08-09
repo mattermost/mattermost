@@ -1325,6 +1325,10 @@ func (a *App) GetChannelGuestCount(channelId string) (int64, *model.AppError) {
 	return a.Srv.Store.Channel().GetGuestCount(channelId, true)
 }
 
+func (a *App) GetChannelPinnedPostCount(channelId string) (int64, *model.AppError) {
+	return a.Srv.Store.Channel().GetPinnedPostCount(channelId, true)
+}
+
 func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
 	return a.Srv.Store.Channel().GetChannelCounts(teamId, userId)
 }
