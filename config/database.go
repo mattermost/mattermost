@@ -125,7 +125,7 @@ func parseDSN(dsn string) (string, string, error) {
 
 // Set replaces the current configuration in its entirety and updates the backing store.
 func (ds *DatabaseStore) Set(newCfg *model.Config) (*model.Config, error) {
-	return ds.commonStore.set(newCfg, ds.commonStore.validate, ds.persist)
+	return ds.commonStore.set(newCfg, true, ds.commonStore.validate, ds.persist)
 }
 
 // persist writes the configuration to the configured database.

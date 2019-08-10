@@ -86,7 +86,8 @@ PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.0.6
+PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.0-rc2
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -116,8 +117,8 @@ start-docker: ## Starts the docker containers for local development.
 ifeq ($(IS_CI),false)
 	@echo Starting docker containers
 
-	docker-compose --no-ansi -f ./build/docker-compose.yml run --rm start_dependencies
-	cat tests/${LDAP_DATA}-data.ldif | docker-compose --no-ansi -f ./build/docker-compose.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	docker-compose --no-ansi run --rm start_dependencies
+	cat tests/${LDAP_DATA}-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 
 else
 	@echo CI Build: skipping docker start
@@ -126,14 +127,14 @@ endif
 stop-docker: ## Stops the docker containers for local development.
 	@echo Stopping docker containers
 
-	docker-compose --no-ansi -f ./build/docker-compose.yml stop
+	docker-compose --no-ansi stop
 
 
 clean-docker: ## Deletes the docker containers for local development.
 	@echo Removing docker containers
 
-	docker-compose --no-ansi -f ./build/docker-compose.yml down -v
-	docker-compose --no-ansi -f ./build/docker-compose.yml rm -v
+	docker-compose --no-ansi down -v
+	docker-compose --no-ansi rm -v
 
 
 govet: ## Runs govet against all packages.
@@ -466,4 +467,4 @@ endif
 
 ## Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

@@ -489,24 +489,26 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	return newChannel, nil
 }
 
-func (s SqlChannelStore) CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, *model.AppError) {
 	channel := new(model.Channel)
 
 	channel.DisplayName = ""
-	channel.Name = model.GetDMNameFromIds(otherUserId, userId)
+	channel.Name = model.GetDMNameFromIds(otherUser.Id, user.Id)
 
 	channel.Header = ""
 	channel.Type = model.CHANNEL_DIRECT
 
 	cm1 := &model.ChannelMember{
-		UserId:      userId,
+		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		SchemeUser:  true,
+		SchemeGuest: user.IsGuest(),
+		SchemeUser:  !user.IsGuest(),
 	}
 	cm2 := &model.ChannelMember{
-		UserId:      otherUserId,
+		UserId:      otherUser.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		SchemeUser:  true,
+		SchemeGuest: otherUser.IsGuest(),
+		SchemeUser:  !otherUser.IsGuest(),
 	}
 
 	return s.SaveDirectChannel(channel, cm1, cm2)
