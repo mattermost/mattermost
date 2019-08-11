@@ -4153,6 +4153,23 @@ func (s *TimerLayerPostStore) GetPostsAfter(channelId string, postId string, num
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerPostStore) GetPostsAfterAdvanced(channelId string, postId string, numPosts int, offset int, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.PostStore.GetPostsAfterAdvanced(channelId, postId, numPosts, offset, skipRootFetch)
+
+	t := timemodule.Now()
+	elapsed := t.Sub(start)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsAfterAdvanced", success, float64(elapsed))
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError) {
 	start := timemodule.Now()
 
@@ -4183,6 +4200,23 @@ func (s *TimerLayerPostStore) GetPostsBefore(channelId string, postId string, nu
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsBefore", success, float64(elapsed))
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerPostStore) GetPostsBeforeAdvanced(channelId string, postId string, numPosts int, offset int, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.PostStore.GetPostsBeforeAdvanced(channelId, postId, numPosts, offset, skipRootFetch)
+
+	t := timemodule.Now()
+	elapsed := t.Sub(start)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsBeforeAdvanced", success, float64(elapsed))
 	}
 	return resultVar0, resultVar1
 }

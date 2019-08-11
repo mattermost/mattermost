@@ -131,6 +131,31 @@ func (_m *PostStore) Get(id string) (*model.PostList, *model.AppError) {
 	return r0, r1
 }
 
+// GetAdvanced provides a mock function with given fields: id, skipRootFetch
+func (_m *PostStore) GetAdvanced(id string, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	ret := _m.Called(id, skipRootFetch)
+
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string, bool) *model.PostList); ok {
+		r0 = rf(id, skipRootFetch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(id, skipRootFetch)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterId
 func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError) {
 	ret := _m.Called(limit, afterId)
@@ -405,6 +430,31 @@ func (_m *PostStore) GetPosts(channelId string, offset int, limit int, allowFrom
 	return r0, r1
 }
 
+// GetPostsAdvanced provides a mock function with given fields: channelId, offset, limit, allowFromCache, skipRootFetch
+func (_m *PostStore) GetPostsAdvanced(channelId string, offset int, limit int, allowFromCache bool, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	ret := _m.Called(channelId, offset, limit, allowFromCache, skipRootFetch)
+
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string, int, int, bool, bool) *model.PostList); ok {
+		r0 = rf(channelId, offset, limit, allowFromCache, skipRootFetch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int, bool, bool) *model.AppError); ok {
+		r1 = rf(channelId, offset, limit, allowFromCache, skipRootFetch)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPostsAfter provides a mock function with given fields: channelId, postId, numPosts, offset
 func (_m *PostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError) {
 	ret := _m.Called(channelId, postId, numPosts, offset)
@@ -421,6 +471,31 @@ func (_m *PostStore) GetPostsAfter(channelId string, postId string, numPosts int
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
 		r1 = rf(channelId, postId, numPosts, offset)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPostsAfterAdvanced provides a mock function with given fields: channelId, postId, numPosts, offset, skipRootFetch
+func (_m *PostStore) GetPostsAfterAdvanced(channelId string, postId string, numPosts int, offset int, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	ret := _m.Called(channelId, postId, numPosts, offset, skipRootFetch)
+
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string, string, int, int, bool) *model.PostList); ok {
+		r0 = rf(channelId, postId, numPosts, offset, skipRootFetch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, int, int, bool) *model.AppError); ok {
+		r1 = rf(channelId, postId, numPosts, offset, skipRootFetch)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -471,6 +546,31 @@ func (_m *PostStore) GetPostsBefore(channelId string, postId string, numPosts in
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
 		r1 = rf(channelId, postId, numPosts, offset)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPostsBeforeAdvanced provides a mock function with given fields: channelId, postId, numPosts, offset, skipRootFetch
+func (_m *PostStore) GetPostsBeforeAdvanced(channelId string, postId string, numPosts int, offset int, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	ret := _m.Called(channelId, postId, numPosts, offset, skipRootFetch)
+
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string, string, int, int, bool) *model.PostList); ok {
+		r0 = rf(channelId, postId, numPosts, offset, skipRootFetch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, int, int, bool) *model.AppError); ok {
+		r1 = rf(channelId, postId, numPosts, offset, skipRootFetch)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -546,6 +646,31 @@ func (_m *PostStore) GetPostsSince(channelId string, time int64, allowFromCache 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int64, bool) *model.AppError); ok {
 		r1 = rf(channelId, time, allowFromCache)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPostsSinceAdvanced provides a mock function with given fields: channelId, time, allowFromCache, skipRootFetch
+func (_m *PostStore) GetPostsSinceAdvanced(channelId string, time int64, allowFromCache bool, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	ret := _m.Called(channelId, time, allowFromCache, skipRootFetch)
+
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string, int64, bool, bool) *model.PostList); ok {
+		r0 = rf(channelId, time, allowFromCache, skipRootFetch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int64, bool, bool) *model.AppError); ok {
+		r1 = rf(channelId, time, allowFromCache, skipRootFetch)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

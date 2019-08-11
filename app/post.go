@@ -602,8 +602,12 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 	return updatedPost, nil
 }
 
+func (a *App) GetPostsPageAdvanced(channelId string, page int, perPage int, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	return a.Srv.Store.Post().GetPostsAdvanced(channelId, page*perPage, perPage, true, skipRootFetch)
+}
+
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
-	return a.Srv.Store.Post().GetPosts(channelId, page*perPage, perPage, true)
+	return a.GetPostsPageAdvanced(channelId, page, perPage, false)
 }
 
 func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
@@ -615,7 +619,11 @@ func (a *App) GetPostsEtag(channelId string) string {
 }
 
 func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	return a.Srv.Store.Post().GetPostsSince(channelId, time, true)
+	return a.GetPostsSinceAdvanced(channelId, time, false)
+}
+
+func (a *App) GetPostsSinceAdvanced(channelId string, time int64, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	return a.Srv.Store.Post().GetPostsSinceAdvanced(channelId, time, true, skipRootFetch)
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
@@ -623,7 +631,11 @@ func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
 }
 
 func (a *App) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	return a.Srv.Store.Post().Get(postId)
+	return a.GetPostThreadAdvanced(postId, false)
+}
+
+func (a *App) GetPostThreadAdvanced(postId string, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	return a.Srv.Store.Post().GetAdvanced(postId, skipRootFetch)
 }
 
 func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
@@ -662,18 +674,30 @@ func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *
 }
 
 func (a *App) GetPostsBeforePost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return a.Srv.Store.Post().GetPostsBefore(channelId, postId, perPage, page*perPage)
+	return a.GetPostsBeforePostAdvanced(channelId, postId, page, perPage, false)
+}
+
+func (a *App) GetPostsBeforePostAdvanced(channelId, postId string, page, perPage int, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	return a.Srv.Store.Post().GetPostsBeforeAdvanced(channelId, postId, perPage, page*perPage, skipRootFetch)
 }
 
 func (a *App) GetPostsAfterPost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, perPage, page*perPage)
+	return a.GetPostsAfterPostAdvanced(channelId, postId, page, perPage, false)
+}
+
+func (a *App) GetPostsAfterPostAdvanced(channelId, postId string, page, perPage int, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	return a.Srv.Store.Post().GetPostsAfterAdvanced(channelId, postId, perPage, page*perPage, skipRootFetch)
 }
 
 func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, before bool) (*model.PostList, *model.AppError) {
+	return a.GetPostsAroundPostAdvanced(postId, channelId, offset, limit, before, false)
+}
+
+func (a *App) GetPostsAroundPostAdvanced(postId, channelId string, offset, limit int, before, skipRootFetch bool) (*model.PostList, *model.AppError) {
 	if before {
-		return a.Srv.Store.Post().GetPostsBefore(channelId, postId, limit, offset)
+		return a.Srv.Store.Post().GetPostsBeforeAdvanced(channelId, postId, limit, offset, skipRootFetch)
 	}
-	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
+	return a.Srv.Store.Post().GetPostsAfterAdvanced(channelId, postId, limit, offset, skipRootFetch)
 }
 
 func (a *App) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
@@ -761,8 +785,7 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.NextPostId = nextPostId
 	originalList.PrevPostId = prevPostId
 }
-
-func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsForChannelAroundLastUnreadAdvanced(channelId, userId string, limitBefore, limitAfter int, skipRootFetch bool) (*model.PostList, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
 	if member, err = a.GetChannelMember(channelId, userId); err != nil {
@@ -786,13 +809,13 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 	// channel organically, those replies will be added below.
 	postList.Order = []string{lastUnreadPostId}
 
-	if postListBefore, err := a.GetPostsBeforePost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitBefore); err != nil {
+	if postListBefore, err := a.GetPostsBeforePostAdvanced(channelId, lastUnreadPostId, PAGE_DEFAULT, limitBefore, skipRootFetch); err != nil {
 		return nil, err
 	} else if postListBefore != nil {
 		postList.Extend(postListBefore)
 	}
 
-	if postListAfter, err := a.GetPostsAfterPost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitAfter-1); err != nil {
+	if postListAfter, err := a.GetPostsAfterPostAdvanced(channelId, lastUnreadPostId, PAGE_DEFAULT, limitAfter-1, skipRootFetch); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
 		postList.Extend(postListAfter)
@@ -800,6 +823,10 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 
 	postList.SortByCreateAt()
 	return postList, nil
+}
+
+func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int) (*model.PostList, *model.AppError) {
+	return a.GetPostsForChannelAroundLastUnreadAdvanced(channelId, userId, limitBefore, limitAfter, false)
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {

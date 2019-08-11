@@ -267,6 +267,10 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 }
 
 func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
+	return s.GetAdvanced(id, false)
+}
+
+func (s *SqlPostStore) GetAdvanced(id string, skipRootFetch bool) (*model.PostList, *model.AppError) {
 	pl := model.NewPostList()
 
 	if len(id) == 0 {
@@ -274,35 +278,40 @@ func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
 	}
 
 	var post model.Post
-	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
+	var postFetchQuery string
+	if skipRootFetch {
+		postFetchQuery = "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id)  FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
+	} else {
+		postFetchQuery = "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0"
+	}
+	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
 	}
-
 	pl.AddPost(&post)
 	pl.AddOrder(id)
+	if !skipRootFetch {
+		rootId := post.RootId
 
-	rootId := post.RootId
+		if rootId == "" {
+			rootId = post.Id
+		}
 
-	if rootId == "" {
-		rootId = post.Id
+		if len(rootId) == 0 {
+			return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId, http.StatusInternalServerError)
+		}
+
+		var posts []*model.Post
+		_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
+		if err != nil {
+			return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error(), http.StatusInternalServerError)
+		}
+
+		for _, p := range posts {
+			pl.AddPost(p)
+			pl.AddOrder(p.Id)
+		}
 	}
-
-	if len(rootId) == 0 {
-		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId, http.StatusInternalServerError)
-	}
-
-	var posts []*model.Post
-	_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
-	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error(), http.StatusInternalServerError)
-	}
-
-	for _, p := range posts {
-		pl.AddPost(p)
-		pl.AddOrder(p.Id)
-	}
-
 	return pl, nil
 }
 
@@ -334,6 +343,7 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
+	allowFromCache = false
 	if allowFromCache {
 		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
 			if s.metrics != nil {
@@ -446,11 +456,16 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) *model.AppErro
 }
 
 func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError) {
+	return s.GetPostsAdvanced(channelId, offset, limit, allowFromCache, false)
+}
+
+func (s *SqlPostStore) GetPostsAdvanced(channelId string, offset int, limit int, allowFromCache, skipRootFetch bool) (*model.PostList, *model.AppError) {
 	if limit > 1000 {
 		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
 	}
 
 	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
+	allowFromCache = false
 	if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
 		if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
 			if s.metrics != nil {
@@ -466,14 +481,20 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 
 	rpc := make(chan store.StoreResult, 1)
 	go func() {
-		posts, err := s.getRootPosts(channelId, offset, limit)
+		posts, err := s.getRootPosts(channelId, offset, limit, skipRootFetch)
 		rpc <- store.StoreResult{Data: posts, Err: err}
 		close(rpc)
 	}()
 	cpc := make(chan store.StoreResult, 1)
 	go func() {
-		posts, err := s.getParentsPosts(channelId, offset, limit)
-		cpc <- store.StoreResult{Data: posts, Err: err}
+		if !skipRootFetch {
+			posts, err := s.getParentsPosts(channelId, offset, limit)
+			cpc <- store.StoreResult{Data: posts, Err: err}
+		} else {
+			var posts []*model.Post
+			cpc <- store.StoreResult{Data: posts, Err: nil}
+		}
+
 		close(cpc)
 	}()
 
@@ -513,6 +534,11 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 }
 
 func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError) {
+	return s.GetPostsSinceAdvanced(channelId, time, allowFromCache, false)
+}
+
+func (s *SqlPostStore) GetPostsSinceAdvanced(channelId string, time int64, allowFromCache, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	allowFromCache = false
 	if allowFromCache {
 		// If the last post in the channel's time is less than or equal to the time we are getting posts since,
 		// we can safely return no posts.
@@ -581,15 +607,23 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 	return list, nil
 }
 
+func (s *SqlPostStore) GetPostsBeforeAdvanced(channelId string, postId string, limit int, offset int, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	return s.getPostsAround(channelId, postId, limit, offset, true, skipRootFetch)
+}
+
+func (s *SqlPostStore) GetPostsAfterAdvanced(channelId string, postId string, limit int, offset int, skipRootFetch bool) (*model.PostList, *model.AppError) {
+	return s.getPostsAround(channelId, postId, limit, offset, false, skipRootFetch)
+}
+
 func (s *SqlPostStore) GetPostsBefore(channelId string, postId string, limit int, offset int) (*model.PostList, *model.AppError) {
-	return s.getPostsAround(channelId, postId, limit, offset, true)
+	return s.getPostsAround(channelId, postId, limit, offset, true, false)
 }
 
 func (s *SqlPostStore) GetPostsAfter(channelId string, postId string, limit int, offset int) (*model.PostList, *model.AppError) {
-	return s.getPostsAround(channelId, postId, limit, offset, false)
+	return s.getPostsAround(channelId, postId, limit, offset, false, false)
 }
 
-func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int, offset int, before bool) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int, offset int, before, skipRootFetch bool) (*model.PostList, *model.AppError) {
 	var direction, sort string
 	if before {
 		direction = "<"
@@ -600,54 +634,81 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 	}
 
 	var posts, parents []*model.Post
-	_, err := s.GetReplica().Select(&posts,
-		`SELECT
-			*
-		FROM
-			Posts
-		WHERE
-			CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
-				AND ChannelId = :ChannelId
-				AND DeleteAt = 0
-		ORDER BY CreateAt `+sort+`
-		LIMIT :Limit
-		OFFSET :Offset`,
-		map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
-	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
-	}
-
-	if len(posts) > 0 {
-		rootIds := []string{}
-		for _, post := range posts {
-			rootIds = append(rootIds, post.Id)
-			if post.RootId != "" {
-				rootIds = append(rootIds, post.RootId)
-			}
+	if skipRootFetch {
+		_, err := s.GetReplica().Select(&posts,
+			`SELECT
+			p.*,
+			(
+				SELECT
+					count(Posts.*)
+				FROM
+					Posts
+				WHERE
+					Posts.RootId = p.Id) AS ResponseCount
+			FROM
+				Posts p
+			WHERE
+					p.CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
+					AND p.ChannelId = :ChannelId
+					AND p.DeleteAt = 0
+			ORDER BY p.CreateAt `+sort+`
+			LIMIT :Limit
+			OFFSET :Offset`,
+			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
+		if err != nil {
+			return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 		}
-
-		keys, params := MapStringsToQueryParams(rootIds, "PostId")
-
-		params["ChannelId"] = channelId
-		params["PostId"] = postId
-		params["Limit"] = limit
-		params["Offset"] = offset
-
-		_, err = s.GetReplica().Select(&parents,
+	} else {
+		_, err := s.GetReplica().Select(&posts,
 			`SELECT
 				*
 			FROM
 				Posts
 			WHERE
-				(Id IN `+keys+` OR RootId IN `+keys+`)
-				AND ChannelId = :ChannelId
-				AND DeleteAt = 0
-			ORDER BY CreateAt DESC`,
-			params)
-
+				CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
+					AND ChannelId = :ChannelId
+					AND DeleteAt = 0
+			ORDER BY CreateAt `+sort+`
+			LIMIT :Limit
+			OFFSET :Offset`,
+			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
 		if err != nil {
-			return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 		}
+
+		if len(posts) > 0 {
+			rootIds := []string{}
+			for _, post := range posts {
+				rootIds = append(rootIds, post.Id)
+				if post.RootId != "" {
+					rootIds = append(rootIds, post.RootId)
+				}
+			}
+
+			keys, params := MapStringsToQueryParams(rootIds, "PostId")
+
+			params["ChannelId"] = channelId
+			params["PostId"] = postId
+			params["Limit"] = limit
+			params["Offset"] = offset
+
+			_, err = s.GetReplica().Select(&parents,
+				`SELECT
+					*
+				FROM
+					Posts
+				WHERE
+					(Id IN `+keys+` OR RootId IN `+keys+`)
+					AND ChannelId = :ChannelId
+					AND DeleteAt = 0
+				ORDER BY CreateAt DESC`,
+				params)
+
+			if err != nil {
+				return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+			}
+		}
+
 	}
 
 	list := model.NewPostList()
@@ -745,9 +806,17 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Po
 	return post, nil
 }
 
-func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
+func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, skipRootFetch bool) ([]*model.Post, *model.AppError) {
 	var posts []*model.Post
-	_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
+	var fetchQuery string
+	if skipRootFetch {
+		fetchQuery = "SELECT p.*, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id) as ResponseCount FROM Posts p WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
+
+	} else {
+		fetchQuery = "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
+
+	}
+	_, err := s.GetReplica().Select(&posts, fetchQuery, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_root_posts.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 	}

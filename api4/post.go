@@ -134,6 +134,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	skipFetchRoot := r.URL.Query().Get("fetchRoot") == "false"
 	channelId := c.Params.ChannelId
 	page := c.Params.Page
 	perPage := c.Params.PerPage
@@ -148,7 +149,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(channelId, since)
+		list, err = c.App.GetPostsSinceAdvanced(channelId, since, skipFetchRoot)
 	} else if len(afterPost) > 0 {
 		etag = c.App.GetPostsEtag(channelId)
 
@@ -156,7 +157,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsAfterPost(channelId, afterPost, page, perPage)
+		list, err = c.App.GetPostsAfterPostAdvanced(channelId, afterPost, page, perPage, skipFetchRoot)
 	} else if len(beforePost) > 0 {
 		etag = c.App.GetPostsEtag(channelId)
 
@@ -164,7 +165,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsBeforePost(channelId, beforePost, page, perPage)
+		list, err = c.App.GetPostsBeforePostAdvanced(channelId, beforePost, page, perPage, skipFetchRoot)
 	} else {
 		etag = c.App.GetPostsEtag(channelId)
 
@@ -172,7 +173,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsPage(channelId, page, perPage)
+		list, err = c.App.GetPostsPageAdvanced(channelId, page, perPage, skipFetchRoot)
 	}
 
 	if err != nil {
@@ -208,7 +209,8 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter)
+	skipFetchRoot := r.URL.Query().Get("fetchRoot") == "false"
+	postList, err := c.App.GetPostsForChannelAroundLastUnreadAdvanced(channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchRoot)
 	if err != nil {
 		c.Err = err
 		return
@@ -216,13 +218,13 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	etag := ""
 	if len(postList.Order) == 0 {
-		etag = c.App.GetPostsEtag(channelId)
+		// etag = c.App.GetPostsEtag(channelId)
 
-		if c.HandleEtag(etag, "Get Posts", w, r) {
-			return
-		}
+		// if c.HandleEtag(etag, "Get Posts", w, r) {
+		// 	return
+		// }
 
-		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, c.Params.LimitBefore)
+		postList, err = c.App.GetPostsPageAdvanced(channelId, app.PAGE_DEFAULT, c.Params.LimitBefore, skipFetchRoot)
 	}
 
 	postList.NextPostId = c.App.GetNextPostIdFromPostList(postList)
@@ -373,7 +375,9 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	list, err := c.App.GetPostThread(c.Params.PostId)
+	skipFetchRoot := r.URL.Query().Get("fetchRoot") == "false"
+
+	list, err := c.App.GetPostThreadAdvanced(c.Params.PostId, skipFetchRoot)
 	if err != nil {
 		c.Err = err
 		return

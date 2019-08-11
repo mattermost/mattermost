@@ -70,8 +70,8 @@ type Post struct {
 	ParentId   string `json:"parent_id"`
 	OriginalId string `json:"original_id"`
 
-	Message string `json:"message"`
-
+	Message       string `json:"message"`
+	ResponseCount int64  `json:"response_count"`
 	// MessageSource will contain the message as submitted by the user if Message has been modified
 	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
 	// populate edit boxes if present.
