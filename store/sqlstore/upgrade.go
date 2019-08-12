@@ -657,8 +657,8 @@ func UpgradeDatabaseToVersion59(sqlStore SqlStore) {
 
 func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_9_0, VERSION_5_10_0) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(1)", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(1)", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(4)", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(4)", "boolean")
 
 		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
 		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
@@ -688,10 +688,11 @@ func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
 
 func UpgradeDatabaseToVersion512(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_11_0, VERSION_5_12_0) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "tinyint(4)", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "tinyint(4)", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "varchar(64)", "VARCHAR(64)")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "varchar(64)", "VARCHAR(64)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "boolean", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
+
 		sqlStore.GetMaster().Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
 
 		// Saturday, January 24, 2065 5:20:00 AM GMT. To remove all personal access token sessions.
@@ -712,6 +713,14 @@ func UpgradeDatabaseToVersion513(sqlStore SqlStore) {
 
 func UpgradeDatabaseToVersion514(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_13_0, VERSION_5_14_0) {
+		sqlStore.AlterColumnTypeIfExists("TeamMembers", "SchemeGuest", "tinyint(4)", "boolean")
+		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "SchemeGuest", "tinyint(4)", "boolean")
+		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultTeamGuestRole", "varchar(64)", "VARCHAR(64)")
+		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultChannelGuestRole", "varchar(64)", "VARCHAR(64)")
+		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
+		sqlStore.AlterColumnTypeIfExists("Channels", "GroupConstrained", "tinyint(1)", "boolean")
+		sqlStore.AlterColumnTypeIfExists("Teams", "GroupConstrained", "tinyint(1)", "boolean")
+
 		saveSchemaVersion(sqlStore, VERSION_5_14_0)
 	}
 }
@@ -733,8 +742,6 @@ func UpgradeDatabaseToVersion516(sqlStore SqlStore) {
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
 	}
-
-	sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_16_0)
 	// }
