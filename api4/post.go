@@ -582,7 +582,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if c.App.Session.UserId != c.Params.UserId && c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
+	if c.App.Session.UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
