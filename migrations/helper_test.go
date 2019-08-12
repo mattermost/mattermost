@@ -32,7 +32,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
-	memoryStore, err := config.NewMemoryStore()
+	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}

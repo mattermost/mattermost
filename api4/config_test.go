@@ -234,6 +234,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
 	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
 	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+	defer os.Unsetenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI")
 
 	th := Setup().InitBasic()
 	defer th.TearDown()
