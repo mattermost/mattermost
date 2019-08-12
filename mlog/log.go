@@ -34,6 +34,7 @@ var String = zap.String
 var Any = zap.Any
 var Err = zap.Error
 var Bool = zap.Bool
+var Duration = zap.Duration
 
 type LoggerConfiguration struct {
 	EnableConsole bool
