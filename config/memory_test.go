@@ -94,6 +94,7 @@ func TestMemoryStoreGetEnivironmentOverrides(t *testing.T) {
 	assert.Empty(t, ms.GetEnvironmentOverrides())
 
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 	ms, err = config.NewMemoryStore()
 	require.NoError(t, err)
@@ -231,6 +232,7 @@ func TestMemoryStoreLoad(t *testing.T) {
 		defer ms.Close()
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 		err = ms.Load()
 		require.NoError(t, err)

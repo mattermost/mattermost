@@ -94,7 +94,7 @@ func resolveConfigFilePath(path string) (string, error) {
 
 // Set replaces the current configuration in its entirety and updates the backing store.
 func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
-	return fs.commonStore.set(newCfg, func(cfg *model.Config) error {
+	return fs.commonStore.set(newCfg, true, func(cfg *model.Config) error {
 		if *fs.config.ClusterSettings.Enable && *fs.config.ClusterSettings.ReadOnlyConfig {
 			return ErrReadOnlyConfiguration
 		}
