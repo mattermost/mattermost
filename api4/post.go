@@ -578,7 +578,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePostId()
+	c.RequirePostId().RequireUserId()
 	if c.Err != nil {
 		return
 	}
