@@ -383,7 +383,7 @@ func TestPluginAPIGetPluginConfig(t *testing.T) {
 
 	api := NewPluginAPI(th.App, manifest)
 
-	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
+	pluginConfigJsonString := `{"mystringsetting": "str", "myintsetting": 32, "myboolsetting": true}`
 	var pluginConfig map[string]interface{}
 
 	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {

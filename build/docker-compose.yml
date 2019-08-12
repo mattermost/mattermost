@@ -5,8 +5,6 @@ services:
     restart: always
     networks:
       - mm-test
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT_PASSWORD: mostest
@@ -21,8 +19,6 @@ services:
     restart: always
     networks:
       - mm-test
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: mmuser
       POSTGRES_PASSWORD: mostest
@@ -33,8 +29,6 @@ services:
     command: "server /data"
     networks:
       - mm-test
-    ports:
-      - "9000:9000"
     environment:
       MINIO_ACCESS_KEY: minioaccesskey
       MINIO_SECRET_KEY: miniosecretkey
@@ -44,18 +38,11 @@ services:
     restart: always
     networks:
       - mm-test
-    ports:
-      - "10025:10025"
-      - "10080:10080"
-      - "10110:10110"
   openldap:
     image: "osixia/openldap:1.2.2"
     restart: always
     networks:
       - mm-test
-    ports:
-      - "389:389"
-      - "636:636"
     environment:
       LDAP_TLS_VERIFY_CLIENT: "never"
       LDAP_ORGANISATION: "Mattermost Test"
@@ -65,9 +52,6 @@ services:
     image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
     networks:
       - mm-test
-    ports:
-      - "9200:9200"
-      - "9300:9300"
     environment:
       http.host: "0.0.0.0"
       transport.host: "127.0.0.1"
@@ -76,8 +60,7 @@ services:
     image: redis
     networks:
       - mm-test
-    ports:
-      - "6379:6379"
+
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
     networks:
