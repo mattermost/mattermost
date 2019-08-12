@@ -47,12 +47,15 @@ func renderUnsuppportedBrowser(app *app.App, w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Cache-Control", "no-store")
 	page := utils.NewHTMLTemplate(app.HTMLTemplates(), "unsupported_browser")
 
+	// User Agent info
 	ua := uasurfer.Parse(r.UserAgent())
 	isWindows := ua.OS.Platform.String() == "PlatformWindows"
 	isWindows10 := isWindows && ua.OS.Version.Major == 10
 	isMacOSX := ua.OS.Name.String() == "OSMacOSX" && ua.OS.Version.Major == 10
+	isSafari := ua.Browser.Name.String() == "BrowserSafari"
 
-	if ua.Browser.Name.String() == "BrowserSafari" {
+	// Basic heading translations
+	if isSafari {
 		page.Props["NoLongerSupportString"] = app.T("web.error.unsupported_browser.no_longer_support_version")
 	} else {
 		page.Props["NoLongerSupportString"] = app.T("web.error.unsupported_browser.no_longer_support")
@@ -60,21 +63,27 @@ func renderUnsuppportedBrowser(app *app.App, w http.ResponseWriter, r *http.Requ
 	page.Props["DownloadAppOrUpgradeBrowserString"] = app.T("web.error.unsupported_browser.download_app_or_upgrade_browser")
 	page.Props["LearnMoreString"] = app.T("web.error.unsupported_browser.learn_more")
 
+	// Mattermost app version
 	if isWindows {
 		page.Props["App"] = renderMattermostAppWindows(app)
 	} else if isMacOSX {
 		page.Props["App"] = renderMattermostAppMac(app)
 	}
 
+	// Browsers to download
+	// Show a link to Safari if you're using safari and it's outdated
+	// Can't show on Mac all the time because there's no way to open it via URI
 	browsers := []Browser{renderBrowserChrome(app), renderBrowserFirefox(app)}
-	if (ua.Browser.Name.String() == "BrowserSafari") {
+	if isSafari {
 		browsers = append(browsers, renderBrowserSafari(app))
 	}
 	page.Props["Browsers"] = browsers
-	
+
+	// If on Windows 10, show link to Edge
 	if isWindows10 {
 		page.Props["SystemBrowser"] = renderSystemBrowserEdge(app, r)
 	}
+
 	page.RenderToWriter(w)
 }
 
@@ -85,7 +94,7 @@ func renderMattermostAppMac(app *app.App) MattermostApp {
 		app.T("web.error.unsupported_browser.min_os_version.mac"),
 		app.T("web.error.unsupported_browser.download_64.mac"),
 		"https://releases.mattermost.com/desktop/4.2.1/mattermost-desktop-4.2.1-mac.zip",
-		"",                          // No 32-bit Mac version
+		"", // No 32-bit Mac version
 		"",
 		app.T("web.error.unsupported_browser.install_guide.mac"),
 		"https://docs.mattermost.com/install/desktop.html#mac-os-x-10-9",

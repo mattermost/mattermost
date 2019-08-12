@@ -1,24 +1,18 @@
 function onHover(element, prefix) {
-    //element.classList.add('container-hover');
     element.className += " container-hover";
     var unHoverElement = element.querySelector('.' + prefix + ':not(.hidden)');
     var hoverElement = element.querySelector('.' + prefix + '-hover.hidden');
     if (unHoverElement && hoverElement) {
         unHoverElement.className += " hidden";
-        //unHoverElement.classList.add('hidden');
-        //hoverElement.classList.remove('hidden');
         hoverElement.className = hoverElement.className.replace(/\bhidden\b/g, "");
     }
 }
 function onUnHover(element, prefix) {
     element.className = element.className.replace(/\bcontainer-hover\b/g, "");
-    //element.classList.remove('container-hover');
     var unHoverElement = element.querySelector('.' + prefix + '.hidden');
     var hoverElement = element.querySelector('.' + prefix + '-hover:not(.hidden)');
     if (unHoverElement && hoverElement) {
         hoverElement.className += " hidden";
-        //hoverElement.classList.add('hidden');
-        //unHoverElement.classList.remove('hidden');
         unHoverElement.className = unHoverElement.className.replace(/\bhidden\b/g, "");
     }
 }
