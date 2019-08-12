@@ -340,15 +340,19 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		close(uc2)
 	}()
 
-	if result := <-uc1; result.Err != nil {
+	result := <-uc1
+	if result.Err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, userId, http.StatusBadRequest)
 	}
+	user := result.Data.(*model.User)
 
-	if result := <-uc2; result.Err != nil {
+	result = <-uc2
+	if result.Err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId, http.StatusBadRequest)
 	}
+	otherUser := result.Data.(*model.User)
 
-	channel, err := a.Srv.Store.Channel().CreateDirectChannel(userId, otherUserId)
+	channel, err := a.Srv.Store.Channel().CreateDirectChannel(user, otherUser)
 	if err != nil {
 		if err.Id == store.CHANNEL_EXISTS_ERROR {
 			return channel, err
@@ -1821,6 +1825,14 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 	term = strings.TrimSpace(term)
 
 	return a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
+}
+
+func (a *App) SearchChannelsForUser(userId, teamId, term string) (*model.ChannelList, *model.AppError) {
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+
+	term = strings.TrimSpace(term)
+
+	return a.Srv.Store.Channel().SearchForUserInTeam(userId, teamId, term, includeDeleted)
 }
 
 func (a *App) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {

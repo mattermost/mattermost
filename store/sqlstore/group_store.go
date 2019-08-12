@@ -228,7 +228,7 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.Ap
 	return groupMembers, nil
 }
 
-func (s *SqlGroupStore) GetMemberUsersPage(groupID string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
 	var groupMembers []*model.User
 
 	query := `
@@ -248,7 +248,7 @@ func (s *SqlGroupStore) GetMemberUsersPage(groupID string, offset int, limit int
 		OFFSET
 			:Offset`
 
-	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "Limit": limit, "Offset": offset}); err != nil {
+	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "Limit": perPage, "Offset": page * perPage}); err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GroupGetMemberUsersPage", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -261,8 +261,10 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, *model.AppError) 
 			count(*)
 		FROM
 			GroupMembers
+			JOIN Users ON Users.Id = GroupMembers.UserId
 		WHERE
-			GroupMembers.GroupId = :GroupId`
+			GroupMembers.GroupId = :GroupId
+			AND Users.DeleteAt = 0`
 
 	count, err := s.GetReplica().SelectInt(query, map[string]interface{}{"GroupId": groupID})
 	if err != nil {
@@ -840,7 +842,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 		query = s.getQueryBuilder().
 			Select("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount").
 			From("UserGroups ug").
-			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
+			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
 			LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.GroupId = ug.Id", table)).
 			Where(fmt.Sprintf("%[1]s.DeleteAt = 0 AND %[1]s.%[2]s = ?", table, idCol), syncableID).
 			OrderBy("ug.DisplayName")
@@ -906,7 +908,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		groupsQuery = s.getQueryBuilder().
 			Select("g.*, coalesce(Members.MemberCount, 0) AS MemberCount").
 			From("UserGroups g").
-			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id").
+			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id").
 			Limit(uint64(perPage)).
 			Offset(uint64(page * perPage)).
 			OrderBy("g.DisplayName")
@@ -992,8 +994,8 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 		Join("Teams ON Teams.Id = TeamMembers.TeamId").
 		Join("Users ON Users.Id = TeamMembers.UserId").
 		LeftJoin("Bots ON Bots.UserId = TeamMembers.UserId").
-		Join("GroupMembers ON GroupMembers.UserId = Users.Id").
-		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		LeftJoin("GroupMembers ON GroupMembers.UserId = Users.Id").
+		LeftJoin("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Where("TeamMembers.DeleteAt = 0").
 		Where("Teams.DeleteAt = 0").
 		Where("Users.DeleteAt = 0").
@@ -1012,7 +1014,7 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 // groups.
 func (s *SqlGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	query := s.teamMembersMinusGroupMembersQuery(teamID, groupIDs, false)
-	query = query.OrderBy("Users.Id").Limit(uint64(perPage)).Offset(uint64(page * perPage))
+	query = query.OrderBy("Users.Username ASC").Limit(uint64(perPage)).Offset(uint64(page * perPage))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1070,8 +1072,8 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 		Join("Channels ON Channels.Id = ChannelMembers.ChannelId").
 		Join("Users ON Users.Id = ChannelMembers.UserId").
 		LeftJoin("Bots ON Bots.UserId = ChannelMembers.UserId").
-		Join("GroupMembers ON GroupMembers.UserId = Users.Id").
-		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		LeftJoin("GroupMembers ON GroupMembers.UserId = Users.Id").
+		LeftJoin("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Where("Channels.DeleteAt = 0").
 		Where("Users.DeleteAt = 0").
 		Where("Bots.UserId IS NULL").
@@ -1089,7 +1091,7 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 // groups.
 func (s *SqlGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	query := s.channelMembersMinusGroupMembersQuery(channelID, groupIDs, false)
-	query = query.OrderBy("Users.Id").Limit(uint64(perPage)).Offset(uint64(page * perPage))
+	query = query.OrderBy("Users.Username ASC").Limit(uint64(perPage)).Offset(uint64(page * perPage))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

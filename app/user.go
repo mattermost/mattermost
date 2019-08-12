@@ -93,7 +93,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 
 	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
 		for _, channel := range channels {
-			_, err := a.AddUserToChannel(ruser, channel)
+			_, err := a.AddChannelMember(ruser.Id, channel, "", "")
 			if err != nil {
 				mlog.Error(err.Error())
 			}
@@ -516,11 +516,7 @@ func (a *App) GetUsersNotInTeamEtag(teamId string, restrictionsHash string) stri
 }
 
 func (a *App) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesInChannel(channelId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetProfilesInChannel(channelId, offset, limit)
 }
 
 func (a *App) GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
@@ -871,7 +867,7 @@ func (a *App) SetProfileImageFromMultiPartFile(userId string, file multipart.Fil
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	if config.Width*config.Height > model.MaxImageSize {
-		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	file.Seek(0, 0)
