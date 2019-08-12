@@ -76,6 +76,60 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("create at should not match")
 	}
 
+	t.Run("with file uploaded by same user", func(t *testing.T) {
+		fileResp, subResponse := Client.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
+		CheckNoError(t, subResponse)
+		fileId := fileResp.FileInfos[0].Id
+
+		postWithFiles, subResponse := Client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with files",
+			FileIds:   model.StringArray{fileId},
+		})
+		CheckNoError(t, subResponse)
+		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
+
+		actualPostWithFiles, subResponse := Client.GetPost(postWithFiles.Id, "")
+		CheckNoError(t, subResponse)
+		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
+	})
+
+	t.Run("with file uploaded by different user", func(t *testing.T) {
+		fileResp, subResponse := th.SystemAdminClient.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
+		CheckNoError(t, subResponse)
+		fileId := fileResp.FileInfos[0].Id
+
+		postWithFiles, subResponse := Client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with files",
+			FileIds:   model.StringArray{fileId},
+		})
+		CheckNoError(t, subResponse)
+		assert.Empty(t, postWithFiles.FileIds)
+
+		actualPostWithFiles, subResponse := Client.GetPost(postWithFiles.Id, "")
+		CheckNoError(t, subResponse)
+		assert.Empty(t, actualPostWithFiles.FileIds)
+	})
+
+	t.Run("with file uploaded by nouser", func(t *testing.T) {
+		fileInfo, err := th.App.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
+		require.Nil(t, err)
+		fileId := fileInfo.Id
+
+		postWithFiles, subResponse := Client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with files",
+			FileIds:   model.StringArray{fileId},
+		})
+		CheckNoError(t, subResponse)
+		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
+
+		actualPostWithFiles, subResponse := Client.GetPost(postWithFiles.Id, "")
+		CheckNoError(t, subResponse)
+		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
+	})
+
 	post.RootId = ""
 	post.ParentId = ""
 	post.Type = model.POST_SYSTEM_GENERIC
