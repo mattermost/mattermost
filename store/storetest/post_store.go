@@ -1173,32 +1173,38 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Username = "usera1"
 	u1.Email = MakeEmail()
-	u1, _ = ss.User().Save(u1)
+	u1, err := ss.User().Save(u1)
+	require.Nil(t, err)
 
 	t1 := &model.TeamMember{}
 	t1.TeamId = teamId
 	t1.UserId = u1.Id
-	t1, _ = (<-ss.Team().SaveMember(t1, 1000)).Data.(*model.TeamMember)
+	_, err = ss.Team().SaveMember(t1, 1000)
+	require.Nil(t, err)
 
 	u2 := &model.User{}
 	u2.Username = "userb2"
 	u2.Email = MakeEmail()
-	u2, _ = ss.User().Save(u2)
+	u2, err = ss.User().Save(u2)
+	require.Nil(t, err)
 
 	t2 := &model.TeamMember{}
 	t2.TeamId = teamId
 	t2.UserId = u2.Id
-	t2, _ = (<-ss.Team().SaveMember(t2, 1000)).Data.(*model.TeamMember)
+	_, err = ss.Team().SaveMember(t2, 1000)
+	require.Nil(t, err)
 
 	u3 := &model.User{}
 	u3.Username = "userc3"
 	u3.Email = MakeEmail()
-	u3, _ = ss.User().Save(u3)
+	u3, err = ss.User().Save(u3)
+	require.Nil(t, err)
 
 	t3 := &model.TeamMember{}
 	t3.TeamId = teamId
 	t3.UserId = u3.Id
-	t3, _ = (<-ss.Team().SaveMember(t3, 1000)).Data.(*model.TeamMember)
+	_, err = ss.Team().SaveMember(t3, 1000)
+	require.Nil(t, err)
 
 	c1 := &model.Channel{}
 	c1.TeamId = teamId
@@ -1211,7 +1217,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	m1.ChannelId = c1.Id
 	m1.UserId = userId
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err := ss.Channel().SaveMember(&m1)
+	_, err = ss.Channel().SaveMember(&m1)
 	require.Nil(t, err)
 
 	c2 := &model.Channel{}
