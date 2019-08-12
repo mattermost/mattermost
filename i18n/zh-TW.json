@@ -137,11 +137,11 @@
   },
   {
     "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "無法上傳個人頭像"
+    "translation": "無法刪除個人頭像"
   },
   {
     "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Unable to read icon image file"
+    "translation": "無法讀取頭像檔案"
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
@@ -169,7 +169,7 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
+    "translation": "請將我加入想要互動的團隊與頻道。請用瀏覽器或是桌面應用程式加入。"
   },
   {
     "id": "api.channel.add_member.added",
@@ -1498,19 +1498,19 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "An error occurred while downloading the plugin."
+    "translation": "下載模組時錯誤。"
   },
   {
     "id": "api.plugin.install.insecure_url.app_error",
-    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
+    "translation": "下載模組的 URL 不安全。請提供安全的 URL 或啟用在設定中啟用 PluginSettings.AllowInsecureDownloadUrl"
   },
   {
     "id": "api.plugin.install.invalid_url.app_error",
-    "translation": "An invalid url was given to download the plugin."
+    "translation": "下載模組的 URL 無效。"
   },
   {
     "id": "api.plugin.install.reading_stream_failed.app_error",
-    "translation": "An error ocurred reading the plugin file stream."
+    "translation": "讀取模組檔案系統時發生錯誤。"
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -3388,7 +3388,7 @@
   },
   {
     "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
+    "translation": "無法設定模組為被檔案儲存空間管理。"
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -3436,19 +3436,19 @@
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
-    "translation": "Unable to remove plugin bundle from file store."
+    "translation": "無法從檔案儲存空間移除模組。"
   },
   {
     "id": "app.plugin.store_bundle.app_error",
-    "translation": "Unable to store the plugin to the configured file store."
+    "translation": "無法將模組儲存至設定的檔案儲存空間。"
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Error reading files from the plugins folder in the file store."
+    "translation": "從檔案儲存空間的模組資料夾讀取檔案失敗。"
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
-    "translation": "Error reading local plugins folder."
+    "translation": "讀取本地模組資料夾失敗。"
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -5728,7 +5728,7 @@
   },
   {
     "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term"
+    "translation": "無法為指定的使用者跟詞取得群組頻道"
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
@@ -6180,11 +6180,11 @@
   },
   {
     "id": "store.sql_post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound"
+    "translation": "無法取得時間限制之後的訊息"
   },
   {
     "id": "store.sql_post.get_post_id_around.app_error",
-    "translation": "Unable to get post around time bound"
+    "translation": "無法取得時間限制附近的訊息"
   },
   {
     "id": "store.sql_post.get_posts.app_error",

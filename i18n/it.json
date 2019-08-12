@@ -2112,7 +2112,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "La squadra {{.SenderStatus}} [[{{.SenderName}}]], ti ha invitato ad unirti a [[{{.TeamDisplayName}}]]."
+    "translation": "{{.SenderStatus}} [[{{.SenderName}}]], ti ha invitato ad unirti a [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2120,7 +2120,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{ .SiteName }}] [{{ .SiteName }}] ti ha invitato ad unirti alla squadra {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} ti ha invitato ad unirti alla squadra {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.mfa_activated_body.info",

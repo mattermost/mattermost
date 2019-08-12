@@ -81,11 +81,11 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Es ist ein Fehler beim Löschen des Zertifikates aufgetreten"
+    "translation": "Es ist ein Fehler beim Löschen des Zertifikates aufgetreten."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Beim Erstellen der Service-Provider-Metadaten ist ein Fehler aufgetreten."
+    "translation": "Es ist ein Fehler beim Erstellen der Service-Provider-Metadaten aufgetreten."
   },
   {
     "id": "api.admin.saml.not_available.app_error",
@@ -137,15 +137,15 @@
   },
   {
     "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Konnte Profilbild nicht hochladen"
+    "translation": "Konnte Symbolbild nicht hochladen."
   },
   {
     "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Unable to read icon image file"
+    "translation": "Konnte Symbolbild-Datei nicht lesen."
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Konnte Profilbild nicht hochladen"
+    "translation": "Konnte Symbolbild nicht hochladen."
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
@@ -157,7 +157,7 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.open.app_error",
-    "translation": "Konnte Bilddatei nicht öffnen"
+    "translation": "Konnte Bilddatei nicht öffnen."
   },
   {
     "id": "api.bot.set_bot_icon_image.parse.app_error",
@@ -165,11 +165,11 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "Konnte Datei nicht hochladen. Datei ist zu groß."
+    "translation": "Konnte Symbolbild-Datei nicht hochladen. Datei ist zu groß."
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
+    "translation": "Bitte fügen Sie mich den Teams und Kanälen hinzu, mit denen ich interagieren soll. Um dies zu tun, verwenden Sie den Browser oder die Mattermost-Desktop-App."
   },
   {
     "id": "api.channel.add_member.added",
@@ -681,7 +681,7 @@
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "Es trat ein Fehler beim Erweitern der Vorschauen auf."
+    "translation": "Es ist ein Fehler beim beim Erweitern der Vorschauen aufgetreten."
   },
   {
     "id": "api.command_groupmsg.desc",
@@ -748,7 +748,7 @@
   },
   {
     "id": "api.command_invite.fail.app_error",
-    "translation": "Es trat ein Fehler beim Betreten des Kanals auf."
+    "translation": "Es ist ein Fehler beim Betreten des Kanals aufgetreten."
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Es trat ein Fehler beim Betreten des Kanals auf."
+    "translation": "Es ist ein Fehler beim Betreten des Kanals aufgetreten."
   },
   {
     "id": "api.command_join.hint",
@@ -804,7 +804,7 @@
   },
   {
     "id": "api.command_join.list.app_error",
-    "translation": "Es trat ein Fehler beim Auflisten der Kanäle auf."
+    "translation": "Es ist ein Fehler beim Auflisten der Kanäle aufgetreten."
   },
   {
     "id": "api.command_join.missing.app_error",
@@ -824,7 +824,7 @@
   },
   {
     "id": "api.command_leave.fail.app_error",
-    "translation": "Es trat ein Fehler beim Verlassen des Kanals auf."
+    "translation": "Es ist ein Fehler beim Verlassen des Kanals aufgetreten."
   },
   {
     "id": "api.command_leave.name",
@@ -1170,19 +1170,19 @@
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Dekodieren des Bildes auf."
+    "translation": "Konnte Emoji nicht erstellen. Es ist ein Fehler beim Dekodieren des Bildes aufgetreten."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Umwandeln des Bildes auf."
+    "translation": "Konnte Emoji nicht erstellen. Es ist ein Fehler beim Umwandeln des Bildes aufgetreten."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Dekodieren des GIF auf."
+    "translation": "Konnte Emoji nicht erstellen. Es ist ein Fehler beim Dekodieren des GIF aufgetreten."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Umwandeln des GIF auf."
+    "translation": "Konnte Emoji nicht erstellen. Es ist ein Fehler beim Umwandeln des GIF aufgetreten."
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
@@ -1190,7 +1190,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Öffnen des angehängten Bildes auf."
+    "translation": "Konnte Emoji nicht erstellen. Es ist ein Fehler beim Öffnen des angehängten Bildes aufgetreten."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1498,19 +1498,19 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "An error occurred while downloading the plugin."
+    "translation": "Es ist ein Fehler beim Herunterladen des Plugins aufgetreten."
   },
   {
     "id": "api.plugin.install.insecure_url.app_error",
-    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
+    "translation": "Es wurde eine unsichere URL angegeben, um das Plugin herunterzuladen. Bitte geben Sie eine sichere URL an oder aktivieren Sie PluginSettings.AllowInsecureDownloadUrl in Ihrer Konfiguration."
   },
   {
     "id": "api.plugin.install.invalid_url.app_error",
-    "translation": "An invalid url was given to download the plugin."
+    "translation": "Es wurde eine unsichere URL angegeben, um das Plugin herunterzuladen."
   },
   {
     "id": "api.plugin.install.reading_stream_failed.app_error",
-    "translation": "An error ocurred reading the plugin file stream."
+    "translation": "Es ist ein Fehler beim Lesen des Plugin-Daten-Streams aufgetreten."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1872,7 +1872,7 @@
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": "Konnte Teamsymbol nicht lesen."
+    "translation": "Konnte Teamsymbol-Datei nicht lesen."
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -1956,7 +1956,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten"
+    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten."
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -1972,11 +1972,11 @@
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Konnte das Teamsymbol nicht dekodieren"
+    "translation": "Konnte das Teamsymbol nicht dekodieren."
   },
   {
     "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Konnte Metadaten des Teamsymbols nicht dekodieren"
+    "translation": "Konnte Metadaten des Teamsymbols nicht dekodieren."
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
@@ -1984,7 +1984,7 @@
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
-    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten"
+    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten."
   },
   {
     "id": "api.team.set_team_icon.no_file.app_error",
@@ -2012,7 +2012,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "Ein Fehler ist beim Aktualisieren des Teamsymbols aufgetreten"
+    "translation": "Ein Fehler ist beim Aktualisieren des Teamsymbols aufgetreten."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2736,11 +2736,11 @@
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
-    "translation": "Es trat ein Fehler beim Schreiben der Exportdaten auf."
+    "translation": "Es ist ein Fehler beim Schreiben der Exportdaten aufgetreten."
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "Es trat ein Fehler bei der Bereitstellung der JSON-Daten für den Export auf."
+    "translation": "Es ist ein Fehler bei der Bereitstellung der JSON-Daten für den Export aufgetreten."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -3136,11 +3136,11 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
-    "translation": "Team name enthält ungültige Zeichen."
+    "translation": "Teamname enthält ungültige Zeichen."
   },
   {
     "id": "app.import.validate_team_import_data.name_length.error",
-    "translation": "Team name ist zu lang."
+    "translation": "Teamname ist zu lang."
   },
   {
     "id": "app.import.validate_team_import_data.name_missing.error",
@@ -3288,7 +3288,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": "Teamname fehlt in Teammitgliedschaft des Benutzers."
+    "translation": "Teamname fehlt in Team-Mitgliedschaft des Benutzers."
   },
   {
     "id": "app.notification.body.intro.direct.full",
@@ -3388,7 +3388,7 @@
   },
   {
     "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
+    "translation": "Konnte das Plugin nicht so einstellen, dass es vom Dateispeicher verwaltet wird."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -3436,19 +3436,19 @@
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
-    "translation": "Unable to remove plugin bundle from file store."
+    "translation": "Konnte das Plugin nicht aus dem Dateispeicher entfernen."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
-    "translation": "Unable to store the plugin to the configured file store."
+    "translation": "Konnte das Plugin nicht im konfigurierten Dateispeicher abspeichern."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Error reading files from the plugins folder in the file store."
+    "translation": "Fehler beim Lesen von Dateien aus dem Plugin-Ordner im Dateispeicher."
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
-    "translation": "Error reading local plugins folder."
+    "translation": "Fehler beim Lesen des lokalen Plugin-Ordners."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3940,11 +3940,11 @@
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "Bei der Verbindung zum Identitäten Anbieter trat ein Fehler auf. Bitte kontaktieren Sie ihren Systemadministrator."
+    "translation": "Es ist ein Fehler bei der Verbindung zum Identitätsanbieter aufgetreten. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Beim Kodieren der Anfrage für den Identitäten Anbieter trat ein Fehler auf. Bitte kontaktieren Sie ihren Systemadministrator."
+    "translation": "Es ist ein Fehler beim Kodieren der Anfrage für den Identitätsanbieter aufgetreten. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
@@ -3952,7 +3952,7 @@
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Datei des öffentlichen Zertifikats des Identitätsproviders nicht gefunden. Bitte kontaktieren Sie ihren Systemadministrator."
+    "translation": "Datei des öffentlichen Zertifikats des Identitätsanbieters nicht gefunden. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3960,23 +3960,23 @@
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "SAML-Anmeldung war nicht erfolgreich, da die Antwort des Identitäts-Providers nicht verschlüsselt war. Bitte kontaktieren Sie ihren Systemadministrator."
+    "translation": "SAML-Anmeldung war nicht erfolgreich, da die Antwort des Identitätsanbieters nicht verschlüsselt war. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML-Anmeldung war nicht erfolgreich, da ein Fehler beim entschlüsseln der Antwort des Identitäts-Providers auftrat. Bitte kontaktieren Sie ihren Systemadministrator."
+    "translation": "SAML-Anmeldung war nicht erfolgreich, da ein Fehler beim entschlüsseln der Antwort des Identitätsanbieters auftrat. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "Leere Antwort vom Identitätsprovider erhalten"
+    "translation": "Leere Antwort vom Identitätsanbieter erhalten"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "Es trat ein Fehler beim Verarbeiten der Antwort des Identitätsproviders auf. Bitte kontaktieren Sie ihren Systemadministrator."
+    "translation": "Es ist ein Fehler beim Verarbeiten der Antwort des Identitätsanbieters aufgetreten. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Es trat ein Fehler beim Validieren der Antwort des Identitätsproviders auf. Bitte kontaktieren Sie ihren Systemadministrator."
+    "translation": "Es ist ein Fehler beim Validieren der Antwort des Identitätsanbieters aufgetreten. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -3984,7 +3984,7 @@
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": "Beim Erstellen der Service Provider Metadaten ist ein Fehler aufgetreten."
+    "translation": "Es ist ein Fehler beim Erstellen der Service-Provider-Metadaten aufgetreten."
   },
   {
     "id": "ent.saml.service_disable.app_error",
@@ -4604,11 +4604,11 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Öffentliches Zertifikat des Identitätsproviders fehlt. Haben Sie vergessen es hochzuladen?"
+    "translation": "Öffentliches Zertifikat des Identitätsanbieters fehlt. Haben Sie vergessen es hochzuladen?"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identitätsprovider Issuer URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "Issuer-URL des Identitätsanbieters muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -4820,7 +4820,7 @@
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
-    "translation": "Ungültiges Nachrichtensymbol"
+    "translation": "Ungültiges Nachrichtensymbol."
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -5728,7 +5728,7 @@
   },
   {
     "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term"
+    "translation": "Konnte die Gruppenkanäle für den angegebenen Benutzer und Begriff nicht abrufen."
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
@@ -6040,7 +6040,7 @@
   },
   {
     "id": "store.sql_oauth.delete_app.app_error",
-    "translation": "Es ist ein Fehler beim Löschen der OAuth2 App aufgetreten"
+    "translation": "Es ist ein Fehler beim Löschen der OAuth2-App aufgetreten"
   },
   {
     "id": "store.sql_oauth.get_access_data.app_error",
@@ -6064,7 +6064,7 @@
   },
   {
     "id": "store.sql_oauth.get_apps.find.app_error",
-    "translation": "Es ist ein Fehler beim Suchen nach der OAuth2 App aufgetreten"
+    "translation": "Es ist ein Fehler beim Suchen nach der OAuth2-App aufgetreten."
   },
   {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
@@ -6180,11 +6180,11 @@
   },
   {
     "id": "store.sql_post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound"
+    "translation": "Konnte Nachricht nicht nach dem ausgewählten Zeitraum abrufen."
   },
   {
     "id": "store.sql_post.get_post_id_around.app_error",
-    "translation": "Unable to get post around time bound"
+    "translation": "Konnte Nachricht nicht in dem ausgewählten Zeitraum abrufen."
   },
   {
     "id": "store.sql_post.get_posts.app_error",
@@ -6748,11 +6748,11 @@
   },
   {
     "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Konnte den Team-Namen nicht aktualisieren."
+    "translation": "Konnte den Teamnamen nicht aktualisieren."
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Konnte den Zeitpunkt der letzten Aktualisierung des Team-Symbols nicht aktualisieren."
+    "translation": "Konnte den Zeitpunkt der letzten Aktualisierung des Teamsymbols nicht aktualisieren."
   },
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
@@ -6840,7 +6840,7 @@
   },
   {
     "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "Es trat ein Fehler beim Finden der Benutzerprofile auf"
+    "translation": "Es trat ein Fehler beim Finden der Benutzerprofile auf."
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
