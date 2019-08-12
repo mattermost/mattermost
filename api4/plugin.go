@@ -127,16 +127,15 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		force = true
 	}
 
-	fileBytes, readErr := ioutil.ReadAll(resp.Body)
-	if readErr != nil {
+	fileBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
 		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	manifest, unpackErr := c.App.InstallPlugin(bytes.NewReader(fileBytes), force)
-
-	if unpackErr != nil {
-		c.Err = unpackErr
+	manifest, appErr := c.App.InstallPlugin(bytes.NewReader(fileBytes), force)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
