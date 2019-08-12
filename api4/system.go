@@ -75,17 +75,17 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 			Value: currentTime,
 		})
 		if writeErr != nil {
-			mlog.Debug(fmt.Sprintf("Unable to write to database: %s", writeErr.Error()))
+			mlog.Debug(fmt.Sprintf("unable to write to database: %s", writeErr.Error()))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		} else {
 			healthCheck, readErr := c.App.Srv.Store.System().GetByName(healthCheckKey)
 			if readErr != nil {
-				mlog.Debug(fmt.Sprintf("Unable to read from database: %s", readErr.Error()))
+				mlog.Debug(fmt.Sprintf("unable to read from database: %s", readErr.Error()))
 				s[dbStatusKey] = model.STATUS_UNHEALTHY
 				s[model.STATUS] = model.STATUS_UNHEALTHY
 			} else if healthCheck.Value != currentTime {
-				mlog.Debug("Incorrect health check timestamp")
+				mlog.Debug(fmt.Sprintf("incorrect healthcheck value, expected %s, got %s", healthCheck.Value, currentTime))
 				s[dbStatusKey] = model.STATUS_UNHEALTHY
 				s[model.STATUS] = model.STATUS_UNHEALTHY
 			}
