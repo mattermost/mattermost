@@ -244,17 +244,17 @@ test-server-race: test-te-race test-ee-race ## Checks for race conditions.
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
-go-junit-report:
+go-junit-report: ## go get -u github.com/jstemmer/go-junit-report
 	env GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
 
-test-compile:
+test-compile: ## Compile tests.
 	@echo COMPILE TESTS
 
 	for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
-test-db-migration: start-docker
+test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
 	./scripts/mysql-migration-test.sh
 	./scripts/psql-migration-test.sh
 
@@ -313,7 +313,7 @@ run-server: validate-go-version start-docker ## Starts the server.
 	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) --disableconfigwatch | \
 	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) logs --logrus &
 
-debug-server: start-docker
+debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
 		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
@@ -322,7 +322,7 @@ debug-server: start-docker
 		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
-debug-server-headless: start-docker
+debug-server-headless: start-docker ## Debug server from within and IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
 		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
