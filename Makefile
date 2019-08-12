@@ -244,7 +244,7 @@ test-server-race: test-te-race test-ee-race ## Checks for race conditions.
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
-go-junit-report: ## go get -u github.com/jstemmer/go-junit-report
+go-junit-report:
 	env GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
 
 test-compile: ## Compile tests.
