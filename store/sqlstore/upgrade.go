@@ -721,6 +721,9 @@ func UpgradeDatabaseToVersion514(sqlStore SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("Channels", "GroupConstrained", "tinyint(1)", "boolean")
 		sqlStore.AlterColumnTypeIfExists("Teams", "GroupConstrained", "tinyint(1)", "boolean")
 
+		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
+		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
+
 		saveSchemaVersion(sqlStore, VERSION_5_14_0)
 	}
 }

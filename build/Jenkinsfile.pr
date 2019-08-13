@@ -145,9 +145,9 @@ pipeline {
                     ansiColor('xterm') {
                         sh """
                         echo "Creating databases"
-                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
                         echo "Importing postgres dump from version 5.0"
-                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres psql -U mmuser -d migrated < \$(pwd)/scripts/mattermost-postgresql-5.0.sql
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec postgres psql -U mmuser -d migrated < \$(pwd)/scripts/mattermost-postgresql-5.0.sql
                         """
                     }
                 }
@@ -178,11 +178,11 @@ pipeline {
                     ansiColor('xterm') {
                         sh """
                         echo "Generating dump"
-                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
-                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
 
                         echo "Removing databases created for db comparison"
-                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
                         echo "Generating diff"
                         diff migrated.sql latest.sql > diff.txt
