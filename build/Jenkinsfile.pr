@@ -147,7 +147,7 @@ pipeline {
                         echo "Creating databases"
                         /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
                         echo "Importing postgres dump from version 5.0"
-                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres psql -U mmuser -d migrated < $(pwd)/scripts/mattermost-postgresql-5.0.sql
+                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres psql -U mmuser -d migrated < \$(pwd)/scripts/mattermost-postgresql-5.0.sql
                         """
                     }
                 }
@@ -186,11 +186,11 @@ pipeline {
 
                         echo "Generating diff"
                         diff migrated.sql latest.sql > diff.txt
-                        export diffErrorCode=$?
+                        export diffErrorCode=\$?
 
-                        if [ $diffErrorCode -eq 0 ]; then echo "Both schemas are same";else cat diff.txt; fi
+                        if [ \$diffErrorCode -eq 0 ]; then echo "Both schemas are same";else cat diff.txt; fi
 
-                        exit $diffErrorCode
+                        exit \$diffErrorCode
                         """
                     }
                 }
