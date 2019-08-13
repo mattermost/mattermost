@@ -2587,10 +2587,17 @@ func TestSetChannelUnread(t *testing.T) {
 		assert.Equal(t, 403, r.StatusCode)
 	})
 
+	// let's create another user to test permissions
+	u3 := th.CreateUser()
+	c3 := th.CreateClient()
+	c3.Login(u3.Email, u3.Password)
+
 	t.Run("Can't unread channels you don't belong to", func(t *testing.T) {
-		u3 := th.CreateUser()
-		c3 := th.CreateClient()
-		c3.Login(u3.Email, u3.Password)
+		r := c3.SetPostUnread(u3.Id, pp1.Id)
+		assert.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("Can't unread users you don't have permission to edit", func(t *testing.T) {
 		r := c3.SetPostUnread(u1.Id, pp1.Id)
 		assert.Equal(t, 403, r.StatusCode)
 	})
