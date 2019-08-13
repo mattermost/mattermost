@@ -144,7 +144,7 @@ pipeline {
                 dir('src/github.com/mattermost/mattermost-server') {
                     ansiColor('xterm') {
                         sh """
-                        make GOPATH="/tmp/go" test-db-migration
+                        make GO111MODULE=off GOPATH="/tmp/go" test-db-migration
                         """
                     }
                 }
