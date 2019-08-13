@@ -142,6 +142,9 @@ pipeline {
                 }
 
                 dir('src/github.com/mattermost/mattermost-server') {
+                    environment {
+                        GOPATH = "/tmp/go"
+                    }
                     ansiColor('xterm') {
                         sh """
                         make test-db-migration
