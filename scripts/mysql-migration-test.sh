@@ -1,10 +1,11 @@
 TMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'tmpConfigDir'`
 DUMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t 'dumpDir'`
-CONTAINER="mysql"
-NETWORK=""
+
+CONTAINER="$COMPOSE_PROJECT_NAME_mysql"
+NETWORK="--network $COMPOSE_PROJECT_NAME_mm_test"
 if [ "$IS_CI" != 'true' ]; then
         CONTAINER="mattermost-mysql"
-        NETWORK="--network $COMPOSE_PROJECT_NAME_mm_test"
+        NETWORK=""
 fi
 
 cp config/config.json $TMPDIR
