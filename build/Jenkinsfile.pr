@@ -144,7 +144,53 @@ pipeline {
                 dir('src/github.com/mattermost/mattermost-server') {
                     ansiColor('xterm') {
                         sh """
-                        make GOPATH="/tmp/go" test-db-migration
+                        echo "Creating databases"
+                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
+                        echo "Importing postgres dump from version 5.0"
+                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres psql -U mmuser -d migrated < $(pwd)/scripts/mattermost-postgresql-5.0.sql
+                        """
+                    }
+                }
+
+                withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:feb-28-2019') {
+                    ansiColor('xterm') {
+                        sh """
+                            cd /go/src/github.com/mattermost/mattermost-server
+                            echo "Setting up config for db migration"
+                            cp config/config.json config/config_migration.json
+                            make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@localhost:5432/migrated?sslmode=disable&connect_timeout=10' --config config/config_migration.json" run-cli
+                            make ARGS="config set SqlSettings.DriverName 'postgres' --config config/config_migration.json" run-cli
+
+                            echo "Running the migration"
+                            make ARGS="version --config config/config_migration.json" run-cli
+
+                            echo "Setting up config for fresh db setup"
+                            make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@localhost:5432/latest?sslmode=disable&connect_timeout=10' --config config/config_migration.json" run-cli
+
+                            echo "Setting up fresh db"
+                            make ARGS="version --config config/config_migration.json" run-cli
+                        """
+                    }
+                }
+
+
+                dir('src/github.com/mattermost/mattermost-server') {
+                    ansiColor('xterm') {
+                        sh """
+                        echo "Generating dump"
+                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
+                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
+
+                        echo "Removing databases created for db comparison"
+                        /usr/local/bin/docker-compose --no-ansi  exec -f build/docker-compose.yml postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
+
+                        echo "Generating diff"
+                        diff migrated.sql latest.sql > diff.txt
+                        export diffErrorCode=$?
+
+                        if [ $diffErrorCode -eq 0 ]; then echo "Both schemas are same";else cat diff.txt; fi
+
+                        exit $diffErrorCode
                         """
                     }
                 }
