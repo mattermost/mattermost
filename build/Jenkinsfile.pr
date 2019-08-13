@@ -141,6 +141,14 @@ pipeline {
                     }
                 }
 
+                dir('src/github.com/mattermost/mattermost-server') {
+                    ansiColor('xterm') {
+                        sh """
+                        make test-db-migration
+                        """
+                    }
+                }
+
                 withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:feb-28-2019') {
                     ansiColor('xterm') {
                         sh """
@@ -150,7 +158,6 @@ pipeline {
                             cat config/config.json
 
                             make test-server BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE=
-                            make test-db-migration
                         """
                     }
                     withCredentials([string(credentialsId: 'CODECOV_TOKEN', variable: 'CODECOV')]) {
