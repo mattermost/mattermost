@@ -295,6 +295,7 @@ type ServiceSettings struct {
 	ExperimentalLdapGroupSync                         *bool
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 	EnableBotAccountCreation                          *bool
+	EnableSVGs                                        *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -644,6 +645,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.EnableBotAccountCreation == nil {
 		s.EnableBotAccountCreation = NewBool(false)
+	}
+
+	if s.EnableSVGs == nil {
+		s.EnableSVGs = NewBool(true)
 	}
 }
 
