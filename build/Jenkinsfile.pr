@@ -157,23 +157,25 @@ pipeline {
                         sh """
                             cd /go/src/github.com/mattermost/mattermost-server
                             echo "Setting up config for db migration"
-                            wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-                            chmod +x jq-linux64
-                            ./jq-linux64 \".SqlSettings.DataSource=\\\"postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10\\\"\"  config/config.json > config/config_migration1.json
-                            ./jq-linux64 \".SqlSettings.DriverName=\\\"postgres\\\"\" config/config_migration1.json > config/config_migration2.json
+                            export MM_SQLSETTINGS_DATASOURCE = \"\\\"postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10\\\"\"
+                            export MM_SQLSETTINGS_DRIVERNAME = \"postgres\"
+                            #wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+                            #chmod +x jq-linux64
+                            #./jq-linux64 \".SqlSettings.DataSource=\\\"postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10\\\"\"  config/config.json > config/config_migration1.json
+                            #./jq-linux64 \".SqlSettings.DriverName=\\\"postgres\\\"\" config/config_migration1.json > config/config_migration2.json
 
-                            cat config/config_migration2.json
-                            make ARGS="config get SqlSettings.DataSource --config config/config_migration2.json" run-cli
+                            #cat config/config_migration2.json
+                            make ARGS="config get SqlSettings.DataSource" run-cli
                             echo "Running the migration"
-                            make ARGS="version --config config/config_migration2.json" run-cli
+                            make ARGS="version" run-cli
 
                             echo "Setting up config for fresh db setup"
-                            ./jq-linux64 \".SqlSettings.DataSource=\\\"postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10\\\"\"  config/config_migration1.json > config/config_migration3.json
-
-                            cat config/config_migration3.json
+                            #./jq-linux64 \".SqlSettings.DataSource=\\\"postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10\\\"\"  config/config_migration1.json > config/config_migration3.json
+                            export MM_SQLSETTINGS_DATASOURCE = \"\\\"postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10\\\"\"
+                            #cat config/config_migration3.json
 
                             echo "Setting up fresh db"
-                            make ARGS="version --config config/config_migration3.json" run-cli
+                            make ARGS="version" run-cli
                         """
                     }
                 }
