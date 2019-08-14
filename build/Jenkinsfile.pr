@@ -157,7 +157,7 @@ pipeline {
                         sh """
                             cd /go/src/github.com/mattermost/mattermost-server
                             echo "Setting up config for db migration"
-                            cat config/config.json | jq \".SqlSettings.DataSource=\\\"postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable\\\&connect_timeout=10\\\"\" | jq \".SqlSettings.DriverName=\\\"postgres\\\"\" > config_migration.json
+                            cat config/config.json | jq \".SqlSettings.DataSource=\\\"postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10\\\"\" | jq \".SqlSettings.DriverName=\\\"postgres\\\"\" > config_migration.json
 
                             cat config/config_migration.json
 
@@ -165,7 +165,7 @@ pipeline {
                             make ARGS="version --config config/config_migration.json" run-cli
 
                             echo "Setting up config for fresh db setup"
-                            cat config/config.json | jq \".SqlSettings.DataSource=\\\"postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable\\\&connect_timeout=10\\\"\" | jq \".SqlSettings.DriverName=\\\"postgres\\\"\" > config_migration.json
+                            cat config/config.json | jq \".SqlSettings.DataSource=\\\"postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10\\\"\" | jq \".SqlSettings.DriverName=\\\"postgres\\\"\" > config_migration.json
 
                             cat config/config_migration.json
 
