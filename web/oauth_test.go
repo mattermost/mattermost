@@ -313,22 +313,22 @@ func TestOAuthAccessToken(t *testing.T) {
 		}
 	}
 
-	if _, err := ApiClient.DoApiGet("/test", ""); err != nil {
+	if _, err := ApiClient.DoApiGet("/oauth_test", ""); err != nil {
 		t.Fatal(err)
 	}
 
 	ApiClient.SetOAuthToken("")
-	if _, err := ApiClient.DoApiGet("/test", ""); err == nil {
+	if _, err := ApiClient.DoApiGet("/oauth_test", ""); err == nil {
 		t.Fatal("should have failed - no access token provided")
 	}
 
 	ApiClient.SetOAuthToken("badtoken")
-	if _, err := ApiClient.DoApiGet("/test", ""); err == nil {
+	if _, err := ApiClient.DoApiGet("/oauth_test", ""); err == nil {
 		t.Fatal("should have failed - bad token provided")
 	}
 
 	ApiClient.SetOAuthToken(token)
-	if _, err := ApiClient.DoApiGet("/test", ""); err != nil {
+	if _, err := ApiClient.DoApiGet("/oauth_test", ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -362,7 +362,7 @@ func TestOAuthAccessToken(t *testing.T) {
 			t.Fatal("access token type incorrect")
 		}
 		ApiClient.SetOAuthToken(rsp.AccessToken)
-		if _, err := ApiClient.DoApiGet("/test", ""); err != nil {
+		if _, err := ApiClient.DoApiGet("/oauth_test", ""); err != nil {
 			t.Fatal(err)
 		}
 
@@ -384,7 +384,7 @@ func TestOAuthAccessToken(t *testing.T) {
 			t.Fatal("access token type incorrect")
 		}
 		ApiClient.SetOAuthToken(rsp.AccessToken)
-		if _, err := ApiClient.DoApiGet("/test", ""); err != nil {
+		if _, err := ApiClient.DoApiGet("/oauth_test", ""); err != nil {
 			t.Fatal(err)
 		}
 
