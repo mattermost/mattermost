@@ -1105,7 +1105,9 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 			return nil, model.NewAppError("UpdateUser", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
 		}
 
-		user.Email = prev.Email
+		if !user.IsBot {
+			user.Email = prev.Email
+		}
 	}
 
 	userUpdate, err := a.Srv.Store.User().Update(user, false)
