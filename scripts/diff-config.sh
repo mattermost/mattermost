@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e
 if [ -z $FROM ]
 then
   echo "Missing FROM version. Usage: make diff-config FROM=v1.2.3 TO=v1.2.3"
@@ -34,7 +33,7 @@ diff -u <(flatten_json "$FROM_CONFIG") <(flatten_json "$TO_CONFIG")
 diff_exit=$?
 echo $diff_exit
 if [ $diff_exit -eq 1 ]; then
-exit 0
+  exit 0
 else
   exit $diff_exit
 fi
