@@ -33,9 +33,9 @@ type teamMember struct {
 	UserId      string
 	Roles       string
 	DeleteAt    int64
-	SchemeGuest sql.NullBool
 	SchemeUser  sql.NullBool
 	SchemeAdmin sql.NullBool
+	SchemeGuest sql.NullBool
 }
 
 func NewTeamMemberFromModel(tm *model.TeamMember) *teamMember {

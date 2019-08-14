@@ -141,6 +141,114 @@ pipeline {
                     }
                 }
 
+                dir('src/github.com/mattermost/mattermost-server') {
+                    ansiColor('xterm') {
+                        sh """
+                        echo "Creating databases"
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
+                        echo "Importing postgres dump from version 5.0"
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T postgres psql -U mmuser -d migrated < \$(pwd)/scripts/mattermost-postgresql-5.0.sql
+                        """
+                    }
+                }
+
+                withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:feb-28-2019') {
+                    ansiColor('xterm') {
+                        sh """
+                            cd /go/src/github.com/mattermost/mattermost-server
+                            echo "Setting up config for db migration"
+                            export MM_SQLSETTINGS_DATASOURCE=\"postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10\"
+                            export MM_SQLSETTINGS_DRIVERNAME=\"postgres\"
+                            make ARGS="config get SqlSettings.DataSource" run-cli
+                            echo "Running the migration"
+                            make ARGS="version" run-cli
+
+                            echo "Setting up config for fresh db setup"
+                            export MM_SQLSETTINGS_DATASOURCE=\"postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10\"
+                            make ARGS="config get SqlSettings.DataSource" run-cli
+
+                            echo "Setting up fresh db"
+                            make ARGS="version" run-cli
+                        """
+                    }
+                }
+
+
+                dir('src/github.com/mattermost/mattermost-server') {
+                    ansiColor('xterm') {
+                        sh """
+                        echo "Generating dump"
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
+
+                        echo "Removing databases created for db comparison"
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T postgres sh -c \'exec echo \"DROP DATABASE migrated; DROP DATABASE latest;\" | exec psql -U mmuser mattermost_test\'
+
+                        echo "Generating diff"
+                        diff migrated.sql latest.sql > diff.txt
+                        export diffErrorCode=\$?
+
+                        if [ \$diffErrorCode -eq 0 ]; then echo \"Both schemas are same\";else cat diff.txt; fi
+
+                        exit \$diffErrorCode
+                        """
+                    }
+                }
+
+                dir('src/github.com/mattermost/mattermost-server') {
+                    ansiColor('xterm') {
+                        sh """
+                        echo "Creating databases"
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T mysql mysql -uroot -pmostest -e \"CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser\"
+                        echo "Importing mysql dump from version 5.0"
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T mysql mysql -D migrated -uroot -pmostest < \$(pwd)/scripts/mattermost-mysql-5.0.sql
+                        """
+                    }
+                }
+
+                withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:feb-28-2019') {
+                    ansiColor('xterm') {
+                        sh """
+                            cd /go/src/github.com/mattermost/mattermost-server
+                            echo "Setting up config for db migration"
+                            export MM_SQLSETTINGS_DATASOURCE=\"mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s\"
+                            export MM_SQLSETTINGS_DRIVERNAME=\"mysql\"
+                            make ARGS="config get SqlSettings.DataSource" run-cli
+                            echo "Running the migration"
+                            make ARGS="version" run-cli
+
+                            echo "Setting up config for fresh db setup"
+                            export MM_SQLSETTINGS_DATASOURCE=\"mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s\"
+                            make ARGS="config get SqlSettings.DataSource" run-cli
+
+                            echo "Setting up fresh db"
+                            make ARGS="version" run-cli
+                        """
+                    }
+                }
+
+
+                dir('src/github.com/mattermost/mattermost-server') {
+                    ansiColor('xterm') {
+                        sh """
+                        echo "Generating dump"
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
+
+                        echo "Removing databases created for db comparison"
+                        /usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T mysql mysql -uroot -pmostest -e \"DROP DATABASE migrated; DROP DATABASE latest\"
+
+                        echo "Generating diff"
+                        diff migrated.sql latest.sql > diff.txt
+                        export diffErrorCode=\$?
+
+                        if [ \$diffErrorCode -eq 0 ]; then echo \"Both schemas are same\";else cat diff.txt; fi
+
+                        exit \$diffErrorCode
+                        """
+                    }
+                }
+
                 withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:feb-28-2019') {
                     ansiColor('xterm') {
                         sh """
@@ -150,7 +258,6 @@ pipeline {
                             cat config/config.json
 
                             make test-server BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE=
-
                         """
                     }
                     withCredentials([string(credentialsId: 'CODECOV_TOKEN', variable: 'CODECOV')]) {
