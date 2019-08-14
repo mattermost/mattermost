@@ -31,7 +31,6 @@ diff -u <(flatten_json "$FROM_CONFIG") <(flatten_json "$TO_CONFIG")
 
 # We ignore exits with 1 since it just means there's a difference, which is fine for us.
 diff_exit=$?
-echo $diff_exit
 if [ $diff_exit -eq 1 ]; then
   exit 0
 else
