@@ -285,6 +285,7 @@ type ServiceSettings struct {
 	DisableLegacyMFA                                  *bool
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
+	EnableSVGs                                        *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -582,6 +583,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ExperimentalLdapGroupSync == nil {
 		s.ExperimentalLdapGroupSync = NewBool(false)
+	}
+
+	if s.EnableSVGs == nil {
+		s.EnableSVGs = NewBool(true)
 	}
 }
 

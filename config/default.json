@@ -75,7 +75,8 @@
         "ExperimentalEnableHardenedMode": false,
         "DisableLegacyMFA": false,
         "EnableEmailInvitations": false,
-        "ExperimentalLdapGroupSync": false
+        "ExperimentalLdapGroupSync": false,
+        "EnableSVGs": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
