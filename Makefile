@@ -117,8 +117,8 @@ start-docker: ## Starts the docker containers for local development.
 ifeq ($(IS_CI),false)
 	@echo Starting docker containers
 
-	docker-compose --no-ansi run --rm start_dependencies
-	cat tests/${LDAP_DATA}-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	docker-compose run --rm start_dependencies
+	cat tests/${LDAP_DATA}-data.ldif | docker-compose exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 
 else
 	@echo CI Build: skipping docker start
@@ -127,14 +127,14 @@ endif
 stop-docker: ## Stops the docker containers for local development.
 	@echo Stopping docker containers
 
-	docker-compose --no-ansi stop
+	docker-compose stop
 
 
 clean-docker: ## Deletes the docker containers for local development.
 	@echo Removing docker containers
 
-	docker-compose --no-ansi down -v
-	docker-compose --no-ansi rm -v
+	docker-compose down -v
+	docker-compose rm -v
 
 
 govet: ## Runs govet against all packages.
