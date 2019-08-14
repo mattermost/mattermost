@@ -1,3 +1,5 @@
+//go:generate go run layer_generators/main.go
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -49,6 +51,7 @@ type Store interface {
 	LockToMaster()
 	UnlockFromMaster()
 	DropAllTables()
+	GetCurrentSchemaVersion() string
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
@@ -77,8 +80,8 @@ type TeamStore interface {
 	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
 	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	GetTotalMemberCount(teamId string) (int64, *model.AppError)
-	GetActiveMemberCount(teamId string) (int64, *model.AppError)
+	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
+	GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
 	GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError)
 	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError)
@@ -102,7 +105,7 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError)
-	CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError)
+	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)

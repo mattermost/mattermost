@@ -561,7 +561,7 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		return rtm, true, nil
 	}
 
-	membersCount, err := a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId)
+	membersCount, err := a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId, nil)
 	if err != nil {
 		return nil, false, err
 	}
@@ -1238,16 +1238,16 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 	return nil
 }
 
-func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+func (a *App) GetTeamStats(teamId string, restrictions *model.ViewUsersRestrictions) (*model.TeamStats, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
-		totalMemberCount, err := a.Srv.Store.Team().GetTotalMemberCount(teamId)
+		totalMemberCount, err := a.Srv.Store.Team().GetTotalMemberCount(teamId, restrictions)
 		tchan <- store.StoreResult{Data: totalMemberCount, Err: err}
 		close(tchan)
 	}()
 	achan := make(chan store.StoreResult, 1)
 	go func() {
-		memberCount, err := a.Srv.Store.Team().GetActiveMemberCount(teamId)
+		memberCount, err := a.Srv.Store.Team().GetActiveMemberCount(teamId, restrictions)
 		achan <- store.StoreResult{Data: memberCount, Err: err}
 		close(achan)
 	}()
@@ -1361,7 +1361,7 @@ func (a *App) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	if config.Width*config.Height > model.MaxImageSize {
-		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	file.Seek(0, 0)
@@ -1428,6 +1428,9 @@ func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
 
 func (a *App) InvalidateAllEmailInvites() *model.AppError {
 	if err := a.Srv.Store.Token().RemoveAllTokensByType(TOKEN_TYPE_TEAM_INVITATION); err != nil {
+		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	if err := a.Srv.Store.Token().RemoveAllTokensByType(TOKEN_TYPE_GUEST_INVITATION); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil

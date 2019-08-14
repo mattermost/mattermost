@@ -127,7 +127,7 @@ func TestEmailTest(t *testing.T) {
 
 		inbucket_host := os.Getenv("CI_INBUCKET_HOST")
 		if inbucket_host == "" {
-			inbucket_host = "dockerhost"
+			inbucket_host = "localhost"
 		}
 
 		inbucket_port := os.Getenv("CI_INBUCKET_PORT")
@@ -362,7 +362,7 @@ func TestS3TestConnection(t *testing.T) {
 
 	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
-		s3Host = "dockerhost"
+		s3Host = "localhost"
 	}
 
 	s3Port := os.Getenv("CI_MINIO_PORT")

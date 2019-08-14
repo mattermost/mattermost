@@ -1372,26 +1372,35 @@ func TestGetLinkMetadata(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
 
-		if strings.HasPrefix(r.URL.Path, "/image") {
-			height, _ := strconv.ParseInt(params["height"][0], 10, 0)
-			width, _ := strconv.ParseInt(params["width"][0], 10, 0)
+		writeImage := func(height, width int) {
 
-			img := image.NewGray(image.Rect(0, 0, int(width), int(height)))
+			img := image.NewGray(image.Rect(0, 0, height, width))
 
 			var encoder png.Encoder
 
 			encoder.Encode(w, img)
-		} else if strings.HasPrefix(r.URL.Path, "/opengraph") {
+		}
+
+		writeHTML := func(title string) {
 			w.Header().Set("Content-Type", "text/html")
 
 			w.Write([]byte(`
 				<html prefix="og:http://ogp.me/ns#">
 				<head>
-				<meta property="og:title" content="` + params["title"][0] + `" />
+				<meta property="og:title" content="` + title + `" />
 				</head>
 				<body>
 				</body>
 				</html>`))
+		}
+
+		if strings.HasPrefix(r.URL.Path, "/image") {
+			height, _ := strconv.ParseInt(params["height"][0], 10, 0)
+			width, _ := strconv.ParseInt(params["width"][0], 10, 0)
+
+			writeImage(int(height), int(width))
+		} else if strings.HasPrefix(r.URL.Path, "/opengraph") {
+			writeHTML(params["title"][0])
 		} else if strings.HasPrefix(r.URL.Path, "/json") {
 			w.Header().Set("Content-Type", "application/json")
 
@@ -1405,6 +1414,14 @@ func TestGetLinkMetadata(t *testing.T) {
 			case <-r.Context().Done():
 			}
 			w.Write([]byte("</html>"))
+		} else if strings.HasPrefix(r.URL.Path, "/mixed") {
+			for _, acceptedType := range r.Header["Accept"] {
+				if strings.HasPrefix(acceptedType, "image/*") || strings.HasPrefix(acceptedType, "image/png") {
+					writeImage(10, 10)
+				} else if strings.HasPrefix(acceptedType, "text/html") {
+					writeHTML("mixed")
+				}
+			}
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -1867,6 +1884,19 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.NotNil(t, err)
 		assert.IsType(t, imageproxy.Error{}, err)
+	})
+
+	t.Run("should prefer images for mixed content", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL + "/mixed?name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, true)
+		assert.Nil(t, og)
+		assert.NotNil(t, img)
+		assert.Nil(t, err)
 	})
 }
 

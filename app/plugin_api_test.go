@@ -319,6 +319,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	require.NotNil(t, err)
 	require.Nil(t, data)
 }
+
 func TestPluginAPISavePluginConfig(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -383,7 +384,7 @@ func TestPluginAPIGetPluginConfig(t *testing.T) {
 
 	api := NewPluginAPI(th.App, manifest)
 
-	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
+	pluginConfigJsonString := `{"mystringsetting": "str", "myintsetting": 32, "myboolsetting": true}`
 	var pluginConfig map[string]interface{}
 
 	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {
@@ -1243,4 +1244,38 @@ func TestPluginCreateBot(t *testing.T) {
 	})
 	require.NotNil(t, err)
 
+}
+
+func TestPluginCreatePostWithUploadedFile(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	data := []byte("Hello World")
+	channelId := th.BasicChannel.Id
+	filename := "testGetFile"
+	fileInfo, err := api.UploadFile(data, channelId, filename)
+	require.Nil(t, err)
+	defer func() {
+		th.App.Srv.Store.FileInfo().PermanentDelete(fileInfo.Id)
+		th.App.RemoveFile(fileInfo.Path)
+	}()
+
+	actualData, err := api.GetFile(fileInfo.Id)
+	require.Nil(t, err)
+	assert.Equal(t, data, actualData)
+
+	userId := th.BasicUser.Id
+	post, err := api.CreatePost(&model.Post{
+		Message:   "test",
+		UserId:    userId,
+		ChannelId: channelId,
+		FileIds:   model.StringArray{fileInfo.Id},
+	})
+	require.Nil(t, err)
+	assert.Equal(t, model.StringArray{fileInfo.Id}, post.FileIds)
+
+	actualPost, err := api.GetPost(post.Id)
+	require.Nil(t, err)
+	assert.Equal(t, model.StringArray{fileInfo.Id}, actualPost.FileIds)
 }
