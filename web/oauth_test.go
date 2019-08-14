@@ -313,28 +313,24 @@ func TestOAuthAccessToken(t *testing.T) {
 		}
 	}
 
-	// TODO: This fails...
-	// if _, err := ApiClient.DoApiGet("/users?page=0&per_page=100&access_token="+token, ""); err != nil {
-	// 	t.Fatal(err)
-	// }
+	if _, err := ApiClient.DoApiGet("/test", ""); err != nil {
+		t.Fatal(err)
+	}
 
-	if _, resp := ApiClient.GetUsers(0, 100, ""); resp.Error == nil {
+	ApiClient.SetOAuthToken("")
+	if _, err := ApiClient.DoApiGet("/test", ""); err == nil {
 		t.Fatal("should have failed - no access token provided")
 	}
 
-	if _, resp := ApiClient.GetUsers(0, 100, ""); resp.Error == nil {
-		t.Fatal("should have failed - bad access token provided")
+	ApiClient.SetOAuthToken("badtoken")
+	if _, err := ApiClient.DoApiGet("/test", ""); err == nil {
+		t.Fatal("should have failed - bad token provided")
 	}
 
 	ApiClient.SetOAuthToken(token)
-	// TODO: This fails...
-	// if users, resp := ApiClient.GetUsers(0, 100, ""); resp.Error != nil {
-	// 	t.Fatal(resp.Error)
-	// } else {
-	// 	if len(users) == 0 {
-	// 		t.Fatal("users empty - did not get results correctly")
-	// 	}
-	// }
+	if _, err := ApiClient.DoApiGet("/test", ""); err != nil {
+		t.Fatal(err)
+	}
 
 	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
 		t.Fatal("should have failed - tried to reuse auth code")
@@ -366,11 +362,9 @@ func TestOAuthAccessToken(t *testing.T) {
 			t.Fatal("access token type incorrect")
 		}
 		ApiClient.SetOAuthToken(rsp.AccessToken)
-		// TODO: This fails...
-		// _, resp = ApiClient.GetMe("")
-		// if resp.Error != nil {
-		// 	t.Fatal(resp.Error)
-		// }
+		if _, err := ApiClient.DoApiGet("/test", ""); err != nil {
+			t.Fatal(err)
+		}
 
 		data.Set("refresh_token", rsp.RefreshToken)
 	}
@@ -390,11 +384,10 @@ func TestOAuthAccessToken(t *testing.T) {
 			t.Fatal("access token type incorrect")
 		}
 		ApiClient.SetOAuthToken(rsp.AccessToken)
-		// TODO: This fails...
-		// _, resp = ApiClient.GetMe("")
-		// if resp.Error != nil {
-		// 	t.Fatal(resp.Error)
-		// }
+		if _, err := ApiClient.DoApiGet("/test", ""); err != nil {
+			t.Fatal(err)
+		}
+
 	}
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
