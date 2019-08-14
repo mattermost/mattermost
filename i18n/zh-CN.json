@@ -137,15 +137,15 @@
   },
   {
     "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "无法上传配置文件"
+    "translation": "无法删除图标"
   },
   {
     "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Unable to read icon image file"
+    "translation": "无法读取图标文件"
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "无法上传配置文件"
+    "translation": "无法上传图标"
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
@@ -153,7 +153,7 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "请求中缺失图片文件"
+    "translation": "请求中缺失图片"
   },
   {
     "id": "api.bot.set_bot_icon_image.open.app_error",
@@ -161,11 +161,11 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "不能解析混合表单"
+    "translation": "无法解析混合表单"
   },
   {
     "id": "api.bot.set_bot_icon_image.too_large.app_error",
-    "translation": "无法上传头像。文件太大。"
+    "translation": "无法上传图标。文件太大。"
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
@@ -1498,7 +1498,7 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "An error occurred while downloading the plugin."
+    "translation": "下载插件时遇到错误。"
   },
   {
     "id": "api.plugin.install.insecure_url.app_error",
@@ -1506,11 +1506,11 @@
   },
   {
     "id": "api.plugin.install.invalid_url.app_error",
-    "translation": "An invalid url was given to download the plugin."
+    "translation": "无效的插件下载地址。"
   },
   {
     "id": "api.plugin.install.reading_stream_failed.app_error",
-    "translation": "An error ocurred reading the plugin file stream."
+    "translation": "读取插件文件时遇到错误。"
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -3448,7 +3448,7 @@
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
-    "translation": "Error reading local plugins folder."
+    "translation": "读取本地插件文件夹错误。"
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -6612,7 +6612,7 @@
   },
   {
     "id": "store.sql_team.get_active_member_count.app_error",
-    "translation": "无法团队成员计数"
+    "translation": "无法统计团队成员数"
   },
   {
     "id": "store.sql_team.get_all.app_error",
@@ -6840,7 +6840,7 @@
   },
   {
     "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "我们查找用户配置文件遇到了一个错误"
+    "translation": "我们查找用户档案时遇到错误"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
