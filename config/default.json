@@ -80,7 +80,8 @@
         "ExperimentalLdapGroupSync": false,
         "ExperimentalStrictCSRFEnforcement": false,
         "EnableBotAccountCreation": false,
-        "DisableBotsWhenOwnerIsDeactivated": true
+        "DisableBotsWhenOwnerIsDeactivated": true,
+        "EnableSVGs": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
