@@ -492,7 +492,7 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		return err
 	}
 
-	user, appErr = a.UpdateUser(user, false)
+	user, appErr = a.UpdateUser(user, true)
 	if appErr != nil {
 		return fmt.Errorf("Unable to update user. Error: %s" + appErr.Error())
 	}
