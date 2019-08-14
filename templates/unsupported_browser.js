@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
     for (var i = 0; i < clicks.length; i++) {
         var element = clicks[i];
         element.addEventListener("click", function(e) {
-            window.location.href = e.currentTarget.getAttribute("data-mattermost-click");
+            window.open(e.currentTarget.getAttribute('data-mattermost-click'), '_blank');
         });
     };
 });

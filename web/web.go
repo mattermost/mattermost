@@ -47,6 +47,7 @@ func New(config configservice.ConfigService, globalOptions app.AppOptionCreator,
 var browserMinimumSupported = map[string]int{
 	"BrowserIE":     12,
 	"BrowserSafari": 9,
+	"BrowserChrome": 999,
 }
 
 func CheckClientCompatability(agentString string) bool {

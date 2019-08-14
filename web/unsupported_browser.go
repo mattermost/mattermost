@@ -17,10 +17,8 @@ type MattermostApp struct {
 	LogoSrc                string
 	Title                  string
 	SupportedVersionString string
-	Label64Bit             string
-	Link64Bit              string
-	Label32Bit             string
-	Link32Bit              string
+	Label                  string
+	Link                   string
 	InstallGuide           string
 	InstallGuideLink       string
 }
@@ -95,10 +93,8 @@ func renderMattermostAppMac(app *app.App) MattermostApp {
 		"/static/images/browser-icons/mac.png",
 		app.T("web.error.unsupported_browser.download_the_app"),
 		app.T("web.error.unsupported_browser.min_os_version.mac"),
-		app.T("web.error.unsupported_browser.download_64.mac"),
-		"https://releases.mattermost.com/desktop/4.2.1/mattermost-desktop-4.2.1-mac.zip",
-		"", // No 32-bit Mac version
-		"",
+		app.T("web.error.unsupported_browser.download"),
+		"https://mattermost.com/download/#mattermostApps",
 		app.T("web.error.unsupported_browser.install_guide.mac"),
 		"https://docs.mattermost.com/install/desktop.html#mac-os-x-10-9",
 	}
@@ -106,13 +102,11 @@ func renderMattermostAppMac(app *app.App) MattermostApp {
 
 func renderMattermostAppWindows(app *app.App) MattermostApp {
 	return MattermostApp{
-		"/static/images/browser-icons/windows.png",
+		"/static/images/browser-icons/windows.svg",
 		app.T("web.error.unsupported_browser.download_the_app"),
 		app.T("web.error.unsupported_browser.min_os_version.windows"),
-		app.T("web.error.unsupported_browser.download_64.windows"),
-		"https://releases.mattermost.com/desktop/4.2.1/mattermost-setup-4.2.1-win64.exe",
-		app.T("web.error.unsupported_browser.download_32.windows"),
-		"https://releases.mattermost.com/desktop/4.2.1/mattermost-setup-4.2.1-win32.exe",
+		app.T("web.error.unsupported_browser.download"),
+		"https://mattermost.com/download/#mattermostApps",
 		app.T("web.error.unsupported_browser.install_guide.windows"),
 		"https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7",
 	}
@@ -120,7 +114,7 @@ func renderMattermostAppWindows(app *app.App) MattermostApp {
 
 func renderBrowserChrome(app *app.App) Browser {
 	return Browser{
-		"/static/images/browser-icons/chrome.png",
+		"/static/images/browser-icons/chrome.svg",
 		app.T("web.error.unsupported_browser.browser_title.chrome"),
 		app.T("web.error.unsupported_browser.min_browser_version.chrome"),
 		"http://www.google.com/chrome",
@@ -130,7 +124,7 @@ func renderBrowserChrome(app *app.App) Browser {
 
 func renderBrowserFirefox(app *app.App) Browser {
 	return Browser{
-		"/static/images/browser-icons/firefox.png",
+		"/static/images/browser-icons/firefox.svg",
 		app.T("web.error.unsupported_browser.browser_title.firefox"),
 		app.T("web.error.unsupported_browser.min_browser_version.firefox"),
 		"https://www.mozilla.org/en-CA/firefox/new/",
@@ -140,7 +134,7 @@ func renderBrowserFirefox(app *app.App) Browser {
 
 func renderBrowserSafari(app *app.App) Browser {
 	return Browser{
-		"/static/images/browser-icons/safari.png",
+		"/static/images/browser-icons/safari.svg",
 		app.T("web.error.unsupported_browser.browser_title.safari"),
 		app.T("web.error.unsupported_browser.min_browser_version.safari"),
 		"macappstore://showUpdatesPage",
@@ -150,7 +144,7 @@ func renderBrowserSafari(app *app.App) Browser {
 
 func renderSystemBrowserEdge(app *app.App, r *http.Request) SystemBrowser {
 	return SystemBrowser{
-		"/static/images/browser-icons/edge.png",
+		"/static/images/browser-icons/edge.svg",
 		app.T("web.error.unsupported_browser.browser_title.edge"),
 		app.T("web.error.unsupported_browser.min_browser_version.edge"),
 		app.T("web.error.unsupported_browser.open_system_browser.edge"),

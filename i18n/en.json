@@ -7343,16 +7343,8 @@
     "translation": "Safari"
   },
   {
-    "id": "web.error.unsupported_browser.download_32.windows",
-    "translation": "32-Bit"
-  },
-  {
-    "id": "web.error.unsupported_browser.download_64.mac",
+    "id": "web.error.unsupported_browser.download",
     "translation": "Download the App"
-  },
-  {
-    "id": "web.error.unsupported_browser.download_64.windows",
-    "translation": "Download 64-Bit"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",

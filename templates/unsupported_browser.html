@@ -78,19 +78,15 @@
             />
             <button 
                 class='mattermost-app-button' 
-                data-mattermost-click='{{.Link64Bit}}'
+                data-mattermost-click='{{.Link}}'
             >
-                {{.Label64Bit}}
+                {{.Label}}
             </button>
             <div class='mattermost-app-hover-alt'>
-                {{if .Label32Bit}}
-                    <a href='{{.Link32Bit}}'>{{.Label32Bit}}</a>
-                    &nbsp;|&nbsp;
-                {{end}}
-            <a href='{{.InstallGuideLink}}'>{{.InstallGuide}}</a>
+                <a href='{{.InstallGuideLink}}' target='_blank'>{{.InstallGuide}}</a>
+            </div>
         </div>
     </div>
-</div>
 {{end}}
 {{define "unsupported_browser"}}
     <!DOCTYPE html>
@@ -296,7 +292,7 @@
                         {{template "unsupported_browser-system_browser" .Props.SystemBrowser}}
                     {{end}}
                     <div class='learn-more-about-sup'>
-                        <a href='https://docs.mattermost.com/install/requirements.html#pc-web'>{{.Props.LearnMoreString}}</a>
+                        <a href='https://docs.mattermost.com/install/requirements.html#pc-web' target='_blank'>{{.Props.LearnMoreString}}</a>
                     </div>
                 </div>
             </div>
