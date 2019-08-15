@@ -3,7 +3,11 @@
 
 package plugin
 
-import "github.com/mattermost/mattermost-server/model"
+import (
+	"sync"
+
+	"github.com/mattermost/mattermost-server/model"
+)
 
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
@@ -29,8 +33,18 @@ type Helpers interface {
 	//
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
+
+	// Register a command with a callback so the command process is done by the helper instead
+	// Returns error if the callback is not provided or the API.RegisterCommand fails
+	RegisterCommand(command *model.Command, callback CommandCallback) error
+
+	// Execute a command and executes the stored callback for that trigger
+	// Returns (&model.CommandResponse{}, nil) if for some reason the callback doesn't exist
+	// Returns (&model.CommandResponse{...}, nil) if the command was executed correctly
+	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 }
 
 type HelpersImpl struct {
-	API API
+	API              API
+	CommandCallbacks sync.Map
 }
