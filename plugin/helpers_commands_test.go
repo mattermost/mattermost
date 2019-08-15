@@ -60,7 +60,7 @@ func TestHelperCommands(t *testing.T) {
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
-			testCallback := func(c *plugin.Context, args *plugin.CommandArgs, originalArgs *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+			testCallback := func(c *plugin.Context, args *plugin.CommandArgs) (*model.CommandResponse, *model.AppError) {
 				return nil, nil
 			}
 			err := p.RegisterCommand(testCommand, testCallback)
@@ -81,11 +81,11 @@ func TestHelperCommands(t *testing.T) {
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
-			testCallback := func(c *plugin.Context, args *plugin.CommandArgs, originalArgs *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+			testCallback := func(c *plugin.Context, args *plugin.CommandArgs) (*model.CommandResponse, *model.AppError) {
 				assert.Equal(t, args.Trigger, "test_command")
 				assert.Equal(t, args.Args[0], "one")
 				assert.Equal(t, len(args.Args), 3)
-				assert.Equal(t, originalArgs.Command, "/test_command one two three")
+				assert.Equal(t, args.OriginalArgs.Command, "/test_command one two three")
 				return nil, nil
 			}
 			err := p.RegisterCommand(testCommand, testCallback)
@@ -102,10 +102,10 @@ func TestHelperCommands(t *testing.T) {
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
-			testCallback := func(c *plugin.Context, args *plugin.CommandArgs, originalArgs *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+			testCallback := func(c *plugin.Context, args *plugin.CommandArgs) (*model.CommandResponse, *model.AppError) {
 				assert.Equal(t, args.Trigger, "test_command")
 				assert.Equal(t, len(args.Args), 0)
-				assert.Equal(t, originalArgs.Command, "/test_command")
+				assert.Equal(t, args.OriginalArgs.Command, "/test_command")
 				return nil, nil
 			}
 			err := p.RegisterCommand(testCommand, testCallback)
@@ -122,7 +122,7 @@ func TestHelperCommands(t *testing.T) {
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
-			testCallback := func(c *plugin.Context, args *plugin.CommandArgs, originalArgs *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+			testCallback := func(c *plugin.Context, args *plugin.CommandArgs) (*model.CommandResponse, *model.AppError) {
 				return &model.CommandResponse{}, nil
 			}
 			err := p.RegisterCommand(testCommand, testCallback)

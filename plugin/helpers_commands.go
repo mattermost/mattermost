@@ -10,11 +10,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-type CommandCallback func(c *Context, args *CommandArgs, originalArgs *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+type CommandCallback func(c *Context, args *CommandArgs) (*model.CommandResponse, *model.AppError)
 
 type CommandArgs struct {
-	Trigger string
-	Args    []string
+	Trigger      string
+	Args         []string
+	OriginalArgs *model.CommandArgs
 }
 
 func (p *HelpersImpl) RegisterCommand(command *model.Command, callback CommandCallback) error {
@@ -36,13 +37,14 @@ func (p *HelpersImpl) ExecuteCommand(c *Context, args *model.CommandArgs) (*mode
 	trigger := strings.TrimPrefix(fields[0], "/")
 	parameters := fields[1:]
 	pluginArgs := &CommandArgs{
-		Trigger: trigger,
-		Args:    parameters,
+		Trigger:      trigger,
+		Args:         parameters,
+		OriginalArgs: args,
 	}
 	callback, ok := p.CommandCallbacks.Load(trigger)
 
 	if ok {
-		return callback.(CommandCallback)(c, pluginArgs, args)
+		return callback.(CommandCallback)(c, pluginArgs)
 	}
 
 	return nil, nil
