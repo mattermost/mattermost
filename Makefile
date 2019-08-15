@@ -82,12 +82,14 @@ TE_PACKAGES=$(shell go list ./...)
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.0-rc2
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -117,8 +119,8 @@ start-docker: ## Starts the docker containers for local development.
 ifeq ($(IS_CI),false)
 	@echo Starting docker containers
 
-	docker-compose --no-ansi run --rm start_dependencies
-	cat tests/${LDAP_DATA}-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	docker-compose run --rm start_dependencies
+	cat tests/${LDAP_DATA}-data.ldif | docker-compose exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 
 else
 	@echo CI Build: skipping docker start
@@ -127,14 +129,14 @@ endif
 stop-docker: ## Stops the docker containers for local development.
 	@echo Stopping docker containers
 
-	docker-compose --no-ansi stop
+	docker-compose stop
 
 
 clean-docker: ## Deletes the docker containers for local development.
 	@echo Removing docker containers
 
-	docker-compose --no-ansi down -v
-	docker-compose --no-ansi rm -v
+	docker-compose down -v
+	docker-compose rm -v
 
 
 govet: ## Runs govet against all packages.

@@ -404,8 +404,8 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string)
 	return ruser, nil
 }
 
-// CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
-func CheckUserDomain(user *model.User, domains string) bool {
+// CheckEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
+func CheckEmailDomain(email string, domains string) bool {
 	if len(domains) == 0 {
 		return true
 	}
@@ -413,12 +413,17 @@ func CheckUserDomain(user *model.User, domains string) bool {
 	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
 
 	for _, d := range domainArray {
-		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
+		if strings.HasSuffix(strings.ToLower(email), "@"+d) {
 			return true
 		}
 	}
 
 	return false
+}
+
+// CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
+func CheckUserDomain(user *model.User, domains string) bool {
+	return CheckEmailDomain(user.Email, domains)
 }
 
 // IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
@@ -1089,8 +1094,14 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	}
 
 	if !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
-		if !prev.IsLDAPUser() && !prev.IsSAMLUser() && user.Email != prev.Email {
-			return nil, model.NewAppError("UpdateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+		if !prev.IsGuest() && !prev.IsLDAPUser() && !prev.IsSAMLUser() && user.Email != prev.Email {
+			return nil, model.NewAppError("UpdateUser", "api.user.update_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if !CheckUserDomain(user, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+		if prev.IsGuest() && !prev.IsLDAPUser() && !prev.IsSAMLUser() && user.Email != prev.Email {
+			return nil, model.NewAppError("UpdateUser", "api.user.update_user.accepted_guest_domain.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

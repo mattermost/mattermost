@@ -938,6 +938,29 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 	return posts, nil
 }
 
+func (a *App) convertChannelNamesToChannelIds(channels []string, userId string, teamId string, includeDeletedChannels bool) []string {
+	for idx, channelName := range channels {
+		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+		if err != nil {
+			mlog.Error(fmt.Sprint(err))
+			continue
+		}
+		channels[idx] = channel.Id
+	}
+	return channels
+}
+
+func (a *App) convertUserNameToUserIds(usernames []string) []string {
+	for idx, username := range usernames {
+		if user, err := a.GetUserByUsername(username); err != nil {
+			mlog.Error(fmt.Sprint(err))
+		} else {
+			usernames[idx] = user.Id
+		}
+	}
+	return usernames
+}
+
 func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v", teamId), http.StatusNotImplemented)
@@ -956,23 +979,12 @@ func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userI
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
-			for idx, channelName := range params.InChannels {
-				channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
-				if err != nil {
-					mlog.Error(fmt.Sprint(err))
-					continue
-				}
-				params.InChannels[idx] = channel.Id
-			}
+			params.InChannels = a.convertChannelNamesToChannelIds(params.InChannels, userId, teamId, includeDeletedChannels)
+			params.ExcludedChannels = a.convertChannelNamesToChannelIds(params.ExcludedChannels, userId, teamId, includeDeletedChannels)
 
 			// Convert usernames to user IDs
-			for idx, username := range params.FromUsers {
-				if user, err := a.GetUserByUsername(username); err != nil {
-					mlog.Error(fmt.Sprint(err))
-				} else {
-					params.FromUsers[idx] = user.Id
-				}
-			}
+			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
+			params.ExcludedUsers = a.convertUserNameToUserIds(params.ExcludedUsers)
 
 			finalParamsList = append(finalParamsList, params)
 		}
@@ -1047,6 +1059,16 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 						continue
 					}
 					params.InChannels[idx] = channel.Name
+				}
+			}
+			for idx, channelName := range params.ExcludedChannels {
+				if strings.HasPrefix(channelName, "@") {
+					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+					if err != nil {
+						mlog.Error(fmt.Sprint(err))
+						continue
+					}
+					params.ExcludedChannels[idx] = channel.Name
 				}
 			}
 		})
