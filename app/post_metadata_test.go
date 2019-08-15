@@ -2006,10 +2006,9 @@ func TestParseImages(t *testing.T) {
 		"animated gif": {
 			FileName: "testgif.gif",
 			Expected: &model.PostImage{
-				Width:      118,
-				Height:     118,
-				Format:     "gif",
-				FrameCount: 4,
+				Width:  118,
+				Height: 118,
+				Format: "gif",
 			},
 		},
 		"tiff": {

@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/imgutils"
 	"github.com/mattermost/mattermost-server/utils/markdown"
 )
 
@@ -514,16 +513,6 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 		Width:  config.Width,
 		Height: config.Height,
 		Format: format,
-	}
-
-	if format == "gif" {
-		// Decoding the config may have read some of the image data, so re-read the data that has already been read first
-		frameCount, err := imgutils.CountFrames(io.MultiReader(buf, body))
-		if err != nil {
-			return nil, err
-		}
-
-		image.FrameCount = frameCount
 	}
 
 	return image, nil
