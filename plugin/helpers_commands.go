@@ -18,18 +18,17 @@ type CommandArgs struct {
 }
 
 func (p *HelpersImpl) RegisterCommand(command *model.Command, callback CommandCallback) error {
-
 	if callback == nil {
 		return errors.New("Cannot register a command without callback")
 	}
 
 	err := p.API.RegisterCommand(command)
-
-	if err == nil {
-		p.CommandCallbacks.Store(command.Trigger, callback)
+	if err != nil {
+		return err
 	}
 
-	return err
+	p.CommandCallbacks.Store(command.Trigger, callback)
+	return nil
 }
 
 func (p *HelpersImpl) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
