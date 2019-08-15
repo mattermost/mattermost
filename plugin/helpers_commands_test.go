@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestEnsureBot(t *testing.T) {
+func TestHelperCommands(t *testing.T) {
 	setupAPI := func() *plugintest.API {
 		return &plugintest.API{}
 	}
