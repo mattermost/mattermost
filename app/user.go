@@ -2248,10 +2248,10 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 	promotedUser, err := a.GetUser(user.Id)
 	if err != nil {
 		mlog.Error(err.Error())
+	} else {
+		a.sendUpdatedUserEvent(*promotedUser)
+		a.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest())
 	}
-
-	a.sendUpdatedUserEvent(*promotedUser)
-	a.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest())
 
 	teamMembers, err := a.GetTeamMembersForUser(user.Id)
 	if err != nil {
@@ -2287,10 +2287,10 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	demotedUser, err := a.GetUser(user.Id)
 	if err != nil {
 		mlog.Error(err.Error())
+	} else {
+		a.sendUpdatedUserEvent(*demotedUser)
+		a.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest())
 	}
-
-	a.sendUpdatedUserEvent(*demotedUser)
-	a.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest())
 
 	teamMembers, err := a.GetTeamMembersForUser(user.Id)
 	if err != nil {
