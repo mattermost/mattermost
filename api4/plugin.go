@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -17,6 +18,7 @@ import (
 
 const (
 	MAXIMUM_PLUGIN_FILE_SIZE = 50 * 1024 * 1024
+	HTTP_REQUEST_TIMEOUT     = 60 * time.Minute
 )
 
 func (api *API) InitPlugin() {
@@ -115,6 +117,8 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := c.App.HTTPService.MakeClient(true)
+	client.Timeout = HTTP_REQUEST_TIMEOUT
+
 	resp, err := client.Get(downloadUrl)
 	if err != nil {
 		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
