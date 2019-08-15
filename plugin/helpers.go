@@ -34,11 +34,15 @@ type Helpers interface {
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 
-	// Register a command, using the Plugin API, and stores the callback attached to the command trigger.
+	// RegisterCommand registers the given command and callback for the ExecuteCommand helper.
 	// Returns error if the callback is not provided or the API.RegisterCommand fails
 	RegisterCommand(command *model.Command, callback CommandCallback) error
 
-	// Execute a command and executes the stored callback for that trigger.
+	// ExecuteCommand handles command execution, triggering previously registered callbacks.
+	// It is meant to replace the implementation of the hook of the same name:
+	//     func (p *Plugin) ExecuteCommand(c *Context, args *model.CommandArgs) {
+	//         return p.Helpers.ExecuteCommand(c, args)
+	//     }
 	// Returns (&model.CommandResponse{}, nil) if for some reason the callback doesn't exist
 	// Returns (&model.CommandResponse{...}, nil) if the callback was executed correctly
 	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
