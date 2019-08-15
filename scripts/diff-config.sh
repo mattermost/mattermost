@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-if [ -z $FROM ]
+if [ -z "$FROM" ]
 then
   echo "Missing FROM version. Usage: make diff-config FROM=v1.2.3 TO=v1.2.3"
   exit 1
 fi
 
-if [ -z $TO ]
+if [ -z "$TO" ]
 then
   echo "Missing TO version. Usage: make diff-config FROM=v1.2.3 TO=v1.2.3"
   exit 1
@@ -13,7 +13,7 @@ fi
 
 # Returns the config file for a specific release
 function fetch_config() {
-  wget -q -O- https://releases.mattermost.com/$1/mattermost-$1-linux-amd64.tar.gz | tar -xzOf - mattermost/config/config.json | jq -S .
+  wget -q -O- https://releases.mattermost.com/"$1"/mattermost-"$1"-linux-amd64.tar.gz | tar -xzOf - mattermost/config/config.json | jq -S .
 }
 
 echo Fetching config files
@@ -31,4 +31,3 @@ if [ $diff_exit -eq 1 ]; then
 else
   exit $diff_exit
 fi
-
