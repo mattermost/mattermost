@@ -23,8 +23,13 @@ func (p *HelpersImpl) RegisterCommand(command *model.Command, callback CommandCa
 		return errors.New("Cannot register a command without callback")
 	}
 
-	p.CommandCallbacks.Store(command.Trigger, callback)
-	return p.API.RegisterCommand(command)
+	err := p.API.RegisterCommand(command)
+
+	if err == nil {
+		p.CommandCallbacks.Store(command.Trigger, callback)
+	}
+
+	return err
 }
 
 func (p *HelpersImpl) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
