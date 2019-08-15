@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -16,7 +15,13 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func initSqlSupplierSchemes(sqlStore SqlStore) {
+type SqlSchemeStore struct {
+	SqlStore
+}
+
+func NewSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
+	s := &SqlSchemeStore{sqlStore}
+
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Scheme{}, "Schemes").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
@@ -31,9 +36,14 @@ func initSqlSupplierSchemes(sqlStore SqlStore) {
 		table.ColMap("DefaultChannelUserRole").SetMaxSize(64)
 		table.ColMap("DefaultChannelGuestRole").SetMaxSize(64)
 	}
+
+	return s
 }
 
-func (s *SqlSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hints ...store.LayeredStoreHint) (*model.Scheme, *model.AppError) {
+func (s SqlSchemeStore) CreateIndexesIfNotExists() {
+}
+
+func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
 	if len(scheme.Id) == 0 {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
@@ -41,7 +51,7 @@ func (s *SqlSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hint
 		}
 		defer finalizeTransaction(transaction)
 
-		newScheme, appErr := s.createScheme(ctx, scheme, transaction, hints...)
+		newScheme, appErr := s.createScheme(scheme, transaction)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -68,11 +78,11 @@ func (s *SqlSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hint
 	return scheme, nil
 }
 
-func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, transaction *gorp.Transaction, hints ...store.LayeredStoreHint) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Transaction) (*model.Scheme, *model.AppError) {
 	// Fetch the default system scheme roles to populate default permissions.
 	defaultRoleNames := []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_GUEST_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_GUEST_ROLE_ID}
 	defaultRoles := make(map[string]*model.Role)
-	roles, err := s.RoleGetByNames(ctx, defaultRoleNames)
+	roles, err := s.SqlStore.Role().GetByNames(defaultRoleNames)
 	if err != nil {
 		return nil, err
 	}
@@ -108,11 +118,11 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			SchemeManaged: true,
 		}
 
-		savedRole, err := s.createRole(ctx, teamAdminRole, transaction)
-		if err != nil {
+		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(teamAdminRole, transaction); err != nil {
 			return nil, err
+		} else {
+			scheme.DefaultTeamAdminRole = savedRole.Name
 		}
-		scheme.DefaultTeamAdminRole = savedRole.Name
 
 		// Team User Role
 		teamUserRole := &model.Role{
@@ -122,11 +132,11 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			SchemeManaged: true,
 		}
 
-		savedRole, err = s.createRole(ctx, teamUserRole, transaction)
-		if err != nil {
+		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(teamUserRole, transaction); err != nil {
 			return nil, err
+		} else {
+			scheme.DefaultTeamUserRole = savedRole.Name
 		}
-		scheme.DefaultTeamUserRole = savedRole.Name
 
 		// Team Guest Role
 		teamGuestRole := &model.Role{
@@ -136,11 +146,11 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			SchemeManaged: true,
 		}
 
-		savedRole, err = s.createRole(ctx, teamGuestRole, transaction)
-		if err != nil {
+		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(teamGuestRole, transaction); err != nil {
 			return nil, err
+		} else {
+			scheme.DefaultTeamGuestRole = savedRole.Name
 		}
-		scheme.DefaultTeamGuestRole = savedRole.Name
 	}
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
 		// Channel Admin Role
@@ -151,11 +161,11 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			SchemeManaged: true,
 		}
 
-		savedRole, err := s.createRole(ctx, channelAdminRole, transaction)
-		if err != nil {
+		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(channelAdminRole, transaction); err != nil {
 			return nil, err
+		} else {
+			scheme.DefaultChannelAdminRole = savedRole.Name
 		}
-		scheme.DefaultChannelAdminRole = savedRole.Name
 
 		// Channel User Role
 		channelUserRole := &model.Role{
@@ -165,11 +175,11 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			SchemeManaged: true,
 		}
 
-		savedRole, err = s.createRole(ctx, channelUserRole, transaction)
-		if err != nil {
+		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(channelUserRole, transaction); err != nil {
 			return nil, err
+		} else {
+			scheme.DefaultChannelUserRole = savedRole.Name
 		}
-		scheme.DefaultChannelUserRole = savedRole.Name
 
 		// Channel Guest Role
 		channelGuestRole := &model.Role{
@@ -179,11 +189,11 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			SchemeManaged: true,
 		}
 
-		savedRole, err = s.createRole(ctx, channelGuestRole, transaction)
-		if err != nil {
+		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(channelGuestRole, transaction); err != nil {
 			return nil, err
+		} else {
+			scheme.DefaultChannelGuestRole = savedRole.Name
 		}
-		scheme.DefaultChannelGuestRole = savedRole.Name
 	}
 
 	scheme.Id = model.NewId()
@@ -205,7 +215,7 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 	return scheme, nil
 }
 
-func (s *SqlSupplier) SchemeGet(ctx context.Context, schemeId string, hints ...store.LayeredStoreHint) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
 	var scheme model.Scheme
 	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Id = :Id", map[string]interface{}{"Id": schemeId}); err != nil {
 		if err == sql.ErrNoRows {
@@ -217,7 +227,7 @@ func (s *SqlSupplier) SchemeGet(ctx context.Context, schemeId string, hints ...s
 	return &scheme, nil
 }
 
-func (s *SqlSupplier) SchemeGetByName(ctx context.Context, schemeName string, hints ...store.LayeredStoreHint) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
 	var scheme model.Scheme
 
 	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Name = :Name", map[string]interface{}{"Name": schemeName}); err != nil {
@@ -230,7 +240,7 @@ func (s *SqlSupplier) SchemeGetByName(ctx context.Context, schemeName string, hi
 	return &scheme, nil
 }
 
-func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints ...store.LayeredStoreHint) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
 	// Get the scheme
 	var scheme model.Scheme
 	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Id = :Id", map[string]interface{}{"Id": schemeId}); err != nil {
@@ -280,17 +290,15 @@ func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints .
 	scheme.UpdateAt = time
 	scheme.DeleteAt = time
 
-	rowsChanged, err := s.GetMaster().Update(&scheme)
-	if err != nil {
+	if rowsChanged, err := s.GetMaster().Update(&scheme); err != nil {
 		return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.update.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
-	}
-	if rowsChanged != 1 {
+	} else if rowsChanged != 1 {
 		return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.update.app_error", nil, "no record to update", http.StatusInternalServerError)
 	}
 	return &scheme, nil
 }
 
-func (s *SqlSupplier) SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...store.LayeredStoreHint) ([]*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
 	var schemes []*model.Scheme
 
 	scopeClause := ""
@@ -305,7 +313,7 @@ func (s *SqlSupplier) SchemeGetAllPage(ctx context.Context, scope string, offset
 	return schemes, nil
 }
 
-func (s *SqlSupplier) SchemePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *model.AppError {
+func (s *SqlSchemeStore) PermanentDeleteAll() *model.AppError {
 	if _, err := s.GetMaster().Exec("DELETE from Schemes"); err != nil {
 		return model.NewAppError("SqlSchemeStore.PermanentDeleteAll", "store.sql_scheme.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

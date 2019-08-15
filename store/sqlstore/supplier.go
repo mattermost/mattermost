@@ -152,10 +152,9 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
 	supplier.oldStores.linkMetadata = NewSqlLinkMetadataStore(supplier)
 	supplier.oldStores.reaction = NewSqlReactionStore(supplier)
+	supplier.oldStores.role = NewSqlRoleStore(supplier)
+	supplier.oldStores.scheme = NewSqlSchemeStore(supplier)
 	supplier.oldStores.group = NewSqlGroupStore(supplier)
-
-	initSqlSupplierRoles(supplier)
-	initSqlSupplierSchemes(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
