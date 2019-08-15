@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type CommandCallback func(args *CommandArgs, originalArgs *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+type CommandCallback func(c *Context, args *CommandArgs, originalArgs *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 
 type CommandArgs struct {
 	Trigger string
@@ -43,7 +43,7 @@ func (p *HelpersImpl) ExecuteCommand(c *Context, args *model.CommandArgs) (*mode
 	callback, ok := p.CommandCallbacks.Load(trigger)
 
 	if ok {
-		return callback.(CommandCallback)(pluginArgs, args)
+		return callback.(CommandCallback)(c, pluginArgs, args)
 	}
 
 	return &model.CommandResponse{}, nil
