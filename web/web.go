@@ -33,6 +33,7 @@ func New(config configservice.ConfigService, globalOptions app.AppOptionCreator,
 		MainRouter:          root,
 	}
 
+	web.InitOAuth()
 	web.InitWebhooks()
 	web.InitSaml()
 	web.InitStatic()

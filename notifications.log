@@ -1,0 +1,1 @@
+{"level":"warn","ts":1565874395.0940273,"caller":"app/notification.go:333","msg":"Notification not sent","logSource":"notifications","ackId":"","type":"message","userId":"tp95pwtw9pf3xcn8o9coxnwypy","postId":"7roq1g1o5ifnzq83j3hyomcctw","status":"Not Sent due to preferences"}
