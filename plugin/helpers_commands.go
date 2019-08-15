@@ -45,5 +45,5 @@ func (p *HelpersImpl) ExecuteCommand(c *Context, args *model.CommandArgs) (*mode
 		return callback.(CommandCallback)(c, pluginArgs, args)
 	}
 
-	return &model.CommandResponse{}, nil
+	return nil, nil
 }
