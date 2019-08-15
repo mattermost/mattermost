@@ -2647,6 +2647,14 @@
     "translation": "Update password failed because we couldn't find a valid account"
   },
   {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
+  },
+  {
     "id": "api.user.upload_profile_user.array.app_error",
     "translation": "Empty array under 'image' in request"
   },
