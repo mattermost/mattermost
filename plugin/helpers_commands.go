@@ -13,9 +13,10 @@ import (
 type CommandCallback func(c *Context, args *CommandArgs) (*model.CommandResponse, *model.AppError)
 
 type CommandArgs struct {
-	Trigger      string
-	Args         []string
-	OriginalArgs *model.CommandArgs
+	*model.CommandArgs
+
+	Trigger string
+	Args    []string
 }
 
 func (p *HelpersImpl) RegisterCommand(command *model.Command, callback CommandCallback) error {
@@ -35,17 +36,16 @@ func (p *HelpersImpl) ExecuteCommand(c *Context, args *model.CommandArgs) (*mode
 	fields := strings.Fields(args.Command)
 	trigger := strings.TrimPrefix(fields[0], "/")
 	parameters := fields[1:]
-	pluginArgs := &CommandArgs{
-		Trigger:      trigger,
-		Args:         parameters,
-		OriginalArgs: args,
+	commandArgs := &CommandArgs{
+		args,
+		trigger,
+		parameters,
 	}
 	callback, ok := p.CommandCallbacks.Load(trigger)
-
 	if !ok {
 		p.API.LogWarn("Callback not available for the executed command", "trigger", trigger, "args", parameters)
 		return nil, nil
 	}
 
-	return callback.(CommandCallback)(c, pluginArgs)
+	return callback.(CommandCallback)(c, commandArgs)
 }

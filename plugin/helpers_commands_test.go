@@ -107,7 +107,7 @@ func TestHelperCommands(t *testing.T) {
 				assert.Equal(t, args.Trigger, "test_command")
 				assert.Equal(t, args.Args[0], "one")
 				assert.Equal(t, len(args.Args), 3)
-				assert.Equal(t, args.OriginalArgs.Command, "/test_command one two three")
+				assert.Equal(t, args.Command, "/test_command one two three")
 				return nil, nil
 			}
 			err := p.RegisterCommand(testCommand, testCallback)
@@ -127,7 +127,7 @@ func TestHelperCommands(t *testing.T) {
 			testCallback := func(c *plugin.Context, args *plugin.CommandArgs) (*model.CommandResponse, *model.AppError) {
 				assert.Equal(t, args.Trigger, "test_command")
 				assert.Equal(t, len(args.Args), 0)
-				assert.Equal(t, args.OriginalArgs.Command, "/test_command")
+				assert.Equal(t, args.Command, "/test_command")
 				return nil, nil
 			}
 			err := p.RegisterCommand(testCommand, testCallback)
