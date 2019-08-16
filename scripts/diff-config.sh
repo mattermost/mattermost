@@ -12,17 +12,28 @@ then
 fi
 
 # Returns the config file for a specific release
-function fetch_config() {
-  wget -q -O- https://releases.mattermost.com/"$1"/mattermost-"$1"-linux-amd64.tar.gz | tar -xzOf - mattermost/config/config.json | jq -S .
+fetch_config() {
+  local url="https://releases.mattermost.com/$1/mattermost-$1-linux-amd64.tar.gz"
+  curl -sf "$url" | tar -xzOf - mattermost/config/config.json | jq -S .
 }
 
 echo Fetching config files
+from_config="$(fetch_config "$FROM")"
+if [ -z "$from_config" ]
+then
+  echo Invalid version "$FROM"
+  exit 1
+fi
 
-FROM_CONFIG=$(fetch_config "$FROM")
-TO_CONFIG=$(fetch_config "$TO")
+to_config=$(fetch_config "$TO")
+if [ -z "$to_config" ]
+then
+  echo Invalid version "$TO"
+  exit 1
+fi
 
 echo Comparing config files
-diff -y <(echo "$FROM_CONFIG") <(echo "$TO_CONFIG")
+diff -y <(echo "$from_config") <(echo "$to_config")
 
 # We ignore exits with 1 since it just means there's a difference, which is fine for us.
 diff_exit=$?
