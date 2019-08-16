@@ -393,6 +393,22 @@ func TestUpdateUserEmail(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, newEmail, user2.Email)
 		assert.True(t, user2.EmailVerified)
+
+		// Create bot user
+		botuser := model.User{
+			Email:    "botuser@localhost",
+			Username: model.NewId(),
+			IsBot:    true,
+		}
+		_, err = th.App.Srv.Store.User().Save(&botuser)
+		assert.Nil(t, err)
+
+		newBotEmail := th.MakeEmail()
+		botuser.Email = newBotEmail
+		botuser2, err := th.App.UpdateUser(&botuser, false)
+		assert.Nil(t, err)
+		assert.Equal(t, botuser2.Email, newBotEmail)
+
 	})
 
 	t.Run("RequireVerificationAlreadyUsedEmail", func(t *testing.T) {
@@ -420,6 +436,21 @@ func TestUpdateUserEmail(t *testing.T) {
 		user2, err := th.App.UpdateUser(user, false)
 		assert.Nil(t, err)
 		assert.Equal(t, newEmail, user2.Email)
+
+		// Create bot user
+		botuser := model.User{
+			Email:    "botuser@localhost",
+			Username: model.NewId(),
+			IsBot:    true,
+		}
+		_, err = th.App.Srv.Store.User().Save(&botuser)
+		assert.Nil(t, err)
+
+		newBotEmail := th.MakeEmail()
+		botuser.Email = newBotEmail
+		botuser2, err := th.App.UpdateUser(&botuser, false)
+		assert.Nil(t, err)
+		assert.Equal(t, botuser2.Email, newBotEmail)
 	})
 }
 
