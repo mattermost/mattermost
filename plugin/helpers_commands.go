@@ -23,8 +23,7 @@ func (p *HelpersImpl) RegisterCommand(command *model.Command, callback CommandCa
 		return errors.New("Cannot register a command without callback")
 	}
 
-	err := p.API.RegisterCommand(command)
-	if err != nil {
+	if err := p.API.RegisterCommand(command); err != nil {
 		return err
 	}
 
@@ -43,9 +42,10 @@ func (p *HelpersImpl) ExecuteCommand(c *Context, args *model.CommandArgs) (*mode
 	}
 	callback, ok := p.CommandCallbacks.Load(trigger)
 
-	if ok {
-		return callback.(CommandCallback)(c, pluginArgs)
+	if !ok {
+		p.API.LogWarn("Callback not available for the executed command", "trigger", trigger, "args", parameters)
+		return nil, nil
 	}
 
-	return nil, nil
+	return callback.(CommandCallback)(c, pluginArgs)
 }
