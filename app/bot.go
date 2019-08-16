@@ -197,7 +197,7 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 
 	disableBotsSetting := *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
 
-	perPage := 20
+	perPage := 1000
 	options := &model.BotGetOptions{
 		OwnerId:        userId,
 		IncludeDeleted: false,
@@ -260,17 +260,17 @@ func GetDisableBotSysadminMessage(user *model.User, userBots model.BotList, disa
 	infoMessage := fmt.Sprintf("For more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).")
 
 	var message, botMessage string
-	for _, bot := range userBots {
+	for _, bot := range userBots[:10] {
 		botMessage += fmt.Sprintf("* %v\n", bot.Username)
 	}
 
 	if disableBotsSetting {
-		message += fmt.Sprintf("%v was deactivated. The user managed the following bot accounts which have now been disabled.\n\n", user.Username)
+		message += fmt.Sprintf("%v was deactivated. The user managed %v bot accounts including the following, which have now been disabled.\n\n", user.Username, len(userBots))
 		message += botMessage
 		message += fmt.Sprintf("Do not worry - you can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\n")
 		message += infoMessage
 	} else {
-		message += fmt.Sprintf("%v was deactivated. The user managed the following bot accounts which are still enabled.\n\n", user.Username)
+		message += fmt.Sprintf("%v was deactivated. The user managed %v bot accounts including the following, which are still enabled.\n\n", user.Username, len(userBots))
 		message += botMessage
 		message += fmt.Sprintf("We strongly recommend you to take ownership of the bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\n")
 		message += fmt.Sprintf("%+v\n\n", infoMessage)
