@@ -45,6 +45,7 @@ type Helpers interface {
 	//     }
 	// Returns (&model.CommandResponse{}, nil) if for some reason the callback doesn't exist
 	// Returns (&model.CommandResponse{...}, nil) if the callback was executed correctly
+	// Returns (nil, &model.AppError{...}) if the callback failed for some reason
 	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 }
 
