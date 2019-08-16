@@ -6,6 +6,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -71,6 +72,27 @@ func TestHelperCommands(t *testing.T) {
 				return true
 			})
 		})
+
+		t.Run("should fail if API.RegisterCommand fails and callback shouldn't be stored", func(t *testing.T) {
+			api := setupAPI()
+			api.On("RegisterCommand", mock.AnythingOfType("*model.Command")).Return(errors.New("mock error"))
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{}
+			p.API = api
+			testCallback := func(c *plugin.Context, args *plugin.CommandArgs) (*model.CommandResponse, *model.AppError) {
+				return nil, nil
+			}
+			err := p.RegisterCommand(nil, testCallback)
+			assert.NotNil(t, err)
+			assert.Equal(t, "mock error", err.Error())
+			callbacksStored := 0
+			p.CommandCallbacks.Range(func(key interface{}, value interface{}) bool {
+				callbacksStored++
+				return true
+			})
+			assert.Equal(t, 0, callbacksStored)
+		})
 	})
 
 	t.Run("Execute command", func(t *testing.T) {
@@ -130,6 +152,37 @@ func TestHelperCommands(t *testing.T) {
 			response, err := p.ExecuteCommand(testContext, testCommandArgs)
 			assert.Nil(t, err)
 			assert.IsType(t, &model.CommandResponse{}, response)
+		})
+
+		t.Run("should return AppError if the callback fails", func(t *testing.T) {
+			api := setupAPI()
+			api.On("RegisterCommand", mock.AnythingOfType("*model.Command")).Return(nil)
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{}
+			p.API = api
+			testCallback := func(c *plugin.Context, args *plugin.CommandArgs) (*model.CommandResponse, *model.AppError) {
+				return nil, &model.AppError{}
+			}
+			err := p.RegisterCommand(testCommand, testCallback)
+			testCommandArgs := buildCommandArgs("/test_command one two three")
+			response, err := p.ExecuteCommand(testContext, testCommandArgs)
+			assert.Nil(t, response)
+			assert.NotNil(t, err)
+			assert.IsType(t, &model.AppError{}, err)
+		})
+
+		t.Run("should return nil,nilAppError if the callback fails", func(t *testing.T) {
+			api := setupAPI()
+			api.On("LogWarn", "Callback not available for the executed command", "trigger", mock.Anything, "args", mock.Anything).Return()
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{}
+			p.API = api
+			testCommandArgs := buildCommandArgs("/test_command one two three")
+			response, err := p.ExecuteCommand(testContext, testCommandArgs)
+			assert.Nil(t, response)
+			assert.Nil(t, err)
 		})
 	})
 }
