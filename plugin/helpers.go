@@ -35,7 +35,6 @@ type Helpers interface {
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 
 	// RegisterCommand registers the given command and callback for the ExecuteCommand helper.
-	// Returns error if the callback is not provided or the API.RegisterCommand fails
 	RegisterCommand(command *model.Command, callback CommandCallback) error
 
 	// ExecuteCommand handles command execution, triggering previously registered callbacks.
