@@ -73,7 +73,7 @@ func (ms *memoryStore) Set(newCfg *model.Config) (*model.Config, error) {
 		validate = nil
 	}
 
-	return ms.commonStore.set(newCfg, validate, ms.persist)
+	return ms.commonStore.set(newCfg, ms.allowEnvironmentOverrides, validate, ms.persist)
 }
 
 // persist copies the active config to the saved config.
