@@ -2439,6 +2439,10 @@
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
+    "id": "api.user.generate_mfa_secret.oauth",
+    "translation": ""
+  },
+  {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Unsupported OAuth service provider"
   },
@@ -4137,6 +4141,22 @@
   {
     "id": "mfa.generate_qr_code.save_secret.app_error",
     "translation": "Error saving the MFA secret"
+  },
+  {
+    "id": "mfa.generate_recovery.code_not_found",
+    "translation": ""
+  },
+  {
+    "id": "mfa.generate_recovery.save_codes",
+    "translation": ""
+  },
+  {
+    "id": "mfa.login_with_recovery.mfa_inactive",
+    "translation": ""
+  },
+  {
+    "id": "mfa.login_with_recovery.read_codes",
+    "translation": ""
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -7085,6 +7105,10 @@
   {
     "id": "store.sql_user.update_mfa_secret.app_error",
     "translation": "We encountered an error updating the user's MFA secret"
+  },
+  {
+    "id": "store.sql_user.update_mfra_recovery.app_error",
+    "translation": ""
   },
   {
     "id": "store.sql_user.update_password.app_error",
