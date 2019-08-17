@@ -501,9 +501,6 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Updating the file_ids of a post is not a supported operation and will be ignored
-	post.FileIds = nil
-
 	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_EDIT_POST) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
@@ -514,6 +511,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
+
+	// Updating the file_ids of a post is not a supported operation and will be ignored
+	post.FileIds = originalPost.FileIds
 
 	if c.App.Session.UserId != originalPost.UserId {
 		if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {

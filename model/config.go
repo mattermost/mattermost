@@ -307,6 +307,7 @@ type ServiceSettings struct {
 	ExperimentalLdapGroupSync                         *bool
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 	EnableBotAccountCreation                          *bool
+	EnableSVGs                                        *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -666,6 +667,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableBotAccountCreation == nil {
 		s.EnableBotAccountCreation = NewBool(false)
+	}
+
+	if s.EnableSVGs == nil {
+		if isUpdate {
+			s.EnableSVGs = NewBool(true)
+		} else {
+			s.EnableSVGs = NewBool(false)
+		}
 	}
 }
 
@@ -2187,6 +2196,7 @@ type PluginSettings struct {
 	Enable                   *bool
 	EnableUploads            *bool   `restricted:"true"`
 	AllowInsecureDownloadUrl *bool   `restricted:"true"`
+	EnableHealthCheck        *bool   `restricted:"true"`
 	Directory                *string `restricted:"true"`
 	ClientDirectory          *string `restricted:"true"`
 	Plugins                  map[string]map[string]interface{}
@@ -2204,6 +2214,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.AllowInsecureDownloadUrl == nil {
 		s.AllowInsecureDownloadUrl = NewBool(false)
+	}
+
+	if s.EnableHealthCheck == nil {
+		s.EnableHealthCheck = NewBool(true)
 	}
 
 	if s.Directory == nil {
