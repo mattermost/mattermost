@@ -259,22 +259,25 @@ func GetDisableBotSysadminMessage(user *model.User, userBots model.BotList, disa
 
 	infoMessage := fmt.Sprintf("For more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).")
 
-	var message, botMessage string
+	var message, botList string
 	for _, bot := range userBots[:10] {
-		botMessage += fmt.Sprintf("* %v\n", bot.Username)
+		botList += fmt.Sprintf("* %v\n", bot.Username)
 	}
 
+	T := utils.GetUserTranslations(user.Locale)
+	infoMessage := T("app.bot.get_disable_bot_sysadmin_message.infoMessage")
+
 	if disableBotsSetting {
-		message += fmt.Sprintf("%v was deactivated. The user managed %v bot accounts including the following, which have now been disabled.\n\n", user.Username, len(userBots))
-		message += botMessage
-		message += fmt.Sprintf("Do not worry - you can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\n")
+		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1",
+			map[string]interface{}{"UserName": user.Username, "NumBots": len(userBots), "BotNames": botList})
+		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.2")
 		message += infoMessage
 	} else {
-		message += fmt.Sprintf("%v was deactivated. The user managed %v bot accounts including the following, which are still enabled.\n\n", user.Username, len(userBots))
-		message += botMessage
-		message += fmt.Sprintf("We strongly recommend you to take ownership of the bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\n")
-		message += fmt.Sprintf("%+v\n\n", infoMessage)
-		message += fmt.Sprintf("If you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.")
+		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1",
+			map[string]interface{}{"UserName": user.Username, "NumBots": len(userBots), "BotNames": botList})
+		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.2")
+		message += infoMessage
+		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.3")
 	}
 
 	return message
