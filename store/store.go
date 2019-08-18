@@ -1,3 +1,5 @@
+//go:generate go run layer_generators/main.go
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -49,6 +51,7 @@ type Store interface {
 	LockToMaster()
 	UnlockFromMaster()
 	DropAllTables()
+	GetCurrentSchemaVersion() string
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
@@ -57,10 +60,8 @@ type Store interface {
 type TeamStore interface {
 	Save(team *model.Team) (*model.Team, *model.AppError)
 	Update(team *model.Team) (*model.Team, *model.AppError)
-	UpdateDisplayName(name string, teamId string) *model.AppError
 	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) (*model.Team, *model.AppError)
-	SearchByName(name string) ([]*model.Team, *model.AppError)
 	SearchAll(term string) ([]*model.Team, *model.AppError)
 	SearchOpen(term string) ([]*model.Team, *model.AppError)
 	SearchPrivate(term string) ([]*model.Team, *model.AppError)
@@ -79,8 +80,8 @@ type TeamStore interface {
 	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
 	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	GetTotalMemberCount(teamId string) (int64, *model.AppError)
-	GetActiveMemberCount(teamId string) (int64, *model.AppError)
+	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
+	GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
 	GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError)
 	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError)
@@ -104,7 +105,7 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError)
-	CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError)
+	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
@@ -429,7 +430,6 @@ type PreferenceStore interface {
 	DeleteCategory(userId string, category string) *model.AppError
 	DeleteCategoryAndName(category string, name string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
-	IsFeatureEnabled(feature, userId string) (bool, *model.AppError)
 	CleanupFlagsBatch(limit int64) (int64, *model.AppError)
 }
 
@@ -460,9 +460,6 @@ type StatusStore interface {
 	SaveOrUpdate(status *model.Status) *model.AppError
 	Get(userId string) (*model.Status, *model.AppError)
 	GetByIds(userIds []string) ([]*model.Status, *model.AppError)
-	GetOnlineAway() ([]*model.Status, *model.AppError)
-	GetOnline() ([]*model.Status, *model.AppError)
-	GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError)
 	ResetAll() *model.AppError
 	GetTotalActiveUsersCount() (int64, *model.AppError)
 	UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError

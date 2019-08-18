@@ -210,21 +210,6 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError
 	return nil
 }
 
-func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) (bool, *model.AppError) {
-	query :=
-		`SELECT value FROM Preferences
-		WHERE
-			UserId = :UserId
-			AND Category = :Category
-			AND Name = :Name`
-
-	value, err := s.GetReplica().SelectStr(query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": store.FEATURE_TOGGLE_PREFIX + feature})
-	if err != nil {
-		return false, model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", "store.sql_preference.is_feature_enabled.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return value == "true", nil
-}
-
 func (s SqlPreferenceStore) Delete(userId, category, name string) *model.AppError {
 	query :=
 		`DELETE FROM Preferences

@@ -20,10 +20,8 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 
 	t.Run("Save", func(t *testing.T) { testTeamStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testTeamStoreUpdate(t, ss) })
-	t.Run("UpdateDisplayName", func(t *testing.T) { testTeamStoreUpdateDisplayName(t, ss) })
 	t.Run("Get", func(t *testing.T) { testTeamStoreGet(t, ss) })
 	t.Run("GetByName", func(t *testing.T) { testTeamStoreGetByName(t, ss) })
-	t.Run("SearchByName", func(t *testing.T) { testTeamStoreSearchByName(t, ss) })
 	t.Run("SearchAll", func(t *testing.T) { testTeamStoreSearchAll(t, ss) })
 	t.Run("SearchOpen", func(t *testing.T) { testTeamStoreSearchOpen(t, ss) })
 	t.Run("SearchPrivate", func(t *testing.T) { testTeamStoreSearchPrivate(t, ss) })
@@ -101,26 +99,6 @@ func testTeamStoreUpdate(t *testing.T, ss store.Store) {
 	}
 }
 
-func testTeamStoreUpdateDisplayName(t *testing.T, ss store.Store) {
-	o1 := &model.Team{}
-	o1.DisplayName = "Display Name"
-	o1.Name = "z-z-z" + model.NewId() + "b"
-	o1.Email = MakeEmail()
-	o1.Type = model.TEAM_OPEN
-	o1, err := ss.Team().Save(o1)
-	require.Nil(t, err)
-
-	newDisplayName := "NewDisplayName"
-
-	if err = ss.Team().UpdateDisplayName(newDisplayName, o1.Id); err != nil {
-		t.Fatal(err)
-	}
-
-	ro1, err := ss.Team().Get(o1.Id)
-	require.Nil(t, err)
-	require.Equal(t, newDisplayName, ro1.DisplayName, "DisplayName not updated")
-}
-
 func testTeamStoreGet(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
@@ -159,27 +137,6 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 
 	if _, err := ss.Team().GetByName(""); err == nil {
 		t.Fatal("Missing id should have failed")
-	}
-}
-
-func testTeamStoreSearchByName(t *testing.T, ss store.Store) {
-	o1 := model.Team{}
-	o1.DisplayName = "DisplayName"
-	var name = "zzz" + model.NewId()
-	o1.Name = name + "b"
-	o1.Email = MakeEmail()
-	o1.Type = model.TEAM_OPEN
-
-	if _, err := ss.Team().Save(&o1); err != nil {
-		t.Fatal(err)
-	}
-
-	if r1, err := ss.Team().SearchByName(name); err != nil {
-		t.Fatal(err)
-	} else {
-		if r1[0].ToJson() != o1.ToJson() {
-			t.Fatal("invalid returned team")
-		}
 	}
 }
 
@@ -946,7 +903,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		}(userIds[i])
 	}
 
-	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id, nil); err != nil {
 		t.Fatal(err)
 	} else if int(totalMemberCount) != maxUsersPerTeam {
 		t.Fatalf("should start with 5 team members, had %v instead", totalMemberCount)
@@ -969,7 +926,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		t.Fatal("shouldn't be able to save member when at maximum members per team")
 	}
 
-	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id); teamErr != nil {
+	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id, nil); teamErr != nil {
 		t.Fatal(teamErr)
 	} else if int(totalMemberCount) != maxUsersPerTeam {
 		t.Fatalf("should still have 5 team members, had %v instead", totalMemberCount)
@@ -984,7 +941,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		panic(teamErr)
 	}
 
-	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id); teamErr != nil {
+	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id, nil); teamErr != nil {
 		t.Fatal(teamErr)
 	} else if int(totalMemberCount) != maxUsersPerTeam-1 {
 		t.Fatalf("should now only have 4 team members, had %v instead", totalMemberCount)
@@ -998,7 +955,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		}(newUserId)
 	}
 
-	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id); teamErr != nil {
+	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id, nil); teamErr != nil {
 		t.Fatal(teamErr)
 	} else if int(totalMemberCount) != maxUsersPerTeam {
 		t.Fatalf("should have 5 team members again, had %v instead", totalMemberCount)
@@ -1160,7 +1117,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	var totalMemberCount int64
-	if totalMemberCount, err = ss.Team().GetTotalMemberCount(teamId1); err != nil {
+	if totalMemberCount, err = ss.Team().GetTotalMemberCount(teamId1, nil); err != nil {
 		t.Fatal(err)
 	} else {
 		if totalMemberCount != 2 {
@@ -1169,7 +1126,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	}
 
 	var result int64
-	if result, err = ss.Team().GetActiveMemberCount(teamId1); err != nil {
+	if result, err = ss.Team().GetActiveMemberCount(teamId1, nil); err != nil {
 		t.Fatal(err)
 	} else {
 		if result != 1 {
@@ -1181,7 +1138,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(m3, -1)
 	require.Nil(t, err)
 
-	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1); err != nil {
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1, nil); err != nil {
 		t.Fatal(err)
 	} else {
 		if totalMemberCount != 2 {
@@ -1189,7 +1146,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result, err := ss.Team().GetActiveMemberCount(teamId1); err != nil {
+	if result, err := ss.Team().GetActiveMemberCount(teamId1, nil); err != nil {
 		t.Fatal(err)
 	} else {
 		if result != 1 {

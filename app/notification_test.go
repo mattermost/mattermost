@@ -123,6 +123,178 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	})
 }
 
+func TestSendOutOfChannelMentions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+
+	user1 := th.BasicUser
+	user2 := th.BasicUser2
+
+	t.Run("should send ephemeral post when there is an out of channel mention", func(t *testing.T) {
+		post := &model.Post{}
+		potentialMentions := []string{user2.Username}
+
+		sent, err := th.App.sendOutOfChannelMentions(user1, post, channel, potentialMentions)
+
+		assert.Nil(t, err)
+		assert.True(t, sent)
+	})
+
+	t.Run("should not send ephemeral post when there are no out of channel mentions", func(t *testing.T) {
+		post := &model.Post{}
+		potentialMentions := []string{"not a user"}
+
+		sent, err := th.App.sendOutOfChannelMentions(user1, post, channel, potentialMentions)
+
+		assert.Nil(t, err)
+		assert.False(t, sent)
+	})
+}
+
+func TestFilterOutOfChannelMentions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+
+	user1 := th.BasicUser
+	user2 := th.BasicUser2
+	user3 := th.CreateUser()
+	th.LinkUserToTeam(user3, th.BasicTeam)
+
+	t.Run("should return users not in the channel", func(t *testing.T) {
+		post := &model.Post{}
+		potentialMentions := []string{user2.Username, user3.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+
+		assert.Nil(t, err)
+		assert.Len(t, outOfChannelUsers, 2)
+		assert.True(t, (outOfChannelUsers[0].Id == user2.Id || outOfChannelUsers[1].Id == user2.Id))
+		assert.True(t, (outOfChannelUsers[0].Id == user3.Id || outOfChannelUsers[1].Id == user3.Id))
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should not return results for a system message", func(t *testing.T) {
+		post := &model.Post{
+			Type: model.POST_ADD_REMOVE,
+		}
+		potentialMentions := []string{user2.Username, user3.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+
+		assert.Nil(t, err)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should not return results for a direct message", func(t *testing.T) {
+		post := &model.Post{}
+		directChannel := &model.Channel{
+			Type: model.CHANNEL_DIRECT,
+		}
+		potentialMentions := []string{user2.Username, user3.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, directChannel, potentialMentions)
+
+		assert.Nil(t, err)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should not return results for a group message", func(t *testing.T) {
+		post := &model.Post{}
+		groupChannel := &model.Channel{
+			Type: model.CHANNEL_GROUP,
+		}
+		potentialMentions := []string{user2.Username, user3.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, groupChannel, potentialMentions)
+
+		assert.Nil(t, err)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should not return inactive users", func(t *testing.T) {
+		inactiveUser := th.CreateUser()
+		inactiveUser, appErr := th.App.UpdateActive(inactiveUser, false)
+		require.Nil(t, appErr)
+
+		post := &model.Post{}
+		potentialMentions := []string{inactiveUser.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+
+		assert.Nil(t, err)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should not return bot users", func(t *testing.T) {
+		botUser := th.CreateUser()
+		botUser.IsBot = true
+
+		post := &model.Post{}
+		potentialMentions := []string{botUser.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+
+		assert.Nil(t, err)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should not return results for non-existant users", func(t *testing.T) {
+		post := &model.Post{}
+		potentialMentions := []string{"foo", "bar"}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+
+		assert.Nil(t, err)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should separate users not in the channel from users not in the group", func(t *testing.T) {
+		nonChannelMember := th.CreateUser()
+		th.LinkUserToTeam(nonChannelMember, th.BasicTeam)
+		nonGroupMember := th.CreateUser()
+		th.LinkUserToTeam(nonGroupMember, th.BasicTeam)
+
+		group := th.CreateGroup()
+		_, appErr := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		_, appErr = th.App.UpsertGroupMember(group.Id, nonChannelMember.Id)
+		require.Nil(t, appErr)
+
+		constrainedChannel := th.CreateChannel(th.BasicTeam)
+		constrainedChannel.GroupConstrained = model.NewBool(true)
+		constrainedChannel, appErr = th.App.UpdateChannel(constrainedChannel)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.CreateGroupSyncable(&model.GroupSyncable{
+			GroupId:    group.Id,
+			Type:       model.GroupSyncableTypeChannel,
+			SyncableId: constrainedChannel.Id,
+		})
+		require.Nil(t, appErr)
+
+		post := &model.Post{}
+		potentialMentions := []string{nonChannelMember.Username, nonGroupMember.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, constrainedChannel, potentialMentions)
+
+		assert.Nil(t, err)
+		assert.Len(t, outOfChannelUsers, 1)
+		assert.Equal(t, nonChannelMember.Id, outOfChannelUsers[0].Id)
+		assert.Len(t, outOfGroupUsers, 1)
+		assert.Equal(t, nonGroupMember.Id, outOfGroupUsers[0].Id)
+	})
+}
+
 func TestGetExplicitMentions(t *testing.T) {
 	id1 := model.NewId()
 	id2 := model.NewId()
