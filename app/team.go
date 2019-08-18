@@ -1103,7 +1103,7 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 
 	var invalidEmailList []string
 	for _, email := range guestsInvite.Emails {
-		if !a.isTeamEmailAddressAllowed(email, team.AllowedDomains) {
+		if !CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invalidEmailList = append(invalidEmailList, email)
 		}
 	}
