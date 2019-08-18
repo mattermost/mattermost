@@ -2763,6 +2763,30 @@
     "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
+    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1",
+    "translation": "{{.UserName}} was deactivated. The user managed {{.NumBots}} bot accounts including the following, which are still enabled.\n\n{{.BotNames}}"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.2",
+    "translation": "We strongly recommend you to take ownership of the bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\n"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.3",
+    "translation": "\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true."
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1",
+    "translation": "{{.UserName}} was deactivated. The user managed {{.NumBots}} bot accounts including the following, which have now been disabled.\n\n{{.BotNames}}"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.2",
+    "translation": "Do not worry - you can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\n"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message.infoMessage",
+    "translation": "For more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled)."
+  },
+  {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Must specify the team ID to create a channel"
   },
@@ -2817,30 +2841,6 @@
   {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "Error reading import data file."
-  },
-  {
-    "id": "app.bot.get_disable_bot_sysadmin_message.infoMessage",
-    "translation": "For more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled)."
-  },
-  {
-    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1",
-		"translation": "{{.UserName}} was deactivated. The user managed {{.NumBots}} bot accounts including the following, which have now been disabled.\n\n{{.BotNames}}"
-  },
-  {
-    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.2",
-		"translation": "Do not worry - you can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\n"
-  },
-  {
-    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1",
-		"translation": "{{.UserName}} was deactivated. The user managed {{.NumBots}} bot accounts including the following, which are still enabled.\n\n{{.BotNames}}"
-  },
-  {
-    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.2",
-		"translation": "We strongly recommend you to take ownership of the bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\n"
-  },
-  {
-    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.3",
-		"translation": "\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
