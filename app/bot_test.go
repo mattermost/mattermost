@@ -630,7 +630,7 @@ func TestNotifySysadminsBotDisabled(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// send notification for user without bots
-	err = th.App.notifySysadminsBotDisabled(user2.Id)
+	err = th.App.notifySysadminsBotOwnerDeactivated(user2.Id)
 	require.Nil(t, err)
 
 	// get posts from sysadmin1 and sysadmin2 DM channels
@@ -640,7 +640,7 @@ func TestNotifySysadminsBotDisabled(t *testing.T) {
 	assert.Len(t, posts2.Order, 0)
 
 	// send notification for user with bots
-	err = th.App.notifySysadminsBotDisabled(user1.Id)
+	err = th.App.notifySysadminsBotOwnerDeactivated(user1.Id)
 	require.Nil(t, err)
 
 	// get posts from sysadmin1  and sysadmin2 DM channels
@@ -652,10 +652,12 @@ func TestNotifySysadminsBotDisabled(t *testing.T) {
 	post := posts1.Posts[posts1.Order[0]].Message
 	assert.Equal(t, post, "user1_disabled was deactivated. The user managed 12 bot accounts including the following, which have now been disabled.\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\nDo not worry - you can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).")
 
-	message := GetDisableBotSysadminMessage(user1, userBots, true)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true })
+	message := th.App.getDisableBotSysadminMessage(user1, userBots)
 	assert.Equal(t, message, "user1_disabled was deactivated. The user managed 12 bot accounts including the following, which have now been disabled.\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\nDo not worry - you can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).")
 
-	message = GetDisableBotSysadminMessage(user1, userBots, false)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false })
+	message = th.App.getDisableBotSysadminMessage(user1, userBots)
 	assert.Equal(t, message, "user1_disabled was deactivated. The user managed 12 bot accounts including the following, which are still enabled.\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\nWe strongly recommend you to take ownership of the bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.")
 }
 

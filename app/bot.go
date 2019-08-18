@@ -193,9 +193,7 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 	return nil
 }
 
-func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
-
-	disableBotsSetting := *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
+func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError {
 
 	perPage := 1000
 	options := &model.BotGetOptions{
@@ -243,7 +241,7 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 		post := &model.Post{
 			UserId:    sysAdmin.Id,
 			ChannelId: channel.Id,
-			Message:   GetDisableBotSysadminMessage(user, userBots, disableBotsSetting),
+			Message:   a.getDisableBotSysadminMessage(user, userBots),
 			Type:      model.POST_SYSTEM_GENERIC,
 		}
 
@@ -255,9 +253,9 @@ func (a *App) notifySysadminsBotDisabled(userId string) *model.AppError {
 	return nil
 }
 
-func GetDisableBotSysadminMessage(user *model.User, userBots model.BotList, disableBotsSetting bool) string {
+func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotList) string {
 
-	infoMessage := fmt.Sprintf("For more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).")
+	disableBotsSetting := *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
 
 	var message, botList string
 	for _, bot := range userBots[:10] {

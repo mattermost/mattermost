@@ -945,11 +945,11 @@ func (a *App) userDeactivated(user *model.User) *model.AppError {
 
 	a.SetStatusOffline(user.Id, false)
 
-	// when disable a user, this userDeactivated is called or the user and the
+	// when disable a user, userDeactivated is called for the user and the
 	// bots the user owns. Only notify once, when the user is the owner, not the
-	// owners bots.
+	// owners bots
 	if !user.IsBot {
-		a.notifySysadminsBotDisabled(user.Id)
+		a.notifySysadminsBotOwnerDeactivated(user.Id)
 	}
 
 	if *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated {
