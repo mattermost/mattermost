@@ -193,6 +193,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(&user)
+	rguest := th.CreateGuest()
 
 	t.Run("invalid token", func(t *testing.T) {
 		if _, err := th.App.AddUserToTeamByToken(ruser.Id, "123"); err == nil {
@@ -217,7 +218,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
+		token.CreateAt = model.GetMillis() - INVITATION_EXPIRY_TIME - 1
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
@@ -261,6 +262,49 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		}
 		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
+
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, ruser.Id)
+		require.Nil(t, err)
+		assert.Len(t, *members, 2)
+	})
+
+	t.Run("invalid add a guest using a regular invite", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		_, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("invalid add a regular user using a guest invite", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
+		)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		_, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("valid request from guest invite", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
+		)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		if _, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token); err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
+
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, rguest.Id)
+		require.Nil(t, err)
+		require.Len(t, *members, 1)
+		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("group-constrained team", func(t *testing.T) {
@@ -772,12 +816,64 @@ func TestGetTeamStats(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id)
-	require.Nil(t, err)
-	require.NotNil(t, teamStats)
-	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
-	require.Nil(t, err)
-	assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
+	t.Run("without view restrictions", func(t *testing.T) {
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, nil)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
+		require.Nil(t, err)
+		assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(len(members)), teamStats.ActiveMemberCount)
+	})
+
+	t.Run("with view restrictions by this team", func(t *testing.T) {
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{th.BasicTeam.Id}}
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
+		require.Nil(t, err)
+		assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(len(members)), teamStats.ActiveMemberCount)
+	})
+
+	t.Run("with view restrictions by valid channel", func(t *testing.T) {
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{th.BasicChannel.Id}}
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		members, err := th.App.GetChannelMembersPage(th.BasicChannel.Id, 0, 5)
+		require.Nil(t, err)
+		assert.Equal(t, int64(len(*members)), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(len(*members)), teamStats.ActiveMemberCount)
+	})
+
+	t.Run("with view restrictions to not see anything", func(t *testing.T) {
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{}}
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		assert.Equal(t, int64(0), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(0), teamStats.ActiveMemberCount)
+	})
+
+	t.Run("with view restrictions by other team", func(t *testing.T) {
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{"other-team-id"}}
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		assert.Equal(t, int64(0), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(0), teamStats.ActiveMemberCount)
+	})
+
+	t.Run("with view restrictions by not-existing channel", func(t *testing.T) {
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{"test"}}
+		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
+		require.Nil(t, err)
+		require.NotNil(t, teamStats)
+		assert.Equal(t, int64(0), teamStats.TotalMemberCount)
+		assert.Equal(t, int64(0), teamStats.ActiveMemberCount)
+	})
 }
 
 func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
@@ -846,4 +942,48 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 			t.Fatal("Should work when you not modify guest role")
 		}
 	})
+}
+
+func TestInvalidateAllEmailInvites(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t1 := model.Token{
+		Token:    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+		CreateAt: model.GetMillis(),
+		Type:     TOKEN_TYPE_GUEST_INVITATION,
+		Extra:    "",
+	}
+	err := th.App.Srv.Store.Token().Save(&t1)
+	require.Nil(t, err)
+
+	t2 := model.Token{
+		Token:    "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+		CreateAt: model.GetMillis(),
+		Type:     TOKEN_TYPE_TEAM_INVITATION,
+		Extra:    "",
+	}
+	err = th.App.Srv.Store.Token().Save(&t2)
+	require.Nil(t, err)
+
+	t3 := model.Token{
+		Token:    "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+		CreateAt: model.GetMillis(),
+		Type:     "other",
+		Extra:    "",
+	}
+	err = th.App.Srv.Store.Token().Save(&t3)
+	require.Nil(t, err)
+
+	err = th.App.InvalidateAllEmailInvites()
+	require.Nil(t, err)
+
+	_, err = th.App.Srv.Store.Token().GetByToken(t1.Token)
+	require.NotNil(t, err)
+
+	_, err = th.App.Srv.Store.Token().GetByToken(t2.Token)
+	require.NotNil(t, err)
+
+	_, err = th.App.Srv.Store.Token().GetByToken(t3.Token)
+	require.Nil(t, err)
 }

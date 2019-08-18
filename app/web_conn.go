@@ -356,6 +356,15 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		return webCon.IsMemberOfTeam(msg.Broadcast.TeamId)
 	}
 
+	if msg.Event == model.WEBSOCKET_EVENT_USER_UPDATED && webCon.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
+		canSee, err := webCon.App.UserCanSeeOtherUser(webCon.UserId, msg.Data["user"].(*model.User).Id)
+		if err != nil {
+			mlog.Error("webhub.shouldSendEvent: " + err.Error())
+			return false
+		}
+		return canSee
+	}
+
 	return true
 }
 

@@ -55,11 +55,35 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 	return list
 }
 
+// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
+// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
+func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
+	prop, ok := post.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+	if !ok || prop == nil {
+		return
+	}
+	emojiName := prop.(string)
+
+	if !*a.Config().ServiceSettings.EnablePostIconOverride || emojiName == "" {
+		return
+	}
+
+	if emojiUrl, err := a.GetEmojiStaticUrl(emojiName); err == nil {
+		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, emojiUrl)
+	} else {
+		mlog.Warn("Failed to retrieve URL for overriden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
+	}
+
+	return
+}
+
 func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
+
+	a.OverrideIconURLIfEmoji(post)
 
 	post.Metadata = &model.PostMetadata{}
 
@@ -355,7 +379,8 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
 		body, contentType, err = a.ImageProxy.GetImageDirect(a.ImageProxy.GetUnproxiedImageURL(request.URL.String()))
 	} else {
-		request.Header.Add("Accept", "image/*, text/html")
+		request.Header.Add("Accept", "image/*")
+		request.Header.Add("Accept", "text/html;q=0.8")
 
 		client := a.HTTPService.MakeClient(false)
 		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
@@ -470,7 +495,13 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
-	if strings.HasPrefix(contentType, "image") {
+	if contentType == "image/svg+xml" {
+		image := &model.PostImage{
+			Format: "svg",
+		}
+
+		return nil, image, nil
+	} else if strings.HasPrefix(contentType, "image") {
 		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {

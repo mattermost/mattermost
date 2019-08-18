@@ -22,6 +22,19 @@
                                                 <p style="margin: 30px 0 15px">
                                                     <a href="{{.Props.Link}}" style="background: #2389D7; border-radius: 3px; color: #fff; border: none; outline: none; min-width: 200px; padding: 15px 25px; font-size: 14px; font-family: inherit; cursor: pointer; -webkit-appearance: none;text-decoration: none;">{{.Props.Button}}</a>
                                                 </p>
+                                                {{if .Props.Message}}
+                                                    <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px; margin: 35px auto 0 auto; border-radius: 5px; background: #f2f2f2; min-width: 550px">
+                                                        <tr>
+                                                            <td style="border: 0; padding: 0; width: 36px; vertical-align: top">
+                                                                <img src="{{.Props.SiteURL}}/api/v4/users/{{.Props.SenderId}}/image" style="height: 36px; width=36px; border-radius: 18px;">
+                                                            </td>
+                                                            <td style="border: 0; padding: 0 0 0 20px;">
+                                                                <p style="font-weight: bold; margin-top: 0;">{{.Props.SenderName}}</p>
+                                                                <p>{{.Props.Message}}</p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                {{end}}
                                                 <br/>
                                                 <p>{{.Html.ExtraInfo}}<br/><br/><a href='{{.Props.TeamURL}}'>{{.Props.TeamURL}}</a></p>
                                             </td>

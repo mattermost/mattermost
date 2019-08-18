@@ -17,6 +17,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc
 	github.com/grpc-ecosystem/grpc-gateway v1.8.5 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
+	github.com/jamiealquiza/envy v1.1.0
 	github.com/marstr/guid v0.0.0-20170427235115-8bdf7d1a087c // indirect
 	github.com/muesli/smartcrop v0.2.1-0.20181030220600-548bbf0c0965
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
@@ -36,3 +37,6 @@ require (
 
 // temporary fix to https://github.com/golang/lint/issues/436 which still seems to be a problem
 replace github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
+
+// local copy of envy package without cobra support
+replace github.com/jamiealquiza/envy => ./third_party/envy

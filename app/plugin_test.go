@@ -7,14 +7,18 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -311,4 +315,93 @@ func TestGetPluginStatuses(t *testing.T) {
 	pluginStatuses, err := th.App.GetPluginStatuses()
 	require.Nil(t, err)
 	require.NotNil(t, pluginStatuses)
+}
+
+func TestPluginSync(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testCases := []struct {
+		Description string
+		ConfigFunc  func(cfg *model.Config)
+	}{
+		{
+			"local",
+			func(cfg *model.Config) {
+				cfg.FileSettings.DriverName = model.NewString(model.IMAGE_DRIVER_LOCAL)
+			},
+		},
+		{
+			"s3",
+			func(cfg *model.Config) {
+				s3Host := os.Getenv("CI_MINIO_HOST")
+				if s3Host == "" {
+					s3Host = "localhost"
+				}
+
+				s3Port := os.Getenv("CI_MINIO_PORT")
+				if s3Port == "" {
+					s3Port = "9001"
+				}
+
+				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+				cfg.FileSettings.DriverName = model.NewString(model.IMAGE_DRIVER_S3)
+				cfg.FileSettings.AmazonS3AccessKeyId = model.NewString(model.MINIO_ACCESS_KEY)
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.MINIO_SECRET_KEY)
+				cfg.FileSettings.AmazonS3Bucket = model.NewString(model.MINIO_BUCKET)
+				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
+				cfg.FileSettings.AmazonS3Region = model.NewString("")
+				cfg.FileSettings.AmazonS3SSL = model.NewBool(false)
+
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			os.MkdirAll("./test-plugins", os.ModePerm)
+			defer os.RemoveAll("./test-plugins")
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Enable = true
+				*cfg.PluginSettings.Directory = "./test-plugins"
+				*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+			})
+			th.App.UpdateConfig(testCase.ConfigFunc)
+
+			env, err := plugin.NewEnvironment(th.App.NewPluginAPI, "./test-plugins", "./test-client-plugins", th.App.Log)
+			require.NoError(t, err)
+			th.App.SetPluginsEnvironment(env)
+
+			// New bundle in the file store case
+			path, _ := fileutils.FindDir("tests")
+			fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+			require.NoError(t, err)
+			defer fileReader.Close()
+
+			_, appErr := th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin"))
+			checkNoError(t, appErr)
+
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+
+			// Check if installed
+			pluginStatus, err := env.Statuses()
+			require.Nil(t, err)
+			require.True(t, len(pluginStatus) == 1)
+			require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+			// Bundle removed from the file store case
+			appErr = th.App.RemoveFile(th.App.getBundleStorePath("testplugin"))
+			checkNoError(t, appErr)
+
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+
+			// Check if removed
+			pluginStatus, err = env.Statuses()
+			require.Nil(t, err)
+			require.True(t, len(pluginStatus) == 0)
+		})
+	}
 }

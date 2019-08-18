@@ -167,9 +167,9 @@ type SchemeImportData struct {
 	Scope                   *string         `json:"scope"`
 	DefaultTeamAdminRole    *RoleImportData `json:"default_team_admin_role"`
 	DefaultTeamUserRole     *RoleImportData `json:"default_team_user_role"`
-	DefaultTeamGuestRole    *RoleImportData `json:"default_team_guest_role"`
 	DefaultChannelAdminRole *RoleImportData `json:"default_channel_admin_role"`
 	DefaultChannelUserRole  *RoleImportData `json:"default_channel_user_role"`
+	DefaultTeamGuestRole    *RoleImportData `json:"default_team_guest_role"`
 	DefaultChannelGuestRole *RoleImportData `json:"default_channel_guest_role"`
 }
 

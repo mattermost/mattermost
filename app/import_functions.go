@@ -5,10 +5,12 @@ package app
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -916,8 +918,32 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 	if file != nil {
 		timestamp := utils.TimeFromMillis(post.CreateAt)
 		buf := bytes.NewBuffer(nil)
-		io.Copy(buf, file)
+		_, _ = io.Copy(buf, file)
+		// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
+		if post.Id != "" {
+			if oldFiles, err := a.GetFileInfosForPost(post.Id, true); err == nil {
+				for _, oldFile := range oldFiles {
+					if oldFile.Name != path.Base(file.Name()) || oldFile.Size != int64(buf.Len()) {
+						continue
+					}
+					// check md5
+					newHash := sha1.Sum(buf.Bytes())
+					oldFileData, err := a.GetFile(oldFile.Id)
+					if err != nil {
+						return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+					}
+					oldHash := sha1.Sum(oldFileData)
 
+					if bytes.Equal(oldHash[:], newHash[:]) {
+						mlog.Info(fmt.Sprintf("Skipping uploading of file with name %s, already exists", file.Name()))
+						return nil, nil
+					}
+
+				}
+			} else {
+				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+			}
+		}
 		fileInfo, err := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
 
 		if err != nil {
@@ -1055,7 +1081,9 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 		if err != nil {
 			return nil, err
 		}
-		fileIds = append(fileIds, fileInfo.Id)
+		if fileInfo != nil { // nil is returned when the file was skipped due to duplication
+			fileIds = append(fileIds, fileInfo.Id)
+		}
 	}
 	return fileIds, nil
 }
@@ -1287,7 +1315,7 @@ func (a *App) ImportEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 
 	var emoji *model.Emoji
 
-	emoji, appError := a.Srv.Store.Emoji().GetByName(*data.Name)
+	emoji, appError := a.Srv.Store.Emoji().GetByName(*data.Name, true)
 	if appError != nil && appError.StatusCode != http.StatusNotFound {
 		return appError
 	}

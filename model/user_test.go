@@ -391,9 +391,9 @@ func TestIsValidLocale(t *testing.T) {
 
 func TestUserSlice(t *testing.T) {
 	t.Run("FilterByActive", func(t *testing.T) {
-		user0 := &User{Id: "user0", DeleteAt: 0}
-		user1 := &User{Id: "user1", DeleteAt: 0}
-		user2 := &User{Id: "user2", DeleteAt: 1}
+		user0 := &User{Id: "user0", DeleteAt: 0, IsBot: true}
+		user1 := &User{Id: "user1", DeleteAt: 0, IsBot: true}
+		user2 := &User{Id: "user2", DeleteAt: 1, IsBot: false}
 
 		slice := UserSlice([]*User{user0, user1, user2})
 
@@ -408,5 +408,8 @@ func TestUserSlice(t *testing.T) {
 		for _, user := range inactiveUsers {
 			assert.True(t, user.DeleteAt != 0)
 		}
+
+		nonBotUsers := slice.FilterWithoutBots()
+		assert.Equal(t, 1, len(nonBotUsers))
 	})
 }

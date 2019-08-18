@@ -161,6 +161,17 @@ func (u UserSlice) IDs() []string {
 	return ids
 }
 
+func (u UserSlice) FilterWithoutBots() UserSlice {
+	var matches []*User
+
+	for _, user := range u {
+		if !user.IsBot {
+			matches = append(matches, user)
+		}
+	}
+	return UserSlice(matches)
+}
+
 func (u UserSlice) FilterByActive(active bool) UserSlice {
 	var matches []*User
 
@@ -772,11 +783,22 @@ func IsValidLocale(locale string) bool {
 
 type UserWithGroups struct {
 	User
-	GroupIDs    string   `json:"-"`
+	GroupIDs    *string  `json:"-"`
 	Groups      []*Group `json:"groups"`
 	SchemeGuest bool     `json:"scheme_guest"`
 	SchemeUser  bool     `json:"scheme_user"`
 	SchemeAdmin bool     `json:"scheme_admin"`
+}
+
+func (u *UserWithGroups) GetGroupIDs() []string {
+	if u.GroupIDs == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*u.GroupIDs)
+	if len(trimmed) == 0 {
+		return nil
+	}
+	return strings.Split(trimmed, ",")
 }
 
 type UsersWithGroupsAndCount struct {

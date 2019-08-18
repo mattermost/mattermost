@@ -407,6 +407,51 @@ func TestCreateDirectChannel(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestCreateDirectChannelAsGuest(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	user1 := th.BasicUser
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.SetLicense(model.NewTestLicense())
+
+	id := model.NewId()
+	guest := &model.User{
+		Email:         "success+" + id + "@simulator.amazonses.com",
+		Username:      "un_" + id,
+		Nickname:      "nn_" + id,
+		Password:      "Password1",
+		EmailVerified: true,
+	}
+	guest, err := th.App.CreateGuest(guest)
+	require.Nil(t, err)
+
+	_, resp := Client.Login(guest.Username, "Password1")
+	CheckNoError(t, resp)
+
+	t.Run("Try to created DM with not visible user", func(t *testing.T) {
+		_, resp := Client.CreateDirectChannel(guest.Id, user1.Id)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp = Client.CreateDirectChannel(user1.Id, guest.Id)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Creating DM with visible user", func(t *testing.T) {
+		th.LinkUserToTeam(guest, th.BasicTeam)
+		th.AddUserToChannel(guest, th.BasicChannel)
+
+		_, resp := Client.CreateDirectChannel(guest.Id, user1.Id)
+		CheckNoError(t, resp)
+	})
+}
+
 func TestDeleteDirectChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -494,6 +539,67 @@ func TestCreateGroupChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.CreateGroupChannel(userIds)
 	CheckNoError(t, resp)
+}
+
+func TestCreateGroupChannelAsGuest(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	user1 := th.BasicUser
+	user2 := th.BasicUser2
+	user3 := th.CreateUser()
+	user4 := th.CreateUser()
+	user5 := th.CreateUser()
+	th.LinkUserToTeam(user2, th.BasicTeam)
+	th.AddUserToChannel(user2, th.BasicChannel)
+	th.LinkUserToTeam(user3, th.BasicTeam)
+	th.AddUserToChannel(user3, th.BasicChannel)
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.SetLicense(model.NewTestLicense())
+
+	id := model.NewId()
+	guest := &model.User{
+		Email:         "success+" + id + "@simulator.amazonses.com",
+		Username:      "un_" + id,
+		Nickname:      "nn_" + id,
+		Password:      "Password1",
+		EmailVerified: true,
+	}
+	guest, err := th.App.CreateGuest(guest)
+	require.Nil(t, err)
+
+	_, resp := Client.Login(guest.Username, "Password1")
+	CheckNoError(t, resp)
+
+	t.Run("Try to created GM with not visible users", func(t *testing.T) {
+		_, resp := Client.CreateGroupChannel([]string{guest.Id, user1.Id, user2.Id, user3.Id})
+		CheckForbiddenStatus(t, resp)
+
+		_, resp = Client.CreateGroupChannel([]string{user1.Id, user2.Id, guest.Id, user3.Id})
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Try to created GM with visible and not visible users", func(t *testing.T) {
+		th.LinkUserToTeam(guest, th.BasicTeam)
+		th.AddUserToChannel(guest, th.BasicChannel)
+
+		_, resp := Client.CreateGroupChannel([]string{guest.Id, user1.Id, user3.Id, user4.Id, user5.Id})
+		CheckForbiddenStatus(t, resp)
+
+		_, resp = Client.CreateGroupChannel([]string{user1.Id, user2.Id, guest.Id, user4.Id, user5.Id})
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Creating GM with visible users", func(t *testing.T) {
+		_, resp := Client.CreateGroupChannel([]string{guest.Id, user1.Id, user2.Id, user3.Id})
+		CheckNoError(t, resp)
+	})
 }
 
 func TestDeleteGroupChannel(t *testing.T) {
@@ -909,13 +1015,48 @@ func TestSearchChannels(t *testing.T) {
 
 	search.Term = th.BasicChannel.Name
 	_, resp = Client.SearchChannels(model.NewId(), search)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.SearchChannels("junk", search)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.SearchChannels(th.BasicTeam.Id, search)
 	CheckNoError(t, resp)
+
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Remove list channels permission from the user
+	th.RemovePermissionFromRole(model.PERMISSION_LIST_TEAM_CHANNELS.Id, model.TEAM_USER_ROLE_ID)
+
+	t.Run("Search for a BasicChannel, which the user is a member of", func(t *testing.T) {
+		search.Term = th.BasicChannel.Name
+		channelList, resp := Client.SearchChannels(th.BasicTeam.Id, search)
+		CheckNoError(t, resp)
+
+		channelNames := []string{}
+		for _, c := range channelList {
+			channelNames = append(channelNames, c.Name)
+		}
+		require.Contains(t, channelNames, th.BasicChannel.Name)
+	})
+
+	t.Run("Remove the user from BasicChannel and search again, should not be returned", func(t *testing.T) {
+		th.App.RemoveUserFromChannel(th.BasicUser.Id, th.BasicUser.Id, th.BasicChannel)
+
+		search.Term = th.BasicChannel.Name
+		channelList, resp := Client.SearchChannels(th.BasicTeam.Id, search)
+		CheckNoError(t, resp)
+
+		channelNames := []string{}
+		for _, c := range channelList {
+			channelNames = append(channelNames, c.Name)
+		}
+		require.NotContains(t, channelNames, th.BasicChannel.Name)
+	})
 }
 
 func TestSearchAllChannels(t *testing.T) {

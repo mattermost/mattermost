@@ -4,14 +4,12 @@
 package commands
 
 import (
-	"errors"
-	"os"
-
 	"context"
-
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -57,7 +55,7 @@ var BulkExportCmd = &cobra.Command{
 	Use:     "bulk [file]",
 	Short:   "Export bulk data.",
 	Long:    "Export data to a file compatible with the Mattermost Bulk Import format.",
-	Example: "  export bulk bulk_data.json",
+	Example: "export bulk bulk_data.json",
 	RunE:    bulkExportCmdF,
 	Args:    cobra.ExactArgs(1),
 }
@@ -72,7 +70,7 @@ func init() {
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 
-	BulkExportCmd.Flags().Bool("all-teams", false, "Export all teams from the server.")
+	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
 
 	ExportCmd.AddCommand(ScheduleExportCmd)
 	ExportCmd.AddCommand(CsvExportCmd)
@@ -177,9 +175,8 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 
 	allTeams, err := command.Flags().GetBool("all-teams")
 	if err != nil {
-		return errors.New("Apply flag error")
+		return errors.Wrap(err, "all-teams flag error")
 	}
-
 	if !allTeams {
 		return errors.New("Nothing to export. Please specify the --all-teams flag to export all teams.")
 	}

@@ -5,11 +5,14 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/store"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -17,7 +20,7 @@ import (
 )
 
 // We use this map to identify the exportable preferences.
-// Here we link the preference category and name, to the name of the relevant filed in the import struct.
+// Here we link the preference category and name, to the name of the relevant field in the import struct.
 var exportablePreferences = map[ComparablePreference]string{{
 	Category: model.PREFERENCE_CATEGORY_THEME,
 	Name:     "",
@@ -52,34 +55,42 @@ var exportablePreferences = map[ComparablePreference]string{{
 }
 
 func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
+	mlog.Info("Bulk export: exporting version")
 	if err := a.ExportVersion(writer); err != nil {
 		return err
 	}
 
+	mlog.Info("Bulk export: exporting teams")
 	if err := a.ExportAllTeams(writer); err != nil {
 		return err
 	}
 
+	mlog.Info("Bulk export: exporting channels")
 	if err := a.ExportAllChannels(writer); err != nil {
 		return err
 	}
 
+	mlog.Info("Bulk export: exporting users")
 	if err := a.ExportAllUsers(writer); err != nil {
 		return err
 	}
 
+	mlog.Info("Bulk export: exporting posts")
 	if err := a.ExportAllPosts(writer); err != nil {
 		return err
 	}
 
+	mlog.Info("Bulk export: exporting emoji")
 	if err := a.ExportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		return err
 	}
 
+	mlog.Info("Bulk export: exporting direct channels")
 	if err := a.ExportAllDirectChannels(writer); err != nil {
 		return err
 	}
 
+	mlog.Info("Bulk export: exporting direct posts")
 	if err := a.ExportAllDirectPosts(writer); err != nil {
 		return err
 	}
@@ -270,6 +281,12 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 			return nil, err
 		}
 
+		// Get the user theme
+		themePreference, err := a.Srv.Store.Preference().Get(member.UserId, model.PREFERENCE_CATEGORY_THEME, member.TeamId)
+		if err == nil {
+			memberData.Theme = &themePreference.Value
+		}
+
 		memberData.Channels = channelMembers
 
 		memberships = append(memberships, *memberData)
@@ -321,15 +338,15 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 
 func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
+
 	for {
 		posts, err := a.Srv.Store.Post().GetParentsForExportAfter(1000, afterId)
-
 		if err != nil {
 			return err
 		}
 
 		if len(posts) == 0 {
-			break
+			return nil
 		}
 
 		for _, post := range posts {
@@ -342,47 +359,41 @@ func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 
 			postLine := ImportLineForPost(post)
 
-			// Do the Replies.
-			replies, err := a.buildPostReplies(post.Id)
+			postLine.Post.Replies, err = a.buildPostReplies(post.Id)
 			if err != nil {
 				return err
 			}
 
-			reactions, err := a.BuildPostReactions(post.Id)
-			if err != nil {
-				return err
+			postLine.Post.Reactions = &[]ReactionImportData{}
+			if post.HasReactions {
+				postLine.Post.Reactions, err = a.BuildPostReactions(post.Id)
+				if err != nil {
+					return err
+				}
 			}
-
-			postLine.Post.Replies = replies
-
-			postLine.Post.Reactions = reactions
 
 			if err := a.ExportWriteLine(writer, postLine); err != nil {
 				return err
 			}
 		}
 	}
-
-	return nil
 }
 
 func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppError) {
 	var replies []ReplyImportData
 
 	replyPosts, err := a.Srv.Store.Post().GetRepliesForExport(postId)
-
 	if err != nil {
 		return nil, err
 	}
 
 	for _, reply := range replyPosts {
 		replyImportObject := ImportReplyFromPost(reply)
-		if reply.HasReactions == true {
-			reactionsOfReply, err := a.BuildPostReactions(reply.Id)
+		if reply.HasReactions {
+			replyImportObject.Reactions, err = a.BuildPostReactions(reply.Id)
 			if err != nil {
 				return nil, err
 			}
-			replyImportObject.Reactions = reactionsOfReply
 		}
 		replies = append(replies, *replyImportObject)
 	}
@@ -402,6 +413,10 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 		var user *model.User
 		user, err = a.Srv.Store.User().Get(reaction.UserId)
 		if err != nil {
+			if err.Id == store.MISSING_ACCOUNT_ERROR { // this is a valid case, the user that reacted might've been deleted by now
+				mlog.Info(fmt.Sprintf("Skipping reactions by user %v, since the entity doesn't exist anymore", reaction.UserId))
+				continue
+			}
 			return nil, err
 		}
 		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
