@@ -5,21 +5,21 @@ services:
     ports:
       - "3306:3306"
     extends:
-        file: build/docker-compose.yml
+        file: build/docker-compose.common.yml
         service: mysql
   postgres:
     container_name: mattermost-postgres
     ports:
       - "5432:5432"
     extends:
-        file: build/docker-compose.yml
+        file: build/docker-compose.common.yml
         service: postgres
   minio:
     container_name: mattermost-minio
     ports:
       - "9000:9000"
     extends:
-        file: build/docker-compose.yml
+        file: build/docker-compose.common.yml
         service: minio
   inbucket:
     container_name: mattermost-inbucket
@@ -28,7 +28,7 @@ services:
       - "10080:10080"
       - "10110:10110"
     extends:
-        file: build/docker-compose.yml
+        file: build/docker-compose.common.yml
         service: inbucket
   openldap:
     container_name: mattermost-openldap
@@ -36,7 +36,7 @@ services:
       - "389:389"
       - "636:636"
     extends:
-        file: build/docker-compose.yml
+        file: build/docker-compose.common.yml
         service: openldap
   elasticsearch:
     container_name: mattermost-elasticsearch
@@ -44,14 +44,14 @@ services:
       - "9200:9200"
       - "9300:9300"
     extends:
-        file: build/docker-compose.yml
+        file: build/docker-compose.common.yml
         service: elasticsearch
   redis:
     container_name: mattermost-redis
     ports:
       - "6379:6379"
     extends:
-        file: build/docker-compose.yml
+        file: build/docker-compose.common.yml
         service: redis
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
