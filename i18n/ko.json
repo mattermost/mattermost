@@ -2424,7 +2424,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Login failed because your account has been set to inactive.  Please contact an administrator."
+    "translation": "계정이 비활성화되어 로그인할 수 없습니다.  관리자에게 문의하세요."
   },
   {
     "id": "api.user.login.invalid_credentials_email",
@@ -2456,11 +2456,11 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
+    "translation": "이 서버에서는 OAuth 2.0을 통한 {{.Service}} SSO를 이용할 수 없습니다."
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
-    "translation": "Could not parse auth data out of {{.Service}} user object"
+    "translation": "{{.Service}} 사용자 객체에서 인증정보를 가져오지 못했습니다"
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
@@ -2492,7 +2492,7 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "SSO 계정의 비밀번호를 재설정 할 수 없습니다."
+    "translation": "SSO 계정의 비밀번호를 재설정 할 수 없습니다"
   },
   {
     "id": "api.user.reset_password.token_parse.error",
@@ -2572,7 +2572,7 @@
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
-    "translation": "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again."
+    "translation": "\"현재 비밀번호\"를 잘못 입력하였습니다. Caps Lock 버튼이 눌려있는지 확인하고 다시 시도하세요."
   },
   {
     "id": "api.user.update_password.menu",
@@ -2580,7 +2580,7 @@
   },
   {
     "id": "api.user.update_password.oauth.app_error",
-    "translation": "Update password failed because the user is logged in through an OAuth service"
+    "translation": "OAuth를 통해 로그인하였으므로 비밀번호를 변경할 수 없습니다"
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
@@ -4396,7 +4396,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers and hyphen (-)."
+    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.) and hyphen (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -4800,7 +4800,7 @@
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
+    "translation": "그룹 멤버에 잘못된 그룹 id 속성"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -5784,7 +5784,7 @@
   },
   {
     "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels"
+    "translation": "사용자가 팀 목록에 속하는지 확인할 수 없습니다"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
@@ -6144,11 +6144,11 @@
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Unable to get post counts"
+    "translation": "게시물 수를 얻을 수 없습니다"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Unable to get post counts by day"
+    "translation": "일별 게시물 수를 얻을 수 없습니다"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
@@ -6372,7 +6372,7 @@
   },
   {
     "id": "store.sql_recover.get_by_code.app_error",
-    "translation": "Unable to get a token with this code"
+    "translation": "이 코드로 토큰을 얻을 수 없습니다"
   },
   {
     "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
@@ -6404,7 +6404,7 @@
   },
   {
     "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles"
+    "translation": "모든 역할을 영구적으로 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6412,11 +6412,11 @@
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
-    "translation": "The role was not valid"
+    "translation": "역할이 유효하지 않습니다"
   },
   {
     "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the role"
+    "translation": "역할 저장을 위한 트랜잭션 열기가 실패하였습니다"
   },
   {
     "id": "store.sql_role.save.update.app_error",
@@ -6424,7 +6424,7 @@
   },
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the role"
+    "translation": "역할 저장을 위한 트랜잭션 커밋이 실패하였습니다"
   },
   {
     "id": "store.sql_scheme.delete.role_update.app_error",
@@ -6440,15 +6440,15 @@
   },
   {
     "id": "store.sql_scheme.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete the schemes"
+    "translation": "스키마를 영구적으로 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Unable to reset all channels using this scheme to the default scheme"
+    "translation": "이 스키마를 사용하는 모든 채널을 기본 스키마로 재설정 할 수 없습니다"
   },
   {
     "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Unable to reset all teams using this scheme to the default scheme"
+    "translation": "이 스키마를 사용하는 모든 팀을 기본 스키마로 재설정 할 수 없습니다"
   },
   {
     "id": "store.sql_scheme.save.insert.app_error",
@@ -6456,15 +6456,15 @@
   },
   {
     "id": "store.sql_scheme.save.invalid_scheme.app_error",
-    "translation": "The provided scheme is invalid"
+    "translation": "제공된 스키마가 잘못되었습니다"
   },
   {
     "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the scheme"
+    "translation": "스키마 저장을 위한 트랜잭션 열기가 실패하였습니다"
   },
   {
     "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Unable to retrieve the default scheme roles"
+    "translation": "기본 스키마 역할을 검색 할 수 없습니다"
   },
   {
     "id": "store.sql_scheme.save.update.app_error",
@@ -6472,7 +6472,7 @@
   },
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the scheme"
+    "translation": "스키마 저장을 위한 트랜잭션 커밋이 실패하였습니다"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -6556,7 +6556,7 @@
   },
   {
     "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": "Unable to update the last activity date and time of the user"
+    "translation": "사용자의 마지막 활동 일자와 시간을 업데이트 할 수 없습니다"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -6568,7 +6568,7 @@
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry"
+    "translation": "시스템 테이블 항목을 영구적으로 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -6752,11 +6752,11 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Unable to update the date of the last team icon update"
+    "translation": "마지막 팀 아이콘 업데이트 일자를 업데이트 할 수 없습니다"
   },
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams"
+    "translation": "사용자가 팀 목록에 속하는지 확인할 수 없습니다"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
@@ -6784,7 +6784,7 @@
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Unable to get the system admin count"
+    "translation": "시스템 관리자 수를 가져 올 수 없습니다"
   },
   {
     "id": "store.sql_user.app_error",
@@ -6856,7 +6856,7 @@
   },
   {
     "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Unable to infer the system date based on the first user creation date."
+    "translation": "첫번째 사용자 작성일자를 기반으로 시스템일자를 유추 할 수 없습니다."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
@@ -6932,7 +6932,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "Unable to find any user matching the search parameters"
+    "translation": "검색 매개 변수와 일치하는 사용자를 찾을 수 없습니다"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -6992,7 +6992,7 @@
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": "Unable to update the date of the last update of the user"
+    "translation": "사용자의 마지막 업데이트 일자를 업데이트 할 수 없습니다"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -7144,7 +7144,7 @@
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
+    "translation": "S3에서 오류 목록 디렉토리가 발생했습니다."
   },
   {
     "id": "utils.file.remove_directory.local.app_error",
@@ -7152,7 +7152,7 @@
   },
   {
     "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
+    "translation": "S3에서 오류 삭제 디렉토리가 발생했습니다."
   },
   {
     "id": "utils.file.remove_file.local.app_error",
@@ -7160,7 +7160,7 @@
   },
   {
     "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
+    "translation": "S3에서 오류 목록 파일이 발생했습니다."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",

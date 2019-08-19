@@ -169,7 +169,7 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
+    "translation": "请加我到您想要我互动的团队与频道。使用浏览器或桌面应用进行操作。"
   },
   {
     "id": "api.channel.add_member.added",
@@ -1502,7 +1502,7 @@
   },
   {
     "id": "api.plugin.install.insecure_url.app_error",
-    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
+    "translation": "插件下载地址不安全。请提供安全地址或开启 PluginSettings.AllowInsecureDownloadUrl。"
   },
   {
     "id": "api.plugin.install.invalid_url.app_error",
@@ -3388,7 +3388,7 @@
   },
   {
     "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
+    "translation": "无法设定插件由文件储存管理。"
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -3436,15 +3436,15 @@
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
-    "translation": "Unable to remove plugin bundle from file store."
+    "translation": "无法从文件储存移除插件。"
   },
   {
     "id": "app.plugin.store_bundle.app_error",
-    "translation": "Unable to store the plugin to the configured file store."
+    "translation": "无法储存插件到配置的文件储存。"
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Error reading files from the plugins folder in the file store."
+    "translation": "从文件储存读取插件文件失败。"
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
@@ -5624,7 +5624,7 @@
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "无法找到指定消息"
+    "translation": "无法找到置顶的消息"
   },
   {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
@@ -5728,7 +5728,7 @@
   },
   {
     "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term"
+    "translation": "无法以指定的用户和关键字获取群组频道"
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
@@ -6180,11 +6180,11 @@
   },
   {
     "id": "store.sql_post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound"
+    "translation": "无法获取时间限制后的消息"
   },
   {
     "id": "store.sql_post.get_post_id_around.app_error",
-    "translation": "Unable to get post around time bound"
+    "translation": "无法从时间附近获取消息"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
