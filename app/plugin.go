@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/pkg/errors"
 )
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
@@ -412,8 +413,12 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 // verifies successfully is guaranteed to notify.
 // This may result in multiple notifications going out,
 // however webapp plugin enable/disable operations are idempotent.
-func (a *App) notifyPluginEnabled(manifest *model.Manifest) *model.AppError {
-	if !manifest.HasClient() {
+func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return errors.New("pluginsEnvironment is nil")
+	}
+	if !manifest.HasClient() || !pluginsEnvironment.IsActive(manifest.Id) {
 		return nil
 	}
 

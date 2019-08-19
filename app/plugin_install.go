@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/pkg/errors"
 )
 
 // managedPluginFileName is the file name of the flag file that marks
@@ -40,8 +39,12 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 		mlog.Error("Failed to unpack plugin from filestore", mlog.Err(appErr), mlog.String("path", fileStorePath))
 	}
 
-	if err := a.notifyPluginEvents(manifest); err != nil {
-		mlog.Error("Failed to notify plugin events", mlog.Err(err))
+	if err := a.notifyPluginEnabled(manifest); err != nil {
+		mlog.Error("Failed notify plugin enabled", mlog.Err(err))
+	}
+
+	if err := a.notifyPluginStatusesChanged(); err != nil {
+		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
 	}
 }
 
@@ -83,8 +86,12 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 		},
 	)
 
-	if err := a.notifyPluginEvents(manifest); err != nil {
-		mlog.Error("Failed to notify plugin events", mlog.Err(err))
+	if err := a.notifyPluginEnabled(manifest); err != nil {
+		mlog.Error("Failed notify plugin enabled", mlog.Err(err))
+	}
+
+	if err := a.notifyPluginStatusesChanged(); err != nil {
+		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
 	return manifest, nil
@@ -238,26 +245,6 @@ func (a *App) removePluginLocally(id string) *model.AppError {
 
 	if err := os.RemoveAll(pluginPath); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
-}
-
-func (a *App) notifyPluginEvents(manifest *model.Manifest) error {
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return errors.New("pluginsEnvironment is nil")
-	}
-
-	if pluginsEnvironment.IsActive(manifest.Id) {
-		// Notify all cluster clients if ready
-		if appErr := a.notifyPluginEnabled(manifest); appErr != nil {
-			return errors.Wrap(appErr, "failed notify plugin enabled")
-		}
-	}
-
-	if err := a.notifyPluginStatusesChanged(); err != nil {
-		return errors.Wrap(err, "failed to notify plugin status changed")
 	}
 
 	return nil
