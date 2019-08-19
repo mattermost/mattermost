@@ -33,6 +33,7 @@ func New(config configservice.ConfigService, globalOptions app.AppOptionCreator,
 		MainRouter:          root,
 	}
 
+	web.InitOAuth()
 	web.InitWebhooks()
 	web.InitSaml()
 	web.InitStatic()
@@ -43,15 +44,16 @@ func New(config configservice.ConfigService, globalOptions app.AppOptionCreator,
 // Due to the complexities of UA detection and the ramifications of a misdetection
 // only older Safari and IE browsers throw incompatibility errors.
 // Map should be of minimum required browser version.
+// -1 means that the browser is not supported in any version.
 var browserMinimumSupported = map[string]int{
-	"BrowserIE":     11,
+	"BrowserIE":     12,
 	"BrowserSafari": 9,
 }
 
 func CheckClientCompatability(agentString string) bool {
 	ua := uasurfer.Parse(agentString)
 
-	if version, exist := browserMinimumSupported[ua.Browser.Name.String()]; exist && ua.Browser.Version.Major < version {
+	if version, exist := browserMinimumSupported[ua.Browser.Name.String()]; exist && (ua.Browser.Version.Major < version || version < 0) {
 		return false
 	}
 

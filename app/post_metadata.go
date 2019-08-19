@@ -495,7 +495,13 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
-	if strings.HasPrefix(contentType, "image") {
+	if contentType == "image/svg+xml" {
+		image := &model.PostImage{
+			Format: "svg",
+		}
+
+		return nil, image, nil
+	} else if strings.HasPrefix(contentType, "image") {
 		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
