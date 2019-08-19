@@ -170,9 +170,14 @@ type Z_OnActivateReturns struct {
 
 func (g *hooksRPCClient) OnActivate() error {
 	muxId := g.muxBroker.NextId()
-	go g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
-		impl: g.apiImpl,
-	})
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				g.log.Error("api server panic", mlog.Any("muxId", muxId))
+			}
+		}()
+		g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{impl: g.apiImpl})
+	}()
 
 	_args := &Z_OnActivateArgs{
 		APIMuxId: muxId,
@@ -278,6 +283,11 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 
 	serveHTTPStreamId := g.muxBroker.NextId()
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				g.log.Error("http response server panic", mlog.Any("serveHTTPStreamId", serveHTTPStreamId))
+			}
+		}()
 		connection, err := g.muxBroker.Accept(serveHTTPStreamId)
 		if err != nil {
 			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint32("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
