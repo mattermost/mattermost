@@ -1853,6 +1853,14 @@ func TestGetChannelStats(t *testing.T) {
 		t.Fatal("got incorrect pinned post count")
 	}
 
+	th.CreatePinnedPost()
+	stats, resp = Client.GetChannelStats(channel.Id, "")
+	CheckNoError(t, resp)
+
+	if stats.PinnedPostCount != 1 {
+		t.Fatal("should have returned 1 pinned post count")
+	}
+
 	_, resp = Client.GetChannelStats("junk", "")
 	CheckBadRequestStatus(t, resp)
 
