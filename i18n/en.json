@@ -3527,6 +3527,10 @@
     "translation": "Plugins and/or plugin uploads have been disabled."
   },
   {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
+  },
+  {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
   },
