@@ -326,11 +326,11 @@ func (env *Environment) GenerateWebappBundle(id string) (*model.Manifest, error)
 	bundlePath = filepath.Join(env.pluginDir, id, bundlePath)
 	destinationPath := filepath.Join(env.webappPluginDir, id)
 
-	if err := os.RemoveAll(destinationPath); err != nil {
+	if err = os.RemoveAll(destinationPath); err != nil {
 		return nil, errors.Wrapf(err, "unable to remove old webapp bundle directory: %v", destinationPath)
 	}
 
-	if err := utils.CopyDir(filepath.Dir(bundlePath), destinationPath); err != nil {
+	if err = utils.CopyDir(filepath.Dir(bundlePath), destinationPath); err != nil {
 		return nil, errors.Wrapf(err, "unable to copy webapp bundle directory: %v", id)
 	}
 
@@ -342,12 +342,12 @@ func (env *Environment) GenerateWebappBundle(id string) (*model.Manifest, error)
 	}
 
 	hash := fnv.New64a()
-	if _, err := hash.Write(sourceBundleFileContents); err != nil {
+	if _, err = hash.Write(sourceBundleFileContents); err != nil {
 		return nil, errors.Wrapf(err, "unable to generate hash for webapp bundle: %v", id)
 	}
 	manifest.Webapp.BundleHash = hash.Sum([]byte{})
 
-	if err := os.Rename(
+	if err = os.Rename(
 		sourceBundleFilepath,
 		filepath.Join(destinationPath, fmt.Sprintf("%s_%x_bundle.js", id, manifest.Webapp.BundleHash)),
 	); err != nil {
