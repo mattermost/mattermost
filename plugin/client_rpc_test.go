@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"io/ioutil"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -61,9 +62,29 @@ func TestRecoverFromWrongHttpCode(t *testing.T) {
 	require.Nil(t, err)
 
 	r := httptest.NewRequest("GET", "/foo", nil)
-	w := httptest.NewRecorder()
+	w := &PanicResponseWriter{
+		w: httptest.NewRecorder(),
+	}
 	supervisor.hooks.ServeHTTP(nil, w, r)
 
 	err = supervisor.PerformHealthCheck()
 	require.Nil(t, err)
+}
+
+type PanicResponseWriter struct {
+	w http.ResponseWriter
+}
+
+func (p *PanicResponseWriter) Header() http.Header {
+	return p.w.Header()
+}
+
+func (p *PanicResponseWriter) Write(in []byte) (int, error) {
+	return p.w.Write(in)
+}
+
+func (p *PanicResponseWriter) WriteHeader(statusCode int) {
+	if statusCode > 600 {
+		panic("invalid status code")
+	}
 }
