@@ -109,7 +109,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 			Name:           GenerateTestTeamName(),
 			Email:          th.GenerateTestEmail(),
 			Type:           model.TEAM_OPEN,
-			AllowedDomains: "simulator.amazonses.com,dockerhost",
+			AllowedDomains: "simulator.amazonses.com,localhost",
 		}
 
 		rteam, resp := th.Client.CreateTeam(team)
@@ -125,7 +125,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 			Name:           GenerateTestTeamName(),
 			Email:          th.GenerateTestEmail(),
 			Type:           model.TEAM_OPEN,
-			AllowedDomains: "simulator.amazonses.com,dockerhost",
+			AllowedDomains: "simulator.amazonses.com,localhost",
 		}
 
 		rteam, resp := th.SystemAdminClient.CreateTeam(team)
@@ -192,7 +192,7 @@ func TestGetTeamSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -375,7 +375,7 @@ func TestUpdateTeamSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -480,7 +480,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -736,7 +736,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		Name:            GenerateTestTeamName(),
 		Email:           th.GenerateTestEmail(),
 		Type:            model.TEAM_OPEN,
-		AllowedDomains:  "simulator.amazonses.com,dockerhost",
+		AllowedDomains:  "simulator.amazonses.com,localhost",
 		AllowOpenInvite: true,
 	})
 	CheckNoError(t, resp)
@@ -745,7 +745,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		Name:            GenerateTestTeamName(),
 		Email:           th.GenerateTestEmail(),
 		Type:            model.TEAM_OPEN,
-		AllowedDomains:  "simulator.amazonses.com,dockerhost",
+		AllowedDomains:  "simulator.amazonses.com,localhost",
 		AllowOpenInvite: true,
 	})
 	CheckNoError(t, resp)
@@ -848,7 +848,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -973,7 +973,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 	team2, resp := th.Client.CreateTeam(&model.Team{
@@ -981,7 +981,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -1091,7 +1091,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 	team2, resp := th.Client.CreateTeam(&model.Team{
@@ -1099,7 +1099,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
-		AllowedDomains: "simulator.amazonses.com,dockerhost",
+		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	CheckNoError(t, resp)
 
@@ -2287,6 +2287,119 @@ func TestInviteUsersToTeam(t *testing.T) {
 			t.Fatal("Should not invite user")
 		}
 
+	})
+}
+
+func TestInviteGuestsToTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	guest1 := th.GenerateTestEmail()
+	guest2 := th.GenerateTestEmail()
+
+	emailList := []string{guest1, guest2}
+
+	//Delete all the messages before check the sample email
+	mailservice.DeleteMailBox(guest1)
+	mailservice.DeleteMailBox(guest2)
+
+	enableEmailInvitations := *th.App.Config().ServiceSettings.EnableEmailInvitations
+	restrictCreationToDomains := th.App.Config().TeamSettings.RestrictCreationToDomains
+	guestRestrictCreationToDomains := th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableEmailInvitations = &enableEmailInvitations })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = restrictCreationToDomains })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.RestrictCreationToDomains = guestRestrictCreationToDomains })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
+	}()
+
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
+	_, resp := th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
+	assert.NotNil(t, resp.Error, "Should be disabled")
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
+	_, resp = th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
+	if resp.Error == nil {
+		t.Fatal("Should be disabled")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+
+	th.App.SetLicense(nil)
+
+	_, resp = th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
+	if resp.Error == nil {
+		t.Fatal("Should be disabled")
+	}
+
+	th.App.SetLicense(model.NewTestLicense(""))
+	defer th.App.SetLicense(nil)
+
+	okMsg, resp := th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
+	CheckNoError(t, resp)
+	if !okMsg {
+		t.Fatal("should return true")
+	}
+
+	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
+	expectedSubject := utils.T("api.templates.invite_guest_subject",
+		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"SiteName":        th.App.ClientConfig()["SiteName"]})
+
+	//Check if the email was send to the rigth email address
+	for _, email := range emailList {
+		var resultsMailbox mailservice.JSONMessageHeaderInbucket
+		err := mailservice.RetryInbucket(5, func() error {
+			var err error
+			resultsMailbox, err = mailservice.GetMailBox(email)
+			return err
+		})
+		if err != nil {
+			t.Log(err)
+			t.Log("No email was received, maybe due load on the server. Disabling this verification")
+		}
+		if err == nil && len(resultsMailbox) > 0 {
+			if !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email) {
+				t.Fatal("Wrong To recipient")
+			} else {
+				if resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
+					if resultsEmail.Subject != expectedSubject {
+						t.Log(resultsEmail.Subject)
+						t.Log(expectedSubject)
+						t.Fatal("Wrong Subject")
+					}
+				}
+			}
+		}
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "@global.com,@common.com" })
+
+	t.Run("team domain restrictions should not affect inviting guests", func(t *testing.T) {
+		err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: emailList, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		require.Nil(t, err, "guest user invites should not be affected by team restrictions")
+	})
+
+	t.Run("guest restrictions should affect guest users", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "@guest.com" })
+
+		err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		require.NotNil(t, err, "guest user invites should be affected by the guest domain restrictions")
+
+		err = th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		require.Nil(t, err, "whitelisted guest user email should be allowed by the guest domain restrictions")
+	})
+
+	t.Run("guest restrictions should not affect inviting new team members", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "@guest.com" })
+
+		err := th.App.InviteNewUsersToTeam([]string{"user@global.com"}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Nil(t, err, "non guest user invites should not be affected by the guest domain restrictions")
 	})
 }
 

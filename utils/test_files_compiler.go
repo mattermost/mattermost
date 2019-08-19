@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -50,10 +51,14 @@ func CompileGo(t *testing.T, sourceCode, outputPath string) {
 		goMod(t, dir, "edit", "-replace", fmt.Sprintf("github.com/mattermost/mattermost-server@v0.0.0=%s", mattermostServerPath))
 	}
 
+	out := &bytes.Buffer{}
 	cmd := exec.Command("go", "build", "-o", outputPath, "main.go")
 	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = out
+	cmd.Stderr = out
 	err = cmd.Run()
+	if err != nil {
+		t.Log("Go compile errors:\n", out.String())
+	}
 	require.NoError(t, err, "failed to compile go")
 }

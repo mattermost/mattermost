@@ -93,10 +93,10 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 // parseDSN splits up a connection string into a driver name and data source name.
 //
 // For example:
-//	mysql://mmuser:mostest@dockerhost:5432/mattermost_test
+//	mysql://mmuser:mostest@localhost:5432/mattermost_test
 // returns
 //	driverName = mysql
-//	dataSourceName = mmuser:mostest@dockerhost:5432/mattermost_test
+//	dataSourceName = mmuser:mostest@localhost:5432/mattermost_test
 //
 // By contrast, a Postgres DSN is returned unmodified.
 func parseDSN(dsn string) (string, string, error) {
@@ -125,7 +125,7 @@ func parseDSN(dsn string) (string, string, error) {
 
 // Set replaces the current configuration in its entirety and updates the backing store.
 func (ds *DatabaseStore) Set(newCfg *model.Config) (*model.Config, error) {
-	return ds.commonStore.set(newCfg, ds.commonStore.validate, ds.persist)
+	return ds.commonStore.set(newCfg, true, ds.commonStore.validate, ds.persist)
 }
 
 // persist writes the configuration to the configured database.

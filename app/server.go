@@ -204,8 +204,14 @@ func NewServer(options ...Option) (*Server, error) {
 	// Start plugin health check job
 	pluginsEnvironment := s.PluginsEnvironment
 	if pluginsEnvironment != nil {
-		pluginsEnvironment.InitPluginHealthCheckJob()
+		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
 	}
+	s.AddConfigListener(func(_, c *model.Config) {
+		pluginsEnvironment := s.PluginsEnvironment
+		if pluginsEnvironment != nil {
+			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
+		}
+	})
 
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
 	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
@@ -332,10 +338,6 @@ func (s *Server) Shutdown() error {
 	s.StopHTTPServer()
 	s.WaitForGoroutines()
 
-	if s.Store != nil {
-		s.Store.Close()
-	}
-
 	if s.htmlTemplateWatcher != nil {
 		s.htmlTemplateWatcher.Close()
 	}
@@ -356,6 +358,10 @@ func (s *Server) Shutdown() error {
 	if s.Jobs != nil && s.runjobs {
 		s.Jobs.StopWorkers()
 		s.Jobs.StopSchedulers()
+	}
+
+	if s.Store != nil {
+		s.Store.Close()
 	}
 
 	mlog.Info("Server stopped")

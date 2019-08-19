@@ -315,8 +315,8 @@ func createTeamMember(ss store.Store, teamId, userId string) *model.TeamMember {
 	m := model.TeamMember{}
 	m.TeamId = teamId
 	m.UserId = userId
-	store.Must(ss.Team().SaveMember(&m, -1))
-	return &m
+	tm, _ := ss.Team().SaveMember(&m, -1)
+	return tm
 }
 
 func createTeamWithSchemeId(ss store.Store, schemeId *string) *model.Team {

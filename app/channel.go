@@ -104,6 +104,11 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 
 		a.InvalidateCacheForChannelMembers(channel.Id)
 
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
+		message.Add("user_id", user.Id)
+		message.Add("team_id", channel.TeamId)
+		a.Publish(message)
+
 	}
 
 	if a.IsESIndexingEnabled() {
@@ -340,15 +345,19 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		close(uc2)
 	}()
 
-	if result := <-uc1; result.Err != nil {
+	result := <-uc1
+	if result.Err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, userId, http.StatusBadRequest)
 	}
+	user := result.Data.(*model.User)
 
-	if result := <-uc2; result.Err != nil {
+	result = <-uc2
+	if result.Err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId, http.StatusBadRequest)
 	}
+	otherUser := result.Data.(*model.User)
 
-	channel, err := a.Srv.Store.Channel().CreateDirectChannel(userId, otherUserId)
+	channel, err := a.Srv.Store.Channel().CreateDirectChannel(user, otherUser)
 	if err != nil {
 		if err.Id == store.CHANNEL_EXISTS_ERROR {
 			return channel, err
@@ -1317,6 +1326,10 @@ func (a *App) GetChannelMemberCount(channelId string) (int64, *model.AppError) {
 	return a.Srv.Store.Channel().GetMemberCount(channelId, true)
 }
 
+func (a *App) GetChannelGuestCount(channelId string) (int64, *model.AppError) {
+	return a.Srv.Store.Channel().GetGuestCount(channelId, true)
+}
+
 func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
 	return a.Srv.Store.Channel().GetChannelCounts(teamId, userId)
 }
@@ -1577,8 +1590,16 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 }
 
 func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+	user, err := a.Srv.Store.User().Get(userIdToRemove)
+	if err != nil {
+		return err
+	}
+	isGuest := user.IsGuest()
+
 	if channel.Name == model.DEFAULT_CHANNEL {
-		return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
+		if !isGuest {
+			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
+		}
 	}
 
 	if channel.IsGroupConstrained() && userIdToRemove != removerUserId {
@@ -1601,6 +1622,23 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 	}
 	if err := a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); err != nil {
 		return err
+	}
+
+	if isGuest {
+		currentMembers, err := a.GetChannelMembersForUser(channel.TeamId, userIdToRemove)
+		if err != nil {
+			return err
+		}
+		if len(*currentMembers) == 0 {
+			teamMember, err := a.GetTeamMember(channel.TeamId, userIdToRemove)
+			if err != nil {
+				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+
+			if err = a.RemoveTeamMemberFromTeam(teamMember, removerUserId); err != nil {
+				return err
+			}
+		}
 	}
 
 	a.InvalidateCacheForUser(userIdToRemove)
@@ -1792,6 +1830,14 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 	term = strings.TrimSpace(term)
 
 	return a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
+}
+
+func (a *App) SearchChannelsForUser(userId, teamId, term string) (*model.ChannelList, *model.AppError) {
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+
+	term = strings.TrimSpace(term)
+
+	return a.Srv.Store.Channel().SearchForUserInTeam(userId, teamId, term, includeDeleted)
 }
 
 func (a *App) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {
