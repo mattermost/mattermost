@@ -1,6 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// Following outlines the plugin installation/activation flow.
+//
+// When a plugin is installed, the server first unpacks the plugin tar on the local filesystem to parse and validate its manifest.
+// If successful, it uploads the tar to the configured FilesStore, which is used to sync plugins in HA env.
+// Then, it notifies cluster peers to install the new plugin if in HA env, otherwise this step is skipped.
+// In the end it publishes a plugin statuses changed event to all webclients. It also sends a broadcast
+// message to cluster peers to notify their webclients if in HA env.
+//
+// When a plugin is enabled, the server first updates PluginSettings.PluginStates config to persist plugin enabled state.
+// Updating the config implicitly invokes SyncPluginsActiveState(), which is done through the config change listener event.
+// Activating a plugin locally, sets the plugin state as running, generates the webapp plugin bundle, sets up the plugin supervisor.
+// Once plugin activating locally is complete, the config change is synced across cluster peers, which inturn activates their plugin locally.
+// All peers attempt to notify webclients through notifyPluginEnabled(). In HA env, webclients are notified when all cluster peers
+// have activated the plugin, this is to ensure servers can serve webapp plugin bundle when requested across all peers.
+// For non-HA, this step is skipped and webclients are notified immediately after activating the plugin.
+//
 package app
 
 import (
