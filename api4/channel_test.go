@@ -1853,7 +1853,7 @@ func TestGetChannelStats(t *testing.T) {
 		t.Fatal("got incorrect pinned post count")
 	}
 
-	th.CreatePinnedPost()
+	th.CreatePinnedPostWithClient(th.Client, channel)
 	stats, resp = Client.GetChannelStats(channel.Id, "")
 	CheckNoError(t, resp)
 
