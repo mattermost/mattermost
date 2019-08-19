@@ -74,7 +74,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mentions.addMention(post.UserId, DMMention)
 		}
 	} else {
-		keywords := a.getMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
+		allowChannelMentions := a.allowChannelMentions(post, len(profileMap))
+		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
 		mentions = getExplicitMentions(post, keywords)
 
@@ -609,47 +610,67 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 	return ret
 }
 
+// allowChannelMentions returns whether or not the channel mentions are allowed for the given post.
+func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
+	if post.Type == model.POST_HEADER_CHANGE || post.Type == model.POST_PURPOSE_CHANGE {
+		return false
+	}
+
+	if int64(numProfiles) >= *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		return false
+	}
+
+	return true
+}
+
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
+func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
 	keywords := make(map[string][]string)
 
-	for id, profile := range profiles {
-		userMention := "@" + strings.ToLower(profile.Username)
-		keywords[userMention] = append(keywords[userMention], id)
+	for _, profile := range profiles {
+		addMentionKeywordsForUser(
+			keywords,
+			profile,
+			channelMemberNotifyPropsMap[profile.Id],
+			GetStatusFromCache(profile.Id),
+			allowChannelMentions,
+		)
+	}
 
-		if len(profile.NotifyProps[model.MENTION_KEYS_NOTIFY_PROP]) > 0 {
-			// Add all the user's mention keys
-			splitKeys := strings.Split(profile.NotifyProps[model.MENTION_KEYS_NOTIFY_PROP], ",")
-			for _, k := range splitKeys {
-				// note that these are made lower case so that we can do a case insensitive check for them
-				key := strings.ToLower(k)
-				keywords[key] = append(keywords[key], id)
-			}
+	return keywords
+}
+
+// addMentionKeywordsForUser adds the mention keywords for a given user to the given keyword map. Returns the provided keyword map.
+func addMentionKeywordsForUser(keywords map[string][]string, profile *model.User, channelNotifyProps map[string]string, status *model.Status, allowChannelMentions bool) map[string][]string {
+	userMention := "@" + strings.ToLower(profile.Username)
+	keywords[userMention] = append(keywords[userMention], profile.Id)
+
+	if len(profile.NotifyProps[model.MENTION_KEYS_NOTIFY_PROP]) > 0 {
+		// Add all the user's mention keys
+		splitKeys := strings.Split(profile.NotifyProps[model.MENTION_KEYS_NOTIFY_PROP], ",")
+		for _, k := range splitKeys {
+			// note that these are made lower case so that we can do a case insensitive check for them
+			key := strings.ToLower(k)
+			keywords[key] = append(keywords[key], profile.Id)
 		}
+	}
 
-		// If turned on, add the user's case sensitive first name
-		if profile.NotifyProps[model.FIRST_NAME_NOTIFY_PROP] == "true" {
-			keywords[profile.FirstName] = append(keywords[profile.FirstName], profile.Id)
-		}
+	// If turned on, add the user's case sensitive first name
+	if profile.NotifyProps[model.FIRST_NAME_NOTIFY_PROP] == "true" {
+		keywords[profile.FirstName] = append(keywords[profile.FirstName], profile.Id)
+	}
 
-		ignoreChannelMentions := false
-		if ignoreChannelMentionsNotifyProp, ok := channelMemberNotifyPropsMap[profile.Id][model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP]; ok {
-			if ignoreChannelMentionsNotifyProp == model.IGNORE_CHANNEL_MENTIONS_ON {
-				ignoreChannelMentions = true
-			}
-		}
+	// Add @channel and @all to keywords if user has them turned on and the server allows them
+	if allowChannelMentions {
+		ignoreChannelMentions := channelNotifyProps[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP] == model.IGNORE_CHANNEL_MENTIONS_ON
 
-		// Add @channel and @all to keywords if user has them turned on
-		if lookForSpecialMentions {
-			if int64(len(profiles)) <= *a.Config().TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps[model.CHANNEL_MENTIONS_NOTIFY_PROP] == "true" && !ignoreChannelMentions {
-				keywords["@channel"] = append(keywords["@channel"], profile.Id)
-				keywords["@all"] = append(keywords["@all"], profile.Id)
+		if profile.NotifyProps[model.CHANNEL_MENTIONS_NOTIFY_PROP] == "true" && !ignoreChannelMentions {
+			keywords["@channel"] = append(keywords["@channel"], profile.Id)
+			keywords["@all"] = append(keywords["@all"], profile.Id)
 
-				status := GetStatusFromCache(profile.Id)
-				if status != nil && status.Status == model.STATUS_ONLINE {
-					keywords["@here"] = append(keywords["@here"], profile.Id)
-				}
+			if status != nil && status.Status == model.STATUS_ONLINE {
+				keywords["@here"] = append(keywords["@here"], profile.Id)
 			}
 		}
 	}

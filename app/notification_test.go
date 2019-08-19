@@ -879,6 +879,52 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 	}
 }
 
+func TestAllowChannelMentions(t *testing.T) {
+	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		post := &model.Post{}
+
+		allowChannelMentions := th.App.allowChannelMentions(post, 5)
+
+		assert.True(t, allowChannelMentions)
+	})
+
+	t.Run("should return false for a channel header post", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		post := &model.Post{Type: model.POST_HEADER_CHANGE}
+
+		allowChannelMentions := th.App.allowChannelMentions(post, 5)
+
+		assert.False(t, allowChannelMentions)
+	})
+
+	t.Run("should return false for a channel purpose post", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		post := &model.Post{Type: model.POST_PURPOSE_CHANGE}
+
+		allowChannelMentions := th.App.allowChannelMentions(post, 5)
+
+		assert.False(t, allowChannelMentions)
+	})
+
+	t.Run("should return false for a regular post with many channel members", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		post := &model.Post{}
+
+		allowChannelMentions := th.App.allowChannelMentions(post, int(*th.App.Config().TeamSettings.MaxNotificationsPerChannel)+1)
+
+		assert.False(t, allowChannelMentions)
+	})
+}
+
 func TestGetMentionKeywords(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -1115,10 +1161,9 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	// multiple users and more than MaxNotificationsPerChannel
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxNotificationsPerChannel = 3 })
-	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4Off)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off)
 	if len(mentions) != 4 {
-		t.Fatal("should've returned four mention keywords")
+		t.Fatal("should've returned four mention keywords", mentions)
 	} else if _, ok := mentions["@channel"]; ok {
 		t.Fatal("should not have mentioned any user with @channel")
 	} else if _, ok := mentions["@all"]; ok {
@@ -1149,6 +1194,212 @@ func TestGetMentionKeywords(t *testing.T) {
 	} else if _, ok := mentions["@here"]; ok {
 		t.Fatal("should not have mentioned any user with @here")
 	}
+}
+
+func TestAddMentionKeywordsForUser(t *testing.T) {
+	t.Run("should add @user", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+		}
+		channelNotifyProps := map[string]string{}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, nil, false)
+
+		assert.Contains(t, keywords["@user"], user.Id)
+	})
+
+	t.Run("should add custom mention keywords", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+			NotifyProps: map[string]string{
+				model.MENTION_KEYS_NOTIFY_PROP: "apple,BANANA,OrAnGe",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, nil, false)
+
+		assert.Contains(t, keywords["apple"], user.Id)
+		assert.Contains(t, keywords["banana"], user.Id)
+		assert.Contains(t, keywords["orange"], user.Id)
+	})
+
+	t.Run("should add case sensitive first name if enabled", func(t *testing.T) {
+		user := &model.User{
+			Id:        model.NewId(),
+			Username:  "user",
+			FirstName: "William",
+			LastName:  "Robert",
+			NotifyProps: map[string]string{
+				model.FIRST_NAME_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, nil, false)
+
+		assert.Contains(t, keywords["William"], user.Id)
+		assert.NotContains(t, keywords["william"], user.Id)
+		assert.NotContains(t, keywords["Robert"], user.Id)
+	})
+
+	t.Run("should not add case sensitive first name if disabled", func(t *testing.T) {
+		user := &model.User{
+			Id:        model.NewId(),
+			Username:  "user",
+			FirstName: "William",
+			LastName:  "Robert",
+			NotifyProps: map[string]string{
+				model.FIRST_NAME_NOTIFY_PROP: "false",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, nil, false)
+
+		assert.NotContains(t, keywords["William"], user.Id)
+		assert.NotContains(t, keywords["william"], user.Id)
+		assert.NotContains(t, keywords["Robert"], user.Id)
+	})
+
+	t.Run("should add @channel/@all/@here when allowed", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+			NotifyProps: map[string]string{
+				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+		status := &model.Status{
+			Status: model.STATUS_ONLINE,
+		}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, status, true)
+
+		assert.Contains(t, keywords["@channel"], user.Id)
+		assert.Contains(t, keywords["@all"], user.Id)
+		assert.Contains(t, keywords["@here"], user.Id)
+	})
+
+	t.Run("should not add @channel/@all/@here when not allowed", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+			NotifyProps: map[string]string{
+				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+		status := &model.Status{
+			Status: model.STATUS_ONLINE,
+		}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, status, false)
+
+		assert.NotContains(t, keywords["@channel"], user.Id)
+		assert.NotContains(t, keywords["@all"], user.Id)
+		assert.NotContains(t, keywords["@here"], user.Id)
+	})
+
+	t.Run("should not add @channel/@all/@here when disabled for user", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+			NotifyProps: map[string]string{
+				model.CHANNEL_MENTIONS_NOTIFY_PROP: "false",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+		status := &model.Status{
+			Status: model.STATUS_ONLINE,
+		}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, status, true)
+
+		assert.NotContains(t, keywords["@channel"], user.Id)
+		assert.NotContains(t, keywords["@all"], user.Id)
+		assert.NotContains(t, keywords["@here"], user.Id)
+	})
+
+	t.Run("should not add @channel/@all/@here when disabled for channel", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+			NotifyProps: map[string]string{
+				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{
+			model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: model.IGNORE_CHANNEL_MENTIONS_ON,
+		}
+		status := &model.Status{
+			Status: model.STATUS_ONLINE,
+		}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, status, true)
+
+		assert.NotContains(t, keywords["@channel"], user.Id)
+		assert.NotContains(t, keywords["@all"], user.Id)
+		assert.NotContains(t, keywords["@here"], user.Id)
+	})
+
+	t.Run("should not add @here when when user is not online", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+			NotifyProps: map[string]string{
+				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+		status := &model.Status{
+			Status: model.STATUS_AWAY,
+		}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, status, true)
+
+		assert.Contains(t, keywords["@channel"], user.Id)
+		assert.Contains(t, keywords["@all"], user.Id)
+		assert.NotContains(t, keywords["@here"], user.Id)
+	})
+
+	t.Run("should add for multiple users", func(t *testing.T) {
+		user1 := &model.User{
+			Id:       model.NewId(),
+			Username: "user1",
+			NotifyProps: map[string]string{
+				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+			},
+		}
+		user2 := &model.User{
+			Id:       model.NewId(),
+			Username: "user2",
+			NotifyProps: map[string]string{
+				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+			},
+		}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user1, map[string]string{}, nil, true)
+		addMentionKeywordsForUser(keywords, user2, map[string]string{}, nil, true)
+
+		assert.Contains(t, keywords["@user1"], user1.Id)
+		assert.Contains(t, keywords["@user2"], user2.Id)
+		assert.Contains(t, keywords["@all"], user1.Id)
+		assert.Contains(t, keywords["@all"], user2.Id)
+	})
 }
 
 func TestGetMentionsEnabledFields(t *testing.T) {

@@ -1174,3 +1174,141 @@ func (a *App) MaxPostSize() int {
 
 	return maxPostSize
 }
+
+func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *model.AppError) {
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return 0, err
+	}
+
+	if channel.Type == model.CHANNEL_DIRECT {
+		// Return -1 to indicate that the mention count should be equal to the post count
+		return -1, nil
+	}
+
+	channelMember, err := a.GetChannelMember(channel.Id, user.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	keywords := addMentionKeywordsForUser(
+		map[string][]string{},
+		user,
+		channelMember.NotifyProps,
+		&model.Status{Status: model.STATUS_ONLINE}, // Assume the user is online since they would've triggered this
+		true, // Assume channel mentions are always allowed for simplicity
+	)
+	commentMentions := user.NotifyProps[model.COMMENTS_NOTIFY_PROP]
+	checkForCommentMentions := commentMentions == model.COMMENTS_NOTIFY_ROOT || commentMentions == model.COMMENTS_NOTIFY_ANY
+
+	// A mapping of thread root IDs to whether or not the user started the thread
+	startedThread := make(map[string]bool)
+	// A mapping of thread root IDs to whether or not the user has commented on the thread
+	commentedOnThread := make(map[string]bool)
+
+	// Preload startedThread and commentedOnThread for the selected post
+	if post.RootId != "" && checkForCommentMentions {
+		thread, err := a.GetPostThread(post.Id)
+		if err != nil {
+			return 0, err
+		}
+
+		if thread.Posts[post.RootId].UserId == user.Id {
+			startedThread[post.RootId] = true
+		}
+
+		// Check every post before the selected one to see if the user already responded to the thread
+		for i := len(thread.Order) - 1; i >= 0; i-- {
+			postId := thread.Order[i]
+
+			if postId == post.Id {
+				break
+			}
+
+			if thread.Posts[postId].UserId == user.Id {
+				commentedOnThread[post.RootId] = true
+				break
+			}
+		}
+	}
+
+	isPostMention := func(post *model.Post) bool {
+		// Prevent the user from mentioning themselves
+		if post.UserId == user.Id && post.Props["from_webhook"] != "true" {
+			return false
+		}
+
+		// Check for keyword mentions
+		mentions := getExplicitMentions(post, keywords)
+		if _, ok := mentions.Mentions[user.Id]; ok {
+			return true
+		}
+
+		// Check for reply mentions
+		if post.RootId != "" && checkForCommentMentions {
+			if startedThread[post.RootId] {
+				return true
+			}
+
+			if commentMentions == model.COMMENTS_NOTIFY_ANY && commentedOnThread[post.RootId] {
+				return true
+			}
+		}
+
+		// Check for mentions caused by being added to the channel
+		if post.Type == model.POST_ADD_TO_CHANNEL {
+			if addedUserId, ok := post.Props[model.POST_PROPS_ADDED_USER_ID].(string); ok && addedUserId == user.Id {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	// TODO break this up
+
+	count := 0
+
+	if isPostMention(post) {
+		count += 1
+	}
+
+	page := 0
+	perPage := 200
+	for {
+		postList, err := a.GetPostsAfterPost(post.ChannelId, post.Id, page, perPage)
+		if err != nil {
+			return 0, err
+		}
+
+		// TODO I don't think this works for reply mentions if you commented on a thread before `post`
+
+		for i := len(postList.Order) - 1; i >= 0; i-- {
+			postId := postList.Order[i]
+			post := postList.Posts[postId] // TODO stop shadowing post
+
+			if post.RootId != "" && checkForCommentMentions {
+				root := postList.Posts[post.RootId]
+				startedThread[post.RootId] = root.UserId == user.Id // TODO this is kind of pointless to store
+
+				if post.UserId == user.Id {
+					commentedOnThread[post.RootId] = true
+				}
+
+				// TODO are startedThread and commentedOnThread redundant? Maybe we combine them to something like isThreadMention
+			}
+
+			if isPostMention(post) {
+				count += 1
+			}
+		}
+
+		if len(postList.Order) < perPage {
+			break
+		}
+
+		page += 1
+	}
+
+	return count, nil
+}
