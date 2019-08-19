@@ -181,7 +181,8 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 }
 
 func (a *App) removePlugin(id string) *model.AppError {
-	// Disable plugin before removal and notify cluster peers sync.
+	// Disable plugin before removal to make sure this
+	// plugin remains disabled on re-install.
 	if err := a.DisablePlugin(id); err != nil {
 		return err
 	}

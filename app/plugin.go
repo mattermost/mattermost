@@ -289,6 +289,7 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 
 // EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
 // activation if inactive anywhere in the cluster.
+// Notifies cluster peers through config change.
 func (a *App) EnablePlugin(id string) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -331,6 +332,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 }
 
 // DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
+// Notifies cluster peers through config change.
 func (a *App) DisablePlugin(id string) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
