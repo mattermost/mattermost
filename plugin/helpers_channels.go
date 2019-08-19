@@ -87,19 +87,11 @@ func updateChannelMeta(existing *model.Channel, new *model.Channel) error {
 		return errors.New("Channel type cannot be updated")
 	}
 
-	// Update metadata of channel if present
-	if new.Name != "" {
-		existing.Name = new.Name
-	}
-	if new.DisplayName != "" {
-		existing.DisplayName = new.DisplayName
-	}
-	if new.Purpose != "" {
-		existing.Purpose = new.Purpose
-	}
-	if new.Header != "" {
-		existing.Header = new.Header
-	}
+	// Update metadata of channel
+	existing.Name = new.Name
+	existing.DisplayName = new.DisplayName
+	existing.Purpose = new.Purpose
+	existing.Header = new.Header
 
 	return nil
 }
