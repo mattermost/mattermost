@@ -1124,7 +1124,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		assert.Equal(t, 0, count)
 	})
 
-	t.Run("should count reply mentions when using COMMENTS_NOTIFY_ROOT", func(t *testing.T) {
+	t.Run("should count comment mentions when using COMMENTS_NOTIFY_ROOT", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1178,7 +1178,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		assert.Equal(t, 1, count)
 	})
 
-	t.Run("should count reply mentions when using COMMENTS_NOTIFY_ANY", func(t *testing.T) {
+	t.Run("should count comment mentions when using COMMENTS_NOTIFY_ANY", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1371,52 +1371,52 @@ func TestCountMentionsFromPost(t *testing.T) {
 		assert.Equal(t, 1, count)
 	})
 
-	// t.Run("should include comments made before the given post when counting reply mentions", func(t *testing.T) {
-	// 	th := Setup(t).InitBasic()
-	// 	defer th.TearDown()
+	t.Run("should include comments made before the given post when counting comment mentions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
 
-	// 	user1 := th.BasicUser
-	// 	user2 := th.BasicUser2
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
 
-	// 	channel := th.CreateChannel(th.BasicTeam)
-	// 	th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
 
-	// 	user2.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
+		user2.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
 
-	// 	post1, err := th.App.CreatePost(&model.Post{
-	// 		UserId:    user1.Id,
-	// 		ChannelId: channel.Id,
-	// 		Message:   "test1",
-	// 	}, channel, false)
-	// 	require.Nil(t, err)
-	// 	_, err = th.App.CreatePost(&model.Post{
-	// 		UserId:    user2.Id,
-	// 		ChannelId: channel.Id,
-	// 		RootId:    post1.Id,
-	// 		Message:   "test2",
-	// 	}, channel, false)
-	// 	require.Nil(t, err)
-	// 	post3, err := th.App.CreatePost(&model.Post{
-	// 		UserId:    user1.Id,
-	// 		ChannelId: channel.Id,
-	// 		Message:   "test3",
-	// 	}, channel, false)
-	// 	require.Nil(t, err)
-	// 	_, err = th.App.CreatePost(&model.Post{
-	// 		UserId:    user1.Id,
-	// 		ChannelId: channel.Id,
-	// 		RootId:    post1.Id,
-	// 		Message:   "test4",
-	// 	}, channel, false)
-	// 	require.Nil(t, err)
+		post1, err := th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test1",
+		}, channel, false)
+		require.Nil(t, err)
+		_, err = th.App.CreatePost(&model.Post{
+			UserId:    user2.Id,
+			ChannelId: channel.Id,
+			RootId:    post1.Id,
+			Message:   "test2",
+		}, channel, false)
+		require.Nil(t, err)
+		post3, err := th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test3",
+		}, channel, false)
+		require.Nil(t, err)
+		_, err = th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			RootId:    post1.Id,
+			Message:   "test4",
+		}, channel, false)
+		require.Nil(t, err)
 
-	// 	// post4 should mention the user
+		// post4 should mention the user
 
-	// 	count, err := th.App.countMentionsFromPost(user2, post3)
+		count, err := th.App.countMentionsFromPost(user2, post3)
 
-	// 	assert.Nil(t, err)
-	// 	assert.Equal(t, 1, count)
-	// })
+		assert.Nil(t, err)
+		assert.Equal(t, 1, count)
+	})
 
 	t.Run("should count mentions from the user's webhook posts", func(t *testing.T) {
 		th := Setup(t).InitBasic()

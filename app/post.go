@@ -1201,38 +1201,47 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 	commentMentions := user.NotifyProps[model.COMMENTS_NOTIFY_PROP]
 	checkForCommentMentions := commentMentions == model.COMMENTS_NOTIFY_ROOT || commentMentions == model.COMMENTS_NOTIFY_ANY
 
-	// A mapping of thread root IDs to whether or not the user started the thread
-	startedThread := make(map[string]bool)
-	// A mapping of thread root IDs to whether or not the user has commented on the thread
-	commentedOnThread := make(map[string]bool)
+	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
+	mentionedByThread := make(map[string]bool)
 
-	// Preload startedThread and commentedOnThread for the selected post
-	if post.RootId != "" && checkForCommentMentions {
-		thread, err := a.GetPostThread(post.Id)
-		if err != nil {
-			return 0, err
+	isCommentMention := func(post *model.Post, otherPosts map[string]*model.Post) bool {
+		if post.RootId == "" {
+			// Not a comment
+			return false
 		}
 
-		if thread.Posts[post.RootId].UserId == user.Id {
-			startedThread[post.RootId] = true
+		if mentioned, ok := mentionedByThread[post.RootId]; ok {
+			// We've already figured out if the user was mentioned by this thread
+			return mentioned
 		}
 
-		// Check every post before the selected one to see if the user already responded to the thread
-		for i := len(thread.Order) - 1; i >= 0; i-- {
-			postId := thread.Order[i]
+		// Whether or not the user was mentioned because they started the thread
+		mentioned := otherPosts[post.RootId].UserId == user.Id
 
-			if postId == post.Id {
-				break
+		// Or because they commented on it before this post
+		if !mentioned && commentMentions == model.COMMENTS_NOTIFY_ANY {
+			for _, otherPost := range otherPosts {
+				if otherPost.Id == post.Id {
+					continue
+				}
+
+				if otherPost.RootId != post.RootId {
+					continue
+				}
+
+				if otherPost.UserId == user.Id && otherPost.CreateAt < post.CreateAt {
+					// Found a comment made by the user from before this post
+					mentioned = true
+					break
+				}
 			}
-
-			if thread.Posts[postId].UserId == user.Id {
-				commentedOnThread[post.RootId] = true
-				break
-			}
 		}
+
+		mentionedByThread[post.RootId] = mentioned
+		return mentioned
 	}
 
-	isPostMention := func(post *model.Post) bool {
+	isPostMention := func(post *model.Post, otherPosts map[string]*model.Post) bool {
 		// Prevent the user from mentioning themselves
 		if post.UserId == user.Id && post.Props["from_webhook"] != "true" {
 			return false
@@ -1244,17 +1253,6 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 			return true
 		}
 
-		// Check for reply mentions
-		if post.RootId != "" && checkForCommentMentions {
-			if startedThread[post.RootId] {
-				return true
-			}
-
-			if commentMentions == model.COMMENTS_NOTIFY_ANY && commentedOnThread[post.RootId] {
-				return true
-			}
-		}
-
 		// Check for mentions caused by being added to the channel
 		if post.Type == model.POST_ADD_TO_CHANNEL {
 			if addedUserId, ok := post.Props[model.POST_PROPS_ADDED_USER_ID].(string); ok && addedUserId == user.Id {
@@ -1262,14 +1260,22 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 			}
 		}
 
+		// Check for comment mentions
+		if checkForCommentMentions && isCommentMention(post, otherPosts) {
+			return true
+		}
+
 		return false
 	}
 
-	// TODO break this up
+	thread, err := a.GetPostThread(post.Id)
+	if err != nil {
+		return 0, err
+	}
 
 	count := 0
 
-	if isPostMention(post) {
+	if isPostMention(post, thread.Posts) {
 		count += 1
 	}
 
@@ -1281,24 +1287,8 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 			return 0, err
 		}
 
-		// TODO I don't think this works for reply mentions if you commented on a thread before `post`
-
-		for i := len(postList.Order) - 1; i >= 0; i-- {
-			postId := postList.Order[i]
-			post := postList.Posts[postId] // TODO stop shadowing post
-
-			if post.RootId != "" && checkForCommentMentions {
-				root := postList.Posts[post.RootId]
-				startedThread[post.RootId] = root.UserId == user.Id // TODO this is kind of pointless to store
-
-				if post.UserId == user.Id {
-					commentedOnThread[post.RootId] = true
-				}
-
-				// TODO are startedThread and commentedOnThread redundant? Maybe we combine them to something like isThreadMention
-			}
-
-			if isPostMention(post) {
+		for _, postId := range postList.Order {
+			if isPostMention(postList.Posts[postId], postList.Posts) {
 				count += 1
 			}
 		}
