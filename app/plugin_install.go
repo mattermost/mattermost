@@ -1,21 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Following outlines the plugin installation/activation flow.
+// Installing a managed plugin consists of copying the uploaded plugin (*.tar.gz) to the filestore,
+// unpacking to the configured local directory (PluginSettings.Directory), and copying any webapp bundle therein
+// to the configured local client directory (PluginSettings.ClientDirectory). The unpacking and copy occurs
+// each time the server starts, ensuring it remains synchronized with the set of installed plugins.
 //
-// When a plugin is installed, the server first unpacks the plugin tar on the local filesystem to parse and validate its manifest.
-// If successful, it uploads the tar to the configured FilesStore, which is used to sync plugins in HA env.
-// Then, it notifies cluster peers to install the new plugin if in HA env, otherwise this step is skipped.
-// In the end it publishes a plugin statuses changed event to all webclients. It also sends a broadcast
-// message to cluster peers to notify their webclients if in HA env.
+// When a plugin is enabled, all connected websocket clients are notified so as to fetch any webapp bundle and
+// load the client-side portion of the plugin. This works well in a single-server system, but requires careful
+// coordination in a high-availability cluster with multiple servers. In particular, websocket clients must not be
+// notified of the newly enabled plugin until all servers in the cluster have finished unpacking the plugin, otherwise
+// the webapp bundle might not yet be available. Ideally, each server would just notify its own set of connected peers
+// after it finishes this process, but nothing prevents those clients from re-connecting to a different server behind
+// the load balancer that hasn't finished unpacking.
 //
-// When a plugin is enabled, the server first updates PluginSettings.PluginStates config to persist plugin enabled state.
-// Updating the config implicitly invokes SyncPluginsActiveState(), which is done through the config change listener event.
-// Activating a plugin locally, sets the plugin state as running, generates the webapp plugin bundle, sets up the plugin supervisor.
-// Once plugin activating locally is complete, the config change is synced across cluster peers, which inturn activates their plugin locally.
-// All peers attempt to notify webclients through notifyPluginEnabled(). In HA env, webclients are notified when all cluster peers
-// have activated the plugin, this is to ensure servers can serve webapp plugin bundle when requested across all peers.
-// For non-HA, this step is skipped and webclients are notified immediately after activating the plugin.
+// To achieve this coordination, each server instead checks the status of its peers after unpacking. If it finds peers with
+// differing versions of the plugin, it skips the notification. If it finds all peers with the same version of the plugin,
+// it notifies all websocket clients connected to all peers. There's a small chance that this never occurs if the the last
+// server to finish unpacking dies before it can announce. There is also a chance that multiple servers decide to notify,
+// but the webapp handles this idempotently.
+//
+// Complicating this flow further are the various means of notifying. In addition to websocket events, there are cluster
+// messages between peers. There is a cluster message when the config changes and a plugin is enabled or disabled.
+// There is a cluster message when installing or uninstalling a plugin. There is a cluster message when peer's plugin change
+// its status. And finally the act of notifying websocket clients is propagated itself via a cluster message.
+//
+// The key methods involved in handling these notifications are notifyPluginEnabled and notifyPluginStatusesChanged.
+// Note that none of this complexity applies to single-server systems or to plugins without a webapp bundle.
+//
+// Finally, in addition to managed plugins, note that there are unmanaged and prepackaged plugins.
+// Unmanaged plugins are plugins installed manually to the configured local directory (PluginSettings.Directory).
+// Prepackaged plugins are included with the server. They otherwise follow the above flow, except do not get uploaded
+// to the filestore. Prepackaged plugins override all other plugins with the same plugin id. Managed plugins
+// override unmanaged plugins with the same plugin id.
 //
 package app
 
@@ -94,7 +111,6 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
-	// Notify cluster peers async.
 	a.notifyClusterPluginEvent(
 		model.CLUSTER_EVENT_INSTALL_PLUGIN,
 		model.PluginEventData{
@@ -228,7 +244,6 @@ func (a *App) removePlugin(id string) *model.AppError {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// Notify cluster peers async.
 	a.notifyClusterPluginEvent(
 		model.CLUSTER_EVENT_REMOVE_PLUGIN,
 		model.PluginEventData{

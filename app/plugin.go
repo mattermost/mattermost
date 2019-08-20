@@ -320,7 +320,6 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 	})
 
 	// This call will implicitly invoke SyncPluginsActiveState which will activate enabled plugins.
-	// This will also notify cluster peers sync.
 	if err := a.SaveConfig(a.Config(), true); err != nil {
 		if err.Id == "ent.cluster.save_config.error" {
 			return model.NewAppError("EnablePlugin", "app.plugin.cluster.save_config.app_error", nil, "", http.StatusInternalServerError)
@@ -364,7 +363,6 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	a.UnregisterPluginCommands(id)
 
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
-	// This will also notify cluster peers sync.
 	if err := a.SaveConfig(a.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -402,19 +400,14 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	return resp, nil
 }
 
-// notifyPluginEnabled notifies webclients for all cluster peers if
-// manifest version is consistent across all peers, including self.
+// notifyPluginEnabled notifies connected websocket clients across all peers if the version of the given
+// plugin is same across them.
 //
-// It is crucial to make sure plugin details are up to date across all cluster peers
-// before notifying, to avoid webclients failing to fetch webapp plugin bundle
-// from a host that is not yet ready to serve (as it might be in the midst of processing a request),
-// resulting in a 404.
 //
-// Attempt to notify webclients must be done after enabling a plugin, as that guarantees
-// that all peers will verify plugin consistency after enabling and the last peer that
-// verifies successfully is guaranteed to notify.
-// This may result in multiple notifications going out,
-// however webapp plugin enable/disable operations are idempotent.
+// When a peer finds itself in agreement with all other peers as to the version of the given plugin,
+// it will notify all connected websocket clients (across all peers) to trigger the (re-)installation.
+// There is a small chance that this never occurs, because the last server to finish installing dies before it can announce.
+// There is also a chance that multiple servers notify, but the webapp handles this idempotently.
 func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
