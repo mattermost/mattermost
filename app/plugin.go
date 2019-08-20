@@ -446,7 +446,7 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	// which may result in a 404.
 	for _, status := range statuses {
 		if status.PluginId == manifest.Id && status.Version != manifest.Version {
-			// Not ready
+			mlog.Debug("Not ready to notify webclients", mlog.String("cluster_id", status.ClusterId), mlog.String("plugin_id", manifest.Id))
 			return nil
 		}
 	}
