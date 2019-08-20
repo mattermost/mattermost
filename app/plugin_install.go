@@ -180,7 +180,7 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*mod
 	f.Close()
 
 	if manifest.HasWebapp() {
-		updatedManifest, err := pluginsEnvironment.GenerateWebappBundle(manifest.Id)
+		updatedManifest, err := pluginsEnvironment.UnpackWebappBundle(manifest.Id)
 		if err != nil {
 			return nil, model.NewAppError("installPluginLocally", "app.plugin.webapp_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}

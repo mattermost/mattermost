@@ -217,7 +217,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	componentActivated := false
 
 	if pluginInfo.Manifest.HasWebapp() {
-		updatedManifest, err := env.GenerateWebappBundle(id)
+		updatedManifest, err := env.UnpackWebappBundle(id)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to generate webapp bundle: %v", id)
 		}
@@ -300,8 +300,8 @@ func (env *Environment) Shutdown() {
 	})
 }
 
-// GenerateWebappBundle generates webapp bundle for a given plugin id.
-func (env *Environment) GenerateWebappBundle(id string) (*model.Manifest, error) {
+// UnpackWebappBundle unpacks webapp bundle for a given plugin id on disk.
+func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 	plugins, err := env.Available()
 	if err != nil {
 		return nil, errors.New("Unable to get available plugins")
