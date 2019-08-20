@@ -340,7 +340,7 @@ func (us SqlUserStore) UseMfaRecovery(userId string, code string) (bool, *model.
 			"Code":   code,
 		})
 	if err != nil {
-		return false, model.NewAppError("SQLUserStore.UpdateMfaRecovery", "store.sql_user.update_mfra_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("SQLUserStore.UseMfaRecovery", "store.sql_user.use_mfra_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
 	}
 	ra, _ := res.RowsAffected()
 
