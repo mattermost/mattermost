@@ -440,6 +440,10 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	}
 	statuses = append(statuses, localStatus)
 
+	// This will not guard against the race condition of enabling a plugin immediately after installation.
+	// As GetPluginStatuses() will not return the new plugin (since other peers are racing to install),
+	// this peer will end up checking status against itself and will notify all webclients (including peer webclients),
+	// which may result in a 404.
 	for _, status := range statuses {
 		if status.PluginId == manifest.Id && status.Version != manifest.Version {
 			// Not ready
