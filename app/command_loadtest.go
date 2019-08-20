@@ -208,7 +208,7 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 
-		client.MockSession(args.Session.Token)
+		client.SetToken(args.Session.Token)
 		CreateTestEnvironmentInTeam(
 			a,
 			client,
@@ -269,7 +269,7 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
-	client.MockSession(args.Session.Token)
+	client.SetToken(args.Session.Token)
 	channelCreator := NewAutoChannelCreator(client, team)
 	channelCreator.Fuzzy = doFuzz
 	channelCreator.CreateTestChannels(channelsr)
@@ -311,7 +311,7 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
-	client.MockSession(args.Session.Token)
+	client.SetToken(args.Session.Token)
 	testPoster := NewAutoPostCreator(client, args.ChannelId)
 	testPoster.Fuzzy = doFuzz
 	testPoster.Users = usernames

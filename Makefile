@@ -80,14 +80,16 @@ TE_PACKAGES=$(shell go list ./...)
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.0-rc2
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -247,14 +249,14 @@ do-cover-file: ## Creates the test coverage report file.
 go-junit-report:
 	env GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
 
-test-compile:
+test-compile: ## Compile tests.
 	@echo COMPILE TESTS
 
 	for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
-test-db-migration: start-docker
+test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
 	./scripts/mysql-migration-test.sh
 	./scripts/psql-migration-test.sh
 
@@ -313,7 +315,7 @@ run-server: validate-go-version start-docker ## Starts the server.
 	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) --disableconfigwatch | \
 	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) logs --logrus &
 
-debug-server: start-docker
+debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
 		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
@@ -322,7 +324,7 @@ debug-server: start-docker
 		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
-debug-server-headless: start-docker
+debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
 		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
