@@ -168,7 +168,6 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 	user.FailedAttempts = oldUser.FailedAttempts
 	user.MfaSecret = oldUser.MfaSecret
 	user.MfaActive = oldUser.MfaActive
-	user.MfaRecovery = oldUser.MfaRecovery
 
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
@@ -314,13 +313,38 @@ func (us SqlUserStore) UpdateMfaActive(userId string, active bool) *model.AppErr
 	return nil
 }
 
-func (us SqlUserStore) UpdateMfaRecovery(userId string, codes string) *model.AppError {
-	updateAt := model.GetMillis()
+func (us SqlUserStore) UpdateMfaRecovery(userId string, codes []string) *model.AppError {
+	createAt := model.GetMillis()
 
-	if _, err := us.GetMaster().Exec("UPDATE Users Set MfaRecovery = :codes, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"codes": codes, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+	if _, err := us.GetMaster().Exec("DELETE from MfaRecoveryCodes WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
 		return model.NewAppError("SQLUserStore.UpdateMfaRecovery", "store.sql_user.update_mfra_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
 	}
+	for _, c := range codes {
+		if _, err := us.GetMaster().Exec("INSERT INTO MfaRecoveryCodes values(:UserId, :Code, :CreateAt",
+			map[string]interface{}{
+				"UserId":   userId,
+				"Code":     c,
+				"CreateAt": createAt,
+			}); err != nil {
+			return model.NewAppError("SQLUserStore.UpdateMfaRecovery", "store.sql_user.update_mfra_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		}
+	}
+
 	return nil
+}
+
+func (us SqlUserStore) UseMfaRecovery(userId string, code string) (bool, *model.AppError) {
+	res, err := us.GetMaster().Exec("DELETE from MfaRecoveryCodes WHERE UserId = :UserId AND Code = :Code",
+		map[string]interface{}{
+			"UserId": userId,
+			"Code":   code,
+		})
+	if err != nil {
+		return false, model.NewAppError("SQLUserStore.UpdateMfaRecovery", "store.sql_user.update_mfra_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	ra, _ := res.RowsAffected()
+
+	return ra > 0, nil
 }
 
 func (us SqlUserStore) Get(id string) (*model.User, *model.AppError) {

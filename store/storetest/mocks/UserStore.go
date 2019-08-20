@@ -1209,11 +1209,11 @@ func (_m *UserStore) UpdateMfaActive(userId string, active bool) *model.AppError
 }
 
 // UpdateMfaRecovery provides a mock function with given fields: userId, codes
-func (_m *UserStore) UpdateMfaRecovery(userId string, codes string) *model.AppError {
+func (_m *UserStore) UpdateMfaRecovery(userId string, codes []string) *model.AppError {
 	ret := _m.Called(userId, codes)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
 		r0 = rf(userId, codes)
 	} else {
 		if ret.Get(0) != nil {
@@ -1222,6 +1222,22 @@ func (_m *UserStore) UpdateMfaRecovery(userId string, codes string) *model.AppEr
 	}
 
 	return r0
+}
+
+// UpdateMfaRecovery provides a mock function with given fields: userId, codes
+func (_m *UserStore) UseMfaRecovery(userId string, code string) (bool, *model.AppError) {
+	ret := _m.Called(userId, code)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+		r0 = rf(userId, code)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return false, r0
 }
 
 // UpdateMfaSecret provides a mock function with given fields: userId, secret

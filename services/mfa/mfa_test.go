@@ -29,7 +29,7 @@ func TestGenerateRecovery(t *testing.T) {
 	configService := testutils.StaticConfigService{Cfg: &config}
 	storeMock := mocks.Store{}
 	userStoreMock := mocks.UserStore{}
-	userStoreMock.On("UpdateMfaRecovery", user.Id, mock.AnythingOfType("string")).Return(func(userId string, code string) *model.AppError {
+	userStoreMock.On("UpdateMfaRecovery", user.Id, mock.AnythingOfType("[]string")).Return(func(userId string, code []string) *model.AppError {
 		return nil
 	})
 	storeMock.On("User").Return(&userStoreMock)
@@ -55,7 +55,8 @@ func TestGenerateRecovery(t *testing.T) {
 }
 
 func TestLoginWithRecovery(t *testing.T) {
-	user := &model.User{Id: model.NewId(), Roles: "system_user", MfaActive: true, MfaRecovery: "['9Uy9Z9OK7p','7TQ7buuWq1','FB2tAOh2PK','3YS1AYkEKE']"}
+	//MfaRecovery: "['9Uy9Z9OK7p','7TQ7buuWq1','FB2tAOh2PK','3YS1AYkEKE']"
+	user := &model.User{Id: model.NewId(), Roles: "system_user", MfaActive: true}
 	code := "7TQ7buuWq1"
 	config := model.Config{}
 	config.SetDefaults()
@@ -63,7 +64,7 @@ func TestLoginWithRecovery(t *testing.T) {
 	configService := testutils.StaticConfigService{Cfg: &config}
 	storeMock := mocks.Store{}
 	userStoreMock := mocks.UserStore{}
-	userStoreMock.On("UpdateMfaRecovery", user.Id, mock.AnythingOfType("string")).Return(func(userId string, codes string) *model.AppError {
+	userStoreMock.On("UseMfaRecovery", user.Id, mock.AnythingOfType("string")).Return(func(userId string, c string) *model.AppError {
 		return nil
 	})
 	storeMock.On("User").Return(&userStoreMock)
