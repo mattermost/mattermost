@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+
+jq_cmd=jq
+[[ $(type -P "$jq_cmd") ]] || { 
+	echo "'$jq_cmd' command line JSON processor not found";
+	echo "Please install on linux with 'sudo apt-get install jq'"
+	echo "Please install on mac with 'brew install jq'"
+	exit 1; 
+}
+
 if [ -z "$FROM" ]
 then
   echo "Missing FROM version. Usage: make diff-config FROM=1.2.3 TO=1.2.3"
