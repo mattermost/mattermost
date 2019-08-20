@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 if [ -z "$FROM" ]
 then
-  echo "Missing FROM version. Usage: make diff-config FROM=v1.2.3 TO=v1.2.3"
+  echo "Missing FROM version. Usage: make diff-config FROM=1.2.3 TO=1.2.3"
   exit 1
 fi
 
 if [ -z "$TO" ]
 then
-  echo "Missing TO version. Usage: make diff-config FROM=v1.2.3 TO=v1.2.3"
+  echo "Missing TO version. Usage: make diff-config FROM=1.2.3 TO=1.2.3"
   exit 1
 fi
 
