@@ -22,7 +22,6 @@ type LayeredStoreDatabaseLayer interface {
 
 type LayeredStore struct {
 	TmpContext      context.Context
-	ReactionStore   ReactionStore
 	RoleStore       RoleStore
 	SchemeStore     SchemeStore
 	DatabaseLayer   LayeredStoreDatabaseLayer
@@ -38,7 +37,6 @@ func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsIn
 		LocalCacheLayer: NewLocalCacheSupplier(metrics, cluster),
 	}
 
-	store.ReactionStore = &LayeredReactionStore{store}
 	store.RoleStore = &LayeredRoleStore{store}
 	store.SchemeStore = &LayeredSchemeStore{store}
 
@@ -143,7 +141,7 @@ func (s *LayeredStore) FileInfo() FileInfoStore {
 }
 
 func (s *LayeredStore) Reaction() ReactionStore {
-	return s.ReactionStore
+	return s.DatabaseLayer.Reaction()
 }
 
 func (s *LayeredStore) Job() JobStore {
@@ -217,34 +215,6 @@ func (s *LayeredStore) TotalReadDbConnections() int {
 
 func (s *LayeredStore) TotalSearchDbConnections() int {
 	return s.DatabaseLayer.TotalSearchDbConnections()
-}
-
-type LayeredReactionStore struct {
-	*LayeredStore
-}
-
-func (s *LayeredReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	return s.LayerChainHead.ReactionSave(s.TmpContext, reaction)
-}
-
-func (s *LayeredReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	return s.LayerChainHead.ReactionDelete(s.TmpContext, reaction)
-}
-
-func (s *LayeredReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
-	return s.LayerChainHead.ReactionGetForPost(s.TmpContext, postId)
-}
-
-func (s *LayeredReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
-	return s.LayerChainHead.ReactionsBulkGetForPosts(s.TmpContext, postIds)
-}
-
-func (s *LayeredReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
-	return s.LayerChainHead.ReactionDeleteAllWithEmojiName(s.TmpContext, emojiName)
-}
-
-func (s *LayeredReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
-	return s.LayerChainHead.ReactionPermanentDeleteBatch(s.TmpContext, endTime, limit)
 }
 
 type LayeredRoleStore struct {
