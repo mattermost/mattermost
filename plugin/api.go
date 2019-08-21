@@ -31,7 +31,7 @@ type API interface {
 	// GetConfig fetches the currently persisted config
 	GetConfig() *model.Config
 
-	// GetUnsanitizedConfig fetches the currently persisted config without removing secrets
+	// GetUnsanitizedConfig fetches the currently persisted config without removing secrets.
 	//
 	// Minimum server version: 5.16
 	GetUnsanitizedConfig() *model.Config
