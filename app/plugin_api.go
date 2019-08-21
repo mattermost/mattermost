@@ -81,9 +81,9 @@ func (api *PluginAPI) GetConfig() *model.Config {
 	return api.app.GetSanitizedConfig()
 }
 
-// GetUnsanitizedConfig fetches the currently persisted config without removing sensible configuration
+// GetUnsanitizedConfig gets the configuration for a system admin without removing secrets.
 func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
-	return api.app.GetUnsanitizedConfig()
+	return api.app.Config().Clone()
 }
 
 func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {

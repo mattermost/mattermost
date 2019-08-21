@@ -368,11 +368,6 @@ func (a *App) GetSanitizedConfig() *model.Config {
 	return cfg
 }
 
-// GetUnsanitizedConfig gets the configuration for a system admin without removing secrets
-func (a *App) GetUnsanitizedConfig() *model.Config {
-	return a.Config().Clone()
-}
-
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 func (a *App) GetEnvironmentConfig() map[string]interface{} {
 	return a.EnvironmentConfig()
