@@ -4,14 +4,11 @@
 package plugin
 
 import (
-	"errors"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"syscall"
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
@@ -111,13 +108,8 @@ func (sup *supervisor) Hooks() Hooks {
 	return sup.hooks
 }
 
-// PerformHealthCheck checks the plugin through a process check, an RPC ping, and a HealthCheck hook call.
+// PerformHealthCheck checks the plugin through an an RPC ping.
 func (sup *supervisor) PerformHealthCheck() error {
-	if procErr := sup.CheckProcess(); procErr != nil {
-		mlog.Debug(fmt.Sprintf("Error checking plugin process, error: %s", procErr.Error()))
-		return errors.New("Plugin process not found, or not responding")
-	}
-
 	if pingErr := sup.Ping(); pingErr != nil {
 		for pingFails := 1; pingFails < HEALTH_CHECK_PING_FAIL_LIMIT; pingFails++ {
 			pingErr = sup.Ping()
@@ -143,21 +135,6 @@ func (sup *supervisor) Ping() error {
 	}
 
 	return client.Ping()
-}
-
-// CheckProcess checks if the plugin process's PID exists and can respond to a signal.
-func (sup *supervisor) CheckProcess() error {
-	process, err := os.FindProcess(sup.pid)
-	if err != nil {
-		return err
-	}
-
-	err = process.Signal(syscall.Signal(0))
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (sup *supervisor) Implements(hookId int) bool {

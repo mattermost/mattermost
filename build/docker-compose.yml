@@ -1,83 +1,38 @@
-version: '3.4'
+version: '2.4'
 services:
   mysql:
-    image: "mysql:5.7"
-    restart: always
-    networks:
-      - mm-test
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: mostest
-      MYSQL_PASSWORD: mostest
-      MYSQL_USER: mmuser
-      MYSQL_DATABASE: mattermost_test
+    extends:
+        file: docker-compose.common.yml
+        service: mysql
     tmpfs: /var/lib/mysql
     volumes:
      - "./docker/mysql.conf.d:/etc/mysql/conf.d"
   postgres:
-    image: "postgres:9.4"
-    restart: always
-    networks:
-      - mm-test
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: mmuser
-      POSTGRES_PASSWORD: mostest
-      POSTGRES_DB: mattermost_test
+    extends:
+        file: docker-compose.common.yml
+        service: postgres
     tmpfs: /var/lib/postgresql/data
   minio:
-    image: "minio/minio:RELEASE.2019-04-23T23-50-36Z"
-    command: "server /data"
-    networks:
-      - mm-test
-    ports:
-      - "9000:9000"
-    environment:
-      MINIO_ACCESS_KEY: minioaccesskey
-      MINIO_SECRET_KEY: miniosecretkey
-      MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+    extends:
+        file: docker-compose.common.yml
+        service: minio
   inbucket:
-    image: "jhillyerd/inbucket:release-1.2.0"
-    restart: always
-    networks:
-      - mm-test
-    ports:
-      - "10025:10025"
-      - "10080:10080"
-      - "10110:10110"
+    extends:
+        file: docker-compose.common.yml
+        service: inbucket
   openldap:
-    image: "osixia/openldap:1.2.2"
-    restart: always
-    networks:
-      - mm-test
-    ports:
-      - "389:389"
-      - "636:636"
-    environment:
-      LDAP_TLS_VERIFY_CLIENT: "never"
-      LDAP_ORGANISATION: "Mattermost Test"
-      LDAP_DOMAIN: "mm.test.com"
-      LDAP_ADMIN_PASSWORD: "mostest"
+    extends:
+        file: docker-compose.common.yml
+        service: openldap
   elasticsearch:
-    image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
-    networks:
-      - mm-test
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    environment:
-      http.host: "0.0.0.0"
-      transport.host: "127.0.0.1"
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    extends:
+        file: docker-compose.common.yml
+        service: elasticsearch
   redis:
-    image: redis
-    networks:
-      - mm-test
-    ports:
-      - "6379:6379"
+    extends:
+        file: docker-compose.common.yml
+        service: redis
+
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
     networks:

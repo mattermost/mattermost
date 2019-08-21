@@ -1103,7 +1103,7 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 
 	var invalidEmailList []string
 	for _, email := range guestsInvite.Emails {
-		if !a.isTeamEmailAddressAllowed(email, team.AllowedDomains) {
+		if !CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invalidEmailList = append(invalidEmailList, email)
 		}
 	}
@@ -1361,7 +1361,7 @@ func (a *App) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	if config.Width*config.Height > model.MaxImageSize {
-		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	file.Seek(0, 0)
@@ -1428,6 +1428,9 @@ func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
 
 func (a *App) InvalidateAllEmailInvites() *model.AppError {
 	if err := a.Srv.Store.Token().RemoveAllTokensByType(TOKEN_TYPE_TEAM_INVITATION); err != nil {
+		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	if err := a.Srv.Store.Token().RemoveAllTokensByType(TOKEN_TYPE_GUEST_INVITATION); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil

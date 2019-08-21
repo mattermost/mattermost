@@ -239,6 +239,26 @@ func (o *Channel) IsGroupConstrained() bool {
 	return o.GroupConstrained != nil && *o.GroupConstrained
 }
 
+func (o *Channel) GetOtherUserIdForDM(userId string) string {
+	if o.Type != CHANNEL_DIRECT {
+		return ""
+	}
+
+	userIds := strings.Split(o.Name, "__")
+
+	var otherUserId string
+
+	if userIds[0] != userIds[1] {
+		if userIds[0] == userId {
+			otherUserId = userIds[1]
+		} else {
+			otherUserId = userIds[0]
+		}
+	}
+
+	return otherUserId
+}
+
 func GetDMNameFromIds(userId1, userId2 string) string {
 	if userId1 > userId2 {
 		return userId2 + "__" + userId1

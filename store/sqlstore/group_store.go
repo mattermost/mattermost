@@ -82,6 +82,10 @@ func (s *SqlGroupStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
 	s.CreateIndexIfNotExists("idx_usergroups_remote_id", "UserGroups", "RemoteId")
 	s.CreateIndexIfNotExists("idx_usergroups_delete_at", "UserGroups", "DeleteAt")
+	s.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
+	s.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
+	s.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(1)", "boolean")
+	s.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(1)", "boolean")
 }
 
 func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, *model.AppError) {
@@ -261,8 +265,10 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, *model.AppError) 
 			count(*)
 		FROM
 			GroupMembers
+			JOIN Users ON Users.Id = GroupMembers.UserId
 		WHERE
-			GroupMembers.GroupId = :GroupId`
+			GroupMembers.GroupId = :GroupId
+			AND Users.DeleteAt = 0`
 
 	count, err := s.GetReplica().SelectInt(query, map[string]interface{}{"GroupId": groupID})
 	if err != nil {
@@ -840,7 +846,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 		query = s.getQueryBuilder().
 			Select("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount").
 			From("UserGroups ug").
-			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
+			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
 			LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.GroupId = ug.Id", table)).
 			Where(fmt.Sprintf("%[1]s.DeleteAt = 0 AND %[1]s.%[2]s = ?", table, idCol), syncableID).
 			OrderBy("ug.DisplayName")
@@ -906,7 +912,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		groupsQuery = s.getQueryBuilder().
 			Select("g.*, coalesce(Members.MemberCount, 0) AS MemberCount").
 			From("UserGroups g").
-			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id").
+			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id").
 			Limit(uint64(perPage)).
 			Offset(uint64(page * perPage)).
 			OrderBy("g.DisplayName")
