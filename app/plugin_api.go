@@ -81,6 +81,11 @@ func (api *PluginAPI) GetConfig() *model.Config {
 	return api.app.GetSanitizedConfig()
 }
 
+// GetUnsanitizedConfig fetches the currently persisted config without removing sensible configuration
+func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
+	return api.app.GetUnsanitizedConfig()
+}
+
 func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return api.app.SaveConfig(config, true)
 }
