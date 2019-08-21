@@ -1586,6 +1586,31 @@ func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (
 	return r0, r1
 }
 
+// UpdateLastViewedAtPost provides a mock function with given fields: unreadPost, userID, mentionCount
+func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError) {
+	ret := _m.Called(unreadPost, userID, mentionCount)
+
+	var r0 *model.ChannelUnreadAt
+	if rf, ok := ret.Get(0).(func(*model.Post, string, int) *model.ChannelUnreadAt); ok {
+		r0 = rf(unreadPost, userID, mentionCount)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelUnreadAt)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Post, string, int) *model.AppError); ok {
+		r1 = rf(unreadPost, userID, mentionCount)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // UpdateMember provides a mock function with given fields: member
 func (_m *ChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	ret := _m.Called(member)

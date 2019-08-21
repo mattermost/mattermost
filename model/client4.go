@@ -2480,6 +2480,16 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 	return PostFromJson(r.Body), BuildResponse(r)
 }
 
+// SetPostUnread marks channel where post belongs as unread on the time of the provided post.
+func (c *Client4) SetPostUnread(userId string, postId string) *Response {
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", "")
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
 // PinPost pin a post based on provided post id string.
 func (c *Client4) PinPost(postId string) (bool, *Response) {
 	r, err := c.DoApiPost(c.GetPostRoute(postId)+"/pin", "")
