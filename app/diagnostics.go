@@ -603,6 +603,7 @@ func (a *App) trackConfig() {
 		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
 		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
 		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
+		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{

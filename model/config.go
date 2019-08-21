@@ -2204,7 +2204,7 @@ type PluginSettings struct {
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
 	EnableMarketplace        *bool
-	MarketplaceURL           *string
+	MarketplaceUrl           *string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2249,8 +2249,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.EnableMarketplace = NewBool(PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE)
 	}
 
-	if s.MarketplaceURL == nil || *s.MarketplaceURL == "" {
-		s.MarketplaceURL = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
+	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" {
+		s.MarketplaceUrl = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 	}
 }
 
