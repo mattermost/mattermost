@@ -4280,6 +4280,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		updatedUser, err := ss.User().Get(user.Id)
 		assert.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
+		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
 		require.Nil(t, err)
@@ -4586,6 +4587,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		updatedUser, err := ss.User().Get(user.Id)
 		assert.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
+		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
 		require.Nil(t, err)
