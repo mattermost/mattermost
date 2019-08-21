@@ -2704,7 +2704,7 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Can't unread an imaginary post", func(t *testing.T) {
 		r := th.Client.SetPostUnread(u1.Id, "invalid4ofngungryquinj976y")
-		assert.Equal(t, 403, r.StatusCode)
+		assert.Equal(t, http.StatusForbidden, r.StatusCode)
 	})
 
 	// let's create another user to test permissions
@@ -2714,12 +2714,12 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Can't unread channels you don't belong to", func(t *testing.T) {
 		r := c3.SetPostUnread(u3.Id, pp1.Id)
-		assert.Equal(t, 403, r.StatusCode)
+		assert.Equal(t, http.StatusForbidden, r.StatusCode)
 	})
 
 	t.Run("Can't unread users you don't have permission to edit", func(t *testing.T) {
 		r := c3.SetPostUnread(u1.Id, pp1.Id)
-		assert.Equal(t, 403, r.StatusCode)
+		assert.Equal(t, http.StatusForbidden, r.StatusCode)
 	})
 
 	t.Run("Can't unread if user is not logged in", func(t *testing.T) {
