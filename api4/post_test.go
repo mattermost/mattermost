@@ -2647,3 +2647,84 @@ func TestGetFileInfosForPost(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetFileInfosForPost(th.BasicPost.Id, "")
 	CheckNoError(t, resp)
 }
+
+func TestSetChannelUnread(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	u1 := th.BasicUser
+	u2 := th.BasicUser2
+	s2, _ := th.App.GetSession(th.Client.AuthToken)
+	th.Client.Login(u1.Email, u1.Password)
+	c1 := th.BasicChannel
+	c1toc2 := &model.ChannelView{ChannelId: th.BasicChannel2.Id, PrevChannelId: c1.Id}
+	now := utils.MillisFromTime(time.Now())
+	th.CreateMessagePostNoClient(c1, "AAA", now)
+	p2 := th.CreateMessagePostNoClient(c1, "BBB", now+10)
+	th.CreateMessagePostNoClient(c1, "CCC", now+20)
+
+	pp1 := th.CreateMessagePostNoClient(th.BasicPrivateChannel, "Sssh!", now)
+	pp2 := th.CreateMessagePostNoClient(th.BasicPrivateChannel, "You Sssh!", now+10)
+	require.NotNil(t, pp1)
+	require.NotNil(t, pp2)
+
+	// Ensure that post have been read
+	unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(4), unread.MsgCount)
+	unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(4), unread.MsgCount)
+	_, err = th.App.ViewChannel(c1toc2, u2.Id, s2.Id)
+	require.Nil(t, err)
+	unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(0), unread.MsgCount)
+
+	t.Run("Unread last one", func(t *testing.T) {
+		r := th.Client.SetPostUnread(u1.Id, p2.Id)
+		checkHTTPStatus(t, r, 200, false)
+		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(1), unread.MsgCount)
+	})
+
+	t.Run("Unread on a private channel", func(t *testing.T) {
+		r := th.Client.SetPostUnread(u1.Id, pp2.Id)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err := th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(0), unread.MsgCount)
+		r = th.Client.SetPostUnread(u1.Id, pp1.Id)
+		assert.Equal(t, 200, r.StatusCode)
+		unread, err = th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(1), unread.MsgCount)
+	})
+
+	t.Run("Can't unread an imaginary post", func(t *testing.T) {
+		r := th.Client.SetPostUnread(u1.Id, "invalid4ofngungryquinj976y")
+		assert.Equal(t, http.StatusForbidden, r.StatusCode)
+	})
+
+	// let's create another user to test permissions
+	u3 := th.CreateUser()
+	c3 := th.CreateClient()
+	c3.Login(u3.Email, u3.Password)
+
+	t.Run("Can't unread channels you don't belong to", func(t *testing.T) {
+		r := c3.SetPostUnread(u3.Id, pp1.Id)
+		assert.Equal(t, http.StatusForbidden, r.StatusCode)
+	})
+
+	t.Run("Can't unread users you don't have permission to edit", func(t *testing.T) {
+		r := c3.SetPostUnread(u1.Id, pp1.Id)
+		assert.Equal(t, http.StatusForbidden, r.StatusCode)
+	})
+
+	t.Run("Can't unread if user is not logged in", func(t *testing.T) {
+		th.Client.Logout()
+		response := th.Client.SetPostUnread(u1.Id, p2.Id)
+		checkHTTPStatus(t, response, http.StatusUnauthorized, true)
+	})
+}
