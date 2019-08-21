@@ -539,8 +539,8 @@ func (u *User) GetFullName() string {
 	}
 }
 
-func (u *User) GetDisplayName(nameFormat string) string {
-	displayName := u.Username
+func (u *User) getDisplayName(baseName, nameFormat string) string {
+	displayName := baseName
 
 	if nameFormat == SHOW_NICKNAME_FULLNAME {
 		if len(u.Nickname) > 0 {
@@ -557,22 +557,16 @@ func (u *User) GetDisplayName(nameFormat string) string {
 	return displayName
 }
 
+func (u *User) GetDisplayName(nameFormat string) string {
+	displayName := u.Username
+
+	return u.getDisplayName(displayName, nameFormat)
+}
+
 func (u *User) GetDisplayNameWithPrefix(nameFormat, prefix string) string {
 	displayName := prefix + u.Username
 
-	if nameFormat == SHOW_NICKNAME_FULLNAME {
-		if len(u.Nickname) > 0 {
-			displayName = u.Nickname
-		} else if fullName := u.GetFullName(); len(fullName) > 0 {
-			displayName = fullName
-		}
-	} else if nameFormat == SHOW_FULLNAME {
-		if fullName := u.GetFullName(); len(fullName) > 0 {
-			displayName = fullName
-		}
-	}
-
-	return displayName
+	return u.getDisplayName(displayName, nameFormat)
 }
 
 func (u *User) GetRoles() []string {
