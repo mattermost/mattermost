@@ -2013,6 +2013,16 @@ func TestParseLinkMetadata(t *testing.T) {
 		assert.Nil(t, og)
 		assert.Nil(t, dimensions)
 	})
+
+	t.Run("svg", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/image.svg", nil, "image/svg+xml")
+		assert.Nil(t, err)
+
+		assert.Nil(t, og)
+		assert.Equal(t, &model.PostImage{
+			Format: "svg",
+		}, dimensions)
+	})
 }
 
 func TestParseImages(t *testing.T) {

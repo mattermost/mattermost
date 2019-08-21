@@ -104,6 +104,11 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 
 		a.InvalidateCacheForChannelMembers(channel.Id)
 
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
+		message.Add("user_id", user.Id)
+		message.Add("team_id", channel.TeamId)
+		a.Publish(message)
+
 	}
 
 	if a.IsESIndexingEnabled() {
