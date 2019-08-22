@@ -10,13 +10,13 @@ jq_cmd=jq
 
 if [ -z "$FROM" ]
 then
-  echo "Missing FROM version. Usage: make diff-config FROM=1.2.3 TO=1.2.3"
+  echo "Missing FROM version. Usage: make diff-config FROM=1.1.1 TO=2.2.2"
   exit 1
 fi
 
 if [ -z "$TO" ]
 then
-  echo "Missing TO version. Usage: make diff-config FROM=1.2.3 TO=1.2.3"
+  echo "Missing TO version. Usage: make diff-config FROM=1.1.1 TO=2.2.2"
   exit 1
 fi
 
