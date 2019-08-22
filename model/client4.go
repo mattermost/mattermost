@@ -112,9 +112,14 @@ func BuildResponse(r *http.Response) *Response {
 	}
 }
 
-func (c *Client4) MockSession(sessionToken string) {
-	c.AuthToken = sessionToken
+func (c *Client4) SetToken(token string) {
+	c.AuthToken = token
 	c.AuthType = HEADER_BEARER
+}
+
+// MockSession is deprecated in favour of SetToken
+func (c *Client4) MockSession(token string) {
+	c.SetToken(token)
 }
 
 func (c *Client4) SetOAuthToken(token string) {
