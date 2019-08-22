@@ -88,9 +88,9 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 				mlog.Debug(fmt.Sprintf("Incorrect healthcheck value, expected %s, got %s", currentTime, healthCheck.Value))
 				s[dbStatusKey] = model.STATUS_UNHEALTHY
 				s[model.STATUS] = model.STATUS_UNHEALTHY
+			} else {
+				mlog.Debug("Able to write/read files to database")
 			}
-
-			mlog.Debug("Able to write/read files to database")
 		}
 
 		filestoreStatusKey := "filestore_status"
