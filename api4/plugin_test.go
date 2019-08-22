@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/testlib"
@@ -58,6 +59,24 @@ func TestPlugin(t *testing.T) {
 	manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(url, true)
 	CheckNoError(t, resp)
 	assert.Equal(t, "testplugin", manifest.Id)
+
+	t.Run("install plugin from URL with slow response time", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping test to install plugin from a slow response server")
+		}
+
+		// Install from URL - slow server to simulate longer bundle download times
+		slowTestServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			time.Sleep(60 * time.Second) // Wait longer than the previous default 30 seconds timeout
+			res.WriteHeader(http.StatusOK)
+			res.Write(tarData)
+		}))
+		defer func() { slowTestServer.Close() }()
+
+		manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(slowTestServer.URL, true)
+		CheckNoError(t, resp)
+		assert.Equal(t, "testplugin", manifest.Id)
+	})
 
 	// Stored in File Store: Install Plugin from URL case
 	pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
