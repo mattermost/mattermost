@@ -158,9 +158,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	post.SanitizeProps()
 
-	var pchan store.StoreChannel
+	var pchan chan store.StoreResult
 	if len(post.RootId) > 0 {
-		pchan = make(store.StoreChannel, 1)
+		pchan = make(chan store.StoreResult, 1)
 		go func() {
 			r, pErr := a.Srv.Store.Post().Get(post.RootId)
 			pchan <- store.StoreResult{Data: r, Err: pErr}
@@ -392,6 +392,13 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	if _, err := a.SendNotifications(post, team, channel, user, parentPostList); err != nil {
 		return err
 	}
+
+	a.Srv.Go(func() {
+		_, err := a.SendAutoResponseIfNecessary(channel, user)
+		if err != nil {
+			mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+		}
+	})
 
 	if triggerWebhooks {
 		a.Srv.Go(func() {
@@ -771,26 +778,32 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 		return model.NewPostList(), nil
 	}
 
-	lastUnreadPost, err := a.GetPostAfterTime(channelId, member.LastViewedAt)
+	lastUnreadPostId, err := a.GetPostIdAfterTime(channelId, member.LastViewedAt)
 	if err != nil {
 		return nil, err
-	} else if lastUnreadPost == nil {
+	} else if lastUnreadPostId == "" {
 		return model.NewPostList(), nil
 	}
 
-	var postList *model.PostList
-	if postList, err = a.GetPostsBeforePost(channelId, lastUnreadPost.Id, PAGE_DEFAULT, limitBefore); err != nil {
+	postList, err := a.GetPostThread(lastUnreadPostId)
+	if err != nil {
 		return nil, err
 	}
+	// Reset order to only include the last unread post: if the thread appears in the centre
+	// channel organically, those replies will be added below.
+	postList.Order = []string{lastUnreadPostId}
 
-	if postListAfter, err := a.GetPostsAfterPost(channelId, lastUnreadPost.Id, PAGE_DEFAULT, limitAfter-1); err != nil {
+	if postListBefore, err := a.GetPostsBeforePost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitBefore); err != nil {
+		return nil, err
+	} else if postListBefore != nil {
+		postList.Extend(postListBefore)
+	}
+
+	if postListAfter, err := a.GetPostsAfterPost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitAfter-1); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
 		postList.Extend(postListAfter)
 	}
-
-	postList.AddPost(lastUnreadPost)
-	postList.AddOrder(lastUnreadPost.Id)
 
 	postList.SortByCreateAt()
 	return postList, nil
@@ -932,6 +945,29 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 	return posts, nil
 }
 
+func (a *App) convertChannelNamesToChannelIds(channels []string, userId string, teamId string, includeDeletedChannels bool) []string {
+	for idx, channelName := range channels {
+		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+		if err != nil {
+			mlog.Error(fmt.Sprint(err))
+			continue
+		}
+		channels[idx] = channel.Id
+	}
+	return channels
+}
+
+func (a *App) convertUserNameToUserIds(usernames []string) []string {
+	for idx, username := range usernames {
+		if user, err := a.GetUserByUsername(username); err != nil {
+			mlog.Error(fmt.Sprint(err))
+		} else {
+			usernames[idx] = user.Id
+		}
+	}
+	return usernames
+}
+
 func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v", teamId), http.StatusNotImplemented)
@@ -950,23 +986,12 @@ func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userI
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
-			for idx, channelName := range params.InChannels {
-				channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
-				if err != nil {
-					mlog.Error(fmt.Sprint(err))
-					continue
-				}
-				params.InChannels[idx] = channel.Id
-			}
+			params.InChannels = a.convertChannelNamesToChannelIds(params.InChannels, userId, teamId, includeDeletedChannels)
+			params.ExcludedChannels = a.convertChannelNamesToChannelIds(params.ExcludedChannels, userId, teamId, includeDeletedChannels)
 
 			// Convert usernames to user IDs
-			for idx, username := range params.FromUsers {
-				if user, err := a.GetUserByUsername(username); err != nil {
-					mlog.Error(fmt.Sprint(err))
-				} else {
-					params.FromUsers[idx] = user.Id
-				}
-			}
+			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
+			params.ExcludedUsers = a.convertUserNameToUserIds(params.ExcludedUsers)
 
 			finalParamsList = append(finalParamsList, params)
 		}
@@ -1041,6 +1066,16 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 						continue
 					}
 					params.InChannels[idx] = channel.Name
+				}
+			}
+			for idx, channelName := range params.ExcludedChannels {
+				if strings.HasPrefix(channelName, "@") {
+					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+					if err != nil {
+						mlog.Error(fmt.Sprint(err))
+						continue
+					}
+					params.ExcludedChannels[idx] = channel.Name
 				}
 			}
 		})

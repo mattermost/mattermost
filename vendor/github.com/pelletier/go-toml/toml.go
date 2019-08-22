@@ -275,7 +275,7 @@ func (t *Tree) Delete(key string) error {
 	return t.DeletePath(keys)
 }
 
-// Delete removes a key from the tree.
+// DeletePath removes a key from the tree.
 // Keys is an array of path elements (e.g. {"a","b","c"}).
 func (t *Tree) DeletePath(keys []string) error {
 	keyLen := len(keys)

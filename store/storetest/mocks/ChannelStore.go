@@ -131,11 +131,11 @@ func (_m *ChannelStore) ClearCaches() {
 }
 
 // CreateDirectChannel provides a mock function with given fields: userId, otherUserId
-func (_m *ChannelStore) CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userId, otherUserId)
 
 	var r0 *model.Channel
-	if rf, ok := ret.Get(0).(func(string, string) *model.Channel); ok {
+	if rf, ok := ret.Get(0).(func(*model.User, *model.User) *model.Channel); ok {
 		r0 = rf(userId, otherUserId)
 	} else {
 		if ret.Get(0) != nil {
@@ -144,7 +144,7 @@ func (_m *ChannelStore) CreateDirectChannel(userId string, otherUserId string) (
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(*model.User, *model.User) *model.AppError); ok {
 		r1 = rf(userId, otherUserId)
 	} else {
 		if ret.Get(1) != nil {
@@ -1411,6 +1411,31 @@ func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchO
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, store.ChannelSearchOpts) *model.AppError); ok {
 		r1 = rf(term, opts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SearchForUserInTeam provides a mock function with given fields: userId, teamId, term, includeDeleted
+func (_m *ChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	ret := _m.Called(userId, teamId, term, includeDeleted)
+
+	var r0 *model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) *model.ChannelList); ok {
+		r0 = rf(userId, teamId, term, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, string, bool) *model.AppError); ok {
+		r1 = rf(userId, teamId, term, includeDeleted)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
