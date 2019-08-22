@@ -1903,6 +1903,29 @@ func (_m *API) HasPermissionToTeam(userId string, teamId string, permission *mod
 	return r0
 }
 
+// KVCompareAndDelete provides a mock function with given fields: key, oldValue
+func (_m *API) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
+	ret := _m.Called(key, oldValue)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, []byte) bool); ok {
+		r0 = rf(key, oldValue)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []byte) *model.AppError); ok {
+		r1 = rf(key, oldValue)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // KVCompareAndSet provides a mock function with given fields: key, oldValue, newValue
 func (_m *API) KVCompareAndSet(key string, oldValue []byte, newValue []byte) (bool, *model.AppError) {
 	ret := _m.Called(key, oldValue, newValue)

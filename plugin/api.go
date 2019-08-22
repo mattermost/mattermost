@@ -469,6 +469,14 @@ type API interface {
 	// Minimum server version: 5.12
 	KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError)
 
+	// KVCompareAndDelete deletes a key-value pair, unique per plugin, but only if the current value matches the given oldValue.
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if current value != oldValue or key does not exist when deleting
+	// Returns (true, nil) if current value == oldValue and the key was deleted
+	//
+	// Minimum server version: 5.16
+	KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError)
+
 	// KVSet stores a key-value pair with an expiry time, unique per plugin.
 	//
 	// Minimum server version: 5.6
