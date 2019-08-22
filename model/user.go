@@ -494,6 +494,18 @@ func (u *User) Sanitize(options map[string]bool) {
 	}
 }
 
+// Remove any input data from the user object that is not user controlled
+func (u *User) SanitizeInput() {
+	u.AuthData = NewString("")
+	u.AuthService = ""
+	u.LastPasswordUpdate = 0
+	u.LastPictureUpdate = 0
+	u.FailedAttempts = 0
+	u.EmailVerified = false
+	u.MfaActive = false
+	u.MfaSecret = ""
+}
+
 func (u *User) ClearNonProfileFields() {
 	u.Password = ""
 	u.AuthData = NewString("")
