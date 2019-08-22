@@ -403,7 +403,6 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 // notifyPluginEnabled notifies connected websocket clients across all peers if the version of the given
 // plugin is same across them.
 //
-//
 // When a peer finds itself in agreement with all other peers as to the version of the given plugin,
 // it will notify all connected websocket clients (across all peers) to trigger the (re-)installation.
 // There is a small chance that this never occurs, because the last server to finish installing dies before it can announce.
