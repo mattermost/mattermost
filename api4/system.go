@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -64,11 +65,32 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("get_server_status") != "" {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.STATUS_OK
-		_, appErr := c.App.Srv.Store.System().Get()
-		if appErr != nil {
-			mlog.Debug(fmt.Sprintf("Unable to get database status: %s", appErr.Error()))
+
+		// Database Write/Read Check
+		currentTime := fmt.Sprintf("%d", time.Now().Unix())
+		healthCheckKey := "health_check"
+
+		writeErr := c.App.Srv.Store.System().SaveOrUpdate(&model.System{
+			Name:  healthCheckKey,
+			Value: currentTime,
+		})
+		if writeErr != nil {
+			mlog.Debug(fmt.Sprintf("Unable to write to database: %s", writeErr.Error()))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
+		} else {
+			healthCheck, readErr := c.App.Srv.Store.System().GetByName(healthCheckKey)
+			if readErr != nil {
+				mlog.Debug(fmt.Sprintf("Unable to read from database: %s", readErr.Error()))
+				s[dbStatusKey] = model.STATUS_UNHEALTHY
+				s[model.STATUS] = model.STATUS_UNHEALTHY
+			} else if healthCheck.Value != currentTime {
+				mlog.Debug(fmt.Sprintf("Incorrect healthcheck value, expected %s, got %s", currentTime, healthCheck.Value))
+				s[dbStatusKey] = model.STATUS_UNHEALTHY
+				s[model.STATUS] = model.STATUS_UNHEALTHY
+			} else {
+				mlog.Debug("Able to write/read files to database")
+			}
 		}
 
 		filestoreStatusKey := "filestore_status"
