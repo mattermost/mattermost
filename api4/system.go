@@ -27,6 +27,7 @@ func (api *API) InitSystem() {
 
 	api.BaseRoutes.ApiRoot.Handle("/audits", api.ApiSessionRequired(getAudits)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/email/test", api.ApiSessionRequired(testEmail)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/site_url/test", api.ApiSessionRequired(testSiteURL)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/file/s3_test", api.ApiSessionRequired(testS3)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/database/recycle", api.ApiSessionRequired(databaseRecycle)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/caches/invalidate", api.ApiSessionRequired(invalidateCaches)).Methods("POST")
@@ -139,6 +140,35 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	err := c.App.TestEmail(c.App.Session.UserId, cfg)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("testSiteURL", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	cfg := model.ConfigFromJson(r.Body)
+	siteURL := *cfg.ServiceSettings.SiteURL
+
+	if siteURL == "" {
+		c.Err = model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	url := fmt.Sprintf("%s/api/v4/system/ping", siteURL)
+	res, err := http.Get(url)
+	if err != nil || res.StatusCode != 200 {
+		c.Err = model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
 		return
 	}
 
