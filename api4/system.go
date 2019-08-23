@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"runtime"
 	"time"
@@ -157,8 +158,12 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg := model.ConfigFromJson(r.Body)
-	siteURL := *cfg.ServiceSettings.SiteURL
+	siteURLByte, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
+		return
+	}
+	siteURL := string(siteURLByte)
 
 	if siteURL == "" {
 		c.Err = model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
