@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -177,8 +176,6 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	a.Srv.PluginsLock.Lock()
 	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
 	a.Srv.PluginConfigListenerId = a.AddConfigListener(func(*model.Config, *model.Config) {
-		mlog.Error(fmt.Sprintf("<><><><><> Plugin Config Listener !!!!!!!!!!!!!!"))
-
 		a.SyncPluginsActiveState()
 		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {

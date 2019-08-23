@@ -4,10 +4,8 @@
 package config
 
 import (
-	"fmt"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -32,11 +30,10 @@ func (e *emitter) RemoveListener(id string) {
 
 // invokeConfigListeners synchronously notifies all listeners about the configuration change.
 func (e *emitter) invokeConfigListeners(oldCfg, newCfg *model.Config) {
-	mlog.Error("<><><><><> emitter.invokeConfigListeners: start")
 	e.listeners.Range(func(key, value interface{}) bool {
 		listener := value.(Listener)
-		mlog.Error(fmt.Sprintf("<><><><><> emitter.invokeConfigListeners: invoking a listener for key: %+v", key))
 		listener(oldCfg, newCfg)
+
 		return true
 	})
 }
