@@ -33,6 +33,27 @@ func (_m *Helpers) EnsureBot(bot *model.Bot) (string, error) {
 	return r0, r1
 }
 
+// KVCompareAndDeleteJSON provides a mock function with given fields: key, oldValue
+func (_m *Helpers) KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error) {
+	ret := _m.Called(key, oldValue)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, interface{}) bool); ok {
+		r0 = rf(key, oldValue)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, interface{}) error); ok {
+		r1 = rf(key, oldValue)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // KVCompareAndSetJSON provides a mock function with given fields: key, oldValue, newValue
 func (_m *Helpers) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error) {
 	ret := _m.Called(key, oldValue, newValue)
