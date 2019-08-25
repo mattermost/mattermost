@@ -296,7 +296,6 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 	}
 
 	channelNames := model.ChannelMentions(postMessage)
-	mlog.Info("Number of channel mentions", mlog.Int("Num", len(channelNames)))
 	if len(channelNames) == 0 {
 		mlog.Debug(fmt.Sprintf("No Channel Mentions"))
 		return postMessage
@@ -308,17 +307,9 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 		return postMessage
 	}
 
-	if len(channels) == 0 {
-		mlog.Debug("No channels found from mentions")
-	}
-
 	visited := make(map[string]bool)
 	for _, ch := range channels {
-		mlog.Info("Channel Types", mlog.String("type", ch.Type))
-		mlog.Info("Model.CHANNEL_OPEN: " + model.CHANNEL_OPEN)
-		mlog.Info("Visited", mlog.Bool("visit", visited[ch.Id]))
 		if !visited[ch.Id] && ch.Type == model.CHANNEL_OPEN {
-			mlog.Info("Got in")
 			channelURL := teamURL + "/channels/" + ch.Name
 			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
 			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)
