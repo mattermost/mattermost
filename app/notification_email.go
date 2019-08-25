@@ -9,7 +9,6 @@ import (
 	"html/template"
 	"net/url"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
@@ -174,6 +173,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 		bodyPage = a.NewEmailTemplate("post_body_full", recipient.Locale)
 		postMessage := a.GetMessageForNotification(post, translateFunc)
+		postMessage = html.EscapeString(postMessage)
 		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, teamURL)
 		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
@@ -288,30 +288,41 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 }
 
 func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) string {
-	var publicChannels *model.ChannelList
-	if team, err := a.GetTeamByName(teamName); err != nil {
-		mlog.Error(fmt.Sprintf("Encountered error while looking up team by name for %s", teamName))
+
+	team, err := a.GetTeamByName(teamName)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Encountered error while looking up team by name for %s with error: %s", teamName, err.Error()))
 		return postMessage
-	} else {
-		if publicChannels, err = a.GetPublicChannelsForTeam(team.Id, 0, 100); err != nil {
-			mlog.Error(fmt.Sprintf("Encountered error while looking up Public Channels for Team: %s", teamName))
-			return postMessage
-		}
 	}
 
-	r := regexp.MustCompile(`\~[\w-]+\b`)
-	matches := r.FindAllString(postMessage, -1)
-	var channelURL, channelHyperLink string
-	channelNameMap := make(map[string]struct{})
-	for _, channelName := range matches {
-		channelNameMap[channelName[1:]] = struct{}{}
+	channelNames := model.ChannelMentions(postMessage)
+	mlog.Info("Number of channel mentions", mlog.Int("Num", len(channelNames)))
+	if len(channelNames) == 0 {
+		mlog.Debug(fmt.Sprintf("No Channel Mentions"))
+		return postMessage
 	}
 
-	for _, ch := range *publicChannels {
-		if _, ok := channelNameMap[ch.DisplayName]; ok {
-			channelURL = teamURL + "/channels/" + ch.Name
-			channelHyperLink = fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.DisplayName)
-			postMessage = strings.Replace(postMessage, "~"+ch.DisplayName, channelHyperLink, -1)
+	channels, err := a.GetChannelsByNames(channelNames, team.Id)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Encountered error while getting channels with error: %s", err.Error()))
+		return postMessage
+	}
+
+	if len(channels) == 0 {
+		mlog.Debug("No channels found from mentions")
+	}
+
+	visited := make(map[string]bool)
+	for _, ch := range channels {
+		mlog.Info("Channel Types", mlog.String("type", ch.Type))
+		mlog.Info("Model.CHANNEL_OPEN: " + model.CHANNEL_OPEN)
+		mlog.Info("Visited", mlog.Bool("visit", visited[ch.Id]))
+		if !visited[ch.Id] && ch.Type == model.CHANNEL_OPEN {
+			mlog.Info("Got in")
+			channelURL := teamURL + "/channels/" + ch.Name
+			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
+			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)
+			visited[ch.Id] = true
 		}
 	}
 	return postMessage
