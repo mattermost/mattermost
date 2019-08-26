@@ -59,6 +59,21 @@ func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newV
 	return p.API.KVCompareAndSet(key, oldData, newData)
 }
 
+// KVCompareAndDeleteJSON is a wrapper around KVCompareAndDelete to simplify atomically deleting a JSON object from the key value store.
+func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error) {
+	var oldData []byte
+	var err error
+
+	if oldValue != nil {
+		oldData, err = json.Marshal(oldValue)
+		if err != nil {
+			return false, errors.Wrap(err, "unable to marshal old value")
+		}
+	}
+
+	return p.API.KVCompareAndDelete(key, oldData)
+}
+
 // KVSetWithExpiryJSON is a wrapper around KVSetWithExpiry to simplify atomically writing a JSON object with expiry to the key value store.
 func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error {
 	data, err := json.Marshal(value)
