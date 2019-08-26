@@ -4,10 +4,10 @@
 package sqlstore
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/store"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 type relationalCheckConfig struct {
@@ -22,35 +22,33 @@ type relationalCheckConfig struct {
 func getOrphanedRecords(ss *SqlSupplier, cfg relationalCheckConfig) ([]store.OrphanedRecord, error) {
 	var records []store.OrphanedRecord
 
-	dbmap := ss.GetMaster()
-	query := fmt.Sprintf(`SELECT %s AS ParentId`, cfg.parentIdAttr)
+	sub := ss.getQueryBuilder().
+		Select("TRUE").
+		From(cfg.parentName).
+		Prefix("NOT EXISTS (").
+		Suffix(")").
+		Where(sq.Eq{"id": cfg.childName + "." + cfg.parentIdAttr})
+
+	main := ss.getQueryBuilder().
+		Select().
+		Column(cfg.parentIdAttr + " AS ParentId").
+		From(cfg.childName).
+		Where(sub)
 
 	if cfg.childIdAttr != "" {
-		query += fmt.Sprintf(` , %s AS ChildId`, cfg.childIdAttr)
+		main = main.Column(cfg.childIdAttr + " AS ChildId")
 	}
 
-	query += fmt.Sprintf(`
-		FROM
-			%s
-		WHERE NOT EXISTS (
-			SELECT
-  			id
-			FROM
-				%s
-			WHERE
-				id = %s.%s
-		)
-	`, cfg.childName, cfg.parentName, cfg.childName, cfg.parentIdAttr)
-
 	if cfg.canParentIdBeEmpty {
-		query += fmt.Sprintf(` AND %s != ''`, cfg.parentIdAttr)
+		main = main.Where(sq.NotEq{cfg.parentIdAttr: ""})
 	}
 
 	if cfg.sortRecords {
-		query += fmt.Sprintf(` ORDER BY %s`, cfg.parentIdAttr)
+		main = main.OrderBy(cfg.parentIdAttr)
 	}
 
-	_, err := dbmap.Select(&records, query)
+	query, args, _ := main.ToSql()
+	_, err := ss.GetMaster().Select(&records, query, args...)
 
 	return records, err
 }
