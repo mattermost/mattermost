@@ -1315,7 +1315,6 @@ func TestPluginAPIGetConfig(t *testing.T) {
 	for i := range config.SqlSettings.DataSourceSearchReplicas {
 		assert.Equal(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
 	}
-
 }
 
 func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
@@ -1353,5 +1352,4 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 	for i := range config.SqlSettings.DataSourceSearchReplicas {
 		assert.NotEqual(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
 	}
-
 }
