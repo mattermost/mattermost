@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
@@ -103,7 +104,7 @@ func (h *MainHelper) setupStore() {
 	h.ClusterInterface = &FakeClusterInterface{}
 	h.SqlSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = &TestStore{
-		store.NewLayeredStore(h.SqlSupplier, nil, h.ClusterInterface),
+		localcachelayer.NewLocalCacheLayer(store.NewLayeredStore(h.SqlSupplier, nil, h.ClusterInterface), nil, h.ClusterInterface),
 	}
 }
 
