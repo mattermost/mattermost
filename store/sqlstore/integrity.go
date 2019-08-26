@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"fmt"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -20,9 +19,10 @@ type relationalCheckConfig struct {
 	sortRecords        bool
 }
 
-func getOrphanedRecords(dbmap *gorp.DbMap, cfg relationalCheckConfig) ([]store.OrphanedRecord, error) {
+func getOrphanedRecords(ss *SqlSupplier, cfg relationalCheckConfig) ([]store.OrphanedRecord, error) {
 	var records []store.OrphanedRecord
 
+	dbmap := ss.GetMaster()
 	query := fmt.Sprintf(`SELECT %s AS ParentId`, cfg.parentIdAttr)
 
 	if cfg.childIdAttr != "" {
@@ -55,12 +55,12 @@ func getOrphanedRecords(dbmap *gorp.DbMap, cfg relationalCheckConfig) ([]store.O
 	return records, err
 }
 
-func checkParentChildIntegrity(dbmap *gorp.DbMap, config relationalCheckConfig) store.IntegrityCheckResult {
+func checkParentChildIntegrity(ss *SqlSupplier, config relationalCheckConfig) store.IntegrityCheckResult {
 	var result store.IntegrityCheckResult
 	var data store.RelationalIntegrityCheckData
 
 	config.sortRecords = true
-	data.Records, result.Err = getOrphanedRecords(dbmap, config)
+	data.Records, result.Err = getOrphanedRecords(ss, config)
 	if result.Err != nil {
 		mlog.Error(result.Err.Error())
 		return result
@@ -74,431 +74,431 @@ func checkParentChildIntegrity(dbmap *gorp.DbMap, config relationalCheckConfig) 
 	return result
 }
 
-func checkChannelsCommandWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkChannelsCommandWebhooksIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Channels"
 	config.parentIdAttr = "ChannelId"
 	config.childName = "CommandWebhooks"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkChannelsChannelMemberHistoryIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkChannelsChannelMemberHistoryIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Channels"
 	config.parentIdAttr = "ChannelId"
 	config.childName = "ChannelMemberHistory"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkChannelsChannelMembersIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkChannelsChannelMembersIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Channels"
 	config.parentIdAttr = "ChannelId"
 	config.childName = "ChannelMembers"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkChannelsIncomingWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkChannelsIncomingWebhooksIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Channels"
 	config.parentIdAttr = "ChannelId"
 	config.childName = "IncomingWebhooks"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkChannelsOutgoingWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkChannelsOutgoingWebhooksIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Channels"
 	config.parentIdAttr = "ChannelId"
 	config.childName = "OutgoingWebhooks"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkChannelsPostsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkChannelsPostsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Channels"
 	config.parentIdAttr = "ChannelId"
 	config.childName = "Posts"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkCommandsCommandWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkCommandsCommandWebhooksIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Commands"
 	config.parentIdAttr = "CommandId"
 	config.childName = "CommandWebhooks"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkPostsFileInfoIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkPostsFileInfoIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Posts"
 	config.parentIdAttr = "PostId"
 	config.childName = "FileInfo"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkPostsPostsParentIdIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkPostsPostsParentIdIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Posts"
 	config.parentIdAttr = "ParentId"
 	config.childName = "Posts"
 	config.childIdAttr = "Id"
 	config.canParentIdBeEmpty = true
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkPostsPostsRootIdIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkPostsPostsRootIdIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Posts"
 	config.parentIdAttr = "RootId"
 	config.childName = "Posts"
 	config.childIdAttr = "Id"
 	config.canParentIdBeEmpty = true
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkPostsReactionsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkPostsReactionsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Posts"
 	config.parentIdAttr = "PostId"
 	config.childName = "Reactions"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkSchemesChannelsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkSchemesChannelsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Schemes"
 	config.parentIdAttr = "SchemeId"
 	config.childName = "Channels"
 	config.childIdAttr = "Id"
 	config.canParentIdBeEmpty = true
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkSchemesTeamsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkSchemesTeamsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Schemes"
 	config.parentIdAttr = "SchemeId"
 	config.childName = "Teams"
 	config.childIdAttr = "Id"
 	config.canParentIdBeEmpty = true
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkSessionsAuditsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkSessionsAuditsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Sessions"
 	config.parentIdAttr = "SessionId"
 	config.childName = "Audits"
 	config.childIdAttr = "Id"
 	config.canParentIdBeEmpty = true
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkTeamsChannelsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkTeamsChannelsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Teams"
 	config.parentIdAttr = "TeamId"
 	config.childName = "Channels"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkTeamsCommandsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkTeamsCommandsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Teams"
 	config.parentIdAttr = "TeamId"
 	config.childName = "Commands"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkTeamsIncomingWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkTeamsIncomingWebhooksIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Teams"
 	config.parentIdAttr = "TeamId"
 	config.childName = "IncomingWebhooks"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkTeamsOutgoingWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkTeamsOutgoingWebhooksIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Teams"
 	config.parentIdAttr = "TeamId"
 	config.childName = "OutgoingWebhooks"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkTeamsTeamMembersIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkTeamsTeamMembersIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Teams"
 	config.parentIdAttr = "TeamId"
 	config.childName = "TeamMembers"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersAuditsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersAuditsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "Audits"
 	config.childIdAttr = "Id"
 	config.canParentIdBeEmpty = true
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersCommandWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersCommandWebhooksIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "CommandWebhooks"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersChannelMemberHistoryIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersChannelMemberHistoryIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "ChannelMemberHistory"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersChannelMembersIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersChannelMembersIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "ChannelMembers"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersChannelsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersChannelsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "CreatorId"
 	config.childName = "Channels"
 	config.childIdAttr = "Id"
 	config.canParentIdBeEmpty = true
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersCommandsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersCommandsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "CreatorId"
 	config.childName = "Commands"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersCompliancesIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersCompliancesIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "Compliances"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersEmojiIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersEmojiIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "CreatorId"
 	config.childName = "Emoji"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersFileInfoIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersFileInfoIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Posts"
 	config.parentIdAttr = "CreatorId"
 	config.childName = "FileInfo"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersIncomingWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersIncomingWebhooksIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "IncomingWebhooks"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersOAuthAccessDataIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersOAuthAccessDataIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "OAuthAccessData"
 	config.childIdAttr = "Token"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersOAuthAppsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersOAuthAppsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "CreatorId"
 	config.childName = "OAuthApps"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersOAuthAuthDataIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersOAuthAuthDataIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "OAuthAuthData"
 	config.childIdAttr = "Code"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersOutgoingWebhooksIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersOutgoingWebhooksIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "CreatorId"
 	config.childName = "OutgoingWebhooks"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersPostsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersPostsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "Posts"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersPreferencesIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersPreferencesIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "Preferences"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersReactionsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersReactionsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "Reactions"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersSessionsIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersSessionsIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "Sessions"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersStatusIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersStatusIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "Status"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersTeamMembersIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersTeamMembersIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "TeamMembers"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkUsersUserAccessTokensIntegrity(dbmap *gorp.DbMap) store.IntegrityCheckResult {
+func checkUsersUserAccessTokensIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	var config relationalCheckConfig
 	config.parentName = "Users"
 	config.parentIdAttr = "UserId"
 	config.childName = "UserAccessTokens"
 	config.childIdAttr = "Id"
-	return checkParentChildIntegrity(dbmap, config)
+	return checkParentChildIntegrity(ss, config)
 }
 
-func checkChannelsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	results <- checkChannelsCommandWebhooksIntegrity(dbmap)
-	results <- checkChannelsChannelMemberHistoryIntegrity(dbmap)
-	results <- checkChannelsChannelMembersIntegrity(dbmap)
-	results <- checkChannelsIncomingWebhooksIntegrity(dbmap)
-	results <- checkChannelsOutgoingWebhooksIntegrity(dbmap)
-	results <- checkChannelsPostsIntegrity(dbmap)
+func checkChannelsIntegrity(ss *SqlSupplier, results chan<- store.IntegrityCheckResult) {
+	results <- checkChannelsCommandWebhooksIntegrity(ss)
+	results <- checkChannelsChannelMemberHistoryIntegrity(ss)
+	results <- checkChannelsChannelMembersIntegrity(ss)
+	results <- checkChannelsIncomingWebhooksIntegrity(ss)
+	results <- checkChannelsOutgoingWebhooksIntegrity(ss)
+	results <- checkChannelsPostsIntegrity(ss)
 }
 
-func checkCommandsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	results <- checkCommandsCommandWebhooksIntegrity(dbmap)
+func checkCommandsIntegrity(ss *SqlSupplier, results chan<- store.IntegrityCheckResult) {
+	results <- checkCommandsCommandWebhooksIntegrity(ss)
 }
 
-func checkPostsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	results <- checkPostsFileInfoIntegrity(dbmap)
-	results <- checkPostsPostsParentIdIntegrity(dbmap)
-	results <- checkPostsPostsRootIdIntegrity(dbmap)
-	results <- checkPostsReactionsIntegrity(dbmap)
+func checkPostsIntegrity(ss *SqlSupplier, results chan<- store.IntegrityCheckResult) {
+	results <- checkPostsFileInfoIntegrity(ss)
+	results <- checkPostsPostsParentIdIntegrity(ss)
+	results <- checkPostsPostsRootIdIntegrity(ss)
+	results <- checkPostsReactionsIntegrity(ss)
 }
 
-func checkSchemesIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	results <- checkSchemesChannelsIntegrity(dbmap)
-	results <- checkSchemesTeamsIntegrity(dbmap)
+func checkSchemesIntegrity(ss *SqlSupplier, results chan<- store.IntegrityCheckResult) {
+	results <- checkSchemesChannelsIntegrity(ss)
+	results <- checkSchemesTeamsIntegrity(ss)
 }
 
-func checkSessionsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	results <- checkSessionsAuditsIntegrity(dbmap)
+func checkSessionsIntegrity(ss *SqlSupplier, results chan<- store.IntegrityCheckResult) {
+	results <- checkSessionsAuditsIntegrity(ss)
 }
 
-func checkTeamsIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	results <- checkTeamsChannelsIntegrity(dbmap)
-	results <- checkTeamsCommandsIntegrity(dbmap)
-	results <- checkTeamsIncomingWebhooksIntegrity(dbmap)
-	results <- checkTeamsOutgoingWebhooksIntegrity(dbmap)
-	results <- checkTeamsTeamMembersIntegrity(dbmap)
+func checkTeamsIntegrity(ss *SqlSupplier, results chan<- store.IntegrityCheckResult) {
+	results <- checkTeamsChannelsIntegrity(ss)
+	results <- checkTeamsCommandsIntegrity(ss)
+	results <- checkTeamsIncomingWebhooksIntegrity(ss)
+	results <- checkTeamsOutgoingWebhooksIntegrity(ss)
+	results <- checkTeamsTeamMembersIntegrity(ss)
 }
 
-func checkUsersIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
-	results <- checkUsersAuditsIntegrity(dbmap)
-	results <- checkUsersCommandWebhooksIntegrity(dbmap)
-	results <- checkUsersChannelMemberHistoryIntegrity(dbmap)
-	results <- checkUsersChannelMembersIntegrity(dbmap)
-	results <- checkUsersChannelsIntegrity(dbmap)
-	results <- checkUsersCommandsIntegrity(dbmap)
-	results <- checkUsersCompliancesIntegrity(dbmap)
-	results <- checkUsersEmojiIntegrity(dbmap)
-	results <- checkUsersFileInfoIntegrity(dbmap)
-	results <- checkUsersIncomingWebhooksIntegrity(dbmap)
-	results <- checkUsersOAuthAccessDataIntegrity(dbmap)
-	results <- checkUsersOAuthAppsIntegrity(dbmap)
-	results <- checkUsersOAuthAuthDataIntegrity(dbmap)
-	results <- checkUsersOutgoingWebhooksIntegrity(dbmap)
-	results <- checkUsersPostsIntegrity(dbmap)
-	results <- checkUsersPreferencesIntegrity(dbmap)
-	results <- checkUsersReactionsIntegrity(dbmap)
-	results <- checkUsersSessionsIntegrity(dbmap)
-	results <- checkUsersStatusIntegrity(dbmap)
-	results <- checkUsersTeamMembersIntegrity(dbmap)
-	results <- checkUsersUserAccessTokensIntegrity(dbmap)
+func checkUsersIntegrity(ss *SqlSupplier, results chan<- store.IntegrityCheckResult) {
+	results <- checkUsersAuditsIntegrity(ss)
+	results <- checkUsersCommandWebhooksIntegrity(ss)
+	results <- checkUsersChannelMemberHistoryIntegrity(ss)
+	results <- checkUsersChannelMembersIntegrity(ss)
+	results <- checkUsersChannelsIntegrity(ss)
+	results <- checkUsersCommandsIntegrity(ss)
+	results <- checkUsersCompliancesIntegrity(ss)
+	results <- checkUsersEmojiIntegrity(ss)
+	results <- checkUsersFileInfoIntegrity(ss)
+	results <- checkUsersIncomingWebhooksIntegrity(ss)
+	results <- checkUsersOAuthAccessDataIntegrity(ss)
+	results <- checkUsersOAuthAppsIntegrity(ss)
+	results <- checkUsersOAuthAuthDataIntegrity(ss)
+	results <- checkUsersOutgoingWebhooksIntegrity(ss)
+	results <- checkUsersPostsIntegrity(ss)
+	results <- checkUsersPreferencesIntegrity(ss)
+	results <- checkUsersReactionsIntegrity(ss)
+	results <- checkUsersSessionsIntegrity(ss)
+	results <- checkUsersStatusIntegrity(ss)
+	results <- checkUsersTeamMembersIntegrity(ss)
+	results <- checkUsersUserAccessTokensIntegrity(ss)
 }
 
-func CheckRelationalIntegrity(dbmap *gorp.DbMap, results chan<- store.IntegrityCheckResult) {
+func CheckRelationalIntegrity(ss *SqlSupplier, results chan<- store.IntegrityCheckResult) {
 	mlog.Info("Starting relational integrity checks...")
-	checkChannelsIntegrity(dbmap, results)
-	checkCommandsIntegrity(dbmap, results)
-	checkPostsIntegrity(dbmap, results)
-	checkSchemesIntegrity(dbmap, results)
-	checkSessionsIntegrity(dbmap, results)
-	checkTeamsIntegrity(dbmap, results)
-	checkUsersIntegrity(dbmap, results)
+	checkChannelsIntegrity(ss, results)
+	checkCommandsIntegrity(ss, results)
+	checkPostsIntegrity(ss, results)
+	checkSchemesIntegrity(ss, results)
+	checkSessionsIntegrity(ss, results)
+	checkTeamsIntegrity(ss, results)
+	checkUsersIntegrity(ss, results)
 	mlog.Info("Done with relational integrity checks")
 	close(results)
 }
