@@ -1840,10 +1840,13 @@ func (s SqlChannelStore) CountPostsSince(channelID string, since int64) (int64, 
 // UpdateLastViewedAtPost sets a channel as unread for a user at the time of the post selected and update the MentionCount
 // it returns a channelunread so redux can update the apps easily.
 func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError) {
-
 	unread, appErr := s.CountPostsSince(unreadPost.ChannelId, unreadPost.CreateAt)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	if mentionCount == -1 {
+		mentionCount = int(unread)
 	}
 
 	params := map[string]interface{}{
@@ -1875,7 +1878,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	}
 
 	chanUnreadQuery := `
-	SELECT 
+	SELECT
 		c.TeamId TeamId,
 		cm.UserId UserId,
 		cm.ChannelId ChannelId,
@@ -1883,11 +1886,11 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		cm.MentionCount MentionCount,
 		cm.LastViewedAt LastViewedAt,
 		cm.NotifyProps NotifyProps
-	FROM 
+	FROM
 		ChannelMembers cm
 	LEFT JOIN Channels c ON c.Id=cm.ChannelId
 	WHERE
-		cm.UserId = :userId 
+		cm.UserId = :userId
 		AND cm.channelId = :channelId
 		AND c.DeleteAt = 0
 	`
