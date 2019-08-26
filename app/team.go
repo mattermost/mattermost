@@ -1103,7 +1103,7 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 
 	var invalidEmailList []string
 	for _, email := range guestsInvite.Emails {
-		if !a.isTeamEmailAddressAllowed(email, team.AllowedDomains) {
+		if !CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invalidEmailList = append(invalidEmailList, email)
 		}
 	}
@@ -1361,7 +1361,7 @@ func (a *App) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	if config.Width*config.Height > model.MaxImageSize {
-		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	file.Seek(0, 0)

@@ -22,6 +22,14 @@ type Helpers interface {
 	// Minimum server version: 5.12
 	KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error)
 
+	// KVCompareAndDeleteJSON deletes a key-value pair, unique per plugin, but only if the current value matches the given oldValue after marshalling as a JSON string.
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if current value != oldValue or the key was already deleted
+	// Returns (true, nil) if current value == oldValue
+	//
+	// Minimum server version: 5.16
+	KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error)
+
 	// KVGetJSON retrieves a value based on the key, unique per plugin, unmarshalling the previously set JSON string into the given value. Returns true if the key exists.
 	KVGetJSON(key string, value interface{}) (bool, error)
 

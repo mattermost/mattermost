@@ -1635,8 +1635,10 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) *model.AppError {
 		}
 	}
 
+	curTime := model.GetMillis()
 	query := us.getQueryBuilder().Update("Users").
 		Set("Roles", strings.Join(roles, " ")).
+		Set("UpdateAt", curTime).
 		Where(sq.Eq{"Id": userId})
 
 	queryString, args, err := query.ToSql()
@@ -1705,8 +1707,10 @@ func (us SqlUserStore) DemoteUserToGuest(userId string) *model.AppError {
 		}
 	}
 
+	curTime := model.GetMillis()
 	query := us.getQueryBuilder().Update("Users").
 		Set("Roles", strings.Join(newRoles, " ")).
+		Set("UpdateAt", curTime).
 		Where(sq.Eq{"Id": userId})
 
 	queryString, args, err := query.ToSql()
