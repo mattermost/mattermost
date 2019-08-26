@@ -553,30 +553,30 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
-	o1, err := ss.Post().Save(&model.Post{
+	o1, setupErr := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 		Message:   "test",
 	})
-	require.Nil(t, err)
+	require.Nil(t, setupErr)
 
-	o2, err := ss.Post().Save(&model.Post{
+	o2, setupErr := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 		ParentId:  o1.Id,
 		RootId:    o1.Id,
 		Message:   "test",
 	})
-	require.Nil(t, err)
+	require.Nil(t, setupErr)
 
-	o3, err := ss.Post().Save(&model.Post{
+	o3, setupErr := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 		ParentId:  o2.Id,
 		RootId:    o1.Id,
 		Message:   "test",
 	})
-	require.Nil(t, err)
+	require.Nil(t, setupErr)
 
 	t.Run("should return the post and its children", func(t *testing.T) {
 		pl, err := ss.Post().Get(o1.Id)
@@ -600,8 +600,8 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 		assert.Equal(t, []string{o3.Id, o2.Id, o1.Id}, pl.Order)
 	})
 
-	err = ss.Post().Delete(o3.Id, model.GetMillis(), "")
-	require.Nil(t, err)
+	setupErr = ss.Post().Delete(o3.Id, model.GetMillis(), "")
+	require.Nil(t, setupErr)
 
 	t.Run("should not return comments that have been deleted", func(t *testing.T) {
 		pl, err := ss.Post().Get(o1.Id)
