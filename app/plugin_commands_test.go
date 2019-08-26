@@ -5,8 +5,10 @@ package app
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,25 +38,31 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"fmt"
-				"strings"
 				"github.com/mattermost/mattermost-server/plugin"
 				"github.com/mattermost/mattermost-server/model"
 			)
 
 			type configuration struct {
 				TeamId string
-				Unregister bool
 			}
 
 			type MyPlugin struct {
-				plugin.MattermostPlugin	
+				plugin.MattermostPlugin
 
 				configuration configuration
 			}
 
+			func (p *MyPlugin) OnConfigurationChange() error {
+				p.API.LogError("hello")
+				if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
+					return err
+				}
+
+				return nil
+			}
+
 			func (p *MyPlugin) OnActivate() error {
-				fmt.Println("<><> OnActivate: registering command")
+				p.API.LogError("team", "team", p.configuration.TeamId)
 				err := p.API.RegisterCommand(&model.Command{
 					TeamId: p.configuration.TeamId,
 					Trigger: "plugin",
@@ -63,68 +71,14 @@ func TestPluginCommand(t *testing.T) {
 					AutoCompleteDesc: "autocomplete",
 				})
 				if err != nil {
-					return err
+					p.API.LogError("error", "err", err)
 				}
-				return nil
+				p.API.LogDebug("team", "team", p.configuration.TeamId)
+
+				return err
 			}
 
-			func (p *MyPlugin) OnConfigurationChange() error {
-				fmt.Println("<><> OnConfigurationChange: start")
-				err := p.API.LoadPluginConfiguration(&p.configuration)
-				if err != nil {
-					panic(err.Error())
-				}
-				fmt.Println("<><> OnConfigurationChange: loaded new configuration")
-				if p.configuration.Unregister {
-					fmt.Println("<><> OnConfigurationChange: unregistering the command")
-					err = p.API.UnregisterCommand(p.configuration.TeamId, "plugin")
-					fmt.Println("<><> OnConfigurationChange: unregistered the command:", err)
-					if err != nil {
-						panic(err.Error())
-					}
-				} else {
-					fmt.Println("<><> OnConfigurationChange: registering the command")
-					err = p.API.RegisterCommand(&model.Command{
-						TeamId: p.configuration.TeamId,
-						Trigger: "plugin",
-						DisplayName: "Plugin Command",
-						AutoComplete: true,
-						AutoCompleteDesc: "autocomplete",
-					})
-					fmt.Println("<><> OnConfigurationChange: registered the command:", err)
-					if err != nil {
-						panic(err.Error())
-					}
-				}
-				return nil
-			}
-
-			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, commandArgs *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-				args := strings.Split(commandArgs.Command, " ")
-
-				updateConf := func(unregister bool) {
-					newConf := map[string]interface{}{
-						"TeamId": p.configuration.TeamId,
-						"Unregister": unregister,
-					}
-					
-					// Saving the configuration will cause OnConfigurationChange, and
-					// will in turn call RegisterCommand which should still work
-					fmt.Println("<><> ExecuteCommand: before SavePluginConfig:")
-					err := p.API.SavePluginConfig(newConf)
-					fmt.Println("<><> ExecuteCommand: after SavePluginConfig:", err)
-					if err != nil {
-						panic(err.Error())
-					}
-				}
-
-				switch {
-				case len(args) > 1 && args[1] == "register":
-					updateConf(false)
-				case len(args) > 1 && args[1] == "unregister":
-					updateConf(true)
-				}
-
+			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 				return &model.CommandResponse{
 					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 					Text: "text",
@@ -139,55 +93,126 @@ func TestPluginCommand(t *testing.T) {
 		require.Len(t, activationErrors, 1)
 		require.Nil(t, nil, activationErrors[0])
 
-		t.Run("regular", func(t *testing.T) {
-			resp, err := th.App.ExecuteCommand(args)
-			require.Nil(t, err)
-			require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
-			require.Equal(t, "text", resp.Text)
-		})
+		resp, err := th.App.ExecuteCommand(args)
+		require.Nil(t, err)
+		require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
+		require.Equal(t, "text", resp.Text)
 
-		t.Run("re-entrant unregister", func(t *testing.T) {
-			args.Command = "/plugin unregister"
-			th.App.Log.Error("<><> TEST Executing command")
-			resp, err := th.App.ExecuteCommand(args)
-			require.Nil(t, err)
-			require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
-			require.Equal(t, "text", resp.Text)
-		})
+		err2 := th.App.DisablePlugin(pluginIds[0])
+		require.Nil(t, err2)
 
-		t.Run("unregistered command fails", func(t *testing.T) {
-			_, err := th.App.ExecuteCommand(args)
-			require.NotNil(t, err)
-		})
+		commands, err3 := th.App.ListAutocompleteCommands(args.TeamId, utils.T)
+		require.Nil(t, err3)
 
-		// t.Run("re-entrant register", func(t *testing.T) {
-		// 	args.Command = "/plugin unregister"
-		// 	resp, err := th.App.ExecuteCommand(args)
-		// 	require.Nil(t, err)
-		// 	require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
-		// 	require.Equal(t, "text", resp.Text)
-		// })
-
-		// t.Run("re-registered succeeds", func(t *testing.T) {
-		// 	resp, err := th.App.ExecuteCommand(args)
-		// 	require.Nil(t, err)
-		// 	require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
-		// 	require.Equal(t, "text", resp.Text)
-		// })
-
-		// t.Run("plugin disabled", func(t *testing.T) {
-		// 	err2 := th.App.DisablePlugin(pluginIds[0])
-		// 	require.Nil(t, err2)
-
-		// 	commands, err3 := th.App.ListAutocompleteCommands(args.TeamId, utils.T)
-		// 	require.Nil(t, err3)
-
-		// 	for _, commands := range commands {
-		// 		require.NotEqual(t, "plugin", commands.Trigger)
-		// 	}
-		// })
+		for _, commands := range commands {
+			require.NotEqual(t, "plugin", commands.Trigger)
+		}
 
 		th.App.RemovePlugin(pluginIds[0])
+	})
+
+	t.Run("re-entrant command registration on config change", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]interface{}{
+				"TeamId": args.TeamId,
+			}
+		})
+
+		tearDown, pluginIds, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type configuration struct {
+				TeamId string
+			}
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+
+				configuration configuration
+			}
+
+			func (p *MyPlugin) OnConfigurationChange() error {
+				p.API.LogInfo("OnConfigurationChange")
+				err := p.API.LoadPluginConfiguration(&p.configuration);
+				if err != nil {
+					return err
+				}
+
+				p.API.LogInfo("About to register")
+				err = p.API.RegisterCommand(&model.Command{
+					TeamId: p.configuration.TeamId,
+					Trigger: "plugin",
+					DisplayName: "Plugin Command",
+					AutoComplete: true,
+					AutoCompleteDesc: "autocomplete",
+				})
+				if err != nil {
+					p.API.LogInfo("Registered, with error", err, err.Error())
+					return err
+				}
+				p.API.LogInfo("Registered, without error")
+				return nil
+			}
+
+			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, commandArgs *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+				p.API.LogInfo("ExecuteCommand")
+				// Saving the plugin config eventually results in a call to
+				// OnConfigurationChange. This used to deadlock on account of
+				// effectively acquiring a RWLock reentrantly.
+				err := p.API.SavePluginConfig(map[string]interface{}{
+					"TeamId": p.configuration.TeamId,
+				})
+				if err != nil {
+					p.API.LogError("Failed to save plugin config", err, err.Error())
+					return nil, err
+				}
+				p.API.LogInfo("ExecuteCommand, saved plugin config")
+
+				return &model.CommandResponse{
+					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+					Text: "text",
+				}, nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, activationErrors, 1)
+		require.Nil(t, nil, activationErrors[0])
+
+		wait := make(chan bool)
+		killed := false
+		go func() {
+			defer close(wait)
+
+			resp, err := th.App.ExecuteCommand(args)
+
+			// Ignore if we kill below.
+			if !killed {
+				require.Nil(t, err)
+				require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
+				require.Equal(t, "text", resp.Text)
+			}
+		}()
+
+		select {
+		case <-wait:
+		case <-time.After(10 * time.Second):
+			killed = true
+		}
+
+		th.App.RemovePlugin(pluginIds[0])
+		if killed {
+			t.Fatal("execute command appears to have deadlocked")
+		}
 	})
 
 	t.Run("error after plugin command unregistered", func(t *testing.T) {
