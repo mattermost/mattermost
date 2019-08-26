@@ -502,6 +502,35 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 	}
 }
 
+func TestGetNotificationEmailEscapingChars(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	ch := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_OPEN,
+	}
+	channelName := "ChannelName"
+	recipient := &model.User{}
+	message := "<b>Bold Test</b>"
+	post := &model.Post{
+		Message: message,
+	}
+
+	senderName := "sender"
+	teamName := "team"
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := th.App.getNotificationEmailBody(recipient, post, ch,
+		channelName, senderName, teamName, teamURL,
+		emailNotificationContentsType, true, translateFunc)
+
+	fmt.Println(body)
+	assert.NotContains(t, body, message)
+}
+
 func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -524,6 +553,44 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	channelURL := teamURL + "/channels/" + ch.Name
 	mention := "~" + ch.Name
 	assert.Contains(t, body, "<a href='"+channelURL+"'>"+mention+"</a>")
+}
+
+func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ch := th.BasicChannel
+	mention := "~" + ch.Name
+
+	ch2 := th.CreateChannel(th.BasicTeam)
+	mention2 := "~" + ch2.Name
+
+	ch3 := th.CreateChannel(th.BasicTeam)
+	mention3 := "~" + ch3.Name
+
+	message := fmt.Sprintf("This is the message Channel1: %s; Channel2: %s;"+
+		" Channel3: %s", mention, mention2, mention3)
+	recipient := th.BasicUser2
+	post := &model.Post{
+		Message: message,
+	}
+
+	senderName := th.BasicUser.Username
+	teamName := th.BasicTeam.Name
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := th.App.getNotificationEmailBody(recipient, post, ch,
+		ch.Name, senderName, teamName, teamURL,
+		emailNotificationContentsType, true, translateFunc)
+	channelURL := teamURL + "/channels/" + ch.Name
+	channelURL2 := teamURL + "/channels/" + ch2.Name
+	channelURL3 := teamURL + "/channels/" + ch3.Name
+	expMessage := fmt.Sprintf("This is the message Channel1: <a href='%s'>%s</a>;"+
+		" Channel2: <a href='%s'>%s</a>; Channel3: <a href='%s'>%s</a>",
+		channelURL, mention, channelURL2, mention2, channelURL3, mention3)
+	assert.Contains(t, body, expMessage)
 }
 
 func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
@@ -564,6 +631,35 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 	outMessage := th.App.generateHyperlinkForChannels(message+mention, teamName, teamURL)
 	channelURL := teamURL + "/channels/" + ch.Name
 	assert.Equal(t, message+"<a href='"+channelURL+"'>"+mention+"</a>", outMessage)
+}
+
+func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ch := th.BasicChannel
+	mention := "~" + ch.Name
+
+	ch2 := th.CreateChannel(th.BasicTeam)
+	mention2 := "~" + ch2.Name
+
+	ch3 := th.CreateChannel(th.BasicTeam)
+	mention3 := "~" + ch3.Name
+
+	message := fmt.Sprintf("This is the message Channel1: %s; Channel2: %s;"+
+		" Channel3: %s", mention, mention2, mention3)
+
+	teamName := th.BasicTeam.Name
+	teamURL := "http://localhost:8065/" + teamName
+
+	outMessage := th.App.generateHyperlinkForChannels(message, teamName, teamURL)
+	channelURL := teamURL + "/channels/" + ch.Name
+	channelURL2 := teamURL + "/channels/" + ch2.Name
+	channelURL3 := teamURL + "/channels/" + ch3.Name
+	expMessage := fmt.Sprintf("This is the message Channel1: <a href='%s'>%s</a>;"+
+		" Channel2: <a href='%s'>%s</a>; Channel3: <a href='%s'>%s</a>",
+		channelURL, mention, channelURL2, mention2, channelURL3, mention3)
+	assert.Equal(t, expMessage, outMessage)
 }
 
 func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {

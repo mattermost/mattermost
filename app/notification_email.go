@@ -288,22 +288,20 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 }
 
 func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) string {
-
 	team, err := a.GetTeamByName(teamName)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Encountered error while looking up team by name for %s with error: %s", teamName, err.Error()))
+		mlog.Error("Encountered error while looking up team by name", mlog.String("Team Name", teamName), mlog.Err(err))
 		return postMessage
 	}
 
 	channelNames := model.ChannelMentions(postMessage)
 	if len(channelNames) == 0 {
-		mlog.Debug(fmt.Sprintf("No Channel Mentions"))
 		return postMessage
 	}
 
 	channels, err := a.GetChannelsByNames(channelNames, team.Id)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Encountered error while getting channels with error: %s", err.Error()))
+		mlog.Error("Encountered error while getting channels", mlog.Err(err))
 		return postMessage
 	}
 
