@@ -3439,6 +3439,10 @@
     "translation": "Imposibil de eliminat pachetul de pluginuri din magazinul de fișiere."
   },
   {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Imposibil de stocat plugin-ul în depozitul de fișiere configurat."
   },
@@ -3453,6 +3457,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "S-a dezactivat plugin-uri şi/sau plugin-ul încărcat."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",

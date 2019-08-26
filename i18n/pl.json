@@ -3439,6 +3439,10 @@
     "translation": "Nie udało się usunąć pakietu wtyczki z magazynu plików."
   },
   {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Nie można zachować wtyczki w skonfigurowanym magazynie plików."
   },
@@ -3453,6 +3457,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Wysyłanie wtyczek/wtyczki zostało wyłączone."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
