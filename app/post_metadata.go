@@ -176,7 +176,10 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	return nil, nil
+	return &model.PostEmbed{
+		Type: model.POST_EMBED_LINK,
+		URL:  firstLink,
+	}, nil
 }
 
 func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost bool) map[string]*model.PostImage {
