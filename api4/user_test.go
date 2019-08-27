@@ -83,6 +83,70 @@ func TestCreateUser(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 }
 
+func TestCreateUserInputFilter(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	t.Run("DomainRestriction", func(t *testing.T) {
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.EnableOpenServer = true
+			*cfg.TeamSettings.EnableUserCreation = true
+			*cfg.TeamSettings.RestrictCreationToDomains = "mattermost.com"
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictCreationToDomains = ""
+		})
+
+		t.Run("ValidUser", func(t *testing.T) {
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.com", Password: "Password1", Username: GenerateTestUsername()}
+			_, resp := th.SystemAdminClient.CreateUser(user)
+			CheckNoError(t, resp)
+		})
+
+		t.Run("InvalidEmail", func(t *testing.T) {
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername()}
+			_, resp := th.SystemAdminClient.CreateUser(user)
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("AuthServiceFilter", func(t *testing.T) {
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername(), AuthService: "ldap"}
+			_, resp := th.SystemAdminClient.CreateUser(user)
+			CheckBadRequestStatus(t, resp)
+		})
+	})
+
+	t.Run("Roles", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.EnableOpenServer = true
+			*cfg.TeamSettings.EnableUserCreation = true
+			*cfg.TeamSettings.RestrictCreationToDomains = ""
+		})
+
+		t.Run("InvalidRole", func(t *testing.T) {
+			user := &model.User{Email: "foobar+testinvalidrole@mattermost.com", Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
+			_, resp := th.SystemAdminClient.CreateUser(user)
+			CheckNoError(t, resp)
+			ruser, err := th.App.GetUserByEmail("foobar+testinvalidrole@mattermost.com")
+			assert.Nil(t, err)
+			assert.NotEqual(t, ruser.Roles, "system_user system_admin")
+		})
+	})
+
+	t.Run("InvalidId", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.EnableOpenServer = true
+			*cfg.TeamSettings.EnableUserCreation = true
+		})
+
+		user := &model.User{Id: "AAAAAAAAAAAAAAAAAAAAAAAAAA", Email: "foobar+testinvalidid@mattermost.com", Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
+		_, resp := th.SystemAdminClient.CreateUser(user)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestCreateUserWithToken(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
