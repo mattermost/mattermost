@@ -2571,10 +2571,6 @@
     "translation": "Conexión fallida: {{.Error}}"
   },
   {
-    "id": "app.admin.test_site_url.failure",
-    "translation": "La URL no es válida"
-  },
-  {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Debe especificar el ID del equipo crear un canal"
   },
