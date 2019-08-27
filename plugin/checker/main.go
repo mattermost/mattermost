@@ -22,7 +22,7 @@ const pluginPackagePath = "github.com/mattermost/mattermost-server/plugin"
 
 func main() {
 	if err := runCheck(pluginPackagePath); err != nil {
-		fmt.Fprintf(os.Stderr, "# %s\n\n", pluginPackagePath)
+		fmt.Fprintln(os.Stderr, "#", pluginPackagePath)
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
