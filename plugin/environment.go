@@ -219,38 +219,11 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	componentActivated := false
 
 	if pluginInfo.Manifest.HasWebapp() {
-		bundlePath := filepath.Clean(pluginInfo.Manifest.Webapp.BundlePath)
-		if bundlePath == "" || bundlePath[0] == '.' {
-			return nil, false, fmt.Errorf("invalid webapp bundle path")
-		}
-		bundlePath = filepath.Join(env.pluginDir, id, bundlePath)
-		destinationPath := filepath.Join(env.webappPluginDir, id)
-
-		if err := os.RemoveAll(destinationPath); err != nil {
-			return nil, false, errors.Wrapf(err, "unable to remove old webapp bundle directory: %v", destinationPath)
-		}
-
-		if err := utils.CopyDir(filepath.Dir(bundlePath), destinationPath); err != nil {
-			return nil, false, errors.Wrapf(err, "unable to copy webapp bundle directory: %v", id)
-		}
-
-		sourceBundleFilepath := filepath.Join(destinationPath, filepath.Base(bundlePath))
-
-		sourceBundleFileContents, err := ioutil.ReadFile(sourceBundleFilepath)
+		updatedManifest, err := env.UnpackWebappBundle(id)
 		if err != nil {
-			return nil, false, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
+			return nil, false, errors.Wrapf(err, "unable to generate webapp bundle: %v", id)
 		}
-
-		hash := fnv.New64a()
-		hash.Write(sourceBundleFileContents)
-		pluginInfo.Manifest.Webapp.BundleHash = hash.Sum([]byte{})
-
-		if err := os.Rename(
-			sourceBundleFilepath,
-			filepath.Join(destinationPath, fmt.Sprintf("%s_%x_bundle.js", id, pluginInfo.Manifest.Webapp.BundleHash)),
-		); err != nil {
-			return nil, false, errors.Wrapf(err, "unable to rename webapp bundle: %v", id)
-		}
+		pluginInfo.Manifest.Webapp.BundleHash = updatedManifest.Webapp.BundleHash
 
 		componentActivated = true
 	}
@@ -321,7 +294,6 @@ func (env *Environment) Shutdown() {
 				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
 			}
 			rp.supervisor.Shutdown()
-			env.StopPlugin(rp.supervisor.pid)
 		}
 
 		env.registeredPlugins.Delete(key)
@@ -330,27 +302,61 @@ func (env *Environment) Shutdown() {
 	})
 }
 
-//Stops plugin forcefully if not shutdown gracefully
-func (env *Environment) StopPlugin(pid int) {
-	env.logger.Info("Checking if plugin pid " + strconv.Itoa(pid) + " is already stopped")
-	if p, err := os.FindProcess(pid); err != nil {
-		env.logger.Info("Plugin pid " + strconv.Itoa(pid) + " is stopped")
-	} else {
-		env.logger.Info("Plugin pid " + strconv.Itoa(pid) + " is still active, sending SIGTERM")
-		if err = p.Signal(syscall.SIGTERM); err != nil {
-			env.logger.Info("Error sending SIGTERM to plugin pid " + strconv.Itoa(pid))
-		} else {
-			go func() {
-				<-time.NewTimer(time.Second * 10).C
-				if p, err := os.FindProcess(pid); err != nil {
-					env.logger.Info("Plugin pid " + strconv.Itoa(pid) + " is stopped")
-				} else {
-					env.logger.Info("Plugin pid " + strconv.Itoa(pid) + " is still active, sending SIGKILL")
-					p.Signal(syscall.SIGKILL)
-				}
-			}()
+// UnpackWebappBundle unpacks webapp bundle for a given plugin id on disk.
+func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
+	plugins, err := env.Available()
+	if err != nil {
+		return nil, errors.New("Unable to get available plugins")
+	}
+	var manifest *model.Manifest
+	for _, p := range plugins {
+		if p.Manifest != nil && p.Manifest.Id == id {
+			if manifest != nil {
+				return nil, fmt.Errorf("multiple plugins found: %v", id)
+			}
+			manifest = p.Manifest
 		}
 	}
+	if manifest == nil {
+		return nil, fmt.Errorf("plugin not found: %v", id)
+	}
+
+	bundlePath := filepath.Clean(manifest.Webapp.BundlePath)
+	if bundlePath == "" || bundlePath[0] == '.' {
+		return nil, fmt.Errorf("invalid webapp bundle path")
+	}
+	bundlePath = filepath.Join(env.pluginDir, id, bundlePath)
+	destinationPath := filepath.Join(env.webappPluginDir, id)
+
+	if err = os.RemoveAll(destinationPath); err != nil {
+		return nil, errors.Wrapf(err, "unable to remove old webapp bundle directory: %v", destinationPath)
+	}
+
+	if err = utils.CopyDir(filepath.Dir(bundlePath), destinationPath); err != nil {
+		return nil, errors.Wrapf(err, "unable to copy webapp bundle directory: %v", id)
+	}
+
+	sourceBundleFilepath := filepath.Join(destinationPath, filepath.Base(bundlePath))
+
+	sourceBundleFileContents, err := ioutil.ReadFile(sourceBundleFilepath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
+	}
+
+	hash := fnv.New64a()
+	if _, err = hash.Write(sourceBundleFileContents); err != nil {
+		return nil, errors.Wrapf(err, "unable to generate hash for webapp bundle: %v", id)
+	}
+	manifest.Webapp.BundleHash = hash.Sum([]byte{})
+
+	if err = os.Rename(
+		sourceBundleFilepath,
+		filepath.Join(destinationPath, fmt.Sprintf("%s_%x_bundle.js", id, manifest.Webapp.BundleHash)),
+	); err != nil {
+		return nil, errors.Wrapf(err, "unable to rename webapp bundle: %v", id)
+	}
+
+	return manifest, nil
 }
 
 // HooksForPlugin returns the hooks API for the plugin with the given id.
