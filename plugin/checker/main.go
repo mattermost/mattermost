@@ -10,9 +10,7 @@ import (
 	"path"
 	"regexp"
 	"runtime"
-	"sort"
 	"strings"
-	"text/tabwriter"
 
 	"go/ast"
 	"go/parser"
@@ -23,8 +21,6 @@ import (
 
 func main() {
 	output := os.Stderr
-
-	fmt.Fprint(output, "Validating plugin API minimum version comments ...\n\n")
 
 	fset := token.NewFileSet()
 	packagePath := "plugin/"
@@ -43,12 +39,9 @@ func main() {
 
 	invalidMethods := findInvalidMethods(apiInterface.Methods.List)
 	if len(invalidMethods) > 0 {
-		fmt.Fprintln(output, "[FAILED] Some method comments are invalid.")
 		printErrorMessage(output, fset, invalidMethods)
 		os.Exit(1)
 	}
-
-	fmt.Fprintln(output, "[PASSED] All method comments are valid.")
 }
 
 func getPackageFiles(fset *token.FileSet, packagePath string) ([]*ast.File, error) {
@@ -116,42 +109,16 @@ func hasValidMinimumVersionComment(s string) bool {
 }
 
 func printErrorMessage(out io.Writer, fset *token.FileSet, methods []*ast.Field) {
-	filename := fset.Position(methods[0].Pos()).Filename
-
-	fmt.Fprintf(out, `
-Some API interface methods in %s are missing a valid minimum version comment.
-This comment should be on the last line of the method doc, following this example:
-
-    // CreateTeam creates a team.
-    //
-    // Minimum server version: 5.2
-    CreateTeam(team *model.Team) (*model.Team, *model.AppError)
-
-Affected methods:
-
-`, filename)
-
-	byMethodName := func(i, j int) bool {
-		return strings.Compare(methods[i].Names[0].Name, methods[j].Names[0].Name) < 0
-	}
-	sort.Slice(methods, byMethodName)
-	printMethods(out, fset, methods)
-	fmt.Fprintln(out)
-}
-
-func printMethods(out io.Writer, f *token.FileSet, methods []*ast.Field) {
-	w := tabwriter.NewWriter(out, 0, 1, 4, ' ', 0)
 	for _, m := range methods {
-		pos := f.Position(m.Pos())
-		fmt.Fprintf(w,
-			"    %s\t%s:%d:%d\n",
-			m.Names[0].Name,
+		pos := fset.Position(m.Pos())
+		fmt.Fprintf(out,
+			"%s:%d:%d: missing a minimum server version comment\n",
 			pos.Filename,
 			pos.Line,
 			pos.Column,
 		)
 	}
-	w.Flush()
+	fmt.Fprintln(out)
 }
 
 func chdirToProjectRoot() error {
