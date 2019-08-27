@@ -432,6 +432,16 @@ func TestDisableOnRemove(t *testing.T) {
 	}
 }
 
+func TestGetMarketplacePlugins(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+}
+
 func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.ClusterMessage {
 	var result []*model.ClusterMessage
 	for _, msg := range msgs {

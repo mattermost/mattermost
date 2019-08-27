@@ -4492,6 +4492,24 @@ func (c *Client4) DisablePlugin(id string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// GetMarketplacePlugins will return a list of plugins that the  should download.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) GetMarketplacePlugins() (MarketplacePlugins, *Response) {
+	url := c.GetPluginsRoute() + "/marketplace"
+	r, err := c.DoApiGet(url, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	plugins, readerErr := PluginsFromReader(r.Body)
+	if readerErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest))
+	}
+
+	return plugins, BuildResponse(r)
+}
+
 // UpdateChannelScheme will update a channel's scheme.
 func (c *Client4) UpdateChannelScheme(channelId, schemeId string) (bool, *Response) {
 	sip := &SchemeIDPatch{SchemeID: &schemeId}

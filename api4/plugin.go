@@ -36,6 +36,7 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugin.Handle("/disable", api.ApiSessionRequired(disablePlugin)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiHandler(getMarketplace)).Methods("GET")
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -237,6 +238,40 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.ManifestListToJson(clientManifests)))
+}
+
+func getMarketplace(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("getWebappPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	marketplaceUrl := *c.App.Config().PluginSettings.MarketplaceUrl
+
+	res, err := http.Get(marketplaceUrl + "/api/v1/plugins")
+	if err != nil {
+		mlog.Error("Failed to get plugins from marketplace " + err.Error())
+
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte{})
+		return
+	}
+
+	plugins, err := model.PluginsFromReader(res.Body)
+	if err != nil {
+		mlog.Error("Failed to marshal plugins marketplace " + err.Error())
+
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte{})
+		return
+	}
+
+	w.Write(plugins.ToJson())
 }
 
 func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
