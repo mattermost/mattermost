@@ -9,8 +9,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	//"syscall"
-
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
