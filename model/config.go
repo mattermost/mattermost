@@ -40,6 +40,7 @@ const (
 	PASSWORD_MAXIMUM_LENGTH = 64
 	PASSWORD_MINIMUM_LENGTH = 5
 
+	SERVICE_GITHUB    = "github"
 	SERVICE_GITLAB    = "gitlab"
 	SERVICE_GOOGLE    = "google"
 	SERVICE_OFFICE365 = "office365"
@@ -2409,6 +2410,7 @@ type Config struct {
 	SupportSettings         SupportSettings
 	AnnouncementSettings    AnnouncementSettings
 	ThemeSettings           ThemeSettings
+	GitHubSettings          SSOSettings
 	GitLabSettings          SSOSettings
 	GoogleSettings          SSOSettings
 	Office365Settings       SSOSettings
@@ -2446,6 +2448,8 @@ func (o *Config) ToJson() string {
 
 func (o *Config) GetSSOService(service string) *SSOSettings {
 	switch service {
+	case SERVICE_GITHUB:
+		return &o.GitHubSettings
 	case SERVICE_GITLAB:
 		return &o.GitLabSettings
 	case SERVICE_GOOGLE:
@@ -2487,6 +2491,7 @@ func (o *Config) SetDefaults() {
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
 	o.Office365Settings.setDefaults(OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.GitHubSettings.setDefaults("", "", "", "")
 	o.GitLabSettings.setDefaults("", "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.ServiceSettings.SetDefaults(isUpdate)
@@ -3043,6 +3048,10 @@ func (o *Config) Sanitize() {
 
 	if o.EmailSettings.SMTPPassword != nil && len(*o.EmailSettings.SMTPPassword) > 0 {
 		*o.EmailSettings.SMTPPassword = FAKE_SETTING
+	}
+
+	if len(*o.GitHubSettings.Secret) > 0 {
+		*o.GitHubSettings.Secret = FAKE_SETTING
 	}
 
 	if len(*o.GitLabSettings.Secret) > 0 {
