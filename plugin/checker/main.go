@@ -66,25 +66,23 @@ func getPackageFiles(fset *token.FileSet, packagePath string) ([]*ast.File, erro
 
 func findAPIInterface(files []*ast.File) *ast.InterfaceType {
 	for _, f := range files {
-		if iface := findAPIInterfaceInFile(f); iface != nil {
+		var iface *ast.InterfaceType
+
+		ast.Inspect(f, func(n ast.Node) bool {
+			if t, ok := n.(*ast.TypeSpec); ok {
+				if i, ok := t.Type.(*ast.InterfaceType); ok && t.Name.Name == "API" {
+					iface = i
+					return false
+				}
+			}
+			return true
+		})
+
+		if iface != nil {
 			return iface
 		}
 	}
 	return nil
-}
-
-func findAPIInterfaceInFile(f *ast.File) *ast.InterfaceType {
-	var iface *ast.InterfaceType
-	ast.Inspect(f, func(n ast.Node) bool {
-		if t, ok := n.(*ast.TypeSpec); ok {
-			if i, ok := t.Type.(*ast.InterfaceType); ok && t.Name.Name == "API" {
-				iface = i
-				return false
-			}
-		}
-		return true
-	})
-	return iface
 }
 
 func findInvalidMethods(methods []*ast.Field) []*ast.Field {
