@@ -7,14 +7,13 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 
 	"go/ast"
-	"go/parser"
-	"go/token"
+
+	"golang.org/x/tools/go/packages"
 
 	"github.com/pkg/errors"
 )
@@ -22,46 +21,38 @@ import (
 func main() {
 	output := os.Stderr
 
-	fset := token.NewFileSet()
-	packagePath := "plugin/"
-
-	files, err := getPackageFiles(fset, packagePath)
+	pkg, err := getPackage("github.com/mattermost/mattermost-server/plugin")
 	if err != nil {
 		fmt.Fprintln(output, err)
 		os.Exit(1)
 	}
 
-	apiInterface := findAPIInterface(files)
+	apiInterface := findAPIInterface(pkg.Syntax)
 	if apiInterface == nil {
-		fmt.Fprintf(output, "could not find API interface in package path %s\n", packagePath)
+		fmt.Fprintf(output, "could not find API interface in package path %s\n", pkg.PkgPath)
 		os.Exit(1)
 	}
 
 	invalidMethods := findInvalidMethods(apiInterface.Methods.List)
 	if len(invalidMethods) > 0 {
-		printErrorMessage(output, fset, invalidMethods)
+		printErrorMessage(output, pkg, invalidMethods)
 		os.Exit(1)
 	}
 }
 
-func getPackageFiles(fset *token.FileSet, packagePath string) ([]*ast.File, error) {
-	// Switch to project root so we can have clean relative paths in the parser output
-	if err := chdirToProjectRoot(); err != nil {
-		return nil, errors.Wrap(err, "error changing working directory to project root")
+func getPackage(pkgPath string) (*packages.Package, error) {
+	cfg := &packages.Config{
+		Mode: packages.NeedName | packages.NeedTypes | packages.NeedSyntax,
 	}
-
-	pkgs, err := parser.ParseDir(fset, packagePath, nil, parser.ParseComments|parser.AllErrors)
+	pkgs, err := packages.Load(cfg, pkgPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error parsing files in package path `%s`", packagePath)
+		return nil, err
 	}
 
-	var files []*ast.File
-	for _, pkg := range pkgs {
-		for _, f := range pkg.Files {
-			files = append(files, f)
-		}
+	if len(pkgs) == 0 {
+		return nil, errors.Errorf("could not find package %s", pkgPath)
 	}
-	return files, nil
+	return pkgs[0], nil
 }
 
 func findAPIInterface(files []*ast.File) *ast.InterfaceType {
@@ -106,28 +97,25 @@ func hasValidMinimumVersionComment(s string) bool {
 	return false
 }
 
-func printErrorMessage(out io.Writer, fset *token.FileSet, methods []*ast.Field) {
+func printErrorMessage(out io.Writer, pkg *packages.Package, methods []*ast.Field) {
+	fmt.Printf("# %s\n\n", pkg.PkgPath)
+
+	cwd, _ := os.Getwd()
+
 	for _, m := range methods {
-		pos := fset.Position(m.Pos())
+		pos := pkg.Fset.Position(m.Pos())
+		filename, err := filepath.Rel(cwd, pos.Filename)
+		if err != nil {
+			// If deriving a relative path fails for some reason,
+			// we prefer to still print the absolute path to the file.
+			filename = pos.Filename
+		}
 		fmt.Fprintf(out,
 			"%s:%d:%d: missing a minimum server version comment\n",
-			pos.Filename,
+			filename,
 			pos.Line,
 			pos.Column,
 		)
 	}
 	fmt.Fprintln(out)
-}
-
-func chdirToProjectRoot() error {
-	_, filename, _, ok := runtime.Caller(1)
-	if !ok {
-		return errors.New("could not determine current executable's path")
-	}
-
-	dir := path.Dir(filename)
-	if err := os.Chdir(path.Join(dir, "..", "..")); err != nil {
-		return err
-	}
-	return nil
 }
