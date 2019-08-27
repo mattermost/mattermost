@@ -9,9 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"

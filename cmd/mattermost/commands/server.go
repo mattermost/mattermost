@@ -9,6 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	//"syscall"
+
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
@@ -91,7 +93,7 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
-	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGPIPE)
 	<-interruptChan
 
 	return nil
