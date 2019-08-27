@@ -4,8 +4,8 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -18,26 +18,32 @@ import (
 	"github.com/pkg/errors"
 )
 
-func main() {
-	output := os.Stderr
+const pluginPackagePath = "github.com/mattermost/mattermost-server/plugin"
 
-	pkg, err := getPackage("github.com/mattermost/mattermost-server/plugin")
-	if err != nil {
-		fmt.Fprintln(output, err)
+func main() {
+	if err := runCheck(pluginPackagePath); err != nil {
+		fmt.Fprintf(os.Stderr, "# %s\n\n", pluginPackagePath)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
+	}
+}
+
+func runCheck(pkgPath string) error {
+	pkg, err := getPackage(pkgPath)
+	if err != nil {
+		return err
 	}
 
 	apiInterface := findAPIInterface(pkg.Syntax)
 	if apiInterface == nil {
-		fmt.Fprintf(output, "could not find API interface in package path %s\n", pkg.PkgPath)
-		os.Exit(1)
+		return errors.New("could not find API interface")
 	}
 
 	invalidMethods := findInvalidMethods(apiInterface.Methods.List)
 	if len(invalidMethods) > 0 {
-		printErrorMessage(output, pkg, invalidMethods)
-		os.Exit(1)
+		return errors.New(renderErrorMessage(pkg, invalidMethods))
 	}
+	return nil
 }
 
 func getPackage(pkgPath string) (*packages.Package, error) {
@@ -97,10 +103,9 @@ func hasValidMinimumVersionComment(s string) bool {
 	return false
 }
 
-func printErrorMessage(out io.Writer, pkg *packages.Package, methods []*ast.Field) {
-	fmt.Printf("# %s\n\n", pkg.PkgPath)
-
+func renderErrorMessage(pkg *packages.Package, methods []*ast.Field) string {
 	cwd, _ := os.Getwd()
+	out := &bytes.Buffer{}
 
 	for _, m := range methods {
 		pos := pkg.Fset.Position(m.Pos())
@@ -117,5 +122,5 @@ func printErrorMessage(out io.Writer, pkg *packages.Package, methods []*ast.Fiel
 			pos.Column,
 		)
 	}
-	fmt.Fprintln(out)
+	return out.String()
 }
