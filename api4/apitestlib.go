@@ -144,6 +144,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Directory = pluginDir
 		*cfg.PluginSettings.ClientDirectory = webappDir
+		*cfg.PluginSettings.EnableHealthCheck = false
 	})
 
 	th.App.InitPlugins(pluginDir, webappDir)
