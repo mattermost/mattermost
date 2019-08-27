@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -239,8 +240,21 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid locale configuration")
 	}
 
-	if _, err := configStore.Set(newConfig); err != nil {
-		return errors.Wrap(err, "failed to set config")
+	options := []app.Option{
+		app.ConfigStore(configStore),
+		app.JoinCluster,
+	}
+	server, err := app.NewServer(options...)
+	if err != nil {
+		mlog.Critical(err.Error())
+		return err
+	}
+	defer server.Shutdown()
+
+	appErr := server.FakeApp().SaveConfig(newConfig, true)
+	if appErr != nil {
+		mlog.Critical(appErr.Error())
+		return appErr
 	}
 
 	return nil
