@@ -17,23 +17,28 @@ type API interface {
 	// LoadPluginConfiguration loads the plugin's configuration. dest should be a pointer to a
 	// struct that the configuration JSON can be unmarshalled to.
 	//
+	// Minimum server version: 5.2
 	LoadPluginConfiguration(dest interface{}) error
 
 	// RegisterCommand registers a custom slash command. When the command is triggered, your plugin
 	// can fulfill it via the ExecuteCommand hook.
 	//
+	// Minimum server version: 5.2
 	RegisterCommand(command *model.Command) error
 
 	// UnregisterCommand unregisters a command previously registered via RegisterCommand.
 	//
+	// Minimum server version: 5.2
 	UnregisterCommand(teamId, trigger string) error
 
 	// GetSession returns the session object for the Session ID
 	//
+	// Minimum server version: 5.2
 	GetSession(sessionId string) (*model.Session, *model.AppError)
 
 	// GetConfig fetches the currently persisted config
 	//
+	// Minimum server version: 5.2
 	GetConfig() *model.Config
 
 	// SaveConfig sets the given config and persists the changes
@@ -155,11 +160,13 @@ type API interface {
 
 	// UpdateUserActive deactivates or reactivates an user.
 	//
+	// Minimum server version: 5.8
 	UpdateUserActive(userId string, active bool) *model.AppError
 
 	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
 	// The sortBy parameter can be: "username" or "status".
 	//
+	// Minimum server version: 5.6
 	GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError)
 
 	// GetLDAPUserAttributes will return LDAP attributes for a user.
@@ -167,6 +174,7 @@ type API interface {
 	// Returns a map with attribute names as keys and the user's attributes as values.
 	// Requires an enterprise license, LDAP to be configured and for the user to use LDAP as an authentication method.
 	//
+	// Minimum server version: 5.3
 	GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError)
 
 	// CreateTeam creates a team.
