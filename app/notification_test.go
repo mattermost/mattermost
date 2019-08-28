@@ -1207,12 +1207,12 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 		},
 		"direct channel, unspecified": {
 			channel:  &model.Channel{Type: model.CHANNEL_DIRECT},
-			expected: "sender",
+			expected: "@sender",
 		},
 		"direct channel, username": {
 			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
 			nameFormat: model.SHOW_USERNAME,
-			expected:   "sender",
+			expected:   "@sender",
 		},
 		"direct channel, full name": {
 			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
@@ -1290,11 +1290,11 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		expected       string
 	}{
 		"name format unspecified": {
-			expected: sender.Username,
+			expected: "@" + sender.Username,
 		},
 		"name format username": {
 			nameFormat: model.SHOW_USERNAME,
-			expected:   sender.Username,
+			expected:   "@" + sender.Username,
 		},
 		"name format full name": {
 			nameFormat: model.SHOW_FULLNAME,
@@ -1317,12 +1317,12 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 			channel:        &model.Channel{Type: model.CHANNEL_DIRECT},
 			post:           overriddenPost,
 			allowOverrides: true,
-			expected:       sender.Username,
+			expected:       "@" + sender.Username,
 		},
 		"overridden username, overrides disabled": {
 			post:           overriddenPost,
 			allowOverrides: false,
-			expected:       sender.Username,
+			expected:       "@" + sender.Username,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
