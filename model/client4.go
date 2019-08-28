@@ -2306,7 +2306,7 @@ func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag st
 }
 
 // GetChannelMembersByIds gets the channel members in a channel for a list of user ids.
-	func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*ChannelMembers, *Response) {
+func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*ChannelMembers, *Response) {
 	r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"/ids", ArrayToJson(userIds))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
