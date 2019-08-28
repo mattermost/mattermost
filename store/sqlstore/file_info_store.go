@@ -196,15 +196,20 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.
 }
 
 func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) *model.AppError {
-	sqlResult, err := fs.GetMaster().Exec(
-		`UPDATE
-					FileInfo
-				SET
-					PostId = :PostId
-				WHERE
-					Id = :Id
-					AND PostId = ''
-					AND CreatorId = :CreatorId`, map[string]interface{}{"PostId": postId, "Id": fileId, "CreatorId": creatorId})
+	sqlResult, err := fs.GetMaster().Exec(`
+		UPDATE
+			FileInfo
+		SET
+			PostId = :PostId
+		WHERE
+			Id = :Id
+			AND PostId = ''
+			AND (CreatorId = :CreatorId OR CreatorId = 'nouser')
+	`, map[string]interface{}{
+		"PostId":    postId,
+		"Id":        fileId,
+		"CreatorId": creatorId,
+	})
 	if err != nil {
 		return model.NewAppError("SqlFileInfoStore.AttachToPost",
 			"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)

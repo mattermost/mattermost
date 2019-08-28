@@ -319,6 +319,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	require.NotNil(t, err)
 	require.Nil(t, data)
 }
+
 func TestPluginAPISavePluginConfig(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -383,7 +384,7 @@ func TestPluginAPIGetPluginConfig(t *testing.T) {
 
 	api := NewPluginAPI(th.App, manifest)
 
-	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
+	pluginConfigJsonString := `{"mystringsetting": "str", "myintsetting": 32, "myboolsetting": true}`
 	var pluginConfig map[string]interface{}
 
 	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {
@@ -1223,6 +1224,58 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 	}
 }
 
+func TestPluginAPIKVCompareAndDelete(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	testCases := []struct {
+		Description   string
+		ExpectedValue []byte
+	}{
+		{
+			Description:   "Testing non-nil, non-empty value",
+			ExpectedValue: []byte("value1"),
+		},
+		{
+			Description:   "Testing empty value",
+			ExpectedValue: []byte(""),
+		},
+	}
+
+	for i, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			expectedKey := fmt.Sprintf("Key%d", i)
+			expectedValue1 := testCase.ExpectedValue
+			expectedValue2 := []byte("value2")
+
+			// Set the value
+			err := api.KVSet(expectedKey, expectedValue1)
+			require.Nil(t, err)
+
+			// Attempt delete using an incorrect old value
+			deleted, err := api.KVCompareAndDelete(expectedKey, expectedValue2)
+			require.Nil(t, err)
+			require.False(t, deleted)
+
+			// Make sure the value is still there
+			value, err := api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue1, value)
+
+			// Attempt delete using the proper value
+			deleted, err = api.KVCompareAndDelete(expectedKey, expectedValue1)
+			require.Nil(t, err)
+			require.True(t, deleted)
+
+			// Verify it's deleted
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Nil(t, value)
+		})
+	}
+}
+
 func TestPluginCreateBot(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -1243,4 +1296,38 @@ func TestPluginCreateBot(t *testing.T) {
 	})
 	require.NotNil(t, err)
 
+}
+
+func TestPluginCreatePostWithUploadedFile(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	data := []byte("Hello World")
+	channelId := th.BasicChannel.Id
+	filename := "testGetFile"
+	fileInfo, err := api.UploadFile(data, channelId, filename)
+	require.Nil(t, err)
+	defer func() {
+		th.App.Srv.Store.FileInfo().PermanentDelete(fileInfo.Id)
+		th.App.RemoveFile(fileInfo.Path)
+	}()
+
+	actualData, err := api.GetFile(fileInfo.Id)
+	require.Nil(t, err)
+	assert.Equal(t, data, actualData)
+
+	userId := th.BasicUser.Id
+	post, err := api.CreatePost(&model.Post{
+		Message:   "test",
+		UserId:    userId,
+		ChannelId: channelId,
+		FileIds:   model.StringArray{fileInfo.Id},
+	})
+	require.Nil(t, err)
+	assert.Equal(t, model.StringArray{fileInfo.Id}, post.FileIds)
+
+	actualPost, err := api.GetPost(post.Id)
+	require.Nil(t, err)
+	assert.Equal(t, model.StringArray{fileInfo.Id}, actualPost.FileIds)
 }
