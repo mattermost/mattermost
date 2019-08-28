@@ -2916,7 +2916,7 @@ func (c *Client4) TestEmail(config *Config) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
-// TestSiteURL will attempt to connect to the configured SMTP server.
+// TestSiteURL will test the validity of a site URL.
 func (c *Client4) TestSiteURL(siteURL string) (bool, *Response) {
 	data := &TestSiteURL{
 		SiteURL: siteURL,
