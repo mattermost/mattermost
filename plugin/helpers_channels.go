@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (p *HelpersImpl) EnsureChannel(channel *model.Channel) (retChanId string, retErr error) {
+func (p *HelpersImpl) EnsureChannel(channel *model.Channel) (retChannelId string, retErr error) {
 	// Must provide a channel with a name and teadId
 	if channel == nil || len(channel.Name) < 1 || len(channel.TeamId) < 1 {
 		return "", errors.New("passed a bad channel, nil or no name or no team id")
@@ -18,49 +18,49 @@ func (p *HelpersImpl) EnsureChannel(channel *model.Channel) (retChanId string, r
 	// If we fail for any reason, this could be a race between creation of channel and
 	// retrieval from another EnsureChannel. Just try the basic retrieve existing again.
 	defer func() {
-		if retChanId == "" || retErr != nil {
+		if retChannelId == "" || retErr != nil {
 			var err error
-			var chanIdBytes []byte
+			var channelIdBytes []byte
 
 			err = utils.ProgressiveRetry(func() error {
-				chanIdBytes, err = p.API.KVGet(CHANNEL_KEY)
+				channelIdBytes, err = p.API.KVGet(CHANNEL_KEY)
 				if err != nil {
 					return err
 				}
 				return nil
 			})
 
-			if err == nil && chanIdBytes != nil {
-				retChanId = string(chanIdBytes)
+			if err == nil && channelIdBytes != nil {
+				retChannelId = string(channelIdBytes)
 				retErr = nil
 			}
 		}
 	}()
 
 	// Fetch channel ID from key value store
-	chanIdBytes, kvGetErr := p.API.KVGet(CHANNEL_KEY)
+	channelIdBytes, kvGetErr := p.API.KVGet(CHANNEL_KEY)
 	if kvGetErr != nil {
 		// Failed to retrive the value of channel
 		return "", errors.Wrap(kvGetErr, "failed to get channel")
 	}
 
 	// Check if Channel ID exists
-	if chanIdBytes != nil {
-		chanId := string(chanIdBytes)
-		return chanId, nil
+	if channelIdBytes != nil {
+		channelId := string(channelIdBytes)
+		return channelId, nil
 	}
 
 	// Check if channel already exists (ignore deleted channels)
-	if existingChannel, chanGetErr := p.API.GetChannelByName(channel.TeamId, channel.Name, false); chanGetErr == nil && existingChannel != nil {
+	if existingChannel, channelGetErr := p.API.GetChannelByName(channel.TeamId, channel.Name, false); channelGetErr == nil && existingChannel != nil {
 		// Update metadata of the channel
 		if updateErr := updateChannelMeta(existingChannel, channel); updateErr != nil {
 			return "", errors.Wrap(updateErr, "Failed to update the metadata of existing channel")
 		}
 
 		// Send the updates to API
-		updatedChannel, chanUpdateErr := p.API.UpdateChannel(existingChannel)
-		if chanUpdateErr != nil {
-			return "", errors.Wrap(chanUpdateErr, "Failed to update the existing channel")
+		updatedChannel, channelUpdateErr := p.API.UpdateChannel(existingChannel)
+		if channelUpdateErr != nil {
+			return "", errors.Wrap(channelUpdateErr, "Failed to update the existing channel")
 		}
 
 		// Channel exists!
@@ -68,9 +68,9 @@ func (p *HelpersImpl) EnsureChannel(channel *model.Channel) (retChanId string, r
 	}
 
 	// Create a new channel
-	createdChannel, createChanErr := p.API.CreateChannel(channel)
-	if createChanErr != nil {
-		return "", errors.Wrap(createChanErr, "failed to create channel")
+	createdChannel, createChannelErr := p.API.CreateChannel(channel)
+	if createChannelErr != nil {
+		return "", errors.Wrap(createChannelErr, "failed to create channel")
 	}
 
 	// Set the new channel id in key value store
