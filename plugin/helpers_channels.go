@@ -41,7 +41,7 @@ func (p *HelpersImpl) EnsureChannel(channel *model.Channel) (retChannelId string
 	channelIdBytes, kvGetErr := p.API.KVGet(CHANNEL_KEY)
 	if kvGetErr != nil {
 		// Failed to retrive the value of channel
-		return "", errors.Wrap(kvGetErr, "failed to get channel")
+		return "", errors.Wrap(kvGetErr, "failed to get channel ID")
 	}
 
 	// Check if Channel ID exists
