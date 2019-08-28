@@ -51,7 +51,10 @@ func (p *HelpersImpl) EnsureChannel(channel *model.Channel) (retChannelId string
 	}
 
 	// Check if channel already exists (ignore deleted channels)
-	if existingChannel, channelGetErr := p.API.GetChannelByName(channel.TeamId, channel.Name, false); channelGetErr == nil && existingChannel != nil {
+	existingChannel, channelGetErr := p.API.GetChannelByName(channel.TeamId, channel.Name, false)
+	if channelGetErr != nil {
+		return "", errors.Wrap(channelGetErr, "failed to get channel")
+	} else if channelGetErr == nil && existingChannel != nil {
 		// Update metadata of the channel
 		if updateErr := updateChannelMeta(existingChannel, channel); updateErr != nil {
 			return "", errors.Wrap(updateErr, "Failed to update the metadata of existing channel")
