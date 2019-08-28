@@ -1,0 +1,154 @@
+version: 2.1
+
+executors:
+  default:
+    working_directory: /go/src/github.com/mattermost/
+    docker:
+      - image: mattermost/mattermost-build-webapp:oct-2-2018
+  ubuntu:
+    working_directory: ~/go/src/github.com/mattermost/mattermost-server
+    machine:
+      image: "ubuntu-1604:201903-01"
+    environment:
+      COMPOSE_PROJECT_NAME: "circleci"
+
+jobs:
+  setup:
+    executor:
+      name: default
+    steps:
+      - run: |
+          ls -la
+          mkdir -p ~/.ssh/
+          echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+          git clone git@github.com:mattermost/mattermost-webapp.git
+          cd mattermost-webapp
+          git checkout $CIRCLE_BRANCH || git checkout master
+          export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
+          echo "$WEBAPP_GIT_COMMIT"
+          curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
+      - persist_to_workspace:
+          root: /go/src/github.com/mattermost
+          paths:
+            - mattermost-server
+            - mattermost-webapp
+
+  check-i18n:
+    executor:
+      name: ubuntu
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost/
+      - run:
+          name: Check i18n
+          command: |
+            docker run -it \
+              -v ~/go/src:/go/src \
+              -w /go/src/github.com/mattermost/mattermost-server \
+              mattermost/mattermost-build-server:feb-28-2019 \
+              bash -c 'cd /go/src/github.com/mattermost/mattermost-server; cp i18n/en.json /tmp/en.json; make i18n-extract; diff /tmp/en.json i18n/en.json;'
+  build:
+    executor:
+      name: ubuntu
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost/
+      - run:
+          name: Build
+          command: |
+            docker run -it \
+              -v ~/go/src:/go/src \
+              -w /go/src/github.com/mattermost/mattermost-server \
+              mattermost/mattermost-build-server:feb-28-2019 \
+              bash -c 'cd /go/src/github.com/mattermost/mattermost-server;
+                            make config-reset;
+                            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}';
+                            make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}';
+                            make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}''
+
+  test:
+    executor:
+      name: ubuntu
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost
+      - run:
+          name: Run Docker compose
+          command: |
+            cd build
+            docker-compose --no-ansi run --rm start_dependencies
+            cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+            docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+            docker-compose --no-ansi ps
+          background: true
+      - run:
+          name: Wait for docker compose
+          command: |
+            sleep 5
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - run:
+          name: Run Tests
+          command: |
+            mkdir -p client/plugins
+            docker run -it --net circleci_mm-test \
+              --env TEST_DATABASE_MYSQL_DSN="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s" \
+              --env TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
+              --env TEST_DATABASE_MYSQL_ROOT_PASSWD=mostest \
+              --env CI_INBUCKET_HOST=inbucket \
+              --env CI_MINIO_HOST=minio \
+              --env CI_INBUCKET_PORT=10080 \
+              --env CI_MINIO_PORT=9000 \
+              --env CI_INBUCKET_SMTP_PORT=10025 \
+              --env CI_LDAP_HOST=openldap \
+              --env IS_CI="true" \
+              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8" \
+              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
+              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
+              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              -v ~/go/src:/go/src \
+              -w /go/src/github.com/mattermost/mattermost-server \
+              mattermost/mattermost-build-server:feb-28-2019 \
+              bash -c 'make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
+          no_output_timeout: 1h
+      - run:
+          name: Capture docker logs
+          when: always
+          command: |
+            cd build
+            # Capture docker logs
+            mkdir -p logs
+            docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs
+            docker ps -a --no-trunc > logs/docker_ps
+            docker stats -a --no-stream > logs/docker_stats
+            tar -czvf logs/docker_logs.tar.gz logs/docker-compose_logs logs/docker_ps logs/docker_stats
+      - store_artifacts:
+          path: /go/src/github.com/mattermost/mattermost-server/build/logs
+      - run:
+          when: always
+          command: |
+            mkdir -p test-results
+            cp report.xml test-results
+      - store_test_results:
+          path: /go/src/github.com/mattermost/mattermost-server/test-results/
+      - store_artifacts:
+          path: /go/src/github.com/mattermost/mattermost-server/test-results/
+
+workflows:
+  version: 2
+  untagged-build:
+    jobs:
+      - setup
+      - check-i18n:
+          requires:
+            - setup
+      - test:
+          requires:
+            - setup
+      - build:
+          requires:
+            - test
+          
