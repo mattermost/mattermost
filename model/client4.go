@@ -112,9 +112,14 @@ func BuildResponse(r *http.Response) *Response {
 	}
 }
 
-func (c *Client4) MockSession(sessionToken string) {
-	c.AuthToken = sessionToken
+func (c *Client4) SetToken(token string) {
+	c.AuthToken = token
 	c.AuthType = HEADER_BEARER
+}
+
+// MockSession is deprecated in favour of SetToken
+func (c *Client4) MockSession(token string) {
+	c.SetToken(token)
 }
 
 func (c *Client4) SetOAuthToken(token string) {
@@ -2883,7 +2888,7 @@ func (c *Client4) GetPing() (string, *Response) {
 }
 
 // GetPingWithServerStatus will return ok if several basic server health checks
-// all psss successfully.
+// all pass successfully.
 func (c *Client4) GetPingWithServerStatus() (string, *Response) {
 	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping?get_server_status=true", "")
 	if r != nil && r.StatusCode == 500 {
