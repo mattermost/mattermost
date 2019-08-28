@@ -19,52 +19,52 @@ func TestEnsureChannel(t *testing.T) {
 	}
 
 	testChannel := &model.Channel{
-		Id: model.NewId(),
-		TeamId: model.NewId(),
-		Type: "public",
-		Name:   "test_channel",
+		Id:          model.NewId(),
+		TeamId:      model.NewId(),
+		Type:        "public",
+		Name:        "test_channel",
 		DisplayName: "Test Channel",
-		Purpose: "Testing EnsureChannel",
-		Header: "Testing EnsureChannel",
+		Purpose:     "Testing EnsureChannel",
+		Header:      "Testing EnsureChannel",
 	}
 
 	t.Run("bad parameters", func(t *testing.T) {
 		t.Run("no channel", func(t *testing.T) {
 			p := &plugin.HelpersImpl{}
-			chanId, err := p.EnsureChannel(nil)
-			assert.Equal(t, "", chanId)
+			channelId, err := p.EnsureChannel(nil)
+			assert.Equal(t, "", channelId)
 			assert.NotNil(t, err)
 		})
 		t.Run("empty name", func(t *testing.T) {
 			p := &plugin.HelpersImpl{}
-			chanId, err := p.EnsureChannel(&model.Channel{
+			channelId, err := p.EnsureChannel(&model.Channel{
 				Name: "",
 			})
-			assert.Equal(t, "", chanId)
+			assert.Equal(t, "", channelId)
 			assert.NotNil(t, err)
 		})
 		t.Run("name without teamId", func(t *testing.T) {
 			p := &plugin.HelpersImpl{}
-			chanId, err := p.EnsureChannel(&model.Channel{
+			channelId, err := p.EnsureChannel(&model.Channel{
 				Name: "test_channel",
 			})
-			assert.Equal(t, "", chanId)
+			assert.Equal(t, "", channelId)
 			assert.NotNil(t, err)
 		})
 		t.Run("teamId without name", func(t *testing.T) {
 			p := &plugin.HelpersImpl{}
-			chanId, err := p.EnsureChannel(&model.Channel{
+			channelId, err := p.EnsureChannel(&model.Channel{
 				TeamId: model.NewId(),
 			})
-			assert.Equal(t, "", chanId)
+			assert.Equal(t, "", channelId)
 			assert.NotNil(t, err)
 		})
 		t.Run("teamId with empty name", func(t *testing.T) {
 			p := &plugin.HelpersImpl{}
-			chanId, err := p.EnsureChannel(&model.Channel{
+			channelId, err := p.EnsureChannel(&model.Channel{
 				TeamId: model.NewId(),
 			})
-			assert.Equal(t, "", chanId)
+			assert.Equal(t, "", channelId)
 			assert.NotNil(t, err)
 		})
 	})
@@ -79,9 +79,9 @@ func TestEnsureChannel(t *testing.T) {
 
 			p := &plugin.HelpersImpl{API: api}
 
-			chanId, err := p.EnsureChannel(testChannel)
+			channelId, err := p.EnsureChannel(testChannel)
 
-			assert.Equal(t, expectedChannelId, chanId)
+			assert.Equal(t, expectedChannelId, channelId)
 			assert.Nil(t, err)
 		})
 		t.Run("should return an error if unable to get channel", func(t *testing.T) {
@@ -91,14 +91,27 @@ func TestEnsureChannel(t *testing.T) {
 
 			p := &plugin.HelpersImpl{API: api}
 
-			chanId, err := p.EnsureChannel(testChannel)
+			channelId, err := p.EnsureChannel(testChannel)
 
-			assert.Equal(t, "", chanId)
+			assert.Equal(t, "", channelId)
 			assert.NotNil(t, err)
 		})
 	})
 
 	t.Run("if channel is not in Key Value store but already exists", func(t *testing.T) {
+		t.Run("should return an error if unable to get channel", func(t *testing.T) {
+			api := setupAPI()
+			api.On("KVGet", plugin.CHANNEL_KEY).Return(nil, nil)
+			api.On("GetChannelByName", testChannel.TeamId, testChannel.Name, false).Return(nil, &model.AppError{})
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{API: api}
+
+			channelId, err := p.EnsureChannel(testChannel)
+
+			assert.Equal(t, "", channelId)
+			assert.NotNil(t, err)
+		})
 		t.Run("should return the Id of existing channel if metadata is same", func(t *testing.T) {
 			api := setupAPI()
 			api.On("KVGet", plugin.CHANNEL_KEY).Return(nil, nil)
@@ -108,9 +121,9 @@ func TestEnsureChannel(t *testing.T) {
 
 			p := &plugin.HelpersImpl{API: api}
 
-			chanId, err := p.EnsureChannel(testChannel)
+			channelId, err := p.EnsureChannel(testChannel)
 
-			assert.Equal(t, testChannel.Id, chanId)
+			assert.Equal(t, testChannel.Id, channelId)
 			assert.Nil(t, err)
 		})
 		t.Run("should return error if failed to update the channel", func(t *testing.T) {
@@ -122,16 +135,16 @@ func TestEnsureChannel(t *testing.T) {
 
 			p := &plugin.HelpersImpl{API: api}
 
-			chanId, err := p.EnsureChannel(testChannel)
+			channelId, err := p.EnsureChannel(testChannel)
 
-			assert.Equal(t, "", chanId)
+			assert.Equal(t, "", channelId)
 			assert.NotNil(t, err)
 		})
 		t.Run("should return the Id of updated channel if metadata is different", func(t *testing.T) {
 			updatedChannel := &model.Channel{
-				Id: model.NewId(),
+				Id:     model.NewId(),
 				TeamId: testChannel.TeamId,
-				Name: testChannel.Name,
+				Name:   testChannel.Name,
 			}
 			api := setupAPI()
 			api.On("KVGet", plugin.CHANNEL_KEY).Return(nil, nil)
@@ -141,17 +154,17 @@ func TestEnsureChannel(t *testing.T) {
 
 			p := &plugin.HelpersImpl{API: api}
 
-			chanId, err := p.EnsureChannel(testChannel)
+			channelId, err := p.EnsureChannel(testChannel)
 
-			assert.Equal(t, updatedChannel.Id, chanId)
+			assert.Equal(t, updatedChannel.Id, channelId)
 			assert.Nil(t, err)
 		})
 		t.Run("should return error if channel type is different from existing one", func(t *testing.T) {
 			privChannel := &model.Channel{
-				Id: model.NewId(),
-				Type: "private",
+				Id:     model.NewId(),
+				Type:   "private",
 				TeamId: testChannel.TeamId,
-				Name: testChannel.Name,
+				Name:   testChannel.Name,
 			}
 			api := setupAPI()
 			api.On("KVGet", plugin.CHANNEL_KEY).Return(nil, nil)
@@ -160,9 +173,9 @@ func TestEnsureChannel(t *testing.T) {
 
 			p := &plugin.HelpersImpl{API: api}
 
-			chanId, err := p.EnsureChannel(testChannel)
+			channelId, err := p.EnsureChannel(testChannel)
 
-			assert.Equal(t, "", chanId)
+			assert.Equal(t, "", channelId)
 			assert.NotNil(t, err)
 		})
 	})
@@ -178,9 +191,9 @@ func TestEnsureChannel(t *testing.T) {
 
 			p := &plugin.HelpersImpl{API: api}
 
-			chanId, err := p.EnsureChannel(testChannel)
+			channelId, err := p.EnsureChannel(testChannel)
 
-			assert.Equal(t, testChannel.Id, chanId)
+			assert.Equal(t, testChannel.Id, channelId)
 			assert.Nil(t, err)
 		})
 		t.Run("should return error if unable to create new channel", func(t *testing.T) {
@@ -192,9 +205,9 @@ func TestEnsureChannel(t *testing.T) {
 
 			p := &plugin.HelpersImpl{API: api}
 
-			chanId, err := p.EnsureChannel(testChannel)
+			channelId, err := p.EnsureChannel(testChannel)
 
-			assert.Equal(t, "", chanId)
+			assert.Equal(t, "", channelId)
 			assert.NotNil(t, err)
 		})
 		t.Run("should log and return id if unable to write to Key Value store", func(t *testing.T) {
@@ -208,9 +221,9 @@ func TestEnsureChannel(t *testing.T) {
 
 			p := &plugin.HelpersImpl{API: api}
 
-			chanId, err := p.EnsureChannel(testChannel)
+			channelId, err := p.EnsureChannel(testChannel)
 
-			assert.Equal(t, testChannel.Id, chanId)
+			assert.Equal(t, testChannel.Id, channelId)
 			assert.Nil(t, err)
 		})
 	})
