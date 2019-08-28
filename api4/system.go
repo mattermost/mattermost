@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"runtime"
 	"time"
@@ -158,22 +157,10 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	siteURLByte, err := ioutil.ReadAll(r.Body)
+	data := model.TestSiteURLFromJson(r.Body)
+	err := c.App.TestSiteURL(c.App.Session.UserId, data)
 	if err != nil {
-		c.Err = model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
-		return
-	}
-	siteURL := string(siteURLByte)
-
-	if siteURL == "" {
-		c.Err = model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	url := fmt.Sprintf("%s/api/v4/system/ping", siteURL)
-	res, err := http.Get(url)
-	if err != nil || res.StatusCode != 200 {
-		c.Err = model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
+		c.Err = err
 		return
 	}
 

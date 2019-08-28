@@ -2306,7 +2306,7 @@ func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag st
 }
 
 // GetChannelMembersByIds gets the channel members in a channel for a list of user ids.
-func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*ChannelMembers, *Response) {
+	func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*ChannelMembers, *Response) {
 	r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"/ids", ArrayToJson(userIds))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -2918,7 +2918,10 @@ func (c *Client4) TestEmail(config *Config) (bool, *Response) {
 
 // TestSiteURL will attempt to connect to the configured SMTP server.
 func (c *Client4) TestSiteURL(siteURL string) (bool, *Response) {
-	r, err := c.DoApiPost(c.GetTestSiteURLRoute(), siteURL)
+	data := &TestSiteURL{
+		SiteURL: siteURL,
+	}
+	r, err := c.DoApiPost(c.GetTestSiteURLRoute(), data.ToJson())
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
