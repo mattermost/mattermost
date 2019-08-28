@@ -218,11 +218,11 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	etag := ""
 	if len(postList.Order) == 0 {
-		// etag = c.App.GetPostsEtag(channelId)
+		etag = c.App.GetPostsEtag(channelId)
 
-		// if c.HandleEtag(etag, "Get Posts", w, r) {
-		// 	return
-		// }
+		if c.HandleEtag(etag, "Get Posts", w, r) {
+			return
+		}
 
 		postList, err = c.App.GetPostsPageAdvanced(channelId, app.PAGE_DEFAULT, c.Params.LimitBefore, skipFetchRoot)
 	}

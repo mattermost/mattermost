@@ -127,6 +127,10 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 	if len(post.RootId) > 0 {
 		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": post.RootId}); err != nil {
 			mlog.Error(fmt.Sprintf("Error updating Post UpdateAt: %v", err.Error()))
+		} else if count, err := s.GetMaster().SelectInt("SELECT COUNT(*) FROM Posts WHERE RootId = :RootId", map[string]interface{}{"RootId": post.RootId}); err != nil {
+			mlog.Error(fmt.Sprintf("Error fetching post's thread: %v", err.Error()))
+		} else {
+			post.ResponseCount = count
 		}
 	}
 
@@ -280,7 +284,7 @@ func (s *SqlPostStore) GetAdvanced(id string, skipRootFetch bool) (*model.PostLi
 	var post model.Post
 	var postFetchQuery string
 	if skipRootFetch {
-		postFetchQuery = "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id)  FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
+		postFetchQuery = "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.RootId)  FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
 	} else {
 		postFetchQuery = "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0"
 	}
@@ -343,7 +347,6 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
-	allowFromCache = false
 	if allowFromCache {
 		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
 			if s.metrics != nil {
@@ -465,7 +468,6 @@ func (s *SqlPostStore) GetPostsAdvanced(channelId string, offset int, limit int,
 	}
 
 	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-	allowFromCache = false
 	if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
 		if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
 			if s.metrics != nil {
@@ -538,7 +540,6 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 }
 
 func (s *SqlPostStore) GetPostsSinceAdvanced(channelId string, time int64, allowFromCache, skipRootFetch bool) (*model.PostList, *model.AppError) {
-	allowFromCache = false
 	if allowFromCache {
 		// If the last post in the channel's time is less than or equal to the time we are getting posts since,
 		// we can safely return no posts.
@@ -644,7 +645,7 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 				FROM
 					Posts
 				WHERE
-					Posts.RootId = p.Id) AS ResponseCount
+					Posts.RootId = p.RootId) AS ResponseCount
 			FROM
 				Posts p
 			WHERE
@@ -810,11 +811,9 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	var posts []*model.Post
 	var fetchQuery string
 	if skipRootFetch {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id) as ResponseCount FROM Posts p WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
-
+		fetchQuery = "SELECT p.*, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = p.RootId) as ResponseCount FROM Posts p WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 	} else {
 		fetchQuery = "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
-
 	}
 	_, err := s.GetReplica().Select(&posts, fetchQuery, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
 	if err != nil {
