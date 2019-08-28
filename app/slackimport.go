@@ -545,7 +545,8 @@ func (a *App) SlackAddChannels(teamId string, slackChannels []SlackChannel, post
 	importerLog.WriteString("=================\r\n\r\n")
 
 	addedChannels := make(map[string]*model.Channel)
-	for _, sChannel := range slackChannels {
+	for i, sChannel := range slackChannels {
+		channels := len(slackChannels)
 		newChannel := model.Channel{
 			TeamId:      teamId,
 			Type:        sChannel.Type,
@@ -582,6 +583,7 @@ func (a *App) SlackAddChannels(teamId string, slackChannels []SlackChannel, post
 				continue
 			}
 		}
+		mlog.Debug(fmt.Sprintf("Slack Import: Added channel %s. %d channels left to go.", newChannel.DisplayName, channels-i))
 
 		// Members for direct and group channels are added during the creation of the channel in the OldImportChannel function
 		if sChannel.Type == model.CHANNEL_OPEN || sChannel.Type == model.CHANNEL_PRIVATE {
@@ -737,8 +739,9 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	var users []SlackUser
 	posts := make(map[string][]SlackPost)
 	uploads := make(map[string]*zip.File)
-	for _, file := range zipreader.File {
+	for i, file := range zipreader.File {
 		reader, err := file.Open()
+		files := len(zipreader.File)
 		if err != nil {
 			log.WriteString(utils.T("api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}))
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
@@ -747,20 +750,25 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 			publicChannels, publicChannelUsers, _ = SlackParseChannels(reader, model.CHANNEL_OPEN)
 			channels = append(channels, publicChannels...)
 			channelUsers = append(channelUsers, publicChannelUsers...)
+			mlog.Debug(fmt.Sprintf("Slack Import: Parsed public channels."))
 		} else if file.Name == "dms.json" {
 			directChannels, directChannelUsers, _ = SlackParseChannels(reader, model.CHANNEL_DIRECT)
 			channels = append(channels, directChannels...)
 			channelUsers = append(channelUsers, directChannelUsers...)
+			mlog.Debug(fmt.Sprintf("Slack Import: Parsed direct channels."))
 		} else if file.Name == "groups.json" {
 			privateChannels, privateChannelUsers, _ = SlackParseChannels(reader, model.CHANNEL_PRIVATE)
 			channels = append(channels, privateChannels...)
 			channelUsers = append(channelUsers, privateChannelUsers...)
+			mlog.Debug(fmt.Sprintf("Slack Import: Parsed private channels."))
 		} else if file.Name == "mpims.json" {
 			groupChannels, groupChannelUsers, _ = SlackParseChannels(reader, model.CHANNEL_GROUP)
 			channels = append(channels, groupChannels...)
 			channelUsers = append(channelUsers, groupChannelUsers...)
+			mlog.Debug(fmt.Sprintf("Slack Import: Parsed group channels."))
 		} else if file.Name == "users.json" {
 			users, _ = SlackParseUsers(reader)
+			mlog.Debug(fmt.Sprintf("Slack Import: Parsed Users."))
 		} else {
 			spl := strings.Split(file.Name, "/")
 			if len(spl) == 2 && strings.HasSuffix(spl[1], ".json") {
@@ -775,18 +783,36 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 				uploads[spl[1]] = file
 			}
 		}
+
+		// get some sort of progress for very big imports
+		if (files-i) % (files/100) == 0 {
+			mlog.Debug(fmt.Sprintf("Slack Import: %d Slack files left to parse.", files-i))
+		}
 	}
 
-	posts = SlackConvertUserMentions(users, posts)
-	posts = SlackConvertChannelMentions(channels, posts)
-	posts = SlackConvertPostsMarkup(posts)
-
+	mlog.Debug(fmt.Sprintf("Slack Import: Parsed all Slack files."))
+	mlog.Debug(fmt.Sprintf("Slack Import: Checking for deleted Slack users."))
 	users = addDeletedUsers(users, channelUsers)
 
-	addedUsers := a.SlackAddUsers(teamID, users, log)
-	botUser := a.SlackAddBotUser(teamID, log)
+	posts = SlackConvertUserMentions(users, posts)
+	mlog.Debug(fmt.Sprintf("Slack Import: Converted user mentions."))
+	posts = SlackConvertChannelMentions(channels, posts)
+	mlog.Debug(fmt.Sprintf("Slack Import: Converted channel links."))
+	posts = SlackConvertPostsMarkup(posts)
+	mlog.Debug(fmt.Sprintf("Slack Import: Converted post markup."))
 
+	mlog.Debug(fmt.Sprintf("Slack Import: Adding Slack users to team object."))
+	addedUsers := a.SlackAddUsers(teamID, users, log)
+	mlog.Debug(fmt.Sprintf("Slack Import: Added Slack users to team object."))
+
+	mlog.Debug(fmt.Sprintf("Slack Import: Adding Slack bot users to team object."))
+	botUser := a.SlackAddBotUser(teamID, log)
+	mlog.Debug(fmt.Sprintf("Slack Import: Added Slack bot users to team object."))
+
+	mlog.Debug(fmt.Sprintf("Slack Import: Adding Slack channels to Mattermost team."))
 	a.SlackAddChannels(teamID, channels, posts, addedUsers, uploads, botUser, log)
+	mlog.Debug(fmt.Sprintf("Slack Import: Added Slack channels to Mattermost team."))
+
 
 	if botUser != nil {
 		a.deactivateSlackBotUser(botUser)
