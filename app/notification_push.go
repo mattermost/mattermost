@@ -72,11 +72,20 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		SenderId:  post.UserId,
 	}
 
-	if unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id); err != nil {
-		msg.Badge = 1
-		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, err), mlog.String("user_id", user.Id))
+	if user.NotifyProps["push"] == "all" {
+		if unreadCount, err := a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id); err != nil {
+			msg.Badge = 1
+			mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, err), mlog.String("user_id", user.Id))
+		} else {
+			msg.Badge = int(unreadCount)
+		}
 	} else {
-		msg.Badge = int(unreadCount)
+		if unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id); err != nil {
+			msg.Badge = 1
+			mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, err), mlog.String("user_id", user.Id))
+		} else {
+			msg.Badge = int(unreadCount)
+		}
 	}
 
 	contentsConfig := *cfg.EmailSettings.PushNotificationContents
