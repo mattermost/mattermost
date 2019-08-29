@@ -69,7 +69,7 @@
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Unable to delete brand image, not found."
+    "translation": "Невозможно удалить изображение, не найдено."
   },
   {
     "id": "api.admin.file_read_error",
@@ -137,15 +137,15 @@
   },
   {
     "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Невозможно загрузить изображение профиля"
+    "translation": "Не удалось удалить изображение значка"
   },
   {
     "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Unable to read icon image file"
+    "translation": "Невозможно прочитать файл изображения значка"
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Невозможно загрузить изображение профиля"
+    "translation": "Не удалось загрузить изображение значка"
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
@@ -1534,7 +1534,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Username}} не получил уведомления об этом упоминании, потому что их нет в канале."
+    "translation": "@{{.Usernames}} и @{{.LastUsername}} не получили уведомления об этом упоминании, поскольку их нет в канале."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
@@ -1868,7 +1868,7 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "Неверное имя драйвера в настройках файлов. Должно быть 'local' или 'amazons3'"
+    "translation": "Неверное имя драйвера в настройках файлов.  Должно быть 'local' или 'amazons3'"
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -2424,7 +2424,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Вход не удался, поскольку ваша учетная запись отключена. Пожалуйста, свяжитесь с администратором."
+    "translation": "Вход не удался, поскольку ваша учетная запись отключена.  Пожалуйста, свяжитесь с администратором."
   },
   {
     "id": "api.user.login.invalid_credentials_email",
@@ -2540,7 +2540,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Не удалось  отправить сообщение «Личный доступ по токенам»"
+    "translation": "Не удалось отправить сообщение \"Личный токен доступа добавлен\""
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3200,7 +3200,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "User AuthData and Password are mutually exclusive."
+    "translation": "AuthData и пароль являются взаимоисключающими."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -3439,6 +3439,10 @@
     "translation": "Unable to remove plugin bundle from file store."
   },
   {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Unable to store the plugin to the configured file store."
   },
@@ -3453,6 +3457,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Загрузка плагинов отключена."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3476,11 +3484,11 @@
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by invite."
+    "translation": "Невозможно присоединиться к ограниченной группе по приглашению."
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by token."
+    "translation": "Невозможно присоединиться к ограниченной группе по токену."
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -4152,7 +4160,7 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Недопустимый идентификатор автора"
+    "translation": "Недопустимое время создания"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
@@ -4164,7 +4172,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Недопустимый идентификатор автора"
+    "translation": "Недопустимое время обновления"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -4320,7 +4328,7 @@
   },
   {
     "id": "model.command_hook.command_id.app_error",
-    "translation": "Invalid command id"
+    "translation": "Недопустимые идентификатор команды"
   },
   {
     "id": "model.command_hook.create_at.app_error",
@@ -4328,7 +4336,7 @@
   },
   {
     "id": "model.command_hook.id.app_error",
-    "translation": "Invalid command hook id"
+    "translation": "Недопустимые идентификатор команды"
   },
   {
     "id": "model.command_hook.parent_id.app_error",
@@ -4724,7 +4732,7 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": "Недопустимое значение для времени ожидания чтения."
+    "translation": "Недопустимое значение для create_at."
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
@@ -4736,15 +4744,15 @@
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": "Недопустимое значение для времени ожидания чтения."
+    "translation": "Недопустимое значение для post_id."
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": "Недопустимое значение для времени ожидания чтения."
+    "translation": "Недопустимое значение для update_at."
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": "Недопустимое значение для времени ожидания чтения."
+    "translation": "Недопустимое значение для user_id."
   },
   {
     "id": "model.group.create_at.app_error",
@@ -5784,7 +5792,7 @@
   },
   {
     "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels"
+    "translation": "Невозможно определить, принадлежит ли пользователь к списку команд"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
@@ -6756,7 +6764,7 @@
   },
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams"
+    "translation": "Невозможно определить, принадлежит ли пользователь к списку команд"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
@@ -6976,7 +6984,7 @@
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Невозможно обновить updated_at"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",

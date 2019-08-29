@@ -3439,6 +3439,10 @@
     "translation": "No se puede eliminar el paquete de plugin del almacén de archivos."
   },
   {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "No se puede guardar el plugin en el almacén de archivos configurado."
   },
@@ -3453,6 +3457,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins y/o la carga de plugins han sido deshabilitados."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -4396,7 +4404,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "El esquema de URL personalizado {{.Scheme}} no es válido. Los esquemas de URL personalizados deben empezar con una letra, sólo tener letras, números y guion (-)."
+    "translation": "El esquema de URL personalizado {{.Scheme}} no es válido. Los esquemas de URL personalizados deben empezar con una letra, sólo tener letras, números, signo de más (+), puntos (.) y guion (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",

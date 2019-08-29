@@ -3439,6 +3439,10 @@
     "translation": "Impossible de retirer le paquet de plugin du gestionnaire de fichiers."
   },
   {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Impossible de sauvegarder le plugin dans le gestionnaire de fichiers spécifié."
   },
@@ -3453,6 +3457,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Les plugins et/ou l'envoi de plugins ont été désactivés."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
