@@ -216,6 +216,10 @@
     "translation": "The channel requested to convert is already a private channel."
   },
   {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "The default channel cannot be made private."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation"
   },

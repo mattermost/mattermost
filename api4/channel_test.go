@@ -1387,6 +1387,55 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	}
 }
 
+func TestUpdateChannelPrivacy(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id, false)
+	_, resp := Client.UpdateChannelPrivacy(defaultChannel.Id, model.CHANNEL_OPEN)
+	CheckForbiddenStatus(t, resp)
+
+	privateChannel := th.CreatePrivateChannel()
+	_, resp = Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_PRIVATE)
+	CheckForbiddenStatus(t, resp)
+
+	publicChannel := th.CreatePublicChannel()
+	_, resp = Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_OPEN)
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginTeamAdmin()
+
+	_, resp = Client.UpdateChannelPrivacy(defaultChannel.Id, model.CHANNEL_PRIVATE)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelPrivacy(defaultChannel.Id, "invalid")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelPrivacy(defaultChannel.Id, model.CHANNEL_OPEN)
+	CheckNoError(t, resp)
+
+	_, resp = Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_OPEN)
+	CheckNoError(t, resp)
+
+	_, resp = Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_PRIVATE)
+	CheckNoError(t, resp)
+
+	updatedChannel, resp := Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_PRIVATE)
+	CheckNoError(t, resp)
+
+	if updatedChannel.Type != model.CHANNEL_PRIVATE {
+		t.Fatal("public channel should update privacy to private")
+	}
+
+	updatedChannel, resp = Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_OPEN)
+	CheckNoError(t, resp)
+
+	if updatedChannel.Type != model.CHANNEL_OPEN {
+		t.Fatal("private channel should update privacy to public")
+	}
+}
+
 func TestRestoreChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
