@@ -289,7 +289,6 @@ func (env *Environment) Shutdown() {
 	}
 
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
-
 		rp := value.(*registeredPlugin)
 
 		if rp.supervisor != nil {
