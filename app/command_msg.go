@@ -58,6 +58,22 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
+	user, err := a.Srv.Store.User().Get(args.UserId)
+	if err != nil {
+		mlog.Error(err.Error())
+		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+	if user.IsGuest() {
+		canSee, userErr := a.UserCanSeeOtherUser(args.UserId, userProfile.Id)
+		if userErr != nil {
+			mlog.Error(userErr.Error())
+			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
+		if !canSee {
+			return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
+	}
+
 	// Find the channel based on this user
 	channelName := model.GetDMNameFromIds(args.UserId, userProfile.Id)
 
