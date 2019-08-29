@@ -7,6 +7,7 @@ package api4
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/marketplace"
 )
 
 const (
@@ -36,6 +38,8 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugin.Handle("/disable", api.ApiSessionRequired(disablePlugin)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
+
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(getMarketplace)).Methods("GET")
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -237,6 +241,36 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.ManifestListToJson(clientManifests)))
+}
+
+func getMarketplace(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("getMarketplace", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+	if !*c.App.Config().PluginSettings.EnableMarketplace {
+		c.Err = model.NewAppError("getMarketplace", "app.plugin.marketplace_disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	plugins, appErr := c.App.GetMarketplacePlugins(marketplace.GetPluginsRequest{})
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	json, err := json.Marshal(plugins)
+	if err != nil {
+		c.Err = model.NewAppError("getMarketplace", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
 }
 
 func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
