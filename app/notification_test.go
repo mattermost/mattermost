@@ -1150,6 +1150,29 @@ func TestGetMentionKeywords(t *testing.T) {
 	} else if _, ok := mentions["@here"]; ok {
 		t.Fatal("should not have mentioned any user with @here")
 	}
+
+	// user with empty mention keys
+	userNoMentionKeys := &model.User{
+		Id:        model.NewId(),
+		FirstName: "First",
+		Username:  "User",
+		NotifyProps: map[string]string{
+			"mention_keys": ",",
+		},
+	}
+
+	channelMemberNotifyPropsMapEmptyOff := map[string]model.StringMap{
+		userNoMentionKeys.Id: {
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+		},
+	}
+
+	profiles = map[string]*model.User{userNoMentionKeys.Id: userNoMentionKeys}
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmptyOff)
+	assert.Equal(t, 1, len(mentions), "should've returned one metion keyword")
+	ids, ok := mentions["@user"]
+	assert.True(t, ok)
+	assert.Equal(t, userNoMentionKeys.Id, ids[0], "should've returned mention key of @user")
 }
 
 func TestGetMentionsEnabledFields(t *testing.T) {
