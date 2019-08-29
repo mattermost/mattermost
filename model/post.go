@@ -72,8 +72,7 @@ type Post struct {
 	ParentId   string `json:"parent_id"`
 	OriginalId string `json:"original_id"`
 
-	Message       string `json:"message"`
-	ResponseCount int64  `json:"response_count"`
+	Message string `json:"message"`
 	// MessageSource will contain the message as submitted by the user if Message has been modified
 	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
 	// populate edit boxes if present.
@@ -88,7 +87,8 @@ type Post struct {
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	Metadata *PostMetadata `json:"metadata,omitempty" db:"-"`
+	ResponseCount int64         `json:"response_count" db:"-"`
+	Metadata      *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
 type PostEphemeral struct {

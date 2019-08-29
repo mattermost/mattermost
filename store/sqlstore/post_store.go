@@ -641,11 +641,11 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 			p.*,
 			(
 				SELECT
-					count(Posts.*)
+					count(Posts.Id)
 				FROM
 					Posts
 				WHERE
-					Posts.RootId = p.RootId) AS ResponseCount
+					(p.RootId != '' AND Posts.RootId = p.RootId) OR (p.RootId = '' AND Posts.RootId = p.Id)) AS ResponseCount
 			FROM
 				Posts p
 			WHERE
@@ -811,7 +811,7 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	var posts []*model.Post
 	var fetchQuery string
 	if skipRootFetch {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = p.RootId) as ResponseCount FROM Posts p WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
+		fetchQuery = "SELECT p.*, (SELECT COUNT(Posts.Id) FROM Posts WHERE (p.RootId != '' AND Posts.RootId = p.RootId) OR (p.RootId = '' AND Posts.RootId = p.Id)) as ResponseCount FROM Posts p WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 	} else {
 		fetchQuery = "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 	}
