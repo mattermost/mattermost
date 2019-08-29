@@ -4,6 +4,7 @@
 package app
 
 import (
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -447,6 +448,101 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
 	message.Add("manifest", manifest.ClientManifest())
 	a.Publish(message)
+
+	return nil
+}
+
+// GetPluginPublicKeys returns all public keys listed in the config.
+func (a *App) GetPluginPublicKeys() ([]*model.PublicKeyDescription, *model.AppError) {
+	config := a.Config().PluginSettings
+
+	return config.PublicKeys, nil
+}
+
+// GetPublicKey will return the actual public key saved in the `filename` file.
+func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
+	data, err := a.Srv.configStore.GetFile(filename)
+	if err != nil {
+		return nil, model.NewAppError("GetPublicKey", "api.plugin.get_public_key.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return data, nil
+}
+
+func (a *App) writePublicKeyFile(file string) *model.AppError {
+	_, filename := filepath.Split(file)
+	fileReader, err := os.Open(file)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.open.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer fileReader.Close()
+
+	data, err := ioutil.ReadAll(fileReader)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.read.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	err = a.Srv.configStore.SetFile(filename, data)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func containsPK(publicKeys []*model.PublicKeyDescription, filename string) bool {
+	for _, pk := range publicKeys {
+		if pk.Name == filename {
+			return true
+		}
+	}
+	return false
+}
+
+// AddPublicKey method will add plugin public key to the config.
+func (a *App) AddPublicKey(file string) *model.AppError {
+	_, filename := filepath.Split(file)
+	cfg := a.Config().Clone()
+	if !containsPK(cfg.PluginSettings.PublicKeys, filename) {
+		cfg.PluginSettings.PublicKeys = append(cfg.PluginSettings.PublicKeys, &model.PublicKeyDescription{filename})
+	}
+	if err := a.writePublicKeyFile(file); err != nil {
+		return err
+	}
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
+}
+
+func removePK(publicKeys []*model.PublicKeyDescription, filename string) []*model.PublicKeyDescription {
+	for i, pk := range publicKeys {
+		if pk.Name == filename {
+			return append(publicKeys[:i], publicKeys[i+1:]...)
+		}
+	}
+	return publicKeys
+}
+
+// DeletePublicKey method will add plugin public key to the config.
+func (a *App) DeletePublicKey(file string) *model.AppError {
+	_, filename := filepath.Split(file)
+
+	cfg := a.Config().Clone()
+	if !containsPK(cfg.PluginSettings.PublicKeys, filename) {
+		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.contain.app_error", nil, "", http.StatusInternalServerError)
+	}
+	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
+		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	cfg.PluginSettings.PublicKeys = removePK(cfg.PluginSettings.PublicKeys, filename)
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
 
 	return nil
 }

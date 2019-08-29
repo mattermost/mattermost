@@ -55,6 +55,38 @@ var PluginListCmd = &cobra.Command{
 	RunE:    pluginListCmdF,
 }
 
+var PluginPublicKeysCmd = &cobra.Command{
+	Use:     "keys",
+	Short:   "List public keys",
+	Long:    "List names of all public keys installed on your Mattermost server.",
+	Example: `  plugin keys`,
+	RunE:    pluginPublicKeysCmdF,
+}
+
+var PluginPublicKeyDetailsCmd = &cobra.Command{
+	Use:     "key-details",
+	Short:   "List public keys in detailed format",
+	Long:    "List names and details of all public keys installed on your Mattermost server.",
+	Example: `  plugin key-details`,
+	RunE:    pluginPublicKeyDetailsCmdF,
+}
+
+var PluginAddPublicKeyCmd = &cobra.Command{
+	Use:     "add-key [keys]",
+	Short:   "Adds public keys",
+	Long:    "Adds public keys for plugins on your Mattermost server.",
+	Example: `  plugin add-key my-pk-file1.asc my-pk-file2.asc`,
+	RunE:    pluginAddPublicKeyCmdF,
+}
+
+var PluginDeletePublicKeyCmd = &cobra.Command{
+	Use:     "delete-key [public-keys]",
+	Short:   "Deletes public keys",
+	Long:    "Deletes public keys for plugins on your Mattermost server.",
+	Example: `  plugin delete-key my-pk-file1.asc my-pk-file2.asc `,
+	RunE:    pluginDeletePublicKeyCmdF,
+}
+
 func init() {
 	PluginCmd.AddCommand(
 		PluginAddCmd,
@@ -62,6 +94,10 @@ func init() {
 		PluginEnableCmd,
 		PluginDisableCmd,
 		PluginListCmd,
+		PluginPublicKeysCmd,
+		PluginPublicKeyDetailsCmd,
+		PluginAddPublicKeyCmd,
+		PluginDeletePublicKeyCmd,
 	)
 	RootCmd.AddCommand(PluginCmd)
 }
@@ -180,6 +216,96 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Listing inactive plugins")
 	for _, plugin := range pluginsResp.Inactive {
 		CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
+	}
+
+	return nil
+}
+
+func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	pluginPublicKeysResp, appErr := a.GetPluginPublicKeys()
+	if appErr != nil {
+		return errors.New("Unable to list public keys. Error: " + appErr.Error())
+	}
+
+	CommandPrettyPrintln("Listing public keys")
+	for _, publicKeyDesc := range pluginPublicKeysResp {
+		CommandPrettyPrintln(publicKeyDesc.Name)
+	}
+
+	return nil
+}
+
+func pluginPublicKeyDetailsCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	pluginPublicKeysResp, appErr := a.GetPluginPublicKeys()
+	if appErr != nil {
+		return errors.New("Unable to list public keys. Error: " + appErr.Error())
+	}
+
+	CommandPrettyPrintln("Listing public keys")
+	for _, publicKeyDesc := range pluginPublicKeysResp {
+		key, err := a.GetPublicKey(publicKeyDesc.Name)
+		if err != nil {
+			CommandPrintErrorln("Unable to get plugin public key: " + publicKeyDesc.Name + ". Error: " + err.Error())
+		}
+		CommandPrettyPrintln("Plugin name: " + publicKeyDesc.Name + ". \nPublic key: \n" + string(key) + "\n")
+	}
+
+	return nil
+}
+
+func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("Expected at least one argument. See help text for details.")
+	}
+
+	for _, pkFile := range args {
+		if err := a.AddPublicKey(pkFile); err != nil {
+			CommandPrintErrorln("Unable to add public key: " + pkFile + ". Error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Added public key: " + pkFile)
+		}
+
+	}
+
+	return nil
+}
+
+func pluginDeletePublicKeyCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("Expected at least one argument. See help text for details.")
+	}
+
+	for _, pkFile := range args {
+		if err := a.DeletePublicKey(pkFile); err != nil {
+			CommandPrintErrorln("Unable to delete public key: " + pkFile + ". Error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Deleted public key: " + pkFile)
+		}
+
 	}
 
 	return nil
