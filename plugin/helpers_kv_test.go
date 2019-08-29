@@ -175,6 +175,46 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 	})
 }
 
+func TestKVCompareAndDeleteJSON(t *testing.T) {
+	t.Run("old value JSON marshal error", func(t *testing.T) {
+		api := &plugintest.API{}
+		api.AssertNotCalled(t, "KVCompareAndDelete")
+		p := &plugin.HelpersImpl{API: api}
+
+		ok, err := p.KVCompareAndDeleteJSON("test-key", func() { return })
+
+		api.AssertExpectations(t)
+		assert.Equal(t, false, ok)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("old value nil", func(t *testing.T) {
+		api := &plugintest.API{}
+		api.On("KVCompareAndDelete", "test-key", []byte(nil)).Return(true, nil)
+		p := &plugin.HelpersImpl{API: api}
+
+		ok, err := p.KVCompareAndDeleteJSON("test-key", nil)
+
+		api.AssertExpectations(t)
+		assert.True(t, ok)
+		assert.Nil(t, err)
+	})
+
+	t.Run("old value non-nil", func(t *testing.T) {
+		api := &plugintest.API{}
+		api.On("KVCompareAndDelete", "test-key", []byte(`{"val-a":10}`)).Return(true, nil)
+		p := &plugin.HelpersImpl{API: api}
+
+		ok, err := p.KVCompareAndDeleteJSON("test-key", map[string]interface{}{
+			"val-a": 10,
+		})
+
+		api.AssertExpectations(t)
+		assert.True(t, ok)
+		assert.Nil(t, err)
+	})
+}
+
 func TestKVSetWithExpiryJSON(t *testing.T) {
 	t.Run("JSON marshal error", func(t *testing.T) {
 		api := &plugintest.API{}
