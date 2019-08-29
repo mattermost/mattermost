@@ -294,6 +294,8 @@ func (env *Environment) Shutdown() {
 			rp.supervisor.Shutdown()
 		}
 
+		env.pluginHealthCheckJob.Cancel()
+
 		env.registeredPlugins.Delete(key)
 
 		return true
