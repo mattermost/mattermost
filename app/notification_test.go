@@ -1169,11 +1169,10 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	profiles = map[string]*model.User{userNoMentionKeys.Id: userNoMentionKeys}
 	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmptyOff)
-	if len(mentions) != 1 {
-		t.Fatal("should've returned one mention keyword")
-	} else if ids, ok := mentions["@user"]; !ok || ids[0] != userNoMentionKeys.Id {
-		t.Fatal("should've returned mention key of @user")
-	}
+	assert.Equal(t, 1, len(mentions), "should've returned one metion keyword")
+	ids, ok := mentions["@user"]
+	assert.True(t, ok)
+	assert.Equal(t, userNoMentionKeys.Id, ids[0], "should've returned mention key of @user")
 }
 
 func TestGetMentionsEnabledFields(t *testing.T) {
