@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"html"
+	"html/template"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -171,7 +172,10 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 		bodyPage = a.NewEmailTemplate("post_body_full", recipient.Locale)
-		bodyPage.Props["PostMessage"] = a.GetMessageForNotification(post, translateFunc)
+		postMessage := a.GetMessageForNotification(post, translateFunc)
+		postMessage = html.EscapeString(postMessage)
+		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, teamURL)
+		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
 		bodyPage = a.NewEmailTemplate("post_body_generic", recipient.Locale)
 	}
@@ -281,6 +285,36 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 		Minute:   fmt.Sprintf("%02d"+period, localTime.Minute()),
 		TimeZone: zone,
 	}
+}
+
+func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) string {
+	team, err := a.GetTeamByName(teamName)
+	if err != nil {
+		mlog.Error("Encountered error while looking up team by name", mlog.String("Team Name", teamName), mlog.Err(err))
+		return postMessage
+	}
+
+	channelNames := model.ChannelMentions(postMessage)
+	if len(channelNames) == 0 {
+		return postMessage
+	}
+
+	channels, err := a.GetChannelsByNames(channelNames, team.Id)
+	if err != nil {
+		mlog.Error("Encountered error while getting channels", mlog.Err(err))
+		return postMessage
+	}
+
+	visited := make(map[string]bool)
+	for _, ch := range channels {
+		if !visited[ch.Id] && ch.Type == model.CHANNEL_OPEN {
+			channelURL := teamURL + "/channels/" + ch.Name
+			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
+			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)
+			visited[ch.Id] = true
+		}
+	}
+	return postMessage
 }
 
 func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
