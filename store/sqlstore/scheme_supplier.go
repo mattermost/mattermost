@@ -118,11 +118,11 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
-		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(teamAdminRole, transaction); err != nil {
+		savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(teamAdminRole, transaction)
+		if err != nil {
 			return nil, err
-		} else {
-			scheme.DefaultTeamAdminRole = savedRole.Name
 		}
+		scheme.DefaultTeamAdminRole = savedRole.Name
 
 		// Team User Role
 		teamUserRole := &model.Role{
@@ -132,11 +132,11 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
-		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(teamUserRole, transaction); err != nil {
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(teamUserRole, transaction)
+		if err != nil {
 			return nil, err
-		} else {
-			scheme.DefaultTeamUserRole = savedRole.Name
 		}
+		scheme.DefaultTeamUserRole = savedRole.Name
 
 		// Team Guest Role
 		teamGuestRole := &model.Role{
@@ -146,11 +146,11 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
-		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(teamGuestRole, transaction); err != nil {
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(teamGuestRole, transaction)
+		if err != nil {
 			return nil, err
-		} else {
-			scheme.DefaultTeamGuestRole = savedRole.Name
 		}
+		scheme.DefaultTeamGuestRole = savedRole.Name
 	}
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
 		// Channel Admin Role
@@ -161,11 +161,11 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
-		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(channelAdminRole, transaction); err != nil {
+		savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(channelAdminRole, transaction)
+		if err != nil {
 			return nil, err
-		} else {
-			scheme.DefaultChannelAdminRole = savedRole.Name
 		}
+		scheme.DefaultChannelAdminRole = savedRole.Name
 
 		// Channel User Role
 		channelUserRole := &model.Role{
@@ -175,11 +175,11 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
-		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(channelUserRole, transaction); err != nil {
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(channelUserRole, transaction)
+		if err != nil {
 			return nil, err
-		} else {
-			scheme.DefaultChannelUserRole = savedRole.Name
 		}
+		scheme.DefaultChannelUserRole = savedRole.Name
 
 		// Channel Guest Role
 		channelGuestRole := &model.Role{
@@ -189,11 +189,11 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
-		if savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(channelGuestRole, transaction); err != nil {
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(channelGuestRole, transaction)
+		if err != nil {
 			return nil, err
-		} else {
-			scheme.DefaultChannelGuestRole = savedRole.Name
 		}
+		scheme.DefaultChannelGuestRole = savedRole.Name
 	}
 
 	scheme.Id = model.NewId()
