@@ -20,7 +20,9 @@ type GetPluginsRequest struct {
 func (request *GetPluginsRequest) ApplyToURL(u *url.URL) {
 	q := u.Query()
 	q.Add("page", strconv.Itoa(request.Page))
-	q.Add("per_page", strconv.Itoa(request.PerPage))
+	if request.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(request.PerPage))
+	}
 	q.Add("filter", request.Filter)
 	q.Add("server_version", request.ServerVersion)
 	u.RawQuery = q.Encode()
