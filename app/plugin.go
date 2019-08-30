@@ -412,10 +412,13 @@ func (a *App) GetMarketplacePlugins(request marketplace.GetPluginsRequest) ([]*m
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	marketplaceClient := marketplace.NewClient(
+	marketplaceClient, err := marketplace.NewClient(
 		*a.Config().PluginSettings.MarketplaceUrl,
-		a.HTTPService.MakeClient(true),
+		a.HTTPService,
 	)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 	marketplacePlugins, err := marketplaceClient.GetPlugins(request)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)

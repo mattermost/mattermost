@@ -3491,6 +3491,10 @@
     "translation": "Unable to find manifest for extracted plugin"
   },
   {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": "Failed to create marketplace client."
+  },
+  {
     "id": "app.plugin.marketplace_disabled.app_error",
     "translation": "Marketplace has been disabled. Please check your logs for details."
   },

@@ -10,6 +10,7 @@ import (
 	"net/url"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/pkg/errors"
 )
 
@@ -20,11 +21,22 @@ type Client struct {
 }
 
 // NewClient creates a client to the marketplace server at the given address.
-func NewClient(address string, httpClient *http.Client) *Client {
+func NewClient(address string, httpService httpservice.HTTPService) (*Client, error) {
+	var httpClient *http.Client
+	addressUrl, err := url.Parse(address)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse marketplace address")
+	}
+	if addressUrl.Hostname() == "localhost" || addressUrl.Hostname() == "127.0.0.1" {
+		httpClient = httpService.MakeClient(true)
+	} else {
+		httpClient = httpService.MakeClient(false)
+	}
+
 	return &Client{
 		address:    address,
 		httpClient: httpClient,
-	}
+	}, nil
 }
 
 // GetPlugins fetches the list of plugins from the configured server.
