@@ -18,7 +18,7 @@ type BaseMarketplacePlugin struct {
 // MarketplacePlugin is a state aware marketplace plugin.
 type MarketplacePlugin struct {
 	*BaseMarketplacePlugin
-	Installed bool
+	InstalledVersion string
 }
 
 // BaseMarketplacePluginsFromReader decodes a json-encoded list of plugins from the given io.Reader.

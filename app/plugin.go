@@ -422,20 +422,20 @@ func (a *App) GetMarketplacePlugins(request marketplace.GetPluginsRequest) ([]*m
 	}
 
 	for _, plugin := range marketplacePlugins {
-		installed := false
+		installedVersion := ""
 		if pluginsEnvironment != nil {
 			var manifest *model.Manifest
 			if manifest, err = pluginsEnvironment.Manifest(plugin.Manifest.Id); err == nil {
 				// Plugin is installed, overwrite marketplace manifest.
 				plugin.Manifest = manifest
-				installed = true
+				installedVersion = manifest.Version
 			}
 		}
 
 		pluginSet[plugin.Manifest.Id] = true
 		result = append(result, &model.MarketplacePlugin{
 			BaseMarketplacePlugin: plugin,
-			Installed:             installed,
+			InstalledVersion:      installedVersion,
 		})
 	}
 
@@ -454,7 +454,7 @@ func (a *App) GetMarketplacePlugins(request marketplace.GetPluginsRequest) ([]*m
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				Manifest: plugin.Manifest,
 			},
-			Installed: true,
+			InstalledVersion: plugin.Manifest.Version,
 		})
 	}
 
