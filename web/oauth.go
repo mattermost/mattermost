@@ -305,7 +305,6 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if action == model.OAUTH_ACTION_MOBILE {
-		ReturnStatusOK(w)
 		return
 	}
 
