@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Nuevo Mensaje Directo de @{{.SenderDisplayName}} el {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Nuevo Mensaje Directo de {{.SenderDisplayName}} el {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3440,7 +3440,7 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Unable to restart plugin on upgrade."
+    "translation": "No se puede reiniciar el plugin en la actualización."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
@@ -3460,7 +3460,7 @@
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
-    "translation": "Unable to generate plugin webapp bundle."
+    "translation": "No se puede generar el plugin en el paquete de la aplicación web."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",

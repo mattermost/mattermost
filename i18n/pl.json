@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Nowa Wiadomość Bezpośrednia od @{{.SenderDisplayName}} z {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Nowa Wiadomość Bezpośrednia od {{.SenderDisplayName}} z {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",

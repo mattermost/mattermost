@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] 來自 @{{.SenderDisplayName}} 的新直接傳訊，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{.SiteName}}] 來自 {{.SenderDisplayName}} 的新直接傳訊，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.subject.group_message.full",

@@ -2644,7 +2644,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Échec de la mise à niveau de la connexion WebSocket"
+    "translation": "Impossible de mettre à niveau la connexion WebSocket"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Nouveau message personnel de @{{.SenderDisplayName}} du {{.Day}}/{{.Month}}/{{.Year}}"
+    "translation": "[{{.SiteName}}] Nouveau message personnel de {{.SenderDisplayName}} du {{.Day}}/{{.Month}}/{{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3440,7 +3440,7 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Unable to restart plugin on upgrade."
+    "translation": "Impossible de redémarrer le plugin lors de la mise à jour."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
@@ -3460,7 +3460,7 @@
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
-    "translation": "Unable to generate plugin webapp bundle."
+    "translation": "Impossible de générer le paquet de la partie web du plugin (webapp bundle)."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -4404,7 +4404,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "Le protocole URL personnalisé {{.Scheme}} est invalide. Les protocoles URL personnalisés doivent commencer par une lettre et ne peuvent contenir que des lettres, des chiffres et traits d'union (-)."
+    "translation": "Le protocole URL personnalisé {{.Scheme}} est invalide. Les protocoles URL personnalisés doivent commencer par une lettre et ne peuvent contenir que des lettres, des chiffres, le caractère plus (+), le caractère point (.) et le caractère de trait d'union (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -7176,11 +7176,11 @@
   },
   {
     "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Échec de l'ouverture de la connexion sql"
+    "translation": "Impossible d'établir la connexion"
   },
   {
     "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Échec de l'ouverture de la connexion TLS"
+    "translation": "Impossible d'établir la connexion TLS"
   },
   {
     "id": "utils.mail.new_client.auth.app_error",

@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Mesaj direct nou de la @{{.SenderDisplayName}} pe {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Mesaj direct nou de la {{.SenderDisplayName}} pe {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",

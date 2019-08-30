@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} @{{.SenderDisplayName}} からの新しいダイレクトメッセージ"
+    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.SenderDisplayName}} からの新しいダイレクトメッセージ"
   },
   {
     "id": "app.notification.subject.group_message.full",

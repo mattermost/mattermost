@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] @{{ .SenderDisplayName}} tarafından {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir Doğrudan İleti gönderildi"
+    "translation": "[{{.SiteName}}] {{ .SenderDisplayName}} tarafından {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bir Doğrudan İleti gönderildi"
   },
   {
     "id": "app.notification.subject.group_message.full",
