@@ -1412,28 +1412,40 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 	_, resp = Client.UpdateChannelPrivacy(defaultChannel.Id, "invalid")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.UpdateChannelPrivacy(defaultChannel.Id, model.CHANNEL_OPEN)
+	updatedChannel, resp := Client.UpdateChannelPrivacy(defaultChannel.Id, model.CHANNEL_OPEN)
 	CheckNoError(t, resp)
+	assert.Equal(t, updatedChannel.Type, model.CHANNEL_OPEN)
+	updatedChannel, err := th.App.GetChannel(defaultChannel.Id)
+	require.Nil(t, err)
+	assert.Equal(t, updatedChannel.Type, model.CHANNEL_OPEN)
 
-	_, resp = Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_OPEN)
+	updatedChannel, resp = Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_OPEN)
 	CheckNoError(t, resp)
+	assert.Equal(t, updatedChannel.Type, model.CHANNEL_OPEN)
+	updatedChannel, err = th.App.GetChannel(publicChannel.Id)
+	require.Nil(t, err)
+	assert.Equal(t, updatedChannel.Type, model.CHANNEL_OPEN)
 
-	_, resp = Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_PRIVATE)
+	updatedChannel, resp = Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_PRIVATE)
 	CheckNoError(t, resp)
+	assert.Equal(t, updatedChannel.Type, model.CHANNEL_PRIVATE)
+	updatedChannel, err = th.App.GetChannel(privateChannel.Id)
+	require.Nil(t, err)
+	assert.Equal(t, updatedChannel.Type, model.CHANNEL_PRIVATE)
 
-	updatedChannel, resp := Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_PRIVATE)
+	updatedChannel, resp = Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_PRIVATE)
 	CheckNoError(t, resp)
-
-	if updatedChannel.Type != model.CHANNEL_PRIVATE {
-		t.Fatal("public channel should update privacy to private")
-	}
+	assert.Equal(t, updatedChannel.Type, model.CHANNEL_PRIVATE)
+	updatedChannel, err = th.App.GetChannel(publicChannel.Id)
+	require.Nil(t, err)
+	assert.Equal(t, updatedChannel.Type, model.CHANNEL_PRIVATE)
 
 	updatedChannel, resp = Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_OPEN)
 	CheckNoError(t, resp)
-
-	if updatedChannel.Type != model.CHANNEL_OPEN {
-		t.Fatal("private channel should update privacy to public")
-	}
+	assert.Equal(t, updatedChannel.Type, model.CHANNEL_OPEN)
+	updatedChannel, err = th.App.GetChannel(privateChannel.Id)
+	require.Nil(t, err)
+	assert.Equal(t, updatedChannel.Type, model.CHANNEL_OPEN)
 }
 
 func TestRestoreChannel(t *testing.T) {
