@@ -51,7 +51,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.PublicKeys = []*model.PublicKeyDescription{
+	cfg.PluginSettings.SignaturePublicKeyFiles = []*model.PublicKeyDescription{
 		&model.PublicKeyDescription{
 			Name: "public-key",
 		},
@@ -67,7 +67,7 @@ func TestPluginPublicKeyDetails(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.PublicKeys = []*model.PublicKeyDescription{
+	cfg.PluginSettings.SignaturePublicKeyFiles = []*model.PublicKeyDescription{
 		&model.PublicKeyDescription{
 			Name: "public-key",
 		},
@@ -83,7 +83,7 @@ func TestAddPluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.PublicKeys = []*model.PublicKeyDescription{
+	cfg.PluginSettings.SignaturePublicKeyFiles = []*model.PublicKeyDescription{
 		&model.PublicKeyDescription{
 			Name: "public key",
 		},
@@ -99,7 +99,7 @@ func TestDeletePluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.PublicKeys = []*model.PublicKeyDescription{
+	cfg.PluginSettings.SignaturePublicKeyFiles = []*model.PublicKeyDescription{
 		&model.PublicKeyDescription{
 			Name: "public key",
 		},

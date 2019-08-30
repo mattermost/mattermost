@@ -456,7 +456,7 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 func (a *App) GetPluginPublicKeys() ([]*model.PublicKeyDescription, *model.AppError) {
 	config := a.Config().PluginSettings
 
-	return config.PublicKeys, nil
+	return config.SignaturePublicKeyFiles, nil
 }
 
 // GetPublicKey will return the actual public key saved in the `filename` file.
@@ -500,8 +500,8 @@ func containsPK(publicKeys []*model.PublicKeyDescription, filename string) bool 
 func (a *App) AddPublicKey(file string) *model.AppError {
 	_, filename := filepath.Split(file)
 	cfg := a.Config().Clone()
-	if !containsPK(cfg.PluginSettings.PublicKeys, filename) {
-		cfg.PluginSettings.PublicKeys = append(cfg.PluginSettings.PublicKeys, &model.PublicKeyDescription{filename})
+	if !containsPK(cfg.PluginSettings.SignaturePublicKeyFiles, filename) {
+		cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, &model.PublicKeyDescription{filename})
 	}
 	if err := a.writePublicKeyFile(file); err != nil {
 		return err
@@ -530,14 +530,14 @@ func (a *App) DeletePublicKey(file string) *model.AppError {
 	_, filename := filepath.Split(file)
 
 	cfg := a.Config().Clone()
-	if !containsPK(cfg.PluginSettings.PublicKeys, filename) {
+	if !containsPK(cfg.PluginSettings.SignaturePublicKeyFiles, filename) {
 		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.contain.app_error", nil, "", http.StatusInternalServerError)
 	}
 	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
 		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	cfg.PluginSettings.PublicKeys = removePK(cfg.PluginSettings.PublicKeys, filename)
+	cfg.PluginSettings.SignaturePublicKeyFiles = removePK(cfg.PluginSettings.SignaturePublicKeyFiles, filename)
 	if err := cfg.IsValid(); err != nil {
 		return err
 	}

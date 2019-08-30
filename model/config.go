@@ -2203,14 +2203,14 @@ type PluginSettings struct {
 	EnableUploads            *bool   `restricted:"true"`
 	AllowInsecureDownloadUrl *bool   `restricted:"true"`
 	EnableHealthCheck        *bool   `restricted:"true"`
-	EnforceVerification      *bool   `restricted:"true"`
 	Directory                *string `restricted:"true"`
 	ClientDirectory          *string `restricted:"true"`
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
 	EnableMarketplace        *bool
 	MarketplaceUrl           *string
-	PublicKeys               []*PublicKeyDescription
+	EnforceVerification      *bool
+	SignaturePublicKeyFiles  []*PublicKeyDescription
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2263,8 +2263,8 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.MarketplaceUrl = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 	}
 
-	if s.PublicKeys == nil {
-		s.PublicKeys = []*PublicKeyDescription{}
+	if s.SignaturePublicKeyFiles == nil {
+		s.SignaturePublicKeyFiles = []*PublicKeyDescription{}
 	}
 }
 
