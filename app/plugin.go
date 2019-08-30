@@ -469,7 +469,7 @@ func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
 }
 
 func (a *App) writePublicKeyFile(file string) *model.AppError {
-	_, filename := filepath.Split(file)
+	filename := filepath.Base(file)
 	fileReader, err := os.Open(file)
 	if err != nil {
 		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.open.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -498,7 +498,7 @@ func containsPK(publicKeys []*model.PublicKeyDescription, filename string) bool 
 
 // AddPublicKey method will add plugin public key to the config.
 func (a *App) AddPublicKey(file string) *model.AppError {
-	_, filename := filepath.Split(file)
+	filename := filepath.Base(file)
 	cfg := a.Config().Clone()
 	if !containsPK(cfg.PluginSettings.SignaturePublicKeyFiles, filename) {
 		cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, &model.PublicKeyDescription{filename})
@@ -527,7 +527,7 @@ func removePK(publicKeys []*model.PublicKeyDescription, filename string) []*mode
 
 // DeletePublicKey method will add plugin public key to the config.
 func (a *App) DeletePublicKey(file string) *model.AppError {
-	_, filename := filepath.Split(file)
+	filename := filepath.Base(file)
 
 	cfg := a.Config().Clone()
 	if !containsPK(cfg.PluginSettings.SignaturePublicKeyFiles, filename) {
