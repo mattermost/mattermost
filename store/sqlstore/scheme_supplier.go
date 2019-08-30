@@ -290,9 +290,11 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError
 	scheme.UpdateAt = time
 	scheme.DeleteAt = time
 
-	if rowsChanged, err := s.GetMaster().Update(&scheme); err != nil {
+	rowsChanged, err := s.GetMaster().Update(&scheme)
+	if err != nil {
 		return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.update.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
-	} else if rowsChanged != 1 {
+	}
+	if rowsChanged != 1 {
 		return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.update.app_error", nil, "no record to update", http.StatusInternalServerError)
 	}
 	return &scheme, nil
