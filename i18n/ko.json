@@ -4812,7 +4812,7 @@
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
-    "translation": "Invalid channel id"
+    "translation": "잘못된 채널 ID"
   },
   {
     "id": "model.incoming_hook.create_at.app_error",
@@ -4824,7 +4824,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "잘못된 형식"
+    "translation": "잘못된 제목"
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
@@ -4852,7 +4852,7 @@
   },
   {
     "id": "model.incoming_hook.username.app_error",
-    "translation": "잘못된 유저이름입니다."
+    "translation": "잘못된 사용자명"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -4860,7 +4860,7 @@
   },
   {
     "id": "model.job.is_valid.id.app_error",
-    "translation": "잘못된 형식"
+    "translation": "잘못된 작업 ID"
   },
   {
     "id": "model.job.is_valid.status.app_error",
@@ -4868,15 +4868,15 @@
   },
   {
     "id": "model.job.is_valid.type.app_error",
-    "translation": "잘못된 형식"
+    "translation": "잘못된 작업 형식"
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": "Invalid value for create_at when uploading a license."
+    "translation": "라이센스 업로드 중 created_at의 값이 잘못되었습니다."
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": "Invalid value for id when uploading a license."
+    "translation": "라이센스 업로드 중 ID 값이 잘못되었습니다."
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
@@ -4908,7 +4908,7 @@
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
-    "translation": "Invalid client secret"
+    "translation": "잘못된 클라이언트 보안"
   },
   {
     "id": "model.oauth.is_valid.create_at.app_error",
@@ -4940,15 +4940,15 @@
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
-    "translation": "잘못된 범위"
+    "translation": "잘못된 아이콘"
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
-    "translation": "Invalid callback urls"
+    "translation": "잘못된 콜백 URL"
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
-    "translation": "Invalid channel id"
+    "translation": "잘못된 채널 ID"
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
@@ -4964,7 +4964,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "잘못된 형식"
+    "translation": "잘못된 제목"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
@@ -5000,7 +5000,7 @@
   },
   {
     "id": "model.outgoing_hook.username.app_error",
-    "translation": "잘못된 유저이름입니다."
+    "translation": "잘못된 사용자명"
   },
   {
     "id": "model.plugin_command.error.app_error",
@@ -5040,11 +5040,11 @@
   },
   {
     "id": "model.post.is_valid.msg.app_error",
-    "translation": "Invalid message"
+    "translation": "잘못된 메시지"
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
-    "translation": "Invalid original id"
+    "translation": "잘못된 원본 ID"
   },
   {
     "id": "model.post.is_valid.parent_id.app_error",
@@ -5132,7 +5132,7 @@
   },
   {
     "id": "model.team.is_valid.email.app_error",
-    "translation": "Invalid email"
+    "translation": "잘못된 이메일"
   },
   {
     "id": "model.team.is_valid.id.app_error",
@@ -5492,7 +5492,7 @@
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Unable to add direct channel members"
+    "translation": "채널 수를 가져 올 수 없습니다"
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
@@ -6384,7 +6384,7 @@
   },
   {
     "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type"
+    "translation": "모든 토큰 유형을 제거 할 수 없습니다"
   },
   {
     "id": "store.sql_recover.save.app_error",
@@ -6436,7 +6436,7 @@
   },
   {
     "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Unable to delete the roles belonging to this scheme"
+    "translation": "스키마에 존재하는 역할을 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_scheme.delete.update.app_error",
@@ -6520,7 +6520,7 @@
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Unable to update the last_activity_at"
+    "translation": "last_activity_at를 업데이트 할 수 없습니다"
   },
   {
     "id": "store.sql_session.update_roles.app_error",

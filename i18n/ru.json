@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Новое личное сообщение от @{{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Новое личное сообщение от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
