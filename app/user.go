@@ -1970,6 +1970,8 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 		if existingUser, _ := a.GetUserByUsername(oauthUser.Username); existingUser == nil {
 			user.Username = oauthUser.Username
 			userAttrsChanged = true
+		} else {
+			mlog.Debug("Existing username found - not updating the username.")
 		}
 	}
 
@@ -1983,6 +1985,8 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 		if existingUser, _ := a.GetUserByEmail(oauthUser.Email); existingUser == nil {
 			user.Email = oauthUser.Email
 			userAttrsChanged = true
+		} else {
+			mlog.Debug("Existing email found - not updating the email.")
 		}
 	}
 
