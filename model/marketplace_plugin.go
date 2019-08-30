@@ -8,13 +8,6 @@ import (
 	"io"
 )
 
-type MarketplacePluginState int
-
-const (
-	MarketplacePluginStateNotInstalled MarketplacePluginState = iota
-	MarketplacePluginStateInstalled
-)
-
 type BaseMarketplacePlugin struct {
 	HomepageURL  string
 	DownloadURL  string
@@ -25,7 +18,7 @@ type BaseMarketplacePlugin struct {
 // MarketplacePlugin is a state aware marketplace plugin.
 type MarketplacePlugin struct {
 	*BaseMarketplacePlugin
-	State MarketplacePluginState
+	Installed bool
 }
 
 // BaseMarketplacePluginsFromReader decodes a json-encoded list of plugins from the given io.Reader.

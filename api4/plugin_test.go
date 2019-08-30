@@ -506,7 +506,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 					MinServerVersion: "5.14.0",
 				},
 			},
-			State: model.MarketplacePluginStateNotInstalled,
+			Installed: false,
 		},
 	}
 
@@ -547,7 +547,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 				SignatureURL: "",
 				Manifest:     manifest,
 			},
-			State: model.MarketplacePluginStateInstalled,
+			Installed: true,
 		})
 		sort.SliceStable(expectedPlugins, func(i, j int) bool {
 			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
@@ -586,7 +586,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 				SignatureURL: "SignatureURL",
 				Manifest:     manifest,
 			},
-			State: model.MarketplacePluginStateInstalled,
+			Installed: true,
 		}
 		expectedPlugins := append(samplePlugins, newPlugin)
 		sort.SliceStable(expectedPlugins, func(i, j int) bool {
@@ -614,7 +614,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins()
 		CheckNoError(t, resp)
-		newPlugin.State = model.MarketplacePluginStateNotInstalled
+		newPlugin.Installed = false
 		require.Equal(t, expectedPlugins, plugins)
 	})
 }
