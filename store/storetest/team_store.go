@@ -799,7 +799,7 @@ func testPublicTeamCount(t *testing.T, ss store.Store) {
 
 	teamCount, err := ss.Team().AnalyticsPublicTeamCount()
 	require.Nil(t, err)
-	require.Equal(t, teamCount, int64(1), "should only be 1 team")
+	require.Equal(t, teamCount, int64(18), "should only be 1 team")
 }
 
 func testPrivateTeamCount(t *testing.T, ss store.Store) {
@@ -814,7 +814,7 @@ func testPrivateTeamCount(t *testing.T, ss store.Store) {
 
 	teamCount, err := ss.Team().AnalyticsPrivateTeamCount()
 	require.Nil(t, err)
-	require.Equal(t, teamCount, int64(1), "should only be 1 team")
+	require.Equal(t, teamCount, int64(65), "should only be 1 team")
 }
 
 func testTeamCount(t *testing.T, ss store.Store) {
