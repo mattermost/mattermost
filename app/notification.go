@@ -593,7 +593,9 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 			for _, k := range splitKeys {
 				// note that these are made lower case so that we can do a case insensitive check for them
 				key := strings.ToLower(k)
-				keywords[key] = append(keywords[key], id)
+				if key != "" {
+					keywords[key] = append(keywords[key], id)
+				}
 			}
 		}
 
