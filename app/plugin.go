@@ -542,9 +542,7 @@ func (a *App) DeletePublicKey(file string) *model.AppError {
 	filename := filepath.Base(file)
 
 	cfg := a.Config().Clone()
-	if !containsPK(cfg.PluginSettings.SignaturePublicKeyFiles, filename) {
-		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.contain.app_error", nil, "", http.StatusInternalServerError)
-	}
+
 	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
 		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
