@@ -308,6 +308,7 @@ type ServiceSettings struct {
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 	EnableBotAccountCreation                          *bool
 	EnableSVGs                                        *bool
+	MinimumUsernameLength                             *int
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -676,6 +677,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 			s.EnableSVGs = NewBool(false)
 		}
 	}
+
+	if s.MinimumUsernameLength == nil {
+		s.MinimumUsernameLength = NewInt(3)
+	}
+
 }
 
 type ClusterSettings struct {

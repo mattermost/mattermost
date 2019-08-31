@@ -1244,3 +1244,14 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Len(t, *channelMembers, 3)
 	})
 }
+
+func TestIsUsernameValid(t *testing.T) {
+	th := Setup(t).InitBasic()
+	minimumUsernameLength := 2
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.MinimumUsernameLength = minimumUsernameLength
+	})
+
+	assert.False(t, th.App.IsValidUserName("a"));
+	assert.True(t, th.App.IsValidUserName("John"))
+}

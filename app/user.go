@@ -2338,3 +2338,13 @@ func (a *App) invalidateUserCacheAndPublish(userId string) {
 	message.Add("user", user)
 	a.Publish(message)
 }
+
+func (a *App) IsValidUserName(s string) bool {
+	minimumUsernameLength := *a.Config().ServiceSettings.MinimumUsernameLength
+
+	if len(s) >= minimumUsernameLength {
+		return true
+	}
+
+	return false
+}
