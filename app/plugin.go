@@ -519,10 +519,6 @@ func (a *App) AddPublicKey(file string) *model.AppError {
 		return err
 	}
 
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
 
 	return nil
@@ -554,9 +550,6 @@ func (a *App) DeletePublicKey(file string) *model.AppError {
 	}
 
 	cfg.PluginSettings.SignaturePublicKeyFiles = removePK(cfg.PluginSettings.SignaturePublicKeyFiles, filename)
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
 
