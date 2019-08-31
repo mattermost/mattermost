@@ -61,12 +61,12 @@ func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newV
 		}
 	}
 
-	changed, appErr := p.API.KVCompareAndSet(key, oldData, newData)
+	set, appErr := p.API.KVCompareAndSet(key, oldData, newData)
 	if appErr != nil {
-		return changed, appErr
+		return set, appErr
 	}
 
-	return changed, nil
+	return set, nil
 }
 
 // KVCompareAndDeleteJSON is a wrapper around KVCompareAndDelete to simplify atomically deleting a JSON object from the key value store.

@@ -9,8 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var nilAppError *model.AppError
-
 func TestKVGetJSON(t *testing.T) {
 	t.Run("KVGet error", func(t *testing.T) {
 		p := &plugin.HelpersImpl{}
@@ -107,7 +105,7 @@ func TestKVSetJSON(t *testing.T) {
 
 	t.Run("marshallable struct", func(t *testing.T) {
 		api := &plugintest.API{}
-		api.On("KVSet", "test-key", []byte(`{"val-a":10}`)).Return(nilAppError)
+		api.On("KVSet", "test-key", []byte(`{"val-a":10}`)).Return(nil)
 
 		p := &plugin.HelpersImpl{API: api}
 
