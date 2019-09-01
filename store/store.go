@@ -190,26 +190,35 @@ type ChannelMemberHistoryStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
 }
 
+type GetPostsSinceOptions struct {
+	ChannelId        string
+	Time             int64
+	SkipFetchThreads bool
+}
+
+type GetPostsOptions struct {
+	ChannelId        string
+	PostId           string
+	Page             int
+	PerPage          int
+	SkipFetchThreads bool
+}
+
 type PostStore interface {
 	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
-	Get(id string) (*model.PostList, *model.AppError)
-	GetAdvanced(id string, skipRootFetch bool) (*model.PostList, *model.AppError)
+	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	PermanentDeleteByChannel(channelId string) *model.AppError
-	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
-	GetPostsAdvanced(channelId string, offset int, limit int, allowFromCache, skipRootFetch bool) (*model.PostList, *model.AppError)
+	GetPosts(options GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsBeforeAdvanced(channelId string, postId string, numPosts int, offset int, skipRootFetch bool) (*model.PostList, *model.AppError)
-	GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsAfterAdvanced(channelId string, postId string, numPosts int, offset int, skipRootFetch bool) (*model.PostList, *model.AppError)
-	GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError)
-	GetPostsSinceAdvanced(channelId string, time int64, allowFromCache, skipRootFetch bool) (*model.PostList, *model.AppError)
+	GetPostsBefore(options GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsAfter(options GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsSince(options GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError)
 	GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError)

@@ -87,8 +87,8 @@ type Post struct {
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	ResponseCount int64         `json:"response_count" db:"-"`
-	Metadata      *PostMetadata `json:"metadata,omitempty" db:"-"`
+	ReplyCount int64         `json:"reply_count" db:"-"`
+	Metadata   *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
 type PostEphemeral struct {

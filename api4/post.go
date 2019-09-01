@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mattermost/mattermost-server/store"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -133,8 +135,11 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	skipFetchThreads := false
+	if r.URL.Query().Get("fetchThreads") == "false" {
+		skipFetchThreads = true
+	}
 
-	skipFetchRoot := r.URL.Query().Get("fetchRoot") == "false"
 	channelId := c.Params.ChannelId
 	page := c.Params.Page
 	perPage := c.Params.PerPage
@@ -149,7 +154,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSinceAdvanced(channelId, since, skipFetchRoot)
+		list, err = c.App.GetPostsSince(store.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads})
 	} else if len(afterPost) > 0 {
 		etag = c.App.GetPostsEtag(channelId)
 
@@ -157,7 +162,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsAfterPostAdvanced(channelId, afterPost, page, perPage, skipFetchRoot)
+		list, err = c.App.GetPostsAfterPost(store.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads})
 	} else if len(beforePost) > 0 {
 		etag = c.App.GetPostsEtag(channelId)
 
@@ -165,7 +170,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsBeforePostAdvanced(channelId, beforePost, page, perPage, skipFetchRoot)
+		list, err = c.App.GetPostsBeforePost(store.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads})
 	} else {
 		etag = c.App.GetPostsEtag(channelId)
 
@@ -173,7 +178,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsPageAdvanced(channelId, page, perPage, skipFetchRoot)
+		list, err = c.App.GetPostsPage(store.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads})
 	}
 
 	if err != nil {
@@ -209,8 +214,11 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	skipFetchRoot := r.URL.Query().Get("fetchRoot") == "false"
-	postList, err := c.App.GetPostsForChannelAroundLastUnreadAdvanced(channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchRoot)
+	skipFetchThreads := false
+	if r.URL.Query().Get("fetchThreads") == "false" {
+		skipFetchThreads = true
+	}
+	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchThreads)
 	if err != nil {
 		c.Err = err
 		return
@@ -224,7 +232,11 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		postList, err = c.App.GetPostsPageAdvanced(channelId, app.PAGE_DEFAULT, c.Params.LimitBefore, skipFetchRoot)
+		postList, err = c.App.GetPostsPage(store.GetPostsOptions{ChannelId: channelId, Page: app.PAGE_DEFAULT, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads})
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	postList.NextPostId = c.App.GetNextPostIdFromPostList(postList)
@@ -375,9 +387,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	skipFetchRoot := r.URL.Query().Get("fetchRoot") == "false"
-
-	list, err := c.App.GetPostThreadAdvanced(c.Params.PostId, skipFetchRoot)
+	list, err := c.App.GetPostThread(c.Params.PostId)
 	if err != nil {
 		c.Err = err
 		return

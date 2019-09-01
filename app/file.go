@@ -279,7 +279,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, err := a.Srv.Store.Post().Get(post.Id)
+	result, err := a.Srv.Store.Post().Get(post.Id, false)
 	if err != nil {
 		mlog.Error(fmt.Sprintf("Unable to get post when migrating post to use FileInfos, err=%v", err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
