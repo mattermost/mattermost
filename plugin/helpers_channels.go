@@ -44,30 +44,25 @@ func (p *HelpersImpl) EnsureChannel(channel *model.Channel) (retChannelId string
 		return "", errors.Wrap(kvGetErr, "failed to get channel ID")
 	}
 
-	// Check if Channel ID exists
+	var existingChannel *model.Channel
+	var channelGetErr *model.AppError
+
+	// If channel ID exists, get existing channel by ID else get it by Name
 	if channelIdBytes != nil {
-		channelId := string(channelIdBytes)
-		return channelId, nil
+		existingChannel, channelGetErr = p.API.GetChannel(string(channelIdBytes))
+		if channelGetErr != nil {
+			return "", errors.Wrap(channelGetErr, "failed to get channel by ID")
+		}
+	} else {
+		existingChannel, channelGetErr = p.API.GetChannelByName(channel.TeamId, channel.Name, false)
+		if channelGetErr != nil {
+			return "", errors.Wrap(channelGetErr, "failed to get channel by name")
+		}
 	}
 
-	// Check if channel already exists (ignore deleted channels)
-	existingChannel, channelGetErr := p.API.GetChannelByName(channel.TeamId, channel.Name, false)
-	if channelGetErr != nil {
-		return "", errors.Wrap(channelGetErr, "failed to get channel")
-	} else if existingChannel != nil {
-		// Update metadata of the channel
-		if updateErr := updateChannelMeta(existingChannel, channel); updateErr != nil {
-			return "", errors.Wrap(updateErr, "Failed to update the metadata of existing channel")
-		}
-
-		// Send the updates to API
-		updatedChannel, channelUpdateErr := p.API.UpdateChannel(existingChannel)
-		if channelUpdateErr != nil {
-			return "", errors.Wrap(channelUpdateErr, "Failed to update the existing channel")
-		}
-
-		// Channel exists!
-		return updatedChannel.Id, nil
+	// If channel exists, update the metadata
+	if existingChannel != nil {
+		return updateChannel(p, existingChannel, channel)
 	}
 
 	// Create a new channel
@@ -82,6 +77,22 @@ func (p *HelpersImpl) EnsureChannel(channel *model.Channel) (retChannelId string
 	}
 
 	return createdChannel.Id, nil
+}
+
+func updateChannel(p *HelpersImpl, existing *model.Channel, new *model.Channel) (string, error) {
+	// Update metadata of the channel
+	if updateErr := updateChannelMeta(existing, new); updateErr != nil {
+		return "", errors.Wrap(updateErr, "Failed to update the metadata of existing channel")
+	}
+
+	// Send the updates to API
+	updatedChannel, channelUpdateErr := p.API.UpdateChannel(existing)
+	if channelUpdateErr != nil {
+		return "", errors.Wrap(channelUpdateErr, "Failed to update the existing channel")
+	}
+
+	// Channel exists!
+	return updatedChannel.Id, nil
 }
 
 func updateChannelMeta(existing *model.Channel, new *model.Channel) error {
