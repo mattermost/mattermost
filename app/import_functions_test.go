@@ -799,6 +799,13 @@ func TestImportImportUser(t *testing.T) {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
+	invalidData := UserImportData{
+		Username: ptrStr("JK"),
+	}
+	if err = th.App.ImportUser(&invalidData, true); err.Id != "app.import.validate_user_import_data.username_invalid.error" {
+		t.Fatalf("Should have failed to import invalid user.")
+	}
+
 	// Check that no more users are in the DB.
 	userCount2, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,

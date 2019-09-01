@@ -320,7 +320,7 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 		hook.IconURL = ""
 	}
 
-	if hook.Username != "" && !model.IsValidUsername(hook.Username) {
+	if hook.Username != "" && (!model.IsValidUsername(hook.Username) || !a.IsValidUserName(hook.Username)) {
 		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -339,7 +339,7 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 		updatedHook.IconURL = oldHook.IconURL
 	}
 
-	if updatedHook.Username != "" && !model.IsValidUsername(updatedHook.Username) {
+	if updatedHook.Username != "" && (!model.IsValidUsername(updatedHook.Username) || !a.IsValidUserName(updatedHook.Username)) {
 		return nil, model.NewAppError("UpdateIncomingWebhook", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
 	}
 

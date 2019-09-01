@@ -364,7 +364,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string)
 	found := true
 	count := 0
 	for found {
-		if found = a.IsUsernameTaken(user.Username); found {
+		if found = a.IsUsernameTaken(user.Username) || !a.IsValidUserName(user.Username); found {
 			user.Username = user.Username + strconv.Itoa(count)
 			count++
 		}

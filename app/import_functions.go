@@ -278,6 +278,10 @@ func (a *App) ImportChannel(data *ChannelImportData, dryRun bool) *model.AppErro
 }
 
 func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
+	if !a.IsValidUserName(*data.Username) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
 	if err := validateUserImportData(data); err != nil {
 		return err
 	}

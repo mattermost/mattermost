@@ -73,6 +73,9 @@ func TestCheckUserDomain(t *testing.T) {
 func TestCreateOAuthUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	minimumUsernameLength := 28
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.MinimumUsernameLength = &minimumUsernameLength })
+	startingCount := "0"
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	glUser := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)) + 1, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
@@ -83,9 +86,7 @@ func TestCreateOAuthUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if user.Username != glUser.Username {
-		t.Fatal("usernames didn't match")
-	}
+	assert.Equal(t, glUser.Username+startingCount, user.Username, "usernames didn't match")
 
 	th.App.PermanentDeleteUser(user)
 

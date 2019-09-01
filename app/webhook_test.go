@@ -80,6 +80,20 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 			ExpectedError:           true,
 			ExpectedIncomingWebhook: nil,
 		},
+		"short username, override enabled": {
+			EnableIncomingHooks:        true,
+			EnablePostUsernameOverride: true,
+			EnablePostIconOverride:     false,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName: "title-new",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+				Username:    "jk",
+			},
+
+			ExpectedError:           true,
+			ExpectedIncomingWebhook: nil,
+		},
 		"valid, no username or post icon url provided": {
 			EnableIncomingHooks:        true,
 			EnablePostUsernameOverride: true,
@@ -206,6 +220,20 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 				Description: "description",
 				ChannelId:   th.BasicChannel.Id,
 				Username:    ":invalid:",
+			},
+
+			ExpectedError:           true,
+			ExpectedIncomingWebhook: nil,
+		},
+		"short username, override enabled": {
+			EnableIncomingHooks:        true,
+			EnablePostUsernameOverride: true,
+			EnablePostIconOverride:     false,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName: "title-new",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+				Username:    "jk",
 			},
 
 			ExpectedError:           true,
