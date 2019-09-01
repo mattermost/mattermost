@@ -483,14 +483,8 @@ func (s *SqlPostStore) GetPosts(options store.GetPostsOptions, allowFromCache bo
 	}()
 	cpc := make(chan store.StoreResult, 1)
 	go func() {
-		if !options.SkipFetchThreads {
-			posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage)
-			cpc <- store.StoreResult{Data: posts, Err: err}
-		} else {
-			var posts []*model.Post
-			cpc <- store.StoreResult{Data: posts, Err: nil}
-		}
-
+		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads)
+		cpc <- store.StoreResult{Data: posts, Err: err}
 		close(cpc)
 	}()
 
@@ -788,11 +782,14 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	return posts, nil
 }
 
-func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
+func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, *model.AppError) {
 	var posts []*model.Post
+	replyCountQuery := ""
+	if skipFetchThreads {
+		replyCountQuery = ` ,(SELECT COUNT(Posts.Id) FROM Posts WHERE q2.RootId = '' AND Posts.RootId = q2.Id) as ReplyCount`
+	}
 	_, err := s.GetReplica().Select(&posts,
-		`SELECT
-			q2.*
+		`SELECT q2.*`+replyCountQuery+`
 		FROM
 			Posts q2
 				INNER JOIN
