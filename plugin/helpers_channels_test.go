@@ -69,21 +69,7 @@ func TestEnsureChannel(t *testing.T) {
 	})
 
 	t.Run("if channel already exists in Key Value store", func(t *testing.T) {
-		t.Run("should return the Id from the Key Value store", func(t *testing.T) {
-			expectedChannelId := model.NewId()
-
-			api := setupAPI()
-			api.On("KVGet", plugin.CHANNEL_KEY).Return([]byte(expectedChannelId), nil)
-			defer api.AssertExpectations(t)
-
-			p := &plugin.HelpersImpl{API: api}
-
-			channelId, err := p.EnsureChannel(testChannel)
-
-			assert.Equal(t, expectedChannelId, channelId)
-			assert.Nil(t, err)
-		})
-		t.Run("should return an error if unable to get channel", func(t *testing.T) {
+		t.Run("should return an error if unable to get channel id", func(t *testing.T) {
 			api := setupAPI()
 			api.On("KVGet", plugin.CHANNEL_KEY).Return(nil, &model.AppError{})
 			defer api.AssertExpectations(t)
@@ -94,6 +80,88 @@ func TestEnsureChannel(t *testing.T) {
 
 			assert.Equal(t, "", channelId)
 			assert.NotNil(t, err)
+		})
+		t.Run("should return an error if unable to get channel", func(t *testing.T) {
+			expectedChannelId := model.NewId()
+
+			api := setupAPI()
+			api.On("KVGet", plugin.CHANNEL_KEY).Return([]byte(expectedChannelId), nil)
+			api.On("GetChannel", expectedChannelId).Return(nil, &model.AppError{})
+
+			p := &plugin.HelpersImpl{API: api}
+
+			channelId, err := p.EnsureChannel(testChannel)
+
+			assert.Equal(t, "", channelId)
+			assert.NotNil(t, err)
+		})
+		t.Run("should return an error if unable to update channel", func(t *testing.T) {
+			expectedChannelId := model.NewId()
+
+			api := setupAPI()
+			api.On("KVGet", plugin.CHANNEL_KEY).Return([]byte(expectedChannelId), nil)
+			api.On("GetChannel", expectedChannelId).Return(testChannel, nil)
+			api.On("UpdateChannel", testChannel).Return(nil, &model.AppError{})
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{API: api}
+
+			channelId, err := p.EnsureChannel(testChannel)
+
+			assert.Equal(t, "", channelId)
+			assert.NotNil(t, err)
+		})
+		t.Run("should return the Id of existing channel if metadata is same", func(t *testing.T) {
+			api := setupAPI()
+			api.On("KVGet", plugin.CHANNEL_KEY).Return([]byte(testChannel.Id), nil)
+			api.On("GetChannel", testChannel.Id).Return(testChannel, nil)
+			api.On("UpdateChannel", testChannel).Return(testChannel, nil)
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{API: api}
+
+			channelId, err := p.EnsureChannel(testChannel)
+
+			assert.Equal(t, testChannel.Id, channelId)
+			assert.Nil(t, err)
+		})
+		t.Run("should return error if channel type is different from existing one", func(t *testing.T) {
+			privChannel := &model.Channel{
+				Id:     model.NewId(),
+				Type:   "private",
+				TeamId: testChannel.TeamId,
+				Name:   testChannel.Name,
+			}
+			api := setupAPI()
+			api.On("KVGet", plugin.CHANNEL_KEY).Return([]byte(testChannel.Id), nil)
+			api.On("GetChannel", testChannel.Id).Return(privChannel, nil)
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{API: api}
+
+			channelId, err := p.EnsureChannel(testChannel)
+
+			assert.Equal(t, "", channelId)
+			assert.NotNil(t, err)
+		})
+		t.Run("should return the Id of updated channel if metadata is different", func(t *testing.T) {
+			updatedChannel := &model.Channel{
+				Id:     model.NewId(),
+				TeamId: testChannel.TeamId,
+				Name:   testChannel.Name,
+			}
+			api := setupAPI()
+			api.On("KVGet", plugin.CHANNEL_KEY).Return([]byte(testChannel.Id), nil)
+			api.On("GetChannel", testChannel.Id).Return(testChannel, nil)
+			api.On("UpdateChannel", testChannel).Return(updatedChannel, nil)
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{API: api}
+
+			channelId, err := p.EnsureChannel(testChannel)
+
+			assert.Equal(t, updatedChannel.Id, channelId)
+			assert.Nil(t, err)
 		})
 	})
 
