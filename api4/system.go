@@ -157,8 +157,13 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := model.TestSiteURLFromJson(r.Body)
-	err := c.App.TestSiteURL(c.App.Session.UserId, data)
+	props := model.MapFromJson(r.Body)
+	siteURL := props["site_url"]
+	if siteURL == "" {
+		c.SetInvalidParam("site_url")
+		return
+	}
+	err := c.App.TestSiteURL(siteURL)
 	if err != nil {
 		c.Err = err
 		return

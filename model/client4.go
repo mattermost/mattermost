@@ -2918,10 +2918,9 @@ func (c *Client4) TestEmail(config *Config) (bool, *Response) {
 
 // TestSiteURL will test the validity of a site URL.
 func (c *Client4) TestSiteURL(siteURL string) (bool, *Response) {
-	data := &TestSiteURL{
-		SiteURL: siteURL,
-	}
-	r, err := c.DoApiPost(c.GetTestSiteURLRoute(), data.ToJson())
+	requestBody := make(map[string]string)
+	requestBody["site_url"] = siteURL
+	r, err := c.DoApiPost(c.GetTestSiteURLRoute(), MapToJson(requestBody))
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
