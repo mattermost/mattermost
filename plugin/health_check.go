@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -19,9 +20,10 @@ const (
 )
 
 type PluginHealthCheckJob struct {
-	cancel    chan struct{}
-	cancelled chan struct{}
-	env       *Environment
+	cancel     chan struct{}
+	cancelled  chan struct{}
+	cancelOnce sync.Once
+	env        *Environment
 }
 
 // InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
@@ -125,7 +127,9 @@ func newPluginHealthCheckJob(env *Environment) *PluginHealthCheckJob {
 }
 
 func (job *PluginHealthCheckJob) Cancel() {
-	close(job.cancel)
+	job.cancelOnce.Do(func() {
+		close(job.cancel)
+	})
 	<-job.cancelled
 }
 

@@ -68,6 +68,26 @@ func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newV
 	return updated, nil
 }
 
+func (a *App) CompareAndDeletePluginKey(pluginId string, key string, oldValue []byte) (bool, *model.AppError) {
+	kv := &model.PluginKeyValue{
+		PluginId: pluginId,
+		Key:      key,
+	}
+
+	deleted, err := a.Srv.Store.Plugin().CompareAndDelete(kv, oldValue)
+	if err != nil {
+		mlog.Error("Failed to compare and delete plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		return deleted, err
+	}
+
+	// Clean up a previous entry using the hashed key, if it exists.
+	if err := a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key)); err != nil {
+		mlog.Error("Failed to clean up previously hashed plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+	}
+
+	return deleted, nil
+}
+
 func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
 	if kv, err := a.Srv.Store.Plugin().Get(pluginId, key); err == nil {
 		return kv.Value, nil

@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -14,16 +13,27 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func initSqlSupplierReactions(sqlStore SqlStore) {
+type SqlReactionStore struct {
+	SqlStore
+}
+
+func NewSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
+	s := &SqlReactionStore{sqlStore}
+
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "UserId", "PostId", "EmojiName")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("PostId").SetMaxSize(26)
 		table.ColMap("EmojiName").SetMaxSize(64)
 	}
+
+	return s
 }
 
-func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...store.LayeredStoreHint) (*model.Reaction, *model.AppError) {
+func (s SqlReactionStore) CreateIndexesIfNotExists() {
+}
+
+func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	reaction.PreSave()
 	if err := reaction.IsValid(); err != nil {
 		return nil, err
@@ -49,7 +59,7 @@ func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction
 	return reaction, nil
 }
 
-func (s *SqlSupplier) ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...store.LayeredStoreHint) (*model.Reaction, *model.AppError) {
+func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, model.NewAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -68,7 +78,7 @@ func (s *SqlSupplier) ReactionDelete(ctx context.Context, reaction *model.Reacti
 	return reaction, nil
 }
 
-func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hints ...store.LayeredStoreHint) ([]*model.Reaction, *model.AppError) {
+func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
 	var reactions []*model.Reaction
 
 	if _, err := s.GetReplica().Select(&reactions,
@@ -86,7 +96,7 @@ func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hin
 	return reactions, nil
 }
 
-func (s *SqlSupplier) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...store.LayeredStoreHint) ([]*model.Reaction, *model.AppError) {
+func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
 	keys, params := MapStringsToQueryParams(postIds, "postId")
 	var reactions []*model.Reaction
 
@@ -103,7 +113,7 @@ func (s *SqlSupplier) ReactionsBulkGetForPosts(ctx context.Context, postIds []st
 	return reactions, nil
 }
 
-func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...store.LayeredStoreHint) *model.AppError {
+func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
 	var reactions []*model.Reaction
 
 	if _, err := s.GetReplica().Select(&reactions,
@@ -138,7 +148,7 @@ func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiN
 	return nil
 }
 
-func (s *SqlSupplier) ReactionPermanentDeleteBatch(ctx context.Context, endTime int64, limit int64, hints ...store.LayeredStoreHint) (int64, *model.AppError) {
+func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
 	var query string
 	if s.DriverName() == "postgres" {
 		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"
