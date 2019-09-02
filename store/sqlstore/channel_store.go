@@ -1841,7 +1841,9 @@ func (s SqlChannelStore) CountPostsSince(channelID string, since int64) (int64, 
 // it returns a channelunread so redux can update the apps easily.
 func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError) {
 
-	unread, appErr := s.CountPostsSince(unreadPost.ChannelId, unreadPost.CreateAt)
+	unreadDate := unreadPost.CreateAt - 1
+
+	unread, appErr := s.CountPostsSince(unreadPost.ChannelId, unreadDate)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1849,7 +1851,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	params := map[string]interface{}{
 		"mentions":     mentionCount,
 		"unreadCount":  unread,
-		"lastViewedAt": unreadPost.CreateAt,
+		"lastViewedAt": unreadDate,
 		"userId":       userID,
 		"channelId":    unreadPost.ChannelId,
 		"updatedAt":    model.GetMillis(),
