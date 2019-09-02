@@ -622,7 +622,7 @@ func (a *App) GetPostsEtag(channelId string) string {
 }
 
 func (a *App) GetPostsSince(options store.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
-	return a.Srv.Store.Post().GetPostsSince(options, false)
+	return a.Srv.Store.Post().GetPostsSince(options, true)
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
@@ -646,7 +646,7 @@ func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, li
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
-	list, err := a.Srv.Store.Post().Get(postId, true)
+	list, err := a.Srv.Store.Post().Get(postId, false)
 	if err != nil {
 		return nil, err
 	}
