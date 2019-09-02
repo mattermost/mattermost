@@ -4,6 +4,8 @@
 package app
 
 import (
+	"bytes"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -16,11 +18,12 @@ import (
 	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/openpgp"
 )
 
 // PublicKeyFileExtention is the extention of the public key file. Only this file
 // extention is permitted.
-const PublicKeyFileExtention = "asc"
+const PublicKeyFileExtention = ".asc"
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.
@@ -506,7 +509,9 @@ func containsPK(publicKeys []*model.PublicKeyDescription, filename string) bool 
 
 // AddPublicKey method will add plugin public key to the config.
 func (a *App) AddPublicKey(file string) *model.AppError {
+	println(file)
 	ext := filepath.Ext(file)
+	println(ext)
 	if PublicKeyFileExtention != ext {
 		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.not_a_public_key.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -549,4 +554,39 @@ func (a *App) DeletePublicKey(file string) *model.AppError {
 	})
 
 	return nil
+}
+
+// VerifyPlugin verifies plugin signature
+func (a *App) VerifyPlugin(plugin, signature io.Reader) (bool, *model.AppError) {
+	publicKeys, appErr := a.GetPluginPublicKeys()
+	if appErr != nil {
+		return false, appErr
+	}
+	for _, pk := range publicKeys {
+		pkBytes, appErr := a.GetPublicKey(pk.Name)
+		if appErr != nil {
+			mlog.Error("Error...")
+		}
+		publicKey := bytes.NewReader(pkBytes)
+		verify, err := verifyFileSignature(plugin, publicKey, signature)
+		if err != nil {
+			mlog.Error("Error...")
+		}
+		if verify {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func verifyFileSignature(signedFile, publicKey, signature io.Reader) (bool, error) {
+	keyring, err := openpgp.ReadArmoredKeyRing(publicKey)
+	if err != nil {
+		return false, err
+	}
+	_, err = openpgp.CheckArmoredDetachedSignature(keyring, signedFile, signature)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

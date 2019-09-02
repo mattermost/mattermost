@@ -441,3 +441,42 @@ func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.Cl
 	}
 	return result
 }
+
+func TestPluginSignatureVerification(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	statesJson, _ := json.Marshal(th.App.Config().PluginSettings.PluginStates)
+	states := map[string]*model.PluginState{}
+	json.Unmarshal(statesJson, &states)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.AllowInsecureDownloadUrl = true
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	// publicKey, err := ioutil.ReadFile(filepath.Join(path, "development-public-key.asc"))
+	// tests/com.mattermost.demo-plugin-0.2.0.tar.gz.sig
+	appErr := th.App.AddPublicKey(filepath.Join(path, "development-public-key.asc"))
+	if appErr != nil {
+		t.Fatal(appErr)
+	}
+
+	pluginData, err := ioutil.ReadFile(filepath.Join(path, "com.mattermost.demo-plugin-0.2.0.tar.gz"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Install from URL
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		println("hereeee")
+		println(req.URL)
+		println(req.Host)
+		println(req.Body)
+		res.WriteHeader(http.StatusOK)
+		res.Write(pluginData)
+	}))
+	defer func() { testServer.Close() }()
+	// publicKey, err := ioutil.ReadFile(filepath.Join(path, "development-public-key.asc"))
+
+}
