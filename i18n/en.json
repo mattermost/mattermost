@@ -4815,6 +4815,58 @@
     "translation": "Invalid token."
   },
   {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.pwd.app_error",
+    "translation": ""
+  },
+  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
   },
@@ -4873,6 +4925,14 @@
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": ""
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
