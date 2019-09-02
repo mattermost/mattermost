@@ -40,7 +40,7 @@ func NewClient(address string, httpService httpservice.HTTPService) (*Client, er
 }
 
 // GetPlugins fetches the list of plugins from the configured server.
-func (c *Client) GetPlugins(request GetPluginsRequest) ([]*model.BaseMarketplacePlugin, error) {
+func (c *Client) GetPlugins(request *model.MarketplacePluginFilter) ([]*model.BaseMarketplacePlugin, error) {
 	u, err := url.Parse(c.buildURL("/api/v1/plugins"))
 	if err != nil {
 		return nil, err

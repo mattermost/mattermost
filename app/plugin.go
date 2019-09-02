@@ -404,7 +404,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 // and plugins that are installed locally.
-func (a *App) GetMarketplacePlugins(request marketplace.GetPluginsRequest) ([]*model.MarketplacePlugin, *model.AppError) {
+func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
 	var result []*model.MarketplacePlugin
 	pluginSet := map[string]bool{}
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -419,7 +419,8 @@ func (a *App) GetMarketplacePlugins(request marketplace.GetPluginsRequest) ([]*m
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	marketplacePlugins, err := marketplaceClient.GetPlugins(request)
+
+	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -449,7 +450,7 @@ func (a *App) GetMarketplacePlugins(request marketplace.GetPluginsRequest) ([]*m
 	}
 
 	for _, plugin := range plugins {
-		if plugin.Manifest == nil || pluginSet[plugin.Manifest.Id] {
+		if plugin.Manifest == nil || pluginSet[plugin.Manifest.Id] || !pluginMatchesFilter(plugin.Manifest, filter.Filter) {
 			continue
 		}
 
@@ -467,6 +468,28 @@ func (a *App) GetMarketplacePlugins(request marketplace.GetPluginsRequest) ([]*m
 	})
 
 	return result, nil
+}
+
+func pluginMatchesFilter(manifest *model.Manifest, filter string) bool {
+	filter = strings.TrimSpace(strings.ToLower(filter))
+
+	if filter == "" {
+		return true
+	}
+
+	if strings.ToLower(manifest.Id) == filter {
+		return true
+	}
+
+	if strings.Contains(strings.ToLower(manifest.Name), filter) {
+		return true
+	}
+
+	if strings.Contains(strings.ToLower(manifest.Description), filter) {
+		return true
+	}
+
+	return false
 }
 
 // notifyPluginEnabled notifies connected websocket clients across all peers if the version of the given

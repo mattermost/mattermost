@@ -4494,9 +4494,16 @@ func (c *Client4) DisablePlugin(id string) (bool, *Response) {
 
 // GetMarketplacePlugins will return a list of plugins that an admin can install.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
-func (c *Client4) GetMarketplacePlugins() ([]*MarketplacePlugin, *Response) {
-	url := c.GetPluginsRoute() + "/marketplace"
-	r, err := c.DoApiGet(url, "")
+func (c *Client4) GetMarketplacePlugins(request *MarketplacePluginFilter) ([]*MarketplacePlugin, *Response) {
+	route := c.GetPluginsRoute() + "/marketplace"
+	u, parseErr := url.Parse(route)
+	if parseErr != nil {
+		return nil, &Response{Error: NewAppError("GetMarketplacePlugins", "model.client.parse_plugins.app_error", nil, parseErr.Error(), http.StatusBadRequest)}
+	}
+
+	request.ApplyToURL(u)
+
+	r, err := c.DoApiGet(u.String(), "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -4504,7 +4511,7 @@ func (c *Client4) GetMarketplacePlugins() ([]*MarketplacePlugin, *Response) {
 
 	plugins, readerErr := MarketplacePluginsFromReader(r.Body)
 	if readerErr != nil {
-		return nil, BuildErrorResponse(r, NewAppError(url, "model.client.parse_plugins.app_error", nil, err.Error(), http.StatusBadRequest))
+		return nil, BuildErrorResponse(r, NewAppError(route, "model.client.parse_plugins.app_error", nil, err.Error(), http.StatusBadRequest))
 	}
 
 	return plugins, BuildResponse(r)

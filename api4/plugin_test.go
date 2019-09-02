@@ -444,7 +444,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins()
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNotImplementedStatus(t, resp)
 		require.Nil(t, plugins)
 	})
@@ -455,7 +455,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins()
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, plugins)
 	})
@@ -466,7 +466,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugins, resp := th.Client.GetMarketplacePlugins()
+		plugins, resp := th.Client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckForbiddenStatus(t, resp)
 		require.Nil(t, plugins)
 	})
@@ -485,7 +485,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins()
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 		require.Len(t, plugins, 0)
 	})
@@ -533,7 +533,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins()
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 		require.Equal(t, samplePlugins, plugins)
 
@@ -553,7 +553,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
 		})
 
-		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins()
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 		require.Equal(t, expectedPlugins, plugins)
 
@@ -561,7 +561,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		CheckNoError(t, resp)
 		assert.True(t, ok)
 
-		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins()
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 		require.Equal(t, samplePlugins, plugins)
 	})
@@ -604,7 +604,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins()
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 		require.Equal(t, expectedPlugins, plugins)
 
@@ -612,10 +612,92 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		CheckNoError(t, resp)
 		assert.True(t, ok)
 
-		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins()
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 		newPlugin.InstalledVersion = manifest.Version
 		require.Equal(t, expectedPlugins, plugins)
+	})
+}
+
+func TestSearchGetMarketplacePlugins(t *testing.T) {
+	samplePlugins := []*model.MarketplacePlugin{}
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	tarDataV2, err := ioutil.ReadFile(filepath.Join(path, "testpluginv2.tar.gz"))
+	require.NoError(t, err)
+
+	t.Run("search installed plugin", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal(samplePlugins)
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Nil(t, plugins)
+
+		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		CheckNoError(t, resp)
+
+		newPluginV1 := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL:  "",
+				DownloadURL:  "",
+				SignatureURL: "",
+				Manifest:     manifest,
+			},
+			InstalledVersion: manifest.Version,
+		}
+		expectedPlugins := append(samplePlugins, newPluginV1)
+
+		manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarDataV2))
+		CheckNoError(t, resp)
+		newPluginV2 := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL:  "",
+				DownloadURL:  "",
+				SignatureURL: "",
+				Manifest:     manifest,
+			},
+			InstalledVersion: manifest.Version,
+		}
+		expectedPlugins = append(expectedPlugins, newPluginV2)
+		sort.SliceStable(expectedPlugins, func(i, j int) bool {
+			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		})
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Equal(t, expectedPlugins, plugins)
+
+		// Search for plugins from the server
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "testplugin_v2"})
+		CheckNoError(t, resp)
+		require.Equal(t, []*model.MarketplacePlugin{newPluginV2}, plugins)
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "dsgsdg_v2"})
+		CheckNoError(t, resp)
+		require.Equal(t, []*model.MarketplacePlugin{newPluginV2}, plugins)
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "NOFILTER"})
+		CheckNoError(t, resp)
+		require.Nil(t, plugins)
 	})
 }
 

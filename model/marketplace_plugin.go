@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/url"
+	"strconv"
 )
 
 type BaseMarketplacePlugin struct {
@@ -43,4 +45,24 @@ func MarketplacePluginsFromReader(reader io.Reader) ([]*MarketplacePlugin, error
 	}
 
 	return plugins, nil
+}
+
+// MarketplacePluginFilter describes the parameters to request a list of plugins.
+type MarketplacePluginFilter struct {
+	Page          int
+	PerPage       int
+	Filter        string
+	ServerVersion string
+}
+
+// ApplyToURL modifies the given url to include query string parameters for the request.
+func (request *MarketplacePluginFilter) ApplyToURL(u *url.URL) {
+	q := u.Query()
+	q.Add("page", strconv.Itoa(request.Page))
+	if request.PerPage > 0 {
+		q.Add("per_page", strconv.Itoa(request.PerPage))
+	}
+	q.Add("filter", request.Filter)
+	q.Add("server_version", request.ServerVersion)
+	u.RawQuery = q.Encode()
 }

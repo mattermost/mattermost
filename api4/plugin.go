@@ -15,7 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/marketplace"
 )
 
 const (
@@ -258,7 +257,13 @@ func getMarketplace(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plugins, appErr := c.App.GetMarketplacePlugins(marketplace.GetPluginsRequest{})
+	filter, err := parsePluginFilter(r.URL)
+	if err != nil {
+		c.Err = model.NewAppError("getMarketplace", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	plugins, appErr := c.App.GetMarketplacePlugins(filter)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -319,4 +324,26 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func parsePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, error) {
+	page, err := parseInt(u, "page", 0)
+	if err != nil {
+		return nil, err
+	}
+
+	perPage, err := parseInt(u, "per_page", 100)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := u.Query().Get("filter")
+	serverVersion := u.Query().Get("server_version")
+
+	return &model.MarketplacePluginFilter{
+		Page:          page,
+		PerPage:       perPage,
+		Filter:        filter,
+		ServerVersion: serverVersion,
+	}, nil
 }
