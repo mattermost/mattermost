@@ -4,12 +4,19 @@
 package commands
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/config"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -71,7 +78,11 @@ func TestConfigValidate(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	assert.Error(t, th.RunCommand(t, "--config", "foo.json", "config", "validate"))
+	tempFile, err := ioutil.TempFile("", "TestConfigValidate")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+
+	assert.Error(t, th.RunCommand(t, "--config", tempFile.Name(), "config", "validate"))
 	th.CheckCommand(t, "config", "validate")
 }
 
@@ -326,6 +337,27 @@ func TestConfigShow(t *testing.T) {
 		assert.Contains(t, string(output), "MessageExportSettings")
 		assert.Contains(t, string(output), "AnnouncementSettings")
 	})
+
+	t.Run("successfully dumping config as json", func(t *testing.T) {
+		output, err := th.RunCommandWithOutput(t, "config", "show", "--json")
+		require.Nil(t, err)
+
+		// Filter out the test headers
+		var filteredOutput []string
+		for _, line := range strings.Split(output, "\n") {
+			if strings.HasPrefix(line, "---") || strings.HasPrefix(line, "===") || strings.HasPrefix(line, "PASS") || strings.HasPrefix(line, "coverage:") {
+				continue
+			}
+
+			filteredOutput = append(filteredOutput, line)
+		}
+
+		output = strings.Join(filteredOutput, "")
+
+		var config model.Config
+		err = json.Unmarshal([]byte(output), &config)
+		require.Nil(t, err)
+	})
 }
 
 func TestSetConfig(t *testing.T) {
@@ -426,6 +458,43 @@ func TestUpdateMap(t *testing.T) {
 		})
 	}
 
+}
+
+func TestConfigMigrate(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	sqlSettings := mainHelper.GetSqlSettings()
+	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
+	fileDSN := "config.json"
+
+	ds, err := config.NewStore(sqlDSN, false)
+	require.NoError(t, err)
+	fs, err := config.NewStore(fileDSN, false)
+	require.NoError(t, err)
+
+	defer ds.Close()
+	defer fs.Close()
+
+	t.Run("Should error with too few parameters", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "migrate", fileDSN))
+	})
+
+	t.Run("Should error with too many parameters", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "migrate", fileDSN, sqlDSN, "reallyfast"))
+	})
+
+	t.Run("Should work passing two parameters", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "migrate", fileDSN, sqlDSN))
+	})
+
+	t.Run("Should fail passing an invalid target", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "migrate", fileDSN, "mysql://asd"))
+	})
+
+	t.Run("Should fail passing an invalid source", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "migrate", "invalid/path", sqlDSN))
+	})
 }
 
 func contains(configMap map[string]interface{}, v interface{}, configSettings []string) bool {

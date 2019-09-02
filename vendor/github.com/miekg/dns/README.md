@@ -67,6 +67,9 @@ A not-so-up-to-date-list-that-may-be-actually-current:
 * https://github.com/rs/dnstrace
 * https://blitiri.com.ar/p/dnss ([github mirror](https://github.com/albertito/dnss))
 * https://github.com/semihalev/sdns
+* https://render.com
+* https://github.com/peterzen/goresolver
+* https://github.com/folbricht/routedns
 
 Send pull request if you want to be listed here.
 
@@ -150,6 +153,7 @@ Example programs can be found in the `github.com/miekg/exdns` repository.
 * 6844 - CAA record
 * 6891 - EDNS0 update
 * 6895 - DNS IANA considerations
+* 6944 - DNSSEC DNSKEY Algorithm Status
 * 6975 - Algorithm Understanding in DNSSEC
 * 7043 - EUI48/EUI64 records
 * 7314 - DNS (EDNS) EXPIRE Option

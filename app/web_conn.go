@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -200,9 +200,9 @@ func (c *WebConn) writePump() {
 
 				if len(c.Send) >= SEND_DEADLOCK_WARN {
 					if evtOk {
-						mlog.Error(fmt.Sprintf("websocket.full: message userId=%v type=%v channelId=%v size=%v", c.UserId, msg.EventType(), evt.Broadcast.ChannelId, len(msg.ToJson())))
+						mlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v channelId=%v size=%v", c.UserId, msg.EventType(), evt.Broadcast.ChannelId, len(msg.ToJson())))
 					} else {
-						mlog.Error(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), len(msg.ToJson())))
+						mlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), len(msg.ToJson())))
 					}
 				}
 
@@ -336,12 +336,12 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if webCon.AllChannelMembers == nil {
-			result := <-webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false)
-			if result.Err != nil {
-				mlog.Error("webhub.shouldSendEvent: " + result.Err.Error())
+			result, err := webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false)
+			if err != nil {
+				mlog.Error("webhub.shouldSendEvent: " + err.Error())
 				return false
 			}
-			webCon.AllChannelMembers = result.Data.(map[string]string)
+			webCon.AllChannelMembers = result
 			webCon.LastAllChannelMembersTime = model.GetMillis()
 		}
 
@@ -354,6 +354,15 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// Only report events to users who are in the team for the event
 	if len(msg.Broadcast.TeamId) > 0 {
 		return webCon.IsMemberOfTeam(msg.Broadcast.TeamId)
+	}
+
+	if msg.Event == model.WEBSOCKET_EVENT_USER_UPDATED && webCon.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
+		canSee, err := webCon.App.UserCanSeeOtherUser(webCon.UserId, msg.Data["user"].(*model.User).Id)
+		if err != nil {
+			mlog.Error("webhub.shouldSendEvent: " + err.Error())
+			return false
+		}
+		return canSee
 	}
 
 	return true

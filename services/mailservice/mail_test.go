@@ -6,8 +6,12 @@ package mailservice
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"net/mail"
 	"net/smtp"
@@ -297,6 +301,63 @@ func TestAuthMethods(t *testing.T) {
 			if got != test.err {
 				t.Errorf("%d. got error = %q; want %q", i, got, test.err)
 			}
+		})
+	}
+}
+
+type mockMailer struct {
+	data []byte
+}
+
+func (m *mockMailer) Mail(string) error             { return nil }
+func (m *mockMailer) Rcpt(string) error             { return nil }
+func (m *mockMailer) Data() (io.WriteCloser, error) { return m, nil }
+func (m *mockMailer) Write(p []byte) (int, error) {
+	m.data = append(m.data, p...)
+	return len(p), nil
+}
+func (m *mockMailer) Close() error { return nil }
+
+func TestSendMail(t *testing.T) {
+	dir, err := ioutil.TempDir(".", "mail-test-")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+	settings := model.FileSettings{
+		DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
+		Directory:  &dir,
+	}
+	mockBackend, appErr := filesstore.NewFileBackend(&settings, true)
+	require.Nil(t, appErr)
+	mocm := &mockMailer{}
+
+	testCases := map[string]struct {
+		replyTo     mail.Address
+		contains    string
+		notContains string
+	}{
+		"adds reply-to header": {
+			mail.Address{Address: "foo@test.com"},
+			"\r\nReply-To: <foo@test.com>\r\n",
+			"",
+		},
+		"doesn't add reply-to header": {
+			mail.Address{},
+			"",
+			"\r\nReply-To:",
+		},
+	}
+
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			appErr = SendMail(mocm, "", "", mail.Address{}, tc.replyTo, "", "", nil, nil, mockBackend, time.Now())
+			require.Nil(t, appErr)
+			if len(tc.contains) > 0 {
+				require.Contains(t, string(mocm.data), tc.contains)
+			}
+			if len(tc.notContains) > 0 {
+				require.NotContains(t, string(mocm.data), tc.notContains)
+			}
+			mocm.data = []byte{}
 		})
 	}
 }

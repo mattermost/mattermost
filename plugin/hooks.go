@@ -36,6 +36,11 @@ const (
 	TotalHooksId            = iota
 )
 
+const (
+	// DismissPostError dismisses a pending post when the error is returned from MessageWillBePosted.
+	DismissPostError = "plugin.message_will_be_posted.dismiss_post"
+)
+
 // Hooks describes the methods a plugin may implement to automatically receive the corresponding
 // event.
 //
@@ -44,7 +49,7 @@ const (
 type Hooks interface {
 	// OnActivate is invoked when the plugin is activated. If an error is returned, the plugin
 	// will be terminated. The plugin will not receive hooks until after OnActivate returns
-	// without error.
+	// without error. OnConfigurationChange will be called once before OnActivate.
 	OnActivate() error
 
 	// Implemented returns a list of hooks that are implemented by the plugin.
@@ -58,7 +63,7 @@ type Hooks interface {
 
 	// OnConfigurationChange is invoked when configuration changes may have been made. Any
 	// returned error is logged, but does not stop the plugin. You must be prepared to handle
-	// a configuration failure gracefully.
+	// a configuration failure gracefully. It is called once before OnActivate.
 	OnConfigurationChange() error
 
 	// ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for
@@ -90,6 +95,7 @@ type Hooks interface {
 	// To reject a post, return an non-empty string describing why the post was rejected.
 	// To modify the post, return the replacement, non-nil *model.Post and an empty string.
 	// To allow the post without modification, return a nil *model.Post and an empty string.
+	// To dismiss the post, return a nil *model.Post and the const DismissPostError string.
 	//
 	// If you don't need to modify or reject posts, use MessageHasBeenPosted instead.
 	//

@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -139,8 +141,7 @@ func TestLinkGroupTeam(t *testing.T) {
 	assert.Nil(t, err)
 
 	patch := &model.GroupSyncablePatch{
-		CanLeave: model.NewBool(true),
-		AutoAdd:  model.NewBool(true),
+		AutoAdd: model.NewBool(true),
 	}
 
 	_, response := th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
@@ -151,7 +152,14 @@ func TestLinkGroupTeam(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	groupTeam, response := th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, response = th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	assert.NotNil(t, response.Error)
+
+	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	groupTeam, response := th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupTeam)
 }
@@ -171,8 +179,7 @@ func TestLinkGroupChannel(t *testing.T) {
 	assert.Nil(t, err)
 
 	patch := &model.GroupSyncablePatch{
-		CanLeave: model.NewBool(true),
-		AutoAdd:  model.NewBool(true),
+		AutoAdd: model.NewBool(true),
 	}
 
 	_, response := th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
@@ -183,8 +190,17 @@ func TestLinkGroupChannel(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	_, response = th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	groupTeam, response := th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
+	assert.NotNil(t, groupTeam)
+
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
+	require.Nil(t, response.Error)
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	_, response = th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	assert.NotNil(t, response.Error)
 }
 
 func TestUnlinkGroupTeam(t *testing.T) {
@@ -202,8 +218,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	assert.Nil(t, err)
 
 	patch := &model.GroupSyncablePatch{
-		CanLeave: model.NewBool(true),
-		AutoAdd:  model.NewBool(true),
+		AutoAdd: model.NewBool(true),
 	}
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
@@ -221,7 +236,14 @@ func TestUnlinkGroupTeam(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	response = th.SystemAdminClient.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	assert.NotNil(t, response.Error)
+
+	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	CheckOKStatus(t, response)
 }
 
@@ -240,8 +262,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 	assert.Nil(t, err)
 
 	patch := &model.GroupSyncablePatch{
-		CanLeave: model.NewBool(true),
-		AutoAdd:  model.NewBool(true),
+		AutoAdd: model.NewBool(true),
 	}
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
@@ -259,8 +280,21 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	response = th.SystemAdminClient.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-	CheckOKStatus(t, response)
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
+	require.Nil(t, response.Error)
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	assert.NotNil(t, response.Error)
+
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_admin channel_user")
+	require.Nil(t, response.Error)
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	assert.Nil(t, response.Error)
 }
 
 func TestGetGroupTeam(t *testing.T) {
@@ -286,8 +320,7 @@ func TestGetGroupTeam(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	patch := &model.GroupSyncablePatch{
-		CanLeave: model.NewBool(true),
-		AutoAdd:  model.NewBool(true),
+		AutoAdd: model.NewBool(true),
 	}
 
 	_, response = th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
@@ -300,7 +333,6 @@ func TestGetGroupTeam(t *testing.T) {
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicTeam.Id, groupSyncable.SyncableId)
 	assert.Equal(t, *patch.AutoAdd, groupSyncable.AutoAdd)
-	// assert.Equal(t, *patch.CanLeave, groupSyncable.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 
 	_, response = th.SystemAdminClient.GetGroupSyncable(model.NewId(), th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
 	CheckNotFoundStatus(t, response)
@@ -342,8 +374,7 @@ func TestGetGroupChannel(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	patch := &model.GroupSyncablePatch{
-		CanLeave: model.NewBool(true),
-		AutoAdd:  model.NewBool(true),
+		AutoAdd: model.NewBool(true),
 	}
 
 	_, response = th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
@@ -356,7 +387,6 @@ func TestGetGroupChannel(t *testing.T) {
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicChannel.Id, groupSyncable.SyncableId)
 	assert.Equal(t, *patch.AutoAdd, groupSyncable.AutoAdd)
-	// assert.Equal(t, *patch.CanLeave, groupSyncable.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 
 	_, response = th.SystemAdminClient.GetGroupSyncable(model.NewId(), th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
 	CheckNotFoundStatus(t, response)
@@ -392,8 +422,7 @@ func TestGetGroupTeams(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	patch := &model.GroupSyncablePatch{
-		CanLeave: model.NewBool(true),
-		AutoAdd:  model.NewBool(true),
+		AutoAdd: model.NewBool(true),
 	}
 
 	for i := 0; i < 10; i++ {
@@ -442,8 +471,7 @@ func TestGetGroupChannels(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	patch := &model.GroupSyncablePatch{
-		CanLeave: model.NewBool(true),
-		AutoAdd:  model.NewBool(true),
+		AutoAdd: model.NewBool(true),
 	}
 
 	for i := 0; i < 10; i++ {
@@ -490,8 +518,7 @@ func TestPatchGroupTeam(t *testing.T) {
 	assert.Nil(t, err)
 
 	patch := &model.GroupSyncablePatch{
-		CanLeave: model.NewBool(true),
-		AutoAdd:  model.NewBool(true),
+		AutoAdd: model.NewBool(true),
 	}
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
@@ -499,7 +526,6 @@ func TestPatchGroupTeam(t *testing.T) {
 	groupSyncable, response := th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupSyncable)
-	// assert.True(t, groupSyncable.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 	assert.True(t, groupSyncable.AutoAdd)
 
 	_, response = th.Client.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
@@ -521,15 +547,9 @@ func TestPatchGroupTeam(t *testing.T) {
 	assert.Equal(t, th.BasicTeam.Id, groupSyncable.SyncableId)
 	assert.Equal(t, model.GroupSyncableTypeTeam, groupSyncable.Type)
 
-	// TODO: Re-add this test in phase 2 of LDAP groups sync.
-	// patch.CanLeave = model.NewBool(false)
-	// _, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-	// CheckBadRequestStatus(t, response)
-
 	patch.AutoAdd = model.NewBool(true)
 	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	CheckOKStatus(t, response)
-	assert.False(t, groupSyncable.CanLeave)
 
 	_, response = th.SystemAdminClient.PatchGroupSyncable(model.NewId(), th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	CheckNotFoundStatus(t, response)
@@ -563,8 +583,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.Nil(t, err)
 
 	patch := &model.GroupSyncablePatch{
-		CanLeave: model.NewBool(true),
-		AutoAdd:  model.NewBool(true),
+		AutoAdd: model.NewBool(true),
 	}
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
@@ -572,7 +591,6 @@ func TestPatchGroupChannel(t *testing.T) {
 	groupSyncable, response := th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupSyncable)
-	// assert.True(t, groupSyncable.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 	assert.True(t, groupSyncable.AutoAdd)
 
 	_, response = th.Client.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
@@ -594,15 +612,9 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.Equal(t, th.BasicChannel.Id, groupSyncable.SyncableId)
 	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Type)
 
-	// TODO: Re-add this test in phase 2 of LDAP groups sync.
-	// patch.CanLeave = model.NewBool(false)
-	// _, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
-	// CheckBadRequestStatus(t, response)
-
 	patch.AutoAdd = model.NewBool(true)
 	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	CheckOKStatus(t, response)
-	assert.False(t, groupSyncable.CanLeave)
 
 	_, response = th.SystemAdminClient.PatchGroupSyncable(model.NewId(), th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	CheckNotFoundStatus(t, response)
@@ -619,4 +631,165 @@ func TestPatchGroupChannel(t *testing.T) {
 	th.SystemAdminClient.Logout()
 	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	CheckUnauthorizedStatus(t, response)
+}
+
+func TestGetGroupsByChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    group.Id,
+	})
+	assert.Nil(t, err)
+
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	_, _, response := th.SystemAdminClient.GetGroupsByChannel("asdfasdf", opts)
+	CheckBadRequestStatus(t, response)
+
+	th.App.SetLicense(nil)
+
+	_, _, response = th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, opts)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+
+	_, _, response = th.Client.GetGroupsByChannel(privateChannel.Id, opts)
+	CheckForbiddenStatus(t, response)
+
+	groups, _, response := th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, opts)
+	assert.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group}, groups)
+
+	groups, _, response = th.SystemAdminClient.GetGroupsByChannel(model.NewId(), opts)
+	assert.Equal(t, "store.sql_channel.get.existing.app_error", response.Error.Id)
+	assert.Empty(t, groups)
+}
+
+func TestGetGroupsByTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		GroupId:    group.Id,
+	})
+	assert.Nil(t, err)
+
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	_, _, response := th.SystemAdminClient.GetGroupsByTeam("asdfasdf", opts)
+	CheckBadRequestStatus(t, response)
+
+	th.App.SetLicense(nil)
+
+	_, _, response = th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, _, response = th.Client.GetGroupsByTeam(th.BasicTeam.Id, opts)
+	CheckForbiddenStatus(t, response)
+
+	groups, _, response := th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
+	assert.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group}, groups)
+
+	groups, _, response = th.SystemAdminClient.GetGroupsByTeam(model.NewId(), opts)
+	assert.Nil(t, response.Error)
+	assert.Empty(t, groups)
+}
+
+func TestGetGroups(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	th.App.SetLicense(nil)
+
+	_, response := th.SystemAdminClient.GetGroups(opts)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	groups, response := th.SystemAdminClient.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
+	assert.Nil(t, groups[0].MemberCount)
+
+	opts.IncludeMemberCount = true
+	groups, _ = th.SystemAdminClient.GetGroups(opts)
+	assert.NotNil(t, groups[0].MemberCount)
+	opts.IncludeMemberCount = false
+
+	opts.Q = "-fOo"
+	groups, _ = th.SystemAdminClient.GetGroups(opts)
+	assert.Len(t, groups, 1)
+	opts.Q = ""
+
+	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "")
+	require.Nil(t, response.Error)
+
+	opts.NotAssociatedToTeam = th.BasicTeam.Id
+	_, response = th.Client.GetGroups(opts)
+	CheckForbiddenStatus(t, response)
+
+	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user")
+	require.Nil(t, response.Error)
+
+	_, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
 }

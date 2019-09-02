@@ -4,14 +4,12 @@
 package commands
 
 import (
-	"errors"
-	"os"
-
 	"context"
-
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -45,11 +43,19 @@ var ActianceExportCmd = &cobra.Command{
 	RunE:    buildExportCmdF("actiance"),
 }
 
+var GlobalRelayZipExportCmd = &cobra.Command{
+	Use:     "global-relay-zip",
+	Short:   "Export data from Mattermost into a zip file containing emails to send to Global Relay for debug and testing purposes only.",
+	Long:    "Export data from Mattermost into a zip file containing emails to send to Global Relay for debug and testing purposes only. This does not archive any information in Global Relay.",
+	Example: "export global-relay-zip --exportFrom=12345",
+	RunE:    buildExportCmdF("globalrelay-zip"),
+}
+
 var BulkExportCmd = &cobra.Command{
 	Use:     "bulk [file]",
 	Short:   "Export bulk data.",
 	Long:    "Export data to a file compatible with the Mattermost Bulk Import format.",
-	Example: "  export bulk bulk_data.json",
+	Example: "export bulk bulk_data.json",
 	RunE:    bulkExportCmdF,
 	Args:    cobra.ExactArgs(1),
 }
@@ -62,12 +68,14 @@ func init() {
 	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 
-	BulkExportCmd.Flags().Bool("all-teams", false, "Export all teams from the server.")
+	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
 
 	ExportCmd.AddCommand(ScheduleExportCmd)
 	ExportCmd.AddCommand(CsvExportCmd)
 	ExportCmd.AddCommand(ActianceExportCmd)
+	ExportCmd.AddCommand(GlobalRelayZipExportCmd)
 	ExportCmd.AddCommand(BulkExportCmd)
 
 	RootCmd.AddCommand(ExportCmd)
@@ -167,9 +175,8 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 
 	allTeams, err := command.Flags().GetBool("all-teams")
 	if err != nil {
-		return errors.New("Apply flag error")
+		return errors.Wrap(err, "all-teams flag error")
 	}
-
 	if !allTeams {
 		return errors.New("Nothing to export. Please specify the --all-teams flag to export all teams.")
 	}
@@ -188,7 +195,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 
 	// args[0] points to the filename/filepath passed with export bulk command
 	if err := a.BulkExport(fileWriter, args[0], pathToEmojiDir, dirNameToExportEmoji); err != nil {
-		CommandPrettyPrintln(err.Error())
+		CommandPrintErrorln(err.Error())
 		return err
 	}
 

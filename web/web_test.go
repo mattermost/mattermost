@@ -5,14 +5,22 @@ package web
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/testlib"
+
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var ApiClient *model.Client4
@@ -21,35 +29,29 @@ var URL string
 type TestHelper struct {
 	App    *app.App
 	Server *app.Server
+	Web    *Web
 
 	BasicUser    *model.User
 	BasicChannel *model.Channel
 	BasicTeam    *model.Team
 
 	SystemAdminUser *model.User
+
+	tempWorkspace string
 }
 
 func Setup() *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
-	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
+	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
-		panic(err)
-	}
-	defer permConfig.Close()
-	tempConfig, err := ioutil.TempFile("", "")
-	if err != nil {
-		panic(err)
-	}
-	_, err = io.Copy(tempConfig, permConfig)
-	tempConfig.Close()
-	if err != nil {
-		panic(err)
+		panic("failed to initialize memory store: " + err.Error())
 	}
 
-	options := []app.Option{app.Config(tempConfig.Name(), false)}
-	options = append(options, app.StoreOverride(store))
+	var options []app.Option
+	options = append(options, app.ConfigStore(memoryStore))
+	options = append(options, app.StoreOverride(mainHelper.Store))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -64,12 +66,20 @@ func Setup() *TestHelper {
 	}
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	New(s, s.AppOptions, s.Router)
+	// Disable strict password requirements for test
+	a.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PasswordSettings.MinimumLength = 5
+		*cfg.PasswordSettings.Lowercase = false
+		*cfg.PasswordSettings.Uppercase = false
+		*cfg.PasswordSettings.Symbol = false
+		*cfg.PasswordSettings.Number = false
+	})
+
+	web := New(s, s.AppOptions, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
-	a.DoAdvancedPermissionsMigration()
-	a.DoEmojisPermissionsMigration()
+	a.DoAppMigrations()
 
 	a.Srv.Store.MarkSystemRanUnitTests()
 
@@ -80,7 +90,22 @@ func Setup() *TestHelper {
 	th := &TestHelper{
 		App:    a,
 		Server: s,
+		Web:    web,
 	}
+
+	return th
+}
+
+func (th *TestHelper) InitPlugins() *TestHelper {
+
+	if th.tempWorkspace == "" {
+		th.tempWorkspace, _ = testlib.SetupTestResources()
+	}
+
+	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
+	webappDir := filepath.Join(th.tempWorkspace, "webapp")
+
+	th.App.InitPlugins(pluginDir, webappDir)
 
 	return th
 }
@@ -108,6 +133,82 @@ func (th *TestHelper) TearDown() {
 	if err := recover(); err != nil {
 		panic(err)
 	}
+}
+
+func TestPublicFilesRequest(t *testing.T) {
+	th := Setup().InitPlugins()
+	defer th.TearDown()
+
+	pluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+	defer os.RemoveAll(webappPluginDir)
+
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	require.NoError(t, err)
+
+	pluginID := "com.mattermost.sample"
+	pluginCode :=
+		`
+	package main
+
+	import (
+		"github.com/mattermost/mattermost-server/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+	
+	`
+	// Compile and write the plugin
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, pluginCode, backend)
+
+	// Write the plugin.json manifest
+	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`
+	ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+
+	// Write the test public file
+	helloHTML := `Hello from the static files public folder for the com.mattermost.sample plugin!`
+	htmlFolderPath := filepath.Join(pluginDir, pluginID, "public")
+	os.MkdirAll(htmlFolderPath, os.ModePerm)
+	htmlFilePath := filepath.Join(htmlFolderPath, "hello.html")
+
+	htmlFileErr := ioutil.WriteFile(htmlFilePath, []byte(helloHTML), 0600)
+	assert.NoError(t, htmlFileErr)
+
+	nefariousHTML := `You shouldn't be able to get here!`
+	htmlFileErr = ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "nefarious-file-access.html"), []byte(nefariousHTML), 0600)
+	assert.NoError(t, htmlFileErr)
+
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.Nil(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	th.App.SetPluginsEnvironment(env)
+
+	req, _ := http.NewRequest("GET", "/plugins/com.mattermost.sample/public/hello.html", nil)
+	res := httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, helloHTML, res.Body.String())
+
+	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/nefarious-file-access.html", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, 404, res.Code)
+
+	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/public/../nefarious-file-access.html", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, 301, res.Code)
 }
 
 /* Test disabled for now so we don't requrie the client to build. Maybe re-enable after client gets moved out.
@@ -143,8 +244,8 @@ func TestCheckClientCompatability(t *testing.T) {
 		{"Franz 4.0.4", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Franz/4.0.4 Chrome/52.0.2743.82 Electron/1.3.1 Safari/537.36", true},
 		{"Edge 14", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393", true},
 		{"Internet Explorer 9", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 7.1; Trident/5.0", false},
-		{"Internet Explorer 11", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko", true},
-		{"Internet Explorer 11 2", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; Zoom 3.6.0; rv:11.0) like Gecko", true},
+		{"Internet Explorer 11", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko", false},
+		{"Internet Explorer 11 2", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; Zoom 3.6.0; rv:11.0) like Gecko", false},
 		{"Internet Explorer 11 (Compatibility Mode) 1", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; .NET CLR 1.1.4322; InfoPath.3; Zoom 3.6.0)", false},
 		{"Internet Explorer 11 (Compatibility Mode) 2", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; Zoom 3.6.0)", false},
 		{"Safari 9", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Safari/604.1.38", true},

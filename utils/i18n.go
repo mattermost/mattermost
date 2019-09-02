@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
-	"github.com/nicksnyder/go-i18n/i18n"
 )
 
 var T i18n.TranslateFunc
@@ -21,9 +21,13 @@ var TDefault i18n.TranslateFunc
 var locales map[string]string = make(map[string]string)
 var settings model.LocalizationSettings
 
-// this functions loads translations from filesystem
-// and assign english while loading server config
+// this functions loads translations from filesystem if they are not
+// loaded already and assigns english while loading server config
 func TranslationsPreInit() error {
+	if T != nil {
+		return nil
+	}
+
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = TfuncWithFallback("en")

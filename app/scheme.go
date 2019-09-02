@@ -14,11 +14,7 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Scheme().Get(id)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Scheme), nil
+	return a.Srv.Store.Scheme().Get(id)
 }
 
 func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
@@ -26,11 +22,7 @@ func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Scheme().GetByName(name)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Scheme), nil
+	return a.Srv.Store.Scheme().GetByName(name)
 }
 
 func (a *App) GetSchemesPage(scope string, page int, perPage int) ([]*model.Scheme, *model.AppError) {
@@ -46,11 +38,7 @@ func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, 
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Scheme().GetAllPage(scope, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Scheme), nil
+	return a.Srv.Store.Scheme().GetAllPage(scope, offset, limit)
 }
 
 func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
@@ -61,17 +49,15 @@ func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 	// Clear any user-provided values for trusted properties.
 	scheme.DefaultTeamAdminRole = ""
 	scheme.DefaultTeamUserRole = ""
+	scheme.DefaultTeamGuestRole = ""
 	scheme.DefaultChannelAdminRole = ""
 	scheme.DefaultChannelUserRole = ""
+	scheme.DefaultChannelGuestRole = ""
 	scheme.CreateAt = 0
 	scheme.UpdateAt = 0
 	scheme.DeleteAt = 0
 
-	result := <-a.Srv.Store.Scheme().Save(scheme)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return scheme, nil
+	return a.Srv.Store.Scheme().Save(scheme)
 }
 
 func (a *App) PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError) {
@@ -93,11 +79,7 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Scheme().Save(scheme)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return scheme, nil
+	return a.Srv.Store.Scheme().Save(scheme)
 }
 
 func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
@@ -105,11 +87,7 @@ func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Scheme().Delete(schemeId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Scheme), nil
+	return a.Srv.Store.Scheme().Delete(schemeId)
 }
 
 func (a *App) GetTeamsForSchemePage(scheme *model.Scheme, page int, perPage int) ([]*model.Team, *model.AppError) {
@@ -125,11 +103,11 @@ func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Team().GetTeamsByScheme(scheme.Id, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
+	teams, err := a.Srv.Store.Team().GetTeamsByScheme(scheme.Id, offset, limit)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.([]*model.Team), nil
+	return teams, nil
 }
 
 func (a *App) GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError) {
@@ -144,11 +122,7 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
-	result := <-a.Srv.Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(model.ChannelList), nil
+	return a.Srv.Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
 }
 
 func (a *App) IsPhase2MigrationCompleted() *model.AppError {
@@ -156,8 +130,8 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 		return nil
 	}
 
-	if result := <-a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); result.Err != nil {
-		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, result.Err.Error(), http.StatusNotImplemented)
+	if _, err := a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err != nil {
+		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, err.Error(), http.StatusNotImplemented)
 	}
 
 	a.Srv.phase2PermissionsMigrationComplete = true
@@ -168,11 +142,11 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 func (a *App) SchemesIterator(batchSize int) func() []*model.Scheme {
 	offset := 0
 	return func() []*model.Scheme {
-		result := <-a.Srv.Store.Scheme().GetAllPage("", offset, batchSize)
-		if result.Err != nil {
+		schemes, err := a.Srv.Store.Scheme().GetAllPage("", offset, batchSize)
+		if err != nil {
 			return []*model.Scheme{}
 		}
 		offset += batchSize
-		return result.Data.([]*model.Scheme)
+		return schemes
 	}
 }

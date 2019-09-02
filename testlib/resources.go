@@ -34,11 +34,38 @@ type testResourceDetails struct {
 	action  int8
 }
 
+// commonBaseSearchPaths is a custom version of what fileutils exposes. At some point, consolidate.
+var commonBaseSearchPaths = []string{
+	".",
+	"..",
+	"../..",
+	"../../..",
+	"../../../..",
+}
+
+func findFile(path string) string {
+	return fileutils.FindPath(path, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+		return !fileInfo.IsDir()
+	})
+}
+
+func findDir(dir string) (string, bool) {
+	found := fileutils.FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+		return fileInfo.IsDir()
+	})
+	if found == "" {
+		return "./", false
+	}
+
+	return found, true
+}
+
 func getTestResourcesToSetup() []testResourceDetails {
 	var srcPath string
 	var found bool
 
 	var testResourcesToSetup = []testResourceDetails{
+		{"mattermost-server", "mattermost-server", resourceTypeFolder, actionSymlink},
 		{"i18n", "i18n", resourceTypeFolder, actionSymlink},
 		{"templates", "templates", resourceTypeFolder, actionSymlink},
 		{"tests", "tests", resourceTypeFolder, actionSymlink},
@@ -49,14 +76,14 @@ func getTestResourcesToSetup() []testResourceDetails {
 	// Finding resources and setting full path to source to be used for further processing
 	for i, testResource := range testResourcesToSetup {
 		if testResource.resType == resourceTypeFile {
-			srcPath = fileutils.FindFile(testResource.src)
+			srcPath = findFile(testResource.src)
 			if srcPath == "" {
 				panic(fmt.Sprintf("Failed to find file %s", testResource.src))
 			}
 
 			testResourcesToSetup[i].src = srcPath
 		} else if testResource.resType == resourceTypeFolder {
-			srcPath, found = fileutils.FindDir(testResource.src)
+			srcPath, found = findDir(testResource.src)
 			if found == false {
 				panic(fmt.Sprintf("Failed to find folder %s", testResource.src))
 			}
@@ -141,16 +168,10 @@ func setupConfig(configDir string) error {
 		return errors.Wrapf(err, "failed to create config directory %s", configDir)
 	}
 
-	defaultJson := path.Join(configDir, "default.json")
-	err = ioutil.WriteFile(defaultJson, []byte(config.ToJson()), 0644)
-	if err != nil {
-		return errors.Wrapf(err, "failed to write config to %s", defaultJson)
-	}
-
 	configJson := path.Join(configDir, "config.json")
-	err = utils.CopyFile(defaultJson, configJson)
+	err = ioutil.WriteFile(configJson, []byte(config.ToJson()), 0644)
 	if err != nil {
-		return errors.Wrapf(err, "failed to copy file %s to %s", defaultJson, configJson)
+		return errors.Wrapf(err, "failed to write config to %s", configJson)
 	}
 
 	return nil

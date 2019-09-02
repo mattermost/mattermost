@@ -30,11 +30,11 @@ func (b *LocalFileBackend) TestConnection() *model.AppError {
 		return model.NewAppError("TestFileConnection", "api.file.test_connection.local.connection.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	os.Remove(filepath.Join(b.directory, TEST_FILE_PATH))
-	mlog.Info("Able to write files to local storage.")
+	mlog.Debug("Able to write files to local storage.")
 	return nil
 }
 
-func (b *LocalFileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
+func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, *model.AppError) {
 	f, err := os.Open(filepath.Join(b.directory, path))
 	if err != nil {
 		return nil, model.NewAppError("Reader", "api.file.reader.reading_local.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -114,12 +114,13 @@ func (b *LocalFileBackend) ListDirectory(path string) (*[]string, *model.AppErro
 	var paths []string
 	fileInfos, err := ioutil.ReadDir(filepath.Join(b.directory, path))
 	if err != nil {
+		if os.IsNotExist(err) {
+			return &paths, nil
+		}
 		return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.local.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	for _, fileInfo := range fileInfos {
-		if fileInfo.IsDir() {
-			paths = append(paths, filepath.Join(path, fileInfo.Name()))
-		}
+		paths = append(paths, filepath.Join(path, fileInfo.Name()))
 	}
 	return &paths, nil
 }

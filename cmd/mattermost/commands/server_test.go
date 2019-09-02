@@ -10,22 +10,22 @@ import (
 	"syscall"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/require"
 )
 
 type ServerTestHelper struct {
-	configPath         string
+	configStore        config.Store
 	disableConfigWatch bool
 	interruptChan      chan os.Signal
 	originalInterval   int
 }
 
 func SetupServerTest() *ServerTestHelper {
-	// Build a channel that will be used by the server to receive system signals…
+	// Build a channel that will be used by the server to receive system signals...
 	interruptChan := make(chan os.Signal, 1)
-	// …and sent it immediately a SIGINT value.
+	// ...and sent it immediately a SIGINT value.
 	// This will make the server loop stop as soon as it started successfully.
 	interruptChan <- syscall.SIGINT
 
@@ -36,7 +36,6 @@ func SetupServerTest() *ServerTestHelper {
 	jobs.DEFAULT_WATCHER_POLLING_INTERVAL = 200
 
 	th := &ServerTestHelper{
-		configPath:         fileutils.FindConfigFile("config.json"),
 		disableConfigWatch: true,
 		interruptChan:      interruptChan,
 		originalInterval:   originalInterval,
@@ -52,24 +51,11 @@ func TestRunServerSuccess(t *testing.T) {
 	th := SetupServerTest()
 	defer th.TearDownServerTest()
 
-	err := runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan)
+	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
-}
 
-func TestRunServerInvalidConfigFile(t *testing.T) {
-	th := SetupServerTest()
-	defer th.TearDownServerTest()
-
-	// Start the server with an unreadable config file
-	unreadableConfigFile, err := ioutil.TempFile("", "mattermost-unreadable-config-file-")
-	if err != nil {
-		panic(err)
-	}
-	os.Chmod(unreadableConfigFile.Name(), 0200)
-	defer os.Remove(unreadableConfigFile.Name())
-
-	err = runServer(unreadableConfigFile.Name(), th.disableConfigWatch, false, th.interruptChan)
-	require.Error(t, err)
+	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
+	require.NoError(t, err)
 }
 
 func TestRunServerSystemdNotification(t *testing.T) {
@@ -113,8 +99,11 @@ func TestRunServerSystemdNotification(t *testing.T) {
 		ch <- string(data)
 	}(socketReader)
 
+	configStore, err := config.NewMemoryStore()
+	require.NoError(t, err)
+
 	// Start and stop the server
-	err = runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan)
+	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
 	require.NoError(t, err)
 
 	// Ensure the notification has been sent on the socket and is correct
@@ -131,6 +120,9 @@ func TestRunServerNoSystemd(t *testing.T) {
 	os.Unsetenv("NOTIFY_SOCKET")
 	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
 
-	err := runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan)
+	configStore, err := config.NewMemoryStore()
+	require.NoError(t, err)
+
+	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
 	require.NoError(t, err)
 }

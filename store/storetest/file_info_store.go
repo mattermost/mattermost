@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -32,36 +33,30 @@ func testFileInfoSaveGet(t *testing.T, ss store.Store) {
 		Path:      "file.txt",
 	}
 
-	if result := <-ss.FileInfo().Save(info); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if returned := result.Data.(*model.FileInfo); len(returned.Id) == 0 {
-		t.Fatal("should've assigned an id to FileInfo")
-	} else {
-		info = returned
-	}
+	info, err := ss.FileInfo().Save(info)
+	require.Nil(t, err)
+	require.NotEqual(t, len(info.Id), 0)
+
 	defer func() {
-		<-ss.FileInfo().PermanentDelete(info.Id)
+		ss.FileInfo().PermanentDelete(info.Id)
 	}()
 
-	if result := <-ss.FileInfo().Get(info.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if returned := result.Data.(*model.FileInfo); returned.Id != info.Id {
-		t.Log(info)
-		t.Log(returned)
-		t.Fatal("should've returned correct FileInfo")
-	}
+	rinfo, err := ss.FileInfo().Get(info.Id)
+	require.Nil(t, err)
+	require.Equal(t, info.Id, rinfo.Id)
 
-	info2 := store.Must(ss.FileInfo().Save(&model.FileInfo{
+	info2, err := ss.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
 		DeleteAt:  123,
-	})).(*model.FileInfo)
+	})
+	require.Nil(t, err)
 
-	if result := <-ss.FileInfo().Get(info2.Id); result.Err == nil {
-		t.Fatal("shouldn't have gotten deleted file")
-	}
+	_, err = ss.FileInfo().Get(info2.Id)
+	assert.NotNil(t, err)
+
 	defer func() {
-		<-ss.FileInfo().PermanentDelete(info2.Id)
+		ss.FileInfo().PermanentDelete(info2.Id)
 	}()
 }
 
@@ -71,36 +66,29 @@ func testFileInfoSaveGetByPath(t *testing.T, ss store.Store) {
 		Path:      fmt.Sprintf("%v/file.txt", model.NewId()),
 	}
 
-	if result := <-ss.FileInfo().Save(info); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if returned := result.Data.(*model.FileInfo); len(returned.Id) == 0 {
-		t.Fatal("should've assigned an id to FileInfo")
-	} else {
-		info = returned
-	}
+	info, err := ss.FileInfo().Save(info)
+	require.Nil(t, err)
+	assert.NotEqual(t, len(info.Id), 0)
 	defer func() {
-		<-ss.FileInfo().PermanentDelete(info.Id)
+		ss.FileInfo().PermanentDelete(info.Id)
 	}()
 
-	if result := <-ss.FileInfo().GetByPath(info.Path); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if returned := result.Data.(*model.FileInfo); returned.Id != info.Id {
-		t.Log(info)
-		t.Log(returned)
-		t.Fatal("should've returned correct FileInfo")
-	}
+	rinfo, err := ss.FileInfo().GetByPath(info.Path)
+	require.Nil(t, err)
+	assert.Equal(t, info.Id, rinfo.Id)
 
-	info2 := store.Must(ss.FileInfo().Save(&model.FileInfo{
+	info2, err := ss.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
 		DeleteAt:  123,
-	})).(*model.FileInfo)
+	})
+	require.Nil(t, err)
 
-	if result := <-ss.FileInfo().GetByPath(info2.Id); result.Err == nil {
-		t.Fatal("shouldn't have gotten deleted file")
-	}
+	_, err = ss.FileInfo().GetByPath(info2.Id)
+	assert.NotNil(t, err)
+
 	defer func() {
-		<-ss.FileInfo().PermanentDelete(info2.Id)
+		ss.FileInfo().PermanentDelete(info2.Id)
 	}()
 }
 
@@ -133,28 +121,92 @@ func testFileInfoGetForPost(t *testing.T, ss store.Store) {
 	}
 
 	for i, info := range infos {
-		infos[i] = store.Must(ss.FileInfo().Save(info)).(*model.FileInfo)
+		newInfo, err := ss.FileInfo().Save(info)
+		require.Nil(t, err)
+		infos[i] = newInfo
 		defer func(id string) {
-			<-ss.FileInfo().PermanentDelete(id)
-		}(infos[i].Id)
+			ss.FileInfo().PermanentDelete(id)
+		}(newInfo.Id)
 	}
 
-	if result := <-ss.FileInfo().GetForPost(postId, true, false); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 2 {
-		t.Fatal("should've returned exactly 2 file infos")
+	testCases := []struct {
+		Name           string
+		PostId         string
+		ReadFromMaster bool
+		IncludeDeleted bool
+		AllowFromCache bool
+		ExpectedPosts  int
+	}{
+		{
+			Name:           "Fetch from master, without deleted and without cache",
+			PostId:         postId,
+			ReadFromMaster: true,
+			IncludeDeleted: false,
+			AllowFromCache: false,
+			ExpectedPosts:  2,
+		},
+		{
+			Name:           "Fetch from master, with deleted and without cache",
+			PostId:         postId,
+			ReadFromMaster: true,
+			IncludeDeleted: true,
+			AllowFromCache: false,
+			ExpectedPosts:  3,
+		},
+		{
+			Name:           "Fetch from master, with deleted and with cache",
+			PostId:         postId,
+			ReadFromMaster: true,
+			IncludeDeleted: true,
+			AllowFromCache: true,
+			ExpectedPosts:  3,
+		},
+		{
+			Name:           "Fetch from replica, without deleted and without cache",
+			PostId:         postId,
+			ReadFromMaster: false,
+			IncludeDeleted: false,
+			AllowFromCache: false,
+			ExpectedPosts:  2,
+		},
+		{
+			Name:           "Fetch from replica, with deleted and without cache",
+			PostId:         postId,
+			ReadFromMaster: false,
+			IncludeDeleted: true,
+			AllowFromCache: false,
+			ExpectedPosts:  3,
+		},
+		{
+			Name:           "Fetch from replica, with deleted and without cache",
+			PostId:         postId,
+			ReadFromMaster: false,
+			IncludeDeleted: true,
+			AllowFromCache: true,
+			ExpectedPosts:  3,
+		},
+		{
+			Name:           "Fetch from replica, without deleted and with cache",
+			PostId:         postId,
+			ReadFromMaster: true,
+			IncludeDeleted: false,
+			AllowFromCache: true,
+			ExpectedPosts:  2,
+		},
 	}
 
-	if result := <-ss.FileInfo().GetForPost(postId, false, false); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 2 {
-		t.Fatal("should've returned exactly 2 file infos")
-	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			postInfos, err := ss.FileInfo().GetForPost(
+				tc.PostId,
+				tc.ReadFromMaster,
+				tc.IncludeDeleted,
+				tc.AllowFromCache,
+			)
+			require.Nil(t, err)
+			assert.Len(t, postInfos, tc.ExpectedPosts)
 
-	if result := <-ss.FileInfo().GetForPost(postId, true, true); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 2 {
-		t.Fatal("should've returned exactly 2 file infos")
+		})
 	}
 }
 
@@ -187,90 +239,117 @@ func testFileInfoGetForUser(t *testing.T, ss store.Store) {
 	}
 
 	for i, info := range infos {
-		infos[i] = store.Must(ss.FileInfo().Save(info)).(*model.FileInfo)
+		newInfo, err := ss.FileInfo().Save(info)
+		require.Nil(t, err)
+		infos[i] = newInfo
 		defer func(id string) {
-			<-ss.FileInfo().PermanentDelete(id)
-		}(infos[i].Id)
+			ss.FileInfo().PermanentDelete(id)
+		}(newInfo.Id)
 	}
 
-	if result := <-ss.FileInfo().GetForUser(userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 3 {
-		t.Fatal("should've returned exactly 3 file infos")
-	}
+	userPosts, err := ss.FileInfo().GetForUser(userId)
+	require.Nil(t, err)
+	assert.Len(t, userPosts, 3)
 
-	if result := <-ss.FileInfo().GetForUser(userId2); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 1 {
-		t.Fatal("should've returned exactly 1 file infos")
-	}
+	userPosts, err = ss.FileInfo().GetForUser(userId2)
+	require.Nil(t, err)
+	assert.Len(t, userPosts, 1)
 }
+
+type byFileInfoId []*model.FileInfo
+
+func (a byFileInfoId) Len() int           { return len(a) }
+func (a byFileInfoId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byFileInfoId) Less(i, j int) bool { return a[i].Id < a[j].Id }
 
 func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 	t.Run("should attach files", func(t *testing.T) {
 		userId := model.NewId()
 		postId := model.NewId()
 
-		info1 := store.Must(ss.FileInfo().Save(&model.FileInfo{
+		info1, err := ss.FileInfo().Save(&model.FileInfo{
 			CreatorId: userId,
 			Path:      "file.txt",
-		})).(*model.FileInfo)
-		info2 := store.Must(ss.FileInfo().Save(&model.FileInfo{
+		})
+		require.Nil(t, err)
+		info2, err := ss.FileInfo().Save(&model.FileInfo{
 			CreatorId: userId,
 			Path:      "file2.txt",
-		})).(*model.FileInfo)
+		})
+		require.Nil(t, err)
 
 		require.Equal(t, "", info1.PostId)
 		require.Equal(t, "", info2.PostId)
 
-		result := <-ss.FileInfo().AttachToPost(info1.Id, postId, userId)
-		assert.Nil(t, result.Err)
+		err = ss.FileInfo().AttachToPost(info1.Id, postId, userId)
+		assert.Nil(t, err)
+		info1.PostId = postId
 
-		result = <-ss.FileInfo().AttachToPost(info2.Id, postId, userId)
-		assert.Nil(t, result.Err)
+		err = ss.FileInfo().AttachToPost(info2.Id, postId, userId)
+		assert.Nil(t, err)
+		info2.PostId = postId
 
-		result = <-ss.FileInfo().GetForPost(postId, true, false)
-		assert.Nil(t, result.Err)
+		data, err := ss.FileInfo().GetForPost(postId, true, false, false)
+		require.Nil(t, err)
 
-		data := result.Data.([]*model.FileInfo)
-
-		assert.Len(t, data, 2)
-		assert.True(t, data[0].Id == info1.Id || data[0].Id == info2.Id)
-		assert.True(t, data[1].Id == info1.Id || data[1].Id == info2.Id)
+		expected := []*model.FileInfo{info1, info2}
+		sort.Sort(byFileInfoId(expected))
+		sort.Sort(byFileInfoId(data))
+		assert.Equal(t, expected, data)
 	})
 
 	t.Run("should not attach files to multiple posts", func(t *testing.T) {
 		userId := model.NewId()
 		postId := model.NewId()
 
-		info := store.Must(ss.FileInfo().Save(&model.FileInfo{
+		info, err := ss.FileInfo().Save(&model.FileInfo{
 			CreatorId: userId,
 			Path:      "file.txt",
-		})).(*model.FileInfo)
+		})
+		require.Nil(t, err)
 
 		require.Equal(t, "", info.PostId)
 
-		result := <-ss.FileInfo().AttachToPost(info.Id, model.NewId(), userId)
-		assert.Nil(t, result.Err)
+		err = ss.FileInfo().AttachToPost(info.Id, model.NewId(), userId)
+		require.Nil(t, err)
 
-		result = <-ss.FileInfo().AttachToPost(info.Id, postId, userId)
-		assert.NotNil(t, result.Err)
+		err = ss.FileInfo().AttachToPost(info.Id, postId, userId)
+		require.NotNil(t, err)
 	})
 
 	t.Run("should not attach files owned from a different user", func(t *testing.T) {
 		userId := model.NewId()
 		postId := model.NewId()
 
-		info := store.Must(ss.FileInfo().Save(&model.FileInfo{
+		info, err := ss.FileInfo().Save(&model.FileInfo{
 			CreatorId: model.NewId(),
 			Path:      "file.txt",
-		})).(*model.FileInfo)
+		})
+		require.Nil(t, err)
 
 		require.Equal(t, "", info.PostId)
 
-		result := <-ss.FileInfo().AttachToPost(info.Id, postId, userId)
+		err = ss.FileInfo().AttachToPost(info.Id, postId, userId)
+		assert.NotNil(t, err)
+	})
 
-		assert.NotNil(t, result.Err)
+	t.Run("should attach files uploaded by nouser", func(t *testing.T) {
+		postId := model.NewId()
+
+		info, err := ss.FileInfo().Save(&model.FileInfo{
+			CreatorId: "nouser",
+			Path:      "file.txt",
+		})
+		require.Nil(t, err)
+		assert.Equal(t, "", info.PostId)
+
+		err = ss.FileInfo().AttachToPost(info.Id, postId, model.NewId())
+		require.Nil(t, err)
+
+		data, err := ss.FileInfo().GetForPost(postId, true, false, false)
+		require.Nil(t, err)
+		info.PostId = postId
+		assert.Equal(t, []*model.FileInfo{info}, data)
 	})
 }
 
@@ -303,83 +382,84 @@ func testFileInfoDeleteForPost(t *testing.T, ss store.Store) {
 	}
 
 	for i, info := range infos {
-		infos[i] = store.Must(ss.FileInfo().Save(info)).(*model.FileInfo)
+		newInfo, err := ss.FileInfo().Save(info)
+		require.Nil(t, err)
+		infos[i] = newInfo
 		defer func(id string) {
-			<-ss.FileInfo().PermanentDelete(id)
-		}(infos[i].Id)
+			ss.FileInfo().PermanentDelete(id)
+		}(newInfo.Id)
 	}
 
-	if result := <-ss.FileInfo().DeleteForPost(postId); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err := ss.FileInfo().DeleteForPost(postId)
+	require.Nil(t, err)
 
-	if infos := store.Must(ss.FileInfo().GetForPost(postId, true, false)).([]*model.FileInfo); len(infos) != 0 {
-		t.Fatal("shouldn't have returned any file infos")
-	}
+	infos, err = ss.FileInfo().GetForPost(postId, true, false, false)
+	require.Nil(t, err)
+	assert.Len(t, infos, 0)
 }
 
 func testFileInfoPermanentDelete(t *testing.T, ss store.Store) {
-	info := store.Must(ss.FileInfo().Save(&model.FileInfo{
+	info, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
-	})).(*model.FileInfo)
+	})
+	require.Nil(t, err)
 
-	if result := <-ss.FileInfo().PermanentDelete(info.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	err = ss.FileInfo().PermanentDelete(info.Id)
+	require.Nil(t, err)
 }
 
 func testFileInfoPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	postId := model.NewId()
 
-	store.Must(ss.FileInfo().Save(&model.FileInfo{
+	_, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    postId,
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
 		CreateAt:  1000,
-	}))
+	})
+	require.Nil(t, err)
 
-	store.Must(ss.FileInfo().Save(&model.FileInfo{
+	_, err = ss.FileInfo().Save(&model.FileInfo{
 		PostId:    postId,
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
 		CreateAt:  1200,
-	}))
+	})
+	require.Nil(t, err)
 
-	store.Must(ss.FileInfo().Save(&model.FileInfo{
+	_, err = ss.FileInfo().Save(&model.FileInfo{
 		PostId:    postId,
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
 		CreateAt:  2000,
-	}))
+	})
+	require.Nil(t, err)
 
-	if result := <-ss.FileInfo().GetForPost(postId, true, false); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if len(result.Data.([]*model.FileInfo)) != 3 {
-		t.Fatal("Expected 3 fileInfos")
-	}
+	postFiles, err := ss.FileInfo().GetForPost(postId, true, false, false)
+	require.Nil(t, err)
+	assert.Len(t, postFiles, 3)
 
-	store.Must(ss.FileInfo().PermanentDeleteBatch(1500, 1000))
+	_, err = ss.FileInfo().PermanentDeleteBatch(1500, 1000)
+	require.Nil(t, err)
 
-	if result := <-ss.FileInfo().GetForPost(postId, true, false); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if len(result.Data.([]*model.FileInfo)) != 1 {
-		t.Fatal("Expected 3 fileInfos")
-	}
+	postFiles, err = ss.FileInfo().GetForPost(postId, true, false, false)
+	require.Nil(t, err)
+	assert.Len(t, postFiles, 1)
 }
 
 func testFileInfoPermanentDeleteByUser(t *testing.T, ss store.Store) {
 	userId := model.NewId()
 	postId := model.NewId()
 
-	store.Must(ss.FileInfo().Save(&model.FileInfo{
+	_, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    postId,
 		CreatorId: userId,
 		Path:      "file.txt",
-	}))
+	})
+	require.Nil(t, err)
 
-	if result := <-ss.FileInfo().PermanentDeleteByUser(userId); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err = ss.FileInfo().PermanentDeleteByUser(userId)
+	require.Nil(t, err)
 }

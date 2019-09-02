@@ -34,6 +34,7 @@ var String = zap.String
 var Any = zap.Any
 var Err = zap.Error
 var Bool = zap.Bool
+var Duration = zap.Duration
 
 type LoggerConfiguration struct {
 	EnableConsole bool
@@ -125,6 +126,11 @@ func (l *Logger) With(fields ...Field) *Logger {
 
 func (l *Logger) StdLog(fields ...Field) *log.Logger {
 	return zap.NewStdLog(l.With(fields...).zap.WithOptions(getStdLogOption()))
+}
+
+// StdLogAt returns *log.Logger which writes to supplied zap logger at required level.
+func (l *Logger) StdLogAt(level string, fields ...Field) (*log.Logger, error) {
+	return zap.NewStdLogAt(l.With(fields...).zap.WithOptions(getStdLogOption()), getZapLevel(level))
 }
 
 // StdLogWriter returns a writer that can be hooked up to the output of a golang standard logger

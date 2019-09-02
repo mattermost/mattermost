@@ -4,18 +4,18 @@
 package app
 
 import (
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"testing"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 type TestHelper struct {
@@ -29,31 +29,21 @@ type TestHelper struct {
 
 	SystemAdminUser *model.User
 
-	tempConfigPath string
-	tempWorkspace  string
+	tempWorkspace string
 }
 
 func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
-	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
+	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
-		panic(err)
-	}
-	defer permConfig.Close()
-	tempConfig, err := ioutil.TempFile("", "")
-	if err != nil {
-		panic(err)
-	}
-	_, err = io.Copy(tempConfig, permConfig)
-	tempConfig.Close()
-	if err != nil {
-		panic(err)
+		panic("failed to initialize memory store: " + err.Error())
 	}
 
-	options := []Option{Config(tempConfig.Name(), false)}
-	options = append(options, StoreOverride(store))
+	var options []Option
+	options = append(options, ConfigStore(memoryStore))
+	options = append(options, StoreOverride(mainHelper.Store))
 	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
 
 	s, err := NewServer(options...)
@@ -62,9 +52,8 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	th := &TestHelper{
-		App:            s.FakeApp(),
-		Server:         s,
-		tempConfigPath: tempConfig.Name(),
+		App:    s.FakeApp(),
+		Server: s,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
@@ -81,6 +70,15 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
+
+	// Disable strict password requirements for test
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PasswordSettings.MinimumLength = 5
+		*cfg.PasswordSettings.Lowercase = false
+		*cfg.PasswordSettings.Uppercase = false
+		*cfg.PasswordSettings.Symbol = false
+		*cfg.PasswordSettings.Number = false
+	})
 
 	if enterprise {
 		th.App.SetLicense(model.NewTestLicense())
@@ -155,6 +153,14 @@ func (me *TestHelper) CreateTeam() *model.Team {
 }
 
 func (me *TestHelper) CreateUser() *model.User {
+	return me.CreateUserOrGuest(false)
+}
+
+func (me *TestHelper) CreateGuest() *model.User {
+	return me.CreateUserOrGuest(true)
+}
+
+func (me *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -167,11 +173,20 @@ func (me *TestHelper) CreateUser() *model.User {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if user, err = me.App.CreateUser(user); err != nil {
-		mlog.Error(err.Error())
+	if guest {
+		if user, err = me.App.CreateGuest(user); err != nil {
+			mlog.Error(err.Error())
 
-		time.Sleep(time.Second)
-		panic(err)
+			time.Sleep(time.Second)
+			panic(err)
+		}
+	} else {
+		if user, err = me.App.CreateUser(user); err != nil {
+			mlog.Error(err.Error())
+
+			time.Sleep(time.Second)
+			panic(err)
+		}
 	}
 	utils.EnableDebugLogForTest()
 	return user
@@ -281,6 +296,26 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	return post
 }
 
+func (me *TestHelper) CreateMessagePost(channel *model.Channel, message string) *model.Post {
+	post := &model.Post{
+		UserId:    me.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   message,
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	if post, err = me.App.CreatePost(post, channel, false); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return post
+}
+
 func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
@@ -327,8 +362,10 @@ func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 	roleNames := []string{
 		scheme.DefaultTeamAdminRole,
 		scheme.DefaultTeamUserRole,
+		scheme.DefaultTeamGuestRole,
 		scheme.DefaultChannelAdminRole,
 		scheme.DefaultChannelUserRole,
+		scheme.DefaultChannelGuestRole,
 	}
 
 	var roles []*model.Role
@@ -370,17 +407,17 @@ func (me *TestHelper) CreateGroup() *model.Group {
 func (me *TestHelper) CreateEmoji() *model.Emoji {
 	utils.DisableDebugLogForTest()
 
-	result := <-me.App.Srv.Store.Emoji().Save(&model.Emoji{
+	emoji, err := me.App.Srv.Store.Emoji().Save(&model.Emoji{
 		CreatorId: me.BasicUser.Id,
 		Name:      model.NewRandomString(10),
 	})
-	if result.Err != nil {
-		panic(result.Err)
+	if err != nil {
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()
 
-	return result.Data.(*model.Emoji)
+	return emoji
 }
 
 func (me *TestHelper) AddReactionToPost(post *model.Post, user *model.User, emojiName string) *model.Reaction {
@@ -418,7 +455,6 @@ func (me *TestHelper) ShutdownApp() {
 
 func (me *TestHelper) TearDown() {
 	me.ShutdownApp()
-	os.Remove(me.tempConfigPath)
 	if err := recover(); err != nil {
 		panic(err)
 	}
@@ -442,7 +478,15 @@ func (me *TestHelper) ResetRoleMigration() {
 
 func (me *TestHelper) ResetEmojisMigration() {
 	sqlSupplier := mainHelper.GetSqlSupplier()
-	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
+		panic(err)
+	}
+
+	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True"); err != nil {
+		panic(err)
+	}
+
+	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
@@ -454,19 +498,19 @@ func (me *TestHelper) ResetEmojisMigration() {
 }
 
 func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	if r := <-me.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
-		if r.Data.(int64) != expected {
-			t.Fatalf("Unexpected number of teams. Expected: %v, found: %v", expected, r.Data.(int64))
-		}
-	} else {
+	teamCount, err := me.App.Srv.Store.Team().AnalyticsTeamCount()
+	if err != nil {
 		t.Fatalf("Failed to get team count.")
+	}
+	if teamCount != expected {
+		t.Fatalf("Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 	}
 }
 
 func (me *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	if r := <-me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != expected {
-			t.Fatalf("Unexpected number of channels. Expected: %v, found: %v", expected, r.Data.(int64))
+	if count, err := me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); err == nil {
+		if count != expected {
+			t.Fatalf("Unexpected number of channels. Expected: %v, found: %v", expected, count)
 		}
 	} else {
 		t.Fatalf("Failed to get channel count.")
@@ -507,4 +551,63 @@ func (me *TestHelper) SetupPluginAPI() *PluginAPI {
 	}
 
 	return NewPluginAPI(me.App, manifest)
+}
+
+func (me *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
+	utils.DisableDebugLogForTest()
+
+	role, err1 := me.App.GetRoleByName(roleName)
+	if err1 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err1)
+	}
+
+	var newPermissions []string
+	for _, p := range role.Permissions {
+		if p != permission {
+			newPermissions = append(newPermissions, p)
+		}
+	}
+
+	if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
+		utils.EnableDebugLogForTest()
+		return
+	}
+
+	role.Permissions = newPermissions
+
+	_, err2 := me.App.UpdateRole(role)
+	if err2 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err2)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) AddPermissionToRole(permission string, roleName string) {
+	utils.DisableDebugLogForTest()
+
+	role, err1 := me.App.GetRoleByName(roleName)
+	if err1 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err1)
+	}
+
+	for _, existingPermission := range role.Permissions {
+		if existingPermission == permission {
+			utils.EnableDebugLogForTest()
+			return
+		}
+	}
+
+	role.Permissions = append(role.Permissions, permission)
+
+	_, err2 := me.App.UpdateRole(role)
+	if err2 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err2)
+	}
+
+	utils.EnableDebugLogForTest()
 }

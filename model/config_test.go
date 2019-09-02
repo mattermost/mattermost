@@ -55,6 +55,19 @@ func TestConfigDefaults(t *testing.T) {
 	})
 }
 
+func TestConfigEmptySiteName(t *testing.T) {
+	c1 := Config{
+		TeamSettings: TeamSettings{
+			SiteName: NewString(""),
+		},
+	}
+	c1.SetDefaults()
+
+	if *c1.TeamSettings.SiteName != TEAM_SETTINGS_DEFAULT_SITE_NAME {
+		t.Fatal("TeamSettings.SiteName should default to " + TEAM_SETTINGS_DEFAULT_SITE_NAME)
+	}
+}
+
 func TestConfigDefaultFileSettingsDirectory(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -111,6 +124,67 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 
 	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED {
 		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should set false to 'disabled'")
+	}
+}
+
+func TestConfigDefaultNPSPluginState(t *testing.T) {
+	t.Run("should enable NPS plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+
+	t.Run("should enable NPS plugin if diagnostics are enabled", func(t *testing.T) {
+		c1 := Config{
+			LogSettings: LogSettings{
+				EnableDiagnostics: NewBool(true),
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+
+	t.Run("should not enable NPS plugin if diagnostics are disabled", func(t *testing.T) {
+		c1 := Config{
+			LogSettings: LogSettings{
+				EnableDiagnostics: NewBool(false),
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+
+	t.Run("should not re-enable NPS plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.nps": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+}
+
+func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+	c1.TeamSettings.SiteName = NewString("")
+
+	// should fail fast because ts.SiteName is not set
+	err := c1.TeamSettings.isValid()
+	if err == nil {
+		t.Fatal("TeamSettings validation should fail with an empty SiteName")
 	}
 }
 
@@ -469,7 +543,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing period",
 			value: []string{"iris.beep"},
-			valid: false, // should technically be true, but client doesn't support it
+			valid: true,
 		},
 		{
 			name:  "containing hyphen",
@@ -479,7 +553,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing plus",
 			value: []string{"coap+tcp", "coap+ws"},
-			valid: false, // should technically be true, but client doesn't support it
+			valid: true,
 		},
 		{
 			name:  "starting with number",
@@ -553,7 +627,7 @@ func TestListenAddressIsValidated(t *testing.T) {
 		ss := &ServiceSettings{
 			ListenAddress: NewString(key),
 		}
-		ss.SetDefaults()
+		ss.SetDefaults(true)
 		if expected {
 			require.Nil(t, ss.isValid(), fmt.Sprintf("Got an error from '%v'.", key))
 		} else {
@@ -576,7 +650,7 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 		ips := ImageProxySettings{}
 		ips.SetDefaults(ServiceSettings{})
 
-		assert.Equal(t, true, *ips.Enable)
+		assert.Equal(t, false, *ips.Enable)
 		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
 		assert.Equal(t, "", *ips.RemoteImageProxyURL)
 		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
@@ -841,4 +915,29 @@ func TestLdapSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfigSanitize(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	*c.LdapSettings.BindPassword = "foo"
+	*c.FileSettings.AmazonS3SecretAccessKey = "bar"
+	*c.EmailSettings.SMTPPassword = "baz"
+	*c.GitLabSettings.Secret = "bingo"
+	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
+	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
+
+	c.Sanitize()
+
+	assert.Equal(t, FAKE_SETTING, *c.LdapSettings.BindPassword)
+	assert.Equal(t, FAKE_SETTING, *c.FileSettings.PublicLinkSalt)
+	assert.Equal(t, FAKE_SETTING, *c.FileSettings.AmazonS3SecretAccessKey)
+	assert.Equal(t, FAKE_SETTING, *c.EmailSettings.SMTPPassword)
+	assert.Equal(t, FAKE_SETTING, *c.GitLabSettings.Secret)
+	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.DataSource)
+	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.AtRestEncryptKey)
+	assert.Equal(t, FAKE_SETTING, *c.ElasticsearchSettings.Password)
+	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceReplicas[0])
+	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceSearchReplicas[0])
 }

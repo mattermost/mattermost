@@ -30,7 +30,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -82,7 +81,7 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 // Caller must close the first return value
-func (a *App) FileReader(path string) (io.ReadCloser, *model.AppError) {
+func (a *App) FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return nil, err
@@ -121,6 +120,19 @@ func (a *App) RemoveFile(path string) *model.AppError {
 		return err
 	}
 	return backend.RemoveFile(path)
+}
+
+func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return nil, err
+	}
+	paths, err := backend.ListDirectory(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return *paths, nil
 }
 
 func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename string) *model.FileInfo {
@@ -193,13 +205,12 @@ func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
 	name, _ := url.QueryUnescape(split[4])
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
-	result := <-a.Srv.Store.Team().GetTeamsByUserId(post.UserId)
-	if result.Err != nil {
-		mlog.Error(fmt.Sprintf("Unable to get teams when migrating post to use FileInfo, err=%v", result.Err), mlog.String("post_id", post.Id))
+	teams, err := a.Srv.Store.Team().GetTeamsByUserId(post.UserId)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Unable to get teams when migrating post to use FileInfo, err=%v", err), mlog.String("post_id", post.Id))
 		return ""
 	}
 
-	teams := result.Data.([]*model.Team)
 	if len(teams) == 1 {
 		// The user has only one team so the post must've been sent from it
 		return teams[0].Id
@@ -225,26 +236,22 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	}
 
-	cchan := a.Srv.Store.Channel().Get(post.ChannelId, true)
-
+	channel, errCh := a.Srv.Store.Channel().Get(post.ChannelId, true)
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
-
-	result := <-cchan
-	if result.Err != nil {
+	if errCh != nil {
 		mlog.Error(
-			fmt.Sprintf("Unable to get channel when migrating post to use FileInfos, err=%v", result.Err),
+			fmt.Sprintf("Unable to get channel when migrating post to use FileInfos, err=%v", errCh),
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
 		)
 		return []*model.FileInfo{}
 	}
-	channel := result.Data.(*model.Channel)
 
 	// Find the team that was used to make this post since its part of the file path that isn't saved in the Filename
 	var teamId string
 	if channel.TeamId == "" {
-		// This post was made in a cross-team DM channel so we need to find where its files were saved
+		// This post was made in a cross-team DM channel, so we need to find where its files were saved
 		teamId = a.FindTeamIdForFilename(post, filenames[0])
 	} else {
 		teamId = channel.TeamId
@@ -272,22 +279,23 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result = <-a.Srv.Store.Post().Get(post.Id)
-	if result.Err != nil {
-		mlog.Error(fmt.Sprintf("Unable to get post when migrating post to use FileInfos, err=%v", result.Err), mlog.String("post_id", post.Id))
+	result, err := a.Srv.Store.Post().Get(post.Id)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Unable to get post when migrating post to use FileInfos, err=%v", err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 
-	if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
+	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
-		result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
-		if result.Err != nil {
-			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", result.Err), mlog.String("post_id", post.Id))
+		var fileInfos []*model.FileInfo
+		fileInfos, err = a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, false)
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
 		}
 
 		mlog.Debug("Post already migrated to use FileInfos", mlog.String("post_id", post.Id))
-		return result.Data.([]*model.FileInfo)
+		return fileInfos
 	}
 
 	mlog.Debug("Migrating post to use FileInfos", mlog.String("post_id", post.Id))
@@ -295,9 +303,9 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIds := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if result := <-a.Srv.Store.FileInfo().Save(info); result.Err != nil {
+		if _, err = a.Srv.Store.FileInfo().Save(info); err != nil {
 			mlog.Error(
-				fmt.Sprintf("Unable to save file info when migrating post to use FileInfos, err=%v", result.Err),
+				fmt.Sprintf("Unable to save file info when migrating post to use FileInfos, err=%v", err),
 				mlog.String("post_id", post.Id),
 				mlog.String("file_info_id", info.Id),
 				mlog.String("file_info_path", info.Path),
@@ -317,8 +325,8 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	newPost.FileIds = fileIds
 
 	// Update Posts to clear Filenames and set FileIds
-	if result := <-a.Srv.Store.Post().Update(newPost, post); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Unable to save migrated post when migrating to use FileInfos, new_file_ids=%v, old_filenames=%v, err=%v", newPost.FileIds, post.Filenames, result.Err), mlog.String("post_id", post.Id))
+	if _, err = a.Srv.Store.Post().Update(newPost, post); err != nil {
+		mlog.Error(fmt.Sprintf("Unable to save migrated post when migrating to use FileInfos, new_file_ids=%v, old_filenames=%v, err=%v", newPost.FileIds, post.Filenames, err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 	return savedInfos
@@ -510,7 +518,7 @@ type uploadFileTask struct {
 	// Testing: overrideable dependency functions
 	pluginsEnvironment *plugin.Environment
 	writeFile          func(io.Reader, string) (int64, *model.AppError)
-	saveToDatabase     func(*model.FileInfo) store.StoreChannel
+	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, *model.AppError)
 }
 
 func (t *uploadFileTask) init(a *App) {
@@ -609,8 +617,8 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		return nil, aerr
 	}
 
-	if result := <-t.saveToDatabase(t.fileinfo); result.Err != nil {
-		return nil, result.Err
+	if _, err := t.saveToDatabase(t.fileinfo); err != nil {
+		return nil, err
 	}
 
 	wg.Wait()
@@ -648,8 +656,8 @@ func (t *uploadFileTask) runPlugins() *model.AppError {
 		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext,
 			t.fileinfo, t.newReader(), buf)
 		if rejectionReason != "" {
-			rejectionError = t.newAppError("api.file.upload_file.read_request.app_error",
-				rejectionReason, http.StatusBadRequest)
+			rejectionError = t.newAppError("api.file.upload_file.rejected_by_plugin.app_error",
+				rejectionReason, http.StatusForbidden, "Reason", rejectionReason)
 			return false
 		}
 		if replacementInfo != nil {
@@ -919,8 +927,8 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		return nil, data, err
 	}
 
-	if result := <-a.Srv.Store.FileInfo().Save(info); result.Err != nil {
-		return nil, data, result.Err
+	if _, err := a.Srv.Store.FileInfo().Save(info); err != nil {
+		return nil, data, err
 	}
 
 	return info, data, nil
@@ -1063,11 +1071,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 }
 
 func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	result := <-a.Srv.Store.FileInfo().Get(fileId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.FileInfo), nil
+	return a.Srv.Store.FileInfo().Get(fileId)
 }
 
 func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
@@ -1090,21 +1094,19 @@ func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.A
 	now := model.GetMillis()
 
 	for _, fileId := range fileIds {
-		result := <-a.Srv.Store.FileInfo().Get(fileId)
-
-		if result.Err != nil {
-			return nil, result.Err
+		fileInfo, err := a.Srv.Store.FileInfo().Get(fileId)
+		if err != nil {
+			return nil, err
 		}
 
-		fileInfo := result.Data.(*model.FileInfo)
 		fileInfo.Id = model.NewId()
 		fileInfo.CreatorId = userId
 		fileInfo.CreateAt = now
 		fileInfo.UpdateAt = now
 		fileInfo.PostId = ""
 
-		if result := <-a.Srv.Store.FileInfo().Save(fileInfo); result.Err != nil {
-			return newFileIds, result.Err
+		if _, err := a.Srv.Store.FileInfo().Save(fileInfo); err != nil {
+			return newFileIds, err
 		}
 
 		newFileIds = append(newFileIds, fileInfo.Id)

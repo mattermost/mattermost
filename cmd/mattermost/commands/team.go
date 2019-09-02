@@ -90,6 +90,25 @@ var RestoreTeamsCmd = &cobra.Command{
 	RunE:    restoreTeamsCmdF,
 }
 
+var TeamRenameCmd = &cobra.Command{
+	Use:   "rename",
+	Short: "Rename a team",
+	Long:  `Rename a team.`,
+	Example: `  team rename myteam newteamname --display_name "My New Team Name"
+	team rename myteam - --display_name "My New Team Name"`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: renameTeamCmdF,
+}
+
+var ModifyTeamCmd = &cobra.Command{
+	Use:     "modify [team] [flag]",
+	Short:   "Modify a team's privacy setting to public or private",
+	Long:    `Modify a team's privacy setting to public or private.`,
+	Example: "  team modify myteam --private",
+	Args:    cobra.ExactArgs(1),
+	RunE:    modifyTeamCmdF,
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -97,6 +116,11 @@ func init() {
 	TeamCreateCmd.Flags().String("email", "", "Administrator Email (anyone with this email is automatically a team admin)")
 
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
+
+	TeamRenameCmd.Flags().String("display_name", "", "Team Display Name")
+
+	ModifyTeamCmd.Flags().Bool("private", false, "Convert the team to a private team")
+	ModifyTeamCmd.Flags().Bool("public", false, "Convert the team to a public team")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
@@ -107,6 +131,8 @@ func init() {
 		SearchTeamCmd,
 		ArchiveTeamCmd,
 		RestoreTeamsCmd,
+		TeamRenameCmd,
+		ModifyTeamCmd,
 	)
 	RootCmd.AddCommand(TeamCmd)
 }
@@ -358,6 +384,75 @@ func archiveTeamCmdF(command *cobra.Command, args []string) error {
 		if err := a.SoftDeleteTeam(team.Id); err != nil {
 			CommandPrintErrorln("Unable to archive team '"+team.Name+"' error: ", err)
 		}
+	}
+
+	return nil
+}
+
+func renameTeamCmdF(command *cobra.Command, args []string) error {
+
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	team := getTeamFromTeamArg(a, args[0])
+	if team == nil {
+		return errors.New("Unable to find team '" + args[0] + "'")
+	}
+
+	var newDisplayName, newTeamName string
+
+	newTeamName = args[1]
+
+	// let user use old team Name when only Display Name change is wanted
+	if newTeamName == team.Name {
+		newTeamName = "-"
+	}
+
+	newDisplayName, errdn := command.Flags().GetString("display_name")
+	if errdn != nil {
+		return errdn
+	}
+
+	_, errrt := a.RenameTeam(team, newTeamName, newDisplayName)
+	if errrt != nil {
+		CommandPrintErrorln("Unable to rename team to '"+newTeamName+"' error: ", errrt)
+	}
+
+	return nil
+}
+
+func modifyTeamCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	team := getTeamFromTeamArg(a, args[0])
+	if team == nil {
+		return errors.New("Unable to find team '" + args[0] + "'")
+	}
+
+	public, _ := command.Flags().GetBool("public")
+	private, _ := command.Flags().GetBool("private")
+
+	if public == private {
+		return errors.New("You must specify only one of --public or --private")
+	}
+
+	if public {
+		team.Type = model.TEAM_OPEN
+		team.AllowOpenInvite = true
+	} else if private {
+		team.Type = model.TEAM_INVITE
+		team.AllowOpenInvite = false
+	}
+
+	if err := a.UpdateTeamPrivacy(team.Id, team.Type, team.AllowOpenInvite); err != nil {
+		return errors.New("Failed to update privacy for team" + args[0])
 	}
 
 	return nil

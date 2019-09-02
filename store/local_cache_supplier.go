@@ -12,9 +12,6 @@ import (
 )
 
 const (
-	REACTION_CACHE_SIZE = 20000
-	REACTION_CACHE_SEC  = 30 * 60
-
 	ROLE_CACHE_SIZE = 20000
 	ROLE_CACHE_SEC  = 30 * 60
 
@@ -28,13 +25,11 @@ const (
 )
 
 type LocalCacheSupplier struct {
-	next          LayeredStoreSupplier
-	reactionCache *utils.Cache
-	roleCache     *utils.Cache
-	schemeCache   *utils.Cache
-	metrics       einterfaces.MetricsInterface
-	cluster       einterfaces.ClusterInterface
-	groupCache    *utils.Cache
+	next        LayeredStoreSupplier
+	roleCache   *utils.Cache
+	schemeCache *utils.Cache
+	metrics     einterfaces.MetricsInterface
+	cluster     einterfaces.ClusterInterface
 }
 
 // Caching Interface
@@ -51,18 +46,14 @@ type ObjectCache interface {
 
 func NewLocalCacheSupplier(metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) *LocalCacheSupplier {
 	supplier := &LocalCacheSupplier{
-		reactionCache: utils.NewLruWithParams(REACTION_CACHE_SIZE, "Reaction", REACTION_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS),
-		roleCache:     utils.NewLruWithParams(ROLE_CACHE_SIZE, "Role", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES),
-		schemeCache:   utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES),
-		groupCache:    utils.NewLruWithParams(GROUP_CACHE_SIZE, "Group", GROUP_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_GROUPS),
-		metrics:       metrics,
-		cluster:       cluster,
+		roleCache:   utils.NewLruWithParams(ROLE_CACHE_SIZE, "Role", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES),
+		schemeCache: utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES),
+		metrics:     metrics,
+		cluster:     cluster,
 	}
 
 	if cluster != nil {
-		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, supplier.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES, supplier.handleClusterInvalidateRole)
-		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_GROUPS, supplier.handleClusterInvalidateGroup)
 	}
 
 	return supplier
@@ -131,7 +122,6 @@ func (s *LocalCacheSupplier) doClearCacheCluster(cache ObjectCache) {
 }
 
 func (s *LocalCacheSupplier) Invalidate() {
-	s.doClearCacheCluster(s.reactionCache)
 	s.doClearCacheCluster(s.roleCache)
 	s.doClearCacheCluster(s.schemeCache)
 }

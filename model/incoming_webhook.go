@@ -38,6 +38,7 @@ type IncomingWebhookRequest struct {
 	Props       StringInterface    `json:"props"`
 	Attachments []*SlackAttachment `json:"attachments"`
 	Type        string             `json:"type"`
+	IconEmoji   string             `json:"icon_emoji"`
 }
 
 func (o *IncomingWebhook) ToJson() string {

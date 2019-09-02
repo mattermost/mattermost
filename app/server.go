@@ -17,10 +17,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
+	analytics "github.com/segmentio/analytics-go"
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
@@ -101,7 +101,9 @@ type Server struct {
 	clientConfig        map[string]string
 	clientConfigHash    string
 	limitedClientConfig map[string]string
-	diagnosticId        string
+
+	diagnosticId     string
+	diagnosticClient analytics.Client
 
 	phase2PermissionsMigrationComplete bool
 
@@ -109,7 +111,8 @@ type Server struct {
 
 	ImageProxy *imageproxy.ImageProxy
 
-	Log *mlog.Logger
+	Log              *mlog.Logger
+	NotificationsLog *mlog.Logger
 
 	joinCluster        bool
 	startMetrics       bool
@@ -153,7 +156,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.Log == nil {
-		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
+		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
+	}
+
+	if s.NotificationsLog == nil {
+		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
+		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
+			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
 	}
 
 	// Redirect default golang logger to this logger
@@ -163,17 +172,18 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.InitGlobalLogger(s.Log)
 
 	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
-		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
+		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
+
+		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&after.NotificationLogSettings)
+		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
 	})
 
 	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
 
-	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService)
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
 
-	if utils.T == nil {
-		if err := utils.TranslationsPreInit(); err != nil {
-			return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
-		}
+	if err := utils.TranslationsPreInit(); err != nil {
+		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
 	err := s.RunOldAppInitalization()
@@ -191,11 +201,25 @@ func NewServer(options ...Option) (*Server, error) {
 		s.InitEmailBatching()
 	})
 
+	// Start plugin health check job
+	pluginsEnvironment := s.PluginsEnvironment
+	if pluginsEnvironment != nil {
+		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
+	}
+	s.AddConfigListener(func(_, c *model.Config) {
+		pluginsEnvironment := s.PluginsEnvironment
+		if pluginsEnvironment != nil {
+			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
+		}
+	})
+
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
 	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
 	pwd, _ := os.Getwd()
 	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
+
+	s.checkPushNotificationServerUrl()
 
 	license := s.License()
 
@@ -219,8 +243,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
-	if result := <-s.Store.Status().ResetAll(); result.Err != nil {
-		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
+	if err := s.Store.Status().ResetAll(); err != nil {
+		mlog.Error(fmt.Sprint("Error to reset the server status.", err.Error()))
 	}
 
 	if s.joinCluster && s.Cluster != nil {
@@ -306,12 +330,13 @@ func (s *Server) Shutdown() error {
 
 	s.RunOldAppShutdown()
 
+	err := s.shutdownDiagnostics()
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Unable to cleanly shutdown diagnostic client: %s", err))
+	}
+
 	s.StopHTTPServer()
 	s.WaitForGoroutines()
-
-	if s.Store != nil {
-		s.Store.Close()
-	}
 
 	if s.htmlTemplateWatcher != nil {
 		s.htmlTemplateWatcher.Close()
@@ -333,6 +358,10 @@ func (s *Server) Shutdown() error {
 	if s.Jobs != nil && s.runjobs {
 		s.Jobs.StopWorkers()
 		s.Jobs.StopSchedulers()
+	}
+
+	if s.Store != nil {
+		s.Store.Close()
 	}
 
 	mlog.Info("Server stopped")
@@ -369,14 +398,6 @@ var corsAllowedMethods = []string{
 	"PUT",
 	"PATCH",
 	"DELETE",
-}
-
-type RecoveryLogger struct {
-}
-
-func (rl *RecoveryLogger) Println(i ...interface{}) {
-	mlog.Error("Please check the std error output for the stack trace")
-	mlog.Error(fmt.Sprint(i...))
 }
 
 // golang.org/x/crypto/acme/autocert/autocert.go
@@ -427,7 +448,7 @@ func (s *Server) Start() error {
 	if *s.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")
 
-		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings)
+		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings, s.Config().ServiceSettings.TrustedProxyIPHeader)
 		if err != nil {
 			return err
 		}
@@ -436,11 +457,17 @@ func (s *Server) Start() error {
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
 
+	// Creating a logger for logging errors from http.Server at error level
+	errStdLog, err := s.Log.StdLogAt(mlog.LevelError, mlog.String("source", "httpserver"))
+	if err != nil {
+		return err
+	}
+
 	s.Server = &http.Server{
-		Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
+		Handler:      handler,
 		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
-		ErrorLog:     s.Log.StdLog(mlog.String("source", "httpserver")),
+		ErrorLog:     errStdLog,
 	}
 
 	addr := *s.Config().ServiceSettings.ListenAddress
@@ -603,6 +630,13 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 	return nil
 }
 
+func (s *Server) checkPushNotificationServerUrl() {
+	notificationServer := *s.Config().EmailSettings.PushNotificationServer
+	if strings.HasPrefix(notificationServer, "http://") == true {
+		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
+	}
+}
+
 func runSecurityJob(s *Server) {
 	doSecurity(s)
 	model.CreateRecurringTask("Security", func() {
@@ -713,4 +747,32 @@ func (s *Server) StartElasticsearch() {
 			})
 		}
 	})
+}
+
+func (s *Server) initDiagnostics(endpoint string) {
+	if s.diagnosticClient == nil {
+		config := analytics.Config{}
+		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "segment")))
+		// For testing
+		if endpoint != "" {
+			config.Endpoint = endpoint
+			config.Verbose = true
+			config.BatchSize = 1
+		}
+		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
+		client.Enqueue(&analytics.Identify{
+			UserId: s.diagnosticId,
+		})
+
+		s.diagnosticClient = client
+	}
+}
+
+// shutdownDiagnostics closes the diagnostic client.
+func (s *Server) shutdownDiagnostics() error {
+	if s.diagnosticClient != nil {
+		return s.diagnosticClient.Close()
+	}
+
+	return nil
 }

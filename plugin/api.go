@@ -44,10 +44,31 @@ type API interface {
 	// Minimum server version: 5.6
 	SavePluginConfig(config map[string]interface{}) *model.AppError
 
+	// GetBundlePath returns the absolute path where the plugin's bundle was unpacked.
+	//
+	// Minimum server version: 5.10
+	GetBundlePath() (string, error)
+
+	// GetLicense returns the current license used by the Mattermost server. Returns nil if the
+	// the server does not have a license.
+	//
+	// Minimum server version: 5.10
+	GetLicense() *model.License
+
 	// GetServerVersion return the current Mattermost server version
 	//
 	// Minimum server version: 5.4
 	GetServerVersion() string
+
+	// GetSystemInstallDate returns the time that Mattermost was first installed and ran.
+	//
+	// Minimum server version: 5.10
+	GetSystemInstallDate() (int64, *model.AppError)
+
+	// GetDiagnosticId returns a unique identifier used by the server for diagnostic reports.
+	//
+	// Minimum server version: 5.10
+	GetDiagnosticId() string
 
 	// CreateUser creates a user.
 	CreateUser(user *model.User) (*model.User, *model.AppError)
@@ -58,7 +79,7 @@ type API interface {
 	// GetUsers a list of users based on search options.
 	//
 	// Minimum server version: 5.10
-	GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError)
+	GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 
 	// GetUser gets a user.
 	GetUser(userId string) (*model.User, *model.AppError)
@@ -293,7 +314,7 @@ type API interface {
 
 	// DeleteEphemeralPost deletes an ephemeral message previously sent to the user.
 	// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
-	DeleteEphemeralPost(userId string, post *model.Post)
+	DeleteEphemeralPost(userId, postId string)
 
 	// DeletePost deletes a post.
 	DeletePost(postId string) *model.AppError
@@ -435,26 +456,44 @@ type API interface {
 
 	// KV Store Section
 
-	// KVSet will store a key-value pair, unique per plugin.
+	// KVSet stores a key-value pair, unique per plugin.
+	// Provided helper functions and internal plugin code will use the prefix `mmi_` before keys. Do not use this prefix.
 	KVSet(key string, value []byte) *model.AppError
 
-	// KVSet will store a key-value pair, unique per plugin with an expiry time
+	// KVCompareAndSet updates a key-value pair, unique per plugin, but only if the current value matches the given oldValue.
+	// Inserts a new key if oldValue == nil.
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if current value != oldValue or key already exists when inserting
+	// Returns (true, nil) if current value == oldValue or new key is inserted
+	//
+	// Minimum server version: 5.12
+	KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError)
+
+	// KVCompareAndDelete deletes a key-value pair, unique per plugin, but only if the current value matches the given oldValue.
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if current value != oldValue or key does not exist when deleting
+	// Returns (true, nil) if current value == oldValue and the key was deleted
+	//
+	// Minimum server version: 5.16
+	KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError)
+
+	// KVSet stores a key-value pair with an expiry time, unique per plugin.
 	//
 	// Minimum server version: 5.6
 	KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError
 
-	// KVGet will retrieve a value based on the key. Returns nil for non-existent keys.
+	// KVGet retrieves a value based on the key, unique per plugin. Returns nil for non-existent keys.
 	KVGet(key string) ([]byte, *model.AppError)
 
-	// KVDelete will remove a key-value pair. Returns nil for non-existent keys.
+	// KVDelete removes a key-value pair, unique per plugin. Returns nil for non-existent keys.
 	KVDelete(key string) *model.AppError
 
-	// KVDeleteAll will remove all key-value pairs for a plugin.
+	// KVDeleteAll removes all key-value pairs for a plugin.
 	//
 	// Minimum server version: 5.6
 	KVDeleteAll() *model.AppError
 
-	// KVList will list all keys for a plugin.
+	// KVList lists all keys for a plugin.
 	//
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
@@ -508,6 +547,52 @@ type API interface {
 	//
 	// Minimum server version: 5.7
 	SendMail(to, subject, htmlBody string) *model.AppError
+
+	// CreateBot creates the given bot and corresponding user.
+	//
+	// Minimum server version: 5.10
+	CreateBot(bot *model.Bot) (*model.Bot, *model.AppError)
+
+	// PatchBot applies the given patch to the bot and corresponding user.
+	//
+	// Minimum server version: 5.10
+	PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
+
+	// GetBot returns the given bot.
+	//
+	// Minimum server version: 5.10
+	GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError)
+
+	// GetBots returns the requested page of bots.
+	//
+	// Minimum server version: 5.10
+	GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
+
+	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
+	//
+	// Minimum server version: 5.10
+	UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError)
+
+	// PermanentDeleteBot permanently deletes a bot and its corresponding user.
+	//
+	// Minimum server version: 5.10
+	PermanentDeleteBot(botUserId string) *model.AppError
+
+	// GetBotIconImage gets LHS bot icon image.
+	//
+	// Minimum server version: 5.14
+	GetBotIconImage(botUserId string) ([]byte, *model.AppError)
+
+	// SetBotIconImage sets LHS bot icon image.
+	// Icon image must be SVG format, all other formats are rejected.
+	//
+	// Minimum server version: 5.14
+	SetBotIconImage(botUserId string, data []byte) *model.AppError
+
+	// DeleteBotIconImage deletes LHS bot icon image.
+	//
+	// Minimum server version: 5.14
+	DeleteBotIconImage(botUserId string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

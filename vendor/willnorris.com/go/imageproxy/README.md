@@ -2,7 +2,8 @@
 
 [![GoDoc](https://godoc.org/willnorris.com/go/imageproxy?status.svg)](https://godoc.org/willnorris.com/go/imageproxy)
 [![Build Status](https://travis-ci.org/willnorris/imageproxy.svg?branch=master)](https://travis-ci.org/willnorris/imageproxy)
-[![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](LICENSE)
+[![Test Coverage](https://codecov.io/gh/willnorris/imageproxy/branch/master/graph/badge.svg)](https://codecov.io/gh/willnorris/imageproxy)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2611/badge)](https://bestpractices.coreinfrastructure.org/projects/2611)
 
 imageproxy is a caching image proxy server written in go.  It features:
 
@@ -57,28 +58,34 @@ source image][small-things], which measures 1024 by 678 pixels.
 
 Options | Meaning                                  | Image
 --------|------------------------------------------|------
-200x    | 200px wide, proportional height          | <a href="https://willnorris.com/api/imageproxy/200x/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/200x/https://willnorris.com/2013/12/small-things.jpg" alt="200x"></a>
-x0.15   | 15% original height, proportional width  | <a href="https://willnorris.com/api/imageproxy/x0.15/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/x0.15/https://willnorris.com/2013/12/small-things.jpg" alt="x0.15"></a>
-100x150 | 100 by 150 pixels, cropping as needed    | <a href="https://willnorris.com/api/imageproxy/100x150/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/100x150/https://willnorris.com/2013/12/small-things.jpg" alt="100x150"></a>
-100     | 100px square, cropping as needed         | <a href="https://willnorris.com/api/imageproxy/100/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/100/https://willnorris.com/2013/12/small-things.jpg" alt="100"></a>
-150,fit | scale to fit 150px square, no cropping   | <a href="https://willnorris.com/api/imageproxy/150,fit/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/150,fit/https://willnorris.com/2013/12/small-things.jpg" alt="150,fit"></a>
-100,r90 | 100px square, rotated 90 degrees         | <a href="https://willnorris.com/api/imageproxy/100,r90/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/100,r90/https://willnorris.com/2013/12/small-things.jpg" alt="100,r90"></a>
-100,fv,fh | 100px square, flipped horizontal and vertical | <a href="https://willnorris.com/api/imageproxy/100,fv,fh/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/100,fv,fh/https://willnorris.com/2013/12/small-things.jpg" alt="100,fv,fh"></a>
-200x,q60 | 200px wide, proportional height, 60% quality | <a href="https://willnorris.com/api/imageproxy/200x,q60/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/200x,q60/https://willnorris.com/2013/12/small-things.jpg" alt="200x,q60"></a>
-200x,png | 200px wide, converted to PNG format | <a href="https://willnorris.com/api/imageproxy/200x,png/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/200x,png/https://willnorris.com/2013/12/small-things.jpg" alt="200x,png"></a>
-cx175,cw400,ch300,100x | crop to 400x300px starting at (175,0), scale to 100px wide | <a href="https://willnorris.com/api/imageproxy/cx175,cw400,ch300,100x/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/cx175,cw400,ch300,100x/https://willnorris.com/2013/12/small-things.jpg" alt="cx175,cw400,ch300,100x"></a>
+200x    | 200px wide, proportional height          | <a href="https://imageproxy.willnorris.com/200x/https://willnorris.com/2013/12/small-things.jpg"><img src="https://imageproxy.willnorris.com/200x/https://willnorris.com/2013/12/small-things.jpg" alt="200x"></a>
+x0.15   | 15% original height, proportional width  | <a href="https://imageproxy.willnorris.com/x0.15/https://willnorris.com/2013/12/small-things.jpg"><img src="https://imageproxy.willnorris.com/x0.15/https://willnorris.com/2013/12/small-things.jpg" alt="x0.15"></a>
+100x150 | 100 by 150 pixels, cropping as needed    | <a href="https://imageproxy.willnorris.com/100x150/https://willnorris.com/2013/12/small-things.jpg"><img src="https://imageproxy.willnorris.com/100x150/https://willnorris.com/2013/12/small-things.jpg" alt="100x150"></a>
+100     | 100px square, cropping as needed         | <a href="https://imageproxy.willnorris.com/100/https://willnorris.com/2013/12/small-things.jpg"><img src="https://imageproxy.willnorris.com/100/https://willnorris.com/2013/12/small-things.jpg" alt="100"></a>
+150,fit | scale to fit 150px square, no cropping   | <a href="https://imageproxy.willnorris.com/150,fit/https://willnorris.com/2013/12/small-things.jpg"><img src="https://imageproxy.willnorris.com/150,fit/https://willnorris.com/2013/12/small-things.jpg" alt="150,fit"></a>
+100,r90 | 100px square, rotated 90 degrees         | <a href="https://imageproxy.willnorris.com/100,r90/https://willnorris.com/2013/12/small-things.jpg"><img src="https://imageproxy.willnorris.com/100,r90/https://willnorris.com/2013/12/small-things.jpg" alt="100,r90"></a>
+100,fv,fh | 100px square, flipped horizontal and vertical | <a href="https://imageproxy.willnorris.com/100,fv,fh/https://willnorris.com/2013/12/small-things.jpg"><img src="https://imageproxy.willnorris.com/100,fv,fh/https://willnorris.com/2013/12/small-things.jpg" alt="100,fv,fh"></a>
+200x,q60 | 200px wide, proportional height, 60% quality | <a href="https://imageproxy.willnorris.com/200x,q60/https://willnorris.com/2013/12/small-things.jpg"><img src="https://imageproxy.willnorris.com/200x,q60/https://willnorris.com/2013/12/small-things.jpg" alt="200x,q60"></a>
+200x,png | 200px wide, converted to PNG format | <a href="https://imageproxy.willnorris.com/200x,png/https://willnorris.com/2013/12/small-things.jpg"><img src="https://imageproxy.willnorris.com/200x,png/https://willnorris.com/2013/12/small-things.jpg" alt="200x,png"></a>
+cx175,cw400,ch300,100x | crop to 400x300px starting at (175,0), scale to 100px wide | <a href="https://imageproxy.willnorris.com/cx175,cw400,ch300,100x/https://willnorris.com/2013/12/small-things.jpg"><img src="https://imageproxy.willnorris.com/cx175,cw400,ch300,100x/https://willnorris.com/2013/12/small-things.jpg" alt="cx175,cw400,ch300,100x"></a>
+
+The [smart crop feature](https://godoc.org/willnorris.com/go/imageproxy#hdr-Smart_Crop)
+can best be seen by comparing crops of [this source image][judah-sheets], with
+and without smart crop enabled.
+
+Options | Meaning                                  | Image
+--------|------------------------------------------|------
+150x300 | 150x300px, standard crop | <a href="https://imageproxy.willnorris.com/150x300/https://judahnorris.com/images/judah-sheets.jpg"><img src="https://imageproxy.willnorris.com/150x300/https://judahnorris.com/images/judah-sheets.jpg" alt="200x400,sc"></a>
+150x300,sc | 150x300px, smart crop          | <a href="https://imageproxy.willnorris.com/150x300,sc/https://judahnorris.com/images/judah-sheets.jpg"><img src="https://imageproxy.willnorris.com/150x300,sc/https://judahnorris.com/images/judah-sheets.jpg" alt="200x400"></a>
+
+[judah-sheets]: https://judahnorris.com/images/judah-sheets.jpg
 
 Transformation also works on animated gifs.  Here is [this source
 image][material-animation] resized to 200px square and rotated 270 degrees:
 
 [material-animation]: https://willnorris.com/2015/05/material-animations.gif
 
-<a href="https://willnorris.com/api/imageproxy/200,r270/https://willnorris.com/2015/05/material-animations.gif"><img src="https://willnorris.com/api/imageproxy/200,r270/https://willnorris.com/2015/05/material-animations.gif" alt="200,r270"></a>
-
-The smart crop feature can best be seen by comparing the following images, with and without smart crop.
-
-<a href="https://willnorris.com/api/imageproxy/150x300,sc/https://judahnorris.com/images/judah-sheets.jpg"><img src="https://willnorris.com/api/imageproxy/150x300,sc/https://judahnorris.com/images/judah-sheets.jpg" alt="200x400,sc"></a>
-<a href="https://willnorris.com/api/imageproxy/150x300/https://judahnorris.com/images/judah-sheets.jpg"><img src="https://willnorris.com/api/imageproxy/150x300/https://judahnorris.com/images/judah-sheets.jpg" alt="200x400"></a>
+<a href="https://imageproxy.willnorris.com/200,r270/https://willnorris.com/2015/05/material-animations.gif"><img src="https://imageproxy.willnorris.com/200,r270/https://willnorris.com/2015/05/material-animations.gif" alt="200,r270"></a>
 
 ## Getting Started ##
 
@@ -108,12 +115,33 @@ enabled using the `-cache` flag.  It supports the following values:
    cache items no longer than 4 hours.
  - directory on local disk (e.g. `/tmp/imageproxy`) - will cache images
    on disk
+
  - s3 URL (e.g. `s3://region/bucket-name/optional-path-prefix`) - will cache
    images on Amazon S3.  This requires either an IAM role and instance profile
    with access to your your bucket or `AWS_ACCESS_KEY_ID` and `AWS_SECRET_KEY`
    environmental variables be set. (Additional methods of loading credentials
    are documented in the [aws-sdk-go session
    package](https://docs.aws.amazon.com/sdk-for-go/api/aws/session/)).
+
+   Additional configuration options ([further documented here][aws-options])
+   may be specified as URL query string parameters, which are mostly useful
+   when working with s3-compatible services:
+   - "endpoint" - specify an alternate API endpoint
+   - "disableSSL" - set to "1" to disable SSL when calling the API
+   - "s3ForcePathStyle" - set to "1" to force the request to use path-style addressing
+
+   For example, when working with [minio](https://minio.io), which doesn't use
+   regions, provide a dummy region value and custom endpoint value:
+
+       s3://fake-region/bucket/folder?endpoint=minio:9000&disableSSL=1&s3ForcePathStyle=1
+
+   Similarly, for [Digital Ocean Spaces](https://www.digitalocean.com/products/spaces/), 
+   provide a dummy region value and the appropriate endpoint for your space:
+
+       s3://fake-region/bucket/folder?endpoint=sfo2.digitaloceanspaces.com
+
+   [aws-options]: https://docs.aws.amazon.com/sdk-for-go/api/aws/#Config
+
  - gcs URL (e.g. `gcs://bucket-name/optional-path-prefix`) - will cache images
    on Google Cloud Storage. Authentication is documented in Google's
    [Application Default Credentials
@@ -138,11 +166,11 @@ version.
 
 [codercat URL]: http://localhost:8080/500/https://octodex.github.com/images/codercat.jpg
 
-If the `-cache` flag is specified multiple times, multiple caches will be
-created in a [tiered fashion][]. Typically this is used to put a smaller and
-faster in-memory cache in front of a larger but slower on-disk cache.  For
-example, the following will first check an in-memory cache for an image,
-followed by a gcs bucket:
+Multiple caches can be specified by separating them by spaces or by repeating
+the `-cache` flag multiple times.  The caches will be created in a [tiered
+fashion][]. Typically this is used to put a smaller and faster in-memory cache
+in front of a larger but slower on-disk cache.  For example, the following will
+first check an in-memory cache for an image, followed by a gcs bucket:
 
     imageproxy -cache memory -cache gcs://my-bucket/
 
@@ -161,19 +189,28 @@ Reload the [codercat URL][], and you should now get an error message.  You can
 specify multiple hosts as a comma separated list, or prefix a host value with
 `*.` to allow all sub-domains as well.
 
-### Allowed Hosts List ###
+### Allowed and Denied Hosts List ###
 
 You can limit the remote hosts that the proxy will fetch images from using the
-`remoteHosts` flag.  This is useful, for example, for locking the proxy down to
-your own hosts to prevent others from abusing it.  Of course if you want to
-support fetching from any host, leave off the remoteHosts flag.  Try it out by
-running:
+`allowHosts` and `denyHosts` flags.  This is useful, for example, for locking
+the proxy down to your own hosts to prevent others from abusing it.  Of course
+if you want to support fetching from any host, leave off these flags.
 
-    imageproxy -remoteHosts example.com
+Try it out by running:
 
-Reload the [codercat URL][], and you should now get an error message.  You can
-specify multiple hosts as a comma separated list, or prefix a host value with
-`*.` to allow all sub-domains as well.
+    imageproxy -allowHosts example.com
+
+Reload the [codercat URL][], and you should now get an error message.
+Alternately, try running:
+
+    imageproxy -denyHosts octodex.github.com
+
+Reloading the [codercat URL][] will still return an error message.
+
+You can specify multiple hosts as a comma separated list to either flag, or
+prefix a host value with `*.` to allow or deny all sub-domains as well.
+
+If a host matches both an allowed an a denied host, the request will be denied.
 
 ### Allowed Content-Type List ###
 
@@ -201,12 +238,14 @@ Try it out by running:
     imageproxy -signatureKey "secret key"
 
 Reload the [codercat URL][], and you should see an error message.  Now load a
-[signed codercat URL][] and verify that it loads properly.
+[signed codercat URL][] (which contains the [signature option][]) and verify
+that it loads properly.
 
 [signed codercat URL]: http://localhost:8080/500,sXyMwWKIC5JPCtlYOQ2f4yMBTqpjtUsfI67Sp7huXIYY=/https://octodex.github.com/images/codercat.jpg
+[signature option]: https://godoc.org/willnorris.com/go/imageproxy#hdr-Signature
 
 Some simple code samples for generating signatures in various languages can be
-found in [URL Signing](https://github.com/willnorris/imageproxy/wiki/URL-signing).
+found in [docs/url-signing.md](/docs/url-signing.md).
 
 If both a whiltelist and signatureKey are specified, requests can match either.
 In other words, requests that match one of the allowed hosts don't necessarily
@@ -254,6 +293,13 @@ you want to use a different caching implementation, it's probably easiest to
 just make a copy of `cmd/imageproxy/main.go` and customize it to fit your
 needs... it's a very simple command.
 
+### Environment Variables ###
+
+All configuration flags have equivalent environment variables of the form
+`IMAGEPROXY_$NAME`.  For example, an on-disk cache could be configured by calling
+
+    IMAGEPROXY_CACHE="/tmp/imageproxy" imageproxy
+
 ## Deploying ##
 
 In most cases, you can follow the normal procedure for building a deploying any
@@ -290,17 +336,21 @@ ENTRYPOINT ["/go/bin/imageproxy", "-addr 0.0.0.0:8080"]
 
 ### nginx ###
 
-You can use follow config to prevent URL overwritting:
+Use the `proxy_pass` directive to send requests to your imageproxy instance.
+For example, to run imageproxy at the path "/api/imageproxy/", set:
 
 ```
-  location ~ ^/api/imageproxy/ {
-    # pattern match to capture the original URL to prevent URL
-    # canonicalization, which would strip double slashes
-    if ($request_uri ~ "/api/imageproxy/(.+)") {
-      set $path $1;
-      rewrite .* /$path break;
-    }
-    proxy_pass http://localhost:8080;
+  location /api/imageproxy/ {
+    proxy_pass http://localhost:4593/;
+  }
+```
+
+Depending on other directives you may have in your nginx config, you might need
+to alter the precedence order by setting:
+
+```
+  location ^~ /api/imageproxy/ {
+    proxy_pass http://localhost:4593/;
   }
 ```
 

@@ -24,9 +24,6 @@ func desanitize(actual, target *model.Config) {
 		target.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
 	}
 
-	if *target.EmailSettings.InviteSalt == model.FAKE_SETTING {
-		target.EmailSettings.InviteSalt = actual.EmailSettings.InviteSalt
-	}
 	if *target.EmailSettings.SMTPPassword == model.FAKE_SETTING {
 		target.EmailSettings.SMTPPassword = actual.EmailSettings.SMTPPassword
 	}
@@ -130,4 +127,16 @@ func FixInvalidLocales(cfg *model.Config) bool {
 	}
 
 	return changed
+}
+
+// Merge merges two configs together. The receiver's values are overwritten with the patch's
+// values except when the patch's values are nil.
+func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfig) (*model.Config, error) {
+	ret, err := utils.Merge(cfg, patch, mergeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	retCfg := ret.(model.Config)
+	return &retCfg, nil
 }

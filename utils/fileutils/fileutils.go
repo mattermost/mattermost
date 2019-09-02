@@ -85,15 +85,3 @@ func FindDir(dir string) (string, bool) {
 
 	return found, true
 }
-
-// FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
-// relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty
-// string is returned if no configuration is found.
-func FindConfigFile(fileName string) (path string) {
-	found := FindFile(filepath.Join("config", fileName))
-	if found == "" {
-		found = FindPath(fileName, []string{"."}, nil)
-	}
-
-	return found
-}

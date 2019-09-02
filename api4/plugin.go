@@ -6,7 +6,11 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -14,6 +18,9 @@ import (
 
 const (
 	MAXIMUM_PLUGIN_FILE_SIZE = 50 * 1024 * 1024
+	// INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT defines a high timeout for installing plugins
+	// from an external URL to avoid slow connections or large plugins from failing to install.
+	INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT = 60 * time.Minute
 )
 
 func (api *API) InitPlugin() {
@@ -22,6 +29,7 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(uploadPlugin)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(getPlugins)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("", api.ApiSessionRequired(removePlugin)).Methods("DELETE")
+	api.BaseRoutes.Plugins.Handle("/install_from_url", api.ApiSessionRequired(installPluginFromUrl)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/statuses", api.ApiSessionRequired(getPluginStatuses)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("/enable", api.ApiSessionRequired(enablePlugin)).Methods("POST")
@@ -77,6 +85,65 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(manifest.ToJson()))
+}
+
+func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	downloadUrl := r.URL.Query().Get("plugin_download_url")
+
+	if !model.IsValidHttpUrl(downloadUrl) {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	u, err := url.ParseRequestURI(downloadUrl)
+	if err != nil {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !*c.App.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	client := c.App.HTTPService.MakeClient(true)
+	client.Timeout = INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT
+
+	resp, err := client.Get(downloadUrl)
+	if err != nil {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer resp.Body.Close()
+
+	force := false
+	if r.URL.Query().Get("force") == "true" {
+		force = true
+	}
+
+	fileBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	manifest, appErr := c.App.InstallPlugin(bytes.NewReader(fileBytes), force)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(manifest.ToJson()))
 }
@@ -161,7 +228,11 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	clientManifests := []*model.Manifest{}
 	for _, m := range manifests {
 		if m.HasClient() {
-			clientManifests = append(clientManifests, m.ClientManifest())
+			manifest := m.ClientManifest()
+
+			// There is no reason to expose the SettingsSchema in this API call; it's not used in the webapp.
+			manifest.SettingsSchema = nil
+			clientManifests = append(clientManifests, manifest)
 		}
 	}
 

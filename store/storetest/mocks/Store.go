@@ -28,6 +28,22 @@ func (_m *Store) Audit() store.AuditStore {
 	return r0
 }
 
+// Bot provides a mock function with given fields:
+func (_m *Store) Bot() store.BotStore {
+	ret := _m.Called()
+
+	var r0 store.BotStore
+	if rf, ok := ret.Get(0).(func() store.BotStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.BotStore)
+		}
+	}
+
+	return r0
+}
+
 // Channel provides a mock function with given fields:
 func (_m *Store) Channel() store.ChannelStore {
 	ret := _m.Called()
@@ -54,6 +70,22 @@ func (_m *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.ChannelMemberHistoryStore)
+		}
+	}
+
+	return r0
+}
+
+// CheckIntegrity provides a mock function with given fields:
+func (_m *Store) CheckIntegrity() <-chan store.IntegrityCheckResult {
+	ret := _m.Called()
+
+	var r0 <-chan store.IntegrityCheckResult
+	if rf, ok := ret.Get(0).(func() <-chan store.IntegrityCheckResult); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(<-chan store.IntegrityCheckResult)
 		}
 	}
 
@@ -161,6 +193,20 @@ func (_m *Store) FileInfo() store.FileInfoStore {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.FileInfoStore)
 		}
+	}
+
+	return r0
+}
+
+// GetCurrentSchemaVersion provides a mock function with given fields:
+func (_m *Store) GetCurrentSchemaVersion() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0

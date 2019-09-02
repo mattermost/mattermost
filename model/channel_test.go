@@ -37,11 +37,12 @@ func TestChannelCopy(t *testing.T) {
 }
 
 func TestChannelPatch(t *testing.T) {
-	p := &ChannelPatch{Name: new(string), DisplayName: new(string), Header: new(string), Purpose: new(string)}
+	p := &ChannelPatch{Name: new(string), DisplayName: new(string), Header: new(string), Purpose: new(string), GroupConstrained: new(bool)}
 	*p.Name = NewId()
 	*p.DisplayName = NewId()
 	*p.Header = NewId()
 	*p.Purpose = NewId()
+	*p.GroupConstrained = true
 
 	o := Channel{Id: NewId(), Name: NewId()}
 	o.Patch(p)
@@ -57,6 +58,9 @@ func TestChannelPatch(t *testing.T) {
 	}
 	if *p.Purpose != o.Purpose {
 		t.Fatal("do not match")
+	}
+	if *p.GroupConstrained != *o.GroupConstrained {
+		t.Fatalf("expected %v got %v", *p.GroupConstrained, *o.GroupConstrained)
 	}
 }
 

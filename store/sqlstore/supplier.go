@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
@@ -71,6 +72,7 @@ type SqlSupplierOldStores struct {
 	channel              store.ChannelStore
 	post                 store.PostStore
 	user                 store.UserStore
+	bot                  store.BotStore
 	audit                store.AuditStore
 	cluster              store.ClusterDiscoveryStore
 	compliance           store.ComplianceStore
@@ -122,10 +124,11 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	supplier.initConnection()
 
-	supplier.oldStores.team = NewSqlTeamStore(supplier)
+	supplier.oldStores.team = NewSqlTeamStore(supplier, metrics)
 	supplier.oldStores.channel = NewSqlChannelStore(supplier, metrics)
 	supplier.oldStores.post = NewSqlPostStore(supplier, metrics)
 	supplier.oldStores.user = NewSqlUserStore(supplier, metrics)
+	supplier.oldStores.bot = NewSqlBotStore(supplier, metrics)
 	supplier.oldStores.audit = NewSqlAuditStore(supplier)
 	supplier.oldStores.cluster = NewSqlClusterDiscoveryStore(supplier)
 	supplier.oldStores.compliance = NewSqlComplianceStore(supplier)
@@ -148,11 +151,11 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.TermsOfService = NewSqlTermsOfServiceStore(supplier, metrics)
 	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
 	supplier.oldStores.linkMetadata = NewSqlLinkMetadataStore(supplier)
+	supplier.oldStores.reaction = NewSqlReactionStore(supplier)
+	supplier.oldStores.group = NewSqlGroupStore(supplier)
 
-	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
 	initSqlSupplierSchemes(supplier)
-	initSqlSupplierGroups(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -161,12 +164,18 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 		os.Exit(EXIT_CREATE_TABLE)
 	}
 
-	UpgradeDatabase(supplier)
+	err = UpgradeDatabase(supplier, model.CurrentVersion)
+	if err != nil {
+		mlog.Critical("Failed to upgrade database", mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+	}
 
 	supplier.oldStores.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	supplier.oldStores.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
 	supplier.oldStores.post.(*SqlPostStore).CreateIndexesIfNotExists()
 	supplier.oldStores.user.(*SqlUserStore).CreateIndexesIfNotExists()
+	supplier.oldStores.bot.(*SqlBotStore).CreateIndexesIfNotExists()
 	supplier.oldStores.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
 	supplier.oldStores.compliance.(*SqlComplianceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.session.(*SqlSessionStore).CreateIndexesIfNotExists()
@@ -187,8 +196,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.TermsOfService.(SqlTermsOfServiceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.linkMetadata.(*SqlLinkMetadataStore).CreateIndexesIfNotExists()
-
-	supplier.CreateIndexesIfNotExistsGroups()
+	supplier.oldStores.group.(*SqlGroupStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -337,13 +345,15 @@ func (ss *SqlSupplier) TotalSearchDbConnections() int {
 }
 
 func (ss *SqlSupplier) MarkSystemRanUnitTests() {
-	if result := <-ss.System().Get(); result.Err == nil {
-		props := result.Data.(model.StringMap)
-		unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
-		if len(unitTests) == 0 {
-			systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
-			<-ss.System().Save(systemTests)
-		}
+	props, err := ss.System().Get()
+	if err != nil {
+		return
+	}
+
+	unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
+	if len(unitTests) == 0 {
+		systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
+		ss.System().Save(systemTests)
 	}
 }
 
@@ -936,6 +946,10 @@ func (ss *SqlSupplier) User() store.UserStore {
 	return ss.oldStores.user
 }
 
+func (ss *SqlSupplier) Bot() store.BotStore {
+	return ss.oldStores.bot
+}
+
 func (ss *SqlSupplier) Session() store.SessionStore {
 	return ss.oldStores.session
 }
@@ -1042,6 +1056,20 @@ func (ss *SqlSupplier) LinkMetadata() store.LinkMetadataStore {
 
 func (ss *SqlSupplier) DropAllTables() {
 	ss.master.TruncateTables()
+}
+
+func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
+	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question)
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		builder = builder.PlaceholderFormat(sq.Dollar)
+	}
+	return builder
+}
+
+func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
+	results := make(chan store.IntegrityCheckResult)
+	go CheckRelationalIntegrity(ss, results)
+	return results
 }
 
 type mattermConverter struct{}

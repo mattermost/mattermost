@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -555,77 +556,77 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		"full message, public channel, no mention": {
 			Message:         "this is a message",
 			ChannelType:     model.CHANNEL_OPEN,
-			ExpectedMessage: "@user: this is a message",
+			ExpectedMessage: "user: this is a message",
 		},
 		"full message, public channel, mention": {
 			Message:         "this is a message",
 			explicitMention: true,
 			ChannelType:     model.CHANNEL_OPEN,
-			ExpectedMessage: "@user: this is a message",
+			ExpectedMessage: "user: this is a message",
 		},
 		"full message, public channel, channel wide mention": {
 			Message:            "this is a message",
 			channelWideMention: true,
 			ChannelType:        model.CHANNEL_OPEN,
-			ExpectedMessage:    "@user: this is a message",
+			ExpectedMessage:    "user: this is a message",
 		},
 		"full message, public channel, commented on post": {
 			Message:           "this is a message",
 			replyToThreadType: THREAD_ROOT,
 			ChannelType:       model.CHANNEL_OPEN,
-			ExpectedMessage:   "@user: this is a message",
+			ExpectedMessage:   "user: this is a message",
 		},
 		"full message, public channel, commented on thread": {
 			Message:           "this is a message",
 			replyToThreadType: THREAD_ANY,
 			ChannelType:       model.CHANNEL_OPEN,
-			ExpectedMessage:   "@user: this is a message",
+			ExpectedMessage:   "user: this is a message",
 		},
 		"full message, private channel, no mention": {
 			Message:         "this is a message",
 			ChannelType:     model.CHANNEL_PRIVATE,
-			ExpectedMessage: "@user: this is a message",
+			ExpectedMessage: "user: this is a message",
 		},
 		"full message, private channel, mention": {
 			Message:         "this is a message",
 			explicitMention: true,
 			ChannelType:     model.CHANNEL_PRIVATE,
-			ExpectedMessage: "@user: this is a message",
+			ExpectedMessage: "user: this is a message",
 		},
 		"full message, private channel, commented on post": {
 			Message:           "this is a message",
 			replyToThreadType: THREAD_ROOT,
 			ChannelType:       model.CHANNEL_PRIVATE,
-			ExpectedMessage:   "@user: this is a message",
+			ExpectedMessage:   "user: this is a message",
 		},
 		"full message, private channel, commented on thread": {
 			Message:           "this is a message",
 			replyToThreadType: THREAD_ANY,
 			ChannelType:       model.CHANNEL_PRIVATE,
-			ExpectedMessage:   "@user: this is a message",
+			ExpectedMessage:   "user: this is a message",
 		},
 		"full message, group message channel, no mention": {
 			Message:         "this is a message",
 			ChannelType:     model.CHANNEL_GROUP,
-			ExpectedMessage: "@user: this is a message",
+			ExpectedMessage: "user: this is a message",
 		},
 		"full message, group message channel, mention": {
 			Message:         "this is a message",
 			explicitMention: true,
 			ChannelType:     model.CHANNEL_GROUP,
-			ExpectedMessage: "@user: this is a message",
+			ExpectedMessage: "user: this is a message",
 		},
 		"full message, group message channel, commented on post": {
 			Message:           "this is a message",
 			replyToThreadType: THREAD_ROOT,
 			ChannelType:       model.CHANNEL_GROUP,
-			ExpectedMessage:   "@user: this is a message",
+			ExpectedMessage:   "user: this is a message",
 		},
 		"full message, group message channel, commented on thread": {
 			Message:           "this is a message",
 			replyToThreadType: THREAD_ANY,
 			ChannelType:       model.CHANNEL_GROUP,
-			ExpectedMessage:   "@user: this is a message",
+			ExpectedMessage:   "user: this is a message",
 		},
 		"full message, direct message channel, no mention": {
 			Message:         "this is a message",
@@ -654,103 +655,103 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_OPEN,
-			ExpectedMessage:          "@user posted a message.",
+			ExpectedMessage:          "user posted a message.",
 		},
 		"generic message with channel, public channel, mention": {
 			Message:                  "this is a message",
 			explicitMention:          true,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_OPEN,
-			ExpectedMessage:          "@user mentioned you.",
+			ExpectedMessage:          "user mentioned you.",
 		},
 		"generic message with channel, public channel, channel wide mention": {
 			Message:                  "this is a message",
 			channelWideMention:       true,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_OPEN,
-			ExpectedMessage:          "@user notified the channel.",
+			ExpectedMessage:          "user notified the channel.",
 		},
 		"generic message, public channel, commented on post": {
 			Message:                  "this is a message",
 			replyToThreadType:        THREAD_ROOT,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_OPEN,
-			ExpectedMessage:          "@user commented on your post.",
+			ExpectedMessage:          "user commented on your post.",
 		},
 		"generic message, public channel, commented on thread": {
 			Message:                  "this is a message",
 			replyToThreadType:        THREAD_ANY,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_OPEN,
-			ExpectedMessage:          "@user commented on a thread you participated in.",
+			ExpectedMessage:          "user commented on a thread you participated in.",
 		},
 		"generic message with channel, private channel, no mention": {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_PRIVATE,
-			ExpectedMessage:          "@user posted a message.",
+			ExpectedMessage:          "user posted a message.",
 		},
 		"generic message with channel, private channel, mention": {
 			Message:                  "this is a message",
 			explicitMention:          true,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_PRIVATE,
-			ExpectedMessage:          "@user mentioned you.",
+			ExpectedMessage:          "user mentioned you.",
 		},
 		"generic message with channel, private channel, channel wide mention": {
 			Message:                  "this is a message",
 			channelWideMention:       true,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_PRIVATE,
-			ExpectedMessage:          "@user notified the channel.",
+			ExpectedMessage:          "user notified the channel.",
 		},
 		"generic message, public private, commented on post": {
 			Message:                  "this is a message",
 			replyToThreadType:        THREAD_ROOT,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_PRIVATE,
-			ExpectedMessage:          "@user commented on your post.",
+			ExpectedMessage:          "user commented on your post.",
 		},
 		"generic message, public private, commented on thread": {
 			Message:                  "this is a message",
 			replyToThreadType:        THREAD_ANY,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_PRIVATE,
-			ExpectedMessage:          "@user commented on a thread you participated in.",
+			ExpectedMessage:          "user commented on a thread you participated in.",
 		},
 		"generic message with channel, group message channel, no mention": {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_GROUP,
-			ExpectedMessage:          "@user posted a message.",
+			ExpectedMessage:          "user posted a message.",
 		},
 		"generic message with channel, group message channel, mention": {
 			Message:                  "this is a message",
 			explicitMention:          true,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_GROUP,
-			ExpectedMessage:          "@user mentioned you.",
+			ExpectedMessage:          "user mentioned you.",
 		},
 		"generic message with channel, group message channel, channel wide mention": {
 			Message:                  "this is a message",
 			channelWideMention:       true,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_GROUP,
-			ExpectedMessage:          "@user notified the channel.",
+			ExpectedMessage:          "user notified the channel.",
 		},
 		"generic message, group message channel, commented on post": {
 			Message:                  "this is a message",
 			replyToThreadType:        THREAD_ROOT,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_GROUP,
-			ExpectedMessage:          "@user commented on your post.",
+			ExpectedMessage:          "user commented on your post.",
 		},
 		"generic message, group message channel, commented on thread": {
 			Message:                  "this is a message",
 			replyToThreadType:        THREAD_ANY,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_GROUP,
-			ExpectedMessage:          "@user commented on a thread you participated in.",
+			ExpectedMessage:          "user commented on a thread you participated in.",
 		},
 		"generic message with channel, direct message channel, no mention": {
 			Message:                  "this is a message",
@@ -790,40 +791,40 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
 			ChannelType:              model.CHANNEL_OPEN,
-			ExpectedMessage:          "@user posted a message.",
+			ExpectedMessage:          "user posted a message.",
 		},
 		"generic message without channel, public channel, mention": {
 			Message:                  "this is a message",
 			explicitMention:          true,
 			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
 			ChannelType:              model.CHANNEL_OPEN,
-			ExpectedMessage:          "@user mentioned you.",
+			ExpectedMessage:          "user mentioned you.",
 		},
 		"generic message without channel, private channel, no mention": {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
 			ChannelType:              model.CHANNEL_PRIVATE,
-			ExpectedMessage:          "@user posted a message.",
+			ExpectedMessage:          "user posted a message.",
 		},
 		"generic message without channel, private channel, mention": {
 			Message:                  "this is a message",
 			explicitMention:          true,
 			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
 			ChannelType:              model.CHANNEL_PRIVATE,
-			ExpectedMessage:          "@user mentioned you.",
+			ExpectedMessage:          "user mentioned you.",
 		},
 		"generic message without channel, group message channel, no mention": {
 			Message:                  "this is a message",
 			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
 			ChannelType:              model.CHANNEL_GROUP,
-			ExpectedMessage:          "@user posted a message.",
+			ExpectedMessage:          "user posted a message.",
 		},
 		"generic message without channel, group message channel, mention": {
 			Message:                  "this is a message",
 			explicitMention:          true,
 			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
 			ChannelType:              model.CHANNEL_GROUP,
-			ExpectedMessage:          "@user mentioned you.",
+			ExpectedMessage:          "user mentioned you.",
 		},
 		"generic message without channel, direct message channel, no mention": {
 			Message:                  "this is a message",
@@ -841,17 +842,17 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		"only files, public channel": {
 			HasFiles:        true,
 			ChannelType:     model.CHANNEL_OPEN,
-			ExpectedMessage: "@user attached a file.",
+			ExpectedMessage: "user attached a file.",
 		},
 		"only files, private channel": {
 			HasFiles:        true,
 			ChannelType:     model.CHANNEL_PRIVATE,
-			ExpectedMessage: "@user attached a file.",
+			ExpectedMessage: "user attached a file.",
 		},
 		"only files, group message channel": {
 			HasFiles:        true,
 			ChannelType:     model.CHANNEL_GROUP,
-			ExpectedMessage: "@user attached a file.",
+			ExpectedMessage: "user attached a file.",
 		},
 		"only files, direct message channel": {
 			HasFiles:        true,
@@ -862,7 +863,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			HasFiles:                 true,
 			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
 			ChannelType:              model.CHANNEL_OPEN,
-			ExpectedMessage:          "@user attached a file.",
+			ExpectedMessage:          "user attached a file.",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -893,6 +894,56 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			); actualMessage != tc.ExpectedMessage {
 				t.Fatalf("Received incorrect push notification message `%v`, expected `%v`", actualMessage, tc.ExpectedMessage)
 			}
+		})
+	}
+}
+
+func TestBuildPushNotificationMessage(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	team := th.CreateTeam()
+	sender := th.CreateUser()
+	receiver := th.CreateUser()
+	th.LinkUserToTeam(sender, team)
+	th.LinkUserToTeam(receiver, team)
+	channel := th.CreateChannel(team)
+	th.AddUserToChannel(sender, channel)
+	th.AddUserToChannel(receiver, channel)
+
+	// Create three mention posts and two non-mention posts
+	th.CreateMessagePost(channel, "@channel Hello")
+	th.CreateMessagePost(channel, "@all Hello")
+	th.CreateMessagePost(channel, fmt.Sprintf("@%s Hello", receiver.Username))
+	th.CreatePost(channel)
+	post := th.CreatePost(channel)
+
+	for name, tc := range map[string]struct {
+		explicitMention    bool
+		channelWideMention bool
+		replyToThreadType  string
+		pushNotifyProps    string
+		expectedBadge      int
+	}{
+		"only mentions included in badge count": {
+			explicitMention:    false,
+			channelWideMention: true,
+			replyToThreadType:  "",
+			pushNotifyProps:    "mention",
+			expectedBadge:      3,
+		},
+		"mentions and non-mentions included in badge count": {
+			explicitMention:    false,
+			channelWideMention: true,
+			replyToThreadType:  "",
+			pushNotifyProps:    "all",
+			expectedBadge:      5,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			receiver.NotifyProps["push"] = tc.pushNotifyProps
+			msg := th.App.BuildPushNotificationMessage(post, receiver, channel, channel.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			assert.Equal(t, tc.expectedBadge, msg.Badge)
 		})
 	}
 }

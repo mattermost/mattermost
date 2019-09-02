@@ -38,6 +38,16 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
 	}
 }
 
+func ImportLineFromDirectChannel(channel *model.DirectChannelForExport) *LineImportData {
+	return &LineImportData{
+		Type: "direct_channel",
+		DirectChannel: &DirectChannelImportData{
+			Header:  &channel.Header,
+			Members: channel.Members,
+		},
+	}
+}
+
 func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *LineImportData {
 	// Bulk Importer doesn't accept "empty string" for AuthService.
 	var authService *string
@@ -81,6 +91,9 @@ func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *UserTe
 	if member.SchemeUser {
 		rolesList = append(rolesList, model.TEAM_USER_ROLE_ID)
 	}
+	if member.SchemeGuest {
+		rolesList = append(rolesList, model.TEAM_GUEST_ROLE_ID)
+	}
 	roles := strings.Join(rolesList, " ")
 	return &UserTeamImportData{
 		Name:  &member.TeamName,
@@ -95,6 +108,9 @@ func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelM
 	}
 	if member.SchemeUser {
 		rolesList = append(rolesList, model.CHANNEL_USER_ROLE_ID)
+	}
+	if member.SchemeGuest {
+		rolesList = append(rolesList, model.CHANNEL_GUEST_ROLE_ID)
 	}
 	props := member.NotifyProps
 	notifyProps := UserChannelNotifyPropsImportData{}
@@ -137,6 +153,18 @@ func ImportLineForPost(post *model.PostForExport) *LineImportData {
 			User:     &post.Username,
 			Message:  &post.Message,
 			CreateAt: &post.CreateAt,
+		},
+	}
+}
+
+func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
+	return &LineImportData{
+		Type: "direct_post",
+		DirectPost: &DirectPostImportData{
+			ChannelMembers: post.ChannelMembers,
+			User:           &post.User,
+			Message:        &post.Message,
+			CreateAt:       &post.CreateAt,
 		},
 	}
 }

@@ -19,6 +19,11 @@ func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("getClusterStatus", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
 	infos := c.App.GetClusterStatus()
 	w.Write([]byte(model.ClusterInfosToJson(infos)))
 }

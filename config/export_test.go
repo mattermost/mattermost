@@ -21,3 +21,8 @@ func UnmarshalConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config
 func InitializeConfigurationsTable(db *sqlx.DB) error {
 	return initializeConfigurationsTable(db)
 }
+
+// ResolveConfigFilePath exposes the internal resolveConfigFilePath to test only.
+func ResolveConfigFilePath(path string) (string, error) {
+	return resolveConfigFilePath(path)
+}

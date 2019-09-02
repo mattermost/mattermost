@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -101,8 +102,18 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		}
 
 		// Fetch all hooks with a very large limit so we get them all.
-		incomingResult := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
-		outgoingResult := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
+		incomingResult := make(chan store.StoreResult, 1)
+		go func() {
+			incomingHooks, err := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
+			incomingResult <- store.StoreResult{Data: incomingHooks, Err: err}
+			close(incomingResult)
+		}()
+		outgoingResult := make(chan store.StoreResult, 1)
+		go func() {
+			outgoingHooks, err := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
+			outgoingResult <- store.StoreResult{Data: outgoingHooks, Err: err}
+			close(outgoingResult)
+		}()
 
 		if result := <-incomingResult; result.Err == nil {
 			CommandPrettyPrintln(fmt.Sprintf("Incoming webhooks for %s (%s):", team.DisplayName, team.Name))

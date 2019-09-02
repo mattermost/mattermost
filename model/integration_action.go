@@ -26,6 +26,8 @@ const (
 	INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS = 3000
 )
 
+var PostActionRetainPropKeys = []string{"from_webhook", "override_username", "override_icon_url"}
+
 type DoPostActionRequest struct {
 	SelectedOption string `json:"selected_option,omitempty"`
 	Cookie         string `json:"cookie,omitempty"`
@@ -45,8 +47,16 @@ type PostAction struct {
 	// DataSource indicates the data source for the select action. If left
 	// empty, the select is populated from Options. Other supported values
 	// are "users" and "channels".
-	DataSource string               `json:"data_source,omitempty"`
-	Options    []*PostActionOptions `json:"options,omitempty"`
+	DataSource string `json:"data_source,omitempty"`
+
+	// Options contains either the buttons that will be displayed on the post
+	// or the values listed in a select dropdowon on the post.
+	Options []*PostActionOptions `json:"options,omitempty"`
+
+	// DefaultOption contains the option, if any, that will appear as the
+	// default selection in a select box. It has no effect when used with
+	// other types of actions.
+	DefaultOption string `json:"default_option,omitempty"`
 
 	// Defines the interaction with the backend upon a user action.
 	// Integration contains Context, which is private plugin data;
@@ -54,6 +64,70 @@ type PostAction struct {
 	// client, or are encrypted in a Cookie.
 	Integration *PostActionIntegration `json:"integration,omitempty"`
 	Cookie      string                 `json:"cookie,omitempty" db:"-"`
+}
+
+func (p *PostAction) Equals(input *PostAction) bool {
+	if p.Id != input.Id {
+		return false
+	}
+
+	if p.Type != input.Type {
+		return false
+	}
+
+	if p.Name != input.Name {
+		return false
+	}
+
+	if p.DataSource != input.DataSource {
+		return false
+	}
+
+	if p.DefaultOption != input.DefaultOption {
+		return false
+	}
+
+	if p.Cookie != input.Cookie {
+		return false
+	}
+
+	// Compare PostActionOptions
+	if len(p.Options) != len(input.Options) {
+		return false
+	}
+
+	for k := range p.Options {
+		if p.Options[k].Text != input.Options[k].Text {
+			return false
+		}
+
+		if p.Options[k].Value != input.Options[k].Value {
+			return false
+		}
+	}
+
+	// Compare PostActionIntegration
+	if p.Integration.URL != input.Integration.URL {
+		return false
+	}
+
+	if len(p.Integration.Context) != len(input.Integration.Context) {
+		return false
+	}
+
+	for key, value := range p.Integration.Context {
+		inputValue, ok := input.Integration.Context[key]
+
+		if !ok {
+			return false
+		}
+
+		if value != inputValue {
+			return false
+		}
+	}
+
+	return true
 }
 
 // PostActionCookie is set by the server, serialized and encrypted into
@@ -327,10 +401,9 @@ func AddPostActionCookies(o *Post, secret []byte) *Post {
 	p := o.Clone()
 
 	// retainedProps carry over their value from the old post, including no value
-	retainPropKeys := []string{"override_username", "override_icon_url"}
 	retainProps := map[string]interface{}{}
 	removeProps := []string{}
-	for _, key := range retainPropKeys {
+	for _, key := range PostActionRetainPropKeys {
 		value, ok := p.Props[key]
 		if ok {
 			retainProps[key] = value

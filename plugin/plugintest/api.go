@@ -87,6 +87,31 @@ func (_m *API) CopyFileInfos(userId string, fileIds []string) ([]string, *model.
 	return r0, r1
 }
 
+// CreateBot provides a mock function with given fields: bot
+func (_m *API) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
+	ret := _m.Called(bot)
+
+	var r0 *model.Bot
+	if rf, ok := ret.Get(0).(func(*model.Bot) *model.Bot); ok {
+		r0 = rf(bot)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Bot)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Bot) *model.AppError); ok {
+		r1 = rf(bot)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreateChannel provides a mock function with given fields: channel
 func (_m *API) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	ret := _m.Called(channel)
@@ -237,6 +262,22 @@ func (_m *API) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	return r0, r1
 }
 
+// DeleteBotIconImage provides a mock function with given fields: botUserId
+func (_m *API) DeleteBotIconImage(botUserId string) *model.AppError {
+	ret := _m.Called(botUserId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(botUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeleteChannel provides a mock function with given fields: channelId
 func (_m *API) DeleteChannel(channelId string) *model.AppError {
 	ret := _m.Called(channelId)
@@ -267,6 +308,11 @@ func (_m *API) DeleteChannelMember(channelId string, userId string) *model.AppEr
 	}
 
 	return r0
+}
+
+// DeleteEphemeralPost provides a mock function with given fields: userId, postId
+func (_m *API) DeleteEphemeralPost(userId string, postId string) {
+	_m.Called(userId, postId)
 }
 
 // DeletePost provides a mock function with given fields: postId
@@ -363,6 +409,102 @@ func (_m *API) EnablePlugin(id string) *model.AppError {
 	}
 
 	return r0
+}
+
+// GetBot provides a mock function with given fields: botUserId, includeDeleted
+func (_m *API) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	ret := _m.Called(botUserId, includeDeleted)
+
+	var r0 *model.Bot
+	if rf, ok := ret.Get(0).(func(string, bool) *model.Bot); ok {
+		r0 = rf(botUserId, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Bot)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(botUserId, includeDeleted)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetBotIconImage provides a mock function with given fields: botUserId
+func (_m *API) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
+	ret := _m.Called(botUserId)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = rf(botUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(botUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetBots provides a mock function with given fields: options
+func (_m *API) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+	ret := _m.Called(options)
+
+	var r0 []*model.Bot
+	if rf, ok := ret.Get(0).(func(*model.BotGetOptions) []*model.Bot); ok {
+		r0 = rf(options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Bot)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.BotGetOptions) *model.AppError); ok {
+		r1 = rf(options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetBundlePath provides a mock function with given fields:
+func (_m *API) GetBundlePath() (string, error) {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetChannel provides a mock function with given fields: channelId
@@ -601,6 +743,20 @@ func (_m *API) GetConfig() *model.Config {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Config)
 		}
+	}
+
+	return r0
+}
+
+// GetDiagnosticId provides a mock function with given fields:
+func (_m *API) GetDiagnosticId() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0
@@ -859,6 +1015,22 @@ func (_m *API) GetLDAPUserAttributes(userId string, attributes []string) (map[st
 	}
 
 	return r0, r1
+}
+
+// GetLicense provides a mock function with given fields:
+func (_m *API) GetLicense() *model.License {
+	ret := _m.Called()
+
+	var r0 *model.License
+	if rf, ok := ret.Get(0).(func() *model.License); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.License)
+		}
+	}
+
+	return r0
 }
 
 // GetPluginConfig provides a mock function with given fields:
@@ -1182,6 +1354,29 @@ func (_m *API) GetSession(sessionId string) (*model.Session, *model.AppError) {
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(sessionId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetSystemInstallDate provides a mock function with given fields:
+func (_m *API) GetSystemInstallDate() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1566,13 +1761,13 @@ func (_m *API) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.A
 	return r0, r1
 }
 
-// GetUsers provides a mock function with given fields: _a0
-func (_m *API) GetUsers(_a0 *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	ret := _m.Called(_a0)
+// GetUsers provides a mock function with given fields: options
+func (_m *API) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	ret := _m.Called(options)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) []*model.User); ok {
-		r0 = rf(_a0)
+		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -1581,7 +1776,7 @@ func (_m *API) GetUsers(_a0 *model.UserGetOptions) ([]*model.User, *model.AppErr
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
-		r1 = rf(_a0)
+		r1 = rf(options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1706,6 +1901,52 @@ func (_m *API) HasPermissionToTeam(userId string, teamId string, permission *mod
 	}
 
 	return r0
+}
+
+// KVCompareAndDelete provides a mock function with given fields: key, oldValue
+func (_m *API) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
+	ret := _m.Called(key, oldValue)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, []byte) bool); ok {
+		r0 = rf(key, oldValue)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []byte) *model.AppError); ok {
+		r1 = rf(key, oldValue)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// KVCompareAndSet provides a mock function with given fields: key, oldValue, newValue
+func (_m *API) KVCompareAndSet(key string, oldValue []byte, newValue []byte) (bool, *model.AppError) {
+	ret := _m.Called(key, oldValue, newValue)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, []byte, []byte) bool); ok {
+		r0 = rf(key, oldValue, newValue)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []byte, []byte) *model.AppError); ok {
+		r1 = rf(key, oldValue, newValue)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // KVDelete provides a mock function with given fields: key
@@ -1875,6 +2116,47 @@ func (_m *API) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppE
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(model.OpenDialogRequest) *model.AppError); ok {
 		r0 = rf(dialog)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// PatchBot provides a mock function with given fields: botUserId, botPatch
+func (_m *API) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+	ret := _m.Called(botUserId, botPatch)
+
+	var r0 *model.Bot
+	if rf, ok := ret.Get(0).(func(string, *model.BotPatch) *model.Bot); ok {
+		r0 = rf(botUserId, botPatch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Bot)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, *model.BotPatch) *model.AppError); ok {
+		r1 = rf(botUserId, botPatch)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// PermanentDeleteBot provides a mock function with given fields: botUserId
+func (_m *API) PermanentDeleteBot(botUserId string) *model.AppError {
+	ret := _m.Called(botUserId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(botUserId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -2124,35 +2406,6 @@ func (_m *API) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return r0
 }
 
-// UpdateEphemeralPost provides a mock function with given fields: userId, post
-func (_m *API) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
-	ret := _m.Called(userId, post)
-
-	var r0 *model.Post
-	if rf, ok := ret.Get(0).(func(string, *model.Post) *model.Post); ok {
-		r0 = rf(userId, post)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Post)
-		}
-	}
-
-	return r0
-}
-
-// DeleteEphemeralPost provides a mock function with given fields: userId, post
-func (_m *API) DeleteEphemeralPost(userId string, post *model.Post) {
-	ret := _m.Called(userId, post)
-
-	if rf, ok := ret.Get(0).(func(string, *model.Post) *model.Post); ok {
-		_ = rf(userId, post)
-	} else {
-		if ret.Get(0) != nil {
-			_ = ret.Get(0).(*model.Post)
-		}
-	}
-}
-
 // SendMail provides a mock function with given fields: to, subject, htmlBody
 func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppError {
 	ret := _m.Called(to, subject, htmlBody)
@@ -2160,6 +2413,22 @@ func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppEr
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
 		r0 = rf(to, subject, htmlBody)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SetBotIconImage provides a mock function with given fields: botUserId, data
+func (_m *API) SetBotIconImage(botUserId string, data []byte) *model.AppError {
+	ret := _m.Called(botUserId, data)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+		r0 = rf(botUserId, data)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -2213,6 +2482,31 @@ func (_m *API) UnregisterCommand(teamId string, trigger string) error {
 	}
 
 	return r0
+}
+
+// UpdateBotActive provides a mock function with given fields: botUserId, active
+func (_m *API) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+	ret := _m.Called(botUserId, active)
+
+	var r0 *model.Bot
+	if rf, ok := ret.Get(0).(func(string, bool) *model.Bot); ok {
+		r0 = rf(botUserId, active)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Bot)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(botUserId, active)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UpdateChannel provides a mock function with given fields: channel
@@ -2288,6 +2582,22 @@ func (_m *API) UpdateChannelMemberRoles(channelId string, userId string, newRole
 	}
 
 	return r0, r1
+}
+
+// UpdateEphemeralPost provides a mock function with given fields: userId, post
+func (_m *API) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	ret := _m.Called(userId, post)
+
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(string, *model.Post) *model.Post); ok {
+		r0 = rf(userId, post)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	return r0
 }
 
 // UpdatePost provides a mock function with given fields: post

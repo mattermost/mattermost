@@ -11,7 +11,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestHTTPClient(t *testing.T) {
@@ -149,7 +152,7 @@ func NewHTTPClient(transport http.RoundTripper) *http.Client {
 func TestIsReservedIP(t *testing.T) {
 	tests := []struct {
 		name string
-		ip net.IP
+		ip   net.IP
 		want bool
 	}{
 		{"127.8.3.5", net.IPv4(127, 8, 3, 5), true},
@@ -171,7 +174,7 @@ func TestIsReservedIP(t *testing.T) {
 func TestIsOwnIP(t *testing.T) {
 	tests := []struct {
 		name string
-		ip net.IP
+		ip   net.IP
 		want bool
 	}{
 		{"127.0.0.1", net.IPv4(127, 0, 0, 1), true},
@@ -181,8 +184,49 @@ func TestIsOwnIP(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, _ := IsOwnIP(tt.ip); got != tt.want {
 				t.Errorf("IsOwnIP() = %v, want %v", got, tt.want)
-				t.Errorf(tt.ip.String());
+				t.Errorf(tt.ip.String())
 			}
 		})
 	}
+}
+
+func TestSplitHostnames(t *testing.T) {
+	var config string
+	var hostnames []string
+
+	config = ""
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{}, hostnames)
+
+	config = "127.0.0.1 localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1,localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1,,localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1  localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1 , localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1  localhost  "
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = " 127.0.0.1  ,,localhost  , , ,,"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1 localhost, 192.168.1.0"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost", "192.168.1.0"}, hostnames)
 }

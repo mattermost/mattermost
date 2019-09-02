@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -63,7 +65,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
 	c.App.RequestId = model.NewId()
-	c.App.IpAddress = utils.GetIpAddress(r)
+	c.App.IpAddress = utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader)
 	c.App.UserAgent = r.UserAgent()
 	c.App.AcceptLanguage = r.Header.Get("Accept-Language")
 	c.Params = ParamsFromRequest(r)
@@ -102,53 +104,26 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if len(token) != 0 {
 		session, err := c.App.GetSession(token)
-		csrfCheckPassed := false
-
-		// CSRF Check
-		if tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester && r.Method != "GET" {
-			csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
-			if csrfHeader == session.GetCSRF() {
-				csrfCheckPassed = true
-			} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
-				// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
-				csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
-				if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-					c.Log.Warn(csrfErrorMessage)
-				} else {
-					c.Log.Debug(csrfErrorMessage)
-					csrfCheckPassed = true
-				}
+		if err != nil {
+			c.Log.Info("Invalid session", mlog.Err(err))
+			if err.StatusCode == http.StatusInternalServerError {
+				c.Err = err
+			} else if h.RequireSession {
+				c.RemoveSessionCookie(w, r)
+				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
 			}
-
-			if !csrfCheckPassed {
-				token = ""
-				session = nil
-				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
-			}
+		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
+			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
-			csrfCheckPassed = true
+			c.App.Session = *session
 		}
 
-		if csrfCheckPassed {
-			if err != nil {
-				c.Log.Info("Invalid session", mlog.Err(err))
-				if err.StatusCode == http.StatusInternalServerError {
-					c.Err = err
-				} else if h.RequireSession {
-					c.RemoveSessionCookie(w, r)
-					c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
-				}
-			} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
-				c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
-			} else {
-				c.App.Session = *session
-			}
-
-			// Rate limit by UserID
-			if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.App.Session.UserId, w) {
-				return
-			}
+		// Rate limit by UserID
+		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.App.Session.UserId, w) {
+			return
 		}
+
+		h.checkCSRFToken(c, r, token, tokenLocation, session)
 	}
 
 	c.Log = c.App.Log.With(
@@ -199,7 +174,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err.IsOAuth = false
 		}
 
-		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || len(r.Header.Get("X-Mobile-App")) > 0 {
+		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || len(r.Header.Get("X-Mobile-App")) > 0 {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
@@ -219,4 +194,121 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
 		}
 	}
+}
+
+// checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
+// a CSRF check occurred and whether or not it succeeded.
+func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
+	csrfCheckNeeded := c.Err == nil && tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester && r.Method != "GET"
+	csrfCheckPassed := false
+
+	if csrfCheckNeeded {
+		csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
+
+		if csrfHeader == session.GetCSRF() {
+			csrfCheckPassed = true
+		} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
+			csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
+
+			sid := ""
+			userId := ""
+
+			if session != nil {
+				sid = session.Id
+				userId = session.UserId
+			}
+
+			fields := []mlog.Field{
+				mlog.String("path", r.URL.Path),
+				mlog.String("ip", r.RemoteAddr),
+				mlog.String("session_id", sid),
+				mlog.String("user_id", userId),
+			}
+
+			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
+				c.Log.Warn(csrfErrorMessage, fields...)
+			} else {
+				c.Log.Debug(csrfErrorMessage, fields...)
+				csrfCheckPassed = true
+			}
+		}
+
+		if !csrfCheckPassed {
+			c.App.Session = model.Session{}
+			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
+		}
+	}
+
+	return csrfCheckNeeded, csrfCheckPassed
+}
+
+// ApiHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
+// granted.
+func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
+// ApiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
+// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
+// websocket.
+func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      true,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
+// ApiSessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
+// be granted.
+func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      true,
+		TrustRequester:      false,
+		RequireMfa:          true,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
+// apiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
+// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
+// websocket.
+func (w *Web) apiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      true,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
 }

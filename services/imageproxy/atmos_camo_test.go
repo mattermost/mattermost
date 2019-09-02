@@ -32,7 +32,7 @@ func makeTestAtmosCamoProxy() *ImageProxy {
 		},
 	}
 
-	return MakeImageProxy(configService, httpservice.MakeHTTPService(configService))
+	return MakeImageProxy(configService, httpservice.MakeHTTPService(configService), nil)
 }
 
 func TestAtmosCamoBackend_GetImage(t *testing.T) {
@@ -74,22 +74,6 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 	require.NotNil(t, body)
 	respBody, _ := ioutil.ReadAll(body)
 	assert.Equal(t, []byte("1111111111"), respBody)
-}
-
-func TestAtmosCamoBackend_GetProxiedImageURL(t *testing.T) {
-	imageURL := "http://www.mattermost.org/wp-content/uploads/2016/03/logoHorizontal.png"
-	proxiedURL := "http://images.example.com/5b6f6661516bc837b89b54566eb619d14a5c3eca/687474703a2f2f7777772e6d61747465726d6f73742e6f72672f77702d636f6e74656e742f75706c6f6164732f323031362f30332f6c6f676f486f72697a6f6e74616c2e706e67"
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	})
-
-	mock := httptest.NewServer(handler)
-	defer mock.Close()
-
-	proxy := makeTestAtmosCamoProxy()
-
-	// Most of this logic is tested in TestGetAtmosCamoImageURL
-	assert.Equal(t, proxiedURL, proxy.GetProxiedImageURL(imageURL))
 }
 
 func TestGetAtmosCamoImageURL(t *testing.T) {
@@ -154,42 +138,4 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 		})
 	}
 
-}
-
-func TestAtmosCamoBackend_GetUnproxiedImageURL(t *testing.T) {
-	imageURL := "http://www.mattermost.org/wp-content/uploads/2016/03/logoHorizontal.png"
-	proxiedURL := "http://images.example.com/5b6f6661516bc837b89b54566eb619d14a5c3eca/687474703a2f2f7777772e6d61747465726d6f73742e6f72672f77702d636f6e74656e742f75706c6f6164732f323031362f30332f6c6f676f486f72697a6f6e74616c2e706e67"
-
-	proxy := makeTestAtmosCamoProxy()
-
-	for _, test := range []struct {
-		Name     string
-		Input    string
-		Expected string
-	}{
-		{
-			Name:     "should remove proxy",
-			Input:    proxiedURL,
-			Expected: imageURL,
-		},
-		{
-			Name:     "should not remove proxy from a relative image",
-			Input:    "/static/logo.png",
-			Expected: "/static/logo.png",
-		},
-		{
-			Name:     "should not remove proxy from an image on the Mattermost server",
-			Input:    "https://mattermost.example.com/static/logo.png",
-			Expected: "https://mattermost.example.com/static/logo.png",
-		},
-		{
-			Name:     "should not remove proxy from a non-proxied image",
-			Input:    imageURL,
-			Expected: imageURL,
-		},
-	} {
-		t.Run(test.Name, func(t *testing.T) {
-			assert.Equal(t, test.Expected, proxy.GetUnproxiedImageURL(test.Input))
-		})
-	}
 }

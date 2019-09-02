@@ -19,15 +19,13 @@ func getTeamsFromTeamArgs(a *app.App, teamArgs []string) []*model.Team {
 
 func getTeamFromTeamArg(a *app.App, teamArg string) *model.Team {
 	var team *model.Team
-	if result := <-a.Srv.Store.Team().GetByName(teamArg); result.Err == nil {
-		team = result.Data.(*model.Team)
-	}
+	team, err := a.Srv.Store.Team().GetByName(teamArg)
 
 	if team == nil {
-		if result := <-a.Srv.Store.Team().Get(teamArg); result.Err == nil {
-			team = result.Data.(*model.Team)
+		var t *model.Team
+		if t, err = a.Srv.Store.Team().Get(teamArg); err == nil {
+			team = t
 		}
 	}
-
 	return team
 }

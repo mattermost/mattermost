@@ -99,6 +99,7 @@ func ServerConnector(s *Server) AppOption {
 		a.Srv = s
 
 		a.Log = s.Log
+		a.NotificationsLog = s.NotificationsLog
 
 		a.AccountMigration = s.AccountMigration
 		a.Cluster = s.Cluster

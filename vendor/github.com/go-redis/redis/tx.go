@@ -29,10 +29,10 @@ func (c *Client) newTx() *Tx {
 	return &tx
 }
 
-// Watch prepares a transcaction and marks the keys to be watched
+// Watch prepares a transaction and marks the keys to be watched
 // for conditional execution if there are any keys.
 //
-// The transaction is automatically closed when the fn exits.
+// The transaction is automatically closed when fn exits.
 func (c *Client) Watch(fn func(*Tx) error, keys ...string) error {
 	tx := c.newTx()
 	if len(keys) > 0 {

@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -14,72 +13,72 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func initSqlSupplierReactions(sqlStore SqlStore) {
+type SqlReactionStore struct {
+	SqlStore
+}
+
+func NewSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
+	s := &SqlReactionStore{sqlStore}
+
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "UserId", "PostId", "EmojiName")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("PostId").SetMaxSize(26)
 		table.ColMap("EmojiName").SetMaxSize(64)
 	}
+
+	return s
 }
 
-func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
+func (s SqlReactionStore) CreateIndexesIfNotExists() {
+}
 
+func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	reaction.PreSave()
-	if result.Err = reaction.IsValid(); result.Err != nil {
-		return result
+	if err := reaction.IsValid(); err != nil {
+		return nil, err
 	}
 
-	if transaction, err := s.GetMaster().Begin(); err != nil {
-		result.Err = model.NewAppError("SqlReactionStore.Save", "store.sql_reaction.save.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlReactionStore.Save", "store.sql_reaction.save.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+	appErr := saveReactionAndUpdatePost(transaction, reaction)
+	if appErr != nil {
+		// We don't consider duplicated save calls as an error
+		if !IsUniqueConstraintError(appErr, []string{"reactions_pkey", "PRIMARY"}) {
+			return nil, model.NewAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.save.app_error", nil, appErr.Error(), http.StatusBadRequest)
+		}
 	} else {
-		defer finalizeTransaction(transaction)
-		err := saveReactionAndUpdatePost(transaction, reaction)
-
-		if err != nil {
-			// We don't consider duplicated save calls as an error
-			if !IsUniqueConstraintError(err, []string{"reactions_pkey", "PRIMARY"}) {
-				result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.save.app_error", nil, err.Error(), http.StatusBadRequest)
-			}
-		} else {
-			if err := transaction.Commit(); err != nil {
-				result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-		}
-
-		if result.Err == nil {
-			result.Data = reaction
+		if err := transaction.Commit(); err != nil {
+			return nil, model.NewAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	return result
+	return reaction, nil
 }
 
-func (s *SqlSupplier) ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
+func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
 
-	if transaction, err := s.GetMaster().Begin(); err != nil {
-		result.Err = model.NewAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		defer finalizeTransaction(transaction)
-		err := deleteReactionAndUpdatePost(transaction, reaction)
-
-		if err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = reaction
-		}
+	appErr := deleteReactionAndUpdatePost(transaction, reaction)
+	if appErr != nil {
+		return nil, model.NewAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
-	return result
+	if err := transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return reaction, nil
 }
 
-func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
 	var reactions []*model.Reaction
 
 	if _, err := s.GetReplica().Select(&reactions,
@@ -91,17 +90,13 @@ func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hin
 				PostId = :PostId
 			ORDER BY
 				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
-		result.Err = model.NewAppError("SqlReactionStore.GetForPost", "store.sql_reaction.get_for_post.app_error", nil, "", http.StatusInternalServerError)
-	} else {
-		result.Data = reactions
+		return nil, model.NewAppError("SqlReactionStore.GetForPost", "store.sql_reaction.get_for_post.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	return result
+	return reactions, nil
 }
 
-func (s *SqlSupplier) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
 	keys, params := MapStringsToQueryParams(postIds, "postId")
 	var reactions []*model.Reaction
 
@@ -113,17 +108,12 @@ func (s *SqlSupplier) ReactionsBulkGetForPosts(ctx context.Context, postIds []st
 				PostId IN `+keys+`
 			ORDER BY
 				CreateAt`, params); err != nil {
-		result.Err = model.NewAppError("SqlReactionStore.GetForPost", "store.sql_reaction.bulk_get_for_post_ids.app_error", nil, "", http.StatusInternalServerError)
-	} else {
-		result.Data = reactions
+		return nil, model.NewAppError("SqlReactionStore.GetForPost", "store.sql_reaction.bulk_get_for_post_ids.app_error", nil, "", http.StatusInternalServerError)
 	}
-
-	return result
+	return reactions, nil
 }
 
-func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
 	var reactions []*model.Reaction
 
 	if _, err := s.GetReplica().Select(&reactions,
@@ -133,10 +123,9 @@ func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiN
 				Reactions
 			WHERE
 				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName}); err != nil {
-		result.Err = model.NewAppError("SqlReactionStore.DeleteAllWithEmojiName",
+		return model.NewAppError("SqlReactionStore.DeleteAllWithEmojiName",
 			"store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error", nil,
 			"emoji_name="+emojiName+", error="+err.Error(), http.StatusInternalServerError)
-		return result
 	}
 
 	if _, err := s.GetMaster().Exec(
@@ -144,10 +133,9 @@ func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiN
 				Reactions
 			WHERE
 				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName}); err != nil {
-		result.Err = model.NewAppError("SqlReactionStore.DeleteAllWithEmojiName",
+		return model.NewAppError("SqlReactionStore.DeleteAllWithEmojiName",
 			"store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error", nil,
 			"emoji_name="+emojiName+", error="+err.Error(), http.StatusInternalServerError)
-		return result
 	}
 
 	for _, reaction := range reactions {
@@ -157,12 +145,10 @@ func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiN
 		}
 	}
 
-	return result
+	return nil
 }
 
-func (s *SqlSupplier) ReactionPermanentDeleteBatch(ctx context.Context, endTime int64, limit int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
 	var query string
 	if s.DriverName() == "postgres" {
 		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"
@@ -172,18 +158,14 @@ func (s *SqlSupplier) ReactionPermanentDeleteBatch(ctx context.Context, endTime 
 
 	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
 	if err != nil {
-		result.Err = model.NewAppError("SqlReactionStore.PermanentDeleteBatch", "store.sql_reaction.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-	} else {
-		rowsAffected, err1 := sqlResult.RowsAffected()
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlReactionStore.PermanentDeleteBatch", "store.sql_reaction.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-			result.Data = int64(0)
-		} else {
-			result.Data = rowsAffected
-		}
+		return 0, model.NewAppError("SqlReactionStore.PermanentDeleteBatch", "store.sql_reaction.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
 
-	return result
+	rowsAffected, err1 := sqlResult.RowsAffected()
+	if err1 != nil {
+		return 0, model.NewAppError("SqlReactionStore.PermanentDeleteBatch", "store.sql_reaction.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+	return rowsAffected, nil
 }
 
 func saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {

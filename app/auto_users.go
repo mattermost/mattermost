@@ -6,7 +6,6 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -48,8 +47,13 @@ func (a *App) CreateBasicUser(client *model.Client4) *model.AppError {
 		if resp.Error != nil {
 			return resp.Error
 		}
-		store.Must(a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email))
-		store.Must(a.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam))
+		_, err := a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email)
+		if err != nil {
+			return err
+		}
+		if _, err = a.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -77,13 +81,16 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 	}
 
 	status := &model.Status{UserId: ruser.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	if result := <-cfg.app.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		mlog.Error(result.Err.Error())
+	if err := cfg.app.Srv.Store.Status().SaveOrUpdate(status); err != nil {
+		mlog.Error(err.Error())
 		return nil, false
 	}
 
 	// We need to cheat to verify the user's email
-	store.Must(cfg.app.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email))
+	_, err := cfg.app.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	if err != nil {
+		return nil, false
+	}
 
 	return ruser, true
 }

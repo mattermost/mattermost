@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSessionStore(t *testing.T, ss store.Store) {
@@ -30,209 +31,241 @@ func TestSessionStore(t *testing.T, ss store.Store) {
 }
 
 func testSessionStoreSave(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	if err := (<-ss.Session().Save(&s1)).Err; err != nil {
+	if _, err := ss.Session().Save(s1); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func testSessionGet(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	s2 := model.Session{}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	s2 := &model.Session{}
 	s2.UserId = s1.UserId
-	store.Must(ss.Session().Save(&s2))
 
-	s3 := model.Session{}
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
+
+	s3 := &model.Session{}
 	s3.UserId = s1.UserId
 	s3.ExpiresAt = 1
-	store.Must(ss.Session().Save(&s3))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	s3, err = ss.Session().Save(s3)
+	require.Nil(t, err)
+
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
+		if session.Id != s1.Id {
 			t.Fatal("should match")
 		}
 	}
 
-	if rs2 := (<-ss.Session().GetSessions(s1.UserId)); rs2.Err != nil {
-		t.Fatal(rs2.Err)
+	if session, err := ss.Session().GetSessions(s1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(rs2.Data.([]*model.Session)) != 3 {
+		if len(session) != 3 {
 			t.Fatal("should match len")
 		}
 	}
 }
 
 func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = model.GetMillis() + 10000
-	store.Must(ss.Session().Save(&s1))
 
-	s2 := model.Session{}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	s2 := &model.Session{}
 	s2.UserId = s1.UserId
 	s2.DeviceId = model.NewId()
 	s2.ExpiresAt = model.GetMillis() + 10000
-	store.Must(ss.Session().Save(&s2))
 
-	s3 := model.Session{}
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
+
+	s3 := &model.Session{}
 	s3.UserId = s1.UserId
 	s3.ExpiresAt = 1
 	s3.DeviceId = model.NewId()
-	store.Must(ss.Session().Save(&s3))
 
-	if rs1 := (<-ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	s3, err = ss.Session().Save(s3)
+	require.Nil(t, err)
+
+	if data, err := ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(rs1.Data.([]*model.Session)) != 1 {
+		if len(data) != 1 {
 			t.Fatal("should match len")
 		}
 	}
 }
 
 func testSessionRemove(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
+		if session.Id != s1.Id {
 			t.Fatal("should match")
 		}
 	}
 
-	store.Must(ss.Session().Remove(s1.Id))
-
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
+	removeErr := ss.Session().Remove(s1.Id)
+	require.Nil(t, removeErr)
+	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
 }
 
 func testSessionRemoveAll(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
+		if session.Id != s1.Id {
 			t.Fatal("should match")
 		}
 	}
 
-	store.Must(ss.Session().RemoveAllSessions())
+	removeErr := ss.Session().RemoveAllSessions()
+	require.Nil(t, removeErr)
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
+	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
 }
 
 func testSessionRemoveByUser(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
+		if session.Id != s1.Id {
 			t.Fatal("should match")
 		}
 	}
 
-	store.Must(ss.Session().PermanentDeleteSessionsByUser(s1.UserId))
+	deleteErr := ss.Session().PermanentDeleteSessionsByUser(s1.UserId)
+	require.Nil(t, deleteErr)
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
+	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
 }
 
 func testSessionRemoveToken(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
+		if session.Id != s1.Id {
 			t.Fatal("should match")
 		}
 	}
 
-	store.Must(ss.Session().Remove(s1.Token))
+	removeErr := ss.Session().Remove(s1.Token)
+	require.Nil(t, removeErr)
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
+	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
 
-	if rs3 := (<-ss.Session().GetSessions(s1.UserId)); rs3.Err != nil {
-		t.Fatal(rs3.Err)
+	if session, err := ss.Session().GetSessions(s1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(rs3.Data.([]*model.Session)) != 0 {
+		if len(session) != 0 {
 			t.Fatal("should match len")
 		}
 	}
 }
 
 func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	if _, err = ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt); err != nil {
+		t.Fatal(err)
 	}
 
-	s2 := model.Session{}
+	s2 := &model.Session{}
 	s2.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s2))
 
-	if rs2 := (<-ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
-		t.Fatal(rs2.Err)
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
+
+	if _, err := ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt); err != nil {
+		t.Fatal(err)
 	}
 }
 
 func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	if _, err = ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt); err != nil {
+		t.Fatal(err)
 	}
 
-	s2 := model.Session{}
+	s2 := &model.Session{}
 	s2.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s2))
 
-	if rs2 := (<-ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
-		t.Fatal(rs2.Err)
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
+
+	if _, err := ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt); err != nil {
+		t.Fatal(err)
 	}
 }
 
 func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if err := (<-ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)).Err; err != nil {
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	err = ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)
+	require.Nil(t, err)
+
+	if session, err := ss.Session().Get(s1.Id); err != nil {
 		t.Fatal(err)
-	}
-
-	if r1 := <-ss.Session().Get(s1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
 	} else {
-		if r1.Data.(*model.Session).LastActivityAt != 1234567890 {
+		if session.LastActivityAt != 1234567890 {
 			t.Fatal("LastActivityAt not updated correctly")
 		}
 	}
@@ -240,15 +273,17 @@ func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
 }
 
 func testSessionCount(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = model.GetMillis() + 100000
-	store.Must(ss.Session().Save(&s1))
 
-	if r1 := <-ss.Session().AnalyticsSessionCount(); r1.Err != nil {
-		t.Fatal(r1.Err)
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	if count, err := ss.Session().AnalyticsSessionCount(); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(int64) == 0 {
+		if count == 0 {
 			t.Fatal("should have at least 1 session")
 		}
 	}
@@ -257,40 +292,51 @@ func testSessionCount(t *testing.T, ss store.Store) {
 func testSessionCleanup(t *testing.T, ss store.Store) {
 	now := model.GetMillis()
 
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = 0 // never expires
-	store.Must(ss.Session().Save(&s1))
 
-	s2 := model.Session{}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	s2 := &model.Session{}
 	s2.UserId = s1.UserId
 	s2.ExpiresAt = now + 1000000 // expires in the future
-	store.Must(ss.Session().Save(&s2))
 
-	s3 := model.Session{}
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
+
+	s3 := &model.Session{}
 	s3.UserId = model.NewId()
 	s3.ExpiresAt = 1 // expired
-	store.Must(ss.Session().Save(&s3))
 
-	s4 := model.Session{}
+	s3, err = ss.Session().Save(s3)
+	require.Nil(t, err)
+
+	s4 := &model.Session{}
 	s4.UserId = model.NewId()
 	s4.ExpiresAt = 2 // expired
-	store.Must(ss.Session().Save(&s4))
+
+	s4, err = ss.Session().Save(s4)
+	require.Nil(t, err)
 
 	ss.Session().Cleanup(now, 1)
 
-	err := (<-ss.Session().Get(s1.Id)).Err
+	_, err = ss.Session().Get(s1.Id)
 	assert.Nil(t, err)
 
-	err = (<-ss.Session().Get(s2.Id)).Err
+	_, err = ss.Session().Get(s2.Id)
 	assert.Nil(t, err)
 
-	err = (<-ss.Session().Get(s3.Id)).Err
+	_, err = ss.Session().Get(s3.Id)
 	assert.NotNil(t, err)
 
-	err = (<-ss.Session().Get(s4.Id)).Err
+	_, err = ss.Session().Get(s4.Id)
 	assert.NotNil(t, err)
 
-	store.Must(ss.Session().Remove(s1.Id))
-	store.Must(ss.Session().Remove(s2.Id))
+	removeErr := ss.Session().Remove(s1.Id)
+	require.Nil(t, removeErr)
+
+	removeErr = ss.Session().Remove(s2.Id)
+	require.Nil(t, removeErr)
 }

@@ -29,7 +29,6 @@ type GroupSyncable struct {
 	// TeamId.
 	SyncableId string `db:"-" json:"-"`
 
-	CanLeave bool              `db:"-" json:"can_leave"`
 	AutoAdd  bool              `json:"auto_add"`
 	CreateAt int64             `json:"create_at"`
 	DeleteAt int64             `json:"delete_at"`
@@ -51,10 +50,6 @@ func (syncable *GroupSyncable) IsValid() *AppError {
 	if !IsValidId(syncable.SyncableId) {
 		return NewAppError("GroupSyncable.SyncableIsValid", "model.group_syncable.syncable_id.app_error", nil, "", http.StatusBadRequest)
 	}
-	// TODO: Add this validation check for phase 2 of LDAP group sync.
-	// if syncable.AutoAdd == false && syncable.CanLeave == false {
-	// 	return NewAppError("GroupSyncable.SyncableIsValid", "model.group_syncable.invalid_state", nil, "", http.StatusBadRequest)
-	// }
 	return nil
 }
 
@@ -74,8 +69,6 @@ func (syncable *GroupSyncable) UnmarshalJSON(b []byte) error {
 			syncable.Type = GroupSyncableTypeChannel
 		case "group_id":
 			syncable.GroupId = value.(string)
-		case "can_leave":
-			syncable.CanLeave = value.(bool)
 		case "auto_add":
 			syncable.AutoAdd = value.(bool)
 		default:
@@ -130,15 +123,10 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 }
 
 type GroupSyncablePatch struct {
-	CanLeave *bool `json:"can_leave"`
-	AutoAdd  *bool `json:"auto_add"`
+	AutoAdd *bool `json:"auto_add"`
 }
 
 func (syncable *GroupSyncable) Patch(patch *GroupSyncablePatch) {
-	// TODO: Add this validation check for phase 2 of LDAP group sync.
-	// if patch.CanLeave != nil {
-	// 	syncable.CanLeave = *patch.CanLeave
-	// }
 	if patch.AutoAdd != nil {
 		syncable.AutoAdd = *patch.AutoAdd
 	}
@@ -166,4 +154,22 @@ func GroupSyncablesFromJson(data io.Reader) []*GroupSyncable {
 	bodyBytes, _ := ioutil.ReadAll(data)
 	json.Unmarshal(bodyBytes, &groupSyncables)
 	return groupSyncables
+}
+
+func NewGroupTeam(groupID, teamID string, autoAdd bool) *GroupSyncable {
+	return &GroupSyncable{
+		GroupId:    groupID,
+		SyncableId: teamID,
+		Type:       GroupSyncableTypeTeam,
+		AutoAdd:    autoAdd,
+	}
+}
+
+func NewGroupChannel(groupID, channelID string, autoAdd bool) *GroupSyncable {
+	return &GroupSyncable{
+		GroupId:    groupID,
+		SyncableId: channelID,
+		Type:       GroupSyncableTypeChannel,
+		AutoAdd:    autoAdd,
+	}
 }

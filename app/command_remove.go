@@ -6,7 +6,7 @@ package app
 import (
 	"strings"
 
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -107,15 +107,14 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 	targetUsername = strings.SplitN(message, " ", 2)[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	result := <-a.Srv.Store.User().GetByUsername(targetUsername)
-	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+	userProfile, err := a.Srv.Store.User().GetByUsername(targetUsername)
+	if err != nil {
+		mlog.Error(err.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.missing.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
 	}
-	userProfile := result.Data.(*model.User)
 	if userProfile.DeleteAt != 0 {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.missing.app_error"),
@@ -135,10 +134,16 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 	}
 
 	if err = a.RemoveUserFromChannel(userProfile.Id, args.UserId, channel); err != nil {
-		return &model.CommandResponse{
-			Text: args.T(err.Id, map[string]interface{}{
+		var text string
+		if err.Id == "api.channel.remove_members.denied" {
+			text = args.T("api.command_remove.group_constrained_user_denied")
+		} else {
+			text = args.T(err.Id, map[string]interface{}{
 				"Channel": model.DEFAULT_CHANNEL,
-			}),
+			})
+		}
+		return &model.CommandResponse{
+			Text:         text,
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
 	}

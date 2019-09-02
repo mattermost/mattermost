@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
@@ -57,6 +58,11 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	// then trust the proxy and cert that the correct user is supplied and allow
 	// them access
 	if *a.Config().ExperimentalSettings.ClientSideCertEnable && *a.Config().ExperimentalSettings.ClientSideCertCheck == model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH {
+		// Unless the user is a bot.
+		if err = checkUserNotBot(user); err != nil {
+			return nil, err
+		}
+
 		return user, nil
 	}
 
@@ -87,8 +93,8 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	}
 
 	// Try to get the user by username/email
-	if result := <-a.Srv.Store.User().GetForLogin(loginId, enableUsername, enableEmail); result.Err == nil {
-		return result.Data.(*model.User), nil
+	if user, err := a.Srv.Store.User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
+		return user, nil
 	}
 
 	// Try to get the user with LDAP if enabled
@@ -120,7 +126,6 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
 	session.GenerateCSRF()
-	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 
 	if len(deviceId) > 0 {
 		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthMobileInDays)
@@ -144,6 +149,11 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	session.AddProp(model.SESSION_PROP_PLATFORM, plat)
 	session.AddProp(model.SESSION_PROP_OS, os)
 	session.AddProp(model.SESSION_PROP_BROWSER, fmt.Sprintf("%v/%v", bname, bversion))
+	if user.IsGuest() {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
+	} else {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
+	}
 
 	var err *model.AppError
 	if session, err = a.CreateSession(session); err != nil {
@@ -152,48 +162,6 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	}
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
-
-	secure := false
-	if GetProtocol(r) == "https" {
-		secure = true
-	}
-
-	domain := a.GetCookieDomain()
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
-	sessionCookie := &http.Cookie{
-		Name:     model.SESSION_COOKIE_TOKEN,
-		Value:    session.Token,
-		Path:     "/",
-		MaxAge:   maxAge,
-		Expires:  expiresAt,
-		HttpOnly: true,
-		Domain:   domain,
-		Secure:   secure,
-	}
-
-	userCookie := &http.Cookie{
-		Name:    model.SESSION_COOKIE_USER,
-		Value:   user.Id,
-		Path:    "/",
-		MaxAge:  maxAge,
-		Expires: expiresAt,
-		Domain:  domain,
-		Secure:  secure,
-	}
-
-	csrfCookie := &http.Cookie{
-		Name:    model.SESSION_COOKIE_CSRF,
-		Value:   session.GetCSRF(),
-		Path:    "/",
-		MaxAge:  maxAge,
-		Expires: expiresAt,
-		Domain:  domain,
-		Secure:  secure,
-	}
-
-	http.SetCookie(w, sessionCookie)
-	http.SetCookie(w, userCookie)
-	http.SetCookie(w, csrfCookie)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
@@ -206,6 +174,53 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	}
 
 	return session, nil
+}
+
+func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request, session *model.Session) {
+	secure := false
+	if GetProtocol(r) == "https" {
+		secure = true
+	}
+
+	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
+	domain := a.GetCookieDomain()
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+	sessionCookie := &http.Cookie{
+		Name:     model.SESSION_COOKIE_TOKEN,
+		Value:    session.Token,
+		Path:     subpath,
+		MaxAge:   maxAge,
+		Expires:  expiresAt,
+		HttpOnly: true,
+		Domain:   domain,
+		Secure:   secure,
+	}
+
+	userCookie := &http.Cookie{
+		Name:    model.SESSION_COOKIE_USER,
+		Value:   session.UserId,
+		Path:    subpath,
+		MaxAge:  maxAge,
+		Expires: expiresAt,
+		Domain:  domain,
+		Secure:  secure,
+	}
+
+	csrfCookie := &http.Cookie{
+		Name:    model.SESSION_COOKIE_CSRF,
+		Value:   session.GetCSRF(),
+		Path:    subpath,
+		MaxAge:  maxAge,
+		Expires: expiresAt,
+		Domain:  domain,
+		Secure:  secure,
+	}
+
+	http.SetCookie(w, sessionCookie)
+	http.SetCookie(w, userCookie)
+	http.SetCookie(w, csrfCookie)
 }
 
 func GetProtocol(r *http.Request) string {
