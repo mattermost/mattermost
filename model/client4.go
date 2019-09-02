@@ -4353,6 +4353,9 @@ func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (
 
 // Plugin Section
 
+const PLUGIN_URL_STRING = "plugin_download_url"
+const SIGNATURE_URL_STRING = "signature_download_url"
+
 // UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
@@ -4410,13 +4413,13 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 	return ManifestFromJson(rp.Body), BuildResponse(rp)
 }
 
-func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifest, *Response) {
+func (c *Client4) InstallPluginFromUrl(pluginUrl string, signatureUrl string, force bool) (*Manifest, *Response) {
 	forceStr := "false"
 	if force {
 		forceStr = "true"
 	}
 
-	url := fmt.Sprintf("%s?plugin_download_url=%s&force=%s", c.GetPluginsRoute()+"/install_from_url", url.QueryEscape(downloadUrl), forceStr)
+	url := fmt.Sprintf("%s?%s=%s&%s=%s&force=%s", c.GetPluginsRoute()+"/install_from_url", PLUGIN_URL_STRING, url.QueryEscape(pluginUrl), SIGNATURE_URL_STRING, url.QueryEscape(signatureUrl), forceStr)
 	r, err := c.DoApiPost(url, "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)

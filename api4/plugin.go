@@ -21,8 +21,6 @@ const (
 	// INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT defines a high timeout for installing plugins
 	// from an external URL to avoid slow connections or large plugins from failing to install.
 	INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT = 60 * time.Minute
-	PLUGIN_URL_STRING                            = "plugin_download_url"
-	SIGNATURE_URL_STRING                         = "signature_download_url"
 )
 
 func (api *API) InitPlugin() {
@@ -101,27 +99,35 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-	pluginDownloadUrl := r.URL.Query().Get(PLUGIN_URL_STRING)
-	signatureDownloadUrl := r.URL.Query().Get(SIGNATURE_URL_STRING)
+	pluginDownloadUrl := r.URL.Query().Get(model.PLUGIN_URL_STRING)
+	signatureDownloadUrl := r.URL.Query().Get(model.SIGNATURE_URL_STRING)
 	downloadUrls := map[string]string{
-		PLUGIN_URL_STRING:    pluginDownloadUrl,
-		SIGNATURE_URL_STRING: signatureDownloadUrl,
+		model.PLUGIN_URL_STRING:    pluginDownloadUrl,
+		model.SIGNATURE_URL_STRING: signatureDownloadUrl,
 	}
 	downloadedFiles := downloadFiles(c, downloadUrls)
-	pluginFile := downloadedFiles[PLUGIN_URL_STRING]
-	signatureFile := downloadedFiles[SIGNATURE_URL_STRING]
+	pluginFile := downloadedFiles[model.PLUGIN_URL_STRING]
+	signatureFile := downloadedFiles[model.SIGNATURE_URL_STRING]
 	if pluginFile == nil || signatureFile == nil {
 		//TODO error
+		if pluginFile == nil {
+			mlog.Error("nil pluginfile")
+		}
+		if signatureFile == nil {
+			mlog.Error("nil signatureFile")
+		}
 		return
 	}
 
 	verified, err := c.App.VerifyPlugin(bytes.NewReader(pluginFile), bytes.NewReader(signatureFile))
 	if err != nil {
 		//TODO error
+		mlog.Error("not nil verified error " + err.Error())
 		return
 	}
 	if !verified {
 		// TODO error
+		mlog.Error("no error but verified is false")
 		return
 	}
 
@@ -145,13 +151,13 @@ func downloadFiles(c *Context, urls map[string]string) map[string][]byte {
 		file []byte
 	}, len(urls))
 	for key, url := range urls {
-		go func() {
+		go func(key, url string) {
 			file := downloadFile(c, url)
 			done <- struct {
 				key  string
 				file []byte
 			}{key, file}
-		}()
+		}(key, url)
 	}
 	files := make(map[string][]byte)
 	for i := 0; i < len(urls); i++ {
@@ -194,65 +200,6 @@ func downloadFile(c *Context, downloadUrl string) []byte {
 		return nil
 	}
 	return fileBytes
-}
-
-func installPluginFromUrl2(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
-
-	downloadUrl := r.URL.Query().Get("plugin_download_url")
-
-	if !model.IsValidHttpUrl(downloadUrl) {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	u, err := url.ParseRequestURI(downloadUrl)
-	if err != nil {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if !*c.App.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	client := c.App.HTTPService.MakeClient(true)
-	client.Timeout = INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT
-
-	resp, err := client.Get(downloadUrl)
-	if err != nil {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer resp.Body.Close()
-
-	force := false
-	if r.URL.Query().Get("force") == "true" {
-		force = true
-	}
-
-	fileBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	manifest, appErr := c.App.InstallPlugin(bytes.NewReader(fileBytes), force)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(manifest.ToJson()))
 }
 
 func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -35,30 +35,46 @@ func TestPlugin(t *testing.T) {
 	})
 
 	path, _ := fileutils.FindDir("tests")
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	appErr := th.App.AddPublicKey(filepath.Join(path, "development-public-key.asc"))
+	if appErr != nil {
+		t.Fatal(appErr)
+	}
+
+	// server for plugin file
+	pluginData, err := ioutil.ReadFile(filepath.Join(path, "com.mattermost.demo-plugin-0.2.0.tar.gz"))
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	// Install from URL
-	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+	pluginName := "com.mattermost.demo-plugin"
+	pluginTestServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
-		res.Write(tarData)
+		res.Write(pluginData)
 	}))
-	defer func() { testServer.Close() }()
+	defer func() { pluginTestServer.Close() }()
+	pluginUrl := pluginTestServer.URL
 
-	url := testServer.URL
+	// server for signature file
+	signatureData, err := ioutil.ReadFile(filepath.Join(path, "com.mattermost.demo-plugin-0.2.0.tar.gz.sig"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	signatureTestServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(signatureData)
+	}))
+	defer func() { signatureTestServer.Close() }()
+	signatureUrl := signatureTestServer.URL
 
-	manifest, resp := th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	manifest, resp := th.SystemAdminClient.InstallPluginFromUrl(pluginUrl, signatureUrl, false)
 	CheckNoError(t, resp)
-	assert.Equal(t, "testplugin", manifest.Id)
+	assert.Equal(t, pluginName, manifest.Id)
 
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(pluginUrl, signatureUrl, false)
 	CheckBadRequestStatus(t, resp)
 
-	manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(url, true)
+	manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(pluginUrl, signatureUrl, true)
 	CheckNoError(t, resp)
-	assert.Equal(t, "testplugin", manifest.Id)
+	assert.Equal(t, pluginName, manifest.Id)
 
 	t.Run("install plugin from URL with slow response time", func(t *testing.T) {
 		if testing.Short() {
@@ -69,13 +85,13 @@ func TestPlugin(t *testing.T) {
 		slowTestServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			time.Sleep(60 * time.Second) // Wait longer than the previous default 30 seconds timeout
 			res.WriteHeader(http.StatusOK)
-			res.Write(tarData)
+			res.Write(pluginData)
 		}))
 		defer func() { slowTestServer.Close() }()
 
-		manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(slowTestServer.URL, true)
+		manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(slowTestServer.URL, signatureUrl, true)
 		CheckNoError(t, resp)
-		assert.Equal(t, "testplugin", manifest.Id)
+		assert.Equal(t, pluginName, manifest.Id)
 	})
 
 	// Stored in File Store: Install Plugin from URL case
@@ -87,33 +103,33 @@ func TestPlugin(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(pluginUrl, signatureUrl, false)
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
-	_, resp = th.Client.InstallPluginFromUrl(url, false)
+	_, resp = th.Client.InstallPluginFromUrl(pluginUrl, signatureUrl, false)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl("http://nodata", false)
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl("http://nodata", "http://signature", false)
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.AllowInsecureDownloadUrl = false })
 
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(pluginUrl, signatureUrl, false)
 	CheckBadRequestStatus(t, resp)
 
 	// Successful upload
-	manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(pluginData))
 	CheckNoError(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
 
-	manifest, resp = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
-	defer os.RemoveAll("plugins/testplugin")
+	manifest, resp = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(pluginData))
+	defer os.RemoveAll("plugins/" + pluginName)
 	CheckNoError(t, resp)
 
-	assert.Equal(t, "testplugin", manifest.Id)
+	assert.Equal(t, pluginName, manifest.Id)
 
 	// Stored in File Store: Upload Plugin case
 	pluginStored, err = th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
@@ -125,18 +141,18 @@ func TestPlugin(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(pluginData))
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = false
 	})
-	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(pluginData))
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
-	_, resp = th.Client.UploadPlugin(bytes.NewReader(tarData))
+	_, resp = th.Client.UploadPlugin(bytes.NewReader(pluginData))
 	CheckForbiddenStatus(t, resp)
 
 	// Successful gets
@@ -440,43 +456,4 @@ func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.Cl
 		}
 	}
 	return result
-}
-
-func TestPluginSignatureVerification(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
-	statesJson, _ := json.Marshal(th.App.Config().PluginSettings.PluginStates)
-	states := map[string]*model.PluginState{}
-	json.Unmarshal(statesJson, &states)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = true
-		*cfg.PluginSettings.EnableUploads = true
-		*cfg.PluginSettings.AllowInsecureDownloadUrl = true
-	})
-
-	path, _ := fileutils.FindDir("tests")
-	// publicKey, err := ioutil.ReadFile(filepath.Join(path, "development-public-key.asc"))
-	// tests/com.mattermost.demo-plugin-0.2.0.tar.gz.sig
-	appErr := th.App.AddPublicKey(filepath.Join(path, "development-public-key.asc"))
-	if appErr != nil {
-		t.Fatal(appErr)
-	}
-
-	pluginData, err := ioutil.ReadFile(filepath.Join(path, "com.mattermost.demo-plugin-0.2.0.tar.gz"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	// Install from URL
-	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		println("hereeee")
-		println(req.URL)
-		println(req.Host)
-		println(req.Body)
-		res.WriteHeader(http.StatusOK)
-		res.Write(pluginData)
-	}))
-	defer func() { testServer.Close() }()
-	// publicKey, err := ioutil.ReadFile(filepath.Join(path, "development-public-key.asc"))
-
 }

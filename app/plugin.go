@@ -509,9 +509,7 @@ func containsPK(publicKeys []*model.PublicKeyDescription, filename string) bool 
 
 // AddPublicKey method will add plugin public key to the config.
 func (a *App) AddPublicKey(file string) *model.AppError {
-	println(file)
 	ext := filepath.Ext(file)
-	println(ext)
 	if PublicKeyFileExtention != ext {
 		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.not_a_public_key.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -570,7 +568,7 @@ func (a *App) VerifyPlugin(plugin, signature io.Reader) (bool, *model.AppError) 
 		publicKey := bytes.NewReader(pkBytes)
 		verify, err := verifyFileSignature(plugin, publicKey, signature)
 		if err != nil {
-			mlog.Error("Error...")
+			mlog.Error("Error..." + err.Error())
 		}
 		if verify {
 			return true, nil
@@ -584,7 +582,7 @@ func verifyFileSignature(signedFile, publicKey, signature io.Reader) (bool, erro
 	if err != nil {
 		return false, err
 	}
-	_, err = openpgp.CheckArmoredDetachedSignature(keyring, signedFile, signature)
+	_, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature)
 	if err != nil {
 		return false, err
 	}
