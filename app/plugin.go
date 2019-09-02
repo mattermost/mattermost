@@ -20,7 +20,7 @@ import (
 
 // PublicKeyFileExtention is the extention of the public key file. Only this file
 // extention is permitted.
-const PublicKeyFileExtention = "asc"
+const PublicKeyFileExtention = ".asc"
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.

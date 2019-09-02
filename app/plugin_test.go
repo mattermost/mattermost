@@ -405,3 +405,32 @@ func TestPluginSync(t *testing.T) {
 		})
 	}
 }
+
+func TestPluginPublicKeys(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	path, _ := fileutils.FindDir("tests")
+	publicKeyFilename := "test-public-key.asc"
+	publicKey, err := ioutil.ReadFile(filepath.Join(path, publicKeyFilename))
+	require.Nil(t, err)
+
+	th.App.AddPublicKey(filepath.Join(path, publicKeyFilename))
+	file, err := th.App.GetPublicKey(publicKeyFilename)
+	require.Nil(t, err)
+	require.True(t, bytes.Equal(file, publicKey))
+	_, err = th.App.GetPublicKey("wrong file name")
+	require.NotNil(t, err)
+	_, err = th.App.GetPublicKey("wrong-file-name.asc")
+	require.NotNil(t, err)
+
+	err = th.App.DeletePublicKey("wrong file name")
+	require.NotNil(t, err)
+	err = th.App.DeletePublicKey("wrong-file-name.asc")
+	require.Nil(t, err)
+
+	err = th.App.DeletePublicKey(publicKeyFilename)
+	require.Nil(t, err)
+	_, err = th.App.GetPublicKey(publicKeyFilename)
+	require.NotNil(t, err)
+}
