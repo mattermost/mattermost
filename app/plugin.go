@@ -457,7 +457,7 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 }
 
 // GetPluginPublicKeys returns all public keys listed in the config.
-func (a *App) GetPluginPublicKeys() ([]*model.PublicKeyDescription, *model.AppError) {
+func (a *App) GetPluginPublicKeys() ([]string, *model.AppError) {
 	config := a.Config().PluginSettings
 
 	return config.SignaturePublicKeyFiles, nil
@@ -495,9 +495,9 @@ func (a *App) writePublicKeyFile(file string) *model.AppError {
 	return nil
 }
 
-func containsPK(publicKeys []*model.PublicKeyDescription, filename string) bool {
+func containsPK(publicKeys []string, filename string) bool {
 	for _, pk := range publicKeys {
-		if pk.Name == filename {
+		if pk == filename {
 			return true
 		}
 	}
@@ -517,16 +517,16 @@ func (a *App) AddPublicKey(file string) *model.AppError {
 
 	a.UpdateConfig(func(cfg *model.Config) {
 		if !containsPK(cfg.PluginSettings.SignaturePublicKeyFiles, filename) {
-			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, &model.PublicKeyDescription{filename})
+			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, filename)
 		}
 	})
 
 	return nil
 }
 
-func removePK(publicKeys []*model.PublicKeyDescription, filename string) []*model.PublicKeyDescription {
+func removePK(publicKeys []string, filename string) []string {
 	for i, pk := range publicKeys {
-		if pk.Name == filename {
+		if pk == filename {
 			return append(publicKeys[:i], publicKeys[i+1:]...)
 		}
 	}

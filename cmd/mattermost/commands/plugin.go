@@ -233,8 +233,8 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to list public keys. Error: " + appErr.Error())
 	}
 
-	for _, publicKeyDesc := range pluginPublicKeysResp {
-		CommandPrettyPrintln(publicKeyDesc.Name)
+	for _, publicKey := range pluginPublicKeysResp {
+		CommandPrettyPrintln(publicKey)
 	}
 
 	return nil
@@ -252,12 +252,12 @@ func pluginPublicKeyDetailsCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to list public keys. Error: " + appErr.Error())
 	}
 
-	for _, publicKeyDesc := range pluginPublicKeysResp {
-		key, err := a.GetPublicKey(publicKeyDesc.Name)
+	for _, publicKey := range pluginPublicKeysResp {
+		key, err := a.GetPublicKey(publicKey)
 		if err != nil {
-			CommandPrintErrorln("Unable to get plugin public key: " + publicKeyDesc.Name + ". Error: " + err.Error())
+			CommandPrintErrorln("Unable to get plugin public key: " + publicKey + ". Error: " + err.Error())
 		}
-		CommandPrettyPrintln("Plugin name: " + publicKeyDesc.Name + ". \nPublic key: \n" + string(key) + "\n")
+		CommandPrettyPrintln("Plugin name: " + publicKey + ". \nPublic key: \n" + string(key) + "\n")
 	}
 
 	return nil

@@ -2194,10 +2194,6 @@ type PluginState struct {
 	Enable bool
 }
 
-type PublicKeyDescription struct {
-	Name string
-}
-
 type PluginSettings struct {
 	Enable                   *bool
 	EnableUploads            *bool   `restricted:"true"`
@@ -2209,7 +2205,7 @@ type PluginSettings struct {
 	PluginStates             map[string]*PluginState
 	EnableMarketplace        *bool
 	MarketplaceUrl           *string
-	SignaturePublicKeyFiles  []*PublicKeyDescription
+	SignaturePublicKeyFiles  []string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2259,7 +2255,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.SignaturePublicKeyFiles == nil {
-		s.SignaturePublicKeyFiles = []*PublicKeyDescription{}
+		s.SignaturePublicKeyFiles = []string{}
 	}
 }
 
