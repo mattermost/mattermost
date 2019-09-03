@@ -53,58 +53,16 @@ func (hub *PushNotificationsHub) GetGoChannelFromUserId(userId string) chan Push
 }
 
 func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention, channelWideMention bool, replyToThreadType string) *model.AppError {
-	cfg := a.Config()
+	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.AppError {
 
 	sessions, err := a.getMobileAppSessions(user.Id)
 	if err != nil {
 		return err
 	}
 
-	msg := model.PushNotification{
-		Category:  model.CATEGORY_CAN_REPLY,
-		Version:   model.PUSH_MESSAGE_V2,
-		Type:      model.PUSH_TYPE_MESSAGE,
-		TeamId:    channel.TeamId,
-		ChannelId: channel.Id,
-		PostId:    post.Id,
-		RootId:    post.RootId,
-		SenderId:  post.UserId,
-	}
-
-	if unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id); err != nil {
-		msg.Badge = 1
-		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, err), mlog.String("user_id", user.Id))
-	} else {
-		msg.Badge = int(unreadCount)
-	}
-
-	contentsConfig := *cfg.EmailSettings.PushNotificationContents
-	if contentsConfig != model.GENERIC_NO_CHANNEL_NOTIFICATION || channel.Type == model.CHANNEL_DIRECT {
-		msg.ChannelName = channelName
-	}
-
-	msg.SenderName = senderName
-	if ou, ok := post.Props["override_username"].(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
-		msg.OverrideUsername = ou
-		msg.SenderName = ou
-	}
-
-	if oi, ok := post.Props["override_icon_url"].(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
-		msg.OverrideIconUrl = oi
-	}
-
-	if fw, ok := post.Props["from_webhook"].(string); ok {
-		msg.FromWebhook = fw
-	}
-
-	userLocale := utils.GetUserTranslations(user.Locale)
-	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
-
-	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
+	msg := a.BuildPushNotificationMessage(post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 
 	for _, session := range sessions {
-
 		if session.IsExpired() {
 			continue
 		}
@@ -474,4 +432,62 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 	}
 
 	return false
+}
+
+func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
+	explicitMention bool, channelWideMention bool, replyToThreadType string) model.PushNotification {
+
+	msg := model.PushNotification{
+		Category:  model.CATEGORY_CAN_REPLY,
+		Version:   model.PUSH_MESSAGE_V2,
+		Type:      model.PUSH_TYPE_MESSAGE,
+		TeamId:    channel.TeamId,
+		ChannelId: channel.Id,
+		PostId:    post.Id,
+		RootId:    post.RootId,
+		SenderId:  post.UserId,
+	}
+
+	if user.NotifyProps["push"] == "all" {
+		if unreadCount, err := a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id); err != nil {
+			msg.Badge = 1
+			mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, err), mlog.String("user_id", user.Id))
+		} else {
+			msg.Badge = int(unreadCount)
+		}
+	} else {
+		if unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id); err != nil {
+			msg.Badge = 1
+			mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, err), mlog.String("user_id", user.Id))
+		} else {
+			msg.Badge = int(unreadCount)
+		}
+	}
+
+	cfg := a.Config()
+	contentsConfig := *cfg.EmailSettings.PushNotificationContents
+	if contentsConfig != model.GENERIC_NO_CHANNEL_NOTIFICATION || channel.Type == model.CHANNEL_DIRECT {
+		msg.ChannelName = channelName
+	}
+
+	msg.SenderName = senderName
+	if ou, ok := post.Props["override_username"].(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
+		msg.OverrideUsername = ou
+		msg.SenderName = ou
+	}
+
+	if oi, ok := post.Props["override_icon_url"].(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
+		msg.OverrideIconUrl = oi
+	}
+
+	if fw, ok := post.Props["from_webhook"].(string); ok {
+		msg.FromWebhook = fw
+	}
+
+	userLocale := utils.GetUserTranslations(user.Locale)
+	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
+
+	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
+
+	return msg
 }

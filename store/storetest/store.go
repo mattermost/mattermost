@@ -87,6 +87,9 @@ func (s *Store) TotalMasterDbConnections() int         { return 1 }
 func (s *Store) TotalReadDbConnections() int           { return 1 }
 func (s *Store) TotalSearchDbConnections() int         { return 1 }
 func (s *Store) GetCurrentSchemaVersion() string       { return "" }
+func (s *Store) CheckIntegrity() <-chan store.IntegrityCheckResult {
+	return make(chan store.IntegrityCheckResult)
+}
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
