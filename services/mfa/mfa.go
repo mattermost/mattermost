@@ -191,7 +191,7 @@ func (m *Mfa) ValidateToken(secret, token string, user *model.User) (bool, *mode
 
 	trimmedToken := strings.TrimSpace(token)
 	ok, err := otpConfig.Authenticate(trimmedToken)
-	if err != nil {
+	if err != nil || !ok {
 		//try recovery code, if otp fails
 		recErr := m.UseRecoveryCode(user, token)
 		if recErr != nil {
