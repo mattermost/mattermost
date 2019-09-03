@@ -38,7 +38,7 @@ func (api *API) InitPlugin() {
 
 	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
 
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(getMarketplace)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(getMarketplacePlugins)).Methods("GET")
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -242,13 +242,13 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.ManifestListToJson(clientManifests)))
 }
 
-func getMarketplace(c *Context, w http.ResponseWriter, r *http.Request) {
+func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("getMarketplace", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 	if !*c.App.Config().PluginSettings.EnableMarketplace {
-		c.Err = model.NewAppError("getMarketplace", "app.plugin.marketplace_disabled.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marketplace_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -257,9 +257,9 @@ func getMarketplace(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filter, err := parsePluginFilter(r.URL)
+	filter, err := parseMarketplacePluginFilter(r.URL)
 	if err != nil {
-		c.Err = model.NewAppError("getMarketplace", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -271,7 +271,7 @@ func getMarketplace(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	json, err := json.Marshal(plugins)
 	if err != nil {
-		c.Err = model.NewAppError("getMarketplace", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -326,7 +326,7 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func parsePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, error) {
+func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, error) {
 	page, err := parseInt(u, "page", 0)
 	if err != nil {
 		return nil, err
