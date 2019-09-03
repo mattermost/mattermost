@@ -20,6 +20,7 @@ import (
 )
 
 const (
+	VERSION_5_15_0           = "5.15.0"
 	VERSION_5_14_0           = "5.14.0"
 	VERSION_5_13_0           = "5.13.0"
 	VERSION_5_12_0           = "5.12.0"
@@ -160,6 +161,7 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	UpgradeDatabaseToVersion512(sqlStore)
 	UpgradeDatabaseToVersion513(sqlStore)
 	UpgradeDatabaseToVersion514(sqlStore)
+	UpgradeDatabaseToVersion515(sqlStore)
 
 	return nil
 }
@@ -709,5 +711,11 @@ func UpgradeDatabaseToVersion513(sqlStore SqlStore) {
 func UpgradeDatabaseToVersion514(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_13_0, VERSION_5_14_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_14_0)
+	}
+}
+
+func UpgradeDatabaseToVersion515(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_14_0, VERSION_5_15_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_15_0)
 	}
 }
