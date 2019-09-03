@@ -151,9 +151,9 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.TermsOfService = NewSqlTermsOfServiceStore(supplier, metrics)
 	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
 	supplier.oldStores.linkMetadata = NewSqlLinkMetadataStore(supplier)
+	supplier.oldStores.reaction = NewSqlReactionStore(supplier)
 	supplier.oldStores.group = NewSqlGroupStore(supplier)
 
-	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
 	initSqlSupplierSchemes(supplier)
 
@@ -1064,6 +1064,12 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 		builder = builder.PlaceholderFormat(sq.Dollar)
 	}
 	return builder
+}
+
+func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
+	results := make(chan store.IntegrityCheckResult)
+	go CheckRelationalIntegrity(ss, results)
+	return results
 }
 
 type mattermConverter struct{}
