@@ -1150,6 +1150,29 @@ func TestGetMentionKeywords(t *testing.T) {
 	} else if _, ok := mentions["@here"]; ok {
 		t.Fatal("should not have mentioned any user with @here")
 	}
+
+	// user with empty mention keys
+	userNoMentionKeys := &model.User{
+		Id:        model.NewId(),
+		FirstName: "First",
+		Username:  "User",
+		NotifyProps: map[string]string{
+			"mention_keys": ",",
+		},
+	}
+
+	channelMemberNotifyPropsMapEmptyOff := map[string]model.StringMap{
+		userNoMentionKeys.Id: {
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+		},
+	}
+
+	profiles = map[string]*model.User{userNoMentionKeys.Id: userNoMentionKeys}
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmptyOff)
+	assert.Equal(t, 1, len(mentions), "should've returned one metion keyword")
+	ids, ok := mentions["@user"]
+	assert.True(t, ok)
+	assert.Equal(t, userNoMentionKeys.Id, ids[0], "should've returned mention key of @user")
 }
 
 func TestGetMentionsEnabledFields(t *testing.T) {
@@ -1207,12 +1230,12 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 		},
 		"direct channel, unspecified": {
 			channel:  &model.Channel{Type: model.CHANNEL_DIRECT},
-			expected: "sender",
+			expected: "@sender",
 		},
 		"direct channel, username": {
 			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
 			nameFormat: model.SHOW_USERNAME,
-			expected:   "sender",
+			expected:   "@sender",
 		},
 		"direct channel, full name": {
 			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
@@ -1290,11 +1313,11 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		expected       string
 	}{
 		"name format unspecified": {
-			expected: sender.Username,
+			expected: "@" + sender.Username,
 		},
 		"name format username": {
 			nameFormat: model.SHOW_USERNAME,
-			expected:   sender.Username,
+			expected:   "@" + sender.Username,
 		},
 		"name format full name": {
 			nameFormat: model.SHOW_FULLNAME,
@@ -1317,12 +1340,12 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 			channel:        &model.Channel{Type: model.CHANNEL_DIRECT},
 			post:           overriddenPost,
 			allowOverrides: true,
-			expected:       sender.Username,
+			expected:       "@" + sender.Username,
 		},
 		"overridden username, overrides disabled": {
 			post:           overriddenPost,
 			allowOverrides: false,
-			expected:       sender.Username,
+			expected:       "@" + sender.Username,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -1742,4 +1765,27 @@ func TestProcessText(t *testing.T) {
 			assert.EqualValues(t, tc.Expected, e)
 		})
 	}
+}
+
+func TestGetNotificationNameFormat(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("show full name on", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PrivacySettings.ShowFullName = true
+			*cfg.TeamSettings.TeammateNameDisplay = model.SHOW_FULLNAME
+		})
+
+		assert.Equal(t, model.SHOW_FULLNAME, th.App.GetNotificationNameFormat(th.BasicUser))
+	})
+
+	t.Run("show full name off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PrivacySettings.ShowFullName = false
+			*cfg.TeamSettings.TeammateNameDisplay = model.SHOW_FULLNAME
+		})
+
+		assert.Equal(t, model.SHOW_USERNAME, th.App.GetNotificationNameFormat(th.BasicUser))
+	})
 }

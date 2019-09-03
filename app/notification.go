@@ -73,19 +73,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	updateMentionChans := []chan *model.AppError{}
 
 	if channel.Type == model.CHANNEL_DIRECT {
-		var otherUserId string
+		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
 
-		userIds := strings.Split(channel.Name, "__")
-
-		if userIds[0] != userIds[1] {
-			if userIds[0] == post.UserId {
-				otherUserId = userIds[1]
-			} else {
-				otherUserId = userIds[0]
-			}
-		}
-
-		otherUser, ok := profileMap[otherUserId]
+		_, ok := profileMap[otherUserId]
 		if ok {
 			mentionedUserIds[otherUserId] = true
 		}
@@ -93,13 +83,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		if post.Props["from_webhook"] == "true" {
 			mentionedUserIds[post.UserId] = true
 		}
-
-		if post.Type != model.POST_AUTO_RESPONDER {
-			a.Srv.Go(func() {
-				a.SendAutoResponse(channel, otherUser)
-			})
-		}
-
 	} else {
 		keywords := a.getMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
 
@@ -610,7 +593,9 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 			for _, k := range splitKeys {
 				// note that these are made lower case so that we can do a case insensitive check for them
 				key := strings.ToLower(k)
-				keywords[key] = append(keywords[key], id)
+				if key != "" {
+					keywords[key] = append(keywords[key], id)
+				}
 			}
 		}
 
@@ -657,7 +642,7 @@ type postNotification struct {
 func (n *postNotification) GetChannelName(userNameFormat string, excludeId string) string {
 	switch n.channel.Type {
 	case model.CHANNEL_DIRECT:
-		return n.sender.GetDisplayName(userNameFormat)
+		return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 	case model.CHANNEL_GROUP:
 		names := []string{}
 		for _, user := range n.profileMap {
@@ -687,7 +672,7 @@ func (n *postNotification) GetSenderName(userNameFormat string, overridesAllowed
 		}
 	}
 
-	return n.sender.GetDisplayName(userNameFormat)
+	return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 }
 
 // addMentionedUsers will add the mentioned user id in the struct's list for mentioned users
@@ -800,4 +785,17 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 			e.addMentionedUsers(ids)
 		}
 	}
+}
+
+func (a *App) GetNotificationNameFormat(user *model.User) string {
+	if !*a.Config().PrivacySettings.ShowFullName {
+		return model.SHOW_USERNAME
+	}
+
+	data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT)
+	if err != nil {
+		return *a.Config().TeamSettings.TeammateNameDisplay
+	}
+
+	return data.Value
 }
