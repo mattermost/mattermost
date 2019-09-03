@@ -210,3 +210,7 @@ func (s *LayeredStore) TotalReadDbConnections() int {
 func (s *LayeredStore) TotalSearchDbConnections() int {
 	return s.DatabaseLayer.TotalSearchDbConnections()
 }
+
+func (s *LayeredStore) CheckIntegrity() <-chan IntegrityCheckResult {
+	return s.DatabaseLayer.CheckIntegrity()
+}

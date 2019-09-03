@@ -1065,6 +1065,12 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 	return builder
 }
 
+func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
+	results := make(chan store.IntegrityCheckResult)
+	go CheckRelationalIntegrity(ss, results)
+	return results
+}
+
 type mattermConverter struct{}
 
 func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {

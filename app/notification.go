@@ -786,3 +786,16 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 		}
 	}
 }
+
+func (a *App) GetNotificationNameFormat(user *model.User) string {
+	if !*a.Config().PrivacySettings.ShowFullName {
+		return model.SHOW_USERNAME
+	}
+
+	data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT)
+	if err != nil {
+		return *a.Config().TeamSettings.TeammateNameDisplay
+	}
+
+	return data.Value
+}
