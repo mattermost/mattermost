@@ -2209,7 +2209,6 @@ type PluginSettings struct {
 	PluginStates             map[string]*PluginState
 	EnableMarketplace        *bool
 	MarketplaceUrl           *string
-	EnforceVerification      *bool
 	SignaturePublicKeyFiles  []*PublicKeyDescription
 }
 
@@ -2228,10 +2227,6 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.EnableHealthCheck == nil {
 		s.EnableHealthCheck = NewBool(true)
-	}
-
-	if s.EnforceVerification == nil {
-		s.EnforceVerification = NewBool(true)
 	}
 
 	if s.Directory == nil || *s.Directory == "" {
