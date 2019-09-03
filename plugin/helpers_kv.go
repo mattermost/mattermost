@@ -34,7 +34,12 @@ func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 		return err
 	}
 
-	return p.API.KVSet(key, data)
+	appErr := p.API.KVSet(key, data)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
 }
 
 // KVCompareAndSetJSON is a wrapper around KVCompareAndSet to simplify atomically writing a JSON object to the key value store.
@@ -56,7 +61,12 @@ func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newV
 		}
 	}
 
-	return p.API.KVCompareAndSet(key, oldData, newData)
+	set, appErr := p.API.KVCompareAndSet(key, oldData, newData)
+	if appErr != nil {
+		return set, appErr
+	}
+
+	return set, nil
 }
 
 // KVSetWithExpiryJSON is a wrapper around KVSetWithExpiry to simplify atomically writing a JSON object with expiry to the key value store.
@@ -66,5 +76,10 @@ func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireI
 		return err
 	}
 
-	return p.API.KVSetWithExpiry(key, data, expireInSeconds)
+	appErr := p.API.KVSetWithExpiry(key, data, expireInSeconds)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
 }
