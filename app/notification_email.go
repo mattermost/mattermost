@@ -74,12 +74,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 		useMilitaryTime = data.Value == "true"
 	}
 
-	var nameFormat string
-	if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); err != nil {
-		nameFormat = *a.Config().TeamSettings.TeammateNameDisplay
-	} else {
-		nameFormat = data.Value
-	}
+	nameFormat := a.GetNotificationNameFormat(user)
 
 	channelName := notification.GetChannelName(nameFormat, "")
 	senderName := notification.GetSenderName(nameFormat, *a.Config().ServiceSettings.EnablePostUsernameOverride)
