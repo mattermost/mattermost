@@ -317,7 +317,7 @@ func (us SqlUserStore) UpdateMfaRecovery(userId string, codes []string) *model.A
 	createAt := model.GetMillis()
 
 	if _, err := us.GetMaster().Exec("DELETE from MfaRecoveryCodes WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-		return model.NewAppError("SQLUserStore.UpdateMfaRecovery", "store.sql_user.update_mfra_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SQLUserStore.UpdateMfaRecovery", "store.sql_user.update_mfa_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
 	}
 	for _, c := range codes {
 		if _, err := us.GetMaster().Exec("INSERT INTO MfaRecoveryCodes values(:UserId, :Code, :CreateAt",
@@ -326,7 +326,7 @@ func (us SqlUserStore) UpdateMfaRecovery(userId string, codes []string) *model.A
 				"Code":     c,
 				"CreateAt": createAt,
 			}); err != nil {
-			return model.NewAppError("SQLUserStore.UpdateMfaRecovery", "store.sql_user.update_mfra_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("SQLUserStore.UpdateMfaRecovery", "store.sql_user.update_mfa_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -340,7 +340,7 @@ func (us SqlUserStore) UseMfaRecovery(userId string, code string) (bool, *model.
 			"Code":   code,
 		})
 	if err != nil {
-		return false, model.NewAppError("SQLUserStore.UseMfaRecovery", "store.sql_user.use_mfra_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("SQLUserStore.UseMfaRecovery", "store.sql_user.use_mfa_recovery.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
 	}
 	ra, _ := res.RowsAffected()
 
