@@ -49,6 +49,7 @@ func CompileGo(t *testing.T, sourceCode, outputPath string) {
 		goMod(t, dir, "init", "mattermost.com/test")
 		goMod(t, dir, "edit", "-require", "github.com/mattermost/mattermost-server@v0.0.0")
 		goMod(t, dir, "edit", "-replace", fmt.Sprintf("github.com/mattermost/mattermost-server@v0.0.0=%s", mattermostServerPath))
+		goMod(t, dir, "edit", "-replace", fmt.Sprintf("git.apache.org/thrift.git=%s", "github.com/apache/thrift@v0.0.0-20180902110319-2566ecd5d999"))
 	}
 
 	out := &bytes.Buffer{}
