@@ -54,7 +54,7 @@ func TestGenerateRecovery(t *testing.T) {
 	require.NotNil(t, err)
 }
 
-func TestLoginWithRecovery(t *testing.T) {
+func TestUseRecoveryCode(t *testing.T) {
 	//MfaRecovery: "['9Uy9Z9OK7p','7TQ7buuWq1','FB2tAOh2PK','3YS1AYkEKE']"
 	user := &model.User{Id: model.NewId(), Roles: "system_user", MfaActive: true}
 	code := "7TQ7buuWq1"
@@ -70,15 +70,15 @@ func TestLoginWithRecovery(t *testing.T) {
 	storeMock.On("User").Return(&userStoreMock)
 
 	mfa := Mfa{configService, &storeMock}
-	err := mfa.LoginWithRecovery(user, "dummyCode")
+	err := mfa.UseRecoveryCode(user, "dummyCode")
 	require.NotNil(t, err)
 
 	user.MfaActive = false
-	err = mfa.LoginWithRecovery(user, code)
+	err = mfa.UseRecoveryCode(user, code)
 	require.NotNil(t, err)
 
 	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(false)
-	err = mfa.LoginWithRecovery(user, "")
+	err = mfa.UseRecoveryCode(user, "")
 	require.NotNil(t, err)
 
 }

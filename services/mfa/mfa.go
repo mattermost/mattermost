@@ -81,7 +81,7 @@ func (m *Mfa) GenerateRecovery(user *model.User) ([]string, *model.AppError) {
 	return codes, nil
 }
 
-func (m *Mfa) LoginWithRecovery(user *model.User, code string) *model.AppError {
+func (m *Mfa) UseRecoveryCode(user *model.User, code string) *model.AppError {
 	if err := m.checkConfig(); err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func (m *Mfa) ValidateToken(secret, token string, user *model.User) (bool, *mode
 	ok, err := otpConfig.Authenticate(trimmedToken)
 	if err != nil {
 		//try recovery code, if otp fails
-		recErr := m.LoginWithRecovery(user, token)
+		recErr := m.UseRecoveryCode(user, token)
 		if recErr != nil {
 			return false, model.NewAppError("ValidateToken", "mfa.validate_token.authenticate.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
