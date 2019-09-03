@@ -172,6 +172,10 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v added to the channel as guest by %v."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v."
   },
@@ -258,6 +262,10 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Unable to delete direct or group message channels"
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v joined the channel as guest."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -3507,6 +3515,10 @@
     "translation": "Unable to remove plugin bundle from file store."
   },
   {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Unable to store the plugin to the configured file store."
   },
@@ -3521,6 +3533,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins and/or plugin uploads have been disabled."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
