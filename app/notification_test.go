@@ -1766,3 +1766,26 @@ func TestProcessText(t *testing.T) {
 		})
 	}
 }
+
+func TestGetNotificationNameFormat(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("show full name on", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PrivacySettings.ShowFullName = true
+			*cfg.TeamSettings.TeammateNameDisplay = model.SHOW_FULLNAME
+		})
+
+		assert.Equal(t, model.SHOW_FULLNAME, th.App.GetNotificationNameFormat(th.BasicUser))
+	})
+
+	t.Run("show full name off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PrivacySettings.ShowFullName = false
+			*cfg.TeamSettings.TeammateNameDisplay = model.SHOW_FULLNAME
+		})
+
+		assert.Equal(t, model.SHOW_USERNAME, th.App.GetNotificationNameFormat(th.BasicUser))
+	})
+}
