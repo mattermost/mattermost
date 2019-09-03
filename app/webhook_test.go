@@ -302,9 +302,9 @@ func TestCreateWebhookPost(t *testing.T) {
 	}, model.POST_SLACK_ATTACHMENT, "")
 	require.Nil(t, err)
 
-	for _, k := range []string{"from_webhook", "attachments", "webhook_display_name"} {
-		assert.Contains(t, post.Props, k, "missing one prop")
-	}
+	assert.Contains(t, post.Props, "from_webhook", "missing from_webhook prop")
+	assert.Contains(t, post.Props, "attachments", "missing attachments prop")
+	assert.Contains(t, post.Props, "webhook_display_name", "missing webhook_display_name prop")
 
 	_, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.POST_SYSTEM_GENERIC, "")
 	assert.NotNil(t, err, "Should have failed - bad post type")
