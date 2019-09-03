@@ -134,12 +134,12 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 	a.Log.Info("Starting up plugins")
 
-	if err := os.Mkdir(pluginDir, 0744); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(pluginDir, 0744); err != nil && !os.IsExist(err) {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
 
-	if err := os.Mkdir(webappPluginDir, 0744); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(webappPluginDir, 0744); err != nil && !os.IsExist(err) {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
