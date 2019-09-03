@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Nuovo messaggio diretto da @{{.SenderDisplayName}} il {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Nuovo messaggio diretto da {{.SenderDisplayName}} il {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3439,6 +3439,10 @@
     "translation": "Impossibile rimuovere l'insieme del plugin dall'archivio file."
   },
   {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Impossibile riavviare il plugin in fase di aggiornamento."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Impossibile archiviare il plugin sull'archivio file configurato."
   },
@@ -3453,6 +3457,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "I plugin e/o il caricamento dei plugin è stato disattivato."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Impossibile generare il pacchetto webapp del plugin."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -4396,7 +4404,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "Lo schema URL personalizzato {{.Scheme}} non è valido. Gli schemi URL personalizzati devono iniziare con una lettera e contenere solo lettere, numeri e trattini (-)."
+    "translation": "Lo schema URL personalizzato {{.Scheme}} non è valido. Gli schemi URL personalizzati devono iniziare con una lettera e contenere solo lettere, numeri, più (+), punti (.) e trattini (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",

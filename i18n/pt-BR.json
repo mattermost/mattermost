@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Nova Mensagem Direta de @{{.SenderDisplayName}} em {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Nova Mensagem Direta de {{.SenderDisplayName}} em {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3439,6 +3439,10 @@
     "translation": "Não é possível remover o pacote do plugin do armazenamento de arquivos."
   },
   {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Não é possível reiniciar o plugin na atualização."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Não é possível armazenar o plugin no armazenamento de arquivos configurado."
   },
@@ -3453,6 +3457,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins e/ou envio de plugin foi desabilitado."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Não é possível gerar o pacote plugin webapp."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -4396,7 +4404,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "O esquema de URL personalizado {{.Scheme}} é inválido. Os esquemas de URL personalizados devem começar com uma letra e conter apenas letras, números e hífen (-)."
+    "translation": "O esquema de URL personalizado {{.Scheme}} é inválido. Os esquemas de URL personalizados devem começar com uma letra e conter apenas letras, números, mais (+), ponto (.) e hífen (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",

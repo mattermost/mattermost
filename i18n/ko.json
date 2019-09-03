@@ -169,7 +169,7 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "나를 대화하기를 원하는 팀과 채널에 추가하여주세요. 이렇게하려면 브라우저 또는 Mattermost 데스크탑 앱을 사용하십시오."
+    "translation": "나를 대화하기를 원하는 팀과 채널에 추가하여 주십시오. 이렇게 하려면 브라우저 또는 Mattermost 데스크탑 앱을 사용하십시오."
   },
   {
     "id": "api.channel.add_member.added",
@@ -2672,7 +2672,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "Outgoing webhook을 생성할 권한이 없습니다."
+    "translation": "나가는 웹훅을 생성할 권한이 없습니다."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -2684,11 +2684,11 @@
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "팀들간의 명령어를 업데이트 할 수 없음"
+    "translation": "팀들간의 웹훅을 업데이트 할 수 없음"
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "같은 채널에서 나가는 outgoing webhook들은 동일한 발동 단어/콜백 URL을 가질 수 없습니다."
+    "translation": "같은 채널에서 나가는 나가는 웹훅들은 동일한 트리거 단어/콜백 URL을 가질 수 없습니다."
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2780,7 +2780,7 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "그룹 채널 정보 가져오기 실패"
+    "translation": "개인 채널 생성 실패"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
@@ -3268,7 +3268,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
-    "translation": "User roles are not valid."
+    "translation": "사용자 역할이 유효하지 않습니다."
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
@@ -3364,7 +3364,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+    "translation": "클러스터링 활성화 상태에서 ReadOnlyConfig를 사용하는 경우 config.json 파일의 플러그인 설정을 수동으로 업데이트해야합니다."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -3372,7 +3372,7 @@
   },
   {
     "id": "app.plugin.deactivate.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "플러그인을 비활성화 할 수 없습니다"
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -3396,7 +3396,7 @@
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "활성화된 플러그인을 가져 올 수 없습니다"
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3420,7 +3420,7 @@
   },
   {
     "id": "app.plugin.manifest.app_error",
-    "translation": "Unable to find manifest for extracted plugin"
+    "translation": "추출된 플러그인의 매니페스트를 찾을 수 없습니다"
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3432,11 +3432,15 @@
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "플러그인을 삭제 할 수 없습니다"
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
     "translation": "파일 저장소에서 플러그인 번들을 제거 할 수 없습니다."
+  },
+  {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
@@ -3453,6 +3457,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "플러그인이나 플러그인 업로드가 비활성화되었습니다."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3532,11 +3540,11 @@
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "사용자를 가져 올 수 없습니다."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "SAML 사용자를 가져 올 수 없습니다."
   },
   {
     "id": "ent.cluster.config_changed.info",
@@ -3548,31 +3556,31 @@
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Unknown output format {{.ExportType}}"
+    "translation": "알 수 없는 출력 형식 {{.ExportType}}"
   },
   {
     "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
+    "translation": "첨부 파일을 zip 파일로 복사 할 수 없습니다."
   },
   {
     "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Unable to add attachment to the CSV export."
+    "translation": "CSV 내보내기에 첨부 파일을 추가 할 수 없습니다."
   },
   {
     "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Unable to create temporary CSV export file."
+    "translation": "임시 CSV 내보내기 파일을 생성 할수 없습니다."
   },
   {
     "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Unable to add header to the CSV export."
+    "translation": "CSV 내보내기에 헤더를 추가 할 수 없습니다."
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Unable to add metadata file to the zip file."
+    "translation": "zip 파일에 메타데이터 파일을 추가 할 수 없습니다."
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Unable to convert metadata to json."
+    "translation": "메타데이터를 json으로 변환 할 수 없습니다."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
@@ -3580,7 +3588,7 @@
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "eml 파일을 생성할 수 없습니다."
+    "translation": "zip 내보내기 파일을 생성할 수 없습니다."
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
@@ -3588,7 +3596,7 @@
   },
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Unable to open the temporary export file."
+    "translation": "임시 내보내기 파일을 열 수 없습니다."
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
@@ -3600,7 +3608,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Unable to load export templates. Please try again."
+    "translation": "내보내기 템플릿을 불러올 수 없습니다. 다시 시도하십시오."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3632,27 +3640,27 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "채널에 대한 Elasticsearch 템플릿을 만들지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "사용자를 위한 Elasticsearch 템플릿을 생성하지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "사용자를 위한 Elasticsearch 템플릿을 생성하지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Elasticsearch 색인을 삭제하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Failed to get Elasticsearch indexes"
+    "translation": "Elasticsearch 색인을 가져 오지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": "채널 업데이트에 실패하였습니다"
+    "translation": "채널을 삭제하지 못하였습니다"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3660,15 +3668,15 @@
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "사용자를 삭제하지 못하였습니다"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch search is not enabled on this server"
+    "translation": "이 서버에서 Elasticsearch 검색을 사용할 수 없습니다"
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": "채널 업데이트에 실패하였습니다"
+    "translation": "채널 색인을 실패하였습니다"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3676,7 +3684,7 @@
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "사용자 색인을 실패하였습니다"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3696,15 +3704,15 @@
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "엘라스틱서치가 이미 시작됨"
+    "translation": "Elasticsearch가 시작되지 않았습니다"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Elasticsearch 색인을 삭제하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "이 서버에서 Elasticsearch 검색을 사용할 수 없습니다"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
@@ -3716,7 +3724,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "이 서버에서 Elasticsearch 검색을 사용할 수 없습니다"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3772,7 +3780,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "LDAP 인터페이스가 없음"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -3832,11 +3840,11 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
+    "translation": "AD/LDAP에서 사용자를 검색하지 못했습니다. Mattermost 서버가 AD/LDAP 서버에 연결할 수 있는지 테스트 한 후 다시 시도하십시오."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "크기 제한을 초과했습니다. [최대 페이지 크기]를 확인하십시오 (https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3864,7 +3872,7 @@
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Unable to add attachment to the Global Relay export."
+    "translation": "CSV 내보내기에 첨부 파일을 추가 할 수 없습니다."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
@@ -4048,11 +4056,11 @@
   },
   {
     "id": "mattermost.bulletin.subject",
-    "translation": "Mattermost Security Bulletin"
+    "translation": "Mattermost 보안 게시판"
   },
   {
     "id": "mfa.activate.authenticate.app_error",
-    "translation": "Error attempting to authenticate MFA token"
+    "translation": "MFA 토큰 인증 시도 중 오류 발생"
   },
   {
     "id": "mfa.activate.bad_token.app_error",
@@ -4060,31 +4068,31 @@
   },
   {
     "id": "mfa.activate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user"
+    "translation": "사용자의 MFA 활성 상태를 업데이트 할 수 없습니다"
   },
   {
     "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user"
+    "translation": "사용자의 MFA 활성 상태를 업데이트 할 수 없습니다"
   },
   {
     "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Error clearing the MFA secret"
+    "translation": "MFA 보안을 삭제하는 중 오류 발생"
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
-    "translation": "QR 코드 생성 중 오류가 발생했습니다."
+    "translation": "QR 코드 생성 오류"
   },
   {
     "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error saving the MFA secret"
+    "translation": "MFA 보안을 저장하는 중 오류 발생"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "이 서버에는 다단계 인증이 요구됩니다."
+    "translation": "이 서버에서 다단계 인증이 비활성화되었습니다."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Error trying to authenticate MFA token"
+    "translation": "MFA 토큰을 인증하는 중 오류가 발생했습니다"
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4168,11 +4176,11 @@
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": "잘못된 사용자 ID입니다."
+    "translation": "잘못된 사용자 ID입니다"
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "잘못된 유저이름입니다."
+    "translation": "잘못된 사용자명입니다"
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -4220,7 +4228,7 @@
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "Invalid ignore channel mentions status"
+    "translation": "잘못된 채널 멘션 상태 무시"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4276,7 +4284,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "잘못된 형식"
+    "translation": "잘못된 제목"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4332,11 +4340,11 @@
   },
   {
     "id": "model.command_hook.parent_id.app_error",
-    "translation": "잘못된 Parent Id 입니다."
+    "translation": "잘못된 Parent ID"
   },
   {
     "id": "model.command_hook.root_id.app_error",
-    "translation": "잘못된 루트 아이디입니다."
+    "translation": "잘못된 루트 ID"
   },
   {
     "id": "model.command_hook.user_id.app_error",
@@ -4368,7 +4376,7 @@
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
-    "translation": "Allowing cookies for subdomains requires SiteURL to be set."
+    "translation": "하위 도메인에 쿠키를 허용하려면 SiteURL을 설정해야합니다."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
@@ -4384,7 +4392,7 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
+    "translation": "데이터 보존 작업 시작 시간은 HH:MM 형식의 24 시간 타임 스탬프 여야합니다."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
@@ -4452,7 +4460,7 @@
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Invalid driver name for file settings.  Must be 'local' or 'amazons3'"
+    "translation": "파일 설정에 대한 드라이버 이름이 잘못되었습니다. 'local' 또는 'amazons3'이어야합니다."
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
@@ -4484,11 +4492,11 @@
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
-    "translation": "Invalid max page size value."
+    "translation": "최대 페이지 크기 값이 잘못되었습니다."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "LDAP 세팅을 위한 잘못된 Connection Security입니다. '', 'TLS', 'STARTTLS' 중 하나여야 합니다."
+    "translation": "AD/LDAP 세팅을 위한 잘못된 연결 보안입니다. '', 'TLS', or 'STARTTLS' 중 하나여야 합니다"
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -4804,7 +4812,7 @@
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
-    "translation": "Invalid channel id"
+    "translation": "잘못된 채널 ID"
   },
   {
     "id": "model.incoming_hook.create_at.app_error",
@@ -4816,7 +4824,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "잘못된 형식"
+    "translation": "잘못된 제목"
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
@@ -4844,7 +4852,7 @@
   },
   {
     "id": "model.incoming_hook.username.app_error",
-    "translation": "잘못된 유저이름입니다."
+    "translation": "잘못된 사용자명"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -4852,7 +4860,7 @@
   },
   {
     "id": "model.job.is_valid.id.app_error",
-    "translation": "잘못된 형식"
+    "translation": "잘못된 작업 ID"
   },
   {
     "id": "model.job.is_valid.status.app_error",
@@ -4860,15 +4868,15 @@
   },
   {
     "id": "model.job.is_valid.type.app_error",
-    "translation": "잘못된 형식"
+    "translation": "잘못된 작업 형식"
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": "Invalid value for create_at when uploading a license."
+    "translation": "라이센스 업로드 중 created_at의 값이 잘못되었습니다."
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": "Invalid value for id when uploading a license."
+    "translation": "라이센스 업로드 중 ID 값이 잘못되었습니다."
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
@@ -4900,7 +4908,7 @@
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
-    "translation": "Invalid client secret"
+    "translation": "잘못된 클라이언트 보안"
   },
   {
     "id": "model.oauth.is_valid.create_at.app_error",
@@ -4932,15 +4940,15 @@
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
-    "translation": "잘못된 범위"
+    "translation": "잘못된 아이콘"
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
-    "translation": "Invalid callback urls"
+    "translation": "잘못된 콜백 URL"
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
-    "translation": "Invalid channel id"
+    "translation": "잘못된 채널 ID"
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
@@ -4956,7 +4964,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "잘못된 형식"
+    "translation": "잘못된 제목"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
@@ -4992,7 +5000,7 @@
   },
   {
     "id": "model.outgoing_hook.username.app_error",
-    "translation": "잘못된 유저이름입니다."
+    "translation": "잘못된 사용자명"
   },
   {
     "id": "model.plugin_command.error.app_error",
@@ -5032,11 +5040,11 @@
   },
   {
     "id": "model.post.is_valid.msg.app_error",
-    "translation": "Invalid message"
+    "translation": "잘못된 메시지"
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
-    "translation": "Invalid original id"
+    "translation": "잘못된 원본 ID"
   },
   {
     "id": "model.post.is_valid.parent_id.app_error",
@@ -5124,7 +5132,7 @@
   },
   {
     "id": "model.team.is_valid.email.app_error",
-    "translation": "Invalid email"
+    "translation": "잘못된 이메일"
   },
   {
     "id": "model.team.is_valid.id.app_error",
@@ -5440,19 +5448,19 @@
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "채널 업데이트에 실패하였습니다"
+    "translation": "채널 멤버를 검색하지 못했습니다"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "채널 업데이트에 실패하였습니다"
+    "translation": "채널 멤버를 업데이트 하지 못했습니다"
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "채널 업데이트에 실패하였습니다"
+    "translation": "채널을 삭제하지 못했습니다"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "존재하는 채널을 찾지 못했습니다."
+    "translation": "존재하는 채널을 찾지 못했습니다"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
@@ -5484,11 +5492,11 @@
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Unable to add direct channel members"
+    "translation": "채널 수를 가져 올 수 없습니다"
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "채널을 불러올 수 없습니다."
+    "translation": "채널을 불러올 수 없습니다"
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
@@ -5504,7 +5512,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "채널을 불러올 수 없습니다."
+    "translation": "채널을 불러올 수 없습니다"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
@@ -5532,7 +5540,7 @@
   },
   {
     "id": "store.sql_channel.get_member.app_error",
-    "translation": "Unable to add direct channel members"
+    "translation": "채널 멤버를 가져올 수 없습니다"
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
@@ -5556,7 +5564,7 @@
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "채널을 불러올 수 없습니다."
+    "translation": "채널을 불러올 수 없습니다"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
@@ -5588,11 +5596,11 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "채널 업데이트에 실패하였습니다"
+    "translation": "채널을 삭제 할 수 없습니다"
   },
   {
     "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "트랜잭션을 커밋 할 수 없습니다"
   },
   {
     "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
@@ -5600,15 +5608,15 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "트랜잭션을 열수 없습니다"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "채널을 불러올 수 없습니다."
+    "translation": "채널을 삭제 할 수 없습니다"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "트랜잭션을 커밋 할 수 없습니다"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
@@ -5616,7 +5624,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "트랜잭션을 열수 없습니다"
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
@@ -5640,11 +5648,11 @@
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "트랜잭션을 커밋 할 수 없습니다"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "트랜잭션을 열수 없습니다"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5652,7 +5660,7 @@
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "트랜잭션을 커밋 할 수 없습니다"
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
@@ -5660,7 +5668,7 @@
   },
   {
     "id": "store.sql_channel.save.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "트랜잭션을 열수 없습니다"
   },
   {
     "id": "store.sql_channel.save.upsert_public_channel.app_error",
@@ -5676,7 +5684,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "A channel with that name already exists on the same team"
+    "translation": "동일한 이름의 채널이 이미 같은 팀에 존재합니다"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -6376,7 +6384,7 @@
   },
   {
     "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type"
+    "translation": "모든 토큰 유형을 제거 할 수 없습니다"
   },
   {
     "id": "store.sql_recover.save.app_error",
@@ -6428,7 +6436,7 @@
   },
   {
     "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Unable to delete the roles belonging to this scheme"
+    "translation": "스키마에 존재하는 역할을 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_scheme.delete.update.app_error",
@@ -6512,7 +6520,7 @@
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Unable to update the last_activity_at"
+    "translation": "last_activity_at를 업데이트 할 수 없습니다"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
