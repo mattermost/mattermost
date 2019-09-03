@@ -99,23 +99,32 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
 	pluginDownloadUrl := r.URL.Query().Get(model.PLUGIN_URL_STRING)
 	signatureDownloadUrl := r.URL.Query().Get(model.SIGNATURE_URL_STRING)
 	downloadUrls := map[string]string{
-		model.PLUGIN_URL_STRING:    pluginDownloadUrl,
-		model.SIGNATURE_URL_STRING: signatureDownloadUrl,
+		model.PLUGIN_URL_STRING: pluginDownloadUrl,
 	}
+	if signatureDownloadUrl != "" {
+		downloadUrls[model.SIGNATURE_URL_STRING] = signatureDownloadUrl
+	}
+
 	downloadedFiles := downloadFiles(c, downloadUrls)
 	pluginFile := downloadedFiles[model.PLUGIN_URL_STRING]
-	signatureFile := downloadedFiles[model.SIGNATURE_URL_STRING]
-	if pluginFile == nil || signatureFile == nil {
+	if pluginFile == nil {
 		return
 	}
 
-	err := c.App.VerifyPlugin(bytes.NewReader(pluginFile), bytes.NewReader(signatureFile))
-	if err != nil {
-		c.Err = err
-		return
+	if signatureDownloadUrl != "" {
+		signatureFile := downloadedFiles[model.SIGNATURE_URL_STRING]
+		if signatureFile == nil {
+			return
+		}
+		err := c.App.VerifyPlugin(bytes.NewReader(pluginFile), bytes.NewReader(signatureFile))
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	force := false
