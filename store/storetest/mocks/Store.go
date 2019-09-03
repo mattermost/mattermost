@@ -182,6 +182,20 @@ func (_m *Store) FileInfo() store.FileInfoStore {
 	return r0
 }
 
+// GetCurrentSchemaVersion provides a mock function with given fields:
+func (_m *Store) GetCurrentSchemaVersion() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // Group provides a mock function with given fields:
 func (_m *Store) Group() store.GroupStore {
 	ret := _m.Called()

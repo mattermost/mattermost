@@ -356,10 +356,10 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 }
 
 func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndChannels map[string][]string, profileImages []string, guest bool) app.LineImportData {
-	password := fmt.Sprintf("user-%d", idx)
+	password := fmt.Sprintf("SampleUs@r-%d", idx)
 	email := fmt.Sprintf("user-%d@sample.mattermost.com", idx)
 	if guest {
-		password = fmt.Sprintf("guest-%d", idx)
+		password = fmt.Sprintf("SampleGu@st-%d", idx)
 		email = fmt.Sprintf("guest-%d@sample.mattermost.com", idx)
 	}
 	firstName := fake.FirstName()
@@ -368,12 +368,12 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	if guest {
 		if idx == 0 {
 			username = "guest"
-			password = "guest"
+			password = "SampleGu@st1"
 			email = "guest@sample.mattermost.com"
 		}
 	} else if idx == 0 {
 		username = "sysadmin"
-		password = "sysadmin"
+		password = "Sys@dmin-sample1"
 		email = "sysadmin@sample.mattermost.com"
 	} else if idx == 1 {
 		username = "user-1"

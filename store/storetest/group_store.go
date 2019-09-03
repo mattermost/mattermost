@@ -50,6 +50,8 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("TeamMembersMinusGroupMembers", func(t *testing.T) { testTeamMembersMinusGroupMembers(t, ss) })
 	t.Run("ChannelMembersMinusGroupMembers", func(t *testing.T) { testChannelMembersMinusGroupMembers(t, ss) })
+
+	t.Run("GetMemberCount", func(t *testing.T) { groupTestGetMemberCount(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -1635,7 +1637,21 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	user1, err := ss.User().Save(u1)
 	require.Nil(t, err)
 
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err := ss.User().Save(u2)
+	require.Nil(t, err)
+
 	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user2.Id)
+	require.Nil(t, err)
+
+	user2.DeleteAt = 1
+	_, err = ss.User().Update(user2, true)
 	require.Nil(t, err)
 
 	group1WithMemberCount := model.Group(*group1)
@@ -1834,7 +1850,21 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	user1, err := ss.User().Save(u1)
 	require.Nil(t, err)
 
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err := ss.User().Save(u2)
+	require.Nil(t, err)
+
 	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user2.Id)
+	require.Nil(t, err)
+
+	user2.DeleteAt = 1
+	_, err = ss.User().Update(user2, true)
 	require.Nil(t, err)
 
 	group1WithMemberCount := model.Group(*group1)
@@ -2074,14 +2104,21 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	user1, err := ss.User().Save(u1)
 	require.Nil(t, err)
 
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err := ss.User().Save(u2)
+	require.Nil(t, err)
+
 	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
 	require.Nil(t, err)
 
-	group1WithMemberCount := model.Group(*group1)
-	group1WithMemberCount.MemberCount = model.NewInt(1)
+	_, err = ss.Group().UpsertMember(group1.Id, user2.Id)
+	require.Nil(t, err)
 
-	group2WithMemberCount := model.Group(*group2)
-	group2WithMemberCount.MemberCount = model.NewInt(0)
+	user2.DeleteAt = 1
+	ss.User().Update(user2, true)
 
 	group2NameSubstring := string([]rune(group2.Name)[2:5])
 
@@ -2166,10 +2203,13 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Name:    "Include member counts",
 			Opts:    model.GroupSearchOpts{IncludeMemberCount: true},
 			Page:    0,
-			PerPage: 2,
+			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
 				for _, g := range groups {
 					if g.MemberCount == nil {
+						return false
+					}
+					if g.Id == group1.Id && *g.MemberCount != 1 {
 						return false
 					}
 				}
@@ -2538,4 +2578,42 @@ func testChannelMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 			require.Equal(t, tc.expectedTotalCount, actualCount)
 		})
 	}
+}
+
+func groupTestGetMemberCount(t *testing.T, ss store.Store) {
+	group := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		Description: model.NewId(),
+		RemoteId:    model.NewId(),
+	}
+	group, err := ss.Group().Create(group)
+	require.Nil(t, err)
+
+	var user *model.User
+
+	for i := 0; i < 2; i++ {
+		user = &model.User{
+			Email:    MakeEmail(),
+			Username: fmt.Sprintf("%d_%s", i, model.NewId()),
+		}
+		user, err = ss.User().Save(user)
+		require.Nil(t, err)
+
+		_, err = ss.Group().UpsertMember(group.Id, user.Id)
+		require.Nil(t, err)
+	}
+
+	count, err := ss.Group().GetMemberCount(group.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(2), count)
+
+	user.DeleteAt = 1
+	_, err = ss.User().Update(user, true)
+	require.Nil(t, err)
+
+	count, err = ss.Group().GetMemberCount(group.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(1), count)
 }
