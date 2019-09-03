@@ -593,7 +593,9 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 			for _, k := range splitKeys {
 				// note that these are made lower case so that we can do a case insensitive check for them
 				key := strings.ToLower(k)
-				keywords[key] = append(keywords[key], id)
+				if key != "" {
+					keywords[key] = append(keywords[key], id)
+				}
 			}
 		}
 
@@ -640,7 +642,7 @@ type postNotification struct {
 func (n *postNotification) GetChannelName(userNameFormat string, excludeId string) string {
 	switch n.channel.Type {
 	case model.CHANNEL_DIRECT:
-		return n.sender.GetDisplayName(userNameFormat)
+		return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 	case model.CHANNEL_GROUP:
 		names := []string{}
 		for _, user := range n.profileMap {
@@ -670,7 +672,7 @@ func (n *postNotification) GetSenderName(userNameFormat string, overridesAllowed
 		}
 	}
 
-	return n.sender.GetDisplayName(userNameFormat)
+	return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 }
 
 // addMentionedUsers will add the mentioned user id in the struct's list for mentioned users

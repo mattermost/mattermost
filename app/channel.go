@@ -1409,10 +1409,18 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 }
 
 func (a *App) postJoinChannelMessage(user *model.User, channel *model.Channel) *model.AppError {
+	message := fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username)
+	postType := model.POST_JOIN_CHANNEL
+
+	if user.IsGuest() {
+		message = fmt.Sprintf(utils.T("api.channel.guest_join_channel.post_and_forget"), user.Username)
+		postType = model.POST_GUEST_JOIN_CHANNEL
+	}
+
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username),
-		Type:      model.POST_JOIN_CHANNEL,
+		Message:   message,
+		Type:      postType,
 		UserId:    user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,
@@ -1527,10 +1535,18 @@ func (a *App) postLeaveChannelMessage(user *model.User, channel *model.Channel) 
 }
 
 func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+	message := fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username)
+	postType := model.POST_ADD_TO_CHANNEL
+
+	if addedUser.IsGuest() {
+		message = fmt.Sprintf(utils.T("api.channel.add_guest.added"), addedUser.Username, user.Username)
+		postType = model.POST_ADD_GUEST_TO_CHANNEL
+	}
+
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username),
-		Type:      model.POST_ADD_TO_CHANNEL,
+		Message:   message,
+		Type:      postType,
 		UserId:    user.Id,
 		RootId:    postRootId,
 		Props: model.StringInterface{

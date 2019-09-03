@@ -3521,6 +3521,36 @@ func (s *apiRPCServer) KVCompareAndSet(args *Z_KVCompareAndSetArgs, returns *Z_K
 	return nil
 }
 
+type Z_KVCompareAndDeleteArgs struct {
+	A string
+	B []byte
+}
+
+type Z_KVCompareAndDeleteReturns struct {
+	A bool
+	B *model.AppError
+}
+
+func (g *apiRPCClient) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
+	_args := &Z_KVCompareAndDeleteArgs{key, oldValue}
+	_returns := &Z_KVCompareAndDeleteReturns{}
+	if err := g.client.Call("Plugin.KVCompareAndDelete", _args, _returns); err != nil {
+		log.Printf("RPC call to KVCompareAndDelete API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) KVCompareAndDelete(args *Z_KVCompareAndDeleteArgs, returns *Z_KVCompareAndDeleteReturns) error {
+	if hook, ok := s.impl.(interface {
+		KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.KVCompareAndDelete(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API KVCompareAndDelete called but not implemented."))
+	}
+	return nil
+}
+
 type Z_KVSetWithExpiryArgs struct {
 	A string
 	B []byte

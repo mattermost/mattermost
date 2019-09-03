@@ -1224,6 +1224,58 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 	}
 }
 
+func TestPluginAPIKVCompareAndDelete(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	testCases := []struct {
+		Description   string
+		ExpectedValue []byte
+	}{
+		{
+			Description:   "Testing non-nil, non-empty value",
+			ExpectedValue: []byte("value1"),
+		},
+		{
+			Description:   "Testing empty value",
+			ExpectedValue: []byte(""),
+		},
+	}
+
+	for i, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			expectedKey := fmt.Sprintf("Key%d", i)
+			expectedValue1 := testCase.ExpectedValue
+			expectedValue2 := []byte("value2")
+
+			// Set the value
+			err := api.KVSet(expectedKey, expectedValue1)
+			require.Nil(t, err)
+
+			// Attempt delete using an incorrect old value
+			deleted, err := api.KVCompareAndDelete(expectedKey, expectedValue2)
+			require.Nil(t, err)
+			require.False(t, deleted)
+
+			// Make sure the value is still there
+			value, err := api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue1, value)
+
+			// Attempt delete using the proper value
+			deleted, err = api.KVCompareAndDelete(expectedKey, expectedValue1)
+			require.Nil(t, err)
+			require.True(t, deleted)
+
+			// Verify it's deleted
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Nil(t, value)
+		})
+	}
+}
+
 func TestPluginCreateBot(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

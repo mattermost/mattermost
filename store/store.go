@@ -55,6 +55,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
+	CheckIntegrity() <-chan IntegrityCheckResult
 }
 
 type TeamStore interface {
@@ -520,6 +521,7 @@ type UserAccessTokenStore interface {
 type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)
 	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
+	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
 	Delete(pluginId, key string) *model.AppError
 	DeleteAllForPlugin(PluginId string) *model.AppError
@@ -625,4 +627,22 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
+}
+
+type OrphanedRecord struct {
+	ParentId string
+	ChildId  string
+}
+
+type RelationalIntegrityCheckData struct {
+	ParentName   string
+	ChildName    string
+	ParentIdAttr string
+	ChildIdAttr  string
+	Records      []OrphanedRecord
+}
+
+type IntegrityCheckResult struct {
+	Data interface{}
+	Err  error
 }
