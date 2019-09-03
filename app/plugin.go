@@ -555,36 +555,32 @@ func (a *App) DeletePublicKey(file string) *model.AppError {
 }
 
 // VerifyPlugin verifies plugin signature
-func (a *App) VerifyPlugin(plugin, signature io.Reader) (bool, *model.AppError) {
+func (a *App) VerifyPlugin(plugin, signature io.Reader) *model.AppError {
 	publicKeys, appErr := a.GetPluginPublicKeys()
 	if appErr != nil {
-		return false, appErr
+		return appErr
 	}
 	for _, pk := range publicKeys {
 		pkBytes, appErr := a.GetPublicKey(pk.Name)
 		if appErr != nil {
-			mlog.Error("Error...")
+			mlog.Error("Unable to get public key for ", mlog.String("filename", pk.Name))
 		}
 		publicKey := bytes.NewReader(pkBytes)
-		verify, err := verifyFileSignature(plugin, publicKey, signature)
-		if err != nil {
-			mlog.Error("Error..." + err.Error())
-		}
-		if verify {
-			return true, nil
+		if verifyFileSignature(plugin, publicKey, signature) == nil {
+			return nil
 		}
 	}
-	return false, nil
+	return model.NewAppError("GetPublicKey", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
 }
 
-func verifyFileSignature(signedFile, publicKey, signature io.Reader) (bool, error) {
+func verifyFileSignature(signedFile, publicKey, signature io.Reader) error {
 	keyring, err := openpgp.ReadArmoredKeyRing(publicKey)
 	if err != nil {
-		return false, err
+		return err
 	}
 	_, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature)
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }

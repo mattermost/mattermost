@@ -109,25 +109,12 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	pluginFile := downloadedFiles[model.PLUGIN_URL_STRING]
 	signatureFile := downloadedFiles[model.SIGNATURE_URL_STRING]
 	if pluginFile == nil || signatureFile == nil {
-		//TODO error
-		if pluginFile == nil {
-			mlog.Error("nil pluginfile")
-		}
-		if signatureFile == nil {
-			mlog.Error("nil signatureFile")
-		}
 		return
 	}
 
-	verified, err := c.App.VerifyPlugin(bytes.NewReader(pluginFile), bytes.NewReader(signatureFile))
+	err := c.App.VerifyPlugin(bytes.NewReader(pluginFile), bytes.NewReader(signatureFile))
 	if err != nil {
-		//TODO error
-		mlog.Error("not nil verified error " + err.Error())
-		return
-	}
-	if !verified {
-		// TODO error
-		mlog.Error("no error but verified is false")
+		c.Err = err
 		return
 	}
 
@@ -136,9 +123,9 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		force = true
 	}
 
-	manifest, appErr := c.App.InstallPlugin(bytes.NewReader(pluginFile), force)
-	if appErr != nil {
-		c.Err = appErr
+	manifest, err := c.App.InstallPlugin(bytes.NewReader(pluginFile), force)
+	if err != nil {
+		c.Err = err
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
