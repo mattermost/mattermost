@@ -21,9 +21,9 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
-// PublicKeyFileExtention is the extention of the public key file. Only this file
-// extention is permitted.
-const PublicKeyFileExtention = ".asc"
+// PluginSignaturePublicKeyFileExtention is the extention of the public key file.
+// Only this file extention is permitted.
+const PluginSignaturePublicKeyFileExtention = ".asc"
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.
@@ -469,7 +469,7 @@ func (a *App) GetPluginPublicKeys() ([]*model.PublicKeyDescription, *model.AppEr
 // GetPublicKey will return the actual public key saved in the `filename` file.
 func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
 	ext := filepath.Ext(filename)
-	if PublicKeyFileExtention != ext {
+	if PluginSignaturePublicKeyFileExtention != ext {
 		return nil, model.NewAppError("GetPublicKey", "api.plugin.get_public_key.not_a_public_key.app_error", nil, "", http.StatusInternalServerError)
 	}
 	data, err := a.Srv.configStore.GetFile(filename)
@@ -510,7 +510,7 @@ func containsPK(publicKeys []*model.PublicKeyDescription, filename string) bool 
 // AddPublicKey method will add plugin public key to the config.
 func (a *App) AddPublicKey(file string) *model.AppError {
 	ext := filepath.Ext(file)
-	if PublicKeyFileExtention != ext {
+	if PluginSignaturePublicKeyFileExtention != ext {
 		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.not_a_public_key.app_error", nil, "", http.StatusInternalServerError)
 	}
 	filename := filepath.Base(file)
@@ -539,7 +539,7 @@ func removePK(publicKeys []*model.PublicKeyDescription, filename string) []*mode
 // DeletePublicKey method will add plugin public key to the config.
 func (a *App) DeletePublicKey(file string) *model.AppError {
 	ext := filepath.Ext(file)
-	if PublicKeyFileExtention != ext {
+	if PluginSignaturePublicKeyFileExtention != ext {
 		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.not_a_public_key.app_error", nil, "", http.StatusInternalServerError)
 	}
 	filename := filepath.Base(file)
