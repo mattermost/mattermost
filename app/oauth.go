@@ -806,11 +806,12 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	}
 
 	// If they're a Github user we need to call https://api.github.com/user/emails to get their email
-	if service == model.SERVICE_GITHUB {
+	// Get the response as json
+	// if service == model.SERVICE_GITHUB && response email is null {
 		// Make API request
 		// Get the last email in the list (their private email)
 		// Replace the email value in resp.Body with the value we found
-	}
+	// }
 
 	// Note that resp.Body is not closed here, so it must be closed by the caller
 	return resp.Body, teamId, stateProps, nil
