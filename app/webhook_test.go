@@ -128,9 +128,9 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 
 			createdHook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &tc.IncomingWebhook)
 			if tc.ExpectedError {
-				assert.NotNil(t, err, "should have failed")
+				require.NotNil(t, err, "should have failed")
 			} else {
-				assert.Nil(t, err, "should not have failed")
+				require.Nil(t, err, "should not have failed")
 			}
 			if createdHook != nil {
 				defer th.App.DeleteIncomingWebhook(createdHook.Id)
@@ -265,9 +265,9 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 
 			updatedHook, err := th.App.UpdateIncomingWebhook(hook, &tc.IncomingWebhook)
 			if tc.ExpectedError {
-				assert.NotNil(t, err, "should have failed")
+				require.NotNil(t, err, "should have failed")
 			} else {
-				assert.Nil(t, err, "should not have failed")
+				require.Nil(t, err, "should not have failed")
 			}
 			if tc.ExpectedIncomingWebhook == nil {
 				assert.Nil(t, updatedHook, "expected nil webhook")
@@ -307,7 +307,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	assert.Contains(t, post.Props, "webhook_display_name", "missing webhook_display_name prop")
 
 	_, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.POST_SYSTEM_GENERIC, "")
-	assert.NotNil(t, err, "Should have failed - bad post type")
+	require.NotNil(t, err, "Should have failed - bad post type")
 
 	expectedText := "`<>|<>|`"
 	post, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
