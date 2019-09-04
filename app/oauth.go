@@ -475,6 +475,13 @@ func (a *App) RevokeAccessToken(token string) *model.AppError {
 func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, props map[string]string) (*model.User, *model.AppError) {
 	defer body.Close()
 
+	// If they're loggin in with Github we need to make a call to https://api.github.com/user/emails to get their email address
+	//  This will 
+	if service = model.USER_AUTH_SERVICE_GITHUB {
+
+	}
+
+
 	action := props["action"]
 
 	switch action {
@@ -492,6 +499,8 @@ func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, p
 }
 
 func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+	mlog.Debug("SERVICE IS::::")
+	mlog.Debug(service)
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.not_available.app_error",
@@ -795,6 +804,14 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.response.app_error", nil, "response_body="+bodyString, http.StatusInternalServerError)
 	}
+
+	// If they're a Github user we need to call https://api.github.com/user/emails to get their email
+	// Get the response as json
+	// if service == model.SERVICE_GITHUB && response email is null {
+		// Make API request
+		// Get the last email in the list (their private email)
+		// Replace the email value in resp.Body with the value we found
+	// }
 
 	// Note that resp.Body is not closed here, so it must be closed by the caller
 	return resp.Body, teamId, stateProps, nil
