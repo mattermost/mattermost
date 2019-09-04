@@ -190,14 +190,14 @@ func TestConnection(config *model.Config) {
 
 	conn, err1 := ConnectToSMTPServer(config)
 	if err1 != nil {
-		mlog.Error("SMTP server settings do not appear to be configured properly", mlog.String("errorMessage", utils.T(err1.Message)), mlog.String("errorDetails", err1.DetailedError))
+		mlog.Error("SMTP server settings do not appear to be configured properly", mlog.String("error_message", utils.T(err1.Message)), mlog.String("error_details", err1.DetailedError))
 		return
 	}
 	defer conn.Close()
 
 	c, err2 := NewSMTPClient(conn, config)
 	if err2 != nil {
-		mlog.Error("SMTP server settings do not appear to be configured properly", mlog.String("errorMessage", utils.T(err2.Message)), mlog.String("errorDetails", err2.DetailedError))
+		mlog.Error("SMTP server settings do not appear to be configured properly", mlog.String("error_message", utils.T(err2.Message)), mlog.String("error_details", err2.DetailedError))
 		return
 	}
 	defer c.Quit()
