@@ -1222,15 +1222,6 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options *m
 	return us.performSearch(query, term, options)
 }
 
-var escapeLikeSearchChar = []string{
-	"%",
-	"_",
-}
-
-var ignoreLikeSearchChar = []string{
-	"*",
-}
-
 var spaceFulltextSearchChar = []string{
 	"<",
 	">",
@@ -1265,15 +1256,7 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 }
 
 func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	// These chars must be removed from the like query.
-	for _, c := range ignoreLikeSearchChar {
-		term = strings.Replace(term, c, "", -1)
-	}
-
-	// These chars must be escaped in the like query.
-	for _, c := range escapeLikeSearchChar {
-		term = strings.Replace(term, c, "*"+c, -1)
-	}
+	term = sanitizeSearchTerm(term, "*")
 
 	searchType := USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
 	if options.AllowEmails {
