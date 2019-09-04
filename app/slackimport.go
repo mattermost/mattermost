@@ -785,7 +785,7 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 		}
 
 		// get some sort of progress for very big imports
-		if (files-i) % (files/100) == 0 {
+		if (files-i)%(files/100) == 0 {
 			mlog.Debug(fmt.Sprintf("Slack Import: %d Slack files left to parse.", files-i))
 		}
 	}
@@ -794,25 +794,23 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	mlog.Debug(fmt.Sprintf("Slack Import: Checking for deleted Slack users."))
 	users = addDeletedUsers(users, channelUsers)
 
+	mlog.Debug(fmt.Sprintf("Slack Import: Converting user mentions."))
 	posts = SlackConvertUserMentions(users, posts)
-	mlog.Debug(fmt.Sprintf("Slack Import: Converted user mentions."))
+
+	mlog.Debug(fmt.Sprintf("Slack Import: Converting channel links."))
 	posts = SlackConvertChannelMentions(channels, posts)
-	mlog.Debug(fmt.Sprintf("Slack Import: Converted channel links."))
+
+	mlog.Debug(fmt.Sprintf("Slack Import: Converting post markup."))
 	posts = SlackConvertPostsMarkup(posts)
-	mlog.Debug(fmt.Sprintf("Slack Import: Converted post markup."))
 
-	mlog.Debug(fmt.Sprintf("Slack Import: Adding Slack users to team object."))
+	mlog.Debug(fmt.Sprintf("Slack Import: Importing Slack users to Mattermost server."))
 	addedUsers := a.SlackAddUsers(teamID, users, log)
-	mlog.Debug(fmt.Sprintf("Slack Import: Added Slack users to team object."))
 
-	mlog.Debug(fmt.Sprintf("Slack Import: Adding Slack bot users to team object."))
+	mlog.Debug(fmt.Sprintf("Slack Import: Importing Slack bot users to Mattermost server."))
 	botUser := a.SlackAddBotUser(teamID, log)
-	mlog.Debug(fmt.Sprintf("Slack Import: Added Slack bot users to team object."))
 
-	mlog.Debug(fmt.Sprintf("Slack Import: Adding Slack channels to Mattermost team."))
+	mlog.Debug(fmt.Sprintf("Slack Import: Importing Slack channels to Mattermost server."))
 	a.SlackAddChannels(teamID, channels, posts, addedUsers, uploads, botUser, log)
-	mlog.Debug(fmt.Sprintf("Slack Import: Added Slack channels to Mattermost team."))
-
 
 	if botUser != nil {
 		a.deactivateSlackBotUser(botUser)
