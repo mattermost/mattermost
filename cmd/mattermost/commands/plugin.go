@@ -56,38 +56,36 @@ var PluginListCmd = &cobra.Command{
 }
 
 var PluginPublicKeysCmd = &cobra.Command{
-	Use:     "keys",
-	Short:   "List public keys",
-	Long:    "List names of all public keys installed on your Mattermost server.",
-	Example: `  plugin keys`,
-	RunE:    pluginPublicKeysCmdF,
-}
-
-var PluginPublicKeyDetailsCmd = &cobra.Command{
-	Use:     "key-details",
-	Short:   "List public keys in detailed format",
-	Long:    "List names and details of all public keys installed on your Mattermost server.",
-	Example: `  plugin key-details`,
-	RunE:    pluginPublicKeyDetailsCmdF,
+	Use:   "keys",
+	Short: "List public keys",
+	Long:  "List names of all public keys installed on your Mattermost server.",
+	Example: `  plugin keys
+  plugin keys --verbose`,
+	RunE: pluginPublicKeysCmdF,
 }
 
 var PluginAddPublicKeyCmd = &cobra.Command{
-	Use:     "add-key [keys]",
-	Short:   "Adds public keys",
-	Long:    "Adds public keys for plugins on your Mattermost server.",
-	Example: `  plugin add-key my-pk-file1.asc my-pk-file2.asc`,
+	Use:     "add [keys]",
+	Short:   "Adds public key(s)",
+	Long:    "Adds public key(s) for plugins on your Mattermost server.",
+	Example: `  plugin add-key my-pk-file1.plugin.asc my-pk-file2.plugin.asc`,
 	RunE:    pluginAddPublicKeyCmdF,
 }
 
 var PluginDeletePublicKeyCmd = &cobra.Command{
-	Use:     "delete-key [public-keys]",
-	Short:   "Deletes public keys",
-	Long:    "Deletes public keys for plugins on your Mattermost server.",
-	Example: `  plugin delete-key my-pk-file1.asc my-pk-file2.asc `,
+	Use:     "delete [keys]",
+	Short:   "Deletes public key(s)",
+	Long:    "Deletes public key(s) for plugins on your Mattermost server.",
+	Example: `  plugin delete-key my-pk-file1.plugin.asc my-pk-file2.plugin.asc `,
 	RunE:    pluginDeletePublicKeyCmdF,
 }
 
 func init() {
+	PluginPublicKeysCmd.Flags().String("verbose", "", "List names and details of all public keys installed on your Mattermost server.")
+	PluginPublicKeysCmd.AddCommand(
+		PluginAddPublicKeyCmd,
+		PluginDeletePublicKeyCmd,
+	)
 	PluginCmd.AddCommand(
 		PluginAddCmd,
 		PluginDeleteCmd,
@@ -95,9 +93,6 @@ func init() {
 		PluginDisableCmd,
 		PluginListCmd,
 		PluginPublicKeysCmd,
-		PluginPublicKeyDetailsCmd,
-		PluginAddPublicKeyCmd,
-		PluginDeletePublicKeyCmd,
 	)
 	RootCmd.AddCommand(PluginCmd)
 }
@@ -228,36 +223,28 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	pluginPublicKeysResp, appErr := a.GetPluginPublicKeys()
-	if appErr != nil {
-		return errors.New("Unable to list public keys. Error: " + appErr.Error())
-	}
-
-	for _, publicKey := range pluginPublicKeysResp {
-		CommandPrettyPrintln(publicKey)
-	}
-
-	return nil
-}
-
-func pluginPublicKeyDetailsCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	verbose, err := command.Flags().GetString("verbose")
 	if err != nil {
-		return err
+		return errors.New("failed reading verbose. Error: " + err.Error())
 	}
-	defer a.Shutdown()
 
 	pluginPublicKeysResp, appErr := a.GetPluginPublicKeys()
 	if appErr != nil {
 		return errors.New("Unable to list public keys. Error: " + appErr.Error())
 	}
 
-	for _, publicKey := range pluginPublicKeysResp {
-		key, err := a.GetPublicKey(publicKey)
-		if err != nil {
-			CommandPrintErrorln("Unable to get plugin public key: " + publicKey + ". Error: " + err.Error())
+	if verbose == "" {
+		for _, publicKey := range pluginPublicKeysResp {
+			CommandPrettyPrintln(publicKey)
 		}
-		CommandPrettyPrintln("Plugin name: " + publicKey + ". \nPublic key: \n" + string(key) + "\n")
+	} else {
+		for _, publicKey := range pluginPublicKeysResp {
+			key, err := a.GetPublicKey(publicKey)
+			if err != nil {
+				CommandPrintErrorln("Unable to get plugin public key: " + publicKey + ". Error: " + err.Error())
+			}
+			CommandPrettyPrintln("Plugin name: " + publicKey + ". \nPublic key: \n" + string(key) + "\n")
+		}
 	}
 
 	return nil
