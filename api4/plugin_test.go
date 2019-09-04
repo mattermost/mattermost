@@ -35,7 +35,7 @@ func TestPlugin(t *testing.T) {
 	})
 
 	path, _ := fileutils.FindDir("tests")
-	appErr := th.App.AddPublicKey(filepath.Join(path, "development-public-key.asc"))
+	appErr := th.App.AddPublicKey(filepath.Join(path, "development-public-key.plugin.asc"))
 	if appErr != nil {
 		t.Fatal(appErr)
 	}

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,11 +50,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []*model.PublicKeyDescription{
-		&model.PublicKeyDescription{
-			Name: "public-key",
-		},
-	}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
 	th.SetConfig(cfg)
 
 	output := th.CheckCommand(t, "plugin", "keys")
@@ -67,14 +62,11 @@ func TestPluginPublicKeyDetails(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []*model.PublicKeyDescription{
-		&model.PublicKeyDescription{
-			Name: "public-key",
-		},
-	}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
+
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "key-details")
+	output := th.CheckCommand(t, "plugin", "keys", "--verbose")
 	assert.Contains(t, output, "Unable to get plugin public key: public-key")
 }
 
@@ -83,14 +75,10 @@ func TestAddPluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []*model.PublicKeyDescription{
-		&model.PublicKeyDescription{
-			Name: "public key",
-		},
-	}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "add-key", "pk1.asc")
+	output := th.CheckCommand(t, "plugin", "keys", "add", "pk1.asc")
 	assert.Contains(t, output, "Unable to add public key: pk1.asc")
 }
 
@@ -99,13 +87,9 @@ func TestDeletePluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []*model.PublicKeyDescription{
-		&model.PublicKeyDescription{
-			Name: "public key",
-		},
-	}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "delete-key", "pk1.asc")
+	output := th.CheckCommand(t, "plugin", "keys", "delete", "pk1.asc")
 	assert.Contains(t, output, "Unable to delete public key: pk1.asc")
 }

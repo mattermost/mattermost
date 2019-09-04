@@ -25,7 +25,7 @@ func Migrate(from, to string) error {
 		*sourceConfig.SamlSettings.PrivateKeyFile}
 
 	for _, pk := range sourceConfig.PluginSettings.SignaturePublicKeyFiles {
-		files = append(files, pk.Name)
+		files = append(files, pk)
 	}
 
 	for _, file := range files {
