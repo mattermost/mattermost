@@ -87,7 +87,7 @@ PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
