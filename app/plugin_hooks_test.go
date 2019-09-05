@@ -11,7 +11,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -526,7 +525,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("allowed", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-      
+
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
@@ -664,11 +663,10 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+	if !assert.NoError(t, err) {
 
-	if err != nil {
-		t.Errorf("Error updating user password: %s", err)
+		assert.Errorf(t, err, "Error updating user password: %s")
 	}
-
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
@@ -697,8 +695,8 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	w := httptest.NewRecorder()
 	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if !strings.HasPrefix(err.Id, "Login rejected by plugin") {
-		t.Errorf("Expected Login rejected by plugin, got %s", err.Id)
+	if assert.NotContains(t, err.Id, "Login rejected by plugin") {
+		assert.Errorf(t, err.Id, "Expected Login rejected by plugin, got %s")
 	}
 }
 
@@ -708,8 +706,8 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
 
-	if err != nil {
-		t.Errorf("Error updating user password: %s", err)
+	if !assert.NoError(t, err) {
+		assert.Errorf(t, err, "Error updating user password: %s")
 	}
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -740,13 +738,11 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	w := httptest.NewRecorder()
 	session, err := th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if err != nil {
-		t.Errorf("Expected nil, got %s", err)
+	if !assert.NoError(t, err) {
+		assert.Errorf(t, err, "Expected nil, got %s")
 	}
 
-	if session.UserId != th.BasicUser.Id {
-		t.Errorf("Expected %s, got %s", th.BasicUser.Id, session.UserId)
-	}
+	assert.Equal(t, session.UserId, th.BasicUser.Id)
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
@@ -755,8 +751,8 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
 
-	if err != nil {
-		t.Errorf("Error updating user password: %s", err)
+	if !assert.NoError(t, err) {
+		assert.Errorf(t, err, "Error updating user password: %s")
 	}
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -788,17 +784,16 @@ func TestUserHasLoggedIn(t *testing.T) {
 	w := httptest.NewRecorder()
 	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if err != nil {
-		t.Errorf("Expected nil, got %s", err)
+	if !assert.NoError(t, err) {
+		assert.Errorf(t, err, "Expected nil, got %s")
 	}
 
 	time.Sleep(2 * time.Second)
 
 	user, _ := th.App.GetUser(th.BasicUser.Id)
 
-	if user.FirstName != "plugin-callback-success" {
-		t.Errorf("Expected firstname overwrite, got default")
-	}
+	assert.Equal(t, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
+
 }
 
 func TestUserHasBeenCreated(t *testing.T) {
