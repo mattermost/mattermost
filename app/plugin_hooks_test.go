@@ -663,10 +663,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
-	if !assert.NoError(t, err) {
-
-		assert.Errorf(t, err, "Error updating user password: %s")
-	}
+	assert.NoError(t, err,"Error updating user password: %s",err) 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
@@ -695,9 +692,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	w := httptest.NewRecorder()
 	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if assert.NotContains(t, err.Id, "Login rejected by plugin") {
-		assert.Errorf(t, err.Id, "Expected Login rejected by plugin, got %s")
-	}
+	assert.NotContains(t, err.Id, "Login rejected by plugin","Expected Login rejected by plugin, got %s",err.Id) 
 }
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
@@ -706,9 +701,8 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
 
-	if !assert.NoError(t, err) {
-		assert.Errorf(t, err, "Error updating user password: %s")
-	}
+	assert.NoError(t, err,"Error updating user password: %s",err) 
+		
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -738,9 +732,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	w := httptest.NewRecorder()
 	session, err := th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if !assert.NoError(t, err) {
-		assert.Errorf(t, err, "Expected nil, got %s")
-	}
+	assert.NoError(t, err,"Expected nil, got %s",err) 
 
 	assert.Equal(t, session.UserId, th.BasicUser.Id)
 }
@@ -751,9 +743,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
 
-	if !assert.NoError(t, err) {
-		assert.Errorf(t, err, "Error updating user password: %s")
-	}
+	assert.NoError(t, err,"Error updating user password: %s",err) 
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -784,9 +774,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 	w := httptest.NewRecorder()
 	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if !assert.NoError(t, err) {
-		assert.Errorf(t, err, "Expected nil, got %s")
-	}
+	assert.NoError(t, err,"Expected nil, got %s",err) 
 
 	time.Sleep(2 * time.Second)
 
