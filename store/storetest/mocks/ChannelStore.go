@@ -993,6 +993,43 @@ func (_m *ChannelStore) GetMoreChannels(teamId string, userId string, offset int
 	return r0, r1
 }
 
+// GetPinnedPostCount provides a mock function with given fields: channelId, allowFromCache
+func (_m *ChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
+	ret := _m.Called(channelId, allowFromCache)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, bool) int64); ok {
+		r0 = rf(channelId, allowFromCache)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(channelId, allowFromCache)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPinnedPostCountFromCache provides a mock function with given fields: channelId
+func (_m *ChannelStore) GetPinnedPostCountFromCache(channelId string) int64 {
+	ret := _m.Called(channelId)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(channelId)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	return r0
+}
+
 // GetPinnedPosts provides a mock function with given fields: channelId
 func (_m *ChannelStore) GetPinnedPosts(channelId string) (*model.PostList, *model.AppError) {
 	ret := _m.Called(channelId)
@@ -1136,6 +1173,11 @@ func (_m *ChannelStore) InvalidateGuestCount(channelId string) {
 
 // InvalidateMemberCount provides a mock function with given fields: channelId
 func (_m *ChannelStore) InvalidateMemberCount(channelId string) {
+	_m.Called(channelId)
+}
+
+// InvalidatePinnedPostCount provides a mock function with given fields: channelId
+func (_m *ChannelStore) InvalidatePinnedPostCount(channelId string) {
 	_m.Called(channelId)
 }
 

@@ -5659,6 +5659,10 @@
     "translation": "Unable to get the channels"
   },
   {
+    "id": "store.sql_channel.get_pinnedpost_count.app_error",
+    "translation": "Unable to get the channel pinned post count"
+  },
+  {
     "id": "store.sql_channel.get_public_channels.get.app_error",
     "translation": "Unable to get public channels"
   },
