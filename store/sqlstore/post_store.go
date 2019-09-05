@@ -456,7 +456,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) *model.AppErro
 	return nil
 }
 
-func (s *SqlPostStore) GetPosts(options store.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	if options.PerPage > 1000 {
 		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+options.ChannelId, http.StatusBadRequest)
 	}
@@ -523,7 +523,7 @@ func (s *SqlPostStore) GetPosts(options store.GetPostsOptions, allowFromCache bo
 	return list, err
 }
 
-func (s *SqlPostStore) GetPostsSince(options store.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	if allowFromCache {
 		// If the last post in the channel's time is less than or equal to the time we are getting posts since,
 		// we can safely return no posts.
@@ -592,15 +592,15 @@ func (s *SqlPostStore) GetPostsSince(options store.GetPostsSinceOptions, allowFr
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostsBefore(options store.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	return s.getPostsAround(true, options)
 }
 
-func (s *SqlPostStore) GetPostsAfter(options store.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	return s.getPostsAround(false, options)
 }
 
-func (s *SqlPostStore) getPostsAround(before bool, options store.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	offset := options.Page * options.PerPage
 	var posts, parents []*model.Post
 

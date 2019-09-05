@@ -170,6 +170,20 @@ func (o *Post) ToUnsanitizedJson() string {
 	return string(b)
 }
 
+type GetPostsSinceOptions struct {
+	ChannelId        string
+	Time             int64
+	SkipFetchThreads bool
+}
+
+type GetPostsOptions struct {
+	ChannelId        string
+	PostId           string
+	Page             int
+	PerPage          int
+	SkipFetchThreads bool
+}
+
 func PostFromJson(data io.Reader) *Post {
 	var o *Post
 	json.NewDecoder(data).Decode(&o)

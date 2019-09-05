@@ -6,7 +6,6 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost-server/model"
-	store "github.com/mattermost/mattermost-server/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -384,11 +383,11 @@ func (_m *PostStore) GetPostIdBeforeTime(channelId string, time int64) (string, 
 }
 
 // GetPosts provides a mock function with given fields: options, allowFromCache
-func (_m *PostStore) GetPosts(options store.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	ret := _m.Called(options, allowFromCache)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(store.GetPostsOptions, bool) *model.PostList); ok {
+	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, bool) *model.PostList); ok {
 		r0 = rf(options, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
@@ -397,7 +396,7 @@ func (_m *PostStore) GetPosts(options store.GetPostsOptions, allowFromCache bool
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(store.GetPostsOptions, bool) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(model.GetPostsOptions, bool) *model.AppError); ok {
 		r1 = rf(options, allowFromCache)
 	} else {
 		if ret.Get(1) != nil {
@@ -409,11 +408,11 @@ func (_m *PostStore) GetPosts(options store.GetPostsOptions, allowFromCache bool
 }
 
 // GetPostsAfter provides a mock function with given fields: options
-func (_m *PostStore) GetPostsAfter(options store.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	ret := _m.Called(options)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(store.GetPostsOptions) *model.PostList); ok {
+	if rf, ok := ret.Get(0).(func(model.GetPostsOptions) *model.PostList); ok {
 		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
@@ -422,7 +421,7 @@ func (_m *PostStore) GetPostsAfter(options store.GetPostsOptions) (*model.PostLi
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(store.GetPostsOptions) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(model.GetPostsOptions) *model.AppError); ok {
 		r1 = rf(options)
 	} else {
 		if ret.Get(1) != nil {
@@ -459,11 +458,11 @@ func (_m *PostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, li
 }
 
 // GetPostsBefore provides a mock function with given fields: options
-func (_m *PostStore) GetPostsBefore(options store.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	ret := _m.Called(options)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(store.GetPostsOptions) *model.PostList); ok {
+	if rf, ok := ret.Get(0).(func(model.GetPostsOptions) *model.PostList); ok {
 		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
@@ -472,7 +471,7 @@ func (_m *PostStore) GetPostsBefore(options store.GetPostsOptions) (*model.PostL
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(store.GetPostsOptions) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(model.GetPostsOptions) *model.AppError); ok {
 		r1 = rf(options)
 	} else {
 		if ret.Get(1) != nil {
@@ -534,11 +533,11 @@ func (_m *PostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.P
 }
 
 // GetPostsSince provides a mock function with given fields: options, allowFromCache
-func (_m *PostStore) GetPostsSince(options store.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	ret := _m.Called(options, allowFromCache)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(store.GetPostsSinceOptions, bool) *model.PostList); ok {
+	if rf, ok := ret.Get(0).(func(model.GetPostsSinceOptions, bool) *model.PostList); ok {
 		r0 = rf(options, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
@@ -547,7 +546,7 @@ func (_m *PostStore) GetPostsSince(options store.GetPostsSinceOptions, allowFrom
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(store.GetPostsSinceOptions, bool) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(model.GetPostsSinceOptions, bool) *model.AppError); ok {
 		r1 = rf(options, allowFromCache)
 	} else {
 		if ret.Get(1) != nil {

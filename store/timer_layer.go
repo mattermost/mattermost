@@ -3932,10 +3932,10 @@ func (s *TimerLayerPostStore) Delete(postId string, time int64, deleteByID strin
 	return resultVar0
 }
 
-func (s *TimerLayerPostStore) Get(id string, skipRootFetch bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.Get(id, skipRootFetch)
+	resultVar0, resultVar1 := s.PostStore.Get(id, skipFetchThreads)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
@@ -4136,7 +4136,7 @@ func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPosts(options GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetPosts(options, allowFromCache)
@@ -4153,7 +4153,7 @@ func (s *TimerLayerPostStore) GetPosts(options GetPostsOptions, allowFromCache b
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsAfter(options GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetPostsAfter(options)
@@ -4187,7 +4187,7 @@ func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsBefore(options GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetPostsBefore(options)
@@ -4238,7 +4238,7 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsSince(options GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetPostsSince(options, allowFromCache)

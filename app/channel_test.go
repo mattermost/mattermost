@@ -9,8 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/store"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -528,7 +526,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, err := th.App.Srv.Store.Post().GetPosts(store.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
+	postList, err := th.App.Srv.Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
 	require.Nil(t, err)
 
 	if assert.Len(t, postList.Order, 1) {
