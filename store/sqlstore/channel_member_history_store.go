@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"net/http"
-
 	"database/sql"
 
 	"github.com/mattermost/mattermost-server/mlog"
