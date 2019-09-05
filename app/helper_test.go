@@ -296,6 +296,26 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	return post
 }
 
+func (me *TestHelper) CreateMessagePost(channel *model.Channel, message string) *model.Post {
+	post := &model.Post{
+		UserId:    me.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   message,
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	if post, err = me.App.CreatePost(post, channel, false); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return post
+}
+
 func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 

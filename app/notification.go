@@ -593,7 +593,9 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 			for _, k := range splitKeys {
 				// note that these are made lower case so that we can do a case insensitive check for them
 				key := strings.ToLower(k)
-				keywords[key] = append(keywords[key], id)
+				if key != "" {
+					keywords[key] = append(keywords[key], id)
+				}
 			}
 		}
 
@@ -783,4 +785,17 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 			e.addMentionedUsers(ids)
 		}
 	}
+}
+
+func (a *App) GetNotificationNameFormat(user *model.User) string {
+	if !*a.Config().PrivacySettings.ShowFullName {
+		return model.SHOW_USERNAME
+	}
+
+	data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT)
+	if err != nil {
+		return *a.Config().TeamSettings.TeammateNameDisplay
+	}
+
+	return data.Value
 }
