@@ -164,20 +164,16 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 	return pluginStatuses, nil
 }
 
-// Manifest returns a manifest for a given pluginId.
+// GetManifest returns a manifest for a given pluginId.
 // Returns ErrPluginNotFound if plugin is not found.
-func (env *Environment) Manifest(pluginId string) (*model.Manifest, error) {
+func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 	plugins, err := env.Available()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get plugin statuses")
 	}
 
 	for _, plugin := range plugins {
-		if plugin.Manifest == nil {
-			continue
-		}
-
-		if plugin.Manifest.Id == pluginId {
+		if plugin.Manifest != nil && plugin.Manifest.Id == pluginId {
 			return plugin.Manifest, nil
 		}
 	}

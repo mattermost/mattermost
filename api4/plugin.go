@@ -247,6 +247,7 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
+
 	if !*c.App.Config().PluginSettings.EnableMarketplace {
 		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marketplace_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return

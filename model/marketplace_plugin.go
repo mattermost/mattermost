@@ -10,6 +10,7 @@ import (
 	"strconv"
 )
 
+// BaseMarketplacePlugin is a Mattermost plugin received from the marketplace server.
 type BaseMarketplacePlugin struct {
 	HomepageURL  string
 	DownloadURL  string

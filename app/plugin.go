@@ -427,13 +427,10 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 
 	for _, plugin := range marketplacePlugins {
 		installedVersion := ""
-		if pluginsEnvironment != nil {
-			var manifest *model.Manifest
-			if manifest, err = pluginsEnvironment.Manifest(plugin.Manifest.Id); err == nil {
-				// Plugin is installed, overwrite marketplace manifest.
-				plugin.Manifest = manifest
-				installedVersion = manifest.Version
-			}
+		var manifest *model.Manifest
+		if manifest, err = pluginsEnvironment.GetManifest(plugin.Manifest.Id); err == nil {
+			// Plugin is installed.
+			installedVersion = manifest.Version
 		}
 
 		pluginSet[plugin.Manifest.Id] = true
