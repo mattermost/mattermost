@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -893,6 +894,56 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			); actualMessage != tc.ExpectedMessage {
 				t.Fatalf("Received incorrect push notification message `%v`, expected `%v`", actualMessage, tc.ExpectedMessage)
 			}
+		})
+	}
+}
+
+func TestBuildPushNotificationMessage(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	team := th.CreateTeam()
+	sender := th.CreateUser()
+	receiver := th.CreateUser()
+	th.LinkUserToTeam(sender, team)
+	th.LinkUserToTeam(receiver, team)
+	channel := th.CreateChannel(team)
+	th.AddUserToChannel(sender, channel)
+	th.AddUserToChannel(receiver, channel)
+
+	// Create three mention posts and two non-mention posts
+	th.CreateMessagePost(channel, "@channel Hello")
+	th.CreateMessagePost(channel, "@all Hello")
+	th.CreateMessagePost(channel, fmt.Sprintf("@%s Hello", receiver.Username))
+	th.CreatePost(channel)
+	post := th.CreatePost(channel)
+
+	for name, tc := range map[string]struct {
+		explicitMention    bool
+		channelWideMention bool
+		replyToThreadType  string
+		pushNotifyProps    string
+		expectedBadge      int
+	}{
+		"only mentions included in badge count": {
+			explicitMention:    false,
+			channelWideMention: true,
+			replyToThreadType:  "",
+			pushNotifyProps:    "mention",
+			expectedBadge:      3,
+		},
+		"mentions and non-mentions included in badge count": {
+			explicitMention:    false,
+			channelWideMention: true,
+			replyToThreadType:  "",
+			pushNotifyProps:    "all",
+			expectedBadge:      5,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			receiver.NotifyProps["push"] = tc.pushNotifyProps
+			msg := th.App.BuildPushNotificationMessage(post, receiver, channel, channel.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			assert.Equal(t, tc.expectedBadge, msg.Badge)
 		})
 	}
 }
