@@ -588,6 +588,33 @@ func (s *apiRPCServer) GetConfig(args *Z_GetConfigArgs, returns *Z_GetConfigRetu
 	return nil
 }
 
+type Z_GetUnsanitizedConfigArgs struct {
+}
+
+type Z_GetUnsanitizedConfigReturns struct {
+	A *model.Config
+}
+
+func (g *apiRPCClient) GetUnsanitizedConfig() *model.Config {
+	_args := &Z_GetUnsanitizedConfigArgs{}
+	_returns := &Z_GetUnsanitizedConfigReturns{}
+	if err := g.client.Call("Plugin.GetUnsanitizedConfig", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUnsanitizedConfig API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetUnsanitizedConfig(args *Z_GetUnsanitizedConfigArgs, returns *Z_GetUnsanitizedConfigReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUnsanitizedConfig() *model.Config
+	}); ok {
+		returns.A = hook.GetUnsanitizedConfig()
+	} else {
+		return encodableError(fmt.Errorf("API GetUnsanitizedConfig called but not implemented."))
+	}
+	return nil
+}
+
 type Z_SaveConfigArgs struct {
 	A *model.Config
 }

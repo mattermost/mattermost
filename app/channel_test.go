@@ -1041,3 +1041,18 @@ func TestSearchChannelsForUser(t *testing.T) {
 		searchAndCheck(t, "dev", []string{"test-dev-1", "test-dev-2", "dev-3"})
 	})
 }
+
+func TestGetNumberOfChannelsOnTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.DeleteChannel(th.BasicChannel, th.BasicUser.Id)
+
+	count, err := th.App.GetNumberOfChannelsOnTeam(th.BasicTeam.Id, true)
+	require.Nil(t, err)
+	assert.Equal(t, 3, count)
+
+	count, err = th.App.GetNumberOfChannelsOnTeam(th.BasicTeam.Id, false)
+	require.Nil(t, err)
+	assert.Equal(t, 2, count)
+}
