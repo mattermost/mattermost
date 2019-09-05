@@ -50,7 +50,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/miekg/dns v1.1.15 // indirect
-	github.com/minio/minio-go v0.0.0-20190422205105-a8704b60278f
+	github.com/minio/minio-go/v6 v6.0.34
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.1 // indirect
@@ -87,6 +87,7 @@ require (
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 	golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7 // indirect
 	golang.org/x/text v0.3.2
+	golang.org/x/tools v0.0.0-20190903163617-be0da057c5e3 // indirect
 	google.golang.org/appengine v1.6.1 // indirect
 	google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610 // indirect
 	google.golang.org/grpc v1.22.0 // indirect
