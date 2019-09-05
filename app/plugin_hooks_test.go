@@ -172,9 +172,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			CreateAt:  model.GetMillis() - 10000,
 		}
 		post, err := th.App.CreatePost(post, th.BasicChannel, false)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
+
 		assert.Equal(t, "message", post.Message)
 		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
 		require.Nil(t, errSingle)
@@ -217,15 +216,14 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			CreateAt:  model.GetMillis() - 10000,
 		}
 		post, err := th.App.CreatePost(post, th.BasicChannel, false)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
+
 		assert.Equal(t, "message_fromplugin", post.Message)
-		if retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id); err != nil {
-			t.Fatal(errSingle)
-		} else {
-			assert.Equal(t, "message_fromplugin", retrievedPost.Message)
-		}
+		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
+		require.Nil(t, errSingle)
+
+		assert.Equal(t, "message_fromplugin", retrievedPost.Message)
+
 	})
 
 	t.Run("multiple updated", func(t *testing.T) {
@@ -286,9 +284,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			CreateAt:  model.GetMillis() - 10000,
 		}
 		post, err := th.App.CreatePost(post, th.BasicChannel, false)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 		assert.Equal(t, "prefix_message_suffix", post.Message)
 	})
 }
@@ -332,9 +328,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 	_, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 }
 
 func TestHookMessageWillBeUpdated(t *testing.T) {
@@ -373,15 +367,11 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 	post, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited_"
 	post, err = th.App.UpdatePost(post, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	assert.Equal(t, "message_edited_fromplugin", post.Message)
 }
 
@@ -425,15 +415,11 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 	post, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited"
 	_, err = th.App.UpdatePost(post, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 }
 
 func TestHookFileWillBeUploaded(t *testing.T) {
@@ -540,7 +526,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("allowed", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-
+      
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
@@ -988,7 +974,5 @@ func TestHookContext(t *testing.T) {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 	_, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 }
