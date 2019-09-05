@@ -692,7 +692,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	w := httptest.NewRecorder()
 	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
-	assert.NotContains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
+	assert.Contains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
 }
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
