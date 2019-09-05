@@ -1382,6 +1382,23 @@ func (s *TimerLayerChannelStore) InvalidateMemberCount(channelId string) {
 	return
 }
 
+func (s *TimerLayerChannelStore) InvalidatePinnedPostCount(channelId string) {
+	start := timemodule.Now()
+
+	s.ChannelStore.InvalidatePinnedPostCount(channelId)
+
+	t := timemodule.Now()
+	elapsed := t.Sub(start)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.InvalidatePinnedPostCount", success, float64(elapsed))
+	}
+	return
+}
+
 func (s *TimerLayerChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
 	start := timemodule.Now()
 

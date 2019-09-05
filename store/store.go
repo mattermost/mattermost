@@ -55,6 +55,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
+	CheckIntegrity() <-chan IntegrityCheckResult
 }
 
 type TeamStore interface {
@@ -147,6 +148,9 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
+	InvalidatePinnedPostCount(channelId string)
+	GetPinnedPostCountFromCache(channelId string) int64
+	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidateGuestCount(channelId string)
 	GetGuestCountFromCache(channelId string) int64
 	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)
@@ -626,4 +630,22 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
+}
+
+type OrphanedRecord struct {
+	ParentId string
+	ChildId  string
+}
+
+type RelationalIntegrityCheckData struct {
+	ParentName   string
+	ChildName    string
+	ParentIdAttr string
+	ChildIdAttr  string
+	Records      []OrphanedRecord
+}
+
+type IntegrityCheckResult struct {
+	Data interface{}
+	Err  error
 }

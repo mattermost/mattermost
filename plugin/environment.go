@@ -284,6 +284,10 @@ func (env *Environment) RestartPlugin(id string) error {
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() {
+	if env.pluginHealthCheckJob != nil {
+		env.pluginHealthCheckJob.Cancel()
+	}
+
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
 		rp := value.(*registeredPlugin)
 
