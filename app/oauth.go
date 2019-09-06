@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	b64 "encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,12 +15,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"context"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
+
+	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -475,13 +480,6 @@ func (a *App) RevokeAccessToken(token string) *model.AppError {
 func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, props map[string]string) (*model.User, *model.AppError) {
 	defer body.Close()
 
-	// If they're loggin in with Github we need to make a call to https://api.github.com/user/emails to get their email address
-	//  This will 
-	if service = model.USER_AUTH_SERVICE_GITHUB {
-
-	}
-
-
 	action := props["action"]
 
 	switch action {
@@ -499,8 +497,7 @@ func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, p
 }
 
 func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
-	mlog.Debug("SERVICE IS::::")
-	mlog.Debug(service)
+	// mlog.Debug("SERVICE IS:::: "+service)
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.not_available.app_error",
@@ -783,7 +780,12 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
+
+	if service == model.SERVICE_GITHUB {
+		req.Header.Set("Authorization", "token "+ar.AccessToken)	
+	} else {
+		req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
+	}	
 
 	resp, err = a.HTTPService.MakeClient(true).Do(req)
 	if err != nil {
@@ -805,16 +807,69 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.response.app_error", nil, "response_body="+bodyString, http.StatusInternalServerError)
 	}
 
-	// If they're a Github user we need to call https://api.github.com/user/emails to get their email
-	// Get the response as json
-	// if service == model.SERVICE_GITHUB && response email is null {
-		// Make API request
-		// Get the last email in the list (their private email)
-		// Replace the email value in resp.Body with the value we found
-	// }
+	var respBody io.ReadCloser
+	private_email, primary_email, new_email := "", "", ""
+	// Added to support Github email privacy settings
+	if service == model.SERVICE_GITHUB {
+		body, _ := ioutil.ReadAll(resp.Body)
 
-	// Note that resp.Body is not closed here, so it must be closed by the caller
-	return resp.Body, teamId, stateProps, nil
+		var user_info map[string]interface{}
+
+		if err := json.Unmarshal(body, &user_info); err != nil {
+			mlog.Error("Error reading user returned from Github")
+		}
+
+		if user_info["email"] == nil {
+			ctx := context.Background()
+			ts := oauth2.StaticTokenSource(
+				&oauth2.Token{AccessToken: ar.AccessToken},
+			)
+			tc := oauth2.NewClient(ctx, ts)
+
+			client := github.NewClient(tc)
+			
+			emails_response, _, err := client.Users.ListEmails(ctx, nil)
+
+			if err != nil {
+				mlog.Error(err.Error())
+			}
+
+			for _, email_record := range emails_response {
+				
+
+				primary_email_record := *email_record.Primary
+				email_value := *email_record.Email
+
+				if primary_email_record == true {
+					primary_email = email_value
+				}
+
+				if strings.HasSuffix(email_value, "users.noreply.github.com") {
+					private_email = email_value
+				}
+			}
+
+			new_email = primary_email
+			if len(private_email) != 0 {
+				new_email = private_email
+			}
+			
+			user_info["email"] = new_email
+		}
+
+		new_body, _ := json.Marshal(user_info)
+
+		// IMPORTANT Close the resp.Body
+		resp.Body.Close()
+
+		// Convert new_body to type ReadCloser
+		respBody = ioutil.NopCloser(bytes.NewReader([]byte(new_body)))
+	} else {
+		respBody = resp.Body
+	}	
+
+	return respBody, teamId, stateProps, nil
+
 }
 
 func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError) {
