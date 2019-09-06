@@ -4,48 +4,61 @@
 package main
 
 import (
-	"go/ast"
+	"bytes"
+	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
+	"go/ast"
+
+	"golang.org/x/tools/go/packages"
+
 	"github.com/pkg/errors"
-	"golang.org/x/tools/go/analysis"
-	"golang.org/x/tools/go/analysis/singlechecker"
 )
 
 const pluginPackagePath = "github.com/mattermost/mattermost-server/plugin"
 
 func main() {
-	// Force CLI args to run against plugin package
-	os.Args = []string{os.Args[0], pluginPackagePath}
-
-	singlechecker.Main(&analysis.Analyzer{
-		Doc:  "Checks if API commens contain a minimum server version",
-		Name: "plugin_api_comment_checker",
-		Run:  run,
-	})
+	if err := runCheck(pluginPackagePath); err != nil {
+		fmt.Fprintln(os.Stderr, "#", pluginPackagePath)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
 
-func run(p *analysis.Pass) (interface{}, error) {
-	// The analyzer does separate passes against only the test files in the package,
-	// so we skip them because the API interface won't be found there.
-	if p.Pkg.Path() != pluginPackagePath {
-		return nil, nil
+func runCheck(pkgPath string) error {
+	pkg, err := getPackage(pkgPath)
+	if err != nil {
+		return err
 	}
 
-	apiInterface := findAPIInterface(p.Files)
+	apiInterface := findAPIInterface(pkg.Syntax)
 	if apiInterface == nil {
-		return nil, errors.New("could not find API interface")
+		return errors.New("could not find API interface")
 	}
 
 	invalidMethods := findInvalidMethods(apiInterface.Methods.List)
 	if len(invalidMethods) > 0 {
-		for _, m := range invalidMethods {
-			p.Reportf(m.Pos(), "missing a minimum server version comment")
-		}
+		return errors.New(renderErrorMessage(pkg, invalidMethods))
 	}
-	return nil, nil
+	return nil
+}
+
+func getPackage(pkgPath string) (*packages.Package, error) {
+	cfg := &packages.Config{
+		Mode: packages.NeedName | packages.NeedTypes | packages.NeedSyntax,
+	}
+	pkgs, err := packages.Load(cfg, pkgPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(pkgs) == 0 {
+		return nil, errors.Errorf("could not find package %s", pkgPath)
+	}
+	return pkgs[0], nil
 }
 
 func findAPIInterface(files []*ast.File) *ast.InterfaceType {
@@ -88,4 +101,26 @@ func hasValidMinimumVersionComment(s string) bool {
 		return versionRequirementRE.MatchString(lastLine)
 	}
 	return false
+}
+
+func renderErrorMessage(pkg *packages.Package, methods []*ast.Field) string {
+	cwd, _ := os.Getwd()
+	out := &bytes.Buffer{}
+
+	for _, m := range methods {
+		pos := pkg.Fset.Position(m.Pos())
+		filename, err := filepath.Rel(cwd, pos.Filename)
+		if err != nil {
+			// If deriving a relative path fails for some reason,
+			// we prefer to still print the absolute path to the file.
+			filename = pos.Filename
+		}
+		fmt.Fprintf(out,
+			"%s:%d:%d: missing a minimum server version comment\n",
+			filename,
+			pos.Line,
+			pos.Column,
+		)
+	}
+	return out.String()
 }
