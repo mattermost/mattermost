@@ -75,6 +75,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("SearchGroupChannels", func(t *testing.T) { testChannelStoreSearchGroupChannels(t, ss) })
 	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
 	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, ss) })
+	t.Run("GetPinnedPostCount", func(t *testing.T) { testChannelStoreGetPinnedPostCount(t, ss) })
 	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, ss) })
 	t.Run("GetChannelsByScheme", func(t *testing.T) { testChannelStoreGetChannelsByScheme(t, ss) })
 	t.Run("MigrateChannelMembers", func(t *testing.T) { testChannelStoreMigrateChannelMembers(t, ss) })
@@ -3376,6 +3377,78 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		t.Fatal(errGet)
 	} else if len(pl.Posts) != 0 {
 		t.Fatal("wasn't supposed to return posts")
+	}
+}
+
+func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
+	ch1 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+
+	o1, err := ss.Channel().Save(ch1, -1)
+	require.Nil(t, err)
+
+	_, err = ss.Post().Save(&model.Post{
+		UserId:    model.NewId(),
+		ChannelId: o1.Id,
+		Message:   "test",
+		IsPinned:  true,
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Post().Save(&model.Post{
+		UserId:    model.NewId(),
+		ChannelId: o1.Id,
+		Message:   "test",
+		IsPinned:  true,
+	})
+	require.Nil(t, err)
+
+	if count, errGet := ss.Channel().GetPinnedPostCount(o1.Id, true); errGet != nil {
+		t.Fatal(errGet)
+	} else if count != 2 {
+		t.Fatal("didn't return right count")
+	}
+
+	if ss.Channel().GetPinnedPostCountFromCache(o1.Id) != 2 {
+		t.Fatal("should have saved 2 pinned post count ")
+	}
+
+	ch2 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+
+	o2, err := ss.Channel().Save(ch2, -1)
+	require.Nil(t, err)
+
+	_, err = ss.Post().Save(&model.Post{
+		UserId:    model.NewId(),
+		ChannelId: o2.Id,
+		Message:   "test",
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Post().Save(&model.Post{
+		UserId:    model.NewId(),
+		ChannelId: o2.Id,
+		Message:   "test",
+	})
+	require.Nil(t, err)
+
+	if count, errGet := ss.Channel().GetPinnedPostCount(o2.Id, true); errGet != nil {
+		t.Fatal(errGet)
+	} else if count != 0 {
+		t.Fatal("should return 0")
+	}
+
+	if ss.Channel().GetPinnedPostCountFromCache(o2.Id) != 0 {
+		t.Fatal("should have saved 0 pinned post count ")
 	}
 }
 
