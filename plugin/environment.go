@@ -18,7 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ErrPluginNotFound = errors.New("PluginId not found")
+var ErrNotFound = errors.New("Item not found")
 
 type apiImplCreatorFunc func(*model.Manifest) API
 
@@ -165,7 +165,7 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 }
 
 // GetManifest returns a manifest for a given pluginId.
-// Returns ErrPluginNotFound if plugin is not found.
+// Returns ErrNotFound if plugin is not found.
 func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 	plugins, err := env.Available()
 	if err != nil {
@@ -178,7 +178,7 @@ func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 		}
 	}
 
-	return nil, ErrPluginNotFound
+	return nil, ErrNotFound
 }
 
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {

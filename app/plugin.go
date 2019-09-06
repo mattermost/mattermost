@@ -425,19 +425,21 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	for _, plugin := range marketplacePlugins {
-		installedVersion := ""
-		var manifest *model.Manifest
-		if manifest, err = pluginsEnvironment.GetManifest(plugin.Manifest.Id); err == nil {
-			// Plugin is installed.
-			installedVersion = manifest.Version
+	for _, p := range marketplacePlugins {
+		marketplacePlugin := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: p,
 		}
 
-		pluginSet[plugin.Manifest.Id] = true
-		result = append(result, &model.MarketplacePlugin{
-			BaseMarketplacePlugin: plugin,
-			InstalledVersion:      installedVersion,
-		})
+		var manifest *model.Manifest
+		if manifest, err = pluginsEnvironment.GetManifest(p.Manifest.Id); err != nil && err != plugin.ErrNotFound {
+			return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else if manifest != nil {
+			// Plugin is installed.
+			marketplacePlugin.InstalledVersion = manifest.Version
+		}
+
+		pluginSet[p.Manifest.Id] = true
+		result = append(result, marketplacePlugin)
 	}
 
 	// Include all other installed plugins.
