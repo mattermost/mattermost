@@ -68,7 +68,7 @@ func TestDiagnostics(t *testing.T) {
 	case identifyMessage := <-data:
 		require.Contains(t, identifyMessage, diagnosticID)
 	case <-time.After(time.Second * 1):
-		t.Fatal("Did not receive ID message")
+		require.Fail(t,"Did not receive ID message")
 	}
 
 	t.Run("Send", func(t *testing.T) {
@@ -80,7 +80,7 @@ func TestDiagnostics(t *testing.T) {
 		case result := <-data:
 			require.Contains(t, result, testValue)
 		case <-time.After(time.Second * 1):
-			t.Fatal("Did not receive diagnostic")
+			require.Fail(t,"Did not receive diagnostic")
 		}
 	})
 
@@ -137,7 +137,7 @@ func TestDiagnostics(t *testing.T) {
 
 		select {
 		case <-data:
-			t.Fatal("Should not send diagnostics when the segment key is not set")
+			require.Fail(t,"Should not send diagnostics when the segment key is not set")
 		case <-time.After(time.Second * 1):
 			// Did not receive diagnostics
 		}
@@ -150,7 +150,7 @@ func TestDiagnostics(t *testing.T) {
 
 		select {
 		case <-data:
-			t.Fatal("Should not send diagnostics when they are disabled")
+			require.Fail(t,"Should not send diagnostics when they are disabled")
 		case <-time.After(time.Second * 1):
 			// Did not receive diagnostics
 		}
