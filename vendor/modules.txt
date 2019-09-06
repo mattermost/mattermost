@@ -48,6 +48,8 @@ github.com/golang/protobuf/ptypes/timestamp
 github.com/google/btree
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
+# github.com/gorilla/handlers v1.4.1
+github.com/gorilla/handlers
 # github.com/gorilla/mux v1.7.3
 github.com/gorilla/mux
 # github.com/gorilla/schema v1.1.0
@@ -297,21 +299,6 @@ golang.org/x/text/encoding/unicode
 golang.org/x/text/internal/tag
 golang.org/x/text/internal/utf8internal
 golang.org/x/text/runes
-# golang.org/x/tools v0.0.0-20190606124116-d0a3d012864b
-golang.org/x/tools/go/analysis
-golang.org/x/tools/go/analysis/singlechecker
-golang.org/x/tools/go/analysis/internal/analysisflags
-golang.org/x/tools/go/analysis/internal/checker
-golang.org/x/tools/go/analysis/unitchecker
-golang.org/x/tools/go/packages
-golang.org/x/tools/go/analysis/internal/facts
-golang.org/x/tools/go/gcexportdata
-golang.org/x/tools/go/internal/packagesdriver
-golang.org/x/tools/internal/gopathwalk
-golang.org/x/tools/internal/semver
-golang.org/x/tools/go/types/objectpath
-golang.org/x/tools/go/internal/gcimporter
-golang.org/x/tools/internal/fastwalk
 # google.golang.org/appengine v1.6.1
 google.golang.org/appengine/cloudsql
 # google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610
