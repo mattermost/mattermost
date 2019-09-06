@@ -105,7 +105,7 @@ func TestAddUserToTeam(t *testing.T) {
 		}
 	})
 
-	t.Run("block user by domain", func(t *testing.T) {
+	t.Run("block user by domain but allow bot", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
 		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
 			t.Log(err)
@@ -131,10 +131,20 @@ func TestAddUserToTeam(t *testing.T) {
 		}
 		defer th.App.PermanentDeleteUser(&user)
 
-		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
+		if _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
 			t.Log(err)
 			t.Fatal("Should not add authservice user")
 		}
+
+		bot, err := th.App.CreateBot(&model.Bot{
+			Username:    "somebot",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot.UserId, "")
+		assert.Nil(t, err, "should be able to add bot to domain restricted team")
 	})
 
 	t.Run("block user with subdomain", func(t *testing.T) {
