@@ -13,6 +13,10 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+const (
+	USER_AUTH_SERVICE_GITHUB = "github"
+)
+
 type GitHubProvider struct {
 }
 
@@ -54,7 +58,7 @@ func userFromGitHubUser(ghu *GitHubUser) *model.User {
 	return user
 }
 
-func gitLabUserFromJson(data io.Reader) *GitHubUser {
+func gitHubUserFromJson(data io.Reader) *GitHubUser {
 	decoder := json.NewDecoder(data)
 	var ghu GitHubUser
 	err := decoder.Decode(&ghu)
@@ -91,7 +95,7 @@ func (ghu *GitHubUser) getAuthData() string {
 }
 
 func (m *GitHubProvider) GetUserFromJson(data io.Reader) *model.User {
-	ghu := gitLabUserFromJson(data)
+	ghu := gitHubUserFromJson(data)
 	if ghu.IsValid() {
 		return userFromGitHubUser(ghu)
 	}
