@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/cmd/mattermost/commands"
 
 	// Plugins
+	_ "github.com/mattermost/mattermost-server/model/github"
 	_ "github.com/mattermost/mattermost-server/model/gitlab"
 
 	// Enterprise Imports

@@ -3,6 +3,8 @@ module github.com/mattermost/mattermost-server
 go 1.12
 
 require (
+	github.com/google/go-querystring
+	github.com/google/go-github/github
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878 // indirect
@@ -83,6 +85,7 @@ require (
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+	golang.org/x/crypto/openpgp
 	golang.org/x/image v0.0.0-20190703141733-d6a02ce849c9
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 	golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7 // indirect
