@@ -220,9 +220,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 		assert.Equal(t, "message_fromplugin", post.Message)
 		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
 		require.Nil(t, errSingle)
-
 		assert.Equal(t, "message_fromplugin", retrievedPost.Message)
-
 	})
 
 	t.Run("multiple updated", func(t *testing.T) {
@@ -567,8 +565,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, response)
 		assert.Equal(t, 1, len(response.FileInfos))
+		
 		fileId := response.FileInfos[0].Id
-
 		fileInfo, err := th.App.GetFileInfo(fileId)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
@@ -663,7 +661,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
-	assert.Empty(t, err, "Error updating user password: %s", err)
+	assert.Nil(t, err, "Error updating user password: %s", err)
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
@@ -701,7 +699,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
 
-	assert.Empty(t, err, "Error updating user password: %s", err)
+	assert.Nil(t, err, "Error updating user password: %s", err)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -731,8 +729,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	w := httptest.NewRecorder()
 	session, err := th.App.DoLogin(w, r, th.BasicUser, "")
 
-	assert.Empty(t, err, "Expected nil, got %s", err)
-
+	assert.Nil(t, err, "Expected nil, got %s", err)
 	assert.Equal(t, session.UserId, th.BasicUser.Id)
 }
 
@@ -742,7 +739,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
 
-	assert.Empty(t, err, "Error updating user password: %s", err)
+	assert.Nil(t, err, "Error updating user password: %s", err)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -773,14 +770,13 @@ func TestUserHasLoggedIn(t *testing.T) {
 	w := httptest.NewRecorder()
 	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
-	assert.Empty(t, err, "Expected nil, got %s", err)
+	assert.Nil(t, err, "Expected nil, got %s", err)
 
 	time.Sleep(2 * time.Second)
 
 	user, _ := th.App.GetUser(th.BasicUser.Id)
 
 	assert.Equal(t, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
-
 }
 
 func TestUserHasBeenCreated(t *testing.T) {
@@ -826,7 +822,6 @@ func TestUserHasBeenCreated(t *testing.T) {
 
 	user, err = th.App.GetUser(user.Id)
 	require.Nil(t, err)
-
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
 
