@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -30,7 +31,7 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 
 	for testnum, testcase := range cases {
 		if th.App.RolesGrantPermission(testcase.roles, testcase.permissionId) != testcase.shouldGrant {
-			t.Fatal("Failed test case ", testnum)
+			require.Fail(t, "Failed test case ", testnum)
 		}
 	}
 
