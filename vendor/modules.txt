@@ -299,6 +299,14 @@ golang.org/x/text/encoding/unicode
 golang.org/x/text/internal/tag
 golang.org/x/text/internal/utf8internal
 golang.org/x/text/runes
+# golang.org/x/tools v0.0.0-20190606124116-d0a3d012864b
+golang.org/x/tools/go/packages
+golang.org/x/tools/go/gcexportdata
+golang.org/x/tools/go/internal/packagesdriver
+golang.org/x/tools/internal/gopathwalk
+golang.org/x/tools/internal/semver
+golang.org/x/tools/go/internal/gcimporter
+golang.org/x/tools/internal/fastwalk
 # google.golang.org/appengine v1.6.1
 google.golang.org/appengine/cloudsql
 # google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610
