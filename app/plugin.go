@@ -463,7 +463,10 @@ func (a *App) DeletePublicKey(file string) *model.AppError {
 	return nil
 }
 
-// VerifyPlugin verifies plugin signature
+// VerifyPlugin gets two files a plugin bundle and a signature.
+// Method verifies that plugin was signed using a private key which
+// pairs with one of the public keys stored on MM server.
+// VerifyPlugin returns nil if plugin was signed correctly.
 func (a *App) VerifyPlugin(plugin, signature io.Reader) *model.AppError {
 	publicKeys, appErr := a.GetPluginPublicKeys()
 	if appErr != nil {
@@ -575,8 +578,7 @@ func verifyFileSignature(signedFile, publicKey, signature io.Reader) error {
 	if err != nil {
 		return err
 	}
-	_, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature)
-	if err != nil {
+	if _, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature); err != nil {
 		return err
 	}
 	return nil

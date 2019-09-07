@@ -118,8 +118,7 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if signatureDownloadUrl != "" {
 		signatureFile := downloadedFiles[model.SIGNATURE_URL_STRING]
-		err := c.App.VerifyPlugin(bytes.NewReader(pluginFile), bytes.NewReader(signatureFile))
-		if err != nil {
+		if err := c.App.VerifyPlugin(bytes.NewReader(pluginFile), bytes.NewReader(signatureFile)); err != nil {
 			c.Err = err
 			return
 		}
@@ -135,6 +134,7 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(manifest.ToJson()))
 }
