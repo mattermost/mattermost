@@ -23,12 +23,12 @@ func TestRunCheck(t *testing.T) {
 		{
 			name:    "missing API interface",
 			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/missing",
-			err:     "could not find API interface",
+			err:     "could not find API interface in package github.com/mattermost/mattermost-server/plugin/checker/test/missing",
 		},
 		{
 			name:    "non-existent package path",
 			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/does_not_exist",
-			err:     "-: unknown import path \"github.com/mattermost/mattermost-server/plugin/checker/test/does_not_exist\": cannot find module providing package github.com/mattermost/mattermost-server/plugin/checker/test/does_not_exist",
+			err:     "could not find API interface in package github.com/mattermost/mattermost-server/plugin/checker/test/does_not_exist",
 		},
 	}
 

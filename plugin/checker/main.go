@@ -36,7 +36,7 @@ func runCheck(pkgPath string) error {
 
 	apiInterface := findAPIInterface(pkg.Syntax)
 	if apiInterface == nil {
-		return errors.New("could not find API interface")
+		return errors.Errorf("could not find API interface in package %s", pkgPath)
 	}
 
 	invalidMethods := findInvalidMethods(apiInterface.Methods.List)
@@ -48,7 +48,7 @@ func runCheck(pkgPath string) error {
 
 func getPackage(pkgPath string) (*packages.Package, error) {
 	cfg := &packages.Config{
-		Mode: packages.NeedFiles | packages.NeedName | packages.NeedTypes | packages.NeedSyntax,
+		Mode: packages.NeedName | packages.NeedTypes | packages.NeedSyntax,
 	}
 	pkgs, err := packages.Load(cfg, pkgPath)
 	if err != nil {
@@ -58,17 +58,7 @@ func getPackage(pkgPath string) (*packages.Package, error) {
 	if len(pkgs) == 0 {
 		return nil, errors.Errorf("could not find package %s", pkgPath)
 	}
-
-	pkg := pkgs[0]
-	if len(pkg.Errors) > 0 {
-		var errs []string
-		for _, e := range pkg.Errors {
-			errs = append(errs, e.Error())
-		}
-		return nil, errors.New(strings.Join(errs, ";"))
-	}
-
-	return pkg, nil
+	return pkgs[0], nil
 }
 
 func findAPIInterface(files []*ast.File) *ast.InterfaceType {
