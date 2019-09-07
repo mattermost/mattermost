@@ -1498,35 +1498,35 @@
   },
   {
     "id": "api.plugin.add_public_key.not_a_public_key.app_error",
-    "translation": "Public key should have the extension .plugin.asc"
+    "translation": "Public key should have the extension .plugin.asc."
   },
   {
     "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "An error occurred while opening the public key file"
+    "translation": "An error occurred while opening the public key file."
   },
   {
     "id": "api.plugin.add_public_key.read.app_error",
-    "translation": "An error occurred while reading the public key file"
+    "translation": "An error occurred while reading the public key file."
   },
   {
     "id": "api.plugin.add_public_key.saving.app_error",
-    "translation": "An error occurred while saving the public key"
+    "translation": "An error occurred while saving the public key."
   },
   {
     "id": "api.plugin.delete_public_key.delete.app_error",
-    "translation": "An error occurred while deleting the public key"
+    "translation": "An error occurred while deleting the public key."
   },
   {
     "id": "api.plugin.delete_public_key.not_a_public_key.app_error",
-    "translation": "Provided file name is not a known public key"
+    "translation": "Provided file name is not a known public key."
   },
   {
     "id": "api.plugin.get_public_key.get_file.app_error",
-    "translation": "An error occurred while getting the public key from the store"
+    "translation": "An error occurred while getting the public key from the store."
   },
   {
     "id": "api.plugin.get_public_key.not_a_public_key.app_error",
-    "translation": "Provided file name is not a known public key"
+    "translation": "Provided file name is not a known public key."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -1558,7 +1558,7 @@
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Plugin is not signed"
+    "translation": "Plugin is not signed."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
