@@ -101,6 +101,28 @@ func TestPlugin(t *testing.T) {
 
 	th.App.RemovePlugin(manifest.Id)
 
+	// test wrong signature
+	wrongSignatureData, err := ioutil.ReadFile(filepath.Join(path, "test-public-key.plugin.asc"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	wrongSignatureTestServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(wrongSignatureData)
+	}))
+	defer func() { wrongSignatureTestServer.Close() }()
+	wrongSignatureUrl := wrongSignatureTestServer.URL
+
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(pluginUrl, wrongSignatureUrl, false)
+	CheckInternalErrorStatus(t, resp)
+
+	// test without signature
+	manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(pluginUrl, "", false)
+	CheckNoError(t, resp)
+	assert.Equal(t, pluginName, manifest.Id)
+	th.App.RemovePlugin(manifest.Id)
+
+	// disable plugins
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 
 	_, resp = th.SystemAdminClient.InstallPluginFromUrl(pluginUrl, signatureUrl, false)
