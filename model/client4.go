@@ -4419,7 +4419,13 @@ func (c *Client4) InstallPluginFromUrl(pluginUrl string, signatureUrl string, fo
 		forceStr = "true"
 	}
 
-	url := fmt.Sprintf("%s?%s=%s&%s=%s&force=%s", c.GetPluginsRoute()+"/install_from_url", PLUGIN_URL_STRING, url.QueryEscape(pluginUrl), SIGNATURE_URL_STRING, url.QueryEscape(signatureUrl), forceStr)
+	baseUrl := c.GetPluginsRoute() + "/install_from_url?"
+	params := url.Values{}
+	params.Add(PLUGIN_URL_STRING, pluginUrl)
+	params.Add(SIGNATURE_URL_STRING, signatureUrl)
+	params.Add("force", forceStr)
+	url := baseUrl + params.Encode()
+
 	r, err := c.DoApiPost(url, "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
