@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 
@@ -29,10 +30,8 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 		{[]string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID}, model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, true},
 	}
 
-	for testnum, testcase := range cases {
-		if th.App.RolesGrantPermission(testcase.roles, testcase.permissionId) != testcase.shouldGrant {
-			require.Fail(t, "Failed test case ", testnum)
-		}
+	for _, testcase := range cases {
+		assert.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionId), testcase.shouldGrant)
 	}
 
 }
