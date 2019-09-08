@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -106,7 +105,7 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 		}
 
 		currentSchemaVersion = &currentModelVersion
-		mlog.Info(fmt.Sprintf("The database schema has been set to version %s", *currentSchemaVersion))
+		mlog.Info("The database schema has been set to", mlog.String("version", currentSchemaVersion.String()))
 		return nil
 	}
 
@@ -119,7 +118,7 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	if currentSchemaVersion.GTE(nextUnsupportedMajorVersion) {
 		return errors.Errorf("Database schema version %s is not supported. This Mattermost server supports only >=%s, <%s. Please upgrade to at least version %s before continuing.", *currentSchemaVersion, currentModelVersion, nextUnsupportedMajorVersion, nextUnsupportedMajorVersion)
 	} else if currentSchemaVersion.GT(currentModelVersion) {
-		mlog.Warn(fmt.Sprintf("The database schema with version %s is newer than Mattermost version %s.", currentSchemaVersion, currentModelVersion))
+		mlog.Warn("The database schema with version ", mlog.String("version", currentSchemaVersion.String()), mlog.String("is newer than Mattermost version", currentModelVersion.String()))
 	}
 
 	// Otherwise, apply any necessary migrations. Note that these methods currently invoke
@@ -171,17 +170,17 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 
 func saveSchemaVersion(sqlStore SqlStore, version string) {
 	if err := sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: version}); err != nil {
-		mlog.Critical(err.Error())
+		mlog.Critical("error", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_VERSION_SAVE)
 	}
 
-	mlog.Warn(fmt.Sprintf("The database schema has been upgraded to version %v", version))
+	mlog.Warn("The database schema has been upgraded to", mlog.String("version", version))
 }
 
 func shouldPerformUpgrade(sqlStore SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
 	if sqlStore.GetCurrentSchemaVersion() == currentSchemaVersion {
-		mlog.Warn(fmt.Sprintf("Attempting to upgrade the database schema version from %s to %v", currentSchemaVersion, expectedSchemaVersion))
+		mlog.Warn("Attempting to upgrade the database schema version from", mlog.String("current version", currentSchemaVersion), mlog.String("to expected version", expectedSchemaVersion))
 
 		return true
 	}
@@ -205,7 +204,7 @@ func UpgradeDatabaseToVersion32(sqlStore SqlStore) {
 }
 
 func themeMigrationFailed(err error) {
-	mlog.Critical(fmt.Sprintf("Failed to migrate User.ThemeProps to Preferences table %v", err))
+	mlog.Critical("Failed to migrate User.ThemeProps to Preferences table", mlog.Err(err))
 	time.Sleep(time.Second)
 	os.Exit(EXIT_THEME_MIGRATION)
 }
@@ -479,7 +478,7 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 		defaultTimezone := timezones.DefaultUserTimezone()
 		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
 		if err != nil {
-			mlog.Critical(fmt.Sprint(err))
+			mlog.Critical("error", mlog.Err(err))
 		}
 		sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
 		sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
@@ -673,12 +672,12 @@ func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
 		// Enforce all teams have an InviteID set
 		var teams []*model.Team
 		if _, err := sqlStore.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''"); err != nil {
-			mlog.Error("Error fetching Teams without InviteID: " + err.Error())
+			mlog.Error("Error fetching Teams without InviteID:", mlog.Err(err))
 		} else {
 			for _, team := range teams {
 				team.InviteId = model.NewId()
 				if _, err := sqlStore.Team().Update(team); err != nil {
-					mlog.Error("Error updating Team InviteIDs: " + err.Error())
+					mlog.Error("Error updating Team InviteIDs:", mlog.Err(err))
 				}
 			}
 		}
