@@ -21,7 +21,7 @@ func TestRunCheck(t *testing.T) {
 		{
 			name:    "invalid comments",
 			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/invalid",
-			err:     "test/invalid/invalid.go:12:2: missing a minimum server version comment\n",
+			err:     "test/invalid/invalid.go:15:2: missing a minimum server version comment\n",
 		},
 		{
 			name:    "missing API interface",
