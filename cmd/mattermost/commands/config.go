@@ -309,7 +309,7 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 			return errors.New("unable to set multiple settings at once")
 		}
 		if value.Len() == 0 {
-			return errors.New("unable to set settings")
+			return fmt.Errorf("unable to find a setting with that name %s", configSettings[1])
 		}
 		return UpdateMap(res.(map[string]interface{}), configSettings[1:], newVal)
 
