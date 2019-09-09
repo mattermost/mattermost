@@ -4,6 +4,7 @@
 package jobs
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -162,7 +163,7 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now tim
 	}
 
 	schedulers.nextRunTimes[idx] = scheduler.NextScheduleTime(cfg, now, pendingJobs, lastSuccessfulJob)
-	mlog.Debug("Next run time for scheduler", mlog.String("scheduler_name", scheduler.Name()), mlog.String("next_runtime", schedulers.nextRunTimes[idx].String()))
+	mlog.Debug("Next run time for scheduler", mlog.String("scheduler_name", scheduler.Name()), mlog.String("next_runtime", fmt.Sprintf("%v", schedulers.nextRunTimes[idx])))
 }
 
 func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (*model.Job, *model.AppError) {
