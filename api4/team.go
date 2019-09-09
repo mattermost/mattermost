@@ -729,7 +729,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
-	var teams []*model.Team
+	teams := []*model.Team{}
 	var err *model.AppError
 	var teamsWithCount *model.TeamsWithCount
 

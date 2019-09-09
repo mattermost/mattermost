@@ -89,6 +89,9 @@ func (a *App) isTeamEmailAddressAllowed(email string, allowedDomains string) boo
 }
 
 func (a *App) isTeamEmailAllowed(user *model.User, team *model.Team) bool {
+	if user.IsBot {
+		return true
+	}
 	email := strings.ToLower(user.Email)
 	return a.isTeamEmailAddressAllowed(email, team.AllowedDomains)
 }

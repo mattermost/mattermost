@@ -109,12 +109,7 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 	channel := notification.channel
 	post := notification.post
 
-	var nameFormat string
-	if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); err != nil {
-		nameFormat = *a.Config().TeamSettings.TeammateNameDisplay
-	} else {
-		nameFormat = data.Value
-	}
+	nameFormat := a.GetNotificationNameFormat(user)
 
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
