@@ -85,9 +85,8 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 
 	// Test display name with numbers
 	data.DisplayName = ptrStr(strings.Repeat("1234567890", 100))
-	if err := validateSchemeImportData(&data); err == nil {
-		t.Fatal("Should have failed due to invalid display name.")
-	}
+	err = validateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid display name.")
 
 	data.DisplayName = ptrStr("display name")
 
