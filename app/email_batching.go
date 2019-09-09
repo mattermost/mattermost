@@ -71,7 +71,7 @@ func NewEmailBatchingJob(s *Server, bufferSize int) *EmailBatchingJob {
 }
 
 func (job *EmailBatchingJob) Start() {
-	mlog.Debug(fmt.Sprintf("Email batching job starting. Checking for pending emails every %v seconds.", *job.server.Config().EmailSettings.EmailBatchingInterval))
+	mlog.Debug("Email batching job starting. Checking for pending emails every", mlog.Int("seconds", *job.server.Config().EmailSettings.EmailBatchingInterval))
 	newTask := model.CreateRecurringTask(EMAIL_BATCHING_TASK_NAME, job.CheckPendingEmails, time.Duration(*job.server.Config().EmailSettings.EmailBatchingInterval)*time.Second)
 
 	job.taskMutex.Lock()
@@ -107,7 +107,7 @@ func (job *EmailBatchingJob) CheckPendingEmails() {
 	// without actually sending emails
 	job.checkPendingNotifications(time.Now(), job.server.sendBatchedEmailNotification)
 
-	mlog.Debug(fmt.Sprintf("Email batching job ran. %v user(s) still have notifications pending.", len(job.pendingNotifications)))
+	mlog.Debug("Email batching job ran. user(s) still have notifications pending.", mlog.Int("user(s)", len(job.pendingNotifications)))
 }
 
 func (job *EmailBatchingJob) handleNewNotifications() {
@@ -142,7 +142,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 			team, err := job.server.Store.Team().GetByName(notifications[0].teamName)
 			if err != nil {
-				mlog.Error(fmt.Sprint("Unable to find Team id for notification", err))
+				mlog.Error("Unable to find Team id for notification", mlog.Err(err))
 				continue
 			}
 
@@ -154,13 +154,13 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 			// all queued notifications
 			channelMembers, err := job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
 			if err != nil {
-				mlog.Error(fmt.Sprint("Unable to find ChannelMembers for user", err))
+				mlog.Error("Unable to find ChannelMembers for user", mlog.Err(err))
 				continue
 			}
 
 			for _, channelMember := range *channelMembers {
 				if channelMember.LastViewedAt >= batchStartTime {
-					mlog.Debug(fmt.Sprintf("Deleted notifications for user %s", userId), mlog.String("user_id", userId))
+					mlog.Debug("Deleted notifications for user", mlog.String("user_id", userId))
 					delete(job.pendingNotifications, userId)
 					break
 				}
@@ -241,7 +241,7 @@ func (s *Server) sendBatchedEmailNotification(userId string, notifications []*ba
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
 	if err := s.FakeApp().SendNotificationMail(user.Email, subject, body.Render()); err != nil {
-		mlog.Warn(fmt.Sprintf("Unable to send batched email notification err=%v", err), mlog.String("email", user.Email))
+		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(err))
 	}
 }
 
