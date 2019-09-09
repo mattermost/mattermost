@@ -289,6 +289,7 @@ func (a *App) InvalidateCacheForChannelPosts(channelId string) {
 
 func (a *App) InvalidateCacheForChannelPostsSkipClusterSend(channelId string) {
 	a.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	a.Srv.Store.Channel().InvalidatePinnedPostCount(channelId)
 }
 
 func (a *App) InvalidateCacheForUser(userId string) {

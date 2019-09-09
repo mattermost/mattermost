@@ -10,6 +10,7 @@ import (
 const (
 	INTERNAL_KEY_PREFIX = "mmi_"
 	BOT_USER_KEY        = INTERNAL_KEY_PREFIX + "botid"
+	CHANNEL_KEY         = INTERNAL_KEY_PREFIX + "channelid"
 )
 
 // Starts the serving of a Mattermost plugin over net/rpc. gRPC is not yet supported.

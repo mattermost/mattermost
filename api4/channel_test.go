@@ -1849,6 +1849,16 @@ func TestGetChannelStats(t *testing.T) {
 		t.Fatal("couldnt't get extra info")
 	} else if stats.MemberCount != 1 {
 		t.Fatal("got incorrect member count")
+	} else if stats.PinnedPostCount != 0 {
+		t.Fatal("got incorrect pinned post count")
+	}
+
+	th.CreatePinnedPostWithClient(th.Client, channel)
+	stats, resp = Client.GetChannelStats(channel.Id, "")
+	CheckNoError(t, resp)
+
+	if stats.PinnedPostCount != 1 {
+		t.Fatal("should have returned 1 pinned post count")
 	}
 
 	_, resp = Client.GetChannelStats("junk", "")
