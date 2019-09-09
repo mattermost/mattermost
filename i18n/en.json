@@ -2775,6 +2775,10 @@
     "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
+    "id": "app.admin.test_site_url.failure",
+    "translation": "This is not a valid live URL"
+  },
+  {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Must specify the team ID to create a channel"
   },
