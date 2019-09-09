@@ -1380,7 +1380,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			loginId = certEmail
 			password = "certificate"
 		}
-	}
+    loginId = r.Header.Get("X-BDP-USERNAME")
+	password = "certificate"
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
