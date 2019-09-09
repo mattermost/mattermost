@@ -693,16 +693,16 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 	cleanupTeamStore(t, ss)
 
 	o1 := model.Team{}
-	o1.DisplayName = "DisplayName"
+	o1.DisplayName = "DisplayName1"
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
-	_, err := ss.Team().Save(&o1)
+	t1, err := ss.Team().Save(&o1)
 	require.Nil(t, err)
 
 	o2 := model.Team{}
-	o2.DisplayName = "DisplayName"
+	o2.DisplayName = "DisplayName2"
 	o2.Name = "zz" + model.NewId() + "b"
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
@@ -711,16 +711,16 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	o3 := model.Team{}
-	o3.DisplayName = "DisplayName"
+	o3.DisplayName = "DisplayName3"
 	o3.Name = "z-z-z" + model.NewId() + "b"
 	o3.Email = MakeEmail()
 	o3.Type = model.TEAM_INVITE
 	o3.AllowOpenInvite = true
-	_, err = ss.Team().Save(&o3)
+	t3, err := ss.Team().Save(&o3)
 	require.Nil(t, err)
 
 	o4 := model.Team{}
-	o4.DisplayName = "DisplayName"
+	o4.DisplayName = "DisplayName4"
 	o4.Name = "zz" + model.NewId() + "b"
 	o4.Email = MakeEmail()
 	o4.Type = model.TEAM_INVITE
@@ -728,50 +728,25 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.Nil(t, err)
 
-	if teams, listErr := ss.Team().GetAllPublicTeamPageListing(0, 10); listErr != nil {
-		t.Fatal(listErr)
-	} else {
-		for _, team := range teams {
-			require.Equal(t, team.AllowOpenInvite, true, "should have returned team with AllowOpenInvite as true")
-		}
-
-		if len(teams) > 10 {
-			t.Fatal("should have returned max of 10 teams")
-		}
-	}
+	teams, err := ss.Team().GetAllPublicTeamPageListing(0, 10)
+	assert.Nil(t, err)
+	assert.Equal(t, []*model.Team{t1, t3}, teams)
 
 	o5 := model.Team{}
-	o5.DisplayName = "DisplayName"
+	o5.DisplayName = "DisplayName5"
 	o5.Name = "z-z-z" + model.NewId() + "b"
 	o5.Email = MakeEmail()
 	o5.Type = model.TEAM_OPEN
 	o5.AllowOpenInvite = true
-	_, err = ss.Team().Save(&o5)
+	t5, err := ss.Team().Save(&o5)
 	require.Nil(t, err)
 
-	if teams, listErr := ss.Team().GetAllPublicTeamPageListing(0, 4); listErr != nil {
-		t.Fatal(listErr)
-	} else {
-		for _, team := range teams {
-			require.Equal(t, team.AllowOpenInvite, true, "should have returned team with AllowOpenInvite as true")
-		}
+	teams, err = ss.Team().GetAllPublicTeamPageListing(0, 4)
+	assert.Nil(t, err)
+	assert.Equal(t, []*model.Team{t1, t3, t5}, teams)
 
-		if len(teams) > 4 {
-			t.Fatal("should have returned max of 4 teams")
-		}
-	}
-
-	if teams, listErr := ss.Team().GetAllPublicTeamPageListing(1, 1); listErr != nil {
-		t.Fatal(listErr)
-	} else {
-		for _, team := range teams {
-			require.Equal(t, team.AllowOpenInvite, true, "should have returned team with AllowOpenInvite as true")
-		}
-
-		if len(teams) > 1 {
-			t.Fatal("should have returned max of 1 team")
-		}
-	}
+	teams, err = ss.Team().GetAllPublicTeamPageListing(1, 1)
+	assert.Nil(t, err)
 }
 
 func testDelete(t *testing.T, ss store.Store) {
@@ -809,9 +784,27 @@ func testPublicTeamCount(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&o1)
 	require.Nil(t, err)
 
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName"
+	o2.Name = "z-z-z" + model.NewId() + "b"
+	o2.Email = MakeEmail()
+	o2.Type = model.TEAM_OPEN
+	o2.AllowOpenInvite = false
+	_, err = ss.Team().Save(&o2)
+	require.Nil(t, err)
+
+	o3 := model.Team{}
+	o3.DisplayName = "DisplayName"
+	o3.Name = "z-z-z" + model.NewId() + "b"
+	o3.Email = MakeEmail()
+	o3.Type = model.TEAM_OPEN
+	o3.AllowOpenInvite = true
+	_, err = ss.Team().Save(&o3)
+	require.Nil(t, err)
+
 	teamCount, err := ss.Team().AnalyticsPublicTeamCount()
 	require.Nil(t, err)
-	require.Equal(t, int64(18), teamCount, "should only be 1 team")
+	require.Equal(t, int64(2), teamCount, "should only be 1 team")
 }
 
 func testPrivateTeamCount(t *testing.T, ss store.Store) {
@@ -826,9 +819,27 @@ func testPrivateTeamCount(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&o1)
 	require.Nil(t, err)
 
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName"
+	o2.Name = "z-z-z" + model.NewId() + "b"
+	o2.Email = MakeEmail()
+	o2.Type = model.TEAM_OPEN
+	o2.AllowOpenInvite = true
+	_, err = ss.Team().Save(&o2)
+	require.Nil(t, err)
+
+	o3 := model.Team{}
+	o3.DisplayName = "DisplayName"
+	o3.Name = "z-z-z" + model.NewId() + "b"
+	o3.Email = MakeEmail()
+	o3.Type = model.TEAM_OPEN
+	o3.AllowOpenInvite = false
+	_, err = ss.Team().Save(&o3)
+	require.Nil(t, err)
+
 	teamCount, err := ss.Team().AnalyticsPrivateTeamCount()
 	require.Nil(t, err)
-	require.Equal(t, int64(26), teamCount, "should only be 1 team")
+	require.Equal(t, int64(2), teamCount, "should only be 1 team")
 }
 
 func testTeamCount(t *testing.T, ss store.Store) {
