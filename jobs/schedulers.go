@@ -102,8 +102,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 							if scheduler != nil {
 								if scheduler.Enabled(cfg) {
 									if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
-										mlog.Warn("Failed to schedule job with", mlog.String("scheduler", scheduler.Name()))
-										mlog.Error("error", mlog.Err(err))
+										mlog.Error("Failed to schedule job", mlog.String("scheduler", scheduler.Name()), mlog.Err(err))
 									} else {
 										schedulers.setNextRunTime(cfg, idx, now, true)
 									}
