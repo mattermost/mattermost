@@ -17,7 +17,7 @@ ldapsearch_cmd=ldapsearch
 
 if [[ -z ${1} ]]; then
 	echo "We could not find a username";
-	echo "usage: ./ldap-check.sh [username/groupname] -u/-g"
+	echo "usage: ./ldap-check.sh -u/-g [username/groupname]"
 	echo "example: ./ldap-check.sh -u john"
 	echo "example: ./ldap-check.sh -g admin-staff"
 	exit 1;
