@@ -2775,6 +2775,10 @@
     "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
+    "id": "app.admin.test_site_url.failure",
+    "translation": "This is not a valid live URL"
+  },
+  {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Must specify the team ID to create a channel"
   },
@@ -3424,7 +3428,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] New Direct Message from @{{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] New Direct Message from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -5657,6 +5661,10 @@
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
     "translation": "Unable to get the channels"
+  },
+  {
+    "id": "store.sql_channel.get_pinnedpost_count.app_error",
+    "translation": "Unable to get the channel pinned post count"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
