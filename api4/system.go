@@ -56,7 +56,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	actualGoroutines := runtime.NumGoroutine()
 	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold > 0 && actualGoroutines >= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
-		mlog.Warn(fmt.Sprintf("The number of running goroutines (%v) is over the health threshold (%v)", actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
+		mlog.Warn("The number of running goroutines is over the health threshold", mlog.Int("goroutines", actualGoroutines), mlog.Int("health_threshold", *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
 		s[model.STATUS] = model.STATUS_UNHEALTHY
 	}
 
@@ -76,17 +76,17 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 			Value: currentTime,
 		})
 		if writeErr != nil {
-			mlog.Debug(fmt.Sprintf("Unable to write to database: %s", writeErr.Error()))
+			mlog.Debug("Unable to write to database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		} else {
 			healthCheck, readErr := c.App.Srv.Store.System().GetByName(healthCheckKey)
 			if readErr != nil {
-				mlog.Debug(fmt.Sprintf("Unable to read from database: %s", readErr.Error()))
+				mlog.Debug("Unable to read from database.", mlog.Err(readErr))
 				s[dbStatusKey] = model.STATUS_UNHEALTHY
 				s[model.STATUS] = model.STATUS_UNHEALTHY
 			} else if healthCheck.Value != currentTime {
-				mlog.Debug(fmt.Sprintf("Incorrect healthcheck value, expected %s, got %s", currentTime, healthCheck.Value))
+				mlog.Debug("Incorrect healthcheck value", mlog.String("expected", currentTime), mlog.String("got", healthCheck.Value))
 				s[dbStatusKey] = model.STATUS_UNHEALTHY
 				s[model.STATUS] = model.STATUS_UNHEALTHY
 			} else {
@@ -105,7 +105,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 				s[model.STATUS] = model.STATUS_UNHEALTHY
 			}
 		} else {
-			mlog.Debug(fmt.Sprintf("Unable to get filestore for ping status: %s", appErr.Error()))
+			mlog.Debug("Unable to get filestore for ping status.", mlog.Err(appErr))
 			s[filestoreStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		}
@@ -269,7 +269,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		err.Where = "client"
 		c.LogError(err)
 	} else {
-		mlog.Debug(fmt.Sprint(msg))
+		mlog.Debug("message", mlog.String("message", msg))
 	}
 
 	m["message"] = msg
