@@ -6,6 +6,7 @@ package plugintest
 
 import (
 	model "github.com/mattermost/mattermost-server/model"
+	plugin "github.com/mattermost/mattermost-server/plugin"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -28,6 +29,34 @@ func (_m *Helpers) EnsureBot(bot *model.Bot) (string, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
 		r1 = rf(bot)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EnsureBotWithOptions provides a mock function with given fields: bot, setters
+func (_m *Helpers) EnsureBotWithOptions(bot *model.Bot, setters ...plugin.Option) (string, error) {
+	_va := make([]interface{}, len(setters))
+	for _i := range setters {
+		_va[_i] = setters[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, bot)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*model.Bot, ...plugin.Option) string); ok {
+		r0 = rf(bot, setters...)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Bot, ...plugin.Option) error); ok {
+		r1 = rf(bot, setters...)
 	} else {
 		r1 = ret.Error(1)
 	}

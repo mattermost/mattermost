@@ -10,6 +10,10 @@ type Helpers interface {
 	// Returns the id of the resulting bot.
 	EnsureBot(bot *model.Bot) (string, error)
 
+	// EnsureBotWithOptions calls EnsureBot with the specified Options,
+	// currently supporting paths to the bot profile image and/or icon image
+	EnsureBotWithOptions(bot *model.Bot, setters ...Option) (string, error)
+
 	// KVSetJSON stores a key-value pair, unique per plugin, marshalling the given value as a JSON string.
 	KVSetJSON(key string, value interface{}) error
 

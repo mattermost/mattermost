@@ -9,6 +9,25 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Options struct {
+	ProfileImagePath string
+	IconImagePath    string
+}
+
+type Option func(*Options)
+
+func ProfileImagePath(path string) Option {
+	return func(args *Options) {
+		args.ProfileImagePath = path
+	}
+}
+
+func IconImagePath(path string) Option {
+	return func(args *Options) {
+		args.IconImagePath = path
+	}
+}
+
 func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) {
 	// Must provide a bot with a username
 	if bot == nil || len(bot.Username) < 1 {
@@ -71,4 +90,37 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) 
 	}
 
 	return createdBot.UserId, nil
+}
+
+func (p *HelpersImpl) EnsureBotWithOptions(bot *model.Bot, setters ...Option) (retBotId string, retErr error) {
+	// Default options
+	args := &Options{
+		ProfileImagePath: "",
+		IconImagePath:    "",
+	}
+	for _, setter := range setters {
+		setter(args)
+	}
+	botId, err := p.EnsureBot(bot)
+
+	if err != nil {
+		return botId, err
+	}
+
+	if len(args.ProfileImagePath) > 0 {
+		bytes, err := p.API.ReadFile(args.ProfileImagePath)
+		if err != nil {
+			return botId, err
+		}
+		p.API.SetProfileImage(botId, bytes)
+	}
+	if len(args.IconImagePath) > 0 {
+		bytes, err := p.API.ReadFile(args.IconImagePath)
+		if err != nil {
+			return botId, err
+		}
+		p.API.SetBotIconImage(botId, bytes)
+	}
+
+	return botId, err
 }
