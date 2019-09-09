@@ -15,6 +15,14 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
+func cleanupTeamStore(t *testing.T, ss store.Store) {
+	allTeams, err := ss.Team().GetAll()
+	for _, team := range allTeams {
+		ss.Team().PermanentDelete(team.Id)
+	}
+	assert.Nil(t, err)
+}
+
 func TestTeamStore(t *testing.T, ss store.Store) {
 	createDefaultRoles(t, ss)
 
@@ -682,6 +690,8 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 }
 
 func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
+	cleanupTeamStore(t, ss)
+
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
 	o1.Name = "z-z-z" + model.NewId() + "b"
@@ -788,6 +798,8 @@ func testDelete(t *testing.T, ss store.Store) {
 }
 
 func testPublicTeamCount(t *testing.T, ss store.Store) {
+	cleanupTeamStore(t, ss)
+
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
 	o1.Name = "z-z-z" + model.NewId() + "b"
@@ -803,6 +815,8 @@ func testPublicTeamCount(t *testing.T, ss store.Store) {
 }
 
 func testPrivateTeamCount(t *testing.T, ss store.Store) {
+	cleanupTeamStore(t, ss)
+
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
 	o1.Name = "z-z-z" + model.NewId() + "b"
