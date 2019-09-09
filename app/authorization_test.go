@@ -5,7 +5,6 @@ package app
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
