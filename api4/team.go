@@ -806,10 +806,17 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	resp := make(map[string]bool)
 
-	if _, err := c.App.GetTeamByName(c.Params.TeamName); err != nil {
+	team, err := c.App.GetTeamByName(c.Params.TeamName)
+	if err != nil {
 		resp["exists"] = false
-	} else {
+	} else if _, err := c.App.GetTeamMember(team.Id, c.App.Session.UserId); err == nil {
 		resp["exists"] = true
+	} else if team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
+		resp["exists"] = true
+	} else if !team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
+		resp["exists"] = true
+	} else {
+		resp["exists"] = false
 	}
 
 	w.Write([]byte(model.MapBoolToJson(resp)))
