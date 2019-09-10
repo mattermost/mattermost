@@ -92,6 +92,23 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 		}
 	}
 
+	canSeeAll := true
+	for _, id := range targetUsersSlice {
+		if args.UserId != id {
+			canSee, err := a.UserCanSeeOtherUser(args.UserId, id)
+			if err != nil {
+				return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			}
+			if !canSee {
+				canSeeAll = false
+			}
+		}
+	}
+
+	if !canSeeAll {
+		return &model.CommandResponse{Text: args.T("api.command_groupmsg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
 	var groupChannel *model.Channel
 	var channelErr *model.AppError
 
