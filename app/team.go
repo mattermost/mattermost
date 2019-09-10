@@ -683,12 +683,36 @@ func (a *App) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *mod
 	return a.Srv.Store.Team().GetAllPrivateTeamPageListing(offset, limit)
 }
 
+func (a *App) GetAllPrivateTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
+	totalCount, err := a.Srv.Store.Team().AnalyticsPrivateTeamCount()
+	if err != nil {
+		return nil, err
+	}
+	teams, err := a.Srv.Store.Team().GetAllPrivateTeamPageListing(offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	return &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}, nil
+}
+
 func (a *App) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
 	return a.Srv.Store.Team().GetAllTeamListing()
 }
 
 func (a *App) GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
 	return a.Srv.Store.Team().GetAllTeamPageListing(offset, limit)
+}
+
+func (a *App) GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
+	totalCount, err := a.Srv.Store.Team().AnalyticsPublicTeamCount()
+	if err != nil {
+		return nil, err
+	}
+	teams, err := a.Srv.Store.Team().GetAllPublicTeamPageListing(offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	return &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}, nil
 }
 
 func (a *App) SearchAllTeams(term string) ([]*model.Team, *model.AppError) {
