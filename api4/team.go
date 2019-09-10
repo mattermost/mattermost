@@ -804,21 +804,19 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := make(map[string]bool)
-
-	team, err := c.App.GetTeamByName(c.Params.TeamName)
-	if err != nil {
-		resp["exists"] = false
-	} else if _, err := c.App.GetTeamMember(team.Id, c.App.Session.UserId); err == nil {
-		resp["exists"] = true
-	} else if team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		resp["exists"] = true
-	} else if !team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
-		resp["exists"] = true
-	} else {
-		resp["exists"] = false
+	exists := false
+	team, _ := c.App.GetTeamByName(c.Params.TeamName)
+	if team != nil {
+		teamMember, _ := c.App.GetTeamMember(team.Id, c.App.Session.UserId)
+		// Verify that the user can see the team (be a member or have the permission to list the team)
+		if (teamMember != nil && teamMember.DeleteAt == 0) ||
+			(team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS)) ||
+			(!team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS)) {
+			exists = true
+		}
 	}
 
+	resp := map[string]bool{"exists": exists}
 	w.Write([]byte(model.MapBoolToJson(resp)))
 }
 
