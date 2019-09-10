@@ -485,7 +485,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		for _, channel := range channels {
 			_, err := a.AddUserToChannel(user, channel)
 			if err != nil {
-				mlog.Error(err.Error())
+				mlog.Error("error adding user to channel", mlog.Err(err))
 			}
 		}
 	}
@@ -617,7 +617,12 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 	if !user.IsGuest() {
 		// Soft error if there is an issue joining the default channels
 		if err := a.JoinDefaultChannels(team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
-			mlog.Error(fmt.Sprintf("Encountered an issue joining default channels err=%v", err), mlog.String("user_id", user.Id), mlog.String("team_id", team.Id))
+			mlog.Error(
+				"Encountered an issue joining default channels.",
+				mlog.String("user_id", user.Id),
+				mlog.String("team_id", team.Id),
+				mlog.Err(err),
+			)
 		}
 	}
 
@@ -943,11 +948,11 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
 			if err = a.postLeaveTeamMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		} else {
 			if err = a.postRemoveFromTeamMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		}
 	}
@@ -1302,7 +1307,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 			return team.Id, nil
 		}
 		// soft fail, so we still create user but don't auto-join team
-		mlog.Error(fmt.Sprintf("%v", err))
+		mlog.Error("error getting team by inviteId.", mlog.String("invite_id", inviteId), mlog.Err(err))
 	}
 
 	return "", nil
