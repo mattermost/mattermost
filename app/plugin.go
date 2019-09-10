@@ -433,7 +433,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 		var manifest *model.Manifest
 		if manifest, err = pluginsEnvironment.GetManifest(p.Manifest.Id); err != nil && err != plugin.ErrNotFound {
 			return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else if manifest != nil {
+		} else if err == nil {
 			// Plugin is installed.
 			marketplacePlugin.InstalledVersion = manifest.Version
 		}
