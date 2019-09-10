@@ -1194,6 +1194,29 @@ func TestGetMentionKeywords(t *testing.T) {
 	} else if _, ok := mentions["@here"]; ok {
 		t.Fatal("should not have mentioned any user with @here")
 	}
+
+	// user with empty mention keys
+	userNoMentionKeys := &model.User{
+		Id:        model.NewId(),
+		FirstName: "First",
+		Username:  "User",
+		NotifyProps: map[string]string{
+			"mention_keys": ",",
+		},
+	}
+
+	channelMemberNotifyPropsMapEmptyOff := map[string]model.StringMap{
+		userNoMentionKeys.Id: {
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
+		},
+	}
+
+	profiles = map[string]*model.User{userNoMentionKeys.Id: userNoMentionKeys}
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmptyOff)
+	assert.Equal(t, 1, len(mentions), "should've returned one metion keyword")
+	ids, ok := mentions["@user"]
+	assert.True(t, ok)
+	assert.Equal(t, userNoMentionKeys.Id, ids[0], "should've returned mention key of @user")
 }
 
 func TestAddMentionKeywordsForUser(t *testing.T) {
@@ -1226,6 +1249,22 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 		assert.Contains(t, keywords["apple"], user.Id)
 		assert.Contains(t, keywords["banana"], user.Id)
 		assert.Contains(t, keywords["orange"], user.Id)
+	})
+
+	t.Run("should not add empty custom keywords", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+			NotifyProps: map[string]string{
+				model.MENTION_KEYS_NOTIFY_PROP: ",,",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, nil, false)
+
+		assert.Nil(t, keywords[""])
 	})
 
 	t.Run("should add case sensitive first name if enabled", func(t *testing.T) {
@@ -1944,4 +1983,27 @@ func TestProcessText(t *testing.T) {
 			assert.EqualValues(t, tc.Expected, e)
 		})
 	}
+}
+
+func TestGetNotificationNameFormat(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("show full name on", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PrivacySettings.ShowFullName = true
+			*cfg.TeamSettings.TeammateNameDisplay = model.SHOW_FULLNAME
+		})
+
+		assert.Equal(t, model.SHOW_FULLNAME, th.App.GetNotificationNameFormat(th.BasicUser))
+	})
+
+	t.Run("show full name off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PrivacySettings.ShowFullName = false
+			*cfg.TeamSettings.TeammateNameDisplay = model.SHOW_FULLNAME
+		})
+
+		assert.Equal(t, model.SHOW_USERNAME, th.App.GetNotificationNameFormat(th.BasicUser))
+	})
 }

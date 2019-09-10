@@ -50,7 +50,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/miekg/dns v1.1.15 // indirect
-	github.com/minio/minio-go v0.0.0-20190422205105-a8704b60278f
+	github.com/minio/minio-go/v6 v6.0.34
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.1 // indirect
@@ -100,5 +100,8 @@ require (
 	willnorris.com/go/imageproxy v0.9.0
 )
 
-// Workaround for https://github.com/golang/go/issues/30831 and fallout.
-replace github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
+replace (
+	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
+	// Workaround for https://github.com/golang/go/issues/30831 and fallout.
+	github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
+)

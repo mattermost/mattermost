@@ -217,6 +217,10 @@ func (s *LayeredStore) TotalSearchDbConnections() int {
 	return s.DatabaseLayer.TotalSearchDbConnections()
 }
 
+func (s *LayeredStore) CheckIntegrity() <-chan IntegrityCheckResult {
+	return s.DatabaseLayer.CheckIntegrity()
+}
+
 type LayeredRoleStore struct {
 	*LayeredStore
 }
