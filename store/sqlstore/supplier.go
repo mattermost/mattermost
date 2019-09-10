@@ -159,14 +159,14 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
-		mlog.Critical("Error creating database tables:", mlog.Err(err))
+		mlog.Critical("Error creating database tables.", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_CREATE_TABLE)
 	}
 
 	err = UpgradeDatabase(supplier, model.CurrentVersion)
 	if err != nil {
-		mlog.Critical("Failed to upgrade database", mlog.Err(err))
+		mlog.Critical("Failed to upgrade database.", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_GENERIC_FAILURE)
 	}
@@ -214,7 +214,7 @@ func (s *SqlSupplier) Next() store.LayeredStoreSupplier {
 func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
-		mlog.Critical("Failed to open SQL connection to err:%v", mlog.Err(err))
+		mlog.Critical("Failed to open SQL connection to err.", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DB_OPEN)
 	}
@@ -228,7 +228,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 			break
 		} else {
 			if i == DB_PING_ATTEMPTS-1 {
-				mlog.Critical("Failed to ping DB, server will exit", mlog.Err(err))
+				mlog.Critical("Failed to ping DB, server will exit.", mlog.Err(err))
 				time.Sleep(time.Second)
 				os.Exit(EXIT_PING)
 			} else {
