@@ -156,7 +156,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 		timeout <- true
 	}()
 
-	require.NotNil(t, job.pendingNotifications[th.BasicUser.Id])
+	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
 	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 0, "shouldn't have sent queued post")
 
 	select {
@@ -257,7 +257,8 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 
 	// notifications should be sent 901s after post was created, because default batch interval is 15mins
 	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
-	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
+
+	require.Nil(t, job.pendingNotifications[th.BasicUser.Id], "should have sent queued post")
 	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 0, "should have sent queued post")
 }
 
@@ -283,7 +284,7 @@ func TestRenderBatchedPostGeneric(t *testing.T) {
 	}
 
 	var rendered = th.Server.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
-	require.Contains(t, rendered, post.Message, "Rendered email should not contain post contents when email notification contents type is set to Generic.")
+	require.NotContains(t, rendered, post.Message, "Rendered email should not contain post contents when email notification contents type is set to Generic.")
 }
 
 /*
