@@ -24,10 +24,12 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
 	"strings"
 )
 
@@ -204,31 +206,15 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	return clientTriggerId, nil
 }
 
-type LocalResponseWriter struct {
-	data   []byte
-	status int
-}
-
-func (w LocalResponseWriter) Header() http.Header {
-	return make(http.Header)
-}
-
-func (w LocalResponseWriter) Write(bytes []byte) (int, error) {
-	w.data = bytes
-	return len(bytes), nil
-}
-
-func (w LocalResponseWriter) WriteHeader(statusCode int) {
-	w.status = statusCode
-}
-
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
+// For internal requests, requests are routed directly to a plugin ServerHTTP hook
 func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
+
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	rawURLPath := path.Clean(rawURL)
 	if siteURL != nil && (strings.HasPrefix(rawURLPath, "/plugins/") || strings.HasPrefix(rawURLPath, "plugins/")) {
@@ -237,68 +223,111 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 		inURL.Path = path.Join("/", siteURL.Path, rawURLPath)
 		rawURL = inURL.String()
 	}
+	if strings.Contains(rawURL, "plugins/") {
+		return a.DoLocalRequest(rawURL, body)
+	}
+
+	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
+	if err != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	// Allow access to plugin routes for action buttons
+	var httpClient *http.Client
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+	if (inURL.Hostname() == "localhost" || inURL.Hostname() == "127.0.0.1" || inURL.Hostname() == siteURL.Hostname()) && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
+		req.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
+		httpClient = a.HTTPService.MakeClient(true)
+	} else {
+		httpClient = a.HTTPService.MakeClient(false)
+	}
+
+	resp, httpErr := httpClient.Do(req)
+	if httpErr != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+httpErr.Error(), http.StatusBadRequest)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return resp, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)
+	}
+
+	return resp, nil
+}
+
+type LocalResponseWriter struct {
+	data   []byte
+	status int
+}
+
+func (w *LocalResponseWriter) Header() http.Header {
+	return make(http.Header)
+}
+
+func (w *LocalResponseWriter) Write(bytes []byte) (int, error) {
+	w.data = make([]byte, len(bytes))
+	copy(w.data, bytes)
+	return len(w.data), nil
+}
+
+func (w *LocalResponseWriter) WriteHeader(statusCode int) {
+	w.status = statusCode
+}
+
+func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+	inURL, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+	}
 	pluginsEnvironment := a.GetPluginsEnvironment()
-	s := strings.SplitAfter(rawURLPath, "plugins/")
-	if len(s) < 2 {
-		return nil, nil //todo
+
+	regx := regexp.MustCompile(`plugins\/\s*([^\/]*)`)
+	matches := regx.FindStringSubmatch(inURL.Path)
+	if len(matches) != 2 {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err=Unable to find pluginId", http.StatusBadRequest)
 	}
-	p := strings.Split(s[1], "/")
-	if len(p) < 1 {
-		return nil, nil //todo
+	pluginId := matches[1]
+
+	regx = regexp.MustCompile(`(` + pluginId + `)(\/.*)`)
+	matches = regx.FindStringSubmatch(inURL.Path)
+	if len(matches) != 3 {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err=Unable to find path", http.StatusBadRequest)
 	}
-	pluginId := p[0]
+	path := matches[2]
+
 	hooks, err := pluginsEnvironment.HooksForPlugin(pluginId)
 	if err != nil {
-		return nil, nil //todo
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
 	w := LocalResponseWriter{}
-	r, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
+	r, err := http.NewRequest("POST", path, bytes.NewReader(body))
 	if err != nil {
-		return nil, nil
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
+	r.Header.Set("Mattermost-User-ID", a.Session.UserId)
+	r.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
 	c := &plugin.Context{
 		SessionId:      model.NewId(),
 		RequestId:      model.NewId(),
 		IpAddress:      "localhost",
 		AcceptLanguage: "*",
-		UserAgent:      "none",
+		UserAgent:      "",
 	}
-	hooks.ServeHTTP(c, w, r)
 
-	//pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-	//	w := LocalResponseWriter{}
-	//	r, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
-	//	if err == nil {
-	//		return false
-	//	}
-	//	c := &plugin.Context{
-	//		SessionId:      model.NewId(),
-	//		RequestId:      model.NewId(),
-	//		IpAddress:      "localhost",
-	//		AcceptLanguage: "*",
-	//		UserAgent:      "none",
-	//	}
-	//	hooks.ServeHTTP(c, w, r)
-	//	return true
-	//}, plugin.ServeHTTPId)
-
-	var response model.PostActionIntegrationResponse
-	if err := json.NewDecoder(bytes.NewReader(w.data)).Decode(&response); err != nil {
-		fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXX")
-	}
-	//respBody := &model.PostActionIntegrationResponse{}
+	hooks.ServeHTTP(c, &w, r)
 
 	resp := &http.Response{
-		Status:           "200 OK",
+		Status:           "",
 		StatusCode:       w.status,
 		Proto:            "HTTP/1.1",
 		ProtoMajor:       1,
 		ProtoMinor:       1,
 		Header:           make(http.Header),
-		Body:             ioutil.NopCloser(bytes.NewReader(response.ToJson())),
+		Body:             ioutil.NopCloser(bytes.NewReader(w.data)),
 		ContentLength:    0,
 		TransferEncoding: nil,
-		Close:            false,
+		Close:            true,
 		Uncompressed:     true,
 		Trailer:          make(http.Header),
 		Request:          nil,
@@ -306,35 +335,6 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 	}
 
 	return resp, nil
-
-	//
-	//req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
-	//if err != nil {
-	//	return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
-	//}
-	//req.Header.Set("Content-Type", "application/json")
-	//req.Header.Set("Accept", "application/json")
-	//
-	//// Allow access to plugin routes for action buttons
-	//var httpClient *http.Client
-	//subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	//if (inURL.Hostname() == "localhost" || inURL.Hostname() == "127.0.0.1" || inURL.Hostname() == siteURL.Hostname()) && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
-	//	req.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
-	//	httpClient = a.HTTPService.MakeClient(true)
-	//} else {
-	//	httpClient = a.HTTPService.MakeClient(false)
-	//}
-	//
-	//resp, httpErr := httpClient.Do(req)
-	//if httpErr != nil {
-	//	return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+httpErr.Error(), http.StatusBadRequest)
-	//}
-	//
-	//if resp.StatusCode != http.StatusOK {
-	//	return resp, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)
-	//}
-	//
-	//return resp, nil
 }
 
 func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {

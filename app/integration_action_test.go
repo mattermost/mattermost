@@ -95,6 +95,35 @@ func TestPostAction(t *testing.T) {
 	}))
 	defer ts.Close()
 
+	setupPluginApiTest(t,
+		`
+		package main
+	
+		import (
+			"net/http"
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+	
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+	
+		func (p *MyPlugin) 	ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			response := &model.PostActionIntegrationResponse{}
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(response.ToJson())
+		}
+	
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
+
+	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
+	require.Nil(t, err2)
+	require.NotNil(t, hooks)
+
 	interactivePost := model.Post{
 		Message:       "Interactive post",
 		ChannelId:     th.BasicChannel.Id,
@@ -266,8 +295,7 @@ func TestPostAction(t *testing.T) {
 	require.True(t, ok)
 
 	_, err = th.App.DoPostAction(postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "")
-	require.NotNil(t, err)
-	require.False(t, strings.Contains(err.Error(), "address forbidden"))
+	require.Nil(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = ts.URL + "/subpath"
@@ -439,6 +467,37 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	}))
 	defer ts.Close()
 
+	setupPluginApiTest(t,
+		`
+		package main
+	
+		import (
+			"net/http"
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+	
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+	
+		func (p *MyPlugin) 	ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+		    response := &model.SubmitDialogResponse{
+				Errors: map[string]string{"name1": "some error"},
+			}
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(response.ToJson())
+		}
+	
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
+
+	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
+	require.Nil(t, err2)
+	require.NotNil(t, hooks)
+
 	submit.URL = ts.URL
 
 	resp, err := th.App.SubmitInteractiveDialog(submit)
@@ -478,6 +537,35 @@ func TestPostActionRelativeURL(t *testing.T) {
 		fmt.Fprintf(w, `{"post": {"message": "updated"}, "ephemeral_text": "foo"}`)
 	}))
 	defer ts.Close()
+
+	setupPluginApiTest(t,
+		`
+		package main
+	
+		import (
+			"net/http"
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+	
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+	
+		func (p *MyPlugin) 	ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			response := &model.PostActionIntegrationResponse{}
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(response.ToJson())
+		}
+	
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
+
+	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
+	require.Nil(t, err2)
+	require.NotNil(t, hooks)
 
 	t.Run("invalid relative URL", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -556,7 +644,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
 		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
-		require.NotNil(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("valid relative URL with SiteURL set", func(t *testing.T) {
