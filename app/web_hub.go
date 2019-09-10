@@ -528,7 +528,7 @@ func (h *Hub) Start() {
 	doRecover = func() {
 		if !h.ExplicitStop {
 			if r := recover(); r != nil {
-				mlog.Error("Recovering from Hub panic.", mlog.String("panic", r.(string)))
+				mlog.Error("Recovering from Hub panic.", mlog.Any("panic", r))
 			} else {
 				mlog.Error("Webhub stopped unexpectedly. Recovering.")
 			}
