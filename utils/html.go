@@ -141,7 +141,7 @@ func escapeForHtml(arg interface{}) interface{} {
 	default:
 		mlog.Warn(
 			"Unable to escape value for HTML template",
-			mlog.String("html_template", arg.(string)),
+			mlog.Any("html_template", arg),
 			mlog.String("template_type", reflect.ValueOf(arg).Type().String()),
 		)
 		return ""
