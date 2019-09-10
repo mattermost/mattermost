@@ -46,6 +46,12 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 		_, _, activationErr := env.Activate(pluginId)
 		pluginIds = append(pluginIds, pluginId)
 		activationErrors = append(activationErrors, activationErr)
+
+		app.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[pluginId] = &model.PluginState{
+				Enable: true,
+			}
+		})
 	}
 
 	return func() {

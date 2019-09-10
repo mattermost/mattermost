@@ -6679,6 +6679,14 @@
     "translation": "Unable to get the channel count for the scheme."
   },
   {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "Unable to count the private teams"
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "Unable to count the public teams"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "Unable to count the teams"
   },
