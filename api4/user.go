@@ -1380,6 +1380,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			loginId = certEmail
 			password = "certificate"
 		}
+	}
     loginId = r.Header.Get("X-BDP-USERNAME")
 	password = "certificate"
 
@@ -1434,7 +1435,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte(user.ToJson()))
 }
-
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	Logout(c, w, r)
 }
