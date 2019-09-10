@@ -57,7 +57,7 @@ type Handler struct {
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
-	mlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path))
+	mlog.Debug("request:", mlog.String("method", r.Method), mlog.String("url", r.URL.Path))
 
 	c := &Context{}
 	c.App = app.New(
