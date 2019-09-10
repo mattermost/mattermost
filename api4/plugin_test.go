@@ -620,7 +620,23 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 }
 
 func TestSearchGetMarketplacePlugins(t *testing.T) {
-	samplePlugins := []*model.MarketplacePlugin{}
+	samplePlugins := []*model.MarketplacePlugin{
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL:  "https://github.com/mattermost/mattermost-plugin-nps",
+				DownloadURL:  "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				SignatureURL: "",
+				Manifest: &model.Manifest{
+					Id:               "com.mattermost.nps",
+					Name:             "User Satisfaction Surveys",
+					Description:      "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost.",
+					Version:          "1.0.3",
+					MinServerVersion: "5.14.0",
+				},
+			},
+			InstalledVersion: "",
+		},
+	}
 
 	path, _ := fileutils.FindDir("tests")
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
@@ -650,7 +666,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
-		require.Nil(t, plugins)
+		require.Equal(t, samplePlugins, plugins)
 
 		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 		CheckNoError(t, resp)
@@ -694,6 +710,10 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "dsgsdg_v2"})
 		CheckNoError(t, resp)
 		require.Equal(t, []*model.MarketplacePlugin{newPluginV2}, plugins)
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "User Satisfaction Surveys"})
+		CheckNoError(t, resp)
+		require.Equal(t, samplePlugins, plugins)
 
 		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "NOFILTER"})
 		CheckNoError(t, resp)
