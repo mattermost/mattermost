@@ -187,7 +187,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
 }
 
-// tryExecutePluginCommand attempts to run a built in command based on the given arguments. If no such command can be
+// tryExecuteBuiltInCommand attempts to run a built in command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
 func (a *App) tryExecuteBuiltInCommand(args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
 	provider := GetCommandProvider(trigger)
