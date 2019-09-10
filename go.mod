@@ -100,5 +100,8 @@ require (
 	willnorris.com/go/imageproxy v0.9.0
 )
 
-// Workaround for https://github.com/golang/go/issues/30831 and fallout.
-replace github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
+replace (
+	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
+	// Workaround for https://github.com/golang/go/issues/30831 and fallout.
+	github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
+)
