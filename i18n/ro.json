@@ -3440,7 +3440,7 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Unable to restart plugin on upgrade."
+    "translation": "Imposibil de repornit pluginul la actualizare."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
@@ -3460,7 +3460,7 @@
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
-    "translation": "Unable to generate plugin webapp bundle."
+    "translation": "Imposibil să genereze pachetul webapp plugin."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -4404,7 +4404,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "Schema URL personalizat {{.Scheme}} nu este validă. Personalizat URL scheme trebuie să înceapă cu o scrisoare şi conţine doar litere, numere și cratimă (-)."
+    "translation": "Schema URL personalizată {{.Scheme}} nu este validă. Schemele URL personalizate trebuie să înceapă cu o literă și să conțină doar litere, numere, plus (+), perioadă (.) și cratimă (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",

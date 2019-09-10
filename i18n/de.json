@@ -1724,11 +1724,11 @@
   },
   {
     "id": "api.scheme.create_scheme.license.error",
-    "translation": "Ihre Lizenz unterstützt die Erstellung von Team-Schemas nicht."
+    "translation": "Ihre Lizenz unterstützt die Erstellung von Teamschemas nicht."
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": "Ihre Lizenz unterstützt die Löschung von Team-Schemas nicht."
+    "translation": "Ihre Lizenz unterstützt die Löschung von Teamschemas nicht."
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
@@ -1736,11 +1736,11 @@
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
-    "translation": "Konnte Teams für Schema nicht abrufen, da das angegebene Schema kein Team-Schema ist."
+    "translation": "Konnte Teams für Schema nicht abrufen, da das angegebene Schema kein Teamschema ist."
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": "Ihre Lizenz unterstützt die Aktualisierung des Team-Schemas nicht."
+    "translation": "Ihre Lizenz unterstützt die Aktualisierung des Teamschemas nicht."
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -2028,11 +2028,11 @@
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "Ihre Lizenz unterstützt die Aktualisierung des Team-Schemas nicht."
+    "translation": "Ihre Lizenz unterstützt die Aktualisierung des Teamschemas nicht."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
-    "translation": "Konnte Schema für Team nicht setzen, da das angegebene Schema kein Team-Schema ist."
+    "translation": "Konnte Schema für Team nicht setzen, da das angegebene Schema kein Teamschema ist."
   },
   {
     "id": "api.templates.deactivate_body.info",
@@ -2876,7 +2876,7 @@
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
-    "translation": "Team muss einem Team-Bereichs-Schema zugewiesen werden."
+    "translation": "Team muss einem Teambereichschema zugewiesen werden."
   },
   {
     "id": "app.import.import_user.save_preferences.error",
@@ -3284,11 +3284,11 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
-    "translation": "Ungültige Einstellung des Team-Motivs für Benutzer."
+    "translation": "Ungültige Einstellung des Teammotivs für Benutzer."
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": "Teamname fehlt in Team-Mitgliedschaft des Benutzers."
+    "translation": "Teamname fehlt in Teammitgliedschaft des Benutzers."
   },
   {
     "id": "app.notification.body.intro.direct.full",
@@ -3316,11 +3316,11 @@
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.group_message.full",
@@ -3328,11 +3328,11 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.notification.full",
@@ -3340,11 +3340,11 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -3436,11 +3436,11 @@
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
-    "translation": "Konnte das Plugin nicht aus dem Dateispeicher entfernen."
+    "translation": "Konnte Plugin-Bundle nicht aus dem Dateispeicher entfernen."
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Unable to restart plugin on upgrade."
+    "translation": "Konnte das Plugin kann beim Upgrade nicht neu starten."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
@@ -3460,7 +3460,7 @@
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
-    "translation": "Unable to generate plugin webapp bundle."
+    "translation": "Konnte Plugin-Webapp-Bundle nicht generieren."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -4404,7 +4404,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "Das eigenen URL-Schema {{.Scheme}} ist ungültig. Eigene URL-Schemas müssen mit einem Buchstaben beginnen und nur Buchstaben, Zahlen und Bindestrich (-) enthalten."
+    "translation": "Das eigene URL-Schema {{.Scheme}} ist ungültig. Eigene URL-Schemas müssen mit einem Buchstaben beginnen und dürfen nur Buchstaben, Zahlen und Bindestriche (-) enthalten."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -6704,7 +6704,7 @@
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
-    "translation": "Konnte die Team-Schemas nicht zurücksetzen"
+    "translation": "Konnte die Teamschemas nicht zurücksetzen"
   },
   {
     "id": "store.sql_team.save.app_error",
@@ -7200,7 +7200,7 @@
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Fehler bei Schreiben der E-Mail"
+    "translation": "Fehler beim Schreiben der E-Mail"
   },
   {
     "id": "utils.mail.send_mail.msg_data.app_error",
