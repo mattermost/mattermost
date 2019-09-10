@@ -420,12 +420,17 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
+	// Fetch all plugins from marketplace.
+	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{PerPage: -1})
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, p := range marketplacePlugins {
+		if !pluginMatchesFilter(p.Manifest, filter.Filter) {
+			continue
+		}
+
 		marketplacePlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: p,
 		}
