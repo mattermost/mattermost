@@ -50,10 +50,18 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 		if targetUser, err := a.Srv.Store.User().GetByUsername(username); err != nil {
 			invalidUsernames = append(invalidUsernames, username)
 		} else {
-			_, exists := targetUsers[targetUser.Id]
-			if !exists && targetUser.Id != args.UserId {
-				targetUsers[targetUser.Id] = targetUser
-				targetUsersSlice = append(targetUsersSlice, targetUser.Id)
+			canSee, err := a.UserCanSeeOtherUser(args.UserId, targetUser.Id)
+			if err != nil {
+				return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			}
+			if !canSee {
+				invalidUsernames = append(invalidUsernames, username)
+			} else {
+				_, exists := targetUsers[targetUser.Id]
+				if !exists && targetUser.Id != args.UserId {
+					targetUsers[targetUser.Id] = targetUser
+					targetUsersSlice = append(targetUsersSlice, targetUser.Id)
+				}
 			}
 		}
 	}
@@ -90,23 +98,6 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 			Text:         args.T("api.command_groupmsg.max_users.app_error", maxUsers),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
-	}
-
-	canSeeAll := true
-	for _, id := range targetUsersSlice {
-		if args.UserId != id {
-			canSee, err := a.UserCanSeeOtherUser(args.UserId, id)
-			if err != nil {
-				return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-			}
-			if !canSee {
-				canSeeAll = false
-			}
-		}
-	}
-
-	if !canSeeAll {
-		return &model.CommandResponse{Text: args.T("api.command_groupmsg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	var groupChannel *model.Channel

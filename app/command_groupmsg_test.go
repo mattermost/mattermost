@@ -80,7 +80,7 @@ func TestGroupMsgProvider(t *testing.T) {
 			},
 		}, targetUsers+"hello")
 
-		assert.Equal(t, "api.command_groupmsg.missing.app_error", resp.Text)
+		assert.Equal(t, "api.command_groupmsg.invalid_user.app_error", resp.Text)
 		assert.Equal(t, "", resp.GotoLocation)
 	})
 
