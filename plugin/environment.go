@@ -284,16 +284,46 @@ func (env *Environment) RestartPlugin(id string) error {
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() {
+	if env.pluginHealthCheckJob != nil {
+		env.pluginHealthCheckJob.Cancel()
+	}
+
+	var wg sync.WaitGroup
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
 		rp := value.(*registeredPlugin)
 
-		if rp.supervisor != nil {
+		if rp.supervisor == nil {
+			return true
+		}
+
+		wg.Add(1)
+
+		done := make(chan bool)
+		go func() {
+			defer close(done)
 			if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
 				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
 			}
-			rp.supervisor.Shutdown()
-		}
+		}()
 
+		go func() {
+			defer wg.Done()
+
+			select {
+			case <-time.After(10 * time.Second):
+				env.logger.Warn("Plugin OnDeactivate() failed to complete in 10 seconds", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id))
+			case <-done:
+			}
+
+			rp.supervisor.Shutdown()
+		}()
+
+		return true
+	})
+
+	wg.Wait()
+
+	env.registeredPlugins.Range(func(key, value interface{}) bool {
 		env.registeredPlugins.Delete(key)
 
 		return true
