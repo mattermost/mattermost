@@ -156,8 +156,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 		timeout <- true
 	}()
 
-	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
-	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 0, "shouldn't have sent queued post")
+	require.Nil(t, job.pendingNotifications[th.BasicUser.Id], "shouldn't have sent queued post")
 
 	select {
 	case post := <-received:
@@ -259,7 +258,6 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id], "should have sent queued post")
-	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 0, "should have sent queued post")
 }
 
 /*
