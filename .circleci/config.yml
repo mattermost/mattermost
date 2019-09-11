@@ -1,0 +1,8 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.12
+    steps:
+      - run: echo "skipping build. PR \#11978 in progress."
