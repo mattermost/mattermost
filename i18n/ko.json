@@ -2324,7 +2324,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
+    "translation": "{{.Service}} 현재 서버는 OAuth 2.0을 통한 SSO를 사용할 수 없음"
   },
   {
     "id": "api.user.create_email_token.error",
@@ -2468,7 +2468,7 @@
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
-    "translation": "Update password failed because context user_id did not match provided user's id"
+    "translation": "user_id가 일치하지 않아 비밀번호를 갱신할 수 없습니다."
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
@@ -2920,7 +2920,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
-    "translation": "팀 이름이 너무 깁니다."
+    "translation": "팀 개요가 너무 깁니다."
   },
   {
     "id": "app.import.validate_channel_import_data.scheme_invalid.error",
@@ -3052,7 +3052,7 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "게시물 필수 속성 누락 : User"
+    "translation": "게시물 필수 속성 누락 : EmojiName."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -3216,11 +3216,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
-    "translation": "닉네임이 너무 깁니다."
+    "translation": "유저의 이름이 너무 깁니다."
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
-    "translation": "닉네임이 너무 깁니다."
+    "translation": "유저의 성(姓)이 너무 깁니다."
   },
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
@@ -3292,7 +3292,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.full",
-    "translation": "한개의 신규 메시지가 있습니다."
+    "translation": "새로운 다이렉트 메시지가 있습니다."
   },
   {
     "id": "app.notification.body.intro.direct.generic",
@@ -3300,11 +3300,11 @@
   },
   {
     "id": "app.notification.body.intro.group_message.full",
-    "translation": "한개의 신규 메시지가 있습니다."
+    "translation": "한개의 신규 그룹 메시지가 있습니다."
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "@{{.SenderName}}으로부터 새로운 알림이 있습니다."
+    "translation": "@{{.SenderName}}으로부터 새로운 그룹 메세지가 있습니다."
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3536,7 +3536,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
+    "translation": "Enterprise Edition으로 업그레이드하고 라이센스 키를 포함해야합니다. 시스템 관리자에게 문의하십시오."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3728,7 +3728,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Failed to parse search result matches"
+    "translation": "검색 결과 분석에 실패했습니다."
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",

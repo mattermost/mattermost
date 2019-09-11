@@ -3440,7 +3440,7 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Unable to restart plugin on upgrade."
+    "translation": "Nie można uruchomić wtyczki podczas aktualizacji."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
@@ -3460,7 +3460,7 @@
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
-    "translation": "Unable to generate plugin webapp bundle."
+    "translation": "Nie można wygenerować bundle webapp wtyczki."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
