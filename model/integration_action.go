@@ -222,6 +222,7 @@ type SubmitDialogRequest struct {
 }
 
 type SubmitDialogResponse struct {
+	Error  string            `json:"error,omitempty"`
 	Errors map[string]string `json:"errors,omitempty"`
 }
 
