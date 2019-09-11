@@ -1164,15 +1164,13 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 
 		response, err := th.App.MarkChannelAsUnreadFromPost(p4.Id, u1.Id)
 		assert.Nil(t, err)
-		assert.Equal(t, int64(2), response.MsgCount)
+		assert.Equal(t, int64(1), response.MsgCount)
 		assert.Equal(t, int64(1), response.MentionCount)
-		t.Log("resp", response)
 
 		unread, err := th.App.GetChannelUnread(c2.Id, u1.Id)
 		require.Nil(t, err)
-		assert.Equal(t, int64(2), unread.MsgCount)
+		assert.Equal(t, int64(1), unread.MsgCount)
 		assert.Equal(t, int64(1), unread.MentionCount)
-		t.Log("unread", unread)
 	})
 
 	t.Run("Unread on a DM channel", func(t *testing.T) {
@@ -1184,7 +1182,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 
 		response, err := th.App.MarkChannelAsUnreadFromPost(dm1.Id, u1.Id)
 		assert.Nil(t, err)
-		assert.Equal(t, int64(3), response.MsgCount)
+		assert.Equal(t, int64(0), response.MsgCount)
 		assert.Equal(t, int64(3), response.MentionCount)
 
 		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
