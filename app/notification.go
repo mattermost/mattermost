@@ -527,11 +527,16 @@ type ExplicitMentions struct {
 	ChannelMentioned bool
 }
 
+type MentionType int
+
 const (
 	// Different types of mentions ordered by their priority from lowest to highest
 
+	// A placeholder that should never be used in practice
+	NoMention MentionType = iota
+
 	// The post is in a thread that the user has commented on
-	ThreadMention MentionType = iota
+	ThreadMention
 
 	// The post is a comment on a thread started by the user
 	CommentMention
@@ -545,8 +550,6 @@ const (
 	// The post contains an at-mention for the user
 	KeywordMention
 )
-
-type MentionType int
 
 func (m *ExplicitMentions) addMention(userId string, mentionType MentionType) {
 	if m.Mentions == nil {
@@ -732,9 +735,7 @@ func (n *postNotification) GetSenderName(userNameFormat string, overridesAllowed
 
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
 func (e *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
-	isMention := false
-
-	mentionType := KeywordMention
+	var mentionType MentionType
 
 	switch strings.ToLower(word) {
 	case "@here":
@@ -746,20 +747,22 @@ func (e *ExplicitMentions) checkForMention(word string, keywords map[string][]st
 	case "@all":
 		e.AllMentioned = true
 		mentionType = ChannelMention
+	default:
+		mentionType = KeywordMention
 	}
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
 		e.addMentions(ids, mentionType)
-		isMention = true
+		return true
 	}
 
 	// Case-sensitive check for first name
 	if ids, match := keywords[word]; match {
 		e.addMentions(ids, mentionType)
-		isMention = true
+		return true
 	}
 
-	return isMention
+	return false
 }
 
 // isKeywordMultibyte checks if a word containing a multibyte character contains a multibyte keyword
