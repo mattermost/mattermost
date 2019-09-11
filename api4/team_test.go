@@ -23,7 +23,7 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
-	th := Setup().InitBasic2()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
