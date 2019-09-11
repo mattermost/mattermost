@@ -943,7 +943,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post1, err := ss.Post().Save(&model.Post{
 			ChannelId: channelId,
 			UserId:    userId,
-			Message:   "message",
+			Message:   "post1",
 		})
 		require.Nil(t, err)
 		post1.ReplyCount = 1
@@ -952,7 +952,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post2, err := ss.Post().Save(&model.Post{
 			ChannelId: channelId,
 			UserId:    userId,
-			Message:   "message",
+			Message:   "post2",
 		})
 		require.Nil(t, err)
 		post2.ReplyCount = 2
@@ -963,7 +963,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			UserId:    userId,
 			ParentId:  post1.Id,
 			RootId:    post1.Id,
-			Message:   "message",
+			Message:   "post3",
 		})
 		require.Nil(t, err)
 		time.Sleep(time.Millisecond)
@@ -973,7 +973,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			UserId:    userId,
 			RootId:    post2.Id,
 			ParentId:  post2.Id,
-			Message:   "message",
+			Message:   "post4",
 		})
 		require.Nil(t, err)
 		time.Sleep(time.Millisecond)
@@ -981,7 +981,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post5, err := ss.Post().Save(&model.Post{
 			ChannelId: channelId,
 			UserId:    userId,
-			Message:   "message",
+			Message:   "post5",
 		})
 		require.Nil(t, err)
 		time.Sleep(time.Millisecond)
@@ -991,7 +991,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			UserId:    userId,
 			ParentId:  post2.Id,
 			RootId:    post2.Id,
-			Message:   "message",
+			Message:   "post6",
 		})
 		require.Nil(t, err)
 
@@ -1010,6 +1010,17 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 				post3.Id: post3,
 				post4.Id: post4,
 				post6.Id: post6,
+			}, postList.Posts)
+		})
+
+		t.Run("should return each post and thread before a post with limit", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelId, PostId: post4.Id, PerPage: 1, SkipFetchThreads: true})
+			assert.Nil(t, err)
+
+			assert.Equal(t, []string{post3.Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				post1.Id: post1,
+				post3.Id: post3,
 			}, postList.Posts)
 		})
 
