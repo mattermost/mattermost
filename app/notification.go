@@ -194,10 +194,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
+	// Check for channel-wide mentions in channels that have too many members for those to work
 	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		T := utils.GetUserTranslations(sender.Locale)
 
-		// If the channel has more than 1K users then @here is disabled
 		if mentions.HereMentioned {
 			a.SendEphemeralPost(
 				post.UserId,
@@ -209,7 +209,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			)
 		}
 
-		// If the channel has more than 1K users then @channel is disabled
 		if mentions.ChannelMentioned {
 			a.SendEphemeralPost(
 				post.UserId,
@@ -221,7 +220,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			)
 		}
 
-		// If the channel has more than 1K users then @all is disabled
 		if mentions.AllMentioned {
 			a.SendEphemeralPost(
 				post.UserId,
