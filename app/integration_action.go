@@ -21,16 +21,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
 	"regexp"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (string, *model.AppError) {
