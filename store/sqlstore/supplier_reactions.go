@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/gorp"
@@ -141,7 +140,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppEr
 	for _, reaction := range reactions {
 		if _, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
 			map[string]interface{}{"PostId": reaction.PostId, "UpdateAt": model.GetMillis()}); err != nil {
-			mlog.Warn(fmt.Sprintf("Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v", reaction.PostId, err.Error()))
+			mlog.Warn("Unable to update Post.HasReactions while removing reactions", mlog.String("post_id", reaction.PostId), mlog.Err(err))
 		}
 	}
 
