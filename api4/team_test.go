@@ -621,6 +621,10 @@ func TestGetAllTeams(t *testing.T) {
 	team3, resp = Client.CreateTeam(team3)
 	CheckNoError(t, resp)
 
+	team4 := &model.Team{DisplayName: "Name4", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: false}
+	team4, resp = Client.CreateTeam(team4)
+	CheckNoError(t, resp)
+
 	testCases := []struct {
 		Name          string
 		Page          int
@@ -663,14 +667,14 @@ func TestGetAllTeams(t *testing.T) {
 			Page:          0,
 			PerPage:       10,
 			Permissions:   []string{model.PERMISSION_LIST_PRIVATE_TEAMS.Id},
-			ExpectedTeams: []string{th.BasicTeam.Id, team3.Id},
+			ExpectedTeams: []string{th.BasicTeam.Id, team3.Id, team4.Id},
 		},
 		{
 			Name:          "Get all teams",
 			Page:          0,
 			PerPage:       10,
 			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.PERMISSION_LIST_PRIVATE_TEAMS.Id},
-			ExpectedTeams: []string{th.BasicTeam.Id, team1.Id, team2.Id, team3.Id},
+			ExpectedTeams: []string{th.BasicTeam.Id, team1.Id, team2.Id, team3.Id, team4.Id},
 		},
 		{
 			Name:          "Get no teams because permissions",
@@ -684,9 +688,27 @@ func TestGetAllTeams(t *testing.T) {
 			Page:          0,
 			PerPage:       10,
 			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.PERMISSION_LIST_PRIVATE_TEAMS.Id},
-			ExpectedTeams: []string{th.BasicTeam.Id, team1.Id, team2.Id, team3.Id},
+			ExpectedTeams: []string{th.BasicTeam.Id, team1.Id, team2.Id, team3.Id, team4.Id},
 			WithCount:     true,
-			ExpectedCount: 4,
+			ExpectedCount: 5,
+		},
+		{
+			Name:          "Get all public teams with count",
+			Page:          0,
+			PerPage:       10,
+			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id},
+			ExpectedTeams: []string{team1.Id, team2.Id},
+			WithCount:     true,
+			ExpectedCount: 2,
+		},
+		{
+			Name:          "Get all private teams with count",
+			Page:          0,
+			PerPage:       10,
+			Permissions:   []string{model.PERMISSION_LIST_PRIVATE_TEAMS.Id},
+			ExpectedTeams: []string{th.BasicTeam.Id, team3.Id, team4.Id},
+			WithCount:     true,
+			ExpectedCount: 3,
 		},
 	}
 
@@ -2310,7 +2332,9 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableEmailInvitations = &enableEmailInvitations })
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = restrictCreationToDomains })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.RestrictCreationToDomains = guestRestrictCreationToDomains })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.GuestAccountsSettings.RestrictCreationToDomains = guestRestrictCreationToDomains
+		})
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
 	}()
 
