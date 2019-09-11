@@ -2,6 +2,8 @@ package sqlstore
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestMapStringsToQueryParams(t *testing.T) {
@@ -29,4 +31,30 @@ func TestMapStringsToQueryParams(t *testing.T) {
 			t.Fatal("returned incorrect query", keys)
 		}
 	})
+}
+
+func TestSanitizeSearchTerm(t *testing.T) {
+	term := "test"
+	result := sanitizeSearchTerm(term, "\\")
+	require.Equal(t, result, term)
+
+	term = "%%%"
+	expected := "\\%\\%\\%"
+	result = sanitizeSearchTerm(term, "\\")
+	require.Equal(t, result, expected)
+
+	term = "%\\%\\%"
+	expected = "\\%\\%\\%"
+	result = sanitizeSearchTerm(term, "\\")
+	require.Equal(t, result, expected)
+
+	term = "%_test_%"
+	expected = "\\%\\_test\\_\\%"
+	result = sanitizeSearchTerm(term, "\\")
+	require.Equal(t, result, expected)
+
+	term = "**test_%"
+	expected = "test*_*%"
+	result = sanitizeSearchTerm(term, "*")
+	require.Equal(t, result, expected)
 }
