@@ -1175,6 +1175,8 @@ func (a *App) MaxPostSize() int {
 	return maxPostSize
 }
 
+// countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
+// given post. Returns the number of mentions or -1 if the post is in a direct message channel.
 func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *model.AppError) {
 	channel, err := a.GetChannel(post.ChannelId)
 	if err != nil {
