@@ -496,6 +496,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL:  "https://github.com/mattermost/mattermost-plugin-nps",
+				IconData:     "http://example.com/icon.svg",
 				DownloadURL:  "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
 				SignatureURL: "",
 				Manifest: &model.Manifest{
@@ -543,6 +544,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		expectedPlugins := append(samplePlugins, &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL:  "",
+				IconData:     "",
 				DownloadURL:  "",
 				SignatureURL: "",
 				Manifest:     manifest,
@@ -582,6 +584,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL:  "HomepageURL",
+				IconData:     "IconData",
 				DownloadURL:  "DownloadURL",
 				SignatureURL: "SignatureURL",
 				Manifest:     manifest,
@@ -624,6 +627,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL:  "https://github.com/mattermost/mattermost-plugin-nps",
+				IconData:     "Cjxzdmcgdmlld0JveD0nMCAwIDEwNSA5MycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz4KPHBhdGggZD0nTTY2LDBoMzl2OTN6TTM4LDBoLTM4djkzek01MiwzNWwyNSw1OGgtMTZsLTgtMThoLTE4eicgZmlsbD0nI0VEMUMyNCcvPgo8L3N2Zz4K",
 				DownloadURL:  "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
 				SignatureURL: "",
 				Manifest: &model.Manifest{
@@ -674,6 +678,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		newPluginV1 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL:  "",
+				IconData:     "",
 				DownloadURL:  "",
 				SignatureURL: "",
 				Manifest:     manifest,
@@ -687,6 +692,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		newPluginV2 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL:  "",
+				IconData:     "",
 				DownloadURL:  "",
 				SignatureURL: "",
 				Manifest:     manifest,
