@@ -90,6 +90,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 		keywordQuery = "AND ("
 
 		for index, keyword := range keywords {
+			keyword = sanitizeSearchTerm(keyword, "\\")
 			if index >= 1 {
 				keywordQuery += " OR LOWER(Posts.Message) LIKE :Keyword" + strconv.Itoa(index)
 			} else {

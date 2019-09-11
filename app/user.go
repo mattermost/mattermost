@@ -2151,17 +2151,10 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 	}
 
 	teamIdsWithPermission := []string{}
-	teamIdsWithoutPermission := []string{}
 	for _, teamId := range teamIds {
 		if a.HasPermissionToTeam(userId, teamId, model.PERMISSION_VIEW_MEMBERS) {
 			teamIdsWithPermission = append(teamIdsWithPermission, teamId)
-		} else {
-			teamIdsWithoutPermission = append(teamIdsWithoutPermission, teamId)
 		}
-	}
-
-	if len(teamIdsWithoutPermission) == 0 {
-		return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission}, nil
 	}
 
 	userChannelMembers, err := a.Srv.Store.Channel().GetAllChannelMembersForUser(userId, true, true)
