@@ -1,0 +1,29 @@
+sudo: false
+language: go
+
+os:
+- linux
+
+env:
+- ARCH=x86_64
+
+go:
+- 1.12.x
+- tip
+
+matrix:
+  fast_finish: true
+  allow_failures:
+  - go: tip
+
+before_install:
+  - sudo apt-get install devscripts
+  - curl -O https://dl.minio.io/server/minio/release/linux-amd64/minio && chmod +x ./minio
+  - sudo cp testcerts/public.crt /usr/local/share/ca-certificates/
+  - sudo update-ca-certificates
+  - MINIO_ACCESS_KEY=minio MINIO_SECRET_KEY=minio123 ./minio server --compat --quiet --certs-dir testcerts data 2>&1 > minio.log &
+
+script:
+  - diff -au <(gofmt -d .) <(printf "")
+  - diff -au <(licensecheck --check '.go$' --recursive --lines 0 * | grep -v -w 'Apache (v2.0)') <(printf "")
+  - make
