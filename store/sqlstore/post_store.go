@@ -267,6 +267,8 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 }
 
 func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
+
 	if len(id) == 0 {
 		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id, http.StatusBadRequest)
 	}
@@ -276,6 +278,9 @@ func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
 	}
+
+	pl.AddPost(&post)
+	pl.AddOrder(id)
 
 	rootId := post.RootId
 
@@ -288,12 +293,11 @@ func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
 	}
 
 	var posts []*model.Post
-	_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0 ORDER BY CreateAt DESC", map[string]interface{}{"Id": rootId, "RootId": rootId})
+	_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error(), http.StatusInternalServerError)
 	}
 
-	pl := model.NewPostList()
 	for _, p := range posts {
 		pl.AddPost(p)
 		pl.AddOrder(p.Id)

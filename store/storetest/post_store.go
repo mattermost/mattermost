@@ -553,69 +553,65 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
-	o1, setupErr := ss.Post().Save(&model.Post{
-		ChannelId: model.NewId(),
-		UserId:    model.NewId(),
-		Message:   "test",
-	})
-	require.Nil(t, setupErr)
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.Message = "zz" + model.NewId() + "b"
+	o1, err := ss.Post().Save(o1)
+	require.Nil(t, err)
 
-	o2, setupErr := ss.Post().Save(&model.Post{
-		ChannelId: model.NewId(),
-		UserId:    model.NewId(),
-		ParentId:  o1.Id,
-		RootId:    o1.Id,
-		Message:   "test",
-	})
-	require.Nil(t, setupErr)
+	o2 := &model.Post{}
+	o2.ChannelId = o1.ChannelId
+	o2.UserId = model.NewId()
+	o2.Message = "zz" + model.NewId() + "b"
+	o2.ParentId = o1.Id
+	o2.RootId = o1.Id
+	o2, err = ss.Post().Save(o2)
+	require.Nil(t, err)
 
-	o3, setupErr := ss.Post().Save(&model.Post{
-		ChannelId: model.NewId(),
-		UserId:    model.NewId(),
-		ParentId:  o2.Id,
-		RootId:    o1.Id,
-		Message:   "test",
-	})
-	require.Nil(t, setupErr)
+	o3 := &model.Post{}
+	o3.ChannelId = o1.ChannelId
+	o3.UserId = model.NewId()
+	o3.Message = "zz" + model.NewId() + "b"
+	o3.ParentId = o2.Id
+	o3.RootId = o1.Id
+	o3, err = ss.Post().Save(o3)
+	require.Nil(t, err)
 
-	t.Run("should return the post and its children", func(t *testing.T) {
-		pl, err := ss.Post().Get(o1.Id)
+	pl, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		assert.Nil(t, err)
-		assert.Len(t, pl.Posts, 3)
-		assert.Contains(t, pl.Posts, o1.Id)
-		assert.Contains(t, pl.Posts, o2.Id)
-		assert.Contains(t, pl.Posts, o3.Id)
-		assert.Equal(t, []string{o3.Id, o2.Id, o1.Id}, pl.Order)
-	})
+	if len(pl.Posts) != 3 {
+		t.Fatal("invalid returned post")
+	}
 
-	t.Run("should return the comment and the rest of its thread", func(t *testing.T) {
-		pl, err := ss.Post().Get(o3.Id)
+	if dErr := ss.Post().Delete(o3.Id, model.GetMillis(), ""); dErr != nil {
+		t.Fatal(dErr)
+	}
 
-		assert.Nil(t, err)
-		assert.Len(t, pl.Posts, 3)
-		assert.Contains(t, pl.Posts, o1.Id)
-		assert.Contains(t, pl.Posts, o2.Id)
-		assert.Contains(t, pl.Posts, o3.Id)
-		assert.Equal(t, []string{o3.Id, o2.Id, o1.Id}, pl.Order)
-	})
+	pl, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	setupErr = ss.Post().Delete(o3.Id, model.GetMillis(), "")
-	require.Nil(t, setupErr)
+	if len(pl.Posts) != 2 {
+		t.Fatal("invalid returned post")
+	}
 
-	t.Run("should not return comments that have been deleted", func(t *testing.T) {
-		pl, err := ss.Post().Get(o1.Id)
-		if err != nil {
-			t.Fatal(err)
-		}
+	if dErr := ss.Post().Delete(o2.Id, model.GetMillis(), ""); dErr != nil {
+		t.Fatal(dErr)
+	}
 
-		assert.Nil(t, err)
-		assert.Len(t, pl.Posts, 2)
-		assert.Contains(t, pl.Posts, o1.Id)
-		assert.Contains(t, pl.Posts, o2.Id)
-		assert.NotContains(t, pl.Posts, o3.Id)
-		assert.Equal(t, []string{o2.Id, o1.Id}, pl.Order)
-	})
+	pl, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(pl.Posts) != 1 {
+		t.Fatal("invalid returned post")
+	}
 }
 
 func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
