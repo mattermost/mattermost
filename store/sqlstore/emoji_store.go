@@ -147,6 +147,8 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
 func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
 	var emojis []*model.Emoji
 
+	name = sanitizeSearchTerm(name, "\\")
+
 	term := ""
 	if !prefixOnly {
 		term = "%"
