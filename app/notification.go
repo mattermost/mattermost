@@ -194,42 +194,44 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	T := utils.GetUserTranslations(sender.Locale)
+	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		T := utils.GetUserTranslations(sender.Locale)
 
-	// If the channel has more than 1K users then @here is disabled
-	if mentions.HereMentioned && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		a.SendEphemeralPost(
-			post.UserId,
-			&model.Post{
-				ChannelId: post.ChannelId,
-				Message:   T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
-				CreateAt:  post.CreateAt + 1,
-			},
-		)
-	}
+		// If the channel has more than 1K users then @here is disabled
+		if mentions.HereMentioned {
+			a.SendEphemeralPost(
+				post.UserId,
+				&model.Post{
+					ChannelId: post.ChannelId,
+					Message:   T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+					CreateAt:  post.CreateAt + 1,
+				},
+			)
+		}
 
-	// If the channel has more than 1K users then @channel is disabled
-	if mentions.ChannelMentioned && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		a.SendEphemeralPost(
-			post.UserId,
-			&model.Post{
-				ChannelId: post.ChannelId,
-				Message:   T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
-				CreateAt:  post.CreateAt + 1,
-			},
-		)
-	}
+		// If the channel has more than 1K users then @channel is disabled
+		if mentions.ChannelMentioned {
+			a.SendEphemeralPost(
+				post.UserId,
+				&model.Post{
+					ChannelId: post.ChannelId,
+					Message:   T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+					CreateAt:  post.CreateAt + 1,
+				},
+			)
+		}
 
-	// If the channel has more than 1K users then @all is disabled
-	if mentions.AllMentioned && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		a.SendEphemeralPost(
-			post.UserId,
-			&model.Post{
-				ChannelId: post.ChannelId,
-				Message:   T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
-				CreateAt:  post.CreateAt + 1,
-			},
-		)
+		// If the channel has more than 1K users then @all is disabled
+		if mentions.AllMentioned {
+			a.SendEphemeralPost(
+				post.UserId,
+				&model.Post{
+					ChannelId: post.ChannelId,
+					Message:   T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+					CreateAt:  post.CreateAt + 1,
+				},
+			)
+		}
 	}
 
 	// Make sure all mention updates are complete to prevent race
