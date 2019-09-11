@@ -9,21 +9,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Options struct {
+type ensureBotOptions struct {
 	ProfileImagePath string
 	IconImagePath    string
 }
 
-type Option func(*Options)
+type Option func(*ensureBotOptions)
 
 func ProfileImagePath(path string) Option {
-	return func(args *Options) {
+	return func(args *ensureBotOptions) {
 		args.ProfileImagePath = path
 	}
 }
 
 func IconImagePath(path string) Option {
-	return func(args *Options) {
+	return func(args *ensureBotOptions) {
 		args.IconImagePath = path
 	}
 }
@@ -92,9 +92,11 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) 
 	return createdBot.UserId, nil
 }
 
+// EnsureBotWithOptions calls EnsureBot with the specified Options,
+// currently supporting paths to the bot profile image and/or icon image
 func (p *HelpersImpl) EnsureBotWithOptions(bot *model.Bot, setters ...Option) (retBotId string, retErr error) {
 	// Default options
-	args := &Options{
+	args := &ensureBotOptions{
 		ProfileImagePath: "",
 		IconImagePath:    "",
 	}
@@ -102,19 +104,18 @@ func (p *HelpersImpl) EnsureBotWithOptions(bot *model.Bot, setters ...Option) (r
 		setter(args)
 	}
 	botId, err := p.EnsureBot(bot)
-
 	if err != nil {
-		return botId, err
+		return botId, errors.Wrap(err, "Failed to get or create bot")
 	}
 
-	if len(args.ProfileImagePath) > 0 {
+	if !(args.ProfileImagePath == "") {
 		bytes, err := p.API.ReadFile(args.ProfileImagePath)
 		if err != nil {
 			return botId, err
 		}
 		p.API.SetProfileImage(botId, bytes)
 	}
-	if len(args.IconImagePath) > 0 {
+	if !(args.IconImagePath == "") {
 		bytes, err := p.API.ReadFile(args.IconImagePath)
 		if err != nil {
 			return botId, err
