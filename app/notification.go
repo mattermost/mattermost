@@ -649,16 +649,13 @@ func addMentionKeywordsForUser(keywords map[string][]string, profile *model.User
 	userMention := "@" + strings.ToLower(profile.Username)
 	keywords[userMention] = append(keywords[userMention], profile.Id)
 
-	if len(profile.NotifyProps[model.MENTION_KEYS_NOTIFY_PROP]) > 0 {
-		// Add all the user's mention keys
-		splitKeys := strings.Split(profile.NotifyProps[model.MENTION_KEYS_NOTIFY_PROP], ",")
-		for _, k := range splitKeys {
-			// note that these are made lower case so that we can do a case insensitive check for them
-			key := strings.ToLower(k)
+	// Add all the user's mention keys
+	for _, k := range profile.GetMentionKeys() {
+		// note that these are made lower case so that we can do a case insensitive check for them
+		key := strings.ToLower(k)
 
-			if key != "" {
-				keywords[key] = append(keywords[key], profile.Id)
-			}
+		if key != "" {
+			keywords[key] = append(keywords[key], profile.Id)
 		}
 	}
 
