@@ -13,7 +13,7 @@ import (
 // BaseMarketplacePlugin is a Mattermost plugin received from the marketplace server.
 type BaseMarketplacePlugin struct {
 	HomepageURL  string
-	IconURL      string
+	IconData     string
 	DownloadURL  string
 	SignatureURL string
 	Manifest     *Manifest
