@@ -421,7 +421,10 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	}
 
 	// Fetch all plugins from marketplace.
-	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{PerPage: -1})
+	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{
+		PerPage:       -1,
+		ServerVersion: model.CurrentVersion,
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
