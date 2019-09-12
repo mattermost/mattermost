@@ -489,6 +489,31 @@ func TestGetMarketplacePlugins(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Len(t, plugins, 0)
 	})
+
+	t.Run("verify server version is passed through", func(t *testing.T) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			serverVersion, ok := req.URL.Query()["server_version"]
+			require.True(t, ok)
+			require.Len(t, serverVersion, 1)
+			require.Equal(t, model.CurrentVersion, serverVersion[0])
+			require.NotEqual(t, 0, len(serverVersion[0]))
+
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Len(t, plugins, 0)
+	})
 }
 
 func TestGetInstalledMarketplacePlugins(t *testing.T) {
