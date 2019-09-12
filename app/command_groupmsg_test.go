@@ -13,35 +13,35 @@ func TestGroupMsgUsernames(t *testing.T) {
 	assert := assert.New(t)
 
 	users, parsedMessage := groupMsgUsernames("")
-	assert.Equal(len(users), 0)
+	assert.Len(users, 0)
 	assert.Equal(parsedMessage, "", "error parsing empty message")
 
 	users, parsedMessage = groupMsgUsernames("test")
-	assert.Equal(len(users), 1)
+	assert.Len(users, 1)
 	assert.Equal(parsedMessage, "", "error parsing simple user")
 
 	users, parsedMessage = groupMsgUsernames("test1, test2, test3 , test4")
-	assert.Equal(len(users), 4)
+	assert.Len(users, 4)
 	assert.Equal(parsedMessage, "", "error parsing various users")
 
 	users, parsedMessage = groupMsgUsernames("test1, test2 message with spaces")
-	assert.Equal(len(users), 2)
+	assert.Len(users, 2)
 	assert.Equal(parsedMessage, "message with spaces", "error parsing message")
 
 	users, parsedMessage = groupMsgUsernames("test1, test2 message with, comma")
-	assert.Equal(len(users), 2)
+	assert.Len(users, 2)
 	assert.Equal(parsedMessage, "message with, comma", "error parsing messages with comma")
 
 	users, parsedMessage = groupMsgUsernames("test1,,,test2")
-	assert.Equal(len(users), 2)
+	assert.Len(users, 2)
 	assert.Equal(parsedMessage, "", "error parsing multiple commas in username")
 
 	users, parsedMessage = groupMsgUsernames("    test1,       test2     other message         ")
-	assert.Equal(len(users), 2)
+	assert.Len(users, 2)
 	assert.Equal(parsedMessage, "other message", "error parsing strange usage of spaces")
 
 	users, _ = groupMsgUsernames("    test1,       test2,,123,@321,+123")
-	assert.Equal(len(users), 5)
+	assert.Len(users, 5)
 	assert.Equal(users[0], "test1")
 	assert.Equal(users[1], "test2")
 	assert.Equal(users[2], "123")
