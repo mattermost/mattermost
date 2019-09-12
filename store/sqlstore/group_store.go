@@ -127,9 +127,9 @@ func (s *SqlGroupStore) GetByName(name string) (*model.Group, *model.AppError) {
 	var group *model.Group
 	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlGroupStore.GroupGet", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("SqlGroupStore.GroupGetByName", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
 		}
-		return nil, model.NewAppError("SqlGroupStore.GroupGet", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlGroupStore.GroupGetByName", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return group, nil
@@ -184,7 +184,7 @@ func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, *model.AppErro
 			AND UserId = :UserId`
 
 	if _, err := s.GetReplica().Select(&groups, query, map[string]interface{}{"UserId": userId}); err != nil {
-		return nil, model.NewAppError("SqlGroupStore.GroupGetAllBySource", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlGroupStore.GetByUser", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return groups, nil
