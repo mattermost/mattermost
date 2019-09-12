@@ -495,10 +495,9 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL:  "https://github.com/mattermost/mattermost-plugin-nps",
-				IconData:     "http://example.com/icon.svg",
-				DownloadURL:  "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
-				SignatureURL: "",
+				HomepageURL: "https://github.com/mattermost/mattermost-plugin-nps",
+				IconData:    "http://example.com/icon.svg",
+				DownloadURL: "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
 				Manifest: &model.Manifest{
 					Id:               "com.mattermost.nps",
 					Name:             "User Satisfaction Surveys",
@@ -543,11 +542,10 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 		expectedPlugins := append(samplePlugins, &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL:  "",
-				IconData:     "",
-				DownloadURL:  "",
-				SignatureURL: "",
-				Manifest:     manifest,
+				HomepageURL: "",
+				IconData:    "",
+				DownloadURL: "",
+				Manifest:    manifest,
 			},
 			InstalledVersion: manifest.Version,
 		})
@@ -583,11 +581,10 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL:  "HomepageURL",
-				IconData:     "IconData",
-				DownloadURL:  "DownloadURL",
-				SignatureURL: "SignatureURL",
-				Manifest:     manifest,
+				HomepageURL: "HomepageURL",
+				IconData:    "IconData",
+				DownloadURL: "DownloadURL",
+				Manifest:    manifest,
 			},
 			InstalledVersion: manifest.Version,
 		}
@@ -626,10 +623,9 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL:  "https://github.com/mattermost/mattermost-plugin-nps",
-				IconData:     "Cjxzdmcgdmlld0JveD0nMCAwIDEwNSA5MycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz4KPHBhdGggZD0nTTY2LDBoMzl2OTN6TTM4LDBoLTM4djkzek01MiwzNWwyNSw1OGgtMTZsLTgtMThoLTE4eicgZmlsbD0nI0VEMUMyNCcvPgo8L3N2Zz4K",
-				DownloadURL:  "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
-				SignatureURL: "",
+				HomepageURL: "https://github.com/mattermost/mattermost-plugin-nps",
+				IconData:    "Cjxzdmcgdmlld0JveD0nMCAwIDEwNSA5MycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz4KPHBhdGggZD0nTTY2LDBoMzl2OTN6TTM4LDBoLTM4djkzek01MiwzNWwyNSw1OGgtMTZsLTgtMThoLTE4eicgZmlsbD0nI0VEMUMyNCcvPgo8L3N2Zz4K",
+				DownloadURL: "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
 				Manifest: &model.Manifest{
 					Id:               "com.mattermost.nps",
 					Name:             "User Satisfaction Surveys",
@@ -677,11 +673,10 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 
 		newPluginV1 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL:  "",
-				IconData:     "",
-				DownloadURL:  "",
-				SignatureURL: "",
-				Manifest:     manifest,
+				HomepageURL: "",
+				IconData:    "",
+				DownloadURL: "",
+				Manifest:    manifest,
 			},
 			InstalledVersion: manifest.Version,
 		}
@@ -691,11 +686,10 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		CheckNoError(t, resp)
 		newPluginV2 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL:  "",
-				IconData:     "",
-				DownloadURL:  "",
-				SignatureURL: "",
-				Manifest:     manifest,
+				HomepageURL: "",
+				IconData:    "",
+				DownloadURL: "",
+				Manifest:    manifest,
 			},
 			InstalledVersion: manifest.Version,
 		}
