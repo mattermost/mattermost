@@ -11,7 +11,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -47,6 +46,12 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 		_, _, activationErr := env.Activate(pluginId)
 		pluginIds = append(pluginIds, pluginId)
 		activationErrors = append(activationErrors, activationErr)
+
+		app.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[pluginId] = &model.PluginState{
+				Enable: true,
+			}
+		})
 	}
 
 	return func() {
@@ -172,9 +177,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			CreateAt:  model.GetMillis() - 10000,
 		}
 		post, err := th.App.CreatePost(post, th.BasicChannel, false)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
+
 		assert.Equal(t, "message", post.Message)
 		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
 		require.Nil(t, errSingle)
@@ -217,15 +221,12 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			CreateAt:  model.GetMillis() - 10000,
 		}
 		post, err := th.App.CreatePost(post, th.BasicChannel, false)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
+
 		assert.Equal(t, "message_fromplugin", post.Message)
-		if retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id); err != nil {
-			t.Fatal(errSingle)
-		} else {
-			assert.Equal(t, "message_fromplugin", retrievedPost.Message)
-		}
+		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
+		require.Nil(t, errSingle)
+		assert.Equal(t, "message_fromplugin", retrievedPost.Message)
 	})
 
 	t.Run("multiple updated", func(t *testing.T) {
@@ -286,9 +287,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			CreateAt:  model.GetMillis() - 10000,
 		}
 		post, err := th.App.CreatePost(post, th.BasicChannel, false)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 		assert.Equal(t, "prefix_message_suffix", post.Message)
 	})
 }
@@ -332,9 +331,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 	_, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 }
 
 func TestHookMessageWillBeUpdated(t *testing.T) {
@@ -373,15 +370,11 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 	post, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited_"
 	post, err = th.App.UpdatePost(post, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	assert.Equal(t, "message_edited_fromplugin", post.Message)
 }
 
@@ -425,15 +418,11 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 	post, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited"
 	_, err = th.App.UpdatePost(post, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 }
 
 func TestHookFileWillBeUploaded(t *testing.T) {
@@ -582,8 +571,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, response)
 		assert.Equal(t, 1, len(response.FileInfos))
+		
 		fileId := response.FileInfos[0].Id
-
 		fileInfo, err := th.App.GetFileInfo(fileId)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
@@ -678,11 +667,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
-
-	if err != nil {
-		t.Errorf("Error updating user password: %s", err)
-	}
-
+	assert.Nil(t, err, "Error updating user password: %s", err)
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
@@ -711,9 +696,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	w := httptest.NewRecorder()
 	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if !strings.HasPrefix(err.Id, "Login rejected by plugin") {
-		t.Errorf("Expected Login rejected by plugin, got %s", err.Id)
-	}
+	assert.Contains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
 }
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
@@ -722,9 +705,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
 
-	if err != nil {
-		t.Errorf("Error updating user password: %s", err)
-	}
+	assert.Nil(t, err, "Error updating user password: %s", err)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -754,13 +735,8 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	w := httptest.NewRecorder()
 	session, err := th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if err != nil {
-		t.Errorf("Expected nil, got %s", err)
-	}
-
-	if session.UserId != th.BasicUser.Id {
-		t.Errorf("Expected %s, got %s", th.BasicUser.Id, session.UserId)
-	}
+	assert.Nil(t, err, "Expected nil, got %s", err)
+	assert.Equal(t, session.UserId, th.BasicUser.Id)
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
@@ -769,9 +745,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
 
-	if err != nil {
-		t.Errorf("Error updating user password: %s", err)
-	}
+	assert.Nil(t, err, "Error updating user password: %s", err)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -802,17 +776,13 @@ func TestUserHasLoggedIn(t *testing.T) {
 	w := httptest.NewRecorder()
 	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if err != nil {
-		t.Errorf("Expected nil, got %s", err)
-	}
+	assert.Nil(t, err, "Expected nil, got %s", err)
 
 	time.Sleep(2 * time.Second)
 
 	user, _ := th.App.GetUser(th.BasicUser.Id)
 
-	if user.FirstName != "plugin-callback-success" {
-		t.Errorf("Expected firstname overwrite, got default")
-	}
+	assert.Equal(t, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
 }
 
 func TestUserHasBeenCreated(t *testing.T) {
@@ -858,7 +828,6 @@ func TestUserHasBeenCreated(t *testing.T) {
 
 	user, err = th.App.GetUser(user.Id)
 	require.Nil(t, err)
-
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
 
@@ -988,7 +957,5 @@ func TestHookContext(t *testing.T) {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 	_, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 }

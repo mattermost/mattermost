@@ -978,10 +978,11 @@ func (a *App) invalidateUserChannelMembersCaches(user *model.User) *model.AppErr
 }
 
 func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
+	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
 	} else {
-		user.DeleteAt = model.GetMillis()
+		user.DeleteAt = user.UpdateAt
 	}
 
 	userUpdate, err := a.Srv.Store.User().Update(user, true)
@@ -997,6 +998,7 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	}
 
 	a.invalidateUserChannelMembersCaches(user)
+	a.InvalidateCacheForUser(user.Id)
 
 	a.sendUpdatedUserEvent(*ruser)
 
@@ -2151,17 +2153,10 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 	}
 
 	teamIdsWithPermission := []string{}
-	teamIdsWithoutPermission := []string{}
 	for _, teamId := range teamIds {
 		if a.HasPermissionToTeam(userId, teamId, model.PERMISSION_VIEW_MEMBERS) {
 			teamIdsWithPermission = append(teamIdsWithPermission, teamId)
-		} else {
-			teamIdsWithoutPermission = append(teamIdsWithoutPermission, teamId)
 		}
-	}
-
-	if len(teamIdsWithoutPermission) == 0 {
-		return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission}, nil
 	}
 
 	userChannelMembers, err := a.Srv.Store.Channel().GetAllChannelMembersForUser(userId, true, true)

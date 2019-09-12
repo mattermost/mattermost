@@ -25,8 +25,8 @@ import (
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
 
-	s3 "github.com/minio/minio-go"
-	"github.com/minio/minio-go/pkg/credentials"
+	s3 "github.com/minio/minio-go/v6"
+	"github.com/minio/minio-go/v6/pkg/credentials"
 )
 
 type TestHelper struct {
