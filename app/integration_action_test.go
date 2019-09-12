@@ -430,6 +430,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		assert.Equal(t, "value1", val)
 
 		resp := model.SubmitDialogResponse{
+			Error: "some generic error",
 			Errors: map[string]string{"name1": "some error"},
 		}
 
@@ -444,6 +445,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	resp, err := th.App.SubmitInteractiveDialog(submit)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
+	assert.Equal(t, "some generic error", resp.Error)
 	assert.Equal(t, "some error", resp.Errors["name1"])
 
 	submit.URL = ""
