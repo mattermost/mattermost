@@ -21,6 +21,7 @@ import (
 func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("Create", func(t *testing.T) { testGroupStoreCreate(t, ss) })
 	t.Run("Get", func(t *testing.T) { testGroupStoreGet(t, ss) })
+	t.Run("GetByName", func(t *testing.T) { testGroupStoreGetByName(t, ss) })
 	t.Run("GetByIDs", func(t *testing.T) { testGroupStoreGetByIDs(t, ss) })
 	t.Run("GetByRemoteID", func(t *testing.T) { testGroupStoreGetByRemoteID(t, ss) })
 	t.Run("GetAllBySource", func(t *testing.T) { testGroupStoreGetAllByType(t, ss) })
@@ -179,6 +180,37 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 
 	// Get an invalid group
 	_, err = ss.Group().Get(model.NewId())
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "store.sql_group.no_rows")
+}
+
+func testGroupStoreGetByName(t *testing.T, ss store.Store) {
+	// Create a group
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	d1, err := ss.Group().Create(g1)
+	require.Nil(t, err)
+	require.Len(t, d1.Id, 26)
+
+	// Get the group
+	d2, err := ss.Group().GetByName(d1.Name)
+	require.Nil(t, err)
+	require.Equal(t, d1.Id, d2.Id)
+	require.Equal(t, d1.Name, d2.Name)
+	require.Equal(t, d1.DisplayName, d2.DisplayName)
+	require.Equal(t, d1.Description, d2.Description)
+	require.Equal(t, d1.RemoteId, d2.RemoteId)
+	require.Equal(t, d1.CreateAt, d2.CreateAt)
+	require.Equal(t, d1.UpdateAt, d2.UpdateAt)
+	require.Equal(t, d1.DeleteAt, d2.DeleteAt)
+
+	// Get an invalid group
+	_, err = ss.Group().GetByName(model.NewId())
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "store.sql_group.no_rows")
 }

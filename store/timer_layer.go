@@ -2929,6 +2929,23 @@ func (s *TimerLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *mod
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerGroupStore) GetByName(name string) (*model.Group, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.GetByName(name)
+
+	t := timemodule.Now()
+	elapsed := t.Sub(start)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetByName", success, float64(elapsed))
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
 	start := timemodule.Now()
 
