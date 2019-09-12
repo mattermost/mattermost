@@ -118,7 +118,7 @@ func (sup *supervisor) PerformHealthCheck() error {
 			}
 		}
 		if pingErr != nil {
-			mlog.Debug(fmt.Sprintf("Error pinging plugin, error: %s", pingErr.Error()))
+			mlog.Debug("Error pinging plugin", mlog.Err(pingErr))
 			return fmt.Errorf("Plugin RPC connection is not responding")
 		}
 	}
