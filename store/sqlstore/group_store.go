@@ -158,6 +158,26 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 	return groups, nil
 }
 
+func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, *model.AppError) {
+	var groups []*model.Group
+
+	query := `
+		SELECT
+			UserGroups.*
+		FROM
+			GroupMembers
+			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
+		WHERE
+			GroupMembers.DeleteAt = 0
+			AND UserId = :UserId`
+
+	if _, err := s.GetReplica().Select(&groups, query, map[string]interface{}{"UserId": userId}); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GroupGetAllBySource", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groups, nil
+}
+
 func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppError) {
 	var retrievedGroup *model.Group
 	if err := s.GetMaster().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": group.Id}); err != nil {

@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -23,6 +24,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GetByIDs", func(t *testing.T) { testGroupStoreGetByIDs(t, ss) })
 	t.Run("GetByRemoteID", func(t *testing.T) { testGroupStoreGetByRemoteID(t, ss) })
 	t.Run("GetAllBySource", func(t *testing.T) { testGroupStoreGetAllByType(t, ss) })
+	t.Run("GetByUser", func(t *testing.T) { testGroupStoreGetByUser(t, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
 
@@ -278,6 +280,76 @@ func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
 		}
 		require.True(t, present)
 	}
+}
+
+func testGroupStoreGetByUser(t *testing.T, ss store.Store) {
+	// Save a group
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	g1, err := ss.Group().Create(g1)
+	require.Nil(t, err)
+
+	g2 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	g2, err = ss.Group().Create(g2)
+	require.Nil(t, err)
+
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	u1, err = ss.User().Save(u1)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(g1.Id, u1.Id)
+	require.Nil(t, err)
+	_, err = ss.Group().UpsertMember(g2.Id, u1.Id)
+	require.Nil(t, err)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	u2, err = ss.User().Save(u2)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(g2.Id, u2.Id)
+	require.Nil(t, err)
+
+	groups, err := ss.Group().GetByUser(u1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 2, len(groups))
+	found1 := false
+	found2 := false
+	for _, g := range groups {
+		if g.Id == g1.Id {
+			found1 = true
+		}
+		if g.Id == g2.Id {
+			found2 = true
+		}
+	}
+	assert.True(t, found1)
+	assert.True(t, found2)
+
+	groups, err = ss.Group().GetByUser(u2.Id)
+	require.Nil(t, err)
+	require.Equal(t, 1, len(groups))
+	assert.Equal(t, g2.Id, groups[0].Id)
+
+	groups, err = ss.Group().GetByUser(model.NewId())
+	require.Nil(t, err)
+	assert.Equal(t, 0, len(groups))
 }
 
 func testGroupStoreUpdate(t *testing.T, ss store.Store) {

@@ -431,6 +431,31 @@ func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSour
 	return r0, r1
 }
 
+// GetByUser provides a mock function with given fields: userId
+func (_m *GroupStore) GetByUser(userId string) ([]*model.Group, *model.AppError) {
+	ret := _m.Called(userId)
+
+	var r0 []*model.Group
+	if rf, ok := ret.Get(0).(func(string) []*model.Group); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Group)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
 func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
 	ret := _m.Called(groupID, syncableID, syncableType)
