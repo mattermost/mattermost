@@ -289,6 +289,15 @@ type API interface {
 	// UpdateChannelMemberNotifications updates a user's notification properties for a channel.
 	UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
 
+	// GetGroup gets a group by ID.
+	GetGroup(groupId string) (*model.Group, *model.AppError)
+
+	// GetGroupByName gets a group by name.
+	GetGroupByName(name string) (*model.Group, *model.AppError)
+
+	// GetGroupsForUser gets the groups a user is in.
+	GetGroupsForUser(userId string) ([]*model.Group, *model.AppError)
+
 	// DeleteChannelMember deletes a channel membership for a user.
 	DeleteChannelMember(channelId, userId string) *model.AppError
 
