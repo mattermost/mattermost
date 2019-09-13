@@ -95,7 +95,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 		for _, channel := range channels {
 			_, err := a.AddChannelMember(ruser.Id, channel, "", "")
 			if err != nil {
-				mlog.Error("Failed to add channel member", mlog.Error(err))
+				mlog.Error("Failed to add channel member", mlog.Err(err))
 			}
 		}
 	}
@@ -135,7 +135,7 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.
 	a.AddDirectChannels(team.Id, ruser)
 
 	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
-		mlog.Error("Failed to send welcome email on create user with inviteId", mlog.Error(err))
+		mlog.Error("Failed to send welcome email on create user with inviteId", mlog.Err(err))
 	}
 
 	return ruser, nil
@@ -148,7 +148,7 @@ func (a *App) CreateUserAsAdmin(user *model.User) (*model.User, *model.AppError)
 	}
 
 	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
-		mlog.Error("Failed to send welcome email on create admin user", mlog.Error(err))
+		mlog.Error("Failed to send welcome email on create admin user", mlog.Err(err))
 	}
 
 	return ruser, nil
@@ -172,7 +172,7 @@ func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppErr
 	}
 
 	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
-		mlog.Error("Failed to send welcome email on create user from signup", mlog.Error(err))
+		mlog.Error("Failed to send welcome email on create user from signup", mlog.Err(err))
 	}
 
 	return ruser, nil
@@ -190,7 +190,7 @@ func (a *App) IsFirstUserAccount() bool {
 	if a.SessionCacheLength() == 0 {
 		count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 		if err != nil {
-			mlog.Error("There was a error fetching if first user account", mlog.Error(err))
+			mlog.Error("There was a error fetching if first user account", mlog.Err(err))
 			return false
 		}
 		if count <= 0 {
@@ -314,19 +314,19 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 
 	ruser, err := a.Srv.Store.User().Save(user)
 	if err != nil {
-		mlog.Error("Couldn't save the user", mlog.Error(err))
+		mlog.Error("Couldn't save the user", mlog.Err(err))
 		return nil, err
 	}
 
 	if user.EmailVerified {
 		if err := a.VerifyUserEmail(ruser.Id, user.Email); err != nil {
-			mlog.Error("Failed to set email verified", mlog.Error(err))
+			mlog.Error("Failed to set email verified", mlog.Err(err))
 		}
 	}
 
 	pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
 	if err := a.Srv.Store.Preference().Save(&model.Preferences{pref}); err != nil {
-		mlog.Error("Encountered error saving tutorial preference", mlog.Error(err.Message))
+		mlog.Error("Encountered error saving tutorial preference", mlog.Err(err))
 	}
 
 	ruser.Sanitize(map[string]bool{})
@@ -397,7 +397,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string)
 
 		err = a.AddDirectChannels(teamId, user)
 		if err != nil {
-			mlog.Error("There was a error with adding direct channel", mlog.Error(err))
+			mlog.Error("There was a error with adding direct channel", mlog.Err(err))
 		}
 	}
 
@@ -835,14 +835,14 @@ func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv.Store.User().ResetLastPictureUpdate(user.Id); err != nil {
-		mlog.Error("Failed to reset last picture update", mlog.Error(err))
+		mlog.Error("Failed to reset last picture update", mlog.Err(err))
 	}
 
 	a.InvalidateCacheForUser(user.Id)
 
 	updatedUser, appErr := a.GetUser(user.Id)
 	if appErr != nil {
-		mlog.Error("Error in getting users profile forcing logout"), mlog.String(user.Id), mlog.String("user_id", user.Id))
+		mlog.Error("Error in getting users profile forcing logout", mlog.String("user_id", user.Id))
 		return nil
 	}
 
@@ -908,7 +908,7 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 	}
 
 	if err := a.Srv.Store.User().UpdateLastPictureUpdate(userId); err != nil {
-		mlog.Error("Error with updating last picture update", mlog.Error(err))
+		mlog.Error("Error with updating last picture update", mlog.Err(err))
 	}
 	a.invalidateUserCacheAndPublish(userId)
 
@@ -1137,13 +1137,13 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 			if *a.Config().EmailSettings.RequireEmailVerification {
 				a.Srv.Go(func() {
 					if err := a.SendEmailVerification(userUpdate.New, newEmail); err != nil {
-						mlog.Error("Failed to send email verification", mlog.Error(err))
+						mlog.Error("Failed to send email verification", mlog.Err(err))
 					}
 				})
 			} else {
 				a.Srv.Go(func() {
 					if err := a.SendEmailChangeEmail(userUpdate.Old.Email, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
-						mlog.Error("Failed to send email change email", mlog.Error(err))
+						mlog.Error("Failed to send email change email", mlog.Err(err))
 					}
 				})
 			}
@@ -1152,7 +1152,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		if userUpdate.New.Username != userUpdate.Old.Username {
 			a.Srv.Go(func() {
 				if err := a.SendChangeUsernameEmail(userUpdate.Old.Username, userUpdate.New.Username, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
-					mlog.Error("Failed to send change username email", mlog.Error(err))
+					mlog.Error("Failed to send change username email", mlog.Err(err))
 				}
 			})
 		}
@@ -1214,12 +1214,12 @@ func (a *App) UpdateMfa(activate bool, userId, token string) *model.AppError {
 	a.Srv.Go(func() {
 		user, err := a.GetUser(userId)
 		if err != nil {
-			mlog.Error("Failed to get user", mlog.Error(err))
+			mlog.Error("Failed to get user", mlog.Err(err))
 			return
 		}
 
 		if err := a.SendMfaChangeEmail(user.Email, activate, user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error("Failed to send mfa change email", mlog.Error(err))
+			mlog.Error("Failed to send mfa change email", mlog.Err(err))
 		}
 	})
 
@@ -1256,7 +1256,7 @@ func (a *App) UpdatePasswordSendEmail(user *model.User, newPassword, method stri
 
 	a.Srv.Go(func() {
 		if err := a.SendPasswordChangeEmail(user.Email, method, user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error("Failed to send password change email", mlog.Error(err))
+			mlog.Error("Failed to send password change email", mlog.Err(err))
 		}
 	})
 
@@ -1302,7 +1302,7 @@ func (a *App) ResetPasswordFromToken(userSuppliedTokenString, newPassword string
 	}
 
 	if err := a.DeleteToken(token); err != nil {
-		mlog.Error("Failed to delete token", mlog.Error(err))
+		mlog.Error("Failed to delete token", mlog.Err(err))
 	}
 
 	return nil
@@ -1399,7 +1399,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 
 	if result := <-schan; result.Err != nil {
 		// soft error since the user roles were still updated
-		mlog.Error("Failed during updating user roles", mlog.Error(result.Err))
+		mlog.Error("Failed during updating user roles", mlog.Err(result.Err))
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
@@ -1415,9 +1415,9 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 }
 
 func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
-	mlog.Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.email))
+	mlog.Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
 	if user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
-		mlog.Warn("You are deleting user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.email))
+		mlog.Warn("You are deleting user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
 	}
 
 	if _, err := a.UpdateActive(user, false); err != nil {
@@ -1466,7 +1466,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 
 	infos, err := a.Srv.Store.FileInfo().GetForUser(user.Id)
 	if err != nil {
-		mlog.Warn("Error getting file list for user from FileInfoStore", mlog.Error(err))
+		mlog.Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
 	}
 
 	for _, info := range infos {
@@ -1580,13 +1580,13 @@ func (a *App) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppErr
 	if user.Email != tokenData.Email {
 		a.Srv.Go(func() {
 			if err := a.SendEmailChangeEmail(user.Email, tokenData.Email, user.Locale, a.GetSiteURL()); err != nil {
-				mlog.Error("Failed to send email change email", mlog.Error(err))
+				mlog.Error("Failed to send email change email", mlog.Err(err))
 			}
 		})
 	}
 
 	if err := a.DeleteToken(token); err != nil {
-		mlog.Error("Failed to delete token", mlog.Error(err))
+		mlog.Error("Failed to delete token", mlog.Err(err))
 	}
 
 	return nil
@@ -2242,13 +2242,13 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 	for _, team := range userTeams {
 		// Soft error if there is an issue joining the default channels
 		if err = a.JoinDefaultChannels(team.Id, user, false, requestorId); err != nil {
-			mlog.Error("Encountered an issue joining default channels", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.String("requestor_id", requestorId), mlog.Error(err))
+			mlog.Error("Encountered an issue joining default channels", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.String("requestor_id", requestorId), mlog.Err(err))
 		}
 	}
 
 	promotedUser, err := a.GetUser(user.Id)
 	if err != nil {
-		mlog.Error("Failed to get user on promote guest to user", mlog.Error(err))
+		mlog.Error("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
 		a.sendUpdatedUserEvent(*promotedUser)
 		a.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest())
@@ -2256,7 +2256,7 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 
 	teamMembers, err := a.GetTeamMembersForUser(user.Id)
 	if err != nil {
-		mlog.Error("Failed to get team members for user on promote guest to user", mlog.Error(err))
+		mlog.Error("Failed to get team members for user on promote guest to user", mlog.Err(err))
 	}
 
 	for _, member := range teamMembers {
@@ -2264,7 +2264,7 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 
 		channelMembers, err := a.GetChannelMembersForUser(member.TeamId, user.Id)
 		if err != nil {
-			mlog.Error("Failed to get channel members for user on promote guest to user", mlog.Error(err)))
+			mlog.Error("Failed to get channel members for user on promote guest to user", mlog.Err(err))
 		}
 
 		for _, member := range *channelMembers {
@@ -2287,7 +2287,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 
 	demotedUser, err := a.GetUser(user.Id)
 	if err != nil {
-		mlog.Error("Failed to get user on demote user to guest", mlog.Error(err))
+		mlog.Error("Failed to get user on demote user to guest", mlog.Err(err))
 	} else {
 		a.sendUpdatedUserEvent(*demotedUser)
 		a.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest())
@@ -2295,7 +2295,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 
 	teamMembers, err := a.GetTeamMembersForUser(user.Id)
 	if err != nil {
-		mlog.Error("Failed to get team members for users on demote user to guest", mlog.Error(err))
+		mlog.Error("Failed to get team members for users on demote user to guest", mlog.Err(err))
 	}
 
 	for _, member := range teamMembers {
@@ -2303,7 +2303,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 
 		channelMembers, err := a.GetChannelMembersForUser(member.TeamId, user.Id)
 		if err != nil {
-			mlog.Error("Failed to get channel members for users on demote user to guest", mlog.Error(err))
+			mlog.Error("Failed to get channel members for users on demote user to guest", mlog.Err(err))
 		}
 
 		for _, member := range *channelMembers {
@@ -2322,7 +2322,7 @@ func (a *App) invalidateUserCacheAndPublish(userId string) {
 
 	user, userErr := a.GetUser(userId)
 	if userErr != nil {
-		mlog.Error("Error in getting users profile", mlog.String("user_id", userId), mlog.Error(userErr))
+		mlog.Error("Error in getting users profile", mlog.String("user_id", userId), mlog.Err(userErr))
 		return
 	}
 
