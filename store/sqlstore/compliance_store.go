@@ -243,7 +243,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		WHERE
 			(Posts.CreateAt > :StartTime OR Posts.EditAt > :StartTime) AND
 			Posts.Type = ''
-		ORDER BY PostCreateAt
+		ORDER BY PostUpdateAt
 		LIMIT :Limit`
 
 	var cposts []*model.MessageExport
