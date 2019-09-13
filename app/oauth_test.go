@@ -69,8 +69,8 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	require.NotNil(t, th.App.RevokeAccessToken(model.NewRandomString(16)),
-		"Should have failed bad token")
+	err := th.App.RevokeAccessToken(model.NewRandomString(16))
+	require.NotNil(t, err, "Should have failed bad token")
 
 	session := &model.Session{}
 	session.CreateAt = model.GetMillis()
@@ -80,8 +80,8 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.SetExpireInDays(1)
 
 	session, _ = th.App.CreateSession(session)
-	require.NotNil(t, th.App.RevokeAccessToken(session.Token),
-		"Should have failed does not have an access token")
+	err = th.App.RevokeAccessToken(session.Token)
+	require.NotNil(t, err, "Should have failed does not have an access token")
 
 	accessData := &model.AccessData{}
 	accessData.Token = session.Token
@@ -90,10 +90,11 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	accessData.ClientId = model.NewId()
 	accessData.ExpiresAt = session.ExpiresAt
 
-	_, err := th.App.Srv.Store.OAuth().SaveAccessData(accessData)
+	_, err = th.App.Srv.Store.OAuth().SaveAccessData(accessData)
 	require.Nil(t, err)
 
-	require.Nil(t, th.App.RevokeAccessToken(accessData.Token))
+	err = th.App.RevokeAccessToken(accessData.Token)
+	require.Nil(t, err)
 }
 
 func TestOAuthDeleteApp(t *testing.T) {
@@ -132,7 +133,8 @@ func TestOAuthDeleteApp(t *testing.T) {
 	_, err = th.App.Srv.Store.OAuth().SaveAccessData(accessData)
 	require.Nil(t, err)
 
-	require.Nil(t, th.App.DeleteOAuthApp(a1.Id))
+	err = th.App.DeleteOAuthApp(a1.Id)
+	require.Nil(t, err)
 
 	_, err = th.App.GetSession(session.Token)
 	require.NotNil(t, err, "should not get session from cache or db")
