@@ -6023,10 +6023,6 @@
     "translation": "We couldn't select the posts to delete for the user (too many), please re-run"
   },
   {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "Unable to determine the maximum supported post size"
-  },
-  {
     "id": "store.sql_post.save.app_error",
     "translation": "내용을 가져올수 없습니다."
   },
