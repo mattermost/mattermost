@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -77,14 +76,14 @@ func (rl *RateLimiter) GenerateKey(r *http.Request) string {
 func (rl *RateLimiter) RateLimitWriter(key string, w http.ResponseWriter) bool {
 	limited, context, err := rl.throttledRateLimiter.RateLimit(key, 1)
 	if err != nil {
-		mlog.Critical("Internal server error when rate limiting. Rate Limiting broken. Error:" + err.Error())
+		mlog.Critical("Internal server error when rate limiting. Rate Limiting broken.", mlog.Err(err))
 		return false
 	}
 
 	setRateLimitHeaders(w, context)
 
 	if limited {
-		mlog.Error(fmt.Sprintf("Denied due to throttling settings code=429 key=%v", key))
+		mlog.Error("Denied due to throttling settings code=429", mlog.String("key", key))
 		http.Error(w, "limit exceeded", 429)
 	}
 

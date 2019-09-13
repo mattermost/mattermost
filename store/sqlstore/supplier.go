@@ -152,21 +152,20 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
 	supplier.oldStores.linkMetadata = NewSqlLinkMetadataStore(supplier)
 	supplier.oldStores.reaction = NewSqlReactionStore(supplier)
+	supplier.oldStores.role = NewSqlRoleStore(supplier)
+	supplier.oldStores.scheme = NewSqlSchemeStore(supplier)
 	supplier.oldStores.group = NewSqlGroupStore(supplier)
-
-	initSqlSupplierRoles(supplier)
-	initSqlSupplierSchemes(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Error creating database tables: %v", err))
+		mlog.Critical("Error creating database tables.", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_CREATE_TABLE)
 	}
 
 	err = UpgradeDatabase(supplier, model.CurrentVersion)
 	if err != nil {
-		mlog.Critical("Failed to upgrade database", mlog.Err(err))
+		mlog.Critical("Failed to upgrade database.", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_GENERIC_FAILURE)
 	}
@@ -214,13 +213,13 @@ func (s *SqlSupplier) Next() store.LayeredStoreSupplier {
 func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Failed to open SQL connection to err:%v", err.Error()))
+		mlog.Critical("Failed to open SQL connection to err.", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DB_OPEN)
 	}
 
 	for i := 0; i < DB_PING_ATTEMPTS; i++ {
-		mlog.Info(fmt.Sprintf("Pinging SQL %v database", con_type))
+		mlog.Info("Pinging SQL", mlog.String("database", con_type))
 		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
 		defer cancel()
 		err = db.PingContext(ctx)
@@ -228,11 +227,11 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 			break
 		} else {
 			if i == DB_PING_ATTEMPTS-1 {
-				mlog.Critical(fmt.Sprintf("Failed to ping DB, server will exit err=%v", err))
+				mlog.Critical("Failed to ping DB, server will exit.", mlog.Err(err))
 				time.Sleep(time.Second)
 				os.Exit(EXIT_PING)
 			} else {
-				mlog.Error(fmt.Sprintf("Failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err))
+				mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DB_PING_TIMEOUT_SECS))
 				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
 			}
 		}
@@ -365,7 +364,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 		)
 
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to check if table exists %v", err))
+			mlog.Critical("Failed to check if table exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_TABLE_EXISTS)
 		}
@@ -387,7 +386,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 		)
 
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to check if table exists %v", err))
+			mlog.Critical("Failed to check if table exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_TABLE_EXISTS_MYSQL)
 		}
@@ -401,7 +400,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 		)
 
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to check if table exists %v", err))
+			mlog.Critical("Failed to check if table exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_TABLE_EXISTS_SQLITE)
 		}
@@ -433,7 +432,7 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 				return false
 			}
 
-			mlog.Critical(fmt.Sprintf("Failed to check if column exists %v", err))
+			mlog.Critical("Failed to check if column exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_DOES_COLUMN_EXISTS_POSTGRES)
 		}
@@ -456,7 +455,7 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		)
 
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to check if column exists %v", err))
+			mlog.Critical("Failed to check if column exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_DOES_COLUMN_EXISTS_MYSQL)
 		}
@@ -471,7 +470,7 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		)
 
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to check if column exists %v", err))
+			mlog.Critical("Failed to check if column exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_DOES_COLUMN_EXISTS_SQLITE)
 		}
@@ -498,7 +497,7 @@ func (ss *SqlSupplier) DoesTriggerExist(triggerName string) bool {
 		`, triggerName)
 
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to check if trigger exists %v", err))
+			mlog.Critical("Failed to check if trigger exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_GENERIC_FAILURE)
 		}
@@ -517,7 +516,7 @@ func (ss *SqlSupplier) DoesTriggerExist(triggerName string) bool {
 		`, triggerName)
 
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to check if trigger exists %v", err))
+			mlog.Critical("Failed to check if trigger exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_GENERIC_FAILURE)
 		}
@@ -541,7 +540,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
+			mlog.Critical("Failed to create column", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_POSTGRES)
 		}
@@ -551,7 +550,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
+			mlog.Critical("Failed to create column", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
 		}
@@ -575,7 +574,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExistsNoDefault(tableName string, column
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType)
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
+			mlog.Critical("Failed to create column", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_POSTGRES)
 		}
@@ -585,7 +584,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExistsNoDefault(tableName string, column
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
+			mlog.Critical("Failed to create column", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
 		}
@@ -608,7 +607,7 @@ func (ss *SqlSupplier) RemoveColumnIfExists(tableName string, columnName string)
 
 	_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Failed to drop column %v", err))
+		mlog.Critical("Failed to drop column", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_REMOVE_COLUMN)
 	}
@@ -623,7 +622,7 @@ func (ss *SqlSupplier) RemoveTableIfExists(tableName string) bool {
 
 	_, err := ss.GetMaster().ExecNoTimeout("DROP TABLE " + tableName)
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Failed to drop table %v", err))
+		mlog.Critical("Failed to drop table", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_REMOVE_TABLE)
 	}
@@ -644,7 +643,7 @@ func (ss *SqlSupplier) RenameColumnIfExists(tableName string, oldColumnName stri
 	}
 
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Failed to rename column %v", err))
+		mlog.Critical("Failed to rename column", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_RENAME_COLUMN)
 	}
@@ -666,7 +665,7 @@ func (ss *SqlSupplier) GetMaxLengthOfColumnIfExists(tableName string, columnName
 	}
 
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Failed to get max length of column %v", err))
+		mlog.Critical("Failed to get max length of column", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_MAX_COLUMN)
 	}
@@ -687,7 +686,7 @@ func (ss *SqlSupplier) AlterColumnTypeIfExists(tableName string, columnName stri
 	}
 
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Failed to alter column type %v", err))
+		mlog.Critical("Failed to alter column type", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_ALTER_COLUMN)
 	}
@@ -736,7 +735,7 @@ func (ss *SqlSupplier) AlterColumnDefaultIfExists(tableName string, columnName s
 	}
 
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Failed to alter column %s.%s default %s: %v", tableName, columnName, defaultValue, err))
+		mlog.Critical("Failed to alter column", mlog.String("table", tableName), mlog.String("column", columnName), mlog.String("default value", defaultValue), mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_GENERIC_FAILURE)
 		return false
@@ -790,7 +789,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err := ss.GetMaster().ExecNoTimeout(query)
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create index %v, %v", errExists, err))
+			mlog.Critical("Failed to create index", mlog.Err(errExists), mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
 		}
@@ -798,7 +797,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to check index %v", err))
+			mlog.Critical("Failed to check index", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_MYSQL)
 		}
@@ -814,14 +813,14 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create index %v", err))
+			mlog.Critical("Failed to create index", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
 		_, err := ss.GetMaster().ExecNoTimeout("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create index %v", err))
+			mlog.Critical("Failed to create index", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_SQLITE)
 		}
@@ -845,7 +844,7 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 
 		_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + indexName)
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to remove index %v", err))
+			mlog.Critical("Failed to remove index", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_REMOVE_INDEX_POSTGRES)
 		}
@@ -855,7 +854,7 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to check index %v", err))
+			mlog.Critical("Failed to check index", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
 		}
@@ -866,14 +865,14 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 
 		_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + indexName + " ON " + tableName)
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to remove index %v", err))
+			mlog.Critical("Failed to remove index", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
 		_, err := ss.GetMaster().ExecNoTimeout("DROP INDEX IF EXISTS " + indexName)
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to remove index %v", err))
+			mlog.Critical("Failed to remove index", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_REMOVE_INDEX_SQLITE)
 		}
