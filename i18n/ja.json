@@ -6023,10 +6023,6 @@
     "translation": "ユーザーの削除すべき投稿を選択できませんでした(数が多過ぎます)。再度実行してください"
   },
   {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "投稿サイズの最大値を定義できませんでした"
-  },
-  {
     "id": "store.sql_post.save.app_error",
     "translation": "投稿を保存できませんでした"
   },

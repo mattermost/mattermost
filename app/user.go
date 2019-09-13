@@ -978,10 +978,11 @@ func (a *App) invalidateUserChannelMembersCaches(user *model.User) *model.AppErr
 }
 
 func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
+	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
 	} else {
-		user.DeleteAt = model.GetMillis()
+		user.DeleteAt = user.UpdateAt
 	}
 
 	userUpdate, err := a.Srv.Store.User().Update(user, true)
@@ -997,6 +998,7 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	}
 
 	a.invalidateUserChannelMembersCaches(user)
+	a.InvalidateCacheForUser(user.Id)
 
 	a.sendUpdatedUserEvent(*ruser)
 

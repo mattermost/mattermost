@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-ldap/ldap"
+	"github.com/mattermost/ldap"
 )
 
 const (

@@ -115,18 +115,18 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 		post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL &&
 		post.Type != model.POST_ADD_TO_TEAM && post.Type != model.POST_REMOVE_FROM_TEAM {
 		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
-			mlog.Error(fmt.Sprintf("Error updating Channel LastPostAt: %v", err.Error()))
+			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
 	} else {
 		// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
 		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
-			mlog.Error(fmt.Sprintf("Error updating Channel LastPostAt: %v", err.Error()))
+			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
 	}
 
 	if len(post.RootId) > 0 {
 		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": post.RootId}); err != nil {
-			mlog.Error(fmt.Sprintf("Error updating Post UpdateAt: %v", err.Error()))
+			mlog.Error("Error updating Post UpdateAt.", mlog.Err(err))
 		}
 	}
 
@@ -1043,7 +1043,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 
 	_, err := s.GetSearchReplica().Select(&posts, searchQuery, queryParams)
 	if err != nil {
-		mlog.Warn(fmt.Sprintf("Query error searching posts: %v", err.Error()))
+		mlog.Warn("Query error searching posts.", mlog.Err(err))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, p := range posts {
@@ -1232,7 +1232,7 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *model.Ap
 	_, err := s.GetReplica().Select(&posts, query, params)
 
 	if err != nil {
-		mlog.Error(fmt.Sprint(err))
+		mlog.Error("Query error getting posts.", mlog.Err(err))
 		return nil, model.NewAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
 	}
 	return posts, nil
@@ -1321,7 +1321,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 				table_name = 'posts'
 			AND	column_name = 'message'
 		`); err != nil {
-			mlog.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
+			mlog.Error("Unable to determine the maximum supported post size", mlog.Err(err))
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		// The Post.Message column in MySQL has historically been TEXT, with a maximum
@@ -1337,7 +1337,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 			AND	column_name = 'Message'
 			LIMIT 0, 1
 		`); err != nil {
-			mlog.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
+			mlog.Error("Unable to determine the maximum supported post size", mlog.Err(err))
 		}
 	} else {
 		mlog.Warn("No implementation found to determine the maximum supported post size")
@@ -1353,7 +1353,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
 	}
 
-	mlog.Info(fmt.Sprintf("Post.Message supports at most %d characters (%d bytes)", maxPostSize, maxPostSizeBytes))
+	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int32("max_bytes", maxPostSizeBytes))
 
 	return maxPostSize
 }
