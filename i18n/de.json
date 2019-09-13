@@ -6023,10 +6023,6 @@
     "translation": "Konnte die zu löschenden Nachrichten für den Benutzer nicht auswählen (zu viele), bitte wiederholen."
   },
   {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "Konnte die maximal unterstützte Nachrichtengröße nicht bestimmen."
-  },
-  {
     "id": "store.sql_post.save.app_error",
     "translation": "Konnte die Nachricht nicht speichern."
   },
