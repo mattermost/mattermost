@@ -6023,10 +6023,6 @@
     "translation": "Am putut selectaţi mesaje pentru a şterge pentru utilizator (prea multe), vă rugăm să re-rula"
   },
   {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "Noi nu a putut determina dimensiunea maximă suportate de post"
-  },
-  {
     "id": "store.sql_post.save.app_error",
     "translation": "Imposibil de salvat postarea"
   },
