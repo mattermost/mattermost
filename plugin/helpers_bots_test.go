@@ -4,10 +4,6 @@
 package plugin_test
 
 import (
-	"bytes"
-	"image"
-	"image/color"
-	"image/png"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -15,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestEnsureBot(t *testing.T) {
@@ -52,6 +47,11 @@ func TestEnsureBot(t *testing.T) {
 
 			api := setupAPI()
 			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+			api.On("GetUserByUsername", testbot.Username).Return(&model.User{
+				Id:    expectedBotId,
+				IsBot: true,
+			}, nil)
+			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
@@ -155,72 +155,6 @@ func TestEnsureBot(t *testing.T) {
 
 			assert.Equal(t, "", botId)
 			assert.NotNil(t, err)
-		})
-
-		t.Run("should call SetProfileImage from the API when a profile image path is passed in", func(t *testing.T) {
-			expectedBotId := model.NewId()
-
-			api := setupAPI()
-			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
-			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
-			api.On("CreateBot", testbot).Return(&model.Bot{
-				UserId: expectedBotId,
-			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
-
-			// Create an 128 x 128 image
-			img := image.NewRGBA(image.Rect(0, 0, 128, 128))
-			// Draw a red dot at (2, 3)
-			img.Set(2, 3, color.RGBA{255, 0, 0, 255})
-			buf := new(bytes.Buffer)
-			err := png.Encode(buf, img)
-			require.Nil(t, err)
-			dataBytes := buf.Bytes()
-
-			api.On("ReadFile", "./test/dir").Return(dataBytes, nil)
-			api.On("SetProfileImage", expectedBotId, dataBytes).Return(nil)
-
-			p := &plugin.HelpersImpl{}
-			p.API = api
-
-			botId, err := p.EnsureBot(testbot, plugin.ProfileImagePath("./test/dir"))
-
-			api.AssertCalled(t, "SetProfileImage", expectedBotId, dataBytes)
-			assert.Equal(t, expectedBotId, botId)
-			assert.Nil(t, err)
-		})
-
-		t.Run("should call SetBotIconImage from the API when a bot icon path is passed in", func(t *testing.T) {
-			expectedBotId := model.NewId()
-
-			api := setupAPI()
-			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
-			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
-			api.On("CreateBot", testbot).Return(&model.Bot{
-				UserId: expectedBotId,
-			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
-
-			// Create an 128 x 128 image
-			img := image.NewRGBA(image.Rect(0, 0, 128, 128))
-			// Draw a red dot at (2, 3)
-			img.Set(2, 3, color.RGBA{255, 0, 0, 255})
-			buf := new(bytes.Buffer)
-			err := png.Encode(buf, img)
-			require.Nil(t, err)
-			dataBytes := buf.Bytes()
-
-			api.On("ReadFile", "./test/dir").Return(dataBytes, nil)
-			api.On("SetBotIconImage", expectedBotId, dataBytes).Return(nil)
-
-			p := &plugin.HelpersImpl{}
-			p.API = api
-
-			botId, err := p.EnsureBot(testbot, plugin.IconImagePath("./test/dir"))
-
-			api.AssertCalled(t, "SetBotIconImage", expectedBotId, dataBytes)
-			assert.Equal(t, expectedBotId, botId)
-			assert.Nil(t, err)
 		})
 	})
 }
