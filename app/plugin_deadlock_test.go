@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/stretchr/testify/require"
 	"os"
 	"strings"
 	"testing"
@@ -94,7 +95,7 @@ func TestPluginDeadlock(t *testing.T) {
 		select {
 		case <-done:
 		case <-time.After(30 * time.Second):
-			t.Fatal("plugin failed to activate: likely deadlocked")
+			require.Fail(t, "plugin failed to activate: likely deadlocked")
 			go func() {
 				time.Sleep(5 * time.Second)
 				os.Exit(1)
@@ -201,7 +202,7 @@ func TestPluginDeadlock(t *testing.T) {
 		select {
 		case <-done:
 		case <-time.After(30 * time.Second):
-			t.Fatal("plugin failed to activate: likely deadlocked")
+			require.Fail(t, "plugin failed to activate: likely deadlocked")
 			go func() {
 				time.Sleep(5 * time.Second)
 				os.Exit(1)
