@@ -934,7 +934,7 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 					oldHash := sha1.Sum(oldFileData)
 
 					if bytes.Equal(oldHash[:], newHash[:]) {
-						mlog.Info("Skipping uploading of file with name already exists", mlog.Any("file_name", file.Name()))
+						mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
 						return nil, nil
 					}
 
