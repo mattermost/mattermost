@@ -397,7 +397,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string)
 
 		err = a.AddDirectChannels(teamId, user)
 		if err != nil {
-			mlog.Error("There was a error with adding direct channel", mlog.Err(err))
+			mlog.Error("Failed to add direct channels", mlog.Err(err))
 		}
 	}
 
@@ -842,7 +842,7 @@ func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 
 	updatedUser, appErr := a.GetUser(user.Id)
 	if appErr != nil {
-		mlog.Error("Error in getting users profile forcing logout", mlog.String("user_id", user.Id))
+		mlog.Error("Error in getting users profile forcing logout", mlog.String("user_id", user.Id), mlog.Err(appErr))
 		return nil
 	}
 
@@ -1417,7 +1417,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	mlog.Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
 	if user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
-		mlog.Warn("You are deleting user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
+		mlog.Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
 	}
 
 	if _, err := a.UpdateActive(user, false); err != nil {
@@ -2242,7 +2242,7 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 	for _, team := range userTeams {
 		// Soft error if there is an issue joining the default channels
 		if err = a.JoinDefaultChannels(team.Id, user, false, requestorId); err != nil {
-			mlog.Error("Encountered an issue joining default channels", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.String("requestor_id", requestorId), mlog.Err(err))
+			mlog.Error("Failed to join default channels", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.String("requestor_id", requestorId), mlog.Err(err))
 		}
 	}
 
