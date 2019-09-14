@@ -16,7 +16,7 @@ require (
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-gorp/gorp v2.0.0+incompatible // indirect
-	github.com/go-ldap/ldap v3.0.3+incompatible // indirect
+	github.com/go-ldap/ldap v3.0.3+incompatible
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0

@@ -22,6 +22,8 @@ github.com/disintegration/imaging
 github.com/dyatlov/go-opengraph/opengraph
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
+# github.com/go-ldap/ldap v3.0.3+incompatible
+github.com/go-ldap/ldap
 # github.com/go-redis/redis v6.15.2+incompatible
 github.com/go-redis/redis
 github.com/go-redis/redis/internal
