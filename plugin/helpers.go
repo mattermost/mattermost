@@ -7,16 +7,11 @@ import "github.com/mattermost/mattermost-server/model"
 
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
-	// Returns the id of the resulting bot.
+	// Returns the id of the resulting bot. A profile image or icon image may be optionally passed in to be set for
+	// the existing or newly created bot.
 	//
 	// Minimum server version: 5.10
-	EnsureBot(bot *model.Bot) (string, error)
-
-	// EnsureBotWithOptions calls EnsureBot with the specified Options,
-	// currently supporting paths to the bot profile image and/or icon image
-	//
-	// Minimum server version: 5.10
-	EnsureBotWithOptions(bot *model.Bot, setters ...Option) (string, error)
+	EnsureBot(bot *model.Bot, setters ...EnsureBotOption) (string, error)
 
 	// KVSetJSON stores a key-value pair, unique per plugin, marshalling the given value as a JSON string.
 	KVSetJSON(key string, value interface{}) error

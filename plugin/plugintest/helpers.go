@@ -15,29 +15,8 @@ type Helpers struct {
 	mock.Mock
 }
 
-// EnsureBot provides a mock function with given fields: bot
-func (_m *Helpers) EnsureBot(bot *model.Bot) (string, error) {
-	ret := _m.Called(bot)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(*model.Bot) string); ok {
-		r0 = rf(bot)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
-		r1 = rf(bot)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// EnsureBotWithOptions provides a mock function with given fields: bot, setters
-func (_m *Helpers) EnsureBotWithOptions(bot *model.Bot, setters ...plugin.Option) (string, error) {
+// EnsureBot provides a mock function with given fields: bot, setters
+func (_m *Helpers) EnsureBot(bot *model.Bot, setters ...plugin.EnsureBotOption) (string, error) {
 	_va := make([]interface{}, len(setters))
 	for _i := range setters {
 		_va[_i] = setters[_i]
@@ -48,14 +27,14 @@ func (_m *Helpers) EnsureBotWithOptions(bot *model.Bot, setters ...plugin.Option
 	ret := _m.Called(_ca...)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*model.Bot, ...plugin.Option) string); ok {
+	if rf, ok := ret.Get(0).(func(*model.Bot, ...plugin.EnsureBotOption) string); ok {
 		r0 = rf(bot, setters...)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Bot, ...plugin.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(*model.Bot, ...plugin.EnsureBotOption) error); ok {
 		r1 = rf(bot, setters...)
 	} else {
 		r1 = ret.Error(1)
