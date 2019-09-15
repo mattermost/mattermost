@@ -22,8 +22,6 @@ github.com/disintegration/imaging
 github.com/dyatlov/go-opengraph/opengraph
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
-# github.com/go-ldap/ldap v3.0.3+incompatible
-github.com/go-ldap/ldap
 # github.com/go-redis/redis v6.15.2+incompatible
 github.com/go-redis/redis
 github.com/go-redis/redis/internal
@@ -126,6 +124,8 @@ github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
 # github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
 github.com/mattermost/gorp
+# github.com/mattermost/ldap v3.0.4+incompatible
+github.com/mattermost/ldap
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 github.com/mattermost/rsc/qr
 github.com/mattermost/rsc/qr/coding
