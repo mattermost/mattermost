@@ -41,6 +41,12 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
+	fakeFileInfo := model.FileInfo{PostId: "123"}
+	mockFileInfoStore := mocks.FileInfoStore{}
+	mockFileInfoStore.On("GetForPost", "123", true, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
+	mockFileInfoStore.On("GetForPost", "123", true, true, true).Return([]*model.FileInfo{&fakeFileInfo}, nil)
+	mockStore.On("FileInfo").Return(&mockFileInfoStore)
+
 	return &mockStore
 }
 

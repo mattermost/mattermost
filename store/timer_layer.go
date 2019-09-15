@@ -2440,10 +2440,10 @@ func (s *TimerLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
+func (s *TimerLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string, deleted bool) {
 	start := timemodule.Now()
 
-	s.FileInfoStore.InvalidateFileInfosForPostCache(postId)
+	s.FileInfoStore.InvalidateFileInfosForPostCache(postId, deleted)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -2781,14 +2781,13 @@ func (s *TimerLayerGroupStore) GetByName(name string) (*model.Group, *model.AppE
 
 	resultVar0, resultVar1 := s.GroupStore.GetByName(name)
 
-	t := timemodule.Now()
-	elapsed := t.Sub(start)
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
 		if resultVar1 == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetByName", success, float64(elapsed))
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetByName", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }
@@ -2814,14 +2813,13 @@ func (s *TimerLayerGroupStore) GetByUser(userId string) ([]*model.Group, *model.
 
 	resultVar0, resultVar1 := s.GroupStore.GetByUser(userId)
 
-	t := timemodule.Now()
-	elapsed := t.Sub(start)
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
 		if resultVar1 == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetByUser", success, float64(elapsed))
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetByUser", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }
@@ -2936,6 +2934,22 @@ func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, page int, perP
 		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetMemberUsersPage", success, elapsed)
 	}
 	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerGroupStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
+	start := timemodule.Now()
+
+	resultVar0 := s.GroupStore.PermanentDeleteMembersByUser(userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar0 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.PermanentDeleteMembersByUser", success, elapsed)
+	}
+	return resultVar0
 }
 
 func (s *TimerLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
@@ -3718,6 +3732,22 @@ func (s *TimerLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*mod
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PluginStore.SaveOrUpdate", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerPluginStore) SetWithOptions(pluginId string, key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.PluginStore.SetWithOptions(pluginId, key, value, options)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginStore.SetWithOptions", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

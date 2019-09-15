@@ -20,6 +20,9 @@ const (
 	SCHEME_CACHE_SIZE = 20000
 	SCHEME_CACHE_SEC  = 30 * 60
 
+	FILE_INFO_CACHE_SIZE = 25000
+	FILE_INFO_CACHE_SEC  = 30 * 60
+
 	CLEAR_CACHE_MESSAGE_DATA = ""
 )
 
@@ -29,6 +32,8 @@ type LocalCacheStore struct {
 	cluster       einterfaces.ClusterInterface
 	reaction      LocalCacheReactionStore
 	reactionCache *utils.Cache
+	fileInfo      LocalCacheFileInfoStore
+	fileInfoCache *utils.Cache
 	role          LocalCacheRoleStore
 	roleCache     *utils.Cache
 	scheme        LocalCacheSchemeStore
@@ -47,11 +52,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
 	localCacheStore.schemeCache = utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
+	localCacheStore.fileInfoCache = utils.NewLruWithParams(FILE_INFO_CACHE_SIZE, "FileInfo", FILE_INFO_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_FILE_INFOS)
+	localCacheStore.fileInfo = LocalCacheFileInfoStore{FileInfoStore: baseStore.FileInfo(), rootStore: &localCacheStore}
 
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES, localCacheStore.role.handleClusterInvalidateRole)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES, localCacheStore.scheme.handleClusterInvalidateScheme)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_FILE_INFOS, localCacheStore.fileInfo.handleClusterInvalidateFileInfo)
 	}
 	return localCacheStore
 }
@@ -66,6 +74,10 @@ func (s LocalCacheStore) Role() store.RoleStore {
 
 func (s LocalCacheStore) Scheme() store.SchemeStore {
 	return s.scheme
+}
+
+func (s LocalCacheStore) FileInfo() store.FileInfoStore {
+	return s.fileInfo
 }
 
 func (s LocalCacheStore) DropAllTables() {
@@ -118,4 +130,7 @@ func (s *LocalCacheStore) doClearCacheCluster(cache *utils.Cache) {
 
 func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.reactionCache)
+	s.doClearCacheCluster(s.schemeCache)
+	s.doClearCacheCluster(s.roleCache)
+	s.doClearCacheCluster(s.fileInfoCache)
 }

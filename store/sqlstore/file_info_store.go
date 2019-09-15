@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 type SqlFileInfoStore struct {
@@ -20,18 +19,7 @@ type SqlFileInfoStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
-const (
-	FILE_INFO_CACHE_SIZE = 25000
-	FILE_INFO_CACHE_SEC  = 1800 // 30 minutes
-)
-
-var fileInfoCache *utils.Cache = utils.NewLru(FILE_INFO_CACHE_SIZE)
-
 func (fs SqlFileInfoStore) ClearCaches() {
-	fileInfoCache.Purge()
-	if fs.metrics != nil {
-		fs.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Purge")
-	}
 }
 
 func NewSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
@@ -111,35 +99,10 @@ func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppEr
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
-	fileInfoCache.Remove(postId)
-	if fs.metrics != nil {
-		fs.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Remove by PostId")
-	}
+func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string, deleted bool) {
 }
 
 func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
-	cacheKey := postId
-	if includeDeleted {
-		cacheKey += "_deleted"
-	}
-	if allowFromCache {
-		if cacheItem, ok := fileInfoCache.Get(cacheKey); ok {
-			if fs.metrics != nil {
-				fs.metrics.IncrementMemCacheHitCounter("File Info Cache")
-			}
-
-			return cacheItem.([]*model.FileInfo), nil
-		}
-		if fs.metrics != nil {
-			fs.metrics.IncrementMemCacheMissCounter("File Info Cache")
-		}
-	} else {
-		if fs.metrics != nil {
-			fs.metrics.IncrementMemCacheMissCounter("File Info Cache")
-		}
-	}
-
 	var infos []*model.FileInfo
 
 	dbmap := fs.GetReplica()
@@ -167,10 +130,6 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDele
 		return nil, model.NewAppError("SqlFileInfoStore.GetForPost",
 			"store.sql_file_info.get_for_post.app_error", nil, "post_id="+postId+", "+err.Error(), http.StatusInternalServerError)
 	}
-	if len(infos) > 0 {
-		fileInfoCache.AddWithExpiresInSecs(cacheKey, infos, FILE_INFO_CACHE_SEC)
-	}
-
 	return infos, nil
 }
 
