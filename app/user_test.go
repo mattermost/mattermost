@@ -79,41 +79,29 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	json := glUser.ToJson()
 	user, err := th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
-	if user.Username != glUser.Username {
-		t.Fatal("usernames didn't match")
-	}
+	require.Equal(t, user.Username, glUser.Username, "usernames didn't match")
 
 	th.App.PermanentDeleteUser(user)
 
 	*th.App.Config().TeamSettings.EnableUserCreation = false
 
 	_, err = th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
-	if err == nil {
-		t.Fatal("should have failed - user creation disabled")
-	}
+	require.NotNil(t, err, "should have failed - user creation disabled")
 }
 
 func TestCreateProfileImage(t *testing.T) {
 	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", "nunito-bold.ttf")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	rdr := bytes.NewReader(b)
 	img, _, err2 := image.Decode(rdr)
-	if err2 != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err2)
 
 	colorful := color.RGBA{116, 49, 196, 255}
 
-	if img.At(1, 1) != colorful {
-		t.Fatal("Failed to create correct color")
-	}
+	require.Equal(t, img.At(1, 1), colorful, "Failed to create correct color")
 }
 
 func TestSetDefaultProfileImage(t *testing.T) {
@@ -278,9 +266,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(th.App, user.Id, t)
 
-			if user.Username != gitlabUserObj.Username {
-				t.Fatal("user's username is not updated")
-			}
+			require.Equal(t, user.Username, gitlabUserObj.Username, "user's username is not updated")
 		})
 
 		t.Run("ExistinguserWithSameUsername", func(t *testing.T) {
@@ -293,9 +279,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(th.App, user.Id, t)
 
-			if user.Username == gitlabUserObj.Username {
-				t.Fatal("user's username is updated though there already exists another user with the same username")
-			}
+			require.NotEqual(t, user.Username, gitlabUserObj.Username, "user's username is updated though there already exists another user with the same username")
 		})
 	})
 
@@ -309,13 +293,9 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(th.App, user.Id, t)
 
-			if user.Email != gitlabUserObj.Email {
-				t.Fatal("user's email is not updated")
-			}
+			require.Equal(t, user.Email, gitlabUserObj.Email, "user's email is not updated")
 
-			if !user.EmailVerified {
-				t.Fatal("user's email should have been verified")
-			}
+			require.True(t, user.EmailVerified, "user's email should have been verified")
 		})
 
 		t.Run("ExistingUserWithSameEmail", func(t *testing.T) {
@@ -328,9 +308,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(th.App, user.Id, t)
 
-			if user.Email == gitlabUserObj.Email {
-				t.Fatal("user's email is updated though there already exists another user with the same email")
-			}
+			require.NotEqual(t, user.Email, gitlabUserObj.Email, "user's email is updated though there already exists another user with the same email")
 		})
 	})
 
@@ -343,9 +321,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 		user = getUserFromDB(th.App, user.Id, t)
 
-		if user.FirstName != "Updated" {
-			t.Fatal("user's first name is not updated")
-		}
+		require.Equal(t, user.FirstName, "Updated", "user's first name is not updated")
 	})
 
 	t.Run("UpdateLastName", func(t *testing.T) {
@@ -357,9 +333,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 		user = getUserFromDB(th.App, user.Id, t)
 
-		if user.LastName != "Lastname" {
-			t.Fatal("user's last name is not updated")
-		}
+		require.Equal(t, user.LastName, "Lastname", "user's last name is not updated")
 	})
 }
 
@@ -456,19 +430,15 @@ func TestUpdateUserEmail(t *testing.T) {
 
 func getUserFromDB(a *App, id string, t *testing.T) *model.User {
 	user, err := a.GetUser(id)
-	if err != nil {
-		t.Fatal("user is not found", err)
-		return nil
-	}
+	require.Nil(t, err, "user is not found", err)
 	return user
 }
 
 func getGitlabUserPayload(gitlabUser oauthgitlab.GitLabUser, t *testing.T) []byte {
 	var payload []byte
 	var err error
-	if payload, err = json.Marshal(gitlabUser); err != nil {
-		t.Fatal("Serialization of gitlab user to json failed", err)
-	}
+	payload, err = json.Marshal(gitlabUser)
+	require.Nil(t, err, "Serialization of gitlab user to json failed", err)
 
 	return payload
 }
@@ -481,9 +451,8 @@ func createGitlabUser(t *testing.T, a *App, username string, email string) (*mod
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = a.CreateOAuthUser("gitlab", bytes.NewReader(gitlabUser), ""); err != nil {
-		t.Fatal("unable to create the user", err)
-	}
+	user, err = a.CreateOAuthUser("gitlab", bytes.NewReader(gitlabUser), "")
+	require.Nil(t, err, "unable to create the user", err)
 
 	return user, gitlabUserObj
 }
@@ -500,9 +469,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		TeamId:      team.Id,
 		CreatorId:   model.NewId(),
 	}, false)
-	if err != nil {
-		t.Fatalf("failed to create channel: %v", err)
-	}
+	require.Nil(t, err, "failed to create channel: %v", err)
 
 	createUserWithStatus := func(username string, status string) *model.User {
 		id := model.NewId()
@@ -513,9 +480,7 @@ func TestGetUsersByStatus(t *testing.T) {
 			Nickname: "nn_" + id,
 			Password: "Password1",
 		})
-		if err != nil {
-			t.Fatalf("failed to create user: %v", err)
-		}
+		require.Nil(t, err, "failed to create user: %v", err)
 
 		th.LinkUserToTeam(user, team)
 		th.AddUserToChannel(user, channel)
@@ -541,9 +506,7 @@ func TestGetUsersByStatus(t *testing.T) {
 
 	t.Run("sorting by status then alphabetical", func(t *testing.T) {
 		usersByStatus, err := th.App.GetUsersInChannelPageByStatus(channel.Id, 0, 8, true)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 
 		expectedUsersByStatus := []*model.User{
 			onlineUser1,
@@ -556,64 +519,54 @@ func TestGetUsersByStatus(t *testing.T) {
 			offlineUser2,
 		}
 
-		if len(usersByStatus) != len(expectedUsersByStatus) {
-			t.Fatalf("received only %v users, expected %v", len(usersByStatus), len(expectedUsersByStatus))
-		}
+		require.Equalf(t, len(usersByStatus), len(expectedUsersByStatus), "received only %v users, expected %v", len(usersByStatus), len(expectedUsersByStatus))
 
 		for i := range usersByStatus {
-			if usersByStatus[i].Id != expectedUsersByStatus[i].Id {
-				t.Fatalf("received user %v at index %v, expected %v", usersByStatus[i].Username, i, expectedUsersByStatus[i].Username)
-			}
+			require.Equalf(t, usersByStatus[i].Id, expectedUsersByStatus[i].Id, "received user %v at index %v, expected %v", usersByStatus[i].Username, i, expectedUsersByStatus[i].Username)
 		}
 	})
 
 	t.Run("paging", func(t *testing.T) {
 		usersByStatus, err := th.App.GetUsersInChannelPageByStatus(channel.Id, 0, 3, true)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 
-		if len(usersByStatus) != 3 {
-			t.Fatal("received too many users")
-		}
+		require.Equal(t, len(usersByStatus), 3, "received too many users")
 
-		if usersByStatus[0].Id != onlineUser1.Id && usersByStatus[1].Id != onlineUser2.Id {
-			t.Fatal("expected to receive online users first")
-		}
+		require.False(
+			t,
+			usersByStatus[0].Id != onlineUser1.Id && usersByStatus[1].Id != onlineUser2.Id,
+			"expected to receive online users first",
+		)
 
-		if usersByStatus[2].Id != awayUser1.Id {
-			t.Fatal("expected to receive away users second")
-		}
+		require.Equal(t, usersByStatus[2].Id, awayUser1.Id, "expected to receive away users second")
 
 		usersByStatus, err = th.App.GetUsersInChannelPageByStatus(channel.Id, 1, 3, true)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 
-		if usersByStatus[0].Id != awayUser2.Id {
-			t.Fatal("expected to receive away users second")
-		}
+		require.Equal(t, usersByStatus[0].Id, awayUser2.Id, "expected to receive away users second")
 
-		if usersByStatus[1].Id != dndUser1.Id && usersByStatus[2].Id != dndUser2.Id {
-			t.Fatal("expected to receive dnd users third")
-		}
+		require.False(
+			t,
+			usersByStatus[1].Id != dndUser1.Id && usersByStatus[2].Id != dndUser2.Id,
+			"expected to receive dnd users third",
+		)
 
 		usersByStatus, err = th.App.GetUsersInChannelPageByStatus(channel.Id, 1, 4, true)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 
-		if len(usersByStatus) != 4 {
-			t.Fatal("received too many users")
-		}
+		require.Equal(t, len(usersByStatus), 4, "received too many users")
 
-		if usersByStatus[0].Id != dndUser1.Id && usersByStatus[1].Id != dndUser2.Id {
-			t.Fatal("expected to receive dnd users third")
-		}
+		require.False(
+			t,
+			usersByStatus[0].Id != dndUser1.Id && usersByStatus[1].Id != dndUser2.Id,
+			"expected to receive dnd users third",
+		)
 
-		if usersByStatus[2].Id != offlineUser1.Id && usersByStatus[3].Id != offlineUser2.Id {
-			t.Fatal("expected to receive offline users last")
-		}
+		require.False(
+			t,
+			usersByStatus[2].Id != offlineUser1.Id && usersByStatus[3].Id != offlineUser2.Id,
+			"expected to receive offline users last",
+		)
 	})
 }
 
@@ -624,9 +577,8 @@ func TestCreateUserWithToken(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 
 	t.Run("invalid token", func(t *testing.T) {
-		if _, err := th.App.CreateUserWithToken(&user, &model.Token{Token: "123"}); err == nil {
-			t.Fatal("Should fail on unexisting token")
-		}
+		_, err := th.App.CreateUserWithToken(&user, &model.Token{Token: "123"})
+		require.NotNil(t, err, "Should fail on unexisting token")
 	})
 
 	t.Run("invalid token type", func(t *testing.T) {
@@ -636,9 +588,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
-		if _, err := th.App.CreateUserWithToken(&user, token); err == nil {
-			t.Fatal("Should fail on bad token type")
-		}
+		_, err := th.App.CreateUserWithToken(&user, token)
+		require.NotNil(t, err, "Should fail on bad token type")
 	})
 
 	t.Run("expired token", func(t *testing.T) {
@@ -649,9 +600,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		token.CreateAt = model.GetMillis() - INVITATION_EXPIRY_TIME - 1
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
-		if _, err := th.App.CreateUserWithToken(&user, token); err == nil {
-			t.Fatal("Should fail on expired token")
-		}
+		_, err := th.App.CreateUserWithToken(&user, token)
+		require.NotNil(t, err, "Should fail on expired token")
 	})
 
 	t.Run("invalid team id", func(t *testing.T) {
@@ -661,9 +611,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
-		if _, err := th.App.CreateUserWithToken(&user, token); err == nil {
-			t.Fatal("Should fail on bad team id")
-		}
+		_, err := th.App.CreateUserWithToken(&user, token)
+		require.NotNil(t, err, "Should fail on bad team id")
 	})
 
 	t.Run("valid regular user request", func(t *testing.T) {
@@ -674,14 +623,9 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		newUser, err := th.App.CreateUserWithToken(&user, token)
-		if err != nil {
-			t.Log(err)
-			t.Fatal("Should add user to the team")
-		}
+		require.Nil(t, err, "Should add user to the team. err=%v", err)
 		assert.False(t, newUser.IsGuest())
-		if newUser.Email != invitationEmail {
-			t.Fatal("The user email must be the invitation one")
-		}
+		require.Equal(t, newUser.Email, invitationEmail, "The user email must be the invitation one")
 
 		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
@@ -700,14 +644,10 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		guest := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(&guest, token)
-		if err != nil {
-			t.Log(err)
-			t.Fatal("Should add user to the team")
-		}
+		require.Nil(t, err, "Should add user to the team. err=%v", err)
+
 		assert.True(t, newGuest.IsGuest())
-		if newGuest.Email != invitationEmail {
-			t.Fatal("The user email must be the invitation one")
-		}
+		require.Equal(t, newGuest.Email, invitationEmail, "The user email must be the invitation one")
 		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
 
@@ -726,10 +666,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	finfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "testfile.txt", b)
 
-	if err != nil {
-		t.Log(err)
-		t.Fatal("Unable to upload file")
-	}
+	require.Nil(t, err, "Unable to upload file. err=%v", err)
 
 	bot, err := th.App.CreateBot(&model.Bot{
 		Username:    "botname",
@@ -758,34 +695,19 @@ func TestPermanentDeleteUser(t *testing.T) {
 	assert.Equal(t, 0, len(bots2))
 
 	err = th.App.PermanentDeleteUser(th.BasicUser)
-	if err != nil {
-		t.Log(err)
-		t.Fatal("Unable to delete user")
-	}
+	require.Nil(t, err, "Unable to delete user. err=%v", err)
 
 	res, err := th.App.FileExists(finfo.Path)
 
-	if err != nil {
-		t.Log(err)
-		t.Fatal("Unable to check whether file exists")
-	}
+	require.Nil(t, err, "Unable to check whether file exists. err=%v", err)
 
-	if res {
-		t.Log(err)
-		t.Fatal("File was not deleted on FS")
-	}
+	require.False(t, res, "File was not deleted on FS. err=%v", err)
 
 	finfo, err = th.App.GetFileInfo(finfo.Id)
 
-	if finfo != nil {
-		t.Log(err)
-		t.Fatal("Unable to find finfo")
-	}
+	require.Nil(t, finfo, "Unable to find finfo. err=%v", err)
 
-	if err == nil {
-		t.Log(err)
-		t.Fatal("GetFileInfo after DeleteUser is nil")
-	}
+	require.NotNil(t, err, "GetFileInfo after DeleteUser is nil. err=%v", err)
 }
 
 func TestPasswordRecovery(t *testing.T) {
