@@ -71,7 +71,7 @@ func TestClientConfigWithComputed(t *testing.T) {
 	config := th.App.ClientConfigWithComputed()
 	_, ok := config["NoAccounts"]
 	require.True(t, ok, "expected NoAccounts in returned config")
-	if _, ok := config["MaxPostSize"]
+	_, ok = config["MaxPostSize"]
 	require.True(t, ok, "expected MaxPostSize in returned config")
 }
 
