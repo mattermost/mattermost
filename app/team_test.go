@@ -442,7 +442,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		require.Equal(t, "", sanitized.Email, "should've sanitized team")
+		require.Empty(t, sanitized.Email, "should've sanitized team")
 	})
 
 	t.Run("user of the team", func(t *testing.T) {
@@ -459,7 +459,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		require.Equal(t, "", sanitized.Email, "should've sanitized team")
+		require.Empty(t, sanitized.Email, "should've sanitized team")
 	})
 
 	t.Run("team admin", func(t *testing.T) {
@@ -476,7 +476,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		require.NotEqual(t, "", sanitized.Email, "shouldn't have sanitized team")
+		require.NotEmpty(t, sanitized.Email, "shouldn't have sanitized team")
 	})
 
 	t.Run("team admin of another team", func(t *testing.T) {
@@ -493,7 +493,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		require.Equal(t, "", sanitized.Email, "should've sanitized team")
+		require.Empty(t, sanitized.Email, "should've sanitized team")
 	})
 
 	t.Run("system admin, not a user of team", func(t *testing.T) {
@@ -510,7 +510,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		require.NotEqual(t, "", sanitized.Email, "shouldn't have sanitized team")
+		require.NotEmpty(t, sanitized.Email, "shouldn't have sanitized team")
 	})
 
 	t.Run("system admin, user of team", func(t *testing.T) {
@@ -527,7 +527,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		require.NotEqual(t, "", sanitized.Email, "shouldn't have sanitized team")
+		require.NotEmpty(t, sanitized.Email, "shouldn't have sanitized team")
 	})
 }
 
@@ -568,8 +568,8 @@ func TestSanitizeTeams(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeams(session, teams)
 
-		require.Equal(t, "", sanitized[0].Email, "should've sanitized first team")
-		require.NotEqual(t, "", sanitized[1].Email, "shouldn't have sanitized second team")
+		require.Empty(t, sanitized[0].Email, "should've sanitized first team")
+		require.NotEmpty(t, sanitized[1].Email, "shouldn't have sanitized second team")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
@@ -599,8 +599,8 @@ func TestSanitizeTeams(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeams(session, teams)
-		assert.NotEqual(t, "", sanitized[0].Email, "shouldn't have sanitized first team")
-		assert.NotEqual(t, "", sanitized[1].Email, "shouldn't have sanitized second team")
+		assert.NotEmpty(t, sanitized[0].Email, "shouldn't have sanitized first team")
+		assert.NotEmpty(t, sanitized[1].Email, "shouldn't have sanitized second team")
 	})
 }
 
