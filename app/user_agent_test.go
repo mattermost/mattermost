@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/avct/uasurfer"
+	"github.com/stretchr/testify/require"
 )
 
 type testUserAgent struct {
@@ -53,9 +54,8 @@ func TestGetPlatformName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetPlatformName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getPlatformName(ua); actual != expected[i] {
-				t.Fatalf("%v Got %v, expected %v", userAgent.Name, actual, expected[i])
-			}
+			actual := getPlatformName(ua)
+			require.Equalf(t, actual, expected[i], "%v Got %v, expected %v", userAgent.Name, actual, expected[i])
 		})
 	}
 }
@@ -83,9 +83,8 @@ func TestGetOSName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetOSName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getOSName(ua); actual != expected[i] {
-				t.Fatalf("Got %v, expected %v", actual, expected[i])
-			}
+			actual := getOSName(ua)
+			require.Equalf(t, actual, expected[i], "Got %v, expected %v", actual, expected[i])
 		})
 	}
 }
@@ -113,9 +112,8 @@ func TestGetBrowserName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetBrowserName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getBrowserName(ua, userAgent.UserAgent); actual != expected[i] {
-				t.Fatalf("Got %v, expected %v", actual, expected[i])
-			}
+			actual := getBrowserName(ua, userAgent.UserAgent)
+			require.Equalf(t, actual, expected[i], "Got %v, expected %v", actual, expected[i])
 		})
 	}
 }
@@ -143,9 +141,8 @@ func TestGetBrowserVersion(t *testing.T) {
 		t.Run(fmt.Sprintf("GetBrowserVersion_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getBrowserVersion(ua, userAgent.UserAgent); actual != expected[i] {
-				t.Fatalf("Got %v, expected %v", actual, expected[i])
-			}
+			actual := getBrowserVersion(ua, userAgent.UserAgent)
+			require.Equalf(t, actual, expected[i], "Got %v, expected %v", actual, expected[i])
 		})
 	}
 }
