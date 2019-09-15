@@ -60,7 +60,7 @@ func TestUpdateTeam(t *testing.T) {
 
 	updatedTeam, err := th.App.UpdateTeam(th.BasicTeam)
 	require.Nil(t, err, "Should update the team")
-	require.Equal(t, "Testing 123", updatedTeam.DisplayName)
+	require.Equal(t, "Testing 123", updatedTeam.DisplayName, "Wrong Team DisplayName")
 }
 
 func TestAddUserToTeam(t *testing.T) {
