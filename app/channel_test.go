@@ -32,7 +32,8 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	}()
 
 	incoming, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, channel, &model.IncomingWebhook{ChannelId: channel.Id})
-	require.Nil(t, err)
+	require.NotNil(t, incoming, "incoming webhook should not be nil")
+	require.Nil(t, err, "Unable to create Incoming Webhook for Channel")
 	defer th.App.DeleteIncomingWebhook(incoming.Id)
 
 	incoming, err = th.App.GetIncomingWebhook(incoming.Id)
