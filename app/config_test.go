@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
@@ -70,9 +69,9 @@ func TestClientConfigWithComputed(t *testing.T) {
 
 	config := th.App.ClientConfigWithComputed()
 	_, ok := config["NoAccounts"]
-	require.True(t, ok, "expected NoAccounts in returned config")
+	assert.True(t, ok, "expected NoAccounts in returned config")
 	_, ok = config["MaxPostSize"]
-	require.True(t, ok, "expected MaxPostSize in returned config")
+	assert.True(t, ok, "expected MaxPostSize in returned config")
 }
 
 func TestEnsureInstallationDate(t *testing.T) {
