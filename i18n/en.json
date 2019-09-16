@@ -388,6 +388,10 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
   },
   {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "The default channel cannot be made private."
+  },
+  {
     "id": "api.channel.update_channel_scheme.license.error",
     "translation": "Your license does not support updating a channel's scheme"
   },
