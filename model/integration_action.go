@@ -178,13 +178,14 @@ type PostActionAPIResponse struct {
 }
 
 type Dialog struct {
-	CallbackId     string          `json:"callback_id"`
-	Title          string          `json:"title"`
-	IconURL        string          `json:"icon_url"`
-	Elements       []DialogElement `json:"elements"`
-	SubmitLabel    string          `json:"submit_label"`
-	NotifyOnCancel bool            `json:"notify_on_cancel"`
-	State          string          `json:"state"`
+	CallbackId       string          `json:"callback_id"`
+	Title            string          `json:"title"`
+	IntroductionText string          `json:"introduction_text"`
+	IconURL          string          `json:"icon_url"`
+	Elements         []DialogElement `json:"elements"`
+	SubmitLabel      string          `json:"submit_label"`
+	NotifyOnCancel   bool            `json:"notify_on_cancel"`
+	State            string          `json:"state"`
 }
 
 type DialogElement struct {
@@ -221,6 +222,7 @@ type SubmitDialogRequest struct {
 }
 
 type SubmitDialogResponse struct {
+	Error  string            `json:"error,omitempty"`
 	Errors map[string]string `json:"errors,omitempty"`
 }
 
