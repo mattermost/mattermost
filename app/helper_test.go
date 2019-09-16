@@ -501,7 +501,7 @@ func (me *TestHelper) ResetEmojisMigration() {
 func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
 	teamCount, err := me.App.Srv.Store.Team().AnalyticsTeamCount()
 	require.Nil(t, err, "Failed to get team count.")
-	require.Equal(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
+	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 }
 
 func (me *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
