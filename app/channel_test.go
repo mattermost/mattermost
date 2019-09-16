@@ -25,6 +25,7 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	})
 
 	channel, err := th.App.CreateChannel(&model.Channel{DisplayName: "deletion-test", Name: "deletion-test", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.NotNil(t, channel, "Channel shouldn't be nil")
 	require.Nil(t, err)
 	defer func() {
 		th.App.PermanentDeleteChannel(channel)
@@ -34,9 +35,9 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	require.Nil(t, err)
 	defer th.App.DeleteIncomingWebhook(incoming.Id)
 
-	if incoming, err = th.App.GetIncomingWebhook(incoming.Id); incoming == nil || err != nil {
-		require.Nil(t, err, "Unable to get new incoming webhook")
-	}
+	incoming, err = th.App.GetIncomingWebhook(incoming.Id)
+	require.NotNil(t, incoming, "incoming webhook should not be nil")
+	require.Nil(t, err, "Unable to get new incoming webhook")
 
 	outgoing, err := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{
 		ChannelId:    channel.Id,
@@ -47,20 +48,20 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	require.Nil(t, err)
 	defer th.App.DeleteOutgoingWebhook(outgoing.Id)
 
-	if outgoing, err = th.App.GetOutgoingWebhook(outgoing.Id); outgoing == nil || err != nil {
-		require.Nil(t, err, "Unable to get new outgoing webhook")
-	}
+	outgoing, err = th.App.GetOutgoingWebhook(outgoing.Id)
+	require.NotNil(t, outgoing, "Outgoing webhook should not be nil")
+	require.Nil(t, err, "Unable to get new outgoing webhook")
 
 	err = th.App.PermanentDeleteChannel(channel)
 	require.Nil(t, err)
 
-	if incoming, err = th.App.GetIncomingWebhook(incoming.Id); incoming != nil || err == nil {
-		require.Nil(t, err, "Incoming webhook wasn't deleted")
-	}
+	incoming, err = th.App.GetIncomingWebhook(incoming.Id)
+	require.Nil(t, incoming, "Incoming webhook should be nil")
+	require.NotNil(t, err, "Incoming webhook wasn't deleted")
 
-	if outgoing, err = th.App.GetOutgoingWebhook(outgoing.Id); outgoing != nil || err == nil {
-		require.Nil(t, err, "Outgoing webhook wasn't deleted")
-	}
+	outgoing, err = th.App.GetOutgoingWebhook(outgoing.Id)
+	require.Nil(t, outgoing, "Outgoing webhook should be nil")
+	require.NotNil(t, err, "Outgoing webhook wasn't deleted")
 }
 
 func TestMoveChannel(t *testing.T) {
