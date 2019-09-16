@@ -3491,6 +3491,7 @@ func (s *apiRPCServer) GetPluginStatus(args *Z_GetPluginStatusArgs, returns *Z_G
 
 type Z_UploadPluginArgs struct {
 	A io.Reader
+	B bool
 }
 
 type Z_UploadPluginReturns struct {
@@ -3498,8 +3499,8 @@ type Z_UploadPluginReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UploadPlugin(file io.Reader) (*model.Manifest, *model.AppError) {
-	_args := &Z_UploadPluginArgs{file}
+func (g *apiRPCClient) UploadPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	_args := &Z_UploadPluginArgs{file, replace}
 	_returns := &Z_UploadPluginReturns{}
 	if err := g.client.Call("Plugin.UploadPlugin", _args, _returns); err != nil {
 		log.Printf("RPC call to UploadPlugin API failed: %s", err.Error())
@@ -3509,9 +3510,9 @@ func (g *apiRPCClient) UploadPlugin(file io.Reader) (*model.Manifest, *model.App
 
 func (s *apiRPCServer) UploadPlugin(args *Z_UploadPluginArgs, returns *Z_UploadPluginReturns) error {
 	if hook, ok := s.impl.(interface {
-		UploadPlugin(file io.Reader) (*model.Manifest, *model.AppError)
+		UploadPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.UploadPlugin(args.A)
+		returns.A, returns.B = hook.UploadPlugin(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API UploadPlugin called but not implemented."))
 	}

@@ -559,10 +559,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
 
-	// UploadPlugin will upload another plugin with tar.gz file
+	// UploadPlugin will upload another plugin with tar.gz file.
+	// Previous version will be replaced on replace true.
 	//
 	// Minimum server version: 5.6
-	UploadPlugin(file io.Reader) (*model.Manifest, *model.AppError)
+	UploadPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
 
 	// KV Store Section
 
