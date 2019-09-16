@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -251,13 +250,13 @@ func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 
 	for rowsAffected > 0 {
 		if sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize}); err != nil {
-			mlog.Error(fmt.Sprintf("Unable to cleanup session store. err=%v", err.Error()))
+			mlog.Error("Unable to cleanup session store.", mlog.Err(err))
 			return
 		} else {
 			var rowErr error
 			rowsAffected, rowErr = sqlResult.RowsAffected()
 			if rowErr != nil {
-				mlog.Error(fmt.Sprintf("Unable to cleanup session store. err=%v", err.Error()))
+				mlog.Error("Unable to cleanup session store.", mlog.Err(err))
 				return
 			}
 		}

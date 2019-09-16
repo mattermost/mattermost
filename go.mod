@@ -16,7 +16,7 @@ require (
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-gorp/gorp v2.0.0+incompatible // indirect
-	github.com/go-ldap/ldap v3.0.3+incompatible
+	github.com/go-ldap/ldap v3.0.3+incompatible // indirect
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
@@ -45,12 +45,13 @@ require (
 	github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e // indirect
 	github.com/mattermost/go-i18n v1.11.0
 	github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
+	github.com/mattermost/ldap v3.0.4+incompatible
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/viper v1.0.4
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/miekg/dns v1.1.15 // indirect
-	github.com/minio/minio-go v0.0.0-20190422205105-a8704b60278f
+	github.com/minio/minio-go/v6 v6.0.34
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.1 // indirect
@@ -100,5 +101,8 @@ require (
 	willnorris.com/go/imageproxy v0.9.0
 )
 
-// Workaround for https://github.com/golang/go/issues/30831 and fallout.
-replace github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
+replace (
+	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
+	// Workaround for https://github.com/golang/go/issues/30831 and fallout.
+	github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
+)
