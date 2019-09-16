@@ -430,7 +430,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	}
 
 	for _, p := range marketplacePlugins {
-		if !pluginMatchesFilter(p.Manifest, filter.Filter) {
+		if p.Manifest == nil || !pluginMatchesFilter(p.Manifest, filter.Filter) {
 			continue
 		}
 
