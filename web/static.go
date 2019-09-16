@@ -4,7 +4,6 @@
 package web
 
 import (
-	"fmt"
 	"mime"
 	"net/http"
 	"path"
@@ -28,7 +27,7 @@ func (w *Web) InitStatic() {
 		}
 
 		staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
-		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))
+		mlog.Debug("Using client directory", mlog.String("clientDir", staticDir))
 
 		subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
 
