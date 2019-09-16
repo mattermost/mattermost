@@ -881,7 +881,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 				*cfg.EmailSettings.PushNotificationContents = pushNotificationContents
 			})
 
-			if actualMessage := th.App.getPushNotificationMessage(
+			actualMessage := th.App.getPushNotificationMessage(
 				tc.Message,
 				tc.explicitMention,
 				tc.channelWideMention,
@@ -891,9 +891,9 @@ func TestGetPushNotificationMessage(t *testing.T) {
 				tc.ChannelType,
 				tc.replyToThreadType,
 				utils.GetUserTranslations(locale),
-			); actualMessage != tc.ExpectedMessage {
-				t.Fatalf("Received incorrect push notification message `%v`, expected `%v`", actualMessage, tc.ExpectedMessage)
-			}
+			)
+
+			assert.Equal(t, tc.ExpectedMessage, actualMessage)
 		})
 	}
 }

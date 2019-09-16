@@ -1387,6 +1387,68 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	}
 }
 
+func TestUpdateChannelPrivacy(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	type testTable []struct {
+		name            string
+		channel         *model.Channel
+		expectedPrivacy string
+	}
+
+	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id, false)
+	privateChannel := th.CreatePrivateChannel()
+	publicChannel := th.CreatePublicChannel()
+
+	tt := testTable{
+		{"Updating default channel should fail with forbidden status if not logged in", defaultChannel, model.CHANNEL_OPEN},
+		{"Updating private channel should fail with forbidden status if not logged in", privateChannel, model.CHANNEL_PRIVATE},
+		{"Updating public channel should fail with forbidden status if not logged in", publicChannel, model.CHANNEL_OPEN},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			_, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+			CheckForbiddenStatus(t, resp)
+		})
+	}
+
+	th.LoginTeamAdmin()
+
+	tt = testTable{
+		{"Converting default channel to private should fail", defaultChannel, model.CHANNEL_PRIVATE},
+		{"Updating privacy to an invalid setting should fail", publicChannel, "invalid"},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			_, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+			CheckBadRequestStatus(t, resp)
+		})
+	}
+
+	tt = testTable{
+		{"Default channel should stay public", defaultChannel, model.CHANNEL_OPEN},
+		{"Public channel should stay public", publicChannel, model.CHANNEL_OPEN},
+		{"Private channel should stay private", privateChannel, model.CHANNEL_PRIVATE},
+		{"Public channel should convert to private", publicChannel, model.CHANNEL_PRIVATE},
+		{"Private channel should convert to public", privateChannel, model.CHANNEL_OPEN},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			updatedChannel, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+			CheckNoError(t, resp)
+			assert.Equal(t, updatedChannel.Type, tc.expectedPrivacy)
+			updatedChannel, err := th.App.GetChannel(tc.channel.Id)
+			require.Nil(t, err)
+			assert.Equal(t, updatedChannel.Type, tc.expectedPrivacy)
+		})
+	}
+}
+
 func TestRestoreChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -1849,6 +1911,16 @@ func TestGetChannelStats(t *testing.T) {
 		t.Fatal("couldnt't get extra info")
 	} else if stats.MemberCount != 1 {
 		t.Fatal("got incorrect member count")
+	} else if stats.PinnedPostCount != 0 {
+		t.Fatal("got incorrect pinned post count")
+	}
+
+	th.CreatePinnedPostWithClient(th.Client, channel)
+	stats, resp = Client.GetChannelStats(channel.Id, "")
+	CheckNoError(t, resp)
+
+	if stats.PinnedPostCount != 1 {
+		t.Fatal("should have returned 1 pinned post count")
 	}
 
 	_, resp = Client.GetChannelStats("junk", "")
