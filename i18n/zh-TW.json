@@ -6591,6 +6591,14 @@
     "translation": "無法取得配置的頻道數量。"
   },
   {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "無法計算團隊數量"
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "無法計算團隊數量"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "無法計算團隊數量"
   },

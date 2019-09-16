@@ -6591,6 +6591,14 @@
     "translation": "Nie można uzyskać liczby kanałów dla schematu."
   },
   {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "Nie można policzyć zespołów"
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "Nie można policzyć zespołów"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "Nie można policzyć zespołów"
   },

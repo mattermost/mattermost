@@ -6591,6 +6591,14 @@
     "translation": "Konnte die Kanalanzahl für das Schema nicht abrufen."
   },
   {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "Konnte die Anzahl der Teams nicht abrufen."
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "Konnte die Anzahl der Teams nicht abrufen."
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "Konnte die Anzahl der Teams nicht abrufen."
   },

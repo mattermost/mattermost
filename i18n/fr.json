@@ -2508,11 +2508,11 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Impossible d'envoyer l'e-mail de notification de changement d'adresse e-mail"
+    "translation": "Impossible d'envoyer la notification par e-mail de changement d'adresse e-mail"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Impossible d'envoyer l'e-mail de notification de changement de nom d'utilisateur"
+    "translation": "Impossible d'envoyer la notification par e-mail de changement de nom d'utilisateur"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -2520,7 +2520,7 @@
   },
   {
     "id": "api.user.send_mfa_change_email.error",
-    "translation": "Impossible d'envoyer une notification par e-mail pour le changement de méthode d'authentification multi-facteurs (MFA)."
+    "translation": "Impossible d'envoyer la notification par e-mail de changement de méthode d'authentification multi-facteurs (MFA)."
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
@@ -3328,7 +3328,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "@{{.SenderName}} - {{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3340,7 +3340,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "@{{.SenderName}} - {{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -6589,6 +6589,14 @@
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
     "translation": "Impossible de récupérer le nombre de canaux pour le schéma."
+  },
+  {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "Impossible de compter les équipes"
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "Impossible de compter les équipes"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",

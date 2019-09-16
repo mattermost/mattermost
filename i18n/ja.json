@@ -6591,6 +6591,14 @@
     "translation": "スキームに対するチャンネル数を取得できませんでした。"
   },
   {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "チームをカウントできませんでした"
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "チームをカウントできませんでした"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "チームをカウントできませんでした"
   },

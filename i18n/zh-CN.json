@@ -6591,6 +6591,14 @@
     "translation": "无法从方案获取频道数。"
   },
   {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "无法团队计数"
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "无法团队计数"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "无法团队计数"
   },
