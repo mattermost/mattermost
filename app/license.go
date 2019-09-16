@@ -29,7 +29,7 @@ func (a *App) LoadLicense() {
 
 		if license != nil {
 			if _, err = a.SaveLicense(licenseBytes); err != nil {
-				mlog.Info(fmt.Sprintf("Failed to save license key loaded from disk err=%v", err.Error()))
+				mlog.Info("Failed to save license key loaded from disk.", mlog.Err(err))
 			} else {
 				licenseId = license.Id
 			}

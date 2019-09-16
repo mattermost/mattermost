@@ -6023,10 +6023,6 @@
     "translation": "Kullanıcının silinecek iletileri seçilemedi (çok fazla), lütfen yeniden çalıştırın"
   },
   {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "Desteklenen en büyük ileti boyutu belirlenemedi"
-  },
-  {
     "id": "store.sql_post.save.app_error",
     "translation": "İleti kaydedilemedi"
   },
