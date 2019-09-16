@@ -154,6 +154,15 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.IsBot {
+		bot, err := c.App.GetBot(c.Params.UserId, true)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		user.BotLastIconUpdate = bot.LastIconUpdate
+	}
+
 	if c.IsSystemAdmin() || c.App.Session.UserId == user.Id {
 		userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 		if err != nil && err.StatusCode != http.StatusNotFound {

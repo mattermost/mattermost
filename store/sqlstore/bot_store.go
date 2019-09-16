@@ -21,6 +21,7 @@ type bot struct {
 	CreateAt    int64  `json:"create_at"`
 	UpdateAt    int64  `json:"update_at"`
 	DeleteAt    int64  `json:"delete_at"`
+	LastIconUpdate int64 `json:"last_icon_update"`
 }
 
 func botFromModel(b *model.Bot) *bot {
@@ -31,6 +32,7 @@ func botFromModel(b *model.Bot) *bot {
 		CreateAt:    b.CreateAt,
 		UpdateAt:    b.UpdateAt,
 		DeleteAt:    b.DeleteAt,
+		LastIconUpdate: b.LastIconUpdate,
 	}
 }
 
@@ -91,7 +93,8 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *m
 			b.OwnerId,
 			b.CreateAt,
 			b.UpdateAt,
-			b.DeleteAt
+			b.DeleteAt,
+			b.LastIconUpdate
 		FROM
 			Bots b
 		JOIN
@@ -147,7 +150,8 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model
 			    b.OwnerId,
 			    b.CreateAt,
 			    b.UpdateAt,
-			    b.DeleteAt
+			    b.DeleteAt,
+				b.LastIconUpdate
 			FROM
 			    Bots b
 			JOIN
@@ -207,6 +211,7 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
 	oldBot.OwnerId = bot.OwnerId
 	oldBot.UpdateAt = bot.UpdateAt
 	oldBot.DeleteAt = bot.DeleteAt
+	oldBot.LastIconUpdate = bot.LastIconUpdate
 	bot = oldBot
 
 	if count, err := us.GetMaster().Update(botFromModel(bot)); err != nil {

@@ -8,6 +8,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -212,7 +213,8 @@ func (a *App) SetBotIconImageFromMultiPartFile(botUserId string, imageData *mult
 
 // SetBotIconImage sets LHS icon for a bot.
 func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError {
-	if _, err := a.GetBot(botUserId, true); err != nil {
+	bot, err := a.Srv.Store.Bot().Get(botUserId, true)
+	if err != nil {
 		return err
 	}
 
@@ -226,8 +228,13 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := a.Srv.Store.User().UpdateLastPictureUpdate(botUserId); err != nil {
-		mlog.Error(err.Error())
+	updateErr := a.Srv.Store.User().UpdateLastPictureUpdate(botUserId)
+	if updateErr != nil {
+		mlog.Error(updateErr.Error())
+	}else{
+		lastUpdateTime := time.Now().UnixNano() / int64(time.Millisecond)
+		bot.LastIconUpdate = lastUpdateTime
+		a.Srv.Store.Bot().Update(bot)
 	}
 	a.invalidateUserCacheAndPublish(botUserId)
 
@@ -236,7 +243,8 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 
 // DeleteBotIconImage deletes LHS icon for a bot.
 func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
-	if _, err := a.GetBot(botUserId, true); err != nil {
+	bot, err := a.GetBot(botUserId, true)
+	if err != nil {
 		return err
 	}
 
@@ -248,6 +256,11 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 	if err := a.Srv.Store.User().UpdateLastPictureUpdate(botUserId); err != nil {
 		mlog.Error(err.Error())
 	}
+
+	lastUpdateTime := int64(0)
+	bot.LastIconUpdate = lastUpdateTime
+	a.Srv.Store.Bot().Update(bot)
+
 	a.invalidateUserCacheAndPublish(botUserId)
 
 	return nil

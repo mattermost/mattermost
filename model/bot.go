@@ -30,6 +30,7 @@ type Bot struct {
 	CreateAt    int64  `json:"create_at"`
 	UpdateAt    int64  `json:"update_at"`
 	DeleteAt    int64  `json:"delete_at"`
+	LastIconUpdate int64 `json:"last_icon_update"`
 }
 
 // BotPatch is a description of what fields to update on an existing bot.
@@ -170,6 +171,7 @@ func UserFromBot(b *Bot) *User {
 		Email:     fmt.Sprintf("%s@localhost", strings.ToLower(b.Username)),
 		FirstName: b.DisplayName,
 		Roles:     SYSTEM_USER_ROLE_ID,
+		BotLastIconUpdate: b.LastIconUpdate,
 	}
 }
 
