@@ -592,7 +592,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.Equal(t, "inputfile", resultBuf.String())
 	})
 
-	t.Run("updated", func(t *testing.T) {
+	/*t.Run("updated", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -665,7 +665,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		var resultBuf bytes.Buffer
 		io.Copy(&resultBuf, fileReader)
 		assert.Equal(t, "changedtext", resultBuf.String())
-	})
+	})*/
 }
 
 func TestUserWillLogIn_Blocked(t *testing.T) {
