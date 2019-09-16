@@ -4,6 +4,8 @@
 package plugin
 
 import (
+	"io"
+
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -556,6 +558,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
+
+	// UploadPlugin will upload another plugin with tar.gz file
+	//
+	// Minimum server version: 5.6
+	UploadPlugin(file io.Reader) (*model.Manifest, *model.AppError)
 
 	// KV Store Section
 
