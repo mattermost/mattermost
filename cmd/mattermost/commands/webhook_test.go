@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"github.com/stretchr/testify/assert"
 	"strconv"
 	"strings"
 	"testing"
@@ -479,4 +480,70 @@ func TestDeleteWebhooks(t *testing.T) {
 	if strings.Contains(string(hooksAfterDeletion), dispName2) {
 		t.Fatal("Should not have outgoing webhooks")
 	}
+}
+
+func TestMoveOutgoingWebhook(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	config := th.Config()
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
+	th.SetConfig(config)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	description := "myhookoutdesc"
+	displayName := "myhookoutname"
+	triggerWords := model.StringArray{"myhookoutword1"}
+	triggerWhen := 0
+	callbackURLs := model.StringArray{"http://myhookouturl1"}
+	iconURL := "myhookicon1"
+	contentType := "myhookcontent1"
+
+	outgoingWebhook := &model.OutgoingWebhook{
+		CreatorId:    th.BasicUser.Id,
+		Username:     th.BasicUser.Username,
+		TeamId:       th.BasicTeam.Id,
+		ChannelId:    th.BasicChannel.Id,
+		DisplayName:  displayName,
+		Description:  description,
+		TriggerWords: triggerWords,
+		TriggerWhen:  triggerWhen,
+		CallbackURLs: callbackURLs,
+		IconURL:      iconURL,
+		ContentType:  contentType,
+	}
+
+	oldHook, err := th.App.CreateOutgoingWebhook(outgoingWebhook)
+	if err != nil {
+		t.Fatal("unable to create outgoing webhooks: " + err.Error())
+	}
+	defer func() {
+		th.App.DeleteOutgoingWebhook(oldHook.Id)
+	}()
+
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing"))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", th.BasicTeam.Id))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", "invalid-team", "webhook"))
+
+	newTeam := th.CreateTeam()
+
+	webhookInformation := "oldTeam" + ":" + "webhookId"
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, webhookInformation))
+
+	webhookInformation = th.BasicTeam.Id + ":" + "webhookId"
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, webhookInformation))
+
+	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id)
+
+	_, appError := th.App.GetOutgoingWebhook(oldHook.Id)
+	require.Error(t, appError)
+
+	webhooks, _ := th.App.GetOutgoingWebhooksPage(1, 1)
+	assert.Equal(t, 1, len(webhooks))
 }

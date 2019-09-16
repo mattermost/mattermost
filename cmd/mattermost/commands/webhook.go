@@ -76,6 +76,14 @@ var WebhookDeleteCmd = &cobra.Command{
 	RunE:    deleteWebhookCmdF,
 }
 
+var WebhookMoveOutgoingCmd = &cobra.Command{
+	Use:     "move-outgoing",
+	Short:   "Move outgoing webhook",
+	Long:    "Move outgoing webhook with an id",
+	Example: "  webhook move newteam oldteam:[oldTeamId]--channel [channelId]",
+	RunE:    moveOutgoingWebhookCmd,
+}
+
 func listWebhookCmdF(command *cobra.Command, args []string) error {
 	app, err := InitDBCommandContextCobra(command)
 	if err != nil {
@@ -448,6 +456,62 @@ func showWebhookCmdF(command *cobra.Command, args []string) error {
 	return errors.New("Webhook with id " + webhookId + " not found")
 }
 
+func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("team is not specified")
+	}
+
+	if len(args) < 2 {
+		return errors.New("webhook information is not specified")
+	}
+
+	_, teamError := app.GetTeam(args[0])
+
+	if teamError != nil {
+		return teamError
+	}
+
+	webhookInformation := args[1]
+
+	sourceTeam := strings.Split(webhookInformation, ":")[0]
+
+	newTeam, teamErr := app.GetTeam(sourceTeam)
+
+	if teamErr != nil {
+		return teamError
+	}
+
+	webhookId := strings.Split(webhookInformation, ":")[1]
+
+	webhook, appError := app.GetOutgoingWebhook(webhookId)
+
+	if appError != nil {
+		return appError
+	}
+
+	deleteErr := app.DeleteOutgoingWebhook(webhookId)
+
+	if deleteErr != nil {
+		return deleteErr
+	}
+
+	webhook.Id = ""
+	webhook.TeamId= newTeam.Id
+	_, createErr := app.CreateOutgoingWebhook(webhook)
+
+	if createErr != nil {
+		return createErr
+	}
+	return nil
+}
+
 func init() {
 	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID (required)")
 	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID (required)")
@@ -482,6 +546,8 @@ func init() {
 	WebhookModifyOutgoingCmd.Flags().StringArray("url", []string{}, "Callback URL")
 	WebhookModifyOutgoingCmd.Flags().String("content-type", "", "Content-type")
 
+	WebhookMoveOutgoingCmd.Flags().String("channel", "", "Channel name or ID")
+
 	WebhookCmd.AddCommand(
 		WebhookListCmd,
 		WebhookCreateIncomingCmd,
@@ -490,6 +556,7 @@ func init() {
 		WebhookModifyOutgoingCmd,
 		WebhookDeleteCmd,
 		WebhookShowCmd,
+		WebhookMoveOutgoingCmd,
 	)
 
 	RootCmd.AddCommand(WebhookCmd)
