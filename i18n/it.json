@@ -6023,10 +6023,6 @@
     "translation": "Non è stato possibile selezionare le pubblicazioni da eliminare per l'utente (troppe pubblicazioni), per favore rilancia"
   },
   {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "Impossibile determinare la dimensione massima supportata per le pubblicazioni"
-  },
-  {
     "id": "store.sql_post.save.app_error",
     "translation": "Impossibile salvare la pubblicazione"
   },
