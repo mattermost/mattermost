@@ -503,11 +503,14 @@ func TestMoveOutgoingWebhook(t *testing.T) {
 	webhookInformation = th.BasicTeam.Id + ":" + "webhookId"
 	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, webhookInformation))
 
-	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id)
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", "invalid"))
 
-	_, appError := th.App.GetOutgoingWebhook(oldHook.Id)
-	require.Error(t, appError)
+	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.CHANNEL_OPEN, newTeam.Id)
+	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", channel.Id)
 
-	webhooks, _ := th.App.GetOutgoingWebhooksPage(1, 1)
-	assert.Equal(t, 1, len(webhooks))
+	_, webhookErr := th.App.GetOutgoingWebhook(oldHook.Id)
+	assert.Error(t, webhookErr)
+
+	output := th.CheckCommand(t, "webhook", "list", newTeam.Name)
+	assert.True(t, strings.Contains(string(output), displayName))
 }

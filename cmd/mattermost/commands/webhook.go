@@ -458,54 +458,53 @@ func showWebhookCmdF(command *cobra.Command, args []string) error {
 
 func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
 	app, err := InitDBCommandContextCobra(command)
-
 	if err != nil {
 		return err
 	}
 	defer app.Shutdown()
 
 	if len(args) < 1 {
-		return errors.New("team is not specified")
+		return errors.New("TeamId is not specified")
 	}
 
 	if len(args) < 2 {
-		return errors.New("webhook information is not specified")
+		return errors.New("Outgoing Webhook information is not specified")
 	}
 
-	_, teamError := app.GetTeam(args[0])
-
+	newTeamId := args[0]
+	_, teamError := app.GetTeam(newTeamId)
 	if teamError != nil {
 		return teamError
 	}
 
-	webhookInformation := args[1]
-
-	sourceTeam := strings.Split(webhookInformation, ":")[0]
-
-	newTeam, teamErr := app.GetTeam(sourceTeam)
-
+	webhookInformation := strings.Split(args[1], ":")
+	sourceTeam := webhookInformation[0]
+	_, teamErr := app.GetTeam(sourceTeam)
 	if teamErr != nil {
-		return teamError
+		return teamErr
 	}
 
-	webhookId := strings.Split(webhookInformation, ":")[1]
-
+	webhookId := webhookInformation[1]
 	webhook, appError := app.GetOutgoingWebhook(webhookId)
-
 	if appError != nil {
 		return appError
 	}
 
-	deleteErr := app.DeleteOutgoingWebhook(webhookId)
+	channelId, _ := command.Flags().GetString("channel")
+	channel, channelErr := app.GetChannel(channelId);
+	if channelErr != nil {
+		return channelErr
+	}
 
+	deleteErr := app.DeleteOutgoingWebhook(webhook.Id)
 	if deleteErr != nil {
 		return deleteErr
 	}
 
 	webhook.Id = ""
-	webhook.TeamId= newTeam.Id
+	webhook.TeamId = newTeamId
+	webhook.ChannelId = channel.Id
 	_, createErr := app.CreateOutgoingWebhook(webhook)
-
 	if createErr != nil {
 		return createErr
 	}
