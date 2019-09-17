@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 
@@ -108,22 +109,17 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			og := opengraph.NewOpenGraph()
-			if err := og.ProcessHTML(strings.NewReader(tc.HTML)); err != nil {
-				t.Fatal(err)
-			}
+			err := og.ProcessHTML(strings.NewReader(tc.HTML))
+			require.Nil(t, err)
 
 			makeOpenGraphURLsAbsolute(og, tc.RequestURL)
 
-			if og.URL != tc.URL {
-				t.Fatalf("incorrect url, expected %v, got %v", tc.URL, og.URL)
-			}
+			assert.Equalf(t, og.URL, tc.URL, "incorrect url, expected %v, got %v", tc.URL, og.URL)
 
 			if len(og.Images) > 0 {
-				if og.Images[0].URL != tc.ImageURL {
-					t.Fatalf("incorrect image url, expected %v, got %v", tc.ImageURL, og.Images[0].URL)
-				}
-			} else if tc.ImageURL != "" {
-				t.Fatalf("missing image url, expected %v, got nothing", tc.ImageURL)
+				assert.Equalf(t, og.Images[0].URL, tc.ImageURL, "incorrect image url, expected %v, got %v", tc.ImageURL, og.Images[0].URL)
+			} else {
+				assert.Empty(t, tc.ImageURL, "missing image url, expected %v, got nothing", tc.ImageURL)
 			}
 		})
 	}

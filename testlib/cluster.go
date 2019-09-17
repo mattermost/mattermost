@@ -48,9 +48,11 @@ func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newCo
 }
 
 func (c *FakeClusterInterface) SendClearRoleCacheMessage() {
-	c.clusterMessageHandler(&model.ClusterMessage{
-		Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
-	})
+	if c.clusterMessageHandler != nil {
+		c.clusterMessageHandler(&model.ClusterMessage{
+			Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
+		})
+	}
 }
 
 func (c *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
