@@ -130,7 +130,7 @@ type Manifest struct {
 	// A description of what your plugin is and does.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 
-	// A relativ file path in the bundle that points to the plugins svg icon.
+	// A relative file path in the bundle that points to the plugins svg icon.
 	IconPath string `json:"icon_path,omitempty" yaml:"icon_path,omitempty"`
 
 	// A version number for your plugin. Semantic versioning is recommended: http://semver.org
