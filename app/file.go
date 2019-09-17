@@ -139,7 +139,11 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	// Find the path from the Filename of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
 	split := strings.SplitN(filename, "/", 5)
 	if len(split) < 5 {
-		mlog.Error("Unable to decipher filename when migrating post to use FileInfos", mlog.String("post_id", post.Id), mlog.String("filename", filename))
+		mlog.Error(
+			"Unable to decipher filename when migrating post to use FileInfos",
+			mlog.String("post_id", post.Id),
+			mlog.String("filename", filename),
+		)
 		return nil
 	}
 
@@ -176,9 +180,10 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	info, err := model.GetInfoForBytes(name, data)
 	if err != nil {
 		mlog.Warn(
-			fmt.Sprintf("Unable to fully decode file info when migrating post to use FileInfos, err=%v", err),
+			"Unable to fully decode file info when migrating post to use FileInfos",
 			mlog.String("post_id", post.Id),
 			mlog.String("filename", filename),
+			mlog.Err(err),
 		)
 	}
 
@@ -207,7 +212,7 @@ func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
 	teams, err := a.Srv.Store.Team().GetTeamsByUserId(post.UserId)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Unable to get teams when migrating post to use FileInfo, err=%v", err), mlog.String("post_id", post.Id))
+		mlog.Error("Unable to get teams when migrating post to use FileInfo", mlog.Err(err), mlog.String("post_id", post.Id))
 		return ""
 	}
 
@@ -241,9 +246,10 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
 	if errCh != nil {
 		mlog.Error(
-			fmt.Sprintf("Unable to get channel when migrating post to use FileInfos, err=%v", errCh),
+			"Unable to get channel when migrating post to use FileInfos",
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
+			mlog.Err(errCh),
 		)
 		return []*model.FileInfo{}
 	}
@@ -261,7 +267,8 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	infos := make([]*model.FileInfo, 0, len(filenames))
 	if teamId == "" {
 		mlog.Error(
-			fmt.Sprintf("Unable to find team id for files when migrating post to use FileInfos, filenames=%v", filenames),
+			"Unable to find team id for files when migrating post to use FileInfos",
+			mlog.String("filenames", strings.Join(filenames, ",")),
 			mlog.String("post_id", post.Id),
 		)
 	} else {
@@ -281,7 +288,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	result, err := a.Srv.Store.Post().Get(post.Id, false)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Unable to get post when migrating post to use FileInfos, err=%v", err), mlog.String("post_id", post.Id))
+		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 
@@ -290,7 +297,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		var fileInfos []*model.FileInfo
 		fileInfos, err = a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, false)
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", err), mlog.String("post_id", post.Id))
+			mlog.Error("Unable to get FileInfos for migrated post", mlog.Err(err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
 		}
 
@@ -305,10 +312,11 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	for _, info := range infos {
 		if _, err = a.Srv.Store.FileInfo().Save(info); err != nil {
 			mlog.Error(
-				fmt.Sprintf("Unable to save file info when migrating post to use FileInfos, err=%v", err),
+				"Unable to save file info when migrating post to use FileInfos",
 				mlog.String("post_id", post.Id),
 				mlog.String("file_info_id", info.Id),
 				mlog.String("file_info_path", info.Path),
+				mlog.Err(err),
 			)
 			continue
 		}
@@ -326,7 +334,13 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	// Update Posts to clear Filenames and set FileIds
 	if _, err = a.Srv.Store.Post().Update(newPost, post); err != nil {
-		mlog.Error(fmt.Sprintf("Unable to save migrated post when migrating to use FileInfos, new_file_ids=%v, old_filenames=%v, err=%v", newPost.FileIds, post.Filenames, err), mlog.String("post_id", post.Id))
+		mlog.Error(
+			"Unable to save migrated post when migrating to use FileInfos",
+			mlog.String("new_file_ids", strings.Join(newPost.FileIds, ",")),
+			mlog.String("old_filenames", strings.Join(post.Filenames, ",")),
+			mlog.String("post_id", post.Id),
+			mlog.Err(err),
+		)
 		return []*model.FileInfo{}
 	}
 	return savedInfos
@@ -755,7 +769,7 @@ func (t *uploadFileTask) postprocessImage() {
 		var err error
 		decoded, typ, err = image.Decode(t.newReader())
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
+			mlog.Error("Unable to decode image", mlog.Err(err))
 			return
 		}
 	}
@@ -779,14 +793,14 @@ func (t *uploadFileTask) postprocessImage() {
 		go func() {
 			_, aerr := t.writeFile(r, path)
 			if aerr != nil {
-				mlog.Error(fmt.Sprintf("Unable to upload path=%v err=%v", path, aerr))
+				mlog.Error("Unable to upload", mlog.String("path", path), mlog.Err(aerr))
 				return
 			}
 		}()
 
 		err := jpeg.Encode(w, img, &jpeg.Options{Quality: 90})
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Unable to encode image as jpeg path=%v err=%v", path, err))
+			mlog.Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
 			w.CloseWithError(err)
 		} else {
 			w.Close()
@@ -959,7 +973,7 @@ func prepareImage(fileData []byte) (image.Image, int, int) {
 	// Decode image bytes into Image object
 	img, imgType, err := image.Decode(bytes.NewReader(fileData))
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
+		mlog.Error("Unable to decode image", mlog.Err(err))
 		return nil, 0, 0
 	}
 
@@ -1038,12 +1052,12 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, widt
 
 	buf := new(bytes.Buffer)
 	if err := jpeg.Encode(buf, thumbnail, &jpeg.Options{Quality: 90}); err != nil {
-		mlog.Error(fmt.Sprintf("Unable to encode image as jpeg path=%v err=%v", thumbnailPath, err))
+		mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
 
 	if _, err := a.WriteFile(buf, thumbnailPath); err != nil {
-		mlog.Error(fmt.Sprintf("Unable to upload thumbnail path=%v err=%v", thumbnailPath, err))
+		mlog.Error("Unable to upload thumbnail", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
 }
@@ -1060,12 +1074,12 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 	buf := new(bytes.Buffer)
 
 	if err := jpeg.Encode(buf, preview, &jpeg.Options{Quality: 90}); err != nil {
-		mlog.Error(fmt.Sprintf("Unable to encode image as preview jpg err=%v", err), mlog.String("path", previewPath))
+		mlog.Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
 		return
 	}
 
 	if _, err := a.WriteFile(buf, previewPath); err != nil {
-		mlog.Error(fmt.Sprintf("Unable to upload preview err=%v", err), mlog.String("path", previewPath))
+		mlog.Error("Unable to upload preview", mlog.Err(err), mlog.String("path", previewPath))
 		return
 	}
 }
