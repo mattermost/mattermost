@@ -214,7 +214,7 @@ func (fs *FileStore) HasFile(name string) (bool, error) {
 func (fs *FileStore) RemoveFile(name string) error {
 	if filepath.IsAbs(name) {
 		// Don't delete absolute filenames, as may be mounted drive, etc.
-		mlog.Debug("Absolute filename will not be removed from the operationg system", mlog.String("filename", name))
+		mlog.Debug("Skipping removal of configuration file with absolute path", mlog.String("filename", name))
 		return nil
 	}
 	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
