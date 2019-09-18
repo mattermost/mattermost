@@ -201,18 +201,18 @@ type ChannelMemberHistoryStore interface {
 type PostStore interface {
 	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
-	Get(id string) (*model.PostList, *model.AppError)
+	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	PermanentDeleteByChannel(channelId string) *model.AppError
-	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError)
 	GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError)
@@ -254,7 +254,7 @@ type UserStore interface {
 	GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError)
 	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
+	GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)

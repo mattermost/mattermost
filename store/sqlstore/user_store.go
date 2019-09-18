@@ -409,10 +409,12 @@ func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.
 		return query
 	}
 
-	roleParam := fmt.Sprintf("%%%s%%", role)
 	if isPostgreSQL {
+		roleParam := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(role, "\\"))
 		return query.Where("u.Roles LIKE LOWER(?)", roleParam)
 	}
+
+	roleParam := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(role, "*"))
 
 	return query.Where("u.Roles LIKE ? ESCAPE '*'", roleParam)
 }
@@ -665,7 +667,8 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (us SqlUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	query := us.usersQuery.
 		Where(`(
 			SELECT
@@ -677,9 +680,15 @@ func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestric
 				AND TeamMembers.DeleteAt = 0
 		) = 0`).
 		OrderBy("u.Username ASC").
-		Offset(uint64(offset)).Limit(uint64(limit))
+		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
-	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
+
+	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+
+	if options.Inactive {
+		query = query.Where("u.DeleteAt != 0")
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1222,15 +1231,6 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options *m
 	return us.performSearch(query, term, options)
 }
 
-var escapeLikeSearchChar = []string{
-	"%",
-	"_",
-}
-
-var ignoreLikeSearchChar = []string{
-	"*",
-}
-
 var spaceFulltextSearchChar = []string{
 	"<",
 	">",
@@ -1265,15 +1265,7 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 }
 
 func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	// These chars must be removed from the like query.
-	for _, c := range ignoreLikeSearchChar {
-		term = strings.Replace(term, c, "", -1)
-	}
-
-	// These chars must be escaped in the like query.
-	for _, c := range escapeLikeSearchChar {
-		term = strings.Replace(term, c, "*"+c, -1)
-	}
+	term = sanitizeSearchTerm(term, "*")
 
 	searchType := USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
 	if options.AllowEmails {
