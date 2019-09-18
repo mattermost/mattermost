@@ -92,7 +92,7 @@ func (worker *Worker) setJobSuccess(job *model.Job) {
 	}
 }
 
-func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
+func (worker *Worker) setJobError(job *model.Job, appError error) {
 	if err := worker.app.Srv.Jobs.SetJobError(job, appError); err != nil {
 		mlog.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}

@@ -15,7 +15,7 @@ type ReactionStore struct {
 }
 
 // BulkGetForPosts provides a mock function with given fields: postIds
-func (_m *ReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
+func (_m *ReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 	ret := _m.Called(postIds)
 
 	var r0 []*model.Reaction
@@ -40,7 +40,7 @@ func (_m *ReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *
 }
 
 // Delete provides a mock function with given fields: reaction
-func (_m *ReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (_m *ReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	ret := _m.Called(reaction)
 
 	var r0 *model.Reaction
@@ -65,7 +65,7 @@ func (_m *ReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *mod
 }
 
 // DeleteAllWithEmojiName provides a mock function with given fields: emojiName
-func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
+func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	ret := _m.Called(emojiName)
 
 	var r0 *model.AppError
@@ -81,7 +81,7 @@ func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppErro
 }
 
 // GetForPost provides a mock function with given fields: postId, allowFromCache
-func (_m *ReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
+func (_m *ReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 	ret := _m.Called(postId, allowFromCache)
 
 	var r0 []*model.Reaction
@@ -106,7 +106,7 @@ func (_m *ReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mode
 }
 
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
-func (_m *ReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (_m *ReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
 
 	var r0 int64
@@ -129,7 +129,7 @@ func (_m *ReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64
 }
 
 // Save provides a mock function with given fields: reaction
-func (_m *ReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (_m *ReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
 	ret := _m.Called(reaction)
 
 	var r0 *model.Reaction

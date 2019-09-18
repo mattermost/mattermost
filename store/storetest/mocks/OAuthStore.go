@@ -15,7 +15,7 @@ type OAuthStore struct {
 }
 
 // DeleteApp provides a mock function with given fields: id
-func (_m *OAuthStore) DeleteApp(id string) *model.AppError {
+func (_m *OAuthStore) DeleteApp(id string) error {
 	ret := _m.Called(id)
 
 	var r0 *model.AppError
@@ -31,7 +31,7 @@ func (_m *OAuthStore) DeleteApp(id string) *model.AppError {
 }
 
 // GetAccessData provides a mock function with given fields: token
-func (_m *OAuthStore) GetAccessData(token string) (*model.AccessData, *model.AppError) {
+func (_m *OAuthStore) GetAccessData(token string) (*model.AccessData, error) {
 	ret := _m.Called(token)
 
 	var r0 *model.AccessData
@@ -56,7 +56,7 @@ func (_m *OAuthStore) GetAccessData(token string) (*model.AccessData, *model.App
 }
 
 // GetAccessDataByRefreshToken provides a mock function with given fields: token
-func (_m *OAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessData, *model.AppError) {
+func (_m *OAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessData, error) {
 	ret := _m.Called(token)
 
 	var r0 *model.AccessData
@@ -81,7 +81,7 @@ func (_m *OAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessDa
 }
 
 // GetAccessDataByUserForApp provides a mock function with given fields: userId, clientId
-func (_m *OAuthStore) GetAccessDataByUserForApp(userId string, clientId string) ([]*model.AccessData, *model.AppError) {
+func (_m *OAuthStore) GetAccessDataByUserForApp(userId string, clientId string) ([]*model.AccessData, error) {
 	ret := _m.Called(userId, clientId)
 
 	var r0 []*model.AccessData
@@ -106,7 +106,7 @@ func (_m *OAuthStore) GetAccessDataByUserForApp(userId string, clientId string) 
 }
 
 // GetApp provides a mock function with given fields: id
-func (_m *OAuthStore) GetApp(id string) (*model.OAuthApp, *model.AppError) {
+func (_m *OAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.OAuthApp
@@ -131,7 +131,7 @@ func (_m *OAuthStore) GetApp(id string) (*model.OAuthApp, *model.AppError) {
 }
 
 // GetAppByUser provides a mock function with given fields: userId, offset, limit
-func (_m *OAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (_m *OAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*model.OAuthApp, error) {
 	ret := _m.Called(userId, offset, limit)
 
 	var r0 []*model.OAuthApp
@@ -156,7 +156,7 @@ func (_m *OAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*mod
 }
 
 // GetApps provides a mock function with given fields: offset, limit
-func (_m *OAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (_m *OAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp, error) {
 	ret := _m.Called(offset, limit)
 
 	var r0 []*model.OAuthApp
@@ -181,7 +181,7 @@ func (_m *OAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp, *model.
 }
 
 // GetAuthData provides a mock function with given fields: code
-func (_m *OAuthStore) GetAuthData(code string) (*model.AuthData, *model.AppError) {
+func (_m *OAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 	ret := _m.Called(code)
 
 	var r0 *model.AuthData
@@ -206,7 +206,7 @@ func (_m *OAuthStore) GetAuthData(code string) (*model.AuthData, *model.AppError
 }
 
 // GetAuthorizedApps provides a mock function with given fields: userId, offset, limit
-func (_m *OAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (_m *OAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([]*model.OAuthApp, error) {
 	ret := _m.Called(userId, offset, limit)
 
 	var r0 []*model.OAuthApp
@@ -231,7 +231,7 @@ func (_m *OAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([
 }
 
 // GetPreviousAccessData provides a mock function with given fields: userId, clientId
-func (_m *OAuthStore) GetPreviousAccessData(userId string, clientId string) (*model.AccessData, *model.AppError) {
+func (_m *OAuthStore) GetPreviousAccessData(userId string, clientId string) (*model.AccessData, error) {
 	ret := _m.Called(userId, clientId)
 
 	var r0 *model.AccessData
@@ -256,7 +256,7 @@ func (_m *OAuthStore) GetPreviousAccessData(userId string, clientId string) (*mo
 }
 
 // PermanentDeleteAuthDataByUser provides a mock function with given fields: userId
-func (_m *OAuthStore) PermanentDeleteAuthDataByUser(userId string) *model.AppError {
+func (_m *OAuthStore) PermanentDeleteAuthDataByUser(userId string) error {
 	ret := _m.Called(userId)
 
 	var r0 *model.AppError
@@ -272,7 +272,7 @@ func (_m *OAuthStore) PermanentDeleteAuthDataByUser(userId string) *model.AppErr
 }
 
 // RemoveAccessData provides a mock function with given fields: token
-func (_m *OAuthStore) RemoveAccessData(token string) *model.AppError {
+func (_m *OAuthStore) RemoveAccessData(token string) error {
 	ret := _m.Called(token)
 
 	var r0 *model.AppError
@@ -288,7 +288,7 @@ func (_m *OAuthStore) RemoveAccessData(token string) *model.AppError {
 }
 
 // RemoveAllAccessData provides a mock function with given fields:
-func (_m *OAuthStore) RemoveAllAccessData() *model.AppError {
+func (_m *OAuthStore) RemoveAllAccessData() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -304,7 +304,7 @@ func (_m *OAuthStore) RemoveAllAccessData() *model.AppError {
 }
 
 // RemoveAuthData provides a mock function with given fields: code
-func (_m *OAuthStore) RemoveAuthData(code string) *model.AppError {
+func (_m *OAuthStore) RemoveAuthData(code string) error {
 	ret := _m.Called(code)
 
 	var r0 *model.AppError
@@ -320,7 +320,7 @@ func (_m *OAuthStore) RemoveAuthData(code string) *model.AppError {
 }
 
 // SaveAccessData provides a mock function with given fields: accessData
-func (_m *OAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError) {
+func (_m *OAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	ret := _m.Called(accessData)
 
 	var r0 *model.AccessData
@@ -345,7 +345,7 @@ func (_m *OAuthStore) SaveAccessData(accessData *model.AccessData) (*model.Acces
 }
 
 // SaveApp provides a mock function with given fields: app
-func (_m *OAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+func (_m *OAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	ret := _m.Called(app)
 
 	var r0 *model.OAuthApp
@@ -370,7 +370,7 @@ func (_m *OAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppE
 }
 
 // SaveAuthData provides a mock function with given fields: authData
-func (_m *OAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, *model.AppError) {
+func (_m *OAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, error) {
 	ret := _m.Called(authData)
 
 	var r0 *model.AuthData
@@ -395,7 +395,7 @@ func (_m *OAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, *
 }
 
 // UpdateAccessData provides a mock function with given fields: accessData
-func (_m *OAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError) {
+func (_m *OAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	ret := _m.Called(accessData)
 
 	var r0 *model.AccessData
@@ -420,7 +420,7 @@ func (_m *OAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.Acc
 }
 
 // UpdateApp provides a mock function with given fields: app
-func (_m *OAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+func (_m *OAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	ret := _m.Called(app)
 
 	var r0 *model.OAuthApp

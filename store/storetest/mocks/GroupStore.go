@@ -15,7 +15,7 @@ type GroupStore struct {
 }
 
 // ChannelMembersMinusGroupMembers provides a mock function with given fields: channelID, groupIDs, page, perPage
-func (_m *GroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
+func (_m *GroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 	ret := _m.Called(channelID, groupIDs, page, perPage)
 
 	var r0 []*model.UserWithGroups
@@ -40,7 +40,7 @@ func (_m *GroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs
 }
 
 // ChannelMembersToAdd provides a mock function with given fields: since
-func (_m *GroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
+func (_m *GroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, error) {
 	ret := _m.Called(since)
 
 	var r0 []*model.UserChannelIDPair
@@ -65,7 +65,7 @@ func (_m *GroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPa
 }
 
 // ChannelMembersToRemove provides a mock function with given fields:
-func (_m *GroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
+func (_m *GroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, error) {
 	ret := _m.Called()
 
 	var r0 []*model.ChannelMember
@@ -90,7 +90,7 @@ func (_m *GroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.A
 }
 
 // CountChannelMembersMinusGroupMembers provides a mock function with given fields: channelID, groupIDs
-func (_m *GroupStore) CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError) {
+func (_m *GroupStore) CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, error) {
 	ret := _m.Called(channelID, groupIDs)
 
 	var r0 int64
@@ -113,7 +113,7 @@ func (_m *GroupStore) CountChannelMembersMinusGroupMembers(channelID string, gro
 }
 
 // CountGroupsByChannel provides a mock function with given fields: channelId, opts
-func (_m *GroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
+func (_m *GroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, error) {
 	ret := _m.Called(channelId, opts)
 
 	var r0 int64
@@ -136,7 +136,7 @@ func (_m *GroupStore) CountGroupsByChannel(channelId string, opts model.GroupSea
 }
 
 // CountGroupsByTeam provides a mock function with given fields: teamId, opts
-func (_m *GroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
+func (_m *GroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, error) {
 	ret := _m.Called(teamId, opts)
 
 	var r0 int64
@@ -159,7 +159,7 @@ func (_m *GroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpt
 }
 
 // CountTeamMembersMinusGroupMembers provides a mock function with given fields: teamID, groupIDs
-func (_m *GroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError) {
+func (_m *GroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, error) {
 	ret := _m.Called(teamID, groupIDs)
 
 	var r0 int64
@@ -182,7 +182,7 @@ func (_m *GroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupIDs 
 }
 
 // Create provides a mock function with given fields: group
-func (_m *GroupStore) Create(group *model.Group) (*model.Group, *model.AppError) {
+func (_m *GroupStore) Create(group *model.Group) (*model.Group, error) {
 	ret := _m.Called(group)
 
 	var r0 *model.Group
@@ -207,7 +207,7 @@ func (_m *GroupStore) Create(group *model.Group) (*model.Group, *model.AppError)
 }
 
 // CreateGroupSyncable provides a mock function with given fields: groupSyncable
-func (_m *GroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+func (_m *GroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, error) {
 	ret := _m.Called(groupSyncable)
 
 	var r0 *model.GroupSyncable
@@ -232,7 +232,7 @@ func (_m *GroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*
 }
 
 // Delete provides a mock function with given fields: groupID
-func (_m *GroupStore) Delete(groupID string) (*model.Group, *model.AppError) {
+func (_m *GroupStore) Delete(groupID string) (*model.Group, error) {
 	ret := _m.Called(groupID)
 
 	var r0 *model.Group
@@ -257,7 +257,7 @@ func (_m *GroupStore) Delete(groupID string) (*model.Group, *model.AppError) {
 }
 
 // DeleteGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
-func (_m *GroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+func (_m *GroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	ret := _m.Called(groupID, syncableID, syncableType)
 
 	var r0 *model.GroupSyncable
@@ -282,7 +282,7 @@ func (_m *GroupStore) DeleteGroupSyncable(groupID string, syncableID string, syn
 }
 
 // DeleteMember provides a mock function with given fields: groupID, userID
-func (_m *GroupStore) DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+func (_m *GroupStore) DeleteMember(groupID string, userID string) (*model.GroupMember, error) {
 	ret := _m.Called(groupID, userID)
 
 	var r0 *model.GroupMember
@@ -307,7 +307,7 @@ func (_m *GroupStore) DeleteMember(groupID string, userID string) (*model.GroupM
 }
 
 // Get provides a mock function with given fields: groupID
-func (_m *GroupStore) Get(groupID string) (*model.Group, *model.AppError) {
+func (_m *GroupStore) Get(groupID string) (*model.Group, error) {
 	ret := _m.Called(groupID)
 
 	var r0 *model.Group
@@ -332,7 +332,7 @@ func (_m *GroupStore) Get(groupID string) (*model.Group, *model.AppError) {
 }
 
 // GetAllBySource provides a mock function with given fields: groupSource
-func (_m *GroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+func (_m *GroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error) {
 	ret := _m.Called(groupSource)
 
 	var r0 []*model.Group
@@ -357,7 +357,7 @@ func (_m *GroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Gr
 }
 
 // GetAllGroupSyncablesByGroupId provides a mock function with given fields: groupID, syncableType
-func (_m *GroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
+func (_m *GroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, error) {
 	ret := _m.Called(groupID, syncableType)
 
 	var r0 []*model.GroupSyncable
@@ -382,7 +382,7 @@ func (_m *GroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType
 }
 
 // GetByIDs provides a mock function with given fields: groupIDs
-func (_m *GroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
+func (_m *GroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 	ret := _m.Called(groupIDs)
 
 	var r0 []*model.Group
@@ -407,7 +407,7 @@ func (_m *GroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *model.AppErr
 }
 
 // GetByRemoteID provides a mock function with given fields: remoteID, groupSource
-func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
+func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 	ret := _m.Called(remoteID, groupSource)
 
 	var r0 *model.Group
@@ -432,7 +432,7 @@ func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSour
 }
 
 // GetGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
-func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	ret := _m.Called(groupID, syncableID, syncableType)
 
 	var r0 *model.GroupSyncable
@@ -457,7 +457,7 @@ func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncab
 }
 
 // GetGroups provides a mock function with given fields: page, perPage, opts
-func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	ret := _m.Called(page, perPage, opts)
 
 	var r0 []*model.Group
@@ -482,7 +482,7 @@ func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpt
 }
 
 // GetGroupsByChannel provides a mock function with given fields: channelId, opts
-func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	ret := _m.Called(channelId, opts)
 
 	var r0 []*model.Group
@@ -507,7 +507,7 @@ func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearc
 }
 
 // GetGroupsByTeam provides a mock function with given fields: teamId, opts
-func (_m *GroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (_m *GroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	ret := _m.Called(teamId, opts)
 
 	var r0 []*model.Group
@@ -532,7 +532,7 @@ func (_m *GroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts)
 }
 
 // GetMemberCount provides a mock function with given fields: groupID
-func (_m *GroupStore) GetMemberCount(groupID string) (int64, *model.AppError) {
+func (_m *GroupStore) GetMemberCount(groupID string) (int64, error) {
 	ret := _m.Called(groupID)
 
 	var r0 int64
@@ -555,7 +555,7 @@ func (_m *GroupStore) GetMemberCount(groupID string) (int64, *model.AppError) {
 }
 
 // GetMemberUsers provides a mock function with given fields: groupID
-func (_m *GroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.AppError) {
+func (_m *GroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	ret := _m.Called(groupID)
 
 	var r0 []*model.User
@@ -580,7 +580,7 @@ func (_m *GroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.AppE
 }
 
 // GetMemberUsersPage provides a mock function with given fields: groupID, page, perPage
-func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
+func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
 	ret := _m.Called(groupID, page, perPage)
 
 	var r0 []*model.User
@@ -605,7 +605,7 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) 
 }
 
 // TeamMembersMinusGroupMembers provides a mock function with given fields: teamID, groupIDs, page, perPage
-func (_m *GroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
+func (_m *GroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 	ret := _m.Called(teamID, groupIDs, page, perPage)
 
 	var r0 []*model.UserWithGroups
@@ -630,7 +630,7 @@ func (_m *GroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []str
 }
 
 // TeamMembersToAdd provides a mock function with given fields: since
-func (_m *GroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
+func (_m *GroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, error) {
 	ret := _m.Called(since)
 
 	var r0 []*model.UserTeamIDPair
@@ -655,7 +655,7 @@ func (_m *GroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *m
 }
 
 // TeamMembersToRemove provides a mock function with given fields:
-func (_m *GroupStore) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
+func (_m *GroupStore) TeamMembersToRemove() ([]*model.TeamMember, error) {
 	ret := _m.Called()
 
 	var r0 []*model.TeamMember
@@ -680,7 +680,7 @@ func (_m *GroupStore) TeamMembersToRemove() ([]*model.TeamMember, *model.AppErro
 }
 
 // Update provides a mock function with given fields: group
-func (_m *GroupStore) Update(group *model.Group) (*model.Group, *model.AppError) {
+func (_m *GroupStore) Update(group *model.Group) (*model.Group, error) {
 	ret := _m.Called(group)
 
 	var r0 *model.Group
@@ -705,7 +705,7 @@ func (_m *GroupStore) Update(group *model.Group) (*model.Group, *model.AppError)
 }
 
 // UpdateGroupSyncable provides a mock function with given fields: groupSyncable
-func (_m *GroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+func (_m *GroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, error) {
 	ret := _m.Called(groupSyncable)
 
 	var r0 *model.GroupSyncable
@@ -730,7 +730,7 @@ func (_m *GroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*
 }
 
 // UpsertMember provides a mock function with given fields: groupID, userID
-func (_m *GroupStore) UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+func (_m *GroupStore) UpsertMember(groupID string, userID string) (*model.GroupMember, error) {
 	ret := _m.Called(groupID, userID)
 
 	var r0 *model.GroupMember

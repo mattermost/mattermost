@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {
+func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, error) {
 	if license := a.License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance {
 		return nil, model.NewAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -19,7 +19,7 @@ func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model
 	return a.Srv.Store.Compliance().GetAll(page*perPage, perPage)
 }
 
-func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
+func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, error) {
 	if license := a.License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance == nil {
 		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -38,7 +38,7 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 	return job, nil
 }
 
-func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
+func (a *App) GetComplianceReport(reportId string) (*model.Compliance, error) {
 	if license := a.License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance == nil {
 		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -46,7 +46,7 @@ func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.Ap
 	return a.Srv.Store.Compliance().Get(reportId)
 }
 
-func (a *App) GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {
+func (a *App) GetComplianceFile(job *model.Compliance) ([]byte, error) {
 	f, err := ioutil.ReadFile(*a.Config().ComplianceSettings.Directory + "compliance/" + job.JobName() + ".zip")
 	if err != nil {
 		return nil, model.NewAppError("readFile", "api.file.read_file.reading_local.app_error", nil, err.Error(), http.StatusNotImplemented)

@@ -35,15 +35,15 @@ func (c *FakeClusterInterface) SendClusterMessage(message *model.ClusterMessage)
 
 func (c *FakeClusterInterface) NotifyMsg(buf []byte) {}
 
-func (c *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.AppError) {
+func (c *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, error) {
 	return nil, nil
 }
 
-func (c *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (c *FakeClusterInterface) GetLogs(page, perPage int) ([]string, error) {
 	return []string{}, nil
 }
 
-func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
+func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) error {
 	return nil
 }
 
@@ -55,7 +55,7 @@ func (c *FakeClusterInterface) SendClearRoleCacheMessage() {
 	}
 }
 
-func (c *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+func (c *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, error) {
 	return nil, nil
 }
 

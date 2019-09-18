@@ -63,7 +63,7 @@ func (fs SqlFileInfoStore) CreateIndexesIfNotExists() {
 	fs.CreateIndexIfNotExists("idx_fileinfo_postid_at", "FileInfo", "PostId")
 }
 
-func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	info.PreSave()
 	if err := info.IsValid(); err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *model.A
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	info := &model.FileInfo{}
 
 	if err := fs.GetReplica().SelectOne(info,
@@ -94,7 +94,7 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	info := &model.FileInfo{}
 
 	if err := fs.GetReplica().SelectOne(info,
@@ -118,7 +118,7 @@ func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 	}
 }
 
-func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
 	cacheKey := postId
 	if includeDeleted {
 		cacheKey += "_deleted"
@@ -174,7 +174,7 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDele
 	return infos, nil
 }
 
-func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
 	var infos []*model.FileInfo
 
 	dbmap := fs.GetReplica()
@@ -195,7 +195,7 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.
 	return infos, nil
 }
 
-func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) *model.AppError {
+func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) error {
 	sqlResult, err := fs.GetMaster().Exec(`
 		UPDATE
 			FileInfo
@@ -228,7 +228,7 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) *model
 	return nil
 }
 
-func (fs SqlFileInfoStore) DeleteForPost(postId string) (string, *model.AppError) {
+func (fs SqlFileInfoStore) DeleteForPost(postId string) (string, error) {
 	if _, err := fs.GetMaster().Exec(
 		`UPDATE
 				FileInfo
@@ -242,7 +242,7 @@ func (fs SqlFileInfoStore) DeleteForPost(postId string) (string, *model.AppError
 	return postId, nil
 }
 
-func (fs SqlFileInfoStore) PermanentDelete(fileId string) *model.AppError {
+func (fs SqlFileInfoStore) PermanentDelete(fileId string) error {
 	if _, err := fs.GetMaster().Exec(
 		`DELETE FROM
 				FileInfo
@@ -254,7 +254,7 @@ func (fs SqlFileInfoStore) PermanentDelete(fileId string) *model.AppError {
 	return nil
 }
 
-func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == "postgres" {
 		query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < :EndTime LIMIT :Limit))"
@@ -273,7 +273,7 @@ func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int6
 	return rowsAffected, nil
 }
 
-func (s SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
+func (s SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 	query := "DELETE from FileInfo WHERE CreatorId = :CreatorId"
 
 	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"CreatorId": userId})

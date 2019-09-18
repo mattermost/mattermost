@@ -54,7 +54,7 @@ var exportablePreferences = map[ComparablePreference]string{{
 }: "EmailInterval",
 }
 
-func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
+func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) error {
 	mlog.Info("Bulk export: exporting version")
 	if err := a.ExportVersion(writer); err != nil {
 		return err
@@ -98,7 +98,7 @@ func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, d
 	return nil
 }
 
-func (a *App) ExportWriteLine(writer io.Writer, line *LineImportData) *model.AppError {
+func (a *App) ExportWriteLine(writer io.Writer, line *LineImportData) error {
 	b, err := json.Marshal(line)
 	if err != nil {
 		return model.NewAppError("BulkExport", "app.export.export_write_line.json_marshall.error", nil, "err="+err.Error(), http.StatusBadRequest)
@@ -111,7 +111,7 @@ func (a *App) ExportWriteLine(writer io.Writer, line *LineImportData) *model.App
 	return nil
 }
 
-func (a *App) ExportVersion(writer io.Writer) *model.AppError {
+func (a *App) ExportVersion(writer io.Writer) error {
 	version := 1
 	versionLine := &LineImportData{
 		Type:    "version",
@@ -121,7 +121,7 @@ func (a *App) ExportVersion(writer io.Writer) *model.AppError {
 	return a.ExportWriteLine(writer, versionLine)
 }
 
-func (a *App) ExportAllTeams(writer io.Writer) *model.AppError {
+func (a *App) ExportAllTeams(writer io.Writer) error {
 	afterId := strings.Repeat("0", 26)
 	for {
 		teams, err := a.Srv.Store.Team().GetAllForExportAfter(1000, afterId)
@@ -152,7 +152,7 @@ func (a *App) ExportAllTeams(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) ExportAllChannels(writer io.Writer) *model.AppError {
+func (a *App) ExportAllChannels(writer io.Writer) error {
 	afterId := strings.Repeat("0", 26)
 	for {
 		channels, err := a.Srv.Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
@@ -183,7 +183,7 @@ func (a *App) ExportAllChannels(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
+func (a *App) ExportAllUsers(writer io.Writer) error {
 	afterId := strings.Repeat("0", 26)
 	for {
 		users, err := a.Srv.Store.User().GetAllAfter(1000, afterId)
@@ -258,7 +258,7 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImportData, error) {
 	var memberships []UserTeamImportData
 
 	members, err := a.Srv.Store.Team().GetTeamMembersForExport(userId)
@@ -295,7 +295,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 	return &memberships, nil
 }
 
-func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]UserChannelImportData, *model.AppError) {
+func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]UserChannelImportData, error) {
 	var memberships []UserChannelImportData
 
 	members, err := a.Srv.Store.Channel().GetChannelMembersForExport(userId, teamId)
@@ -305,7 +305,7 @@ func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]User
 
 	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
 	preferences, err := a.GetPreferenceByCategoryForUser(userId, category)
-	if err != nil && err.StatusCode != http.StatusNotFound {
+	if err != nil && err.(*model.AppError).StatusCode != http.StatusNotFound {
 		return nil, err
 	}
 
@@ -336,7 +336,7 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 	}
 }
 
-func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
+func (a *App) ExportAllPosts(writer io.Writer) error {
 	afterId := strings.Repeat("0", 26)
 
 	for {
@@ -379,7 +379,7 @@ func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 	}
 }
 
-func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppError) {
+func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, error) {
 	var replies []ReplyImportData
 
 	replyPosts, err := a.Srv.Store.Post().GetRepliesForExport(postId)
@@ -401,7 +401,7 @@ func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppErr
 	return &replies, nil
 }
 
-func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
+func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, error) {
 	var reactionsOfPost []ReactionImportData
 
 	reactions, err := a.Srv.Store.Reaction().GetForPost(postId, true)
@@ -413,7 +413,7 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 		var user *model.User
 		user, err = a.Srv.Store.User().Get(reaction.UserId)
 		if err != nil {
-			if err.Id == store.MISSING_ACCOUNT_ERROR { // this is a valid case, the user that reacted might've been deleted by now
+			if err.(*model.AppError).Id == store.MISSING_ACCOUNT_ERROR { // this is a valid case, the user that reacted might've been deleted by now
 				mlog.Info(fmt.Sprintf("Skipping reactions by user %v, since the entity doesn't exist anymore", reaction.UserId))
 				continue
 			}
@@ -426,7 +426,7 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 
 }
 
-func (a *App) ExportCustomEmoji(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
+func (a *App) ExportCustomEmoji(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) error {
 	pageNumber := 0
 	for {
 		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EMOJI_SORT_BY_NAME)
@@ -513,7 +513,7 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 	return nil
 }
 
-func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
+func (a *App) ExportAllDirectChannels(writer io.Writer) error {
 	afterId := strings.Repeat("0", 26)
 	for {
 		channels, err := a.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
@@ -549,7 +549,7 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
+func (a *App) ExportAllDirectPosts(writer io.Writer) error {
 	afterId := strings.Repeat("0", 26)
 	for {
 		posts, err := a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)

@@ -78,7 +78,7 @@ func TestPluginCommand(t *testing.T) {
 				return err
 			}
 
-			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, error) {
 				return &model.CommandResponse{
 					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 					Text: "text",
@@ -159,7 +159,7 @@ func TestPluginCommand(t *testing.T) {
 				return nil
 			}
 
-			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, commandArgs *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
 				p.API.LogInfo("ExecuteCommand")
 				// Saving the plugin config eventually results in a call to
 				// OnConfigurationChange. This used to deadlock on account of

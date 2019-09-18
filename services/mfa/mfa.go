@@ -30,7 +30,7 @@ func New(configService configservice.ConfigService, store store.Store) Mfa {
 	return Mfa{configService, store}
 }
 
-func (m *Mfa) checkConfig() *model.AppError {
+func (m *Mfa) checkConfig() error {
 	if !*m.ConfigService.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return model.NewAppError("checkConfig", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -51,7 +51,7 @@ func getIssuerFromUrl(uri string) string {
 	return url.QueryEscape(issuer)
 }
 
-func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError) {
+func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, error) {
 	if err := m.checkConfig(); err != nil {
 		return "", nil, err
 	}
@@ -77,7 +77,7 @@ func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError)
 	return secret, img, nil
 }
 
-func (m *Mfa) Activate(user *model.User, token string) *model.AppError {
+func (m *Mfa) Activate(user *model.User, token string) error {
 	if err := m.checkConfig(); err != nil {
 		return err
 	}
@@ -106,12 +106,12 @@ func (m *Mfa) Activate(user *model.User, token string) *model.AppError {
 	return nil
 }
 
-func (m *Mfa) Deactivate(userId string) *model.AppError {
+func (m *Mfa) Deactivate(userId string) error {
 	if err := m.checkConfig(); err != nil {
 		return err
 	}
 
-	schan := make(chan *model.AppError, 1)
+	schan := make(chan error, 1)
 	go func() {
 		schan <- m.Store.User().UpdateMfaSecret(userId, "")
 		close(schan)
@@ -128,7 +128,7 @@ func (m *Mfa) Deactivate(userId string) *model.AppError {
 	return nil
 }
 
-func (m *Mfa) ValidateToken(secret, token string) (bool, *model.AppError) {
+func (m *Mfa) ValidateToken(secret, token string) (bool, error) {
 	if err := m.checkConfig(); err != nil {
 		return false, err
 	}

@@ -29,7 +29,7 @@ func TestGenerateSecret(t *testing.T) {
 	configService := testutils.StaticConfigService{Cfg: &config}
 	storeMock := mocks.Store{}
 	userStoreMock := mocks.UserStore{}
-	userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) *model.AppError {
+	userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
 		return nil
 	})
 	storeMock.On("User").Return(&userStoreMock)
@@ -81,7 +81,7 @@ func TestActivate(t *testing.T) {
 	configService := testutils.StaticConfigService{Cfg: &config}
 	storeMock := mocks.Store{}
 	userStoreMock := mocks.UserStore{}
-	userStoreMock.On("UpdateMfaActive", user.Id, mock.AnythingOfType("bool")).Return(func(userId string, active bool) *model.AppError {
+	userStoreMock.On("UpdateMfaActive", user.Id, mock.AnythingOfType("bool")).Return(func(userId string, active bool) error {
 		return nil
 	})
 	storeMock.On("User").Return(&userStoreMock)

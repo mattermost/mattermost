@@ -15,7 +15,7 @@ type ChannelMemberHistoryStore struct {
 }
 
 // GetUsersInChannelDuring provides a mock function with given fields: startTime, endTime, channelId
-func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, *model.AppError) {
+func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
 	ret := _m.Called(startTime, endTime, channelId)
 
 	var r0 []*model.ChannelMemberHistoryResult
@@ -40,7 +40,7 @@ func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, en
 }
 
 // LogJoinEvent provides a mock function with given fields: userId, channelId, joinTime
-func (_m *ChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) *model.AppError {
+func (_m *ChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) error {
 	ret := _m.Called(userId, channelId, joinTime)
 
 	var r0 *model.AppError
@@ -56,7 +56,7 @@ func (_m *ChannelMemberHistoryStore) LogJoinEvent(userId string, channelId strin
 }
 
 // LogLeaveEvent provides a mock function with given fields: userId, channelId, leaveTime
-func (_m *ChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) *model.AppError {
+func (_m *ChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) error {
 	ret := _m.Called(userId, channelId, leaveTime)
 
 	var r0 *model.AppError
@@ -72,7 +72,7 @@ func (_m *ChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId stri
 }
 
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
-func (_m *ChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (_m *ChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
 
 	var r0 int64

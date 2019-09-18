@@ -57,7 +57,7 @@ func (a *App) SetupInviteEmailRateLimiting() error {
 	return nil
 }
 
-func (a *App) SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL string) *model.AppError {
+func (a *App) SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL string) error {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.username_change_subject",
@@ -78,7 +78,7 @@ func (a *App) SendChangeUsernameEmail(oldUsername, newUsername, email, locale, s
 	return nil
 }
 
-func (a *App) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token string) *model.AppError {
+func (a *App) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token string) error {
 	T := utils.GetUserTranslations(locale)
 
 	link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token, url.QueryEscape(newUserEmail))
@@ -102,7 +102,7 @@ func (a *App) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token st
 	return nil
 }
 
-func (a *App) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *model.AppError {
+func (a *App) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) error {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.email_change_subject",
@@ -123,7 +123,7 @@ func (a *App) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *
 	return nil
 }
 
-func (a *App) SendVerifyEmail(userEmail, locale, siteURL, token string) *model.AppError {
+func (a *App) SendVerifyEmail(userEmail, locale, siteURL, token string) error {
 	T := utils.GetUserTranslations(locale)
 
 	link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token, url.QueryEscape(userEmail))
@@ -147,7 +147,7 @@ func (a *App) SendVerifyEmail(userEmail, locale, siteURL, token string) *model.A
 	return nil
 }
 
-func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppError {
+func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) error {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.signin_change_email.subject",
@@ -167,7 +167,7 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 	return nil
 }
 
-func (a *App) SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
+func (a *App) SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) error {
 	T := utils.GetUserTranslations(locale)
 
 	serverURL := condenseSiteURL(siteURL)
@@ -206,7 +206,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 	return nil
 }
 
-func (a *App) SendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppError {
+func (a *App) SendPasswordChangeEmail(email, method, locale, siteURL string) error {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.password_change_subject",
@@ -227,7 +227,7 @@ func (a *App) SendPasswordChangeEmail(email, method, locale, siteURL string) *mo
 	return nil
 }
 
-func (a *App) SendUserAccessTokenAddedEmail(email, locale, siteURL string) *model.AppError {
+func (a *App) SendUserAccessTokenAddedEmail(email, locale, siteURL string) error {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.user_access_token_subject",
@@ -247,7 +247,7 @@ func (a *App) SendUserAccessTokenAddedEmail(email, locale, siteURL string) *mode
 	return nil
 }
 
-func (a *App) SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError) {
+func (a *App) SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, error) {
 	T := utils.GetUserTranslations(locale)
 
 	link := fmt.Sprintf("%s/reset_password_complete?token=%s", siteURL, url.QueryEscape(token.Token))
@@ -264,13 +264,13 @@ func (a *App) SendPasswordResetEmail(email string, token *model.Token, locale, s
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
 
 	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.(*model.AppError).Message, http.StatusInternalServerError)
 	}
 
 	return true, nil
 }
 
-func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL string) *model.AppError {
+func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL string) error {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.mfa_change_subject",
@@ -464,7 +464,7 @@ func (a *App) NewEmailTemplate(name, locale string) *utils.HTMLTemplate {
 	return t
 }
 
-func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *model.AppError {
+func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) error {
 	T := utils.GetUserTranslations(locale)
 
 	serverURL := condenseSiteURL(siteURL)
@@ -487,14 +487,14 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 	return nil
 }
 
-func (a *App) SendNotificationMail(to, subject, htmlBody string) *model.AppError {
+func (a *App) SendNotificationMail(to, subject, htmlBody string) error {
 	if !*a.Config().EmailSettings.SendEmailNotifications {
 		return nil
 	}
 	return a.SendMail(to, subject, htmlBody)
 }
 
-func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
+func (a *App) SendMail(to, subject, htmlBody string) error {
 	license := a.License()
 	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
 }

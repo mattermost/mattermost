@@ -96,7 +96,7 @@ type Z_ExecuteCommandReturns struct {
 	B *model.AppError
 }
 
-func (g *hooksRPCClient) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (g *hooksRPCClient) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, error) {
 	_args := &Z_ExecuteCommandArgs{c, args}
 	_returns := &Z_ExecuteCommandReturns{}
 	if g.implemented[ExecuteCommandId] {
@@ -541,7 +541,7 @@ type Z_GetSessionReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetSession(sessionId string) (*model.Session, *model.AppError) {
+func (g *apiRPCClient) GetSession(sessionId string) (*model.Session, error) {
 	_args := &Z_GetSessionArgs{sessionId}
 	_returns := &Z_GetSessionReturns{}
 	if err := g.client.Call("Plugin.GetSession", _args, _returns); err != nil {
@@ -623,7 +623,7 @@ type Z_SaveConfigReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SaveConfig(config *model.Config) *model.AppError {
+func (g *apiRPCClient) SaveConfig(config *model.Config) error {
 	_args := &Z_SaveConfigArgs{config}
 	_returns := &Z_SaveConfigReturns{}
 	if err := g.client.Call("Plugin.SaveConfig", _args, _returns); err != nil {
@@ -678,7 +678,7 @@ type Z_SavePluginConfigReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SavePluginConfig(config map[string]interface{}) *model.AppError {
+func (g *apiRPCClient) SavePluginConfig(config map[string]interface{}) error {
 	_args := &Z_SavePluginConfigArgs{config}
 	_returns := &Z_SavePluginConfigReturns{}
 	if err := g.client.Call("Plugin.SavePluginConfig", _args, _returns); err != nil {
@@ -788,7 +788,7 @@ type Z_GetSystemInstallDateReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetSystemInstallDate() (int64, *model.AppError) {
+func (g *apiRPCClient) GetSystemInstallDate() (int64, error) {
 	_args := &Z_GetSystemInstallDateArgs{}
 	_returns := &Z_GetSystemInstallDateReturns{}
 	if err := g.client.Call("Plugin.GetSystemInstallDate", _args, _returns); err != nil {
@@ -844,7 +844,7 @@ type Z_CreateUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateUser(user *model.User) (*model.User, *model.AppError) {
+func (g *apiRPCClient) CreateUser(user *model.User) (*model.User, error) {
 	_args := &Z_CreateUserArgs{user}
 	_returns := &Z_CreateUserReturns{}
 	if err := g.client.Call("Plugin.CreateUser", _args, _returns); err != nil {
@@ -872,7 +872,7 @@ type Z_DeleteUserReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeleteUser(userId string) *model.AppError {
+func (g *apiRPCClient) DeleteUser(userId string) error {
 	_args := &Z_DeleteUserArgs{userId}
 	_returns := &Z_DeleteUserReturns{}
 	if err := g.client.Call("Plugin.DeleteUser", _args, _returns); err != nil {
@@ -901,7 +901,7 @@ type Z_GetUsersReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+func (g *apiRPCClient) GetUsers(options *model.UserGetOptions) ([]*model.User, error) {
 	_args := &Z_GetUsersArgs{options}
 	_returns := &Z_GetUsersReturns{}
 	if err := g.client.Call("Plugin.GetUsers", _args, _returns); err != nil {
@@ -930,7 +930,7 @@ type Z_GetUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUser(userId string) (*model.User, *model.AppError) {
+func (g *apiRPCClient) GetUser(userId string) (*model.User, error) {
 	_args := &Z_GetUserArgs{userId}
 	_returns := &Z_GetUserReturns{}
 	if err := g.client.Call("Plugin.GetUser", _args, _returns); err != nil {
@@ -959,7 +959,7 @@ type Z_GetUserByEmailReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUserByEmail(email string) (*model.User, *model.AppError) {
+func (g *apiRPCClient) GetUserByEmail(email string) (*model.User, error) {
 	_args := &Z_GetUserByEmailArgs{email}
 	_returns := &Z_GetUserByEmailReturns{}
 	if err := g.client.Call("Plugin.GetUserByEmail", _args, _returns); err != nil {
@@ -988,7 +988,7 @@ type Z_GetUserByUsernameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUserByUsername(name string) (*model.User, *model.AppError) {
+func (g *apiRPCClient) GetUserByUsername(name string) (*model.User, error) {
 	_args := &Z_GetUserByUsernameArgs{name}
 	_returns := &Z_GetUserByUsernameReturns{}
 	if err := g.client.Call("Plugin.GetUserByUsername", _args, _returns); err != nil {
@@ -1017,7 +1017,7 @@ type Z_GetUsersByUsernamesReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
+func (g *apiRPCClient) GetUsersByUsernames(usernames []string) ([]*model.User, error) {
 	_args := &Z_GetUsersByUsernamesArgs{usernames}
 	_returns := &Z_GetUsersByUsernamesReturns{}
 	if err := g.client.Call("Plugin.GetUsersByUsernames", _args, _returns); err != nil {
@@ -1048,7 +1048,7 @@ type Z_GetUsersInTeamReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
+func (g *apiRPCClient) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, error) {
 	_args := &Z_GetUsersInTeamArgs{teamId, page, perPage}
 	_returns := &Z_GetUsersInTeamReturns{}
 	if err := g.client.Call("Plugin.GetUsersInTeam", _args, _returns); err != nil {
@@ -1077,7 +1077,7 @@ type Z_GetTeamIconReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
+func (g *apiRPCClient) GetTeamIcon(teamId string) ([]byte, error) {
 	_args := &Z_GetTeamIconArgs{teamId}
 	_returns := &Z_GetTeamIconReturns{}
 	if err := g.client.Call("Plugin.GetTeamIcon", _args, _returns); err != nil {
@@ -1106,7 +1106,7 @@ type Z_SetTeamIconReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SetTeamIcon(teamId string, data []byte) *model.AppError {
+func (g *apiRPCClient) SetTeamIcon(teamId string, data []byte) error {
 	_args := &Z_SetTeamIconArgs{teamId, data}
 	_returns := &Z_SetTeamIconReturns{}
 	if err := g.client.Call("Plugin.SetTeamIcon", _args, _returns); err != nil {
@@ -1134,7 +1134,7 @@ type Z_RemoveTeamIconReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) RemoveTeamIcon(teamId string) *model.AppError {
+func (g *apiRPCClient) RemoveTeamIcon(teamId string) error {
 	_args := &Z_RemoveTeamIconArgs{teamId}
 	_returns := &Z_RemoveTeamIconReturns{}
 	if err := g.client.Call("Plugin.RemoveTeamIcon", _args, _returns); err != nil {
@@ -1163,7 +1163,7 @@ type Z_UpdateUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateUser(user *model.User) (*model.User, *model.AppError) {
+func (g *apiRPCClient) UpdateUser(user *model.User) (*model.User, error) {
 	_args := &Z_UpdateUserArgs{user}
 	_returns := &Z_UpdateUserReturns{}
 	if err := g.client.Call("Plugin.UpdateUser", _args, _returns); err != nil {
@@ -1192,7 +1192,7 @@ type Z_GetUserStatusReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUserStatus(userId string) (*model.Status, *model.AppError) {
+func (g *apiRPCClient) GetUserStatus(userId string) (*model.Status, error) {
 	_args := &Z_GetUserStatusArgs{userId}
 	_returns := &Z_GetUserStatusReturns{}
 	if err := g.client.Call("Plugin.GetUserStatus", _args, _returns); err != nil {
@@ -1221,7 +1221,7 @@ type Z_GetUserStatusesByIdsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
+func (g *apiRPCClient) GetUserStatusesByIds(userIds []string) ([]*model.Status, error) {
 	_args := &Z_GetUserStatusesByIdsArgs{userIds}
 	_returns := &Z_GetUserStatusesByIdsReturns{}
 	if err := g.client.Call("Plugin.GetUserStatusesByIds", _args, _returns); err != nil {
@@ -1251,7 +1251,7 @@ type Z_UpdateUserStatusReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateUserStatus(userId, status string) (*model.Status, *model.AppError) {
+func (g *apiRPCClient) UpdateUserStatus(userId, status string) (*model.Status, error) {
 	_args := &Z_UpdateUserStatusArgs{userId, status}
 	_returns := &Z_UpdateUserStatusReturns{}
 	if err := g.client.Call("Plugin.UpdateUserStatus", _args, _returns); err != nil {
@@ -1280,7 +1280,7 @@ type Z_UpdateUserActiveReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) UpdateUserActive(userId string, active bool) *model.AppError {
+func (g *apiRPCClient) UpdateUserActive(userId string, active bool) error {
 	_args := &Z_UpdateUserActiveArgs{userId, active}
 	_returns := &Z_UpdateUserActiveReturns{}
 	if err := g.client.Call("Plugin.UpdateUserActive", _args, _returns); err != nil {
@@ -1312,7 +1312,7 @@ type Z_GetUsersInChannelReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
+func (g *apiRPCClient) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, error) {
 	_args := &Z_GetUsersInChannelArgs{channelId, sortBy, page, perPage}
 	_returns := &Z_GetUsersInChannelReturns{}
 	if err := g.client.Call("Plugin.GetUsersInChannel", _args, _returns); err != nil {
@@ -1342,7 +1342,7 @@ type Z_GetLDAPUserAttributesReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
+func (g *apiRPCClient) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, error) {
 	_args := &Z_GetLDAPUserAttributesArgs{userId, attributes}
 	_returns := &Z_GetLDAPUserAttributesReturns{}
 	if err := g.client.Call("Plugin.GetLDAPUserAttributes", _args, _returns); err != nil {
@@ -1371,7 +1371,7 @@ type Z_CreateTeamReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
+func (g *apiRPCClient) CreateTeam(team *model.Team) (*model.Team, error) {
 	_args := &Z_CreateTeamArgs{team}
 	_returns := &Z_CreateTeamReturns{}
 	if err := g.client.Call("Plugin.CreateTeam", _args, _returns); err != nil {
@@ -1399,7 +1399,7 @@ type Z_DeleteTeamReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeleteTeam(teamId string) *model.AppError {
+func (g *apiRPCClient) DeleteTeam(teamId string) error {
 	_args := &Z_DeleteTeamArgs{teamId}
 	_returns := &Z_DeleteTeamReturns{}
 	if err := g.client.Call("Plugin.DeleteTeam", _args, _returns); err != nil {
@@ -1427,7 +1427,7 @@ type Z_GetTeamsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeams() ([]*model.Team, *model.AppError) {
+func (g *apiRPCClient) GetTeams() ([]*model.Team, error) {
 	_args := &Z_GetTeamsArgs{}
 	_returns := &Z_GetTeamsReturns{}
 	if err := g.client.Call("Plugin.GetTeams", _args, _returns); err != nil {
@@ -1456,7 +1456,7 @@ type Z_GetTeamReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeam(teamId string) (*model.Team, *model.AppError) {
+func (g *apiRPCClient) GetTeam(teamId string) (*model.Team, error) {
 	_args := &Z_GetTeamArgs{teamId}
 	_returns := &Z_GetTeamReturns{}
 	if err := g.client.Call("Plugin.GetTeam", _args, _returns); err != nil {
@@ -1485,7 +1485,7 @@ type Z_GetTeamByNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamByName(name string) (*model.Team, *model.AppError) {
+func (g *apiRPCClient) GetTeamByName(name string) (*model.Team, error) {
 	_args := &Z_GetTeamByNameArgs{name}
 	_returns := &Z_GetTeamByNameReturns{}
 	if err := g.client.Call("Plugin.GetTeamByName", _args, _returns); err != nil {
@@ -1514,7 +1514,7 @@ type Z_GetTeamsUnreadForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError) {
+func (g *apiRPCClient) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, error) {
 	_args := &Z_GetTeamsUnreadForUserArgs{userId}
 	_returns := &Z_GetTeamsUnreadForUserReturns{}
 	if err := g.client.Call("Plugin.GetTeamsUnreadForUser", _args, _returns); err != nil {
@@ -1543,7 +1543,7 @@ type Z_UpdateTeamReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
+func (g *apiRPCClient) UpdateTeam(team *model.Team) (*model.Team, error) {
 	_args := &Z_UpdateTeamArgs{team}
 	_returns := &Z_UpdateTeamReturns{}
 	if err := g.client.Call("Plugin.UpdateTeam", _args, _returns); err != nil {
@@ -1572,7 +1572,7 @@ type Z_SearchTeamsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) SearchTeams(term string) ([]*model.Team, *model.AppError) {
+func (g *apiRPCClient) SearchTeams(term string) ([]*model.Team, error) {
 	_args := &Z_SearchTeamsArgs{term}
 	_returns := &Z_SearchTeamsReturns{}
 	if err := g.client.Call("Plugin.SearchTeams", _args, _returns); err != nil {
@@ -1601,7 +1601,7 @@ type Z_GetTeamsForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
+func (g *apiRPCClient) GetTeamsForUser(userId string) ([]*model.Team, error) {
 	_args := &Z_GetTeamsForUserArgs{userId}
 	_returns := &Z_GetTeamsForUserReturns{}
 	if err := g.client.Call("Plugin.GetTeamsForUser", _args, _returns); err != nil {
@@ -1631,7 +1631,7 @@ type Z_CreateTeamMemberReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
+func (g *apiRPCClient) CreateTeamMember(teamId, userId string) (*model.TeamMember, error) {
 	_args := &Z_CreateTeamMemberArgs{teamId, userId}
 	_returns := &Z_CreateTeamMemberReturns{}
 	if err := g.client.Call("Plugin.CreateTeamMember", _args, _returns); err != nil {
@@ -1662,7 +1662,7 @@ type Z_CreateTeamMembersReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
+func (g *apiRPCClient) CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, error) {
 	_args := &Z_CreateTeamMembersArgs{teamId, userIds, requestorId}
 	_returns := &Z_CreateTeamMembersReturns{}
 	if err := g.client.Call("Plugin.CreateTeamMembers", _args, _returns); err != nil {
@@ -1692,7 +1692,7 @@ type Z_DeleteTeamMemberReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeleteTeamMember(teamId, userId, requestorId string) *model.AppError {
+func (g *apiRPCClient) DeleteTeamMember(teamId, userId, requestorId string) error {
 	_args := &Z_DeleteTeamMemberArgs{teamId, userId, requestorId}
 	_returns := &Z_DeleteTeamMemberReturns{}
 	if err := g.client.Call("Plugin.DeleteTeamMember", _args, _returns); err != nil {
@@ -1723,7 +1723,7 @@ type Z_GetTeamMembersReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
+func (g *apiRPCClient) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, error) {
 	_args := &Z_GetTeamMembersArgs{teamId, page, perPage}
 	_returns := &Z_GetTeamMembersReturns{}
 	if err := g.client.Call("Plugin.GetTeamMembers", _args, _returns); err != nil {
@@ -1753,7 +1753,7 @@ type Z_GetTeamMemberReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
+func (g *apiRPCClient) GetTeamMember(teamId, userId string) (*model.TeamMember, error) {
 	_args := &Z_GetTeamMemberArgs{teamId, userId}
 	_returns := &Z_GetTeamMemberReturns{}
 	if err := g.client.Call("Plugin.GetTeamMember", _args, _returns); err != nil {
@@ -1784,7 +1784,7 @@ type Z_GetTeamMembersForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+func (g *apiRPCClient) GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, error) {
 	_args := &Z_GetTeamMembersForUserArgs{userId, page, perPage}
 	_returns := &Z_GetTeamMembersForUserReturns{}
 	if err := g.client.Call("Plugin.GetTeamMembersForUser", _args, _returns); err != nil {
@@ -1815,7 +1815,7 @@ type Z_UpdateTeamMemberRolesReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError) {
+func (g *apiRPCClient) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, error) {
 	_args := &Z_UpdateTeamMemberRolesArgs{teamId, userId, newRoles}
 	_returns := &Z_UpdateTeamMemberRolesReturns{}
 	if err := g.client.Call("Plugin.UpdateTeamMemberRoles", _args, _returns); err != nil {
@@ -1844,7 +1844,7 @@ type Z_CreateChannelReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (g *apiRPCClient) CreateChannel(channel *model.Channel) (*model.Channel, error) {
 	_args := &Z_CreateChannelArgs{channel}
 	_returns := &Z_CreateChannelReturns{}
 	if err := g.client.Call("Plugin.CreateChannel", _args, _returns); err != nil {
@@ -1872,7 +1872,7 @@ type Z_DeleteChannelReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeleteChannel(channelId string) *model.AppError {
+func (g *apiRPCClient) DeleteChannel(channelId string) error {
 	_args := &Z_DeleteChannelArgs{channelId}
 	_returns := &Z_DeleteChannelReturns{}
 	if err := g.client.Call("Plugin.DeleteChannel", _args, _returns); err != nil {
@@ -1903,7 +1903,7 @@ type Z_GetPublicChannelsForTeamReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError) {
+func (g *apiRPCClient) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, error) {
 	_args := &Z_GetPublicChannelsForTeamArgs{teamId, page, perPage}
 	_returns := &Z_GetPublicChannelsForTeamReturns{}
 	if err := g.client.Call("Plugin.GetPublicChannelsForTeam", _args, _returns); err != nil {
@@ -1932,7 +1932,7 @@ type Z_GetChannelReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannel(channelId string) (*model.Channel, *model.AppError) {
+func (g *apiRPCClient) GetChannel(channelId string) (*model.Channel, error) {
 	_args := &Z_GetChannelArgs{channelId}
 	_returns := &Z_GetChannelReturns{}
 	if err := g.client.Call("Plugin.GetChannel", _args, _returns); err != nil {
@@ -1963,7 +1963,7 @@ type Z_GetChannelByNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelByName(teamId, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
+func (g *apiRPCClient) GetChannelByName(teamId, name string, includeDeleted bool) (*model.Channel, error) {
 	_args := &Z_GetChannelByNameArgs{teamId, name, includeDeleted}
 	_returns := &Z_GetChannelByNameReturns{}
 	if err := g.client.Call("Plugin.GetChannelByName", _args, _returns); err != nil {
@@ -1994,7 +1994,7 @@ type Z_GetChannelByNameForTeamNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError) {
+func (g *apiRPCClient) GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, error) {
 	_args := &Z_GetChannelByNameForTeamNameArgs{teamName, channelName, includeDeleted}
 	_returns := &Z_GetChannelByNameForTeamNameReturns{}
 	if err := g.client.Call("Plugin.GetChannelByNameForTeamName", _args, _returns); err != nil {
@@ -2025,7 +2025,7 @@ type Z_GetChannelsForTeamForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
+func (g *apiRPCClient) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, error) {
 	_args := &Z_GetChannelsForTeamForUserArgs{teamId, userId, includeDeleted}
 	_returns := &Z_GetChannelsForTeamForUserReturns{}
 	if err := g.client.Call("Plugin.GetChannelsForTeamForUser", _args, _returns); err != nil {
@@ -2054,7 +2054,7 @@ type Z_GetChannelStatsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
+func (g *apiRPCClient) GetChannelStats(channelId string) (*model.ChannelStats, error) {
 	_args := &Z_GetChannelStatsArgs{channelId}
 	_returns := &Z_GetChannelStatsReturns{}
 	if err := g.client.Call("Plugin.GetChannelStats", _args, _returns); err != nil {
@@ -2084,7 +2084,7 @@ type Z_GetDirectChannelReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
+func (g *apiRPCClient) GetDirectChannel(userId1, userId2 string) (*model.Channel, error) {
 	_args := &Z_GetDirectChannelArgs{userId1, userId2}
 	_returns := &Z_GetDirectChannelReturns{}
 	if err := g.client.Call("Plugin.GetDirectChannel", _args, _returns); err != nil {
@@ -2113,7 +2113,7 @@ type Z_GetGroupChannelReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
+func (g *apiRPCClient) GetGroupChannel(userIds []string) (*model.Channel, error) {
 	_args := &Z_GetGroupChannelArgs{userIds}
 	_returns := &Z_GetGroupChannelReturns{}
 	if err := g.client.Call("Plugin.GetGroupChannel", _args, _returns); err != nil {
@@ -2142,7 +2142,7 @@ type Z_UpdateChannelReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (g *apiRPCClient) UpdateChannel(channel *model.Channel) (*model.Channel, error) {
 	_args := &Z_UpdateChannelArgs{channel}
 	_returns := &Z_UpdateChannelReturns{}
 	if err := g.client.Call("Plugin.UpdateChannel", _args, _returns); err != nil {
@@ -2172,7 +2172,7 @@ type Z_SearchChannelsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError) {
+func (g *apiRPCClient) SearchChannels(teamId string, term string) ([]*model.Channel, error) {
 	_args := &Z_SearchChannelsArgs{teamId, term}
 	_returns := &Z_SearchChannelsReturns{}
 	if err := g.client.Call("Plugin.SearchChannels", _args, _returns); err != nil {
@@ -2201,7 +2201,7 @@ type Z_SearchUsersReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
+func (g *apiRPCClient) SearchUsers(search *model.UserSearch) ([]*model.User, error) {
 	_args := &Z_SearchUsersArgs{search}
 	_returns := &Z_SearchUsersReturns{}
 	if err := g.client.Call("Plugin.SearchUsers", _args, _returns); err != nil {
@@ -2231,7 +2231,7 @@ type Z_SearchPostsInTeamReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
+func (g *apiRPCClient) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, error) {
 	_args := &Z_SearchPostsInTeamArgs{teamId, paramsList}
 	_returns := &Z_SearchPostsInTeamReturns{}
 	if err := g.client.Call("Plugin.SearchPostsInTeam", _args, _returns); err != nil {
@@ -2261,7 +2261,7 @@ type Z_AddChannelMemberReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
+func (g *apiRPCClient) AddChannelMember(channelId, userId string) (*model.ChannelMember, error) {
 	_args := &Z_AddChannelMemberArgs{channelId, userId}
 	_returns := &Z_AddChannelMemberReturns{}
 	if err := g.client.Call("Plugin.AddChannelMember", _args, _returns); err != nil {
@@ -2291,7 +2291,7 @@ type Z_GetChannelMemberReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
+func (g *apiRPCClient) GetChannelMember(channelId, userId string) (*model.ChannelMember, error) {
 	_args := &Z_GetChannelMemberArgs{channelId, userId}
 	_returns := &Z_GetChannelMemberReturns{}
 	if err := g.client.Call("Plugin.GetChannelMember", _args, _returns); err != nil {
@@ -2322,7 +2322,7 @@ type Z_GetChannelMembersReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (g *apiRPCClient) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, error) {
 	_args := &Z_GetChannelMembersArgs{channelId, page, perPage}
 	_returns := &Z_GetChannelMembersReturns{}
 	if err := g.client.Call("Plugin.GetChannelMembers", _args, _returns); err != nil {
@@ -2352,7 +2352,7 @@ type Z_GetChannelMembersByIdsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+func (g *apiRPCClient) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error) {
 	_args := &Z_GetChannelMembersByIdsArgs{channelId, userIds}
 	_returns := &Z_GetChannelMembersByIdsReturns{}
 	if err := g.client.Call("Plugin.GetChannelMembersByIds", _args, _returns); err != nil {
@@ -2384,7 +2384,7 @@ type Z_GetChannelMembersForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+func (g *apiRPCClient) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, error) {
 	_args := &Z_GetChannelMembersForUserArgs{teamId, userId, page, perPage}
 	_returns := &Z_GetChannelMembersForUserReturns{}
 	if err := g.client.Call("Plugin.GetChannelMembersForUser", _args, _returns); err != nil {
@@ -2415,7 +2415,7 @@ type Z_UpdateChannelMemberRolesReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
+func (g *apiRPCClient) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, error) {
 	_args := &Z_UpdateChannelMemberRolesArgs{channelId, userId, newRoles}
 	_returns := &Z_UpdateChannelMemberRolesReturns{}
 	if err := g.client.Call("Plugin.UpdateChannelMemberRoles", _args, _returns); err != nil {
@@ -2446,7 +2446,7 @@ type Z_UpdateChannelMemberNotificationsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
+func (g *apiRPCClient) UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, error) {
 	_args := &Z_UpdateChannelMemberNotificationsArgs{channelId, userId, notifications}
 	_returns := &Z_UpdateChannelMemberNotificationsReturns{}
 	if err := g.client.Call("Plugin.UpdateChannelMemberNotifications", _args, _returns); err != nil {
@@ -2475,7 +2475,7 @@ type Z_DeleteChannelMemberReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeleteChannelMember(channelId, userId string) *model.AppError {
+func (g *apiRPCClient) DeleteChannelMember(channelId, userId string) error {
 	_args := &Z_DeleteChannelMemberArgs{channelId, userId}
 	_returns := &Z_DeleteChannelMemberReturns{}
 	if err := g.client.Call("Plugin.DeleteChannelMember", _args, _returns); err != nil {
@@ -2504,7 +2504,7 @@ type Z_CreatePostReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
+func (g *apiRPCClient) CreatePost(post *model.Post) (*model.Post, error) {
 	_args := &Z_CreatePostArgs{post}
 	_returns := &Z_CreatePostReturns{}
 	if err := g.client.Call("Plugin.CreatePost", _args, _returns); err != nil {
@@ -2533,7 +2533,7 @@ type Z_AddReactionReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (g *apiRPCClient) AddReaction(reaction *model.Reaction) (*model.Reaction, error) {
 	_args := &Z_AddReactionArgs{reaction}
 	_returns := &Z_AddReactionReturns{}
 	if err := g.client.Call("Plugin.AddReaction", _args, _returns); err != nil {
@@ -2561,7 +2561,7 @@ type Z_RemoveReactionReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) RemoveReaction(reaction *model.Reaction) *model.AppError {
+func (g *apiRPCClient) RemoveReaction(reaction *model.Reaction) error {
 	_args := &Z_RemoveReactionArgs{reaction}
 	_returns := &Z_RemoveReactionReturns{}
 	if err := g.client.Call("Plugin.RemoveReaction", _args, _returns); err != nil {
@@ -2590,7 +2590,7 @@ type Z_GetReactionsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
+func (g *apiRPCClient) GetReactions(postId string) ([]*model.Reaction, error) {
 	_args := &Z_GetReactionsArgs{postId}
 	_returns := &Z_GetReactionsReturns{}
 	if err := g.client.Call("Plugin.GetReactions", _args, _returns); err != nil {
@@ -2704,7 +2704,7 @@ type Z_DeletePostReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeletePost(postId string) *model.AppError {
+func (g *apiRPCClient) DeletePost(postId string) error {
 	_args := &Z_DeletePostArgs{postId}
 	_returns := &Z_DeletePostReturns{}
 	if err := g.client.Call("Plugin.DeletePost", _args, _returns); err != nil {
@@ -2733,7 +2733,7 @@ type Z_GetPostThreadReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPostThread(postId string) (*model.PostList, *model.AppError) {
+func (g *apiRPCClient) GetPostThread(postId string) (*model.PostList, error) {
 	_args := &Z_GetPostThreadArgs{postId}
 	_returns := &Z_GetPostThreadReturns{}
 	if err := g.client.Call("Plugin.GetPostThread", _args, _returns); err != nil {
@@ -2762,7 +2762,7 @@ type Z_GetPostReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPost(postId string) (*model.Post, *model.AppError) {
+func (g *apiRPCClient) GetPost(postId string) (*model.Post, error) {
 	_args := &Z_GetPostArgs{postId}
 	_returns := &Z_GetPostReturns{}
 	if err := g.client.Call("Plugin.GetPost", _args, _returns); err != nil {
@@ -2792,7 +2792,7 @@ type Z_GetPostsSinceReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
+func (g *apiRPCClient) GetPostsSince(channelId string, time int64) (*model.PostList, error) {
 	_args := &Z_GetPostsSinceArgs{channelId, time}
 	_returns := &Z_GetPostsSinceReturns{}
 	if err := g.client.Call("Plugin.GetPostsSince", _args, _returns); err != nil {
@@ -2824,7 +2824,7 @@ type Z_GetPostsAfterReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+func (g *apiRPCClient) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, error) {
 	_args := &Z_GetPostsAfterArgs{channelId, postId, page, perPage}
 	_returns := &Z_GetPostsAfterReturns{}
 	if err := g.client.Call("Plugin.GetPostsAfter", _args, _returns); err != nil {
@@ -2856,7 +2856,7 @@ type Z_GetPostsBeforeReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+func (g *apiRPCClient) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, error) {
 	_args := &Z_GetPostsBeforeArgs{channelId, postId, page, perPage}
 	_returns := &Z_GetPostsBeforeReturns{}
 	if err := g.client.Call("Plugin.GetPostsBefore", _args, _returns); err != nil {
@@ -2887,7 +2887,7 @@ type Z_GetPostsForChannelReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
+func (g *apiRPCClient) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, error) {
 	_args := &Z_GetPostsForChannelArgs{channelId, page, perPage}
 	_returns := &Z_GetPostsForChannelReturns{}
 	if err := g.client.Call("Plugin.GetPostsForChannel", _args, _returns); err != nil {
@@ -2916,7 +2916,7 @@ type Z_GetTeamStatsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+func (g *apiRPCClient) GetTeamStats(teamId string) (*model.TeamStats, error) {
 	_args := &Z_GetTeamStatsArgs{teamId}
 	_returns := &Z_GetTeamStatsReturns{}
 	if err := g.client.Call("Plugin.GetTeamStats", _args, _returns); err != nil {
@@ -2945,7 +2945,7 @@ type Z_UpdatePostReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
+func (g *apiRPCClient) UpdatePost(post *model.Post) (*model.Post, error) {
 	_args := &Z_UpdatePostArgs{post}
 	_returns := &Z_UpdatePostReturns{}
 	if err := g.client.Call("Plugin.UpdatePost", _args, _returns); err != nil {
@@ -2974,7 +2974,7 @@ type Z_GetProfileImageReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetProfileImage(userId string) ([]byte, *model.AppError) {
+func (g *apiRPCClient) GetProfileImage(userId string) ([]byte, error) {
 	_args := &Z_GetProfileImageArgs{userId}
 	_returns := &Z_GetProfileImageReturns{}
 	if err := g.client.Call("Plugin.GetProfileImage", _args, _returns); err != nil {
@@ -3003,7 +3003,7 @@ type Z_SetProfileImageReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SetProfileImage(userId string, data []byte) *model.AppError {
+func (g *apiRPCClient) SetProfileImage(userId string, data []byte) error {
 	_args := &Z_SetProfileImageArgs{userId, data}
 	_returns := &Z_SetProfileImageReturns{}
 	if err := g.client.Call("Plugin.SetProfileImage", _args, _returns); err != nil {
@@ -3034,7 +3034,7 @@ type Z_GetEmojiListReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
+func (g *apiRPCClient) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, error) {
 	_args := &Z_GetEmojiListArgs{sortBy, page, perPage}
 	_returns := &Z_GetEmojiListReturns{}
 	if err := g.client.Call("Plugin.GetEmojiList", _args, _returns); err != nil {
@@ -3063,7 +3063,7 @@ type Z_GetEmojiByNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
+func (g *apiRPCClient) GetEmojiByName(name string) (*model.Emoji, error) {
 	_args := &Z_GetEmojiByNameArgs{name}
 	_returns := &Z_GetEmojiByNameReturns{}
 	if err := g.client.Call("Plugin.GetEmojiByName", _args, _returns); err != nil {
@@ -3092,7 +3092,7 @@ type Z_GetEmojiReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+func (g *apiRPCClient) GetEmoji(emojiId string) (*model.Emoji, error) {
 	_args := &Z_GetEmojiArgs{emojiId}
 	_returns := &Z_GetEmojiReturns{}
 	if err := g.client.Call("Plugin.GetEmoji", _args, _returns); err != nil {
@@ -3122,7 +3122,7 @@ type Z_CopyFileInfosReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
+func (g *apiRPCClient) CopyFileInfos(userId string, fileIds []string) ([]string, error) {
 	_args := &Z_CopyFileInfosArgs{userId, fileIds}
 	_returns := &Z_CopyFileInfosReturns{}
 	if err := g.client.Call("Plugin.CopyFileInfos", _args, _returns); err != nil {
@@ -3151,7 +3151,7 @@ type Z_GetFileInfoReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+func (g *apiRPCClient) GetFileInfo(fileId string) (*model.FileInfo, error) {
 	_args := &Z_GetFileInfoArgs{fileId}
 	_returns := &Z_GetFileInfoReturns{}
 	if err := g.client.Call("Plugin.GetFileInfo", _args, _returns); err != nil {
@@ -3180,7 +3180,7 @@ type Z_GetFileReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetFile(fileId string) ([]byte, *model.AppError) {
+func (g *apiRPCClient) GetFile(fileId string) ([]byte, error) {
 	_args := &Z_GetFileArgs{fileId}
 	_returns := &Z_GetFileReturns{}
 	if err := g.client.Call("Plugin.GetFile", _args, _returns); err != nil {
@@ -3209,7 +3209,7 @@ type Z_GetFileLinkReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetFileLink(fileId string) (string, *model.AppError) {
+func (g *apiRPCClient) GetFileLink(fileId string) (string, error) {
 	_args := &Z_GetFileLinkArgs{fileId}
 	_returns := &Z_GetFileLinkReturns{}
 	if err := g.client.Call("Plugin.GetFileLink", _args, _returns); err != nil {
@@ -3238,7 +3238,7 @@ type Z_ReadFileReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) ReadFile(path string) ([]byte, *model.AppError) {
+func (g *apiRPCClient) ReadFile(path string) ([]byte, error) {
 	_args := &Z_ReadFileArgs{path}
 	_returns := &Z_ReadFileReturns{}
 	if err := g.client.Call("Plugin.ReadFile", _args, _returns); err != nil {
@@ -3268,7 +3268,7 @@ type Z_GetEmojiImageReturns struct {
 	C *model.AppError
 }
 
-func (g *apiRPCClient) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
+func (g *apiRPCClient) GetEmojiImage(emojiId string) ([]byte, string, error) {
 	_args := &Z_GetEmojiImageArgs{emojiId}
 	_returns := &Z_GetEmojiImageReturns{}
 	if err := g.client.Call("Plugin.GetEmojiImage", _args, _returns); err != nil {
@@ -3299,7 +3299,7 @@ type Z_UploadFileReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+func (g *apiRPCClient) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, error) {
 	_args := &Z_UploadFileArgs{data, channelId, filename}
 	_returns := &Z_UploadFileReturns{}
 	if err := g.client.Call("Plugin.UploadFile", _args, _returns); err != nil {
@@ -3327,7 +3327,7 @@ type Z_OpenInteractiveDialogReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
+func (g *apiRPCClient) OpenInteractiveDialog(dialog model.OpenDialogRequest) error {
 	_args := &Z_OpenInteractiveDialogArgs{dialog}
 	_returns := &Z_OpenInteractiveDialogReturns{}
 	if err := g.client.Call("Plugin.OpenInteractiveDialog", _args, _returns); err != nil {
@@ -3355,7 +3355,7 @@ type Z_GetPluginsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPlugins() ([]*model.Manifest, *model.AppError) {
+func (g *apiRPCClient) GetPlugins() ([]*model.Manifest, error) {
 	_args := &Z_GetPluginsArgs{}
 	_returns := &Z_GetPluginsReturns{}
 	if err := g.client.Call("Plugin.GetPlugins", _args, _returns); err != nil {
@@ -3383,7 +3383,7 @@ type Z_EnablePluginReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) EnablePlugin(id string) *model.AppError {
+func (g *apiRPCClient) EnablePlugin(id string) error {
 	_args := &Z_EnablePluginArgs{id}
 	_returns := &Z_EnablePluginReturns{}
 	if err := g.client.Call("Plugin.EnablePlugin", _args, _returns); err != nil {
@@ -3411,7 +3411,7 @@ type Z_DisablePluginReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DisablePlugin(id string) *model.AppError {
+func (g *apiRPCClient) DisablePlugin(id string) error {
 	_args := &Z_DisablePluginArgs{id}
 	_returns := &Z_DisablePluginReturns{}
 	if err := g.client.Call("Plugin.DisablePlugin", _args, _returns); err != nil {
@@ -3439,7 +3439,7 @@ type Z_RemovePluginReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) RemovePlugin(id string) *model.AppError {
+func (g *apiRPCClient) RemovePlugin(id string) error {
 	_args := &Z_RemovePluginArgs{id}
 	_returns := &Z_RemovePluginReturns{}
 	if err := g.client.Call("Plugin.RemovePlugin", _args, _returns); err != nil {
@@ -3468,7 +3468,7 @@ type Z_GetPluginStatusReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+func (g *apiRPCClient) GetPluginStatus(id string) (*model.PluginStatus, error) {
 	_args := &Z_GetPluginStatusArgs{id}
 	_returns := &Z_GetPluginStatusReturns{}
 	if err := g.client.Call("Plugin.GetPluginStatus", _args, _returns); err != nil {
@@ -3497,7 +3497,7 @@ type Z_KVSetReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) KVSet(key string, value []byte) *model.AppError {
+func (g *apiRPCClient) KVSet(key string, value []byte) error {
 	_args := &Z_KVSetArgs{key, value}
 	_returns := &Z_KVSetReturns{}
 	if err := g.client.Call("Plugin.KVSet", _args, _returns); err != nil {
@@ -3528,7 +3528,7 @@ type Z_KVCompareAndSetReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError) {
+func (g *apiRPCClient) KVCompareAndSet(key string, oldValue, newValue []byte) (bool, error) {
 	_args := &Z_KVCompareAndSetArgs{key, oldValue, newValue}
 	_returns := &Z_KVCompareAndSetReturns{}
 	if err := g.client.Call("Plugin.KVCompareAndSet", _args, _returns); err != nil {
@@ -3558,7 +3558,7 @@ type Z_KVCompareAndDeleteReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
+func (g *apiRPCClient) KVCompareAndDelete(key string, oldValue []byte) (bool, error) {
 	_args := &Z_KVCompareAndDeleteArgs{key, oldValue}
 	_returns := &Z_KVCompareAndDeleteReturns{}
 	if err := g.client.Call("Plugin.KVCompareAndDelete", _args, _returns); err != nil {
@@ -3588,7 +3588,7 @@ type Z_KVSetWithExpiryReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
+func (g *apiRPCClient) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) error {
 	_args := &Z_KVSetWithExpiryArgs{key, value, expireInSeconds}
 	_returns := &Z_KVSetWithExpiryReturns{}
 	if err := g.client.Call("Plugin.KVSetWithExpiry", _args, _returns); err != nil {
@@ -3617,7 +3617,7 @@ type Z_KVGetReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) KVGet(key string) ([]byte, *model.AppError) {
+func (g *apiRPCClient) KVGet(key string) ([]byte, error) {
 	_args := &Z_KVGetArgs{key}
 	_returns := &Z_KVGetReturns{}
 	if err := g.client.Call("Plugin.KVGet", _args, _returns); err != nil {
@@ -3645,7 +3645,7 @@ type Z_KVDeleteReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) KVDelete(key string) *model.AppError {
+func (g *apiRPCClient) KVDelete(key string) error {
 	_args := &Z_KVDeleteArgs{key}
 	_returns := &Z_KVDeleteReturns{}
 	if err := g.client.Call("Plugin.KVDelete", _args, _returns); err != nil {
@@ -3672,7 +3672,7 @@ type Z_KVDeleteAllReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) KVDeleteAll() *model.AppError {
+func (g *apiRPCClient) KVDeleteAll() error {
 	_args := &Z_KVDeleteAllArgs{}
 	_returns := &Z_KVDeleteAllReturns{}
 	if err := g.client.Call("Plugin.KVDeleteAll", _args, _returns); err != nil {
@@ -3702,7 +3702,7 @@ type Z_KVListReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) KVList(page, perPage int) ([]string, *model.AppError) {
+func (g *apiRPCClient) KVList(page, perPage int) ([]string, error) {
 	_args := &Z_KVListArgs{page, perPage}
 	_returns := &Z_KVListReturns{}
 	if err := g.client.Call("Plugin.KVList", _args, _returns); err != nil {
@@ -3962,7 +3962,7 @@ type Z_SendMailReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SendMail(to, subject, htmlBody string) *model.AppError {
+func (g *apiRPCClient) SendMail(to, subject, htmlBody string) error {
 	_args := &Z_SendMailArgs{to, subject, htmlBody}
 	_returns := &Z_SendMailReturns{}
 	if err := g.client.Call("Plugin.SendMail", _args, _returns); err != nil {
@@ -3991,7 +3991,7 @@ type Z_CreateBotReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (g *apiRPCClient) CreateBot(bot *model.Bot) (*model.Bot, error) {
 	_args := &Z_CreateBotArgs{bot}
 	_returns := &Z_CreateBotReturns{}
 	if err := g.client.Call("Plugin.CreateBot", _args, _returns); err != nil {
@@ -4021,7 +4021,7 @@ type Z_PatchBotReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+func (g *apiRPCClient) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, error) {
 	_args := &Z_PatchBotArgs{botUserId, botPatch}
 	_returns := &Z_PatchBotReturns{}
 	if err := g.client.Call("Plugin.PatchBot", _args, _returns); err != nil {
@@ -4051,7 +4051,7 @@ type Z_GetBotReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (g *apiRPCClient) GetBot(botUserId string, includeDeleted bool) (*model.Bot, error) {
 	_args := &Z_GetBotArgs{botUserId, includeDeleted}
 	_returns := &Z_GetBotReturns{}
 	if err := g.client.Call("Plugin.GetBot", _args, _returns); err != nil {
@@ -4080,7 +4080,7 @@ type Z_GetBotsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+func (g *apiRPCClient) GetBots(options *model.BotGetOptions) ([]*model.Bot, error) {
 	_args := &Z_GetBotsArgs{options}
 	_returns := &Z_GetBotsReturns{}
 	if err := g.client.Call("Plugin.GetBots", _args, _returns); err != nil {
@@ -4110,7 +4110,7 @@ type Z_UpdateBotActiveReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+func (g *apiRPCClient) UpdateBotActive(botUserId string, active bool) (*model.Bot, error) {
 	_args := &Z_UpdateBotActiveArgs{botUserId, active}
 	_returns := &Z_UpdateBotActiveReturns{}
 	if err := g.client.Call("Plugin.UpdateBotActive", _args, _returns); err != nil {
@@ -4138,7 +4138,7 @@ type Z_PermanentDeleteBotReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) PermanentDeleteBot(botUserId string) *model.AppError {
+func (g *apiRPCClient) PermanentDeleteBot(botUserId string) error {
 	_args := &Z_PermanentDeleteBotArgs{botUserId}
 	_returns := &Z_PermanentDeleteBotReturns{}
 	if err := g.client.Call("Plugin.PermanentDeleteBot", _args, _returns); err != nil {
@@ -4167,7 +4167,7 @@ type Z_GetBotIconImageReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
+func (g *apiRPCClient) GetBotIconImage(botUserId string) ([]byte, error) {
 	_args := &Z_GetBotIconImageArgs{botUserId}
 	_returns := &Z_GetBotIconImageReturns{}
 	if err := g.client.Call("Plugin.GetBotIconImage", _args, _returns); err != nil {
@@ -4196,7 +4196,7 @@ type Z_SetBotIconImageReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SetBotIconImage(botUserId string, data []byte) *model.AppError {
+func (g *apiRPCClient) SetBotIconImage(botUserId string, data []byte) error {
 	_args := &Z_SetBotIconImageArgs{botUserId, data}
 	_returns := &Z_SetBotIconImageReturns{}
 	if err := g.client.Call("Plugin.SetBotIconImage", _args, _returns); err != nil {
@@ -4224,7 +4224,7 @@ type Z_DeleteBotIconImageReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) DeleteBotIconImage(botUserId string) *model.AppError {
+func (g *apiRPCClient) DeleteBotIconImage(botUserId string) error {
 	_args := &Z_DeleteBotIconImageArgs{botUserId}
 	_returns := &Z_DeleteBotIconImageReturns{}
 	if err := g.client.Call("Plugin.DeleteBotIconImage", _args, _returns); err != nil {

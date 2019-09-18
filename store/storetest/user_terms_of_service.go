@@ -63,5 +63,5 @@ func testDeleteUserTermsOfService(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	_, err = ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
-	assert.Equal(t, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error", err.Id)
+	assert.Equal(t, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error", err.(*model.AppError).Id)
 }

@@ -144,7 +144,7 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	utils.RenderWebAppError(a.Config(), w, r, model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound), a.AsymmetricSigningKey())
 }
 
-func (a *App) getSystemInstallDate() (int64, *model.AppError) {
+func (a *App) getSystemInstallDate() (int64, error) {
 	systemData, appErr := a.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
 	if appErr != nil {
 		return 0, appErr

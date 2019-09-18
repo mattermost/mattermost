@@ -128,7 +128,7 @@ func applyPermissionsMap(roleName string, roleMap map[string]map[string]bool, mi
 	return result
 }
 
-func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *model.AppError {
+func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) error {
 	if _, err := a.Srv.Store.System().GetByName(key); err == nil {
 		return nil
 	}
@@ -292,7 +292,7 @@ func getAddManageGuestsPermissionsMigration() permissionsMap {
 }
 
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
-func (a *App) DoPermissionsMigrations() *model.AppError {
+func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
 		Key       string
 		Migration func() permissionsMap

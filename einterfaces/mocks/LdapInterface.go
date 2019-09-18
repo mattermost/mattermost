@@ -13,7 +13,7 @@ type LdapInterface struct {
 }
 
 // CheckPassword provides a mock function with given fields: id, password
-func (_m *LdapInterface) CheckPassword(id string, password string) *model.AppError {
+func (_m *LdapInterface) CheckPassword(id string, password string) error {
 	ret := _m.Called(id, password)
 
 	var r0 *model.AppError
@@ -29,7 +29,7 @@ func (_m *LdapInterface) CheckPassword(id string, password string) *model.AppErr
 }
 
 // CheckPasswordAuthData provides a mock function with given fields: authData, password
-func (_m *LdapInterface) CheckPasswordAuthData(authData string, password string) *model.AppError {
+func (_m *LdapInterface) CheckPasswordAuthData(authData string, password string) error {
 	ret := _m.Called(authData, password)
 
 	var r0 *model.AppError
@@ -45,7 +45,7 @@ func (_m *LdapInterface) CheckPasswordAuthData(authData string, password string)
 }
 
 // DoLogin provides a mock function with given fields: id, password
-func (_m *LdapInterface) DoLogin(id string, password string) (*model.User, *model.AppError) {
+func (_m *LdapInterface) DoLogin(id string, password string) (*model.User, error) {
 	ret := _m.Called(id, password)
 
 	var r0 *model.User
@@ -70,7 +70,7 @@ func (_m *LdapInterface) DoLogin(id string, password string) (*model.User, *mode
 }
 
 // FirstLoginSync provides a mock function with given fields: userID, userAuthService, userAuthData, email
-func (_m *LdapInterface) FirstLoginSync(userID string, userAuthService string, userAuthData string, email string) *model.AppError {
+func (_m *LdapInterface) FirstLoginSync(userID string, userAuthService string, userAuthData string, email string) error {
 	ret := _m.Called(userID, userAuthService, userAuthData, email)
 
 	var r0 *model.AppError
@@ -86,7 +86,7 @@ func (_m *LdapInterface) FirstLoginSync(userID string, userAuthService string, u
 }
 
 // GetAllGroupsPage provides a mock function with given fields: page, perPage, opts
-func (_m *LdapInterface) GetAllGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+func (_m *LdapInterface) GetAllGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, error) {
 	ret := _m.Called(page, perPage, opts)
 
 	var r0 []*model.Group
@@ -118,7 +118,7 @@ func (_m *LdapInterface) GetAllGroupsPage(page int, perPage int, opts model.Ldap
 }
 
 // GetAllLdapUsers provides a mock function with given fields:
-func (_m *LdapInterface) GetAllLdapUsers() ([]*model.User, *model.AppError) {
+func (_m *LdapInterface) GetAllLdapUsers() ([]*model.User, error) {
 	ret := _m.Called()
 
 	var r0 []*model.User
@@ -143,7 +143,7 @@ func (_m *LdapInterface) GetAllLdapUsers() ([]*model.User, *model.AppError) {
 }
 
 // GetGroup provides a mock function with given fields: groupUID
-func (_m *LdapInterface) GetGroup(groupUID string) (*model.Group, *model.AppError) {
+func (_m *LdapInterface) GetGroup(groupUID string) (*model.Group, error) {
 	ret := _m.Called(groupUID)
 
 	var r0 *model.Group
@@ -168,7 +168,7 @@ func (_m *LdapInterface) GetGroup(groupUID string) (*model.Group, *model.AppErro
 }
 
 // GetUser provides a mock function with given fields: id
-func (_m *LdapInterface) GetUser(id string) (*model.User, *model.AppError) {
+func (_m *LdapInterface) GetUser(id string) (*model.User, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.User
@@ -193,7 +193,7 @@ func (_m *LdapInterface) GetUser(id string) (*model.User, *model.AppError) {
 }
 
 // GetUserAttributes provides a mock function with given fields: id, attributes
-func (_m *LdapInterface) GetUserAttributes(id string, attributes []string) (map[string]string, *model.AppError) {
+func (_m *LdapInterface) GetUserAttributes(id string, attributes []string) (map[string]string, error) {
 	ret := _m.Called(id, attributes)
 
 	var r0 map[string]string
@@ -232,7 +232,7 @@ func (_m *LdapInterface) MigrateIDAttribute(toAttribute string) error {
 }
 
 // RunTest provides a mock function with given fields:
-func (_m *LdapInterface) RunTest() *model.AppError {
+func (_m *LdapInterface) RunTest() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -248,7 +248,7 @@ func (_m *LdapInterface) RunTest() *model.AppError {
 }
 
 // StartSynchronizeJob provides a mock function with given fields: waitForJobToFinish
-func (_m *LdapInterface) StartSynchronizeJob(waitForJobToFinish bool) (*model.Job, *model.AppError) {
+func (_m *LdapInterface) StartSynchronizeJob(waitForJobToFinish bool) (*model.Job, error) {
 	ret := _m.Called(waitForJobToFinish)
 
 	var r0 *model.Job
@@ -273,7 +273,7 @@ func (_m *LdapInterface) StartSynchronizeJob(waitForJobToFinish bool) (*model.Jo
 }
 
 // SwitchToLdap provides a mock function with given fields: userId, ldapId, ldapPassword
-func (_m *LdapInterface) SwitchToLdap(userId string, ldapId string, ldapPassword string) *model.AppError {
+func (_m *LdapInterface) SwitchToLdap(userId string, ldapId string, ldapPassword string) error {
 	ret := _m.Called(userId, ldapId, ldapPassword)
 
 	var r0 *model.AppError

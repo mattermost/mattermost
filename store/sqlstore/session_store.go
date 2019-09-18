@@ -44,7 +44,7 @@ func (me SqlSessionStore) CreateIndexesIfNotExists() {
 	me.CreateIndexIfNotExists("idx_sessions_last_activity_at", "Sessions", "LastActivityAt")
 }
 
-func (me SqlSessionStore) Save(session *model.Session) (*model.Session, *model.AppError) {
+func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	if len(session.Id) > 0 {
 		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.existing.app_error", nil, "id="+session.Id, http.StatusBadRequest)
 	}
@@ -79,7 +79,7 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, *model.A
 	return session, nil
 }
 
-func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, *model.AppError) {
+func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	var sessions []*model.Session
 
 	if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
@@ -102,7 +102,7 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, *model.A
 	return session, nil
 }
 
-func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, *model.AppError) {
+func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 	var sessions []*model.Session
 
 	tcs := make(chan store.StoreResult, 1)
@@ -132,7 +132,7 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, *model.A
 	return sessions, nil
 }
 
-func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
+func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	query :=
 		`SELECT *
 		FROM
@@ -152,7 +152,7 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 	return sessions, nil
 }
 
-func (me SqlSessionStore) Remove(sessionIdOrToken string) *model.AppError {
+func (me SqlSessionStore) Remove(sessionIdOrToken string) error {
 	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
 	if err != nil {
 		return model.NewAppError("SqlSessionStore.RemoveSession", "store.sql_session.remove.app_error", nil, "id="+sessionIdOrToken+", err="+err.Error(), http.StatusInternalServerError)
@@ -160,7 +160,7 @@ func (me SqlSessionStore) Remove(sessionIdOrToken string) *model.AppError {
 	return nil
 }
 
-func (me SqlSessionStore) RemoveAllSessions() *model.AppError {
+func (me SqlSessionStore) RemoveAllSessions() error {
 	_, err := me.GetMaster().Exec("DELETE FROM Sessions")
 	if err != nil {
 		return model.NewAppError("SqlSessionStore.RemoveAllSessions", "store.sql_session.remove_all_sessions_for_team.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -168,7 +168,7 @@ func (me SqlSessionStore) RemoveAllSessions() *model.AppError {
 	return nil
 }
 
-func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) *model.AppError {
+func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) error {
 	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 	if err != nil {
 		return model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", "store.sql_session.permanent_delete_sessions_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
@@ -177,7 +177,7 @@ func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) *model.Ap
 	return nil
 }
 
-func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {
+func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) error {
 	_, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId})
 	if err != nil {
 		return model.NewAppError("SqlSessionStore.UpdateLastActivityAt", "store.sql_session.update_last_activity.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
@@ -185,7 +185,7 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) *mo
 	return nil
 }
 
-func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, *model.AppError) {
+func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, error) {
 	query := "UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId"
 
 	_, err := me.GetMaster().Exec(query, map[string]interface{}{"Roles": roles, "UserId": userId})
@@ -195,7 +195,7 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, *model.AppE
 	return userId, nil
 }
 
-func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError) {
+func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, error) {
 	query := "UPDATE Sessions SET DeviceId = :DeviceId, ExpiresAt = :ExpiresAt WHERE Id = :Id"
 
 	_, err := me.GetMaster().Exec(query, map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpiresAt": expiresAt})
@@ -205,7 +205,7 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 	return deviceId, nil
 }
 
-func (me SqlSessionStore) UpdateProps(session *model.Session) *model.AppError {
+func (me SqlSessionStore) UpdateProps(session *model.Session) error {
 	oldSession, appErr := me.Get(session.Id)
 	if appErr != nil {
 		return appErr
@@ -222,7 +222,7 @@ func (me SqlSessionStore) UpdateProps(session *model.Session) *model.AppError {
 	return nil
 }
 
-func (me SqlSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
+func (me SqlSessionStore) AnalyticsSessionCount() (int64, error) {
 	query :=
 		`SELECT
 			COUNT(*)

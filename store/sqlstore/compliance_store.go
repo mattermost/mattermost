@@ -36,7 +36,7 @@ func NewSqlComplianceStore(sqlStore SqlStore) store.ComplianceStore {
 func (s SqlComplianceStore) CreateIndexesIfNotExists() {
 }
 
-func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
 	compliance.PreSave()
 	if err := compliance.IsValid(); err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Complianc
 	return compliance, nil
 }
 
-func (us SqlComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (us SqlComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, error) {
 	if err := compliance.IsValid(); err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (us SqlComplianceStore) Update(compliance *model.Compliance) (*model.Compli
 	return compliance, nil
 }
 
-func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, *model.AppError) {
+func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error) {
 	query := "SELECT * FROM Compliances ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 
 	var compliances model.Compliances
@@ -69,7 +69,7 @@ func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, *model
 	return compliances, nil
 }
 
-func (us SqlComplianceStore) Get(id string) (*model.Compliance, *model.AppError) {
+func (us SqlComplianceStore) Get(id string) (*model.Compliance, error) {
 	obj, err := us.GetReplica().Get(model.Compliance{}, id)
 	if err != nil {
 		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -80,7 +80,7 @@ func (us SqlComplianceStore) Get(id string) (*model.Compliance, *model.AppError)
 	return obj.(*model.Compliance), nil
 }
 
-func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.CompliancePost, *model.AppError) {
+func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.CompliancePost, error) {
 	props := map[string]interface{}{"StartTime": job.StartAt, "EndTime": job.EndAt}
 
 	keywordQuery := ""
@@ -206,7 +206,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 	return cposts, nil
 }
 
-func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, *model.AppError) {
+func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
 	props := map[string]interface{}{"StartTime": after, "Limit": limit}
 	query :=
 		`SELECT

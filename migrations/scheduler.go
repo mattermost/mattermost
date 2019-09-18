@@ -46,7 +46,7 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 	return &nextTime
 }
 
-func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
+func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, error) {
 	mlog.Debug("Scheduling Job", mlog.String("scheduler", scheduler.Name()))
 
 	// Work through the list of migrations in order. Schedule the first one that isn't done (assuming it isn't in progress already).
@@ -91,7 +91,7 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 	return nil, nil
 }
 
-func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job, store store.Store) (*model.Job, *model.AppError) {
+func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job, store store.Store) (*model.Job, error) {
 	var lastDone string
 	if lastJob != nil {
 		lastDone = lastJob.Data[JOB_DATA_KEY_MIGRATION_LAST_DONE]

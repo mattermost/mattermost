@@ -14,7 +14,7 @@ const (
 	MONTH_MILLISECONDS = 31 * DAY_MILLISECONDS
 )
 
-func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppError) {
+func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, error) {
 	skipIntensiveQueries := false
 	var systemUserCount int64
 	systemUserCount, err := a.Srv.Store.User().Count(model.UserCountOptions{})
@@ -324,7 +324,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 	return nil, nil
 }
 
-func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError) {
+func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, error) {
 	users, err := a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
 	if err != nil {
 		return nil, err
@@ -339,7 +339,7 @@ func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.Us
 	return userMap, nil
 }
 
-func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	users, err := a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
@@ -348,7 +348,7 @@ func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	users, err := a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err

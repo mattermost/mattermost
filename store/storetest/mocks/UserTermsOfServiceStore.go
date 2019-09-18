@@ -15,7 +15,7 @@ type UserTermsOfServiceStore struct {
 }
 
 // Delete provides a mock function with given fields: userId, termsOfServiceId
-func (_m *UserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) *model.AppError {
+func (_m *UserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) error {
 	ret := _m.Called(userId, termsOfServiceId)
 
 	var r0 *model.AppError
@@ -31,7 +31,7 @@ func (_m *UserTermsOfServiceStore) Delete(userId string, termsOfServiceId string
 }
 
 // GetByUser provides a mock function with given fields: userId
-func (_m *UserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, *model.AppError) {
+func (_m *UserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 	ret := _m.Called(userId)
 
 	var r0 *model.UserTermsOfService
@@ -56,7 +56,7 @@ func (_m *UserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfS
 }
 
 // Save provides a mock function with given fields: userTermsOfService
-func (_m *UserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError) {
+func (_m *UserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error) {
 	ret := _m.Called(userTermsOfService)
 
 	var r0 *model.UserTermsOfService

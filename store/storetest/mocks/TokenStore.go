@@ -20,7 +20,7 @@ func (_m *TokenStore) Cleanup() {
 }
 
 // Delete provides a mock function with given fields: token
-func (_m *TokenStore) Delete(token string) *model.AppError {
+func (_m *TokenStore) Delete(token string) error {
 	ret := _m.Called(token)
 
 	var r0 *model.AppError
@@ -36,7 +36,7 @@ func (_m *TokenStore) Delete(token string) *model.AppError {
 }
 
 // GetByToken provides a mock function with given fields: token
-func (_m *TokenStore) GetByToken(token string) (*model.Token, *model.AppError) {
+func (_m *TokenStore) GetByToken(token string) (*model.Token, error) {
 	ret := _m.Called(token)
 
 	var r0 *model.Token
@@ -61,7 +61,7 @@ func (_m *TokenStore) GetByToken(token string) (*model.Token, *model.AppError) {
 }
 
 // RemoveAllTokensByType provides a mock function with given fields: tokenType
-func (_m *TokenStore) RemoveAllTokensByType(tokenType string) *model.AppError {
+func (_m *TokenStore) RemoveAllTokensByType(tokenType string) error {
 	ret := _m.Called(tokenType)
 
 	var r0 *model.AppError
@@ -77,7 +77,7 @@ func (_m *TokenStore) RemoveAllTokensByType(tokenType string) *model.AppError {
 }
 
 // Save provides a mock function with given fields: recovery
-func (_m *TokenStore) Save(recovery *model.Token) *model.AppError {
+func (_m *TokenStore) Save(recovery *model.Token) error {
 	ret := _m.Called(recovery)
 
 	var r0 *model.AppError

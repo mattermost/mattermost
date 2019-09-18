@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) MakePermissionError(permission *model.Permission) *model.AppError {
+func (a *App) MakePermissionError(permission *model.Permission) error {
 	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+a.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
 }
 
@@ -56,7 +56,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 
-	if err != nil && err.StatusCode == http.StatusNotFound {
+	if err != nil && err.(*model.AppError).StatusCode == http.StatusNotFound {
 		return false
 	}
 
@@ -214,7 +214,7 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 // SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 // This function deviates from other authorization checks in returning an error instead of just
 // a boolean, allowing the permission failure to be exposed with more granularity.
-func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
+func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId string) error {
 	existingBot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return err

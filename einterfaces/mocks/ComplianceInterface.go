@@ -13,7 +13,7 @@ type ComplianceInterface struct {
 }
 
 // RunComplianceJob provides a mock function with given fields: job
-func (_m *ComplianceInterface) RunComplianceJob(job *model.Compliance) *model.AppError {
+func (_m *ComplianceInterface) RunComplianceJob(job *model.Compliance) error {
 	ret := _m.Called(job)
 
 	var r0 *model.AppError

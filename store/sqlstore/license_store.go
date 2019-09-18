@@ -29,7 +29,7 @@ func NewSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
 func (ls SqlLicenseStore) CreateIndexesIfNotExists() {
 }
 
-func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
+func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 	license.PreSave()
 	if err := license.IsValid(); err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 	return &storedLicense, nil
 }
 
-func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
+func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	obj, err := ls.GetReplica().Get(model.LicenseRecord{}, id)
 	if err != nil {
 		return nil, model.NewAppError("SqlLicenseStore.Get", "store.sql_license.get.app_error", nil, "license_id="+id+", "+err.Error(), http.StatusInternalServerError)

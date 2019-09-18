@@ -193,7 +193,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 // SyncPlugins synchronizes the plugins installed locally
 // with the plugin bundles available in the file store.
-func (a *App) SyncPlugins() *model.AppError {
+func (a *App) SyncPlugins() error {
 	mlog.Info("Syncing plugins from the file store")
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -273,7 +273,7 @@ func (a *App) ShutDownPlugins() {
 	a.Srv.PluginsEnvironment = nil
 }
 
-func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
+func (a *App) GetActivePluginManifests() ([]*model.Manifest, error) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -292,7 +292,7 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 // EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
 // activation if inactive anywhere in the cluster.
 // Notifies cluster peers through config change.
-func (a *App) EnablePlugin(id string) *model.AppError {
+func (a *App) EnablePlugin(id string) error {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -323,7 +323,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 
 	// This call will implicitly invoke SyncPluginsActiveState which will activate enabled plugins.
 	if err := a.SaveConfig(a.Config(), true); err != nil {
-		if err.Id == "ent.cluster.save_config.error" {
+		if err.(*model.AppError).Id == "ent.cluster.save_config.error" {
 			return model.NewAppError("EnablePlugin", "app.plugin.cluster.save_config.app_error", nil, "", http.StatusInternalServerError)
 		}
 		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -334,7 +334,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 
 // DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 // Notifies cluster peers through config change.
-func (a *App) DisablePlugin(id string) *model.AppError {
+func (a *App) DisablePlugin(id string) error {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -372,7 +372,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	return nil
 }
 
-func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
+func (a *App) GetPlugins() (*model.PluginsResponse, error) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -404,7 +404,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 // and plugins that are installed locally.
-func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
+func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, error) {
 	var result []*model.MarketplacePlugin
 	pluginSet := map[string]bool{}
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -518,7 +518,7 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	var statuses model.PluginStatuses
 
 	if a.Cluster != nil {
-		var err *model.AppError
+		var err error
 		statuses, err = a.Cluster.GetPluginStatuses()
 		if err != nil {
 			return err

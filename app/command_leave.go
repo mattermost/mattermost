@@ -34,7 +34,7 @@ func (me *LeaveProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Comma
 
 func (me *LeaveProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
-	var noChannelErr *model.AppError
+	var noChannelErr error
 	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

@@ -24,7 +24,7 @@ type LocalFileBackend struct {
 	directory string
 }
 
-func (b *LocalFileBackend) TestConnection() *model.AppError {
+func (b *LocalFileBackend) TestConnection() error {
 	f := bytes.NewReader([]byte("testingwrite"))
 	if _, err := writeFileLocally(f, filepath.Join(b.directory, TEST_FILE_PATH)); err != nil {
 		return model.NewAppError("TestFileConnection", "api.file.test_connection.local.connection.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -34,7 +34,7 @@ func (b *LocalFileBackend) TestConnection() *model.AppError {
 	return nil
 }
 
-func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, *model.AppError) {
+func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	f, err := os.Open(filepath.Join(b.directory, path))
 	if err != nil {
 		return nil, model.NewAppError("Reader", "api.file.reader.reading_local.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -42,7 +42,7 @@ func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, *model.AppError
 	return f, nil
 }
 
-func (b *LocalFileBackend) ReadFile(path string) ([]byte, *model.AppError) {
+func (b *LocalFileBackend) ReadFile(path string) ([]byte, error) {
 	f, err := ioutil.ReadFile(filepath.Join(b.directory, path))
 	if err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.reading_local.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -50,7 +50,7 @@ func (b *LocalFileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	return f, nil
 }
 
-func (b *LocalFileBackend) FileExists(path string) (bool, *model.AppError) {
+func (b *LocalFileBackend) FileExists(path string) (bool, error) {
 	_, err := os.Stat(filepath.Join(b.directory, path))
 
 	if os.IsNotExist(err) {
@@ -63,14 +63,14 @@ func (b *LocalFileBackend) FileExists(path string) (bool, *model.AppError) {
 	return true, nil
 }
 
-func (b *LocalFileBackend) CopyFile(oldPath, newPath string) *model.AppError {
+func (b *LocalFileBackend) CopyFile(oldPath, newPath string) error {
 	if err := utils.CopyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
 		return model.NewAppError("copyFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (b *LocalFileBackend) MoveFile(oldPath, newPath string) *model.AppError {
+func (b *LocalFileBackend) MoveFile(oldPath, newPath string) error {
 	if err := os.MkdirAll(filepath.Dir(filepath.Join(b.directory, newPath)), 0774); err != nil {
 		return model.NewAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -82,11 +82,11 @@ func (b *LocalFileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	return nil
 }
 
-func (b *LocalFileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+func (b *LocalFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	return writeFileLocally(fr, filepath.Join(b.directory, path))
 }
 
-func writeFileLocally(fr io.Reader, path string) (int64, *model.AppError) {
+func writeFileLocally(fr io.Reader, path string) (int64, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0774); err != nil {
 		directory, _ := filepath.Abs(filepath.Dir(path))
 		return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error(), http.StatusInternalServerError)
@@ -103,14 +103,14 @@ func writeFileLocally(fr io.Reader, path string) (int64, *model.AppError) {
 	return written, nil
 }
 
-func (b *LocalFileBackend) RemoveFile(path string) *model.AppError {
+func (b *LocalFileBackend) RemoveFile(path string) error {
 	if err := os.Remove(filepath.Join(b.directory, path)); err != nil {
 		return model.NewAppError("RemoveFile", "utils.file.remove_file.local.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (b *LocalFileBackend) ListDirectory(path string) (*[]string, *model.AppError) {
+func (b *LocalFileBackend) ListDirectory(path string) (*[]string, error) {
 	var paths []string
 	fileInfos, err := ioutil.ReadDir(filepath.Join(b.directory, path))
 	if err != nil {
@@ -125,7 +125,7 @@ func (b *LocalFileBackend) ListDirectory(path string) (*[]string, *model.AppErro
 	return &paths, nil
 }
 
-func (b *LocalFileBackend) RemoveDirectory(path string) *model.AppError {
+func (b *LocalFileBackend) RemoveDirectory(path string) error {
 	if err := os.RemoveAll(filepath.Join(b.directory, path)); err != nil {
 		return model.NewAppError("RemoveDirectory", "utils.file.remove_directory.local.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

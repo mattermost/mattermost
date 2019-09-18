@@ -566,7 +566,7 @@ func TestOAuthComplete(t *testing.T) {
 	}
 }
 
-func HttpGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, *model.AppError) {
+func HttpGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, error) {
 	rq, _ := http.NewRequest("GET", url, nil)
 	rq.Close = true
 
@@ -614,7 +614,7 @@ func GenerateTestAppName() string {
 	return "fakeoauthapp" + model.NewRandomString(10)
 }
 
-func CheckNoAppError(t *testing.T, err *model.AppError) {
+func CheckNoAppError(t *testing.T, err error) {
 	t.Helper()
 
 	if err != nil {

@@ -94,11 +94,11 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
-func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, error) {
 	return a.installPlugin(pluginFile, replace)
 }
 
-func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, error) {
 	manifest, appErr := a.installPluginLocally(pluginFile, replace)
 	if appErr != nil {
 		return nil, appErr
@@ -129,7 +129,7 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 	return manifest, nil
 }
 
-func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, error) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -216,11 +216,11 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*mod
 	return manifest, nil
 }
 
-func (a *App) RemovePlugin(id string) *model.AppError {
+func (a *App) RemovePlugin(id string) error {
 	return a.removePlugin(id)
 }
 
-func (a *App) removePlugin(id string) *model.AppError {
+func (a *App) removePlugin(id string) error {
 	// Disable plugin before removal to make sure this
 	// plugin remains disabled on re-install.
 	if err := a.DisablePlugin(id); err != nil {
@@ -254,7 +254,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 	return nil
 }
 
-func (a *App) removePluginLocally(id string) *model.AppError {
+func (a *App) removePluginLocally(id string) error {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("removePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)

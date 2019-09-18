@@ -273,7 +273,7 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func deleteTeam(a *app.App, team *model.Team) *model.AppError {
+func deleteTeam(a *app.App, team *model.Team) error {
 	return a.PermanentDeleteTeam(team)
 }
 

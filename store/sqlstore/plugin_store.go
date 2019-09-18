@@ -36,7 +36,7 @@ func NewSqlPluginStore(sqlStore SqlStore) store.PluginStore {
 func (ps SqlPluginStore) CreateIndexesIfNotExists() {
 }
 
-func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {
+func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 	if err := kv.IsValid(); err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 	return kv, nil
 }
 
-func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
 	if err := kv.IsValid(); err != nil {
 		return false, err
 	}
@@ -116,7 +116,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 	return true, nil
 }
 
-func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
 	if err := kv.IsValid(); err != nil {
 		return false, err
 	}
@@ -147,7 +147,7 @@ func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []b
 	return true, nil
 }
 
-func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError) {
+func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, error) {
 	var kv *model.PluginKeyValue
 	currentTime := model.GetMillis()
 	if err := ps.GetReplica().SelectOne(&kv, "SELECT * FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND (ExpireAt = 0 OR ExpireAt > :CurrentTime)", map[string]interface{}{"PluginId": pluginId, "Key": key, "CurrentTime": currentTime}); err != nil {
@@ -160,21 +160,21 @@ func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *mode
 	return kv, nil
 }
 
-func (ps SqlPluginStore) Delete(pluginId, key string) *model.AppError {
+func (ps SqlPluginStore) Delete(pluginId, key string) error {
 	if _, err := ps.GetMaster().Exec("DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key", map[string]interface{}{"PluginId": pluginId, "Key": key}); err != nil {
 		return model.NewAppError("SqlPluginStore.Delete", "store.sql_plugin_store.delete.app_error", nil, fmt.Sprintf("plugin_id=%v, key=%v, err=%v", pluginId, key, err.Error()), http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (ps SqlPluginStore) DeleteAllForPlugin(pluginId string) *model.AppError {
+func (ps SqlPluginStore) DeleteAllForPlugin(pluginId string) error {
 	if _, err := ps.GetMaster().Exec("DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId", map[string]interface{}{"PluginId": pluginId}); err != nil {
 		return model.NewAppError("SqlPluginStore.Delete", "store.sql_plugin_store.delete.app_error", nil, fmt.Sprintf("plugin_id=%v, err=%v", pluginId, err.Error()), http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (ps SqlPluginStore) DeleteAllExpired() *model.AppError {
+func (ps SqlPluginStore) DeleteAllExpired() error {
 	currentTime := model.GetMillis()
 	if _, err := ps.GetMaster().Exec("DELETE FROM PluginKeyValueStore WHERE ExpireAt != 0 AND ExpireAt < :CurrentTime", map[string]interface{}{"CurrentTime": currentTime}); err != nil {
 		return model.NewAppError("SqlPluginStore.Delete", "store.sql_plugin_store.delete.app_error", nil, fmt.Sprintf("current_time=%v, err=%v", currentTime, err.Error()), http.StatusInternalServerError)
@@ -182,7 +182,7 @@ func (ps SqlPluginStore) DeleteAllExpired() *model.AppError {
 	return nil
 }
 
-func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string, *model.AppError) {
+func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string, error) {
 	if limit <= 0 {
 		limit = DEFAULT_PLUGIN_KEY_FETCH_LIMIT
 	}

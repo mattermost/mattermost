@@ -54,7 +54,7 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 	return statusMap
 }
 
-func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
+func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, error) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return map[string]interface{}{}, nil
 	}
@@ -101,7 +101,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 }
 
 //GetUserStatusesByIds used by apiV4
-func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
+func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, error) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return []*model.Status{}, nil
 	}
@@ -163,7 +163,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 // while an 'away' device is still connected
 func (a *App) SetStatusLastActivityAt(userId string, activityAt int64) {
 	var status *model.Status
-	var err *model.AppError
+	var err error
 	if status, err = a.GetStatus(userId); err != nil {
 		return
 	}
@@ -185,7 +185,7 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	var oldTime int64
 	var oldManual bool
 	var status *model.Status
-	var err *model.AppError
+	var err error
 
 	if status, err = a.GetStatus(userId); err != nil {
 		status = &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
@@ -338,7 +338,7 @@ func GetStatusFromCache(userId string) *model.Status {
 	return nil
 }
 
-func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
+func (a *App) GetStatus(userId string) (*model.Status, error) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return &model.Status{}, nil
 	}

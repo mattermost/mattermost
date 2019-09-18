@@ -230,7 +230,7 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func moveCommand(a *app.App, team *model.Team, command *model.Command) *model.AppError {
+func moveCommand(a *app.App, team *model.Team, command *model.Command) error {
 	return a.MoveCommand(team, command)
 }
 

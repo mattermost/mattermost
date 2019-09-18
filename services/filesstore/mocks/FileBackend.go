@@ -14,7 +14,7 @@ type FileBackend struct {
 }
 
 // CopyFile provides a mock function with given fields: oldPath, newPath
-func (_m *FileBackend) CopyFile(oldPath string, newPath string) *model.AppError {
+func (_m *FileBackend) CopyFile(oldPath string, newPath string) error {
 	ret := _m.Called(oldPath, newPath)
 
 	var r0 *model.AppError
@@ -30,7 +30,7 @@ func (_m *FileBackend) CopyFile(oldPath string, newPath string) *model.AppError 
 }
 
 // FileExists provides a mock function with given fields: path
-func (_m *FileBackend) FileExists(path string) (bool, *model.AppError) {
+func (_m *FileBackend) FileExists(path string) (bool, error) {
 	ret := _m.Called(path)
 
 	var r0 bool
@@ -53,7 +53,7 @@ func (_m *FileBackend) FileExists(path string) (bool, *model.AppError) {
 }
 
 // ListDirectory provides a mock function with given fields: path
-func (_m *FileBackend) ListDirectory(path string) (*[]string, *model.AppError) {
+func (_m *FileBackend) ListDirectory(path string) (*[]string, error) {
 	ret := _m.Called(path)
 
 	var r0 *[]string
@@ -78,7 +78,7 @@ func (_m *FileBackend) ListDirectory(path string) (*[]string, *model.AppError) {
 }
 
 // MoveFile provides a mock function with given fields: oldPath, newPath
-func (_m *FileBackend) MoveFile(oldPath string, newPath string) *model.AppError {
+func (_m *FileBackend) MoveFile(oldPath string, newPath string) error {
 	ret := _m.Called(oldPath, newPath)
 
 	var r0 *model.AppError
@@ -94,7 +94,7 @@ func (_m *FileBackend) MoveFile(oldPath string, newPath string) *model.AppError 
 }
 
 // ReadFile provides a mock function with given fields: path
-func (_m *FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
+func (_m *FileBackend) ReadFile(path string) ([]byte, error) {
 	ret := _m.Called(path)
 
 	var r0 []byte
@@ -119,7 +119,7 @@ func (_m *FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 // Reader provides a mock function with given fields: path
-func (_m *FileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
+func (_m *FileBackend) Reader(path string) (io.ReadCloser, error) {
 	ret := _m.Called(path)
 
 	var r0 io.ReadCloser
@@ -144,7 +144,7 @@ func (_m *FileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
 }
 
 // RemoveDirectory provides a mock function with given fields: path
-func (_m *FileBackend) RemoveDirectory(path string) *model.AppError {
+func (_m *FileBackend) RemoveDirectory(path string) error {
 	ret := _m.Called(path)
 
 	var r0 *model.AppError
@@ -160,7 +160,7 @@ func (_m *FileBackend) RemoveDirectory(path string) *model.AppError {
 }
 
 // RemoveFile provides a mock function with given fields: path
-func (_m *FileBackend) RemoveFile(path string) *model.AppError {
+func (_m *FileBackend) RemoveFile(path string) error {
 	ret := _m.Called(path)
 
 	var r0 *model.AppError
@@ -176,7 +176,7 @@ func (_m *FileBackend) RemoveFile(path string) *model.AppError {
 }
 
 // TestConnection provides a mock function with given fields:
-func (_m *FileBackend) TestConnection() *model.AppError {
+func (_m *FileBackend) TestConnection() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -192,7 +192,7 @@ func (_m *FileBackend) TestConnection() *model.AppError {
 }
 
 // WriteFile provides a mock function with given fields: fr, path
-func (_m *FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+func (_m *FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	ret := _m.Called(fr, path)
 
 	var r0 int64

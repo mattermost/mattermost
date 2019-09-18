@@ -53,7 +53,7 @@ func (hub *PushNotificationsHub) GetGoChannelFromUserId(userId string) chan Push
 }
 
 func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.AppError {
+	explicitMention bool, channelWideMention bool, replyToThreadType string) error {
 
 	sessions, err := a.getMobileAppSessions(user.Id)
 	if err != nil {
@@ -356,7 +356,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 
 }
 
-func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
+func (a *App) getMobileAppSessions(userId string) ([]*model.Session, error) {
 	return a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId)
 }
 

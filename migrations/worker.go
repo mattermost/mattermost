@@ -128,7 +128,7 @@ func (worker *Worker) setJobSuccess(job *model.Job) {
 	}
 }
 
-func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
+func (worker *Worker) setJobError(job *model.Job, appError error) {
 	if err := worker.app.Srv.Jobs.SetJobError(job, appError); err != nil {
 		mlog.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
@@ -144,7 +144,7 @@ func (worker *Worker) setJobCanceled(job *model.Job) {
 // - whether the migration is completed on this run (true) or still incomplete (false).
 // - the updated lastDone string for the migration.
 // - any error which may have occurred while running the migration.
-func (worker *Worker) runMigration(key string, lastDone string) (bool, string, *model.AppError) {
+func (worker *Worker) runMigration(key string, lastDone string) (bool, string, error) {
 	var done bool
 	var progress string
 	var err *model.AppError

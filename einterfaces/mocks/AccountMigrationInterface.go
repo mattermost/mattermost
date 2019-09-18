@@ -13,7 +13,7 @@ type AccountMigrationInterface struct {
 }
 
 // MigrateToLdap provides a mock function with given fields: fromAuthService, forignUserFieldNameToMatch, force, dryRun
-func (_m *AccountMigrationInterface) MigrateToLdap(fromAuthService string, forignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError {
+func (_m *AccountMigrationInterface) MigrateToLdap(fromAuthService string, forignUserFieldNameToMatch string, force bool, dryRun bool) error {
 	ret := _m.Called(fromAuthService, forignUserFieldNameToMatch, force, dryRun)
 
 	var r0 *model.AppError
@@ -29,7 +29,7 @@ func (_m *AccountMigrationInterface) MigrateToLdap(fromAuthService string, forig
 }
 
 // MigrateToSaml provides a mock function with given fields: fromAuthService, usersMap, auto, dryRun
-func (_m *AccountMigrationInterface) MigrateToSaml(fromAuthService string, usersMap map[string]string, auto bool, dryRun bool) *model.AppError {
+func (_m *AccountMigrationInterface) MigrateToSaml(fromAuthService string, usersMap map[string]string, auto bool, dryRun bool) error {
 	ret := _m.Called(fromAuthService, usersMap, auto, dryRun)
 
 	var r0 *model.AppError

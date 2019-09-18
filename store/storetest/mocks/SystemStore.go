@@ -15,7 +15,7 @@ type SystemStore struct {
 }
 
 // Get provides a mock function with given fields:
-func (_m *SystemStore) Get() (model.StringMap, *model.AppError) {
+func (_m *SystemStore) Get() (model.StringMap, error) {
 	ret := _m.Called()
 
 	var r0 model.StringMap
@@ -40,7 +40,7 @@ func (_m *SystemStore) Get() (model.StringMap, *model.AppError) {
 }
 
 // GetByName provides a mock function with given fields: name
-func (_m *SystemStore) GetByName(name string) (*model.System, *model.AppError) {
+func (_m *SystemStore) GetByName(name string) (*model.System, error) {
 	ret := _m.Called(name)
 
 	var r0 *model.System
@@ -65,7 +65,7 @@ func (_m *SystemStore) GetByName(name string) (*model.System, *model.AppError) {
 }
 
 // PermanentDeleteByName provides a mock function with given fields: name
-func (_m *SystemStore) PermanentDeleteByName(name string) (*model.System, *model.AppError) {
+func (_m *SystemStore) PermanentDeleteByName(name string) (*model.System, error) {
 	ret := _m.Called(name)
 
 	var r0 *model.System
@@ -90,7 +90,7 @@ func (_m *SystemStore) PermanentDeleteByName(name string) (*model.System, *model
 }
 
 // Save provides a mock function with given fields: system
-func (_m *SystemStore) Save(system *model.System) *model.AppError {
+func (_m *SystemStore) Save(system *model.System) error {
 	ret := _m.Called(system)
 
 	var r0 *model.AppError
@@ -106,7 +106,7 @@ func (_m *SystemStore) Save(system *model.System) *model.AppError {
 }
 
 // SaveOrUpdate provides a mock function with given fields: system
-func (_m *SystemStore) SaveOrUpdate(system *model.System) *model.AppError {
+func (_m *SystemStore) SaveOrUpdate(system *model.System) error {
 	ret := _m.Called(system)
 
 	var r0 *model.AppError
@@ -122,7 +122,7 @@ func (_m *SystemStore) SaveOrUpdate(system *model.System) *model.AppError {
 }
 
 // Update provides a mock function with given fields: system
-func (_m *SystemStore) Update(system *model.System) *model.AppError {
+func (_m *SystemStore) Update(system *model.System) error {
 	ret := _m.Called(system)
 
 	var r0 *model.AppError

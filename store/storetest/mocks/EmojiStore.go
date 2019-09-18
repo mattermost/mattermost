@@ -15,7 +15,7 @@ type EmojiStore struct {
 }
 
 // Delete provides a mock function with given fields: emoji, time
-func (_m *EmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
+func (_m *EmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	ret := _m.Called(emoji, time)
 
 	var r0 *model.AppError
@@ -31,7 +31,7 @@ func (_m *EmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
 }
 
 // Get provides a mock function with given fields: id, allowFromCache
-func (_m *EmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (_m *EmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) {
 	ret := _m.Called(id, allowFromCache)
 
 	var r0 *model.Emoji
@@ -56,7 +56,7 @@ func (_m *EmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.
 }
 
 // GetByName provides a mock function with given fields: name, allowFromCache
-func (_m *EmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (_m *EmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, error) {
 	ret := _m.Called(name, allowFromCache)
 
 	var r0 *model.Emoji
@@ -81,7 +81,7 @@ func (_m *EmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji,
 }
 
 // GetList provides a mock function with given fields: offset, limit, sort
-func (_m *EmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoji, *model.AppError) {
+func (_m *EmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoji, error) {
 	ret := _m.Called(offset, limit, sort)
 
 	var r0 []*model.Emoji
@@ -106,7 +106,7 @@ func (_m *EmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoj
 }
 
 // GetMultipleByName provides a mock function with given fields: names
-func (_m *EmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError) {
+func (_m *EmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
 	ret := _m.Called(names)
 
 	var r0 []*model.Emoji
@@ -131,7 +131,7 @@ func (_m *EmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *model.
 }
 
 // Save provides a mock function with given fields: emoji
-func (_m *EmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError) {
+func (_m *EmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	ret := _m.Called(emoji)
 
 	var r0 *model.Emoji
@@ -156,7 +156,7 @@ func (_m *EmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError) {
 }
 
 // Search provides a mock function with given fields: name, prefixOnly, limit
-func (_m *EmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+func (_m *EmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error) {
 	ret := _m.Called(name, prefixOnly, limit)
 
 	var r0 []*model.Emoji

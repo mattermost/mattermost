@@ -15,7 +15,7 @@ type AuditStore struct {
 }
 
 // Get provides a mock function with given fields: user_id, offset, limit
-func (_m *AuditStore) Get(user_id string, offset int, limit int) (model.Audits, *model.AppError) {
+func (_m *AuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 	ret := _m.Called(user_id, offset, limit)
 
 	var r0 model.Audits
@@ -40,7 +40,7 @@ func (_m *AuditStore) Get(user_id string, offset int, limit int) (model.Audits, 
 }
 
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
-func (_m *AuditStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (_m *AuditStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
 
 	var r0 int64
@@ -63,7 +63,7 @@ func (_m *AuditStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *
 }
 
 // PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *AuditStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (_m *AuditStore) PermanentDeleteByUser(userId string) error {
 	ret := _m.Called(userId)
 
 	var r0 *model.AppError
@@ -79,7 +79,7 @@ func (_m *AuditStore) PermanentDeleteByUser(userId string) *model.AppError {
 }
 
 // Save provides a mock function with given fields: audit
-func (_m *AuditStore) Save(audit *model.Audit) *model.AppError {
+func (_m *AuditStore) Save(audit *model.Audit) error {
 	ret := _m.Called(audit)
 
 	var r0 *model.AppError

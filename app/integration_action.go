@@ -31,11 +31,11 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (string, *model.AppError) {
+func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (string, error) {
 	return a.DoPostActionWithCookie(postId, actionId, userId, selectedOption, nil)
 }
 
-func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption string, cookie *model.PostActionCookie) (string, error) {
 
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
@@ -206,7 +206,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
-func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, error) {
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -250,7 +250,7 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 	return resp, nil
 }
 
-func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
+func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) error {
 	clientTriggerId, userId, err := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
 	if err != nil {
 		return err
@@ -267,7 +267,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 	return nil
 }
 
-func (a *App) SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
+func (a *App) SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, error) {
 	url := request.URL
 	request.URL = ""
 	request.Type = "dialog_submission"

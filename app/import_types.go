@@ -3,8 +3,6 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/model"
-
 // Import Data Models
 
 type LineImportData struct {
@@ -186,7 +184,7 @@ type LineImportWorkerData struct {
 }
 
 type LineImportWorkerError struct {
-	Error      *model.AppError
+	Error      error
 	LineNumber int
 }
 

@@ -34,14 +34,14 @@ func (jss SqlJobStore) CreateIndexesIfNotExists() {
 	jss.CreateIndexIfNotExists("idx_jobs_type", "Jobs", "Type")
 }
 
-func (jss SqlJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
+func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 	if err := jss.GetMaster().Insert(job); err != nil {
 		return nil, model.NewAppError("SqlJobStore.Save", "store.sql_job.save.app_error", nil, "id="+job.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return job, nil
 }
 
-func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError) {
+func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
 	query := "UPDATE Jobs SET LastActivityAt = :LastActivityAt, Status = :Status, Progress = :Progress, Data = :Data WHERE Id = :Id AND Status = :OldStatus"
 	params := map[string]interface{}{
 		"Id":             job.Id,
@@ -69,7 +69,7 @@ func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string
 	return true, nil
 }
 
-func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, *model.AppError) {
+func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error) {
 	job := &model.Job{
 		Id:             id,
 		Status:         status,
@@ -85,7 +85,7 @@ func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, *mode
 	return job, nil
 }
 
-func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError) {
+func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
 	var startAtClause string
 	if newStatus == model.JOB_STATUS_IN_PROGRESS {
 		startAtClause = "StartAt = :StartAt,"
@@ -114,7 +114,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	return true, nil
 }
 
-func (jss SqlJobStore) Get(id string) (*model.Job, *model.AppError) {
+func (jss SqlJobStore) Get(id string) (*model.Job, error) {
 	query := "SELECT * FROM Jobs WHERE Id = :Id"
 
 	var status *model.Job
@@ -127,7 +127,7 @@ func (jss SqlJobStore) Get(id string) (*model.Job, *model.AppError) {
 	return status, nil
 }
 
-func (jss SqlJobStore) GetAllPage(offset int, limit int) ([]*model.Job, *model.AppError) {
+func (jss SqlJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
 	query := "SELECT * FROM Jobs ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 
 	var statuses []*model.Job
@@ -137,7 +137,7 @@ func (jss SqlJobStore) GetAllPage(offset int, limit int) ([]*model.Job, *model.A
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByType(jobType string) ([]*model.Job, *model.AppError) {
+func (jss SqlJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 	query := "SELECT * FROM Jobs WHERE Type = :Type ORDER BY CreateAt DESC"
 	var statuses []*model.Job
 	if _, err := jss.GetReplica().Select(&statuses, query, map[string]interface{}{"Type": jobType}); err != nil {
@@ -146,7 +146,7 @@ func (jss SqlJobStore) GetAllByType(jobType string) ([]*model.Job, *model.AppErr
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (jss SqlJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
 	query := "SELECT * FROM Jobs WHERE Type = :Type ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 
 	var statuses []*model.Job
@@ -156,7 +156,7 @@ func (jss SqlJobStore) GetAllByTypePage(jobType string, offset int, limit int) (
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByStatus(status string) ([]*model.Job, *model.AppError) {
+func (jss SqlJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
 	var statuses []*model.Job
 	query := "SELECT * FROM Jobs WHERE Status = :Status ORDER BY CreateAt ASC"
 
@@ -166,7 +166,7 @@ func (jss SqlJobStore) GetAllByStatus(status string) ([]*model.Job, *model.AppEr
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError) {
+func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error) {
 	query := "SELECT * FROM Jobs WHERE Status = :Status AND Type = :Type ORDER BY CreateAt DESC LIMIT 1"
 
 	var job *model.Job
@@ -176,7 +176,7 @@ func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string
 	return job, nil
 }
 
-func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError) {
+func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (int64, error) {
 	query := "SELECT COUNT(*) FROM Jobs WHERE Status = :Status AND Type = :Type"
 	count, err := jss.GetReplica().SelectInt(query, map[string]interface{}{"Status": status, "Type": jobType})
 	if err != nil {
@@ -185,7 +185,7 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (i
 	return count, nil
 }
 
-func (jss SqlJobStore) Delete(id string) (string, *model.AppError) {
+func (jss SqlJobStore) Delete(id string) (string, error) {
 	query := "DELETE FROM Jobs WHERE Id = :Id"
 	if _, err := jss.GetMaster().Exec(query, map[string]interface{}{"Id": id}); err != nil {
 		return "", model.NewAppError("SqlJobStore.DeleteByType", "store.sql_job.delete.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)

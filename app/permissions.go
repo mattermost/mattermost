@@ -16,7 +16,7 @@ import (
 const permissionsExportBatchSize = 100
 const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents collisions with user-created schemes.
 
-func (a *App) ResetPermissionsSystem() *model.AppError {
+func (a *App) ResetPermissionsSystem() error {
 	// Reset all Teams to not have a scheme.
 	if err := a.Srv.Store.Team().ResetAllTeamSchemes(); err != nil {
 		return err
@@ -127,7 +127,7 @@ func (a *App) ExportPermissions(w io.Writer) error {
 
 	roles, appErr := a.GetRolesByNames(defaultRoleNames)
 	if appErr != nil {
-		return errors.New(appErr.Message)
+		return errors.New(appErr.(*model.AppError).Message)
 	}
 
 	schemeExport, err := json.Marshal(&model.SchemeConveyor{
@@ -162,7 +162,7 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 				dbRole, err := a.GetRoleByName(roleIn.Name)
 				if err != nil {
 					rollback(a, createdSchemeIDs)
-					return errors.New(err.Message)
+					return errors.New(err.(*model.AppError).Message)
 				}
 				_, err = a.PatchRole(dbRole, &model.RolePatch{
 					Permissions: &roleIn.Permissions,
@@ -176,11 +176,11 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 		}
 
 		// Create the new Scheme. The new Roles are created automatically.
-		var appErr *model.AppError
+		var appErr error
 		schemeCreated, appErr := a.CreateScheme(schemeConveyor.Scheme())
 		if appErr != nil {
 			rollback(a, createdSchemeIDs)
-			return errors.New(appErr.Message)
+			return errors.New(appErr.(*model.AppError).Message)
 		}
 		createdSchemeIDs = append(createdSchemeIDs, schemeCreated.Id)
 
@@ -222,11 +222,11 @@ func rollback(a *App, createdSchemeIDs []string) {
 }
 
 func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleName string) error {
-	var err *model.AppError
+	var err error
 
 	roleCreated, err := a.GetRoleByName(roleCreatedName)
 	if err != nil {
-		return errors.New(err.Message)
+		return errors.New(err.(*model.AppError).Message)
 	}
 
 	var roleIn *model.Role
@@ -243,7 +243,7 @@ func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleNa
 
 	_, err = a.UpdateRole(roleCreated)
 	if err != nil {
-		return errors.New(fmt.Sprintf("%v: %v\n", err.Message, err.DetailedError))
+		return errors.New(fmt.Sprintf("%v: %v\n", err.(*model.AppError).Message, err.(*model.AppError).DetailedError))
 	}
 
 	return nil

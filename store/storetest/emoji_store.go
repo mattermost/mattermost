@@ -122,7 +122,7 @@ func testEmojiCaching(t *testing.T, ss store.Store) {
 
 	var retrievedEmoji *model.Emoji
 	var cachedEmoji *model.Emoji
-	var err *model.AppError
+	var err error
 
 	for _, emoji := range emojis {
 		cachedEmoji, err = ss.Emoji().Get(emoji.Id, true)

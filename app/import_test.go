@@ -66,14 +66,14 @@ func checkNotifyProp(t *testing.T, user *model.User, key string, value string) {
 	}
 }
 
-func checkError(t *testing.T, err *model.AppError) {
+func checkError(t *testing.T, err error) {
 	if err == nil {
 		debug.PrintStack()
 		t.Fatal("Should have returned an error.")
 	}
 }
 
-func checkNoError(t *testing.T, err *model.AppError) {
+func checkNoError(t *testing.T, err error) {
 	if err != nil {
 		debug.PrintStack()
 		t.Fatalf("Unexpected Error: %v", err.Error())

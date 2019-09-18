@@ -53,7 +53,7 @@ func (p *AdvancedPermissionsPhase2Progress) IsValid() bool {
 	return true
 }
 
-func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bool, string, *model.AppError) {
+func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bool, string, error) {
 	var progress *AdvancedPermissionsPhase2Progress
 	if len(lastDone) == 0 {
 		// Haven't started the migration yet.

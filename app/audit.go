@@ -7,10 +7,10 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError) {
+func (a *App) GetAudits(userId string, limit int) (model.Audits, error) {
 	return a.Srv.Store.Audit().Get(userId, 0, limit)
 }
 
-func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits, *model.AppError) {
+func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits, error) {
 	return a.Srv.Store.Audit().Get(userId, page*perPage, perPage)
 }

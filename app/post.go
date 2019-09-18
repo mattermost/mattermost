@@ -24,7 +24,7 @@ const (
 	PAGE_DEFAULT                = 0
 )
 
-func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
+func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, error) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv.Store.Channel().Get(post.ChannelId, true)
 	if errCh != nil {
@@ -44,13 +44,13 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 
 	rp, err := a.CreatePost(post, channel, true)
 	if err != nil {
-		if err.Id == "api.post.create_post.root_id.app_error" ||
-			err.Id == "api.post.create_post.channel_root_id.app_error" ||
-			err.Id == "api.post.create_post.parent_id.app_error" {
-			err.StatusCode = http.StatusBadRequest
+		if err.(*model.AppError).Id == "api.post.create_post.root_id.app_error" ||
+			err.(*model.AppError).Id == "api.post.create_post.channel_root_id.app_error" ||
+			err.(*model.AppError).Id == "api.post.create_post.parent_id.app_error" {
+			err.(*model.AppError).StatusCode = http.StatusBadRequest
 		}
 
-		if err.Id == "api.post.create_post.town_square_read_only" {
+		if err.(*model.AppError).Id == "api.post.create_post.town_square_read_only" {
 			user, userErr := a.Srv.Store.User().Get(post.UserId)
 			if userErr != nil {
 				return nil, userErr
@@ -87,7 +87,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 	return rp, nil
 }
 
-func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, error) {
 	channel, err := a.Srv.Store.Channel().Get(post.ChannelId, true)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
-func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, err *model.AppError) {
+func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, err error) {
 	// We rely on the client sending the pending post id across "duplicate" requests. If there
 	// isn't one, we can't deduplicate, so allow creation normally.
 	if post.PendingPostId == "" {
@@ -137,7 +137,7 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	return actualPost, nil
 }
 
-func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError) {
+func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err error) {
 	foundPost, err := a.deduplicateCreatePost(post)
 	if err != nil {
 		return nil, err
@@ -314,7 +314,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	return rpost, nil
 }
 
-func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
+func (a *App) attachFilesToPost(post *model.Post) error {
 	var attachedIds []string
 	for _, fileId := range post.FileIds {
 		err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
@@ -342,7 +342,7 @@ func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 // channel_mentions.
 //
 // If channel is nil, FillInPostProps will look up the channel corresponding to the post.
-func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.AppError {
+func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) error {
 	channelMentions := post.ChannelMentions()
 	channelMentionsProp := make(map[string]interface{})
 
@@ -472,7 +472,7 @@ func (a *App) DeleteEphemeralPost(userId, postId string) {
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, error) {
 	post.SanitizeProps()
 
 	postLists, err := a.Srv.Store.Post().Get(post.Id, true)
@@ -588,7 +588,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	return rpost, nil
 }
 
-func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, error) {
 	post, err := a.GetSinglePost(postId)
 	if err != nil {
 		return nil, err
@@ -614,11 +614,11 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 	return updatedPost, nil
 }
 
-func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, error) {
 	return a.Srv.Store.Post().GetPosts(options, false)
 }
 
-func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList, error) {
 	return a.Srv.Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: offset, PerPage: limit}, true)
 }
 
@@ -626,31 +626,31 @@ func (a *App) GetPostsEtag(channelId string) string {
 	return a.Srv.Store.Post().GetEtag(channelId, true)
 }
 
-func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, error) {
 	return a.Srv.Store.Post().GetPostsSince(options, true)
 }
 
-func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
+func (a *App) GetSinglePost(postId string) (*model.Post, error) {
 	return a.Srv.Store.Post().GetSingle(postId)
 }
 
-func (a *App) GetPostThread(postId string) (*model.PostList, *model.AppError) {
+func (a *App) GetPostThread(postId string) (*model.PostList, error) {
 	return a.Srv.Store.Post().Get(postId, false)
 }
 
-func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
 	return a.Srv.Store.Post().GetFlaggedPosts(userId, offset, limit)
 }
 
-func (a *App) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, error) {
 	return a.Srv.Store.Post().GetFlaggedPostsForTeam(userId, teamId, offset, limit)
 }
 
-func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, error) {
 	return a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
 }
 
-func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
+func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, error) {
 	list, err := a.Srv.Store.Post().Get(postId, false)
 	if err != nil {
 		return nil, err
@@ -673,30 +673,30 @@ func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *
 	return list, nil
 }
 
-func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, error) {
 	return a.Srv.Store.Post().GetPostsBefore(options)
 }
 
-func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, error) {
 	return a.Srv.Store.Post().GetPostsAfter(options)
 }
 
-func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, error) {
 	if before {
 		return a.Srv.Store.Post().GetPostsBefore(options)
 	}
 	return a.Srv.Store.Post().GetPostsAfter(options)
 }
 
-func (a *App) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+func (a *App) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
 	return a.Srv.Store.Post().GetPostAfterTime(channelId, time)
 }
 
-func (a *App) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+func (a *App) GetPostIdAfterTime(channelId string, time int64) (string, error) {
 	return a.Srv.Store.Post().GetPostIdAfterTime(channelId, time)
 }
 
-func (a *App) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+func (a *App) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
 	return a.Srv.Store.Post().GetPostIdBeforeTime(channelId, time)
 }
 
@@ -773,9 +773,9 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.NextPostId = nextPostId
 	originalList.PrevPostId = prevPostId
 }
-func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int, skipFetchThreads bool) (*model.PostList, error) {
 	var member *model.ChannelMember
-	var err *model.AppError
+	var err error
 	if member, err = a.GetChannelMember(channelId, userId); err != nil {
 		return nil, err
 	} else if member.LastViewedAt == 0 {
@@ -813,10 +813,10 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 	return postList, nil
 }
 
-func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
+func (a *App) DeletePost(postId, deleteByID string) (*model.Post, error) {
 	post, err := a.Srv.Store.Post().GetSingle(postId)
 	if err != nil {
-		err.StatusCode = http.StatusBadRequest
+		err.(*model.AppError).StatusCode = http.StatusBadRequest
 		return nil, err
 	}
 
@@ -912,7 +912,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 	return channel, nil
 }
 
-func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
+func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, error) {
 	var wg sync.WaitGroup
 
 	pchan := make(chan store.StoreResult, len(paramsList))
@@ -972,7 +972,7 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 	return usernames
 }
 
-func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
+func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, error) {
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v", teamId), http.StatusNotImplemented)
 	}
@@ -981,7 +981,7 @@ func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, error) {
 	finalParamsList := []*model.SearchParams{}
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
@@ -1036,9 +1036,9 @@ func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userI
 	return model.MakePostSearchResults(postList, matches), nil
 }
 
-func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, error) {
 	var postSearchResults *model.PostSearchResults
-	var err *model.AppError
+	var err error
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
@@ -1093,7 +1093,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 	return postSearchResults, nil
 }
 
-func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, error) {
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
@@ -1125,7 +1125,7 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 	return infos, nil
 }
 
-func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, error) {
 	return a.Srv.Store.FileInfo().GetForPost(postId, fromMaster, false, true)
 }
 

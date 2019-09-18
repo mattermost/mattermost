@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) GetDataRetentionPolicy() (*model.DataRetentionPolicy, *model.AppError) {
+func (a *App) GetDataRetentionPolicy() (*model.DataRetentionPolicy, error) {
 	if a.DataRetention == nil {
 		return nil, model.NewAppError("App.GetDataRetentionPolicy", "ent.data_retention.generic.license.error", nil, "", http.StatusNotImplemented)
 	}

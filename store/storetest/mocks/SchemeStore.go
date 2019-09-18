@@ -15,7 +15,7 @@ type SchemeStore struct {
 }
 
 // Delete provides a mock function with given fields: schemeId
-func (_m *SchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
+func (_m *SchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	ret := _m.Called(schemeId)
 
 	var r0 *model.Scheme
@@ -40,7 +40,7 @@ func (_m *SchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) 
 }
 
 // Get provides a mock function with given fields: schemeId
-func (_m *SchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
+func (_m *SchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	ret := _m.Called(schemeId)
 
 	var r0 *model.Scheme
@@ -65,7 +65,7 @@ func (_m *SchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
 }
 
 // GetAllPage provides a mock function with given fields: scope, offset, limit
-func (_m *SchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+func (_m *SchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error) {
 	ret := _m.Called(scope, offset, limit)
 
 	var r0 []*model.Scheme
@@ -90,7 +90,7 @@ func (_m *SchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model
 }
 
 // GetByName provides a mock function with given fields: schemeName
-func (_m *SchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
+func (_m *SchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	ret := _m.Called(schemeName)
 
 	var r0 *model.Scheme
@@ -115,7 +115,7 @@ func (_m *SchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppEr
 }
 
 // PermanentDeleteAll provides a mock function with given fields:
-func (_m *SchemeStore) PermanentDeleteAll() *model.AppError {
+func (_m *SchemeStore) PermanentDeleteAll() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -131,7 +131,7 @@ func (_m *SchemeStore) PermanentDeleteAll() *model.AppError {
 }
 
 // Save provides a mock function with given fields: scheme
-func (_m *SchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (_m *SchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	ret := _m.Called(scheme)
 
 	var r0 *model.Scheme

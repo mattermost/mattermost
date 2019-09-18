@@ -26,7 +26,7 @@ func (_m *Hooks) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel
 }
 
 // ExecuteCommand provides a mock function with given fields: c, args
-func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, error) {
 	ret := _m.Called(c, args)
 
 	var r0 *model.CommandResponse

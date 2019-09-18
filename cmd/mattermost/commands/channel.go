@@ -355,7 +355,7 @@ func deleteChannelsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func deleteChannel(a *app.App, channel *model.Channel) *model.AppError {
+func deleteChannel(a *app.App, channel *model.Channel) error {
 	return a.PermanentDeleteChannel(channel)
 }
 
@@ -396,7 +396,7 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
+func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) error {
 	oldTeamId := channel.TeamId
 
 	if err := a.MoveChannel(team, channel, user, removeDeactivatedMembers); err != nil {

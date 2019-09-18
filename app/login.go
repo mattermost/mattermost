@@ -33,7 +33,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	return pem, subject, email
 }
 
-func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (user *model.User, err error) {
 	// Do statistics
 	defer func() {
 		if a.Metrics != nil {
@@ -74,7 +74,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	return user, nil
 }
 
-func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError) {
+func (a *App) GetUserForLogin(id, loginId string) (*model.User, error) {
 	enableUsername := *a.Config().EmailSettings.EnableSignInWithUsername
 	enableEmail := *a.Config().EmailSettings.EnableSignInWithEmail
 
@@ -82,11 +82,11 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	if len(id) != 0 {
 		user, err := a.GetUser(id)
 		if err != nil {
-			if err.Id != store.MISSING_ACCOUNT_ERROR {
-				err.StatusCode = http.StatusInternalServerError
+			if err.(*model.AppError).Id != store.MISSING_ACCOUNT_ERROR {
+				err.(*model.AppError).StatusCode = http.StatusInternalServerError
 				return nil, err
 			}
-			err.StatusCode = http.StatusBadRequest
+			err.(*model.AppError).StatusCode = http.StatusBadRequest
 			return nil, err
 		}
 		return user, nil
@@ -110,7 +110,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
 }
 
-func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) (*model.Session, *model.AppError) {
+func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) (*model.Session, error) {
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
 		pluginContext := a.PluginContext()
@@ -132,7 +132,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 		// A special case where we logout of all other sessions with the same Id
 		if err := a.RevokeSessionsForDeviceId(user.Id, deviceId, ""); err != nil {
-			err.StatusCode = http.StatusInternalServerError
+			err.(*model.AppError).StatusCode = http.StatusInternalServerError
 			return nil, err
 		}
 	} else {
@@ -155,9 +155,9 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
 	}
 
-	var err *model.AppError
+	var err error
 	if session, err = a.CreateSession(session); err != nil {
-		err.StatusCode = http.StatusInternalServerError
+		err.(*model.AppError).StatusCode = http.StatusInternalServerError
 		return nil, err
 	}
 

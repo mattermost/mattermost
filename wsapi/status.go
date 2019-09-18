@@ -13,12 +13,12 @@ func (api *API) InitStatus() {
 	api.Router.Handle("get_statuses_by_ids", api.ApiWebSocketHandler(api.getStatusesByIds))
 }
 
-func (api *API) getStatuses(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) getStatuses(req *model.WebSocketRequest) (map[string]interface{}, error) {
 	statusMap := api.App.GetAllStatuses()
 	return model.StatusMapToInterfaceMap(statusMap), nil
 }
 
-func (api *API) getStatusesByIds(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) getStatusesByIds(req *model.WebSocketRequest) (map[string]interface{}, error) {
 	var userIds []string
 	if userIds = model.ArrayFromInterface(req.Data["user_ids"]); len(userIds) == 0 {
 		mlog.Error(model.StringInterfaceToJson(req.Data))

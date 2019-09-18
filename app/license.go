@@ -46,7 +46,7 @@ func (a *App) LoadLicense() {
 	mlog.Info("License key valid unlocking enterprise features.")
 }
 
-func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
+func (a *App) SaveLicense(licenseBytes []byte) (*model.License, error) {
 	success, licenseStr := utils.ValidateLicense(licenseBytes)
 	if !success {
 		return nil, model.NewAppError("addLicense", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
@@ -150,7 +150,7 @@ func (a *App) ClientLicense() map[string]string {
 	return map[string]string{"IsLicensed": "false"}
 }
 
-func (a *App) RemoveLicense() *model.AppError {
+func (a *App) RemoveLicense() error {
 	if license, _ := a.Srv.licenseValue.Load().(*model.License); license == nil {
 		return nil
 	}

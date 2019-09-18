@@ -15,7 +15,7 @@ type ClusterDiscoveryStore struct {
 }
 
 // Cleanup provides a mock function with given fields:
-func (_m *ClusterDiscoveryStore) Cleanup() *model.AppError {
+func (_m *ClusterDiscoveryStore) Cleanup() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -31,7 +31,7 @@ func (_m *ClusterDiscoveryStore) Cleanup() *model.AppError {
 }
 
 // Delete provides a mock function with given fields: discovery
-func (_m *ClusterDiscoveryStore) Delete(discovery *model.ClusterDiscovery) (bool, *model.AppError) {
+func (_m *ClusterDiscoveryStore) Delete(discovery *model.ClusterDiscovery) (bool, error) {
 	ret := _m.Called(discovery)
 
 	var r0 bool
@@ -54,7 +54,7 @@ func (_m *ClusterDiscoveryStore) Delete(discovery *model.ClusterDiscovery) (bool
 }
 
 // Exists provides a mock function with given fields: discovery
-func (_m *ClusterDiscoveryStore) Exists(discovery *model.ClusterDiscovery) (bool, *model.AppError) {
+func (_m *ClusterDiscoveryStore) Exists(discovery *model.ClusterDiscovery) (bool, error) {
 	ret := _m.Called(discovery)
 
 	var r0 bool
@@ -77,7 +77,7 @@ func (_m *ClusterDiscoveryStore) Exists(discovery *model.ClusterDiscovery) (bool
 }
 
 // GetAll provides a mock function with given fields: discoveryType, clusterName
-func (_m *ClusterDiscoveryStore) GetAll(discoveryType string, clusterName string) ([]*model.ClusterDiscovery, *model.AppError) {
+func (_m *ClusterDiscoveryStore) GetAll(discoveryType string, clusterName string) ([]*model.ClusterDiscovery, error) {
 	ret := _m.Called(discoveryType, clusterName)
 
 	var r0 []*model.ClusterDiscovery
@@ -102,7 +102,7 @@ func (_m *ClusterDiscoveryStore) GetAll(discoveryType string, clusterName string
 }
 
 // Save provides a mock function with given fields: discovery
-func (_m *ClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery) *model.AppError {
+func (_m *ClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery) error {
 	ret := _m.Called(discovery)
 
 	var r0 *model.AppError
@@ -118,7 +118,7 @@ func (_m *ClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery) *model.
 }
 
 // SetLastPingAt provides a mock function with given fields: discovery
-func (_m *ClusterDiscoveryStore) SetLastPingAt(discovery *model.ClusterDiscovery) *model.AppError {
+func (_m *ClusterDiscoveryStore) SetLastPingAt(discovery *model.ClusterDiscovery) error {
 	ret := _m.Called(discovery)
 
 	var r0 *model.AppError

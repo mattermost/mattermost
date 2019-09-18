@@ -15,7 +15,7 @@ type SessionStore struct {
 }
 
 // AnalyticsSessionCount provides a mock function with given fields:
-func (_m *SessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
+func (_m *SessionStore) AnalyticsSessionCount() (int64, error) {
 	ret := _m.Called()
 
 	var r0 int64
@@ -43,7 +43,7 @@ func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) {
 }
 
 // Get provides a mock function with given fields: sessionIdOrToken
-func (_m *SessionStore) Get(sessionIdOrToken string) (*model.Session, *model.AppError) {
+func (_m *SessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	ret := _m.Called(sessionIdOrToken)
 
 	var r0 *model.Session
@@ -68,7 +68,7 @@ func (_m *SessionStore) Get(sessionIdOrToken string) (*model.Session, *model.App
 }
 
 // GetSessions provides a mock function with given fields: userId
-func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, *model.AppError) {
+func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, error) {
 	ret := _m.Called(userId)
 
 	var r0 []*model.Session
@@ -93,7 +93,7 @@ func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, *model.App
 }
 
 // GetSessionsWithActiveDeviceIds provides a mock function with given fields: userId
-func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
+func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	ret := _m.Called(userId)
 
 	var r0 []*model.Session
@@ -118,7 +118,7 @@ func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.
 }
 
 // PermanentDeleteSessionsByUser provides a mock function with given fields: teamId
-func (_m *SessionStore) PermanentDeleteSessionsByUser(teamId string) *model.AppError {
+func (_m *SessionStore) PermanentDeleteSessionsByUser(teamId string) error {
 	ret := _m.Called(teamId)
 
 	var r0 *model.AppError
@@ -134,7 +134,7 @@ func (_m *SessionStore) PermanentDeleteSessionsByUser(teamId string) *model.AppE
 }
 
 // Remove provides a mock function with given fields: sessionIdOrToken
-func (_m *SessionStore) Remove(sessionIdOrToken string) *model.AppError {
+func (_m *SessionStore) Remove(sessionIdOrToken string) error {
 	ret := _m.Called(sessionIdOrToken)
 
 	var r0 *model.AppError
@@ -150,7 +150,7 @@ func (_m *SessionStore) Remove(sessionIdOrToken string) *model.AppError {
 }
 
 // RemoveAllSessions provides a mock function with given fields:
-func (_m *SessionStore) RemoveAllSessions() *model.AppError {
+func (_m *SessionStore) RemoveAllSessions() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -166,7 +166,7 @@ func (_m *SessionStore) RemoveAllSessions() *model.AppError {
 }
 
 // Save provides a mock function with given fields: session
-func (_m *SessionStore) Save(session *model.Session) (*model.Session, *model.AppError) {
+func (_m *SessionStore) Save(session *model.Session) (*model.Session, error) {
 	ret := _m.Called(session)
 
 	var r0 *model.Session
@@ -191,7 +191,7 @@ func (_m *SessionStore) Save(session *model.Session) (*model.Session, *model.App
 }
 
 // UpdateDeviceId provides a mock function with given fields: id, deviceId, expiresAt
-func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError) {
+func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, error) {
 	ret := _m.Called(id, deviceId, expiresAt)
 
 	var r0 string
@@ -214,7 +214,7 @@ func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int
 }
 
 // UpdateLastActivityAt provides a mock function with given fields: sessionId, time
-func (_m *SessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {
+func (_m *SessionStore) UpdateLastActivityAt(sessionId string, time int64) error {
 	ret := _m.Called(sessionId, time)
 
 	var r0 *model.AppError
@@ -230,7 +230,7 @@ func (_m *SessionStore) UpdateLastActivityAt(sessionId string, time int64) *mode
 }
 
 // UpdateProps provides a mock function with given fields: session
-func (_m *SessionStore) UpdateProps(session *model.Session) *model.AppError {
+func (_m *SessionStore) UpdateProps(session *model.Session) error {
 	ret := _m.Called(session)
 
 	var r0 *model.AppError
@@ -246,7 +246,7 @@ func (_m *SessionStore) UpdateProps(session *model.Session) *model.AppError {
 }
 
 // UpdateRoles provides a mock function with given fields: userId, roles
-func (_m *SessionStore) UpdateRoles(userId string, roles string) (string, *model.AppError) {
+func (_m *SessionStore) UpdateRoles(userId string, roles string) (string, error) {
 	ret := _m.Called(userId, roles)
 
 	var r0 string

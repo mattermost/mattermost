@@ -40,7 +40,7 @@ func NewSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInt
 func (s SqlTermsOfServiceStore) CreateIndexesIfNotExists() {
 }
 
-func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError) {
+func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
 	if len(termsOfService.Id) > 0 {
 		return nil, model.NewAppError("SqlTermsOfServiceStore.Save", "store.sql_terms_of_service_store.save.existing.app_error", nil, "id="+termsOfService.Id, http.StatusBadRequest)
 	}
@@ -60,7 +60,7 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mod
 	return termsOfService, nil
 }
 
-func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	if allowFromCache {
 		if termsOfServiceCache.Len() != 0 {
 			if cacheItem, ok := termsOfServiceCache.Get(termsOfServiceCache.Keys()[0]); ok {
@@ -93,7 +93,7 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfSe
 	return termsOfService, nil
 }
 
-func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, error) {
 	if allowFromCache {
 		if termsOfServiceCache.Len() != 0 {
 			if cacheItem, ok := termsOfServiceCache.Get(id); ok {

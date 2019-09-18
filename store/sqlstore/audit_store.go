@@ -34,7 +34,7 @@ func (s SqlAuditStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_audits_user_id", "Audits", "UserId")
 }
 
-func (s SqlAuditStore) Save(audit *model.Audit) *model.AppError {
+func (s SqlAuditStore) Save(audit *model.Audit) error {
 	audit.Id = model.NewId()
 	audit.CreateAt = model.GetMillis()
 
@@ -44,7 +44,7 @@ func (s SqlAuditStore) Save(audit *model.Audit) *model.AppError {
 	return nil
 }
 
-func (s SqlAuditStore) Get(user_id string, offset int, limit int) (model.Audits, *model.AppError) {
+func (s SqlAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 	if limit > 1000 {
 		return nil, model.NewAppError("SqlAuditStore.Get", "store.sql_audit.get.limit.app_error", nil, "user_id="+user_id, http.StatusBadRequest)
 	}
@@ -64,7 +64,7 @@ func (s SqlAuditStore) Get(user_id string, offset int, limit int) (model.Audits,
 	return audits, nil
 }
 
-func (s SqlAuditStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s SqlAuditStore) PermanentDeleteByUser(userId string) error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Audits WHERE UserId = :userId",
 		map[string]interface{}{"userId": userId}); err != nil {
 		return model.NewAppError("SqlAuditStore.Delete", "store.sql_audit.permanent_delete_by_user.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
@@ -72,7 +72,7 @@ func (s SqlAuditStore) PermanentDeleteByUser(userId string) *model.AppError {
 	return nil
 }
 
-func (s SqlAuditStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s SqlAuditStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == "postgres" {
 		query = "DELETE from Audits WHERE Id = any (array (SELECT Id FROM Audits WHERE CreateAt < :EndTime LIMIT :Limit))"

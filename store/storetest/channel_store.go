@@ -181,7 +181,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	returnedChannel, err := ss.Channel().SaveDirectChannel(&o1a, &m1, &m2)
 	if err == nil {
 		t.Fatal("should've failed to save a duplicate direct channel")
-	} else if err.Id != store.CHANNEL_EXISTS_ERROR {
+	} else if err.(*model.AppError).Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("should've returned CHANNEL_EXISTS_ERROR")
 	} else if returnedChannel.Id != o1.Id {
 		t.Fatal("should've returned original channel when saving a duplicate direct channel")
@@ -665,7 +665,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 
 	list, err = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
 	if assert.NotNil(t, err) {
-		require.Equal(t, "store.sql_channel.get_channels.not_found.app_error", err.Id)
+		require.Equal(t, "store.sql_channel.get_channels.not_found.app_error", err.(*model.AppError).Id)
 	} else {
 		require.Equal(t, &model.ChannelList{}, list)
 	}
@@ -1551,7 +1551,7 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 	t.Run("random channel id should not be found as a public channel in the team", func(t *testing.T) {
 		_, err := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{model.NewId()})
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, "store.sql_channel.get_channels_by_ids.not_found.app_error")
+		require.Equal(t, err.(*model.AppError).Id, "store.sql_channel.get_channels_by_ids.not_found.app_error")
 	})
 }
 
@@ -2574,7 +2574,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		{"pipe ignored", teamId, "town square |", false, &model.ChannelList{&o9}},
 	}
 
-	for name, search := range map[string]func(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError){
+	for name, search := range map[string]func(teamId string, term string, includeDeleted bool) (*model.ChannelList, error){
 		"AutocompleteInTeam": ss.Channel().AutocompleteInTeam,
 		"SearchInTeam":       ss.Channel().SearchInTeam,
 	} {
@@ -3461,7 +3461,7 @@ func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {
 	}
 	_, err := ss.Channel().Save(channel, 0)
 	assert.NotEqual(t, nil, err)
-	assert.Equal(t, err.Id, "store.sql_channel.save_channel.limit.app_error")
+	assert.Equal(t, err.(*model.AppError).Id, "store.sql_channel.save_channel.limit.app_error")
 
 	channel.Id = ""
 	_, err = ss.Channel().Save(channel, 1)

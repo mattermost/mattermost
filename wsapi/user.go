@@ -12,7 +12,7 @@ func (api *API) InitUser() {
 	api.Router.Handle("user_update_active_status", api.ApiWebSocketHandler(api.userUpdateActiveStatus))
 }
 
-func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{}, error) {
 	var ok bool
 	var channelId string
 	if channelId, ok = req.Data["channel_id"].(string); !ok || len(channelId) != 26 {
@@ -35,7 +35,7 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 	return nil, nil
 }
 
-func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]interface{}, error) {
 	var ok bool
 	var userIsActive bool
 	if userIsActive, ok = req.Data["user_is_active"].(bool); !ok {

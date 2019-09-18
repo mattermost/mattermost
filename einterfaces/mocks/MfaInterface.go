@@ -13,7 +13,7 @@ type MfaInterface struct {
 }
 
 // Activate provides a mock function with given fields: user, token
-func (_m *MfaInterface) Activate(user *model.User, token string) *model.AppError {
+func (_m *MfaInterface) Activate(user *model.User, token string) error {
 	ret := _m.Called(user, token)
 
 	var r0 *model.AppError
@@ -29,7 +29,7 @@ func (_m *MfaInterface) Activate(user *model.User, token string) *model.AppError
 }
 
 // Deactivate provides a mock function with given fields: userId
-func (_m *MfaInterface) Deactivate(userId string) *model.AppError {
+func (_m *MfaInterface) Deactivate(userId string) error {
 	ret := _m.Called(userId)
 
 	var r0 *model.AppError
@@ -45,7 +45,7 @@ func (_m *MfaInterface) Deactivate(userId string) *model.AppError {
 }
 
 // GenerateSecret provides a mock function with given fields: user
-func (_m *MfaInterface) GenerateSecret(user *model.User) (string, []byte, *model.AppError) {
+func (_m *MfaInterface) GenerateSecret(user *model.User) (string, []byte, error) {
 	ret := _m.Called(user)
 
 	var r0 string
@@ -77,7 +77,7 @@ func (_m *MfaInterface) GenerateSecret(user *model.User) (string, []byte, *model
 }
 
 // ValidateToken provides a mock function with given fields: secret, token
-func (_m *MfaInterface) ValidateToken(secret string, token string) (bool, *model.AppError) {
+func (_m *MfaInterface) ValidateToken(secret string, token string) (bool, error) {
 	ret := _m.Called(secret, token)
 
 	var r0 bool

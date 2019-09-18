@@ -166,7 +166,7 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now tim
 	mlog.Debug("Next run time for scheduler", mlog.String("scheduler_name", scheduler.Name()), mlog.String("next_runtime", fmt.Sprintf("%v", schedulers.nextRunTimes[idx])))
 }
 
-func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (*model.Job, *model.AppError) {
+func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (*model.Job, error) {
 	pendingJobs, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType())
 	if err != nil {
 		return nil, err

@@ -15,7 +15,7 @@ type FileInfoStore struct {
 }
 
 // AttachToPost provides a mock function with given fields: fileId, postId, creatorId
-func (_m *FileInfoStore) AttachToPost(fileId string, postId string, creatorId string) *model.AppError {
+func (_m *FileInfoStore) AttachToPost(fileId string, postId string, creatorId string) error {
 	ret := _m.Called(fileId, postId, creatorId)
 
 	var r0 *model.AppError
@@ -36,7 +36,7 @@ func (_m *FileInfoStore) ClearCaches() {
 }
 
 // DeleteForPost provides a mock function with given fields: postId
-func (_m *FileInfoStore) DeleteForPost(postId string) (string, *model.AppError) {
+func (_m *FileInfoStore) DeleteForPost(postId string) (string, error) {
 	ret := _m.Called(postId)
 
 	var r0 string
@@ -59,7 +59,7 @@ func (_m *FileInfoStore) DeleteForPost(postId string) (string, *model.AppError) 
 }
 
 // Get provides a mock function with given fields: id
-func (_m *FileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
+func (_m *FileInfoStore) Get(id string) (*model.FileInfo, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.FileInfo
@@ -84,7 +84,7 @@ func (_m *FileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
 }
 
 // GetByPath provides a mock function with given fields: path
-func (_m *FileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppError) {
+func (_m *FileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	ret := _m.Called(path)
 
 	var r0 *model.FileInfo
@@ -109,7 +109,7 @@ func (_m *FileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppErro
 }
 
 // GetForPost provides a mock function with given fields: postId, readFromMaster, includeDeleted, allowFromCache
-func (_m *FileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
+func (_m *FileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
 	ret := _m.Called(postId, readFromMaster, includeDeleted, allowFromCache)
 
 	var r0 []*model.FileInfo
@@ -134,7 +134,7 @@ func (_m *FileInfoStore) GetForPost(postId string, readFromMaster bool, includeD
 }
 
 // GetForUser provides a mock function with given fields: userId
-func (_m *FileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.AppError) {
+func (_m *FileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
 	ret := _m.Called(userId)
 
 	var r0 []*model.FileInfo
@@ -164,7 +164,7 @@ func (_m *FileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 }
 
 // PermanentDelete provides a mock function with given fields: fileId
-func (_m *FileInfoStore) PermanentDelete(fileId string) *model.AppError {
+func (_m *FileInfoStore) PermanentDelete(fileId string) error {
 	ret := _m.Called(fileId)
 
 	var r0 *model.AppError
@@ -180,7 +180,7 @@ func (_m *FileInfoStore) PermanentDelete(fileId string) *model.AppError {
 }
 
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
-func (_m *FileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (_m *FileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
 
 	var r0 int64
@@ -203,7 +203,7 @@ func (_m *FileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64
 }
 
 // PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *FileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
+func (_m *FileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 	ret := _m.Called(userId)
 
 	var r0 int64
@@ -226,7 +226,7 @@ func (_m *FileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.App
 }
 
 // Save provides a mock function with given fields: info
-func (_m *FileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *model.AppError) {
+func (_m *FileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	ret := _m.Called(info)
 
 	var r0 *model.FileInfo

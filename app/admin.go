@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (a *App) GetLogs(page, perPage int) ([]string, error) {
 	var lines []string
 	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
@@ -48,7 +48,7 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
-func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+func (a *App) GetLogsSkipSend(page, perPage int) ([]string, error) {
 	var lines []string
 
 	if *a.Config().LogSettings.EnableFile {
@@ -129,7 +129,7 @@ func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	return infos
 }
 
-func (a *App) InvalidateAllCaches() *model.AppError {
+func (a *App) InvalidateAllCaches() error {
 	debug.FreeOSMemory()
 	a.InvalidateAllCachesSkipSend()
 
@@ -175,7 +175,7 @@ func (a *App) RecycleDatabaseConnection() {
 	mlog.Warn("Finished recycling the database connection.")
 }
 
-func (a *App) TestSiteURL(siteURL string) *model.AppError {
+func (a *App) TestSiteURL(siteURL string) error {
 	url := fmt.Sprintf("%s/api/v4/system/ping", siteURL)
 	res, err := http.Get(url)
 	if err != nil || res.StatusCode != 200 {
@@ -185,7 +185,7 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 	return nil
 }
 
-func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
+func (a *App) TestEmail(userId string, cfg *model.Config) error {
 	if len(*cfg.EmailSettings.SMTPServer) == 0 {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}

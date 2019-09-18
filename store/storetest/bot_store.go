@@ -72,13 +72,13 @@ func testBotStoreGet(t *testing.T, ss store.Store) {
 	t.Run("get non-existent bot", func(t *testing.T) {
 		_, err := ss.Bot().Get("unknown", false)
 		require.NotNil(t, err)
-		require.Equal(t, http.StatusNotFound, err.StatusCode)
+		require.Equal(t, http.StatusNotFound, err.(*model.AppError).StatusCode)
 	})
 
 	t.Run("get deleted bot", func(t *testing.T) {
 		_, err := ss.Bot().Get(deletedBot.UserId, false)
 		require.NotNil(t, err)
-		require.Equal(t, http.StatusNotFound, err.StatusCode)
+		require.Equal(t, http.StatusNotFound, err.(*model.AppError).StatusCode)
 	})
 
 	t.Run("get deleted bot, include deleted", func(t *testing.T) {
@@ -90,7 +90,7 @@ func testBotStoreGet(t *testing.T, ss store.Store) {
 	t.Run("get permanently deleted bot", func(t *testing.T) {
 		_, err := ss.Bot().Get(permanentlyDeletedBot.UserId, false)
 		require.NotNil(t, err)
-		require.Equal(t, http.StatusNotFound, err.StatusCode)
+		require.Equal(t, http.StatusNotFound, err.(*model.AppError).StatusCode)
 	})
 
 	t.Run("get bot 1", func(t *testing.T) {
@@ -301,7 +301,7 @@ func testBotStoreSave(t *testing.T, ss store.Store) {
 
 		_, err := ss.Bot().Save(bot)
 		require.NotNil(t, err)
-		require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
+		require.Equal(t, "model.bot.is_valid.username.app_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("normal bot", func(t *testing.T) {
@@ -350,7 +350,7 @@ func testBotStoreUpdate(t *testing.T, ss store.Store) {
 		bot.Username = "invalid username"
 		_, err := ss.Bot().Update(bot)
 		require.NotNil(t, err)
-		require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
+		require.Equal(t, "model.bot.is_valid.username.app_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("existing bot should update", func(t *testing.T) {
@@ -440,6 +440,6 @@ func testBotStorePermanentDelete(t *testing.T, ss store.Store) {
 
 		_, err = ss.Bot().Get(b1.UserId, false)
 		require.NotNil(t, err)
-		require.Equal(t, http.StatusNotFound, err.StatusCode)
+		require.Equal(t, http.StatusNotFound, err.(*model.AppError).StatusCode)
 	})
 }

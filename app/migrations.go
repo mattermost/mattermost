@@ -97,7 +97,7 @@ func (a *App) DoEmojisPermissionsMigration() {
 
 	var role *model.Role = nil
 	var systemAdminRole *model.Role = nil
-	var err *model.AppError = nil
+	var err error = nil
 
 	mlog.Info("Migrating emojis config to database.")
 	switch *a.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation {

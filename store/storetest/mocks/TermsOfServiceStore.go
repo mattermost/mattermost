@@ -15,7 +15,7 @@ type TermsOfServiceStore struct {
 }
 
 // Get provides a mock function with given fields: id, allowFromCache
-func (_m *TermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (_m *TermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, error) {
 	ret := _m.Called(id, allowFromCache)
 
 	var r0 *model.TermsOfService
@@ -40,7 +40,7 @@ func (_m *TermsOfServiceStore) Get(id string, allowFromCache bool) (*model.Terms
 }
 
 // GetLatest provides a mock function with given fields: allowFromCache
-func (_m *TermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (_m *TermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	ret := _m.Called(allowFromCache)
 
 	var r0 *model.TermsOfService
@@ -65,7 +65,7 @@ func (_m *TermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfSer
 }
 
 // Save provides a mock function with given fields: termsOfService
-func (_m *TermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError) {
+func (_m *TermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
 	ret := _m.Called(termsOfService)
 
 	var r0 *model.TermsOfService

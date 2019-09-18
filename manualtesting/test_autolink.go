@@ -21,7 +21,7 @@ http://www.google.com.pk/url?sa=t&rct=j&q=&esrc=s&source=web&cd=4&cad=rja&uact=8
 https://medium.com/@slackhq/11-useful-tips-for-getting-the-most-of-slack-5dfb3d1af77
 `
 
-func testAutoLink(env TestEnvironment) *model.AppError {
+func testAutoLink(env TestEnvironment) error {
 	mlog.Info("Manual Auto Link Test")
 	channelID, err := getChannelID(env.Context.App, model.DEFAULT_CHANNEL, env.CreatedTeamId, env.CreatedUserId)
 	if !err {

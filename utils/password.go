@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func IsPasswordValidWithSettings(password string, settings *model.PasswordSettings) *model.AppError {
+func IsPasswordValidWithSettings(password string, settings *model.PasswordSettings) error {
 	id := "model.user.is_valid.pwd"
 	isError := false
 

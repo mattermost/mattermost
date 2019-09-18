@@ -75,7 +75,7 @@ type Hooks interface {
 
 	// ExecuteCommand executes a command that has been previously registered via the RegisterCommand
 	// API.
-	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, error)
 
 	// UserHasBeenCreated is invoked after a user was created.
 	//

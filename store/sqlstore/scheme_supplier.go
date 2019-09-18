@@ -43,7 +43,7 @@ func NewSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
 func (s SqlSchemeStore) CreateIndexesIfNotExists() {
 }
 
-func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	if len(scheme.Id) == 0 {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
@@ -78,7 +78,7 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppEr
 	return scheme, nil
 }
 
-func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Transaction) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Transaction) (*model.Scheme, error) {
 	// Fetch the default system scheme roles to populate default permissions.
 	defaultRoleNames := []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_GUEST_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_GUEST_ROLE_ID}
 	defaultRoles := make(map[string]*model.Role)
@@ -215,7 +215,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 	return scheme, nil
 }
 
-func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	var scheme model.Scheme
 	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Id = :Id", map[string]interface{}{"Id": schemeId}); err != nil {
 		if err == sql.ErrNoRows {
@@ -227,7 +227,7 @@ func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
 	return &scheme, nil
 }
 
-func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	var scheme model.Scheme
 
 	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Name = :Name", map[string]interface{}{"Name": schemeName}); err != nil {
@@ -240,7 +240,7 @@ func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, *model.App
 	return &scheme, nil
 }
 
-func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	// Get the scheme
 	var scheme model.Scheme
 	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Id = :Id", map[string]interface{}{"Id": schemeId}); err != nil {
@@ -300,7 +300,7 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError
 	return &scheme, nil
 }
 
-func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error) {
 	var schemes []*model.Scheme
 
 	scopeClause := ""
@@ -315,7 +315,7 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 	return schemes, nil
 }
 
-func (s *SqlSchemeStore) PermanentDeleteAll() *model.AppError {
+func (s *SqlSchemeStore) PermanentDeleteAll() error {
 	if _, err := s.GetMaster().Exec("DELETE from Schemes"); err != nil {
 		return model.NewAppError("SqlSchemeStore.PermanentDeleteAll", "store.sql_scheme.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

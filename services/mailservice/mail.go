@@ -98,7 +98,7 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 	return nil, nil
 }
 
-func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, *model.AppError) {
+func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, error) {
 	var conn net.Conn
 	var err error
 
@@ -123,7 +123,7 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 	return conn, nil
 }
 
-func ConnectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
+func ConnectToSMTPServer(config *model.Config) (net.Conn, error) {
 	return ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   *config.EmailSettings.ConnectionSecurity,
@@ -135,7 +135,7 @@ func ConnectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 	)
 }
 
-func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpConnectionInfo) (*smtp.Client, *model.AppError) {
+func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpConnectionInfo) (*smtp.Client, error) {
 	c, err := smtp.NewClient(conn, connectionInfo.SmtpServerName+":"+connectionInfo.SmtpPort)
 	if err != nil {
 		mlog.Error("Failed to open a connection to SMTP server", mlog.Err(err))
@@ -166,7 +166,7 @@ func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpC
 	return c, nil
 }
 
-func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.AppError) {
+func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, error) {
 	return NewSMTPClientAdvanced(
 		conn,
 		utils.GetHostnameFromSiteURL(*config.ServiceSettings.SiteURL),
@@ -204,7 +204,7 @@ func TestConnection(config *model.Config) {
 	defer c.Close()
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) error {
 	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
 	replyTo := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.ReplyToAddress}
 
@@ -212,7 +212,7 @@ func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, ena
 }
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients
-func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) error {
 	if len(*config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
@@ -238,7 +238,7 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, replyTo mail.Addre
 	return SendMail(c, mimeTo, smtpTo, from, replyTo, subject, htmlBody, attachments, mimeHeaders, fileBackend, time.Now())
 }
 
-func SendMail(c smtpClient, mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
+func SendMail(c smtpClient, mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) error {
 	mlog.Debug("sending mail", mlog.String("to", smtpTo), mlog.String("subject", subject))
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"

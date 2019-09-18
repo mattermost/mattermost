@@ -153,7 +153,7 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		_, err = ss.LinkMetadata().Get("http://example.com/another_page", metadata.Timestamp)
 
 		require.NotNil(t, err)
-		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, http.StatusNotFound, err.(*model.AppError).StatusCode)
 	})
 
 	t.Run("should return not found with incorrect timestamp", func(t *testing.T) {
@@ -170,7 +170,7 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		_, err = ss.LinkMetadata().Get(metadata.URL, getNextLinkMetadataTimestamp())
 
 		require.NotNil(t, err)
-		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, http.StatusNotFound, err.(*model.AppError).StatusCode)
 	})
 }
 

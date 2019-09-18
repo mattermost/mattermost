@@ -69,7 +69,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	hereNotification := false
 	channelNotification := false
 	allNotification := false
-	updateMentionChans := []chan *model.AppError{}
+	updateMentionChans := make([]chan error, 0)
 
 	if channel.Type == model.CHANNEL_DIRECT {
 		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
@@ -143,7 +143,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionedUsersList := make([]string, 0, len(mentionedUserIds))
 	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
-		umc := make(chan *model.AppError, 1)
+		umc := make(chan error, 1)
 		go func(userId string) {
 			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, userId)
 			close(umc)
@@ -186,7 +186,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			var status *model.Status
-			var err *model.AppError
+			var err error
 			if status, err = a.GetStatus(id); err != nil {
 				status = &model.Status{
 					UserId:         id,
@@ -276,7 +276,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			var status *model.Status
-			var err *model.AppError
+			var err error
 			if status, err = a.GetStatus(id); err != nil {
 				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
@@ -313,7 +313,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 			if _, ok := mentionedUserIds[id]; !ok {
 				var status *model.Status
-				var err *model.AppError
+				var err error
 				if status, err = a.GetStatus(id); err != nil {
 					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 				}

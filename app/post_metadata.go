@@ -118,7 +118,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	return post
 }
 
-func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, error) {
 	if len(post.FileIds) == 0 {
 		return nil, nil
 	}
@@ -126,10 +126,10 @@ func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*mode
 	return a.GetFileInfosForPost(post.Id, fromMaster)
 }
 
-func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
+func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, error) {
 	var reactions []*model.Reaction
 	if post.HasReactions {
-		var err *model.AppError
+		var err error
 		reactions, err = a.GetReactionsForPost(post.Id)
 		if err != nil {
 			return nil, nil, err
@@ -271,7 +271,7 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []strin
 	return names
 }
 
-func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
+func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, error) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		// Only custom emoji are returned
 		return []*model.Emoji{}, nil

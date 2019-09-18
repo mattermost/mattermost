@@ -15,7 +15,7 @@ type PreferenceStore struct {
 }
 
 // CleanupFlagsBatch provides a mock function with given fields: limit
-func (_m *PreferenceStore) CleanupFlagsBatch(limit int64) (int64, *model.AppError) {
+func (_m *PreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 	ret := _m.Called(limit)
 
 	var r0 int64
@@ -38,7 +38,7 @@ func (_m *PreferenceStore) CleanupFlagsBatch(limit int64) (int64, *model.AppErro
 }
 
 // Delete provides a mock function with given fields: userId, category, name
-func (_m *PreferenceStore) Delete(userId string, category string, name string) *model.AppError {
+func (_m *PreferenceStore) Delete(userId string, category string, name string) error {
 	ret := _m.Called(userId, category, name)
 
 	var r0 *model.AppError
@@ -54,7 +54,7 @@ func (_m *PreferenceStore) Delete(userId string, category string, name string) *
 }
 
 // DeleteCategory provides a mock function with given fields: userId, category
-func (_m *PreferenceStore) DeleteCategory(userId string, category string) *model.AppError {
+func (_m *PreferenceStore) DeleteCategory(userId string, category string) error {
 	ret := _m.Called(userId, category)
 
 	var r0 *model.AppError
@@ -70,7 +70,7 @@ func (_m *PreferenceStore) DeleteCategory(userId string, category string) *model
 }
 
 // DeleteCategoryAndName provides a mock function with given fields: category, name
-func (_m *PreferenceStore) DeleteCategoryAndName(category string, name string) *model.AppError {
+func (_m *PreferenceStore) DeleteCategoryAndName(category string, name string) error {
 	ret := _m.Called(category, name)
 
 	var r0 *model.AppError
@@ -86,7 +86,7 @@ func (_m *PreferenceStore) DeleteCategoryAndName(category string, name string) *
 }
 
 // Get provides a mock function with given fields: userId, category, name
-func (_m *PreferenceStore) Get(userId string, category string, name string) (*model.Preference, *model.AppError) {
+func (_m *PreferenceStore) Get(userId string, category string, name string) (*model.Preference, error) {
 	ret := _m.Called(userId, category, name)
 
 	var r0 *model.Preference
@@ -111,7 +111,7 @@ func (_m *PreferenceStore) Get(userId string, category string, name string) (*mo
 }
 
 // GetAll provides a mock function with given fields: userId
-func (_m *PreferenceStore) GetAll(userId string) (model.Preferences, *model.AppError) {
+func (_m *PreferenceStore) GetAll(userId string) (model.Preferences, error) {
 	ret := _m.Called(userId)
 
 	var r0 model.Preferences
@@ -136,7 +136,7 @@ func (_m *PreferenceStore) GetAll(userId string) (model.Preferences, *model.AppE
 }
 
 // GetCategory provides a mock function with given fields: userId, category
-func (_m *PreferenceStore) GetCategory(userId string, category string) (model.Preferences, *model.AppError) {
+func (_m *PreferenceStore) GetCategory(userId string, category string) (model.Preferences, error) {
 	ret := _m.Called(userId, category)
 
 	var r0 model.Preferences
@@ -161,7 +161,7 @@ func (_m *PreferenceStore) GetCategory(userId string, category string) (model.Pr
 }
 
 // PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *PreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (_m *PreferenceStore) PermanentDeleteByUser(userId string) error {
 	ret := _m.Called(userId)
 
 	var r0 *model.AppError
@@ -177,7 +177,7 @@ func (_m *PreferenceStore) PermanentDeleteByUser(userId string) *model.AppError 
 }
 
 // Save provides a mock function with given fields: preferences
-func (_m *PreferenceStore) Save(preferences *model.Preferences) *model.AppError {
+func (_m *PreferenceStore) Save(preferences *model.Preferences) error {
 	ret := _m.Called(preferences)
 
 	var r0 *model.AppError

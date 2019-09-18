@@ -5,11 +5,11 @@ package app
 
 import "github.com/mattermost/mattermost-server/model"
 
-func (a *App) GetUserTermsOfService(userId string) (*model.UserTermsOfService, *model.AppError) {
+func (a *App) GetUserTermsOfService(userId string) (*model.UserTermsOfService, error) {
 	return a.Srv.Store.UserTermsOfService().GetByUser(userId)
 }
 
-func (a *App) SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError {
+func (a *App) SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) error {
 	if accepted {
 		userTermsOfService := &model.UserTermsOfService{
 			UserId:           userId,

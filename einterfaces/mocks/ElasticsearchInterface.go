@@ -14,7 +14,7 @@ type ElasticsearchInterface struct {
 }
 
 // DataRetentionDeleteIndexes provides a mock function with given fields: cutoff
-func (_m *ElasticsearchInterface) DataRetentionDeleteIndexes(cutoff time.Time) *model.AppError {
+func (_m *ElasticsearchInterface) DataRetentionDeleteIndexes(cutoff time.Time) error {
 	ret := _m.Called(cutoff)
 
 	var r0 *model.AppError
@@ -30,7 +30,7 @@ func (_m *ElasticsearchInterface) DataRetentionDeleteIndexes(cutoff time.Time) *
 }
 
 // DeleteChannel provides a mock function with given fields: channel
-func (_m *ElasticsearchInterface) DeleteChannel(channel *model.Channel) *model.AppError {
+func (_m *ElasticsearchInterface) DeleteChannel(channel *model.Channel) error {
 	ret := _m.Called(channel)
 
 	var r0 *model.AppError
@@ -46,7 +46,7 @@ func (_m *ElasticsearchInterface) DeleteChannel(channel *model.Channel) *model.A
 }
 
 // DeletePost provides a mock function with given fields: post
-func (_m *ElasticsearchInterface) DeletePost(post *model.Post) *model.AppError {
+func (_m *ElasticsearchInterface) DeletePost(post *model.Post) error {
 	ret := _m.Called(post)
 
 	var r0 *model.AppError
@@ -62,7 +62,7 @@ func (_m *ElasticsearchInterface) DeletePost(post *model.Post) *model.AppError {
 }
 
 // DeleteUser provides a mock function with given fields: user
-func (_m *ElasticsearchInterface) DeleteUser(user *model.User) *model.AppError {
+func (_m *ElasticsearchInterface) DeleteUser(user *model.User) error {
 	ret := _m.Called(user)
 
 	var r0 *model.AppError
@@ -78,7 +78,7 @@ func (_m *ElasticsearchInterface) DeleteUser(user *model.User) *model.AppError {
 }
 
 // IndexChannel provides a mock function with given fields: channel
-func (_m *ElasticsearchInterface) IndexChannel(channel *model.Channel) *model.AppError {
+func (_m *ElasticsearchInterface) IndexChannel(channel *model.Channel) error {
 	ret := _m.Called(channel)
 
 	var r0 *model.AppError
@@ -94,7 +94,7 @@ func (_m *ElasticsearchInterface) IndexChannel(channel *model.Channel) *model.Ap
 }
 
 // IndexPost provides a mock function with given fields: post, teamId
-func (_m *ElasticsearchInterface) IndexPost(post *model.Post, teamId string) *model.AppError {
+func (_m *ElasticsearchInterface) IndexPost(post *model.Post, teamId string) error {
 	ret := _m.Called(post, teamId)
 
 	var r0 *model.AppError
@@ -110,7 +110,7 @@ func (_m *ElasticsearchInterface) IndexPost(post *model.Post, teamId string) *mo
 }
 
 // IndexUser provides a mock function with given fields: user, teamsIds, channelsIds
-func (_m *ElasticsearchInterface) IndexUser(user *model.User, teamsIds []string, channelsIds []string) *model.AppError {
+func (_m *ElasticsearchInterface) IndexUser(user *model.User, teamsIds []string, channelsIds []string) error {
 	ret := _m.Called(user, teamsIds, channelsIds)
 
 	var r0 *model.AppError
@@ -126,7 +126,7 @@ func (_m *ElasticsearchInterface) IndexUser(user *model.User, teamsIds []string,
 }
 
 // PurgeIndexes provides a mock function with given fields:
-func (_m *ElasticsearchInterface) PurgeIndexes() *model.AppError {
+func (_m *ElasticsearchInterface) PurgeIndexes() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -142,7 +142,7 @@ func (_m *ElasticsearchInterface) PurgeIndexes() *model.AppError {
 }
 
 // SearchChannels provides a mock function with given fields: teamId, term
-func (_m *ElasticsearchInterface) SearchChannels(teamId string, term string) ([]string, *model.AppError) {
+func (_m *ElasticsearchInterface) SearchChannels(teamId string, term string) ([]string, error) {
 	ret := _m.Called(teamId, term)
 
 	var r0 []string
@@ -167,7 +167,7 @@ func (_m *ElasticsearchInterface) SearchChannels(teamId string, term string) ([]
 }
 
 // SearchPosts provides a mock function with given fields: channels, searchParams, page, perPage
-func (_m *ElasticsearchInterface) SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page int, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
+func (_m *ElasticsearchInterface) SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page int, perPage int) ([]string, model.PostSearchMatches, error) {
 	ret := _m.Called(channels, searchParams, page, perPage)
 
 	var r0 []string
@@ -201,7 +201,7 @@ func (_m *ElasticsearchInterface) SearchPosts(channels *model.ChannelList, searc
 }
 
 // SearchUsersInChannel provides a mock function with given fields: teamId, channelId, restrictedToChannels, term, options
-func (_m *ElasticsearchInterface) SearchUsersInChannel(teamId string, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError) {
+func (_m *ElasticsearchInterface) SearchUsersInChannel(teamId string, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, error) {
 	ret := _m.Called(teamId, channelId, restrictedToChannels, term, options)
 
 	var r0 []string
@@ -235,7 +235,7 @@ func (_m *ElasticsearchInterface) SearchUsersInChannel(teamId string, channelId 
 }
 
 // SearchUsersInTeam provides a mock function with given fields: teamId, restrictedToChannels, term, options
-func (_m *ElasticsearchInterface) SearchUsersInTeam(teamId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, *model.AppError) {
+func (_m *ElasticsearchInterface) SearchUsersInTeam(teamId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, error) {
 	ret := _m.Called(teamId, restrictedToChannels, term, options)
 
 	var r0 []string
@@ -260,7 +260,7 @@ func (_m *ElasticsearchInterface) SearchUsersInTeam(teamId string, restrictedToC
 }
 
 // Start provides a mock function with given fields:
-func (_m *ElasticsearchInterface) Start() *model.AppError {
+func (_m *ElasticsearchInterface) Start() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -276,7 +276,7 @@ func (_m *ElasticsearchInterface) Start() *model.AppError {
 }
 
 // Stop provides a mock function with given fields:
-func (_m *ElasticsearchInterface) Stop() *model.AppError {
+func (_m *ElasticsearchInterface) Stop() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -292,7 +292,7 @@ func (_m *ElasticsearchInterface) Stop() *model.AppError {
 }
 
 // TestConfig provides a mock function with given fields: cfg
-func (_m *ElasticsearchInterface) TestConfig(cfg *model.Config) *model.AppError {
+func (_m *ElasticsearchInterface) TestConfig(cfg *model.Config) error {
 	ret := _m.Called(cfg)
 
 	var r0 *model.AppError

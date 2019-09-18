@@ -13,7 +13,7 @@ type DataRetentionInterface struct {
 }
 
 // GetPolicy provides a mock function with given fields:
-func (_m *DataRetentionInterface) GetPolicy() (*model.DataRetentionPolicy, *model.AppError) {
+func (_m *DataRetentionInterface) GetPolicy() (*model.DataRetentionPolicy, error) {
 	ret := _m.Called()
 
 	var r0 *model.DataRetentionPolicy

@@ -36,7 +36,7 @@ func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(metadata))
 }
 
-func parseSamlCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, *model.AppError) {
+func parseSamlCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, error) {
 	err := r.ParseMultipartForm(maxFileSize)
 	if err != nil {
 		return nil, model.NewAppError("addSamlCertificate", "api.admin.add_certificate.no_file.app_error", nil, err.Error(), http.StatusBadRequest)

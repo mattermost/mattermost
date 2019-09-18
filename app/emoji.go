@@ -31,7 +31,7 @@ const (
 	MaxEmojiOriginalHeight = 1028
 )
 
-func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
+func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, error) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		return nil, model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -79,11 +79,11 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	return emoji, nil
 }
 
-func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
+func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, error) {
 	return a.Srv.Store.Emoji().GetList(page*perPage, perPage, sort)
 }
 
-func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
+func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) error {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		return model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -156,7 +156,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 	return appErr
 }
 
-func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
+func (a *App) DeleteEmoji(emoji *model.Emoji) error {
 	if err := a.Srv.Store.Emoji().Delete(emoji, model.GetMillis()); err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
 	return nil
 }
 
-func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+func (a *App) GetEmoji(emojiId string) (*model.Emoji, error) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -178,7 +178,7 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 	return a.Srv.Store.Emoji().Get(emojiId, false)
 }
 
-func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
+func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, error) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -190,7 +190,7 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 	return a.Srv.Store.Emoji().GetByName(emojiName, true)
 }
 
-func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
+func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, error) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -198,7 +198,7 @@ func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.App
 	return a.Srv.Store.Emoji().GetMultipleByName(names)
 }
 
-func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
+func (a *App) GetEmojiImage(emojiId string) ([]byte, string, error) {
 	_, storeErr := a.Srv.Store.Emoji().Get(emojiId, true)
 	if storeErr != nil {
 		return nil, "", storeErr
@@ -217,7 +217,7 @@ func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 	return img, imageType, nil
 }
 
-func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, error) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		return nil, model.NewAppError("SearchEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -227,7 +227,7 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 
 // GetEmojiStaticUrl returns a relative static URL for system default emojis,
 // and the API route for custom ones. Errors if not found or if custom and deleted.
-func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
+func (a *App) GetEmojiStaticUrl(emojiName string) (string, error) {
 	subPath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	if id, found := model.GetSystemEmojiId(emojiName); found {

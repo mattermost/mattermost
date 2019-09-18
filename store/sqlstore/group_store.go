@@ -88,7 +88,7 @@ func (s *SqlGroupStore) CreateIndexesIfNotExists() {
 	s.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(1)", "boolean")
 }
 
-func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, *model.AppError) {
+func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	if len(group.Id) != 0 {
 		return nil, model.NewAppError("SqlGroupStore.GroupCreate", "model.group.id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -111,7 +111,7 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, *model.AppErro
 	return group, nil
 }
 
-func (s *SqlGroupStore) Get(groupId string) (*model.Group, *model.AppError) {
+func (s *SqlGroupStore) Get(groupId string) (*model.Group, error) {
 	var group *model.Group
 	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE Id = :Id", map[string]interface{}{"Id": groupId}); err != nil {
 		if err == sql.ErrNoRows {
@@ -123,7 +123,7 @@ func (s *SqlGroupStore) Get(groupId string) (*model.Group, *model.AppError) {
 	return group, nil
 }
 
-func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
+func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 	var groups []*model.Group
 	query := s.getQueryBuilder().Select("*").From("UserGroups").Where(sq.Eq{"Id": groupIDs})
 	queryString, args, err := query.ToSql()
@@ -136,7 +136,7 @@ func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *model.AppE
 	return groups, nil
 }
 
-func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
+func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 	var group *model.Group
 	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE RemoteId = :RemoteId AND Source = :Source", map[string]interface{}{"RemoteId": remoteID, "Source": groupSource}); err != nil {
 		if err == sql.ErrNoRows {
@@ -148,7 +148,7 @@ func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSo
 	return group, nil
 }
 
-func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error) {
 	var groups []*model.Group
 
 	if _, err := s.GetReplica().Select(&groups, "SELECT * from UserGroups WHERE DeleteAt = 0 AND Source = :Source", map[string]interface{}{"Source": groupSource}); err != nil {
@@ -158,7 +158,7 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 	return groups, nil
 }
 
-func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppError) {
+func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 	var retrievedGroup *model.Group
 	if err := s.GetMaster().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": group.Id}); err != nil {
 		if err == sql.ErrNoRows {
@@ -191,7 +191,7 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppErro
 	return group, nil
 }
 
-func (s *SqlGroupStore) Delete(groupID string) (*model.Group, *model.AppError) {
+func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	var group *model.Group
 	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": groupID}); err != nil {
 		if err == sql.ErrNoRows {
@@ -211,7 +211,7 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, *model.AppError) {
 	return group, nil
 }
 
-func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.AppError) {
+func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	var groupMembers []*model.User
 
 	query := `
@@ -232,7 +232,7 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.Ap
 	return groupMembers, nil
 }
 
-func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
+func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
 	var groupMembers []*model.User
 
 	query := `
@@ -259,7 +259,7 @@ func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int
 	return groupMembers, nil
 }
 
-func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, *model.AppError) {
+func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, error) {
 	query := `
 		SELECT
 			count(*)
@@ -278,7 +278,7 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, *model.AppError) 
 	return count, nil
 }
 
-func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.GroupMember, error) {
 	member := &model.GroupMember{
 		GroupId:  groupID,
 		UserId:   userID,
@@ -323,7 +323,7 @@ func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.Grou
 	return member, nil
 }
 
-func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.GroupMember, error) {
 	var retrievedMember *model.GroupMember
 	if err := s.GetMaster().SelectOne(&retrievedMember, "SELECT * FROM GroupMembers WHERE GroupId = :GroupId AND UserId = :UserId AND DeleteAt = 0", map[string]interface{}{"GroupId": groupID, "UserId": userID}); err != nil {
 		if err == sql.ErrNoRows {
@@ -341,7 +341,7 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.Grou
 	return retrievedMember, nil
 }
 
-func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, error) {
 	if err := groupSyncable.IsValid(); err != nil {
 		return nil, err
 	}
@@ -377,7 +377,7 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 	return groupSyncable, nil
 }
 
-func (s *SqlGroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+func (s *SqlGroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	groupSyncable, err := s.getGroupSyncable(groupID, syncableID, syncableType)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -435,10 +435,10 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 	return &groupSyncable, nil
 }
 
-func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
+func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, error) {
 	args := map[string]interface{}{"GroupId": groupID}
 
-	appErrF := func(msg string) *model.AppError {
+	appErrF := func(msg string) error {
 		return model.NewAppError("SqlGroupStore.GroupGetAllGroupSyncablesByGroup", "store.select_error", nil, msg, http.StatusInternalServerError)
 	}
 
@@ -519,7 +519,7 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 	return groupSyncables, nil
 }
 
-func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, error) {
 	retrievedGroupSyncable, err := s.getGroupSyncable(groupSyncable.GroupId, groupSyncable.SyncableId, groupSyncable.Type)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -557,7 +557,7 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 	return groupSyncable, nil
 }
 
-func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	groupSyncable, err := s.getGroupSyncable(groupID, syncableID, syncableType)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -594,7 +594,7 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 // based on the groups configurations.
 //
 // Typically since will be the last successful group sync time.
-func (s *SqlGroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
+func (s *SqlGroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, error) {
 	sql := `
 		SELECT
 			GroupMembers.UserId, GroupTeams.TeamId
@@ -632,7 +632,7 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, 
 // based on the groups configurations.
 //
 // Typically since will be the last successful group sync time.
-func (s *SqlGroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
+func (s *SqlGroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, error) {
 	sql := `
 		SELECT
 			GroupMembers.UserId, GroupChannels.ChannelId
@@ -681,7 +681,7 @@ func groupSyncableToGroupChannel(groupSyncable *model.GroupSyncable) *groupChann
 }
 
 // TeamMembersToRemove returns all team members that should be removed based on group constraints.
-func (s *SqlGroupStore) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
+func (s *SqlGroupStore) TeamMembersToRemove() ([]*model.TeamMember, error) {
 	sql := `
 		SELECT
 			TeamMembers.TeamId,
@@ -729,7 +729,7 @@ func (s *SqlGroupStore) TeamMembersToRemove() ([]*model.TeamMember, *model.AppEr
 	return teamMembers, nil
 }
 
-func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
+func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, error) {
 	countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectCountGroups, channelId, opts)
 
 	countQueryString, args, err := countQuery.ToSql()
@@ -745,7 +745,7 @@ func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupS
 	return count, nil
 }
 
-func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectGroups, channelId, opts)
 
 	if opts.PageOpts != nil {
@@ -769,7 +769,7 @@ func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSea
 }
 
 // ChannelMembersToRemove returns all channel members that should be removed based on group constraints.
-func (s *SqlGroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
+func (s *SqlGroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, error) {
 	sql := `
 		SELECT
 			ChannelMembers.ChannelId,
@@ -864,7 +864,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	return query
 }
 
-func (s *SqlGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
+func (s *SqlGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, error) {
 	countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectCountGroups, teamId, opts)
 
 	countQueryString, args, err := countQuery.ToSql()
@@ -880,7 +880,7 @@ func (s *SqlGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchO
 	return count, nil
 }
 
-func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectGroups, teamId, opts)
 
 	if opts.PageOpts != nil {
@@ -903,7 +903,7 @@ func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpt
 	return groups, nil
 }
 
-func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	var groups []*model.Group
 
 	groupsQuery := s.getQueryBuilder().Select("g.*").From("UserGroups g").Limit(uint64(perPage)).Offset(uint64(page * perPage)).OrderBy("g.DisplayName")
@@ -1016,7 +1016,7 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 
 // TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
 // groups.
-func (s *SqlGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
+func (s *SqlGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, error) {
 	query := s.teamMembersMinusGroupMembersQuery(teamID, groupIDs, false)
 	query = query.OrderBy("Users.Username ASC").Limit(uint64(perPage)).Offset(uint64(page * perPage))
 
@@ -1035,7 +1035,7 @@ func (s *SqlGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []s
 
 // CountTeamMembersMinusGroupMembers returns the count of the set of users on the given team minus the set of users
 // in the given groups.
-func (s *SqlGroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError) {
+func (s *SqlGroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, error) {
 	queryString, args, err := s.teamMembersMinusGroupMembersQuery(teamID, groupIDs, true).ToSql()
 	if err != nil {
 		return 0, model.NewAppError("SqlGroupStore.CountTeamMembersMinusGroupMembers", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1093,7 +1093,7 @@ func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, g
 
 // ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
 // groups.
-func (s *SqlGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
+func (s *SqlGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, error) {
 	query := s.channelMembersMinusGroupMembersQuery(channelID, groupIDs, false)
 	query = query.OrderBy("Users.Username ASC").Limit(uint64(perPage)).Offset(uint64(page * perPage))
 
@@ -1112,7 +1112,7 @@ func (s *SqlGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupI
 
 // CountChannelMembersMinusGroupMembers returns the count of the set of users in the given channel minus the set of users
 // in the given groups.
-func (s *SqlGroupStore) CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError) {
+func (s *SqlGroupStore) CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, error) {
 	queryString, args, err := s.channelMembersMinusGroupMembersQuery(channelID, groupIDs, true).ToSql()
 	if err != nil {
 		return 0, model.NewAppError("SqlGroupStore.CountChannelMembersMinusGroupMembers", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)

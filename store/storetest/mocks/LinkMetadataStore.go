@@ -15,7 +15,7 @@ type LinkMetadataStore struct {
 }
 
 // Get provides a mock function with given fields: url, timestamp
-func (_m *LinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
+func (_m *LinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
 	ret := _m.Called(url, timestamp)
 
 	var r0 *model.LinkMetadata
@@ -40,7 +40,7 @@ func (_m *LinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetada
 }
 
 // Save provides a mock function with given fields: linkMetadata
-func (_m *LinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError) {
+func (_m *LinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, error) {
 	ret := _m.Called(linkMetadata)
 
 	var r0 *model.LinkMetadata

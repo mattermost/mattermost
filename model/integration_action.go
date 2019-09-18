@@ -226,7 +226,7 @@ type SubmitDialogResponse struct {
 	Errors map[string]string `json:"errors,omitempty"`
 }
 
-func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
+func GenerateTriggerId(userId string, s crypto.Signer) (string, string, error) {
 	clientTriggerId := NewId()
 	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10)}, ":") + ":"
 
@@ -244,7 +244,7 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 	return clientTriggerId, triggerId, nil
 }
 
-func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (string, string, *AppError) {
+func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (string, string, error) {
 	clientTriggerId, triggerId, err := GenerateTriggerId(r.UserId, s)
 	if err != nil {
 		return "", "", err
@@ -254,7 +254,7 @@ func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (strin
 	return clientTriggerId, triggerId, nil
 }
 
-func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, string, *AppError) {
+func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, string, error) {
 	triggerIdBytes, err := base64.StdEncoding.DecodeString(triggerId)
 	if err != nil {
 		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, err.Error(), http.StatusBadRequest)
@@ -301,7 +301,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 	return clientTriggerId, userId, nil
 }
 
-func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey) (string, string, *AppError) {
+func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey) (string, string, error) {
 	return DecodeAndVerifyTriggerId(r.TriggerId, s)
 }
 

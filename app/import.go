@@ -18,7 +18,7 @@ import (
 )
 
 func stopOnError(err LineImportWorkerError) bool {
-	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
+	if err.Error.(*model.AppError).Id == "api.file.upload_file.large_image.app_error" {
 		mlog.Warn(fmt.Sprintf("Large image import error: %s", err.Error.Error()))
 		return false
 	}
@@ -34,7 +34,7 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 	wg.Done()
 }
 
-func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
+func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (error, int) {
 	scanner := bufio.NewScanner(fileReader)
 	lineNumber := 0
 
@@ -127,7 +127,7 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 	return nil, 0
 }
 
-func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError) {
+func processImportDataFileVersionLine(line LineImportData) (int, error) {
 	if line.Type != "version" || line.Version == nil {
 		return -1, model.NewAppError("BulkImport", "app.import.process_import_data_file_version_line.invalid_version.error", nil, "", http.StatusBadRequest)
 	}
@@ -135,7 +135,7 @@ func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError
 	return *line.Version, nil
 }
 
-func (a *App) ImportLine(line LineImportData, dryRun bool) *model.AppError {
+func (a *App) ImportLine(line LineImportData, dryRun bool) error {
 	switch {
 	case line.Type == "scheme":
 		if line.Scheme == nil {
@@ -182,7 +182,7 @@ func (a *App) ImportLine(line LineImportData, dryRun bool) *model.AppError {
 	}
 }
 
-func (a *App) finalizeImport(dryRun bool) *model.AppError {
+func (a *App) finalizeImport(dryRun bool) error {
 	if dryRun {
 		return nil
 	}

@@ -67,12 +67,12 @@ const (
 	IMAGE_PREVIEW_PIXEL_WIDTH    = 1920
 )
 
-func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
+func (a *App) FileBackend() (filesstore.FileBackend, error) {
 	license := a.License()
 	return filesstore.NewFileBackend(&a.Config().FileSettings, license != nil && *license.Features.Compliance)
 }
 
-func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
+func (a *App) ReadFile(path string) ([]byte, error) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 // Caller must close the first return value
-func (a *App) FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError) {
+func (a *App) FileReader(path string) (filesstore.ReadCloseSeeker, error) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (a *App) FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppErr
 	return backend.Reader(path)
 }
 
-func (a *App) FileExists(path string) (bool, *model.AppError) {
+func (a *App) FileExists(path string) (bool, error) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return false, err
@@ -97,7 +97,7 @@ func (a *App) FileExists(path string) (bool, *model.AppError) {
 	return backend.FileExists(path)
 }
 
-func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
+func (a *App) MoveFile(oldPath, newPath string) error {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	return backend.MoveFile(oldPath, newPath)
 }
 
-func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+func (a *App) WriteFile(fr io.Reader, path string) (int64, error) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return 0, err
@@ -114,7 +114,7 @@ func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	return backend.WriteFile(fr, path)
 }
 
-func (a *App) RemoveFile(path string) *model.AppError {
+func (a *App) RemoveFile(path string) error {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func (a *App) RemoveFile(path string) *model.AppError {
 	return backend.RemoveFile(path)
 }
 
-func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
+func (a *App) ListDirectory(path string) ([]string, error) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return nil, err
@@ -359,7 +359,7 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (a *App) UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, error) {
 	files := make([]io.ReadCloser, len(fileHeaders))
 	filenames := make([]string, len(fileHeaders))
 
@@ -383,7 +383,7 @@ func (a *App) UploadMultipartFiles(teamId string, channelId string, userId strin
 // Uploads some files to the given team and channel as the given user. files and filenames should have
 // the same length. clientIds should either not be provided or have the same length as files and filenames.
 // The provided files should be closed by the caller so that they are not leaked.
-func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, error) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -430,7 +430,7 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 }
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
-func (a *App) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+func (a *App) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, error) {
 	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelId, "nouser", filename, data)
 
 	if appError != nil {
@@ -448,7 +448,7 @@ func (a *App) UploadFile(data []byte, channelId string, filename string) (*model
 	return info, nil
 }
 
-func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, error) {
 	info, _, err := a.DoUploadFileExpectModification(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 	return info, err
 }
@@ -531,8 +531,8 @@ type uploadFileTask struct {
 
 	// Testing: overrideable dependency functions
 	pluginsEnvironment *plugin.Environment
-	writeFile          func(io.Reader, string) (int64, *model.AppError)
-	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, *model.AppError)
+	writeFile          func(io.Reader, string) (int64, error)
+	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, error)
 }
 
 func (t *uploadFileTask) init(a *App) {
@@ -576,7 +576,7 @@ func (t *uploadFileTask) init(a *App) {
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *App) UploadFileX(channelId, name string, input io.Reader,
-	opts ...func(*uploadFileTask)) (*model.FileInfo, *model.AppError) {
+	opts ...func(*uploadFileTask)) (*model.FileInfo, error) {
 
 	t := &uploadFileTask{
 		ChannelId: filepath.Base(channelId),
@@ -597,7 +597,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
 
-	var aerr *model.AppError
+	var aerr error
 	if !t.Raw && t.fileinfo.IsImage() {
 		aerr = t.preprocessImage()
 		if aerr != nil {
@@ -640,7 +640,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	return t.fileinfo, nil
 }
 
-func (t *uploadFileTask) readAll() *model.AppError {
+func (t *uploadFileTask) readAll() error {
 	_, err := t.buf.ReadFrom(t.limitedInput)
 	if err != nil {
 		return t.newAppError("api.file.upload_file.read_request.app_error",
@@ -657,13 +657,13 @@ func (t *uploadFileTask) readAll() *model.AppError {
 	return nil
 }
 
-func (t *uploadFileTask) runPlugins() *model.AppError {
+func (t *uploadFileTask) runPlugins() error {
 	if t.pluginsEnvironment == nil {
 		return nil
 	}
 
 	pluginContext := &plugin.Context{}
-	var rejectionError *model.AppError
+	var rejectionError error
 
 	t.pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 		buf := &bytes.Buffer{}
@@ -694,7 +694,7 @@ func (t *uploadFileTask) runPlugins() *model.AppError {
 	return nil
 }
 
-func (t *uploadFileTask) preprocessImage() *model.AppError {
+func (t *uploadFileTask) preprocessImage() error {
 	// If SVG, attempt to extract dimensions and then return
 	if t.fileinfo.MimeType == "image/svg+xml" {
 		svgInfo, err := parseSVG(t.newReader())
@@ -852,7 +852,7 @@ func (t uploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t uploadFileTask) newAppError(id string, details interface{}, httpStatus int, extra ...interface{}) *model.AppError {
+func (t uploadFileTask) newAppError(id string, details interface{}, httpStatus int, extra ...interface{}) error {
 	params := map[string]interface{}{
 		"Name":          t.Name,
 		"Filename":      t.Name,
@@ -873,7 +873,7 @@ func (t uploadFileTask) newAppError(id string, details interface{}, httpStatus i
 	return model.NewAppError("uploadFileTask", id, params, fmt.Sprintf("%v", details), httpStatus)
 }
 
-func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, error) {
 	filename := filepath.Base(rawFilename)
 	teamId := filepath.Base(rawTeamId)
 	channelId := filepath.Base(rawChannelId)
@@ -1084,11 +1084,11 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 	}
 }
 
-func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfo(fileId string) (*model.FileInfo, error) {
 	return a.Srv.Store.FileInfo().Get(fileId)
 }
 
-func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
+func (a *App) GetFile(fileId string) ([]byte, error) {
 	info, err := a.GetFileInfo(fileId)
 	if err != nil {
 		return nil, err
@@ -1102,7 +1102,7 @@ func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
+func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, error) {
 	var newFileIds []string
 
 	now := model.GetMillis()

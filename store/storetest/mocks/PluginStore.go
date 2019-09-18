@@ -15,7 +15,7 @@ type PluginStore struct {
 }
 
 // CompareAndDelete provides a mock function with given fields: keyVal, oldValue
-func (_m *PluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+func (_m *PluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 	ret := _m.Called(keyVal, oldValue)
 
 	var r0 bool
@@ -38,7 +38,7 @@ func (_m *PluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue [
 }
 
 // CompareAndSet provides a mock function with given fields: keyVal, oldValue
-func (_m *PluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+func (_m *PluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 	ret := _m.Called(keyVal, oldValue)
 
 	var r0 bool
@@ -61,7 +61,7 @@ func (_m *PluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []by
 }
 
 // Delete provides a mock function with given fields: pluginId, key
-func (_m *PluginStore) Delete(pluginId string, key string) *model.AppError {
+func (_m *PluginStore) Delete(pluginId string, key string) error {
 	ret := _m.Called(pluginId, key)
 
 	var r0 *model.AppError
@@ -77,7 +77,7 @@ func (_m *PluginStore) Delete(pluginId string, key string) *model.AppError {
 }
 
 // DeleteAllExpired provides a mock function with given fields:
-func (_m *PluginStore) DeleteAllExpired() *model.AppError {
+func (_m *PluginStore) DeleteAllExpired() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -93,7 +93,7 @@ func (_m *PluginStore) DeleteAllExpired() *model.AppError {
 }
 
 // DeleteAllForPlugin provides a mock function with given fields: PluginId
-func (_m *PluginStore) DeleteAllForPlugin(PluginId string) *model.AppError {
+func (_m *PluginStore) DeleteAllForPlugin(PluginId string) error {
 	ret := _m.Called(PluginId)
 
 	var r0 *model.AppError
@@ -109,7 +109,7 @@ func (_m *PluginStore) DeleteAllForPlugin(PluginId string) *model.AppError {
 }
 
 // Get provides a mock function with given fields: pluginId, key
-func (_m *PluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, *model.AppError) {
+func (_m *PluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, error) {
 	ret := _m.Called(pluginId, key)
 
 	var r0 *model.PluginKeyValue
@@ -134,7 +134,7 @@ func (_m *PluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, 
 }
 
 // List provides a mock function with given fields: pluginId, page, perPage
-func (_m *PluginStore) List(pluginId string, page int, perPage int) ([]string, *model.AppError) {
+func (_m *PluginStore) List(pluginId string, page int, perPage int) ([]string, error) {
 	ret := _m.Called(pluginId, page, perPage)
 
 	var r0 []string
@@ -159,7 +159,7 @@ func (_m *PluginStore) List(pluginId string, page int, perPage int) ([]string, *
 }
 
 // SaveOrUpdate provides a mock function with given fields: keyVal
-func (_m *PluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {
+func (_m *PluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 	ret := _m.Called(keyVal)
 
 	var r0 *model.PluginKeyValue

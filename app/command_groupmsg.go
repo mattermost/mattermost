@@ -105,7 +105,7 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 	}
 
 	var groupChannel *model.Channel
-	var channelErr *model.AppError
+	var channelErr error
 
 	if a.SessionHasPermissionTo(args.Session, model.PERMISSION_CREATE_GROUP_CHANNEL) {
 		groupChannel, channelErr = a.CreateGroupChannel(targetUsersSlice, args.UserId)

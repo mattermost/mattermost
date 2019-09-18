@@ -131,7 +131,7 @@ type WebSocketResponse struct {
 	Status   string                 `json:"status"`
 	SeqReply int64                  `json:"seq_reply,omitempty"`
 	Data     map[string]interface{} `json:"data,omitempty"`
-	Error    *AppError              `json:"error,omitempty"`
+	Error    error                  `json:"error,omitempty"`
 }
 
 func (m *WebSocketResponse) Add(key string, value interface{}) {
@@ -142,7 +142,7 @@ func NewWebSocketResponse(status string, seqReply int64, data map[string]interfa
 	return &WebSocketResponse{Status: status, SeqReply: seqReply, Data: data}
 }
 
-func NewWebSocketError(seqReply int64, err *AppError) *WebSocketResponse {
+func NewWebSocketError(seqReply int64, err error) *WebSocketResponse {
 	return &WebSocketResponse{Status: STATUS_FAIL, SeqReply: seqReply, Error: err}
 }
 

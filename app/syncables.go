@@ -5,6 +5,7 @@ package app
 
 import (
 	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 // CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups are
@@ -39,7 +40,7 @@ func (a *App) CreateDefaultMemberships(since int64) error {
 		}
 
 		tmem, err := a.GetTeamMember(channel.TeamId, userChannel.UserID)
-		if err != nil && err.Id != "store.sql_team.get_member.missing.app_error" {
+		if err != nil && err.(*model.AppError).Id != "store.sql_team.get_member.missing.app_error" {
 			return err
 		}
 
@@ -57,7 +58,7 @@ func (a *App) CreateDefaultMemberships(since int64) error {
 
 		_, err = a.AddChannelMember(userChannel.UserID, channel, "", "")
 		if err != nil {
-			if err.Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
+			if err.(*model.AppError).Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
 				a.Log.Info("Not adding user to channel because they have already left the team",
 					mlog.String("user_id", userChannel.UserID),
 					mlog.String("channel_id", userChannel.ChannelID),

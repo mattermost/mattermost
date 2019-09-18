@@ -94,7 +94,7 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("ok"))
 }
 
-func decodePayload(payload io.Reader) (*model.IncomingWebhookRequest, *model.AppError) {
+func decodePayload(payload io.Reader) (*model.IncomingWebhookRequest, error) {
 	incomingWebhookPayload, decodeError := model.IncomingWebhookRequestFromJson(payload)
 
 	if decodeError != nil {

@@ -16,7 +16,7 @@ type UserStore struct {
 }
 
 // AnalyticsActiveCount provides a mock function with given fields: time, options
-func (_m *UserStore) AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError) {
+func (_m *UserStore) AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, error) {
 	ret := _m.Called(time, options)
 
 	var r0 int64
@@ -39,7 +39,7 @@ func (_m *UserStore) AnalyticsActiveCount(time int64, options model.UserCountOpt
 }
 
 // AnalyticsGetInactiveUsersCount provides a mock function with given fields:
-func (_m *UserStore) AnalyticsGetInactiveUsersCount() (int64, *model.AppError) {
+func (_m *UserStore) AnalyticsGetInactiveUsersCount() (int64, error) {
 	ret := _m.Called()
 
 	var r0 int64
@@ -62,7 +62,7 @@ func (_m *UserStore) AnalyticsGetInactiveUsersCount() (int64, *model.AppError) {
 }
 
 // AnalyticsGetSystemAdminCount provides a mock function with given fields:
-func (_m *UserStore) AnalyticsGetSystemAdminCount() (int64, *model.AppError) {
+func (_m *UserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 	ret := _m.Called()
 
 	var r0 int64
@@ -85,7 +85,7 @@ func (_m *UserStore) AnalyticsGetSystemAdminCount() (int64, *model.AppError) {
 }
 
 // ClearAllCustomRoleAssignments provides a mock function with given fields:
-func (_m *UserStore) ClearAllCustomRoleAssignments() *model.AppError {
+func (_m *UserStore) ClearAllCustomRoleAssignments() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -106,7 +106,7 @@ func (_m *UserStore) ClearCaches() {
 }
 
 // Count provides a mock function with given fields: options
-func (_m *UserStore) Count(options model.UserCountOptions) (int64, *model.AppError) {
+func (_m *UserStore) Count(options model.UserCountOptions) (int64, error) {
 	ret := _m.Called(options)
 
 	var r0 int64
@@ -129,7 +129,7 @@ func (_m *UserStore) Count(options model.UserCountOptions) (int64, *model.AppErr
 }
 
 // DemoteUserToGuest provides a mock function with given fields: userID
-func (_m *UserStore) DemoteUserToGuest(userID string) *model.AppError {
+func (_m *UserStore) DemoteUserToGuest(userID string) error {
 	ret := _m.Called(userID)
 
 	var r0 *model.AppError
@@ -145,7 +145,7 @@ func (_m *UserStore) DemoteUserToGuest(userID string) *model.AppError {
 }
 
 // Get provides a mock function with given fields: id
-func (_m *UserStore) Get(id string) (*model.User, *model.AppError) {
+func (_m *UserStore) Get(id string) (*model.User, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.User
@@ -170,7 +170,7 @@ func (_m *UserStore) Get(id string) (*model.User, *model.AppError) {
 }
 
 // GetAll provides a mock function with given fields:
-func (_m *UserStore) GetAll() ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetAll() ([]*model.User, error) {
 	ret := _m.Called()
 
 	var r0 []*model.User
@@ -195,7 +195,7 @@ func (_m *UserStore) GetAll() ([]*model.User, *model.AppError) {
 }
 
 // GetAllAfter provides a mock function with given fields: limit, afterId
-func (_m *UserStore) GetAllAfter(limit int, afterId string) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetAllAfter(limit int, afterId string) ([]*model.User, error) {
 	ret := _m.Called(limit, afterId)
 
 	var r0 []*model.User
@@ -220,7 +220,7 @@ func (_m *UserStore) GetAllAfter(limit int, afterId string) ([]*model.User, *mod
 }
 
 // GetAllProfiles provides a mock function with given fields: options
-func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error) {
 	ret := _m.Called(options)
 
 	var r0 []*model.User
@@ -245,7 +245,7 @@ func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.Use
 }
 
 // GetAllProfilesInChannel provides a mock function with given fields: channelId, allowFromCache
-func (_m *UserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
+func (_m *UserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	ret := _m.Called(channelId, allowFromCache)
 
 	var r0 map[string]*model.User
@@ -270,7 +270,7 @@ func (_m *UserStore) GetAllProfilesInChannel(channelId string, allowFromCache bo
 }
 
 // GetAllUsingAuthService provides a mock function with given fields: authService
-func (_m *UserStore) GetAllUsingAuthService(authService string) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetAllUsingAuthService(authService string) ([]*model.User, error) {
 	ret := _m.Called(authService)
 
 	var r0 []*model.User
@@ -295,7 +295,7 @@ func (_m *UserStore) GetAllUsingAuthService(authService string) ([]*model.User, 
 }
 
 // GetAnyUnreadPostCountForChannel provides a mock function with given fields: userId, channelId
-func (_m *UserStore) GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, *model.AppError) {
+func (_m *UserStore) GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, error) {
 	ret := _m.Called(userId, channelId)
 
 	var r0 int64
@@ -318,7 +318,7 @@ func (_m *UserStore) GetAnyUnreadPostCountForChannel(userId string, channelId st
 }
 
 // GetByAuth provides a mock function with given fields: authData, authService
-func (_m *UserStore) GetByAuth(authData *string, authService string) (*model.User, *model.AppError) {
+func (_m *UserStore) GetByAuth(authData *string, authService string) (*model.User, error) {
 	ret := _m.Called(authData, authService)
 
 	var r0 *model.User
@@ -343,7 +343,7 @@ func (_m *UserStore) GetByAuth(authData *string, authService string) (*model.Use
 }
 
 // GetByEmail provides a mock function with given fields: email
-func (_m *UserStore) GetByEmail(email string) (*model.User, *model.AppError) {
+func (_m *UserStore) GetByEmail(email string) (*model.User, error) {
 	ret := _m.Called(email)
 
 	var r0 *model.User
@@ -368,7 +368,7 @@ func (_m *UserStore) GetByEmail(email string) (*model.User, *model.AppError) {
 }
 
 // GetByUsername provides a mock function with given fields: username
-func (_m *UserStore) GetByUsername(username string) (*model.User, *model.AppError) {
+func (_m *UserStore) GetByUsername(username string) (*model.User, error) {
 	ret := _m.Called(username)
 
 	var r0 *model.User
@@ -393,7 +393,7 @@ func (_m *UserStore) GetByUsername(username string) (*model.User, *model.AppErro
 }
 
 // GetChannelGroupUsers provides a mock function with given fields: channelID
-func (_m *UserStore) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetChannelGroupUsers(channelID string) ([]*model.User, error) {
 	ret := _m.Called(channelID)
 
 	var r0 []*model.User
@@ -460,7 +460,7 @@ func (_m *UserStore) GetEtagForProfilesNotInTeam(teamId string) string {
 }
 
 // GetForLogin provides a mock function with given fields: loginId, allowSignInWithUsername, allowSignInWithEmail
-func (_m *UserStore) GetForLogin(loginId string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, *model.AppError) {
+func (_m *UserStore) GetForLogin(loginId string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {
 	ret := _m.Called(loginId, allowSignInWithUsername, allowSignInWithEmail)
 
 	var r0 *model.User
@@ -485,7 +485,7 @@ func (_m *UserStore) GetForLogin(loginId string, allowSignInWithUsername bool, a
 }
 
 // GetNewUsersForTeam provides a mock function with given fields: teamId, offset, limit, viewRestrictions
-func (_m *UserStore) GetNewUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetNewUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	ret := _m.Called(teamId, offset, limit, viewRestrictions)
 
 	var r0 []*model.User
@@ -510,7 +510,7 @@ func (_m *UserStore) GetNewUsersForTeam(teamId string, offset int, limit int, vi
 }
 
 // GetProfileByGroupChannelIdsForUser provides a mock function with given fields: userId, channelIds
-func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, *model.AppError) {
+func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, error) {
 	ret := _m.Called(userId, channelIds)
 
 	var r0 map[string][]*model.User
@@ -535,7 +535,7 @@ func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userId string, channelId
 }
 
 // GetProfileByIds provides a mock function with given fields: userIds, options, allowFromCache
-func (_m *UserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	ret := _m.Called(userIds, options, allowFromCache)
 
 	var r0 []*model.User
@@ -560,7 +560,7 @@ func (_m *UserStore) GetProfileByIds(userIds []string, options *store.UserGetByI
 }
 
 // GetProfiles provides a mock function with given fields: options
-func (_m *UserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, error) {
 	ret := _m.Called(options)
 
 	var r0 []*model.User
@@ -585,7 +585,7 @@ func (_m *UserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, 
 }
 
 // GetProfilesByUsernames provides a mock function with given fields: usernames, viewRestrictions
-func (_m *UserStore) GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	ret := _m.Called(usernames, viewRestrictions)
 
 	var r0 []*model.User
@@ -610,7 +610,7 @@ func (_m *UserStore) GetProfilesByUsernames(usernames []string, viewRestrictions
 }
 
 // GetProfilesInChannel provides a mock function with given fields: channelId, offset, limit
-func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, error) {
 	ret := _m.Called(channelId, offset, limit)
 
 	var r0 []*model.User
@@ -635,7 +635,7 @@ func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit in
 }
 
 // GetProfilesInChannelByStatus provides a mock function with given fields: channelId, offset, limit
-func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, error) {
 	ret := _m.Called(channelId, offset, limit)
 
 	var r0 []*model.User
@@ -660,7 +660,7 @@ func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, 
 }
 
 // GetProfilesNotInChannel provides a mock function with given fields: teamId, channelId, groupConstrained, offset, limit, viewRestrictions
-func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	ret := _m.Called(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 
 	var r0 []*model.User
@@ -685,7 +685,7 @@ func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, gr
 }
 
 // GetProfilesNotInTeam provides a mock function with given fields: teamId, groupConstrained, offset, limit, viewRestrictions
-func (_m *UserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	ret := _m.Called(teamId, groupConstrained, offset, limit, viewRestrictions)
 
 	var r0 []*model.User
@@ -710,7 +710,7 @@ func (_m *UserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, 
 }
 
 // GetProfilesWithoutTeam provides a mock function with given fields: options
-func (_m *UserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, error) {
 	ret := _m.Called(options)
 
 	var r0 []*model.User
@@ -735,7 +735,7 @@ func (_m *UserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*m
 }
 
 // GetRecentlyActiveUsersForTeam provides a mock function with given fields: teamId, offset, limit, viewRestrictions
-func (_m *UserStore) GetRecentlyActiveUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetRecentlyActiveUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	ret := _m.Called(teamId, offset, limit, viewRestrictions)
 
 	var r0 []*model.User
@@ -760,7 +760,7 @@ func (_m *UserStore) GetRecentlyActiveUsersForTeam(teamId string, offset int, li
 }
 
 // GetSystemAdminProfiles provides a mock function with given fields:
-func (_m *UserStore) GetSystemAdminProfiles() (map[string]*model.User, *model.AppError) {
+func (_m *UserStore) GetSystemAdminProfiles() (map[string]*model.User, error) {
 	ret := _m.Called()
 
 	var r0 map[string]*model.User
@@ -785,7 +785,7 @@ func (_m *UserStore) GetSystemAdminProfiles() (map[string]*model.User, *model.Ap
 }
 
 // GetTeamGroupUsers provides a mock function with given fields: teamID
-func (_m *UserStore) GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) {
+func (_m *UserStore) GetTeamGroupUsers(teamID string) ([]*model.User, error) {
 	ret := _m.Called(teamID)
 
 	var r0 []*model.User
@@ -831,7 +831,7 @@ func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
 }
 
 // GetUnreadCountForChannel provides a mock function with given fields: userId, channelId
-func (_m *UserStore) GetUnreadCountForChannel(userId string, channelId string) (int64, *model.AppError) {
+func (_m *UserStore) GetUnreadCountForChannel(userId string, channelId string) (int64, error) {
 	ret := _m.Called(userId, channelId)
 
 	var r0 int64
@@ -854,7 +854,7 @@ func (_m *UserStore) GetUnreadCountForChannel(userId string, channelId string) (
 }
 
 // GetUsersBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
-func (_m *UserStore) GetUsersBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.UserForIndexing, *model.AppError) {
+func (_m *UserStore) GetUsersBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.UserForIndexing, error) {
 	ret := _m.Called(startTime, endTime, limit)
 
 	var r0 []*model.UserForIndexing
@@ -879,7 +879,7 @@ func (_m *UserStore) GetUsersBatchForIndexing(startTime int64, endTime int64, li
 }
 
 // InferSystemInstallDate provides a mock function with given fields:
-func (_m *UserStore) InferSystemInstallDate() (int64, *model.AppError) {
+func (_m *UserStore) InferSystemInstallDate() (int64, error) {
 	ret := _m.Called()
 
 	var r0 int64
@@ -917,7 +917,7 @@ func (_m *UserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
 }
 
 // PermanentDelete provides a mock function with given fields: userId
-func (_m *UserStore) PermanentDelete(userId string) *model.AppError {
+func (_m *UserStore) PermanentDelete(userId string) error {
 	ret := _m.Called(userId)
 
 	var r0 *model.AppError
@@ -933,7 +933,7 @@ func (_m *UserStore) PermanentDelete(userId string) *model.AppError {
 }
 
 // PromoteGuestToUser provides a mock function with given fields: userID
-func (_m *UserStore) PromoteGuestToUser(userID string) *model.AppError {
+func (_m *UserStore) PromoteGuestToUser(userID string) error {
 	ret := _m.Called(userID)
 
 	var r0 *model.AppError
@@ -949,7 +949,7 @@ func (_m *UserStore) PromoteGuestToUser(userID string) *model.AppError {
 }
 
 // ResetLastPictureUpdate provides a mock function with given fields: userId
-func (_m *UserStore) ResetLastPictureUpdate(userId string) *model.AppError {
+func (_m *UserStore) ResetLastPictureUpdate(userId string) error {
 	ret := _m.Called(userId)
 
 	var r0 *model.AppError
@@ -965,7 +965,7 @@ func (_m *UserStore) ResetLastPictureUpdate(userId string) *model.AppError {
 }
 
 // Save provides a mock function with given fields: user
-func (_m *UserStore) Save(user *model.User) (*model.User, *model.AppError) {
+func (_m *UserStore) Save(user *model.User) (*model.User, error) {
 	ret := _m.Called(user)
 
 	var r0 *model.User
@@ -990,7 +990,7 @@ func (_m *UserStore) Save(user *model.User) (*model.User, *model.AppError) {
 }
 
 // Search provides a mock function with given fields: teamId, term, options
-func (_m *UserStore) Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	ret := _m.Called(teamId, term, options)
 
 	var r0 []*model.User
@@ -1015,7 +1015,7 @@ func (_m *UserStore) Search(teamId string, term string, options *model.UserSearc
 }
 
 // SearchInChannel provides a mock function with given fields: channelId, term, options
-func (_m *UserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	ret := _m.Called(channelId, term, options)
 
 	var r0 []*model.User
@@ -1040,7 +1040,7 @@ func (_m *UserStore) SearchInChannel(channelId string, term string, options *mod
 }
 
 // SearchNotInChannel provides a mock function with given fields: teamId, channelId, term, options
-func (_m *UserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	ret := _m.Called(teamId, channelId, term, options)
 
 	var r0 []*model.User
@@ -1065,7 +1065,7 @@ func (_m *UserStore) SearchNotInChannel(teamId string, channelId string, term st
 }
 
 // SearchNotInTeam provides a mock function with given fields: notInTeamId, term, options
-func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	ret := _m.Called(notInTeamId, term, options)
 
 	var r0 []*model.User
@@ -1090,7 +1090,7 @@ func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *m
 }
 
 // SearchWithoutTeam provides a mock function with given fields: term, options
-func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	ret := _m.Called(term, options)
 
 	var r0 []*model.User
@@ -1115,7 +1115,7 @@ func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOpt
 }
 
 // Update provides a mock function with given fields: user, allowRoleUpdate
-func (_m *UserStore) Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, *model.AppError) {
+func (_m *UserStore) Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
 	ret := _m.Called(user, allowRoleUpdate)
 
 	var r0 *model.UserUpdate
@@ -1140,7 +1140,7 @@ func (_m *UserStore) Update(user *model.User, allowRoleUpdate bool) (*model.User
 }
 
 // UpdateAuthData provides a mock function with given fields: userId, service, authData, email, resetMfa
-func (_m *UserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, *model.AppError) {
+func (_m *UserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, error) {
 	ret := _m.Called(userId, service, authData, email, resetMfa)
 
 	var r0 string
@@ -1163,7 +1163,7 @@ func (_m *UserStore) UpdateAuthData(userId string, service string, authData *str
 }
 
 // UpdateFailedPasswordAttempts provides a mock function with given fields: userId, attempts
-func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) *model.AppError {
+func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) error {
 	ret := _m.Called(userId, attempts)
 
 	var r0 *model.AppError
@@ -1179,7 +1179,7 @@ func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) *
 }
 
 // UpdateLastPictureUpdate provides a mock function with given fields: userId
-func (_m *UserStore) UpdateLastPictureUpdate(userId string) *model.AppError {
+func (_m *UserStore) UpdateLastPictureUpdate(userId string) error {
 	ret := _m.Called(userId)
 
 	var r0 *model.AppError
@@ -1195,7 +1195,7 @@ func (_m *UserStore) UpdateLastPictureUpdate(userId string) *model.AppError {
 }
 
 // UpdateMfaActive provides a mock function with given fields: userId, active
-func (_m *UserStore) UpdateMfaActive(userId string, active bool) *model.AppError {
+func (_m *UserStore) UpdateMfaActive(userId string, active bool) error {
 	ret := _m.Called(userId, active)
 
 	var r0 *model.AppError
@@ -1211,7 +1211,7 @@ func (_m *UserStore) UpdateMfaActive(userId string, active bool) *model.AppError
 }
 
 // UpdateMfaSecret provides a mock function with given fields: userId, secret
-func (_m *UserStore) UpdateMfaSecret(userId string, secret string) *model.AppError {
+func (_m *UserStore) UpdateMfaSecret(userId string, secret string) error {
 	ret := _m.Called(userId, secret)
 
 	var r0 *model.AppError
@@ -1227,7 +1227,7 @@ func (_m *UserStore) UpdateMfaSecret(userId string, secret string) *model.AppErr
 }
 
 // UpdatePassword provides a mock function with given fields: userId, newPassword
-func (_m *UserStore) UpdatePassword(userId string, newPassword string) *model.AppError {
+func (_m *UserStore) UpdatePassword(userId string, newPassword string) error {
 	ret := _m.Called(userId, newPassword)
 
 	var r0 *model.AppError
@@ -1243,7 +1243,7 @@ func (_m *UserStore) UpdatePassword(userId string, newPassword string) *model.Ap
 }
 
 // UpdateUpdateAt provides a mock function with given fields: userId
-func (_m *UserStore) UpdateUpdateAt(userId string) (int64, *model.AppError) {
+func (_m *UserStore) UpdateUpdateAt(userId string) (int64, error) {
 	ret := _m.Called(userId)
 
 	var r0 int64
@@ -1266,7 +1266,7 @@ func (_m *UserStore) UpdateUpdateAt(userId string) (int64, *model.AppError) {
 }
 
 // VerifyEmail provides a mock function with given fields: userId, email
-func (_m *UserStore) VerifyEmail(userId string, email string) (string, *model.AppError) {
+func (_m *UserStore) VerifyEmail(userId string, email string) (string, error) {
 	ret := _m.Called(userId, email)
 
 	var r0 string

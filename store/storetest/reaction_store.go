@@ -379,7 +379,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	// Need to hang on to a reaction to delete later in order to clear the cache, as "allowFromCache" isn't honoured any more.
 	var lastReaction *model.Reaction
 	for _, reaction := range reactions {
-		var err *model.AppError
+		var err error
 		lastReaction, err = ss.Reaction().Save(reaction)
 		require.Nil(t, err)
 	}

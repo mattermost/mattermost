@@ -28,7 +28,7 @@ func NewSqlClusterDiscoveryStore(sqlStore SqlStore) store.ClusterDiscoveryStore 
 	return s
 }
 
-func (s sqlClusterDiscoveryStore) Save(ClusterDiscovery *model.ClusterDiscovery) *model.AppError {
+func (s sqlClusterDiscoveryStore) Save(ClusterDiscovery *model.ClusterDiscovery) error {
 	ClusterDiscovery.PreSave()
 	if err := ClusterDiscovery.IsValid(); err != nil {
 		return err
@@ -40,7 +40,7 @@ func (s sqlClusterDiscoveryStore) Save(ClusterDiscovery *model.ClusterDiscovery)
 	return nil
 }
 
-func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscovery) (bool, *model.AppError) {
+func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscovery) (bool, error) {
 	count, err := s.GetMaster().SelectInt(
 		`
 		DELETE
@@ -66,7 +66,7 @@ func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscover
 	return true, nil
 }
 
-func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscovery) (bool, *model.AppError) {
+func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscovery) (bool, error) {
 	count, err := s.GetMaster().SelectInt(
 		`
 		SELECT
@@ -93,7 +93,7 @@ func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscover
 	return true, nil
 }
 
-func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName string) ([]*model.ClusterDiscovery, *model.AppError) {
+func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName string) ([]*model.ClusterDiscovery, error) {
 	lastPingAt := model.GetMillis() - model.CDS_OFFLINE_AFTER_MILLIS
 
 	var list []*model.ClusterDiscovery
@@ -120,7 +120,7 @@ func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName strin
 	return list, nil
 }
 
-func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterDiscovery) *model.AppError {
+func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterDiscovery) error {
 	if _, err := s.GetMaster().Exec(
 		`
 		UPDATE ClusterDiscovery
@@ -143,7 +143,7 @@ func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterD
 	return nil
 }
 
-func (s sqlClusterDiscoveryStore) Cleanup() *model.AppError {
+func (s sqlClusterDiscoveryStore) Cleanup() error {
 	if _, err := s.GetMaster().Exec(
 		`
 		DELETE FROM ClusterDiscovery

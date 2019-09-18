@@ -42,7 +42,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 }
 
-func (c *Context) LogError(err *model.AppError) {
+func (c *Context) LogError(err error) {
 	// Filter out 404s, endless reconnects and browser compatibility errors
 	if err.StatusCode == http.StatusNotFound ||
 		(c.App.Path == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
@@ -58,7 +58,7 @@ func (c *Context) LogError(err *model.AppError) {
 	}
 }
 
-func (c *Context) LogInfo(err *model.AppError) {
+func (c *Context) LogInfo(err error) {
 	// Filter out 401s
 	if err.StatusCode == http.StatusUnauthorized {
 		c.LogDebug(err)
@@ -72,7 +72,7 @@ func (c *Context) LogInfo(err *model.AppError) {
 	}
 }
 
-func (c *Context) LogDebug(err *model.AppError) {
+func (c *Context) LogDebug(err error) {
 	c.Log.Debug(
 		err.SystemMessage(utils.TDefault),
 		mlog.String("err_where", err.Where),
@@ -185,11 +185,11 @@ func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWrite
 	return false
 }
 
-func NewInvalidParamError(parameter string) *model.AppError {
+func NewInvalidParamError(parameter string) error {
 	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
-func NewInvalidUrlParamError(parameter string) *model.AppError {
+func NewInvalidUrlParamError(parameter string) error {
 	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }

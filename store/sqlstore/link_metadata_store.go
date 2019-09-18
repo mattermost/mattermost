@@ -36,7 +36,7 @@ func (s SqlLinkMetadataStore) CreateIndexesIfNotExists() {
 	}
 }
 
-func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError) {
+func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, error) {
 	if err := metadata.IsValid(); err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	return metadata, nil
 }
 
-func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
+func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
 	var metadata *model.LinkMetadata
 
 	err := s.GetReplica().SelectOne(&metadata,

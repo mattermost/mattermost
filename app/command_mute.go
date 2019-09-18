@@ -37,7 +37,7 @@ func (me *MuteProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Comman
 
 func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
-	var noChannelErr *model.AppError
+	var noChannelErr error
 
 	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_mute.no_channel.error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

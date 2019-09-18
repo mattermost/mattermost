@@ -21,7 +21,7 @@ const (
 	BRAND_FILE_NAME = "image.png"
 )
 
-func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
+func (a *App) SaveBrandImage(imageData *multipart.FileHeader) error {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -65,7 +65,7 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	return nil
 }
 
-func (a *App) GetBrandImage() ([]byte, *model.AppError) {
+func (a *App) GetBrandImage() ([]byte, error) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -78,7 +78,7 @@ func (a *App) GetBrandImage() ([]byte, *model.AppError) {
 	return img, nil
 }
 
-func (a *App) DeleteBrandImage() *model.AppError {
+func (a *App) DeleteBrandImage() error {
 	filePath := BRAND_FILE_PATH + BRAND_FILE_NAME
 
 	fileExists, err := a.FileExists(filePath)

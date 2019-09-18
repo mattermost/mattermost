@@ -15,7 +15,7 @@ type LicenseStore struct {
 }
 
 // Get provides a mock function with given fields: id
-func (_m *LicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
+func (_m *LicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.LicenseRecord
@@ -40,7 +40,7 @@ func (_m *LicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
 }
 
 // Save provides a mock function with given fields: license
-func (_m *LicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
+func (_m *LicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 	ret := _m.Called(license)
 
 	var r0 *model.LicenseRecord

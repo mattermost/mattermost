@@ -15,7 +15,7 @@ type PostStore struct {
 }
 
 // AnalyticsPostCount provides a mock function with given fields: teamId, mustHaveFile, mustHaveHashtag
-func (_m *PostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, *model.AppError) {
+func (_m *PostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, error) {
 	ret := _m.Called(teamId, mustHaveFile, mustHaveHashtag)
 
 	var r0 int64
@@ -38,7 +38,7 @@ func (_m *PostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHa
 }
 
 // AnalyticsPostCountsByDay provides a mock function with given fields: options
-func (_m *PostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, *model.AppError) {
+func (_m *PostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 	ret := _m.Called(options)
 
 	var r0 model.AnalyticsRows
@@ -63,7 +63,7 @@ func (_m *PostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCounts
 }
 
 // AnalyticsUserCountsWithPostsByDay provides a mock function with given fields: teamId
-func (_m *PostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
+func (_m *PostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, error) {
 	ret := _m.Called(teamId)
 
 	var r0 model.AnalyticsRows
@@ -93,7 +93,7 @@ func (_m *PostStore) ClearCaches() {
 }
 
 // Delete provides a mock function with given fields: postId, time, deleteByID
-func (_m *PostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
+func (_m *PostStore) Delete(postId string, time int64, deleteByID string) error {
 	ret := _m.Called(postId, time, deleteByID)
 
 	var r0 *model.AppError
@@ -109,7 +109,7 @@ func (_m *PostStore) Delete(postId string, time int64, deleteByID string) *model
 }
 
 // Get provides a mock function with given fields: id, skipFetchThreads
-func (_m *PostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+func (_m *PostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
 	ret := _m.Called(id, skipFetchThreads)
 
 	var r0 *model.PostList
@@ -134,7 +134,7 @@ func (_m *PostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *mo
 }
 
 // GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterId
-func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError) {
+func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, error) {
 	ret := _m.Called(limit, afterId)
 
 	var r0 []*model.DirectPostForExport
@@ -173,7 +173,7 @@ func (_m *PostStore) GetEtag(channelId string, allowFromCache bool) string {
 }
 
 // GetFlaggedPosts provides a mock function with given fields: userId, offset, limit
-func (_m *PostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
 	ret := _m.Called(userId, offset, limit)
 
 	var r0 *model.PostList
@@ -198,7 +198,7 @@ func (_m *PostStore) GetFlaggedPosts(userId string, offset int, limit int) (*mod
 }
 
 // GetFlaggedPostsForChannel provides a mock function with given fields: userId, channelId, offset, limit
-func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, error) {
 	ret := _m.Called(userId, channelId, offset, limit)
 
 	var r0 *model.PostList
@@ -223,7 +223,7 @@ func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelId string, 
 }
 
 // GetFlaggedPostsForTeam provides a mock function with given fields: userId, teamId, offset, limit
-func (_m *PostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, error) {
 	ret := _m.Called(userId, teamId, offset, limit)
 
 	var r0 *model.PostList
@@ -262,7 +262,7 @@ func (_m *PostStore) GetMaxPostSize() int {
 }
 
 // GetOldest provides a mock function with given fields:
-func (_m *PostStore) GetOldest() (*model.Post, *model.AppError) {
+func (_m *PostStore) GetOldest() (*model.Post, error) {
 	ret := _m.Called()
 
 	var r0 *model.Post
@@ -287,7 +287,7 @@ func (_m *PostStore) GetOldest() (*model.Post, *model.AppError) {
 }
 
 // GetParentsForExportAfter provides a mock function with given fields: limit, afterId
-func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
+func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, error) {
 	ret := _m.Called(limit, afterId)
 
 	var r0 []*model.PostForExport
@@ -312,7 +312,7 @@ func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) ([]*mod
 }
 
 // GetPostAfterTime provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+func (_m *PostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
 	ret := _m.Called(channelId, time)
 
 	var r0 *model.Post
@@ -337,7 +337,7 @@ func (_m *PostStore) GetPostAfterTime(channelId string, time int64) (*model.Post
 }
 
 // GetPostIdAfterTime provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+func (_m *PostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
 	ret := _m.Called(channelId, time)
 
 	var r0 string
@@ -360,7 +360,7 @@ func (_m *PostStore) GetPostIdAfterTime(channelId string, time int64) (string, *
 }
 
 // GetPostIdBeforeTime provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+func (_m *PostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
 	ret := _m.Called(channelId, time)
 
 	var r0 string
@@ -383,7 +383,7 @@ func (_m *PostStore) GetPostIdBeforeTime(channelId string, time int64) (string, 
 }
 
 // GetPosts provides a mock function with given fields: options, allowFromCache
-func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error) {
 	ret := _m.Called(options, allowFromCache)
 
 	var r0 *model.PostList
@@ -408,7 +408,7 @@ func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool
 }
 
 // GetPostsAfter provides a mock function with given fields: options
-func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
 	ret := _m.Called(options)
 
 	var r0 *model.PostList
@@ -433,7 +433,7 @@ func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostLi
 }
 
 // GetPostsBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
-func (_m *PostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError) {
+func (_m *PostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error) {
 	ret := _m.Called(startTime, endTime, limit)
 
 	var r0 []*model.PostForIndexing
@@ -458,7 +458,7 @@ func (_m *PostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, li
 }
 
 // GetPostsBefore provides a mock function with given fields: options
-func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
 	ret := _m.Called(options)
 
 	var r0 *model.PostList
@@ -483,7 +483,7 @@ func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostL
 }
 
 // GetPostsByIds provides a mock function with given fields: postIds
-func (_m *PostStore) GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError) {
+func (_m *PostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	ret := _m.Called(postIds)
 
 	var r0 []*model.Post
@@ -508,7 +508,7 @@ func (_m *PostStore) GetPostsByIds(postIds []string) ([]*model.Post, *model.AppE
 }
 
 // GetPostsCreatedAt provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError) {
+func (_m *PostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, error) {
 	ret := _m.Called(channelId, time)
 
 	var r0 []*model.Post
@@ -533,7 +533,7 @@ func (_m *PostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.P
 }
 
 // GetPostsSince provides a mock function with given fields: options, allowFromCache
-func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 	ret := _m.Called(options, allowFromCache)
 
 	var r0 *model.PostList
@@ -558,7 +558,7 @@ func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFrom
 }
 
 // GetRepliesForExport provides a mock function with given fields: parentId
-func (_m *PostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError) {
+func (_m *PostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExport, error) {
 	ret := _m.Called(parentId)
 
 	var r0 []*model.ReplyForExport
@@ -583,7 +583,7 @@ func (_m *PostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExpo
 }
 
 // GetSingle provides a mock function with given fields: id
-func (_m *PostStore) GetSingle(id string) (*model.Post, *model.AppError) {
+func (_m *PostStore) GetSingle(id string) (*model.Post, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.Post
@@ -613,7 +613,7 @@ func (_m *PostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
 // Overwrite provides a mock function with given fields: post
-func (_m *PostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
+func (_m *PostStore) Overwrite(post *model.Post) (*model.Post, error) {
 	ret := _m.Called(post)
 
 	var r0 *model.Post
@@ -638,7 +638,7 @@ func (_m *PostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) 
 }
 
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
-func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
 
 	var r0 int64
@@ -661,7 +661,7 @@ func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *m
 }
 
 // PermanentDeleteByChannel provides a mock function with given fields: channelId
-func (_m *PostStore) PermanentDeleteByChannel(channelId string) *model.AppError {
+func (_m *PostStore) PermanentDeleteByChannel(channelId string) error {
 	ret := _m.Called(channelId)
 
 	var r0 *model.AppError
@@ -677,7 +677,7 @@ func (_m *PostStore) PermanentDeleteByChannel(channelId string) *model.AppError 
 }
 
 // PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *PostStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (_m *PostStore) PermanentDeleteByUser(userId string) error {
 	ret := _m.Called(userId)
 
 	var r0 *model.AppError
@@ -693,7 +693,7 @@ func (_m *PostStore) PermanentDeleteByUser(userId string) *model.AppError {
 }
 
 // Save provides a mock function with given fields: post
-func (_m *PostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+func (_m *PostStore) Save(post *model.Post) (*model.Post, error) {
 	ret := _m.Called(post)
 
 	var r0 *model.Post
@@ -718,7 +718,7 @@ func (_m *PostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 }
 
 // Search provides a mock function with given fields: teamId, userId, params
-func (_m *PostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
+func (_m *PostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error) {
 	ret := _m.Called(teamId, userId, params)
 
 	var r0 *model.PostList
@@ -743,7 +743,7 @@ func (_m *PostStore) Search(teamId string, userId string, params *model.SearchPa
 }
 
 // Update provides a mock function with given fields: newPost, oldPost
-func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
+func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	ret := _m.Called(newPost, oldPost)
 
 	var r0 *model.Post

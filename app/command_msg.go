@@ -72,7 +72,7 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 
 	targetChannelId := ""
 	if channel, channelErr := a.Srv.Store.Channel().GetByName(args.TeamId, channelName, true); channelErr != nil {
-		if channelErr.Id == "store.sql_channel.get_by_name.missing.app_error" {
+		if channelErr.(*model.AppError).Id == "store.sql_channel.get_by_name.missing.app_error" {
 			if !a.SessionHasPermissionTo(args.Session, model.PERMISSION_CREATE_DIRECT_CHANNEL) {
 				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}

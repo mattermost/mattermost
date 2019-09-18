@@ -15,7 +15,7 @@ type RoleStore struct {
 }
 
 // Delete provides a mock function with given fields: roldId
-func (_m *RoleStore) Delete(roldId string) (*model.Role, *model.AppError) {
+func (_m *RoleStore) Delete(roldId string) (*model.Role, error) {
 	ret := _m.Called(roldId)
 
 	var r0 *model.Role
@@ -40,7 +40,7 @@ func (_m *RoleStore) Delete(roldId string) (*model.Role, *model.AppError) {
 }
 
 // Get provides a mock function with given fields: roleId
-func (_m *RoleStore) Get(roleId string) (*model.Role, *model.AppError) {
+func (_m *RoleStore) Get(roleId string) (*model.Role, error) {
 	ret := _m.Called(roleId)
 
 	var r0 *model.Role
@@ -65,7 +65,7 @@ func (_m *RoleStore) Get(roleId string) (*model.Role, *model.AppError) {
 }
 
 // GetAll provides a mock function with given fields:
-func (_m *RoleStore) GetAll() ([]*model.Role, *model.AppError) {
+func (_m *RoleStore) GetAll() ([]*model.Role, error) {
 	ret := _m.Called()
 
 	var r0 []*model.Role
@@ -90,7 +90,7 @@ func (_m *RoleStore) GetAll() ([]*model.Role, *model.AppError) {
 }
 
 // GetByName provides a mock function with given fields: name
-func (_m *RoleStore) GetByName(name string) (*model.Role, *model.AppError) {
+func (_m *RoleStore) GetByName(name string) (*model.Role, error) {
 	ret := _m.Called(name)
 
 	var r0 *model.Role
@@ -115,7 +115,7 @@ func (_m *RoleStore) GetByName(name string) (*model.Role, *model.AppError) {
 }
 
 // GetByNames provides a mock function with given fields: names
-func (_m *RoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError) {
+func (_m *RoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	ret := _m.Called(names)
 
 	var r0 []*model.Role
@@ -140,7 +140,7 @@ func (_m *RoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError)
 }
 
 // PermanentDeleteAll provides a mock function with given fields:
-func (_m *RoleStore) PermanentDeleteAll() *model.AppError {
+func (_m *RoleStore) PermanentDeleteAll() error {
 	ret := _m.Called()
 
 	var r0 *model.AppError
@@ -156,7 +156,7 @@ func (_m *RoleStore) PermanentDeleteAll() *model.AppError {
 }
 
 // Save provides a mock function with given fields: role
-func (_m *RoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
+func (_m *RoleStore) Save(role *model.Role) (*model.Role, error) {
 	ret := _m.Called(role)
 
 	var r0 *model.Role

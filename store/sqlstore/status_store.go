@@ -39,7 +39,7 @@ func (s SqlStatusStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")
 }
 
-func (s SqlStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
+func (s SqlStatusStore) SaveOrUpdate(status *model.Status) error {
 	if err := s.GetReplica().SelectOne(&model.Status{}, "SELECT * FROM Status WHERE UserId = :UserId", map[string]interface{}{"UserId": status.UserId}); err == nil {
 		if _, err := s.GetMaster().Update(status); err != nil {
 			return model.NewAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.update.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -54,7 +54,7 @@ func (s SqlStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
 	return nil
 }
 
-func (s SqlStatusStore) Get(userId string) (*model.Status, *model.AppError) {
+func (s SqlStatusStore) Get(userId string) (*model.Status, error) {
 	var status model.Status
 
 	if err := s.GetReplica().SelectOne(&status,
@@ -72,7 +72,7 @@ func (s SqlStatusStore) Get(userId string) (*model.Status, *model.AppError) {
 	return &status, nil
 }
 
-func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
+func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	props := make(map[string]interface{})
 	idQuery := ""
 
@@ -92,14 +92,14 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppE
 	return statuses, nil
 }
 
-func (s SqlStatusStore) ResetAll() *model.AppError {
+func (s SqlStatusStore) ResetAll() error {
 	if _, err := s.GetMaster().Exec("UPDATE Status SET Status = :Status WHERE Manual = false", map[string]interface{}{"Status": model.STATUS_OFFLINE}); err != nil {
 		return model.NewAppError("SqlStatusStore.ResetAll", "store.sql_status.reset_all.app_error", nil, "", http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
+func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	time := model.GetMillis() - (1000 * 60 * 60 * 24)
 	count, err := s.GetReplica().SelectInt("SELECT COUNT(UserId) FROM Status WHERE LastActivityAt > :Time", map[string]interface{}{"Time": time})
 	if err != nil {
@@ -108,7 +108,7 @@ func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
 	return count, nil
 }
 
-func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError {
+func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
 	if _, err := s.GetMaster().Exec("UPDATE Status SET LastActivityAt = :Time WHERE UserId = :UserId", map[string]interface{}{"UserId": userId, "Time": lastActivityAt}); err != nil {
 		return model.NewAppError("SqlStatusStore.UpdateLastActivityAt", "store.sql_status.update_last_activity_at.app_error", nil, "", http.StatusInternalServerError)
 	}

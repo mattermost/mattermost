@@ -44,7 +44,7 @@ func (s SqlCommandStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_command_delete_at", "Commands", "DeleteAt")
 }
 
-func (s SqlCommandStore) Save(command *model.Command) (*model.Command, *model.AppError) {
+func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 	if len(command.Id) > 0 {
 		return nil, model.NewAppError("SqlCommandStore.Save", "store.sql_command.save.saving_overwrite.app_error", nil, "id="+command.Id, http.StatusBadRequest)
 	}
@@ -61,7 +61,7 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, *model.Ap
 	return command, nil
 }
 
-func (s SqlCommandStore) Get(id string) (*model.Command, *model.AppError) {
+func (s SqlCommandStore) Get(id string) (*model.Command, error) {
 	var command model.Command
 
 	if err := s.GetReplica().SelectOne(&command, "SELECT * FROM Commands WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
@@ -71,7 +71,7 @@ func (s SqlCommandStore) Get(id string) (*model.Command, *model.AppError) {
 	return &command, nil
 }
 
-func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppError) {
+func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 	var commands []*model.Command
 
 	if _, err := s.GetReplica().Select(&commands, "SELECT * FROM Commands WHERE TeamId = :TeamId AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId}); err != nil {
@@ -81,7 +81,7 @@ func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppE
 	return commands, nil
 }
 
-func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError) {
+func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, error) {
 	var command model.Command
 
 	var query string
@@ -98,7 +98,7 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 	return &command, nil
 }
 
-func (s SqlCommandStore) Delete(commandId string, time int64) *model.AppError {
+func (s SqlCommandStore) Delete(commandId string, time int64) error {
 	_, err := s.GetMaster().Exec("Update Commands SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": commandId})
 	if err != nil {
 		return model.NewAppError("SqlCommandStore.Delete", "store.sql_command.save.delete.app_error", nil, "id="+commandId+", err="+err.Error(), http.StatusInternalServerError)
@@ -107,7 +107,7 @@ func (s SqlCommandStore) Delete(commandId string, time int64) *model.AppError {
 	return nil
 }
 
-func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) error {
 	_, err := s.GetMaster().Exec("DELETE FROM Commands WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
 	if err != nil {
 		return model.NewAppError("SqlCommandStore.DeleteByTeam", "store.sql_command.save.delete_perm.app_error", nil, "id="+teamId+", err="+err.Error(), http.StatusInternalServerError)
@@ -115,7 +115,7 @@ func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
 	return nil
 }
 
-func (s SqlCommandStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s SqlCommandStore) PermanentDeleteByUser(userId string) error {
 	_, err := s.GetMaster().Exec("DELETE FROM Commands WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId})
 	if err != nil {
 		return model.NewAppError("SqlCommandStore.DeleteByUser", "store.sql_command.save.delete_perm.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
@@ -124,7 +124,7 @@ func (s SqlCommandStore) PermanentDeleteByUser(userId string) *model.AppError {
 	return nil
 }
 
-func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, *model.AppError) {
+func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, error) {
 	cmd.UpdateAt = model.GetMillis()
 
 	if err := cmd.IsValid(); err != nil {
@@ -138,7 +138,7 @@ func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, *model.AppE
 	return cmd, nil
 }
 
-func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, *model.AppError) {
+func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 	query :=
 		`SELECT
 			COUNT(*)

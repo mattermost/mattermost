@@ -37,7 +37,7 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if _, err = cws.Get("123"); err.StatusCode != http.StatusNotFound {
+	if _, err = cws.Get("123"); err.(*model.AppError).StatusCode != http.StatusNotFound {
 		t.Fatal("Should have set the status as not found for missing id")
 	}
 
@@ -49,7 +49,7 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h2, err = cws.Save(h2)
 	require.Nil(t, err)
 
-	if _, err := cws.Get(h2.Id); err == nil || err.StatusCode != http.StatusNotFound {
+	if _, err := cws.Get(h2.Id); err == nil || err.(*model.AppError).StatusCode != http.StatusNotFound {
 		t.Fatal("Should have set the status as not found for expired webhook")
 	}
 
@@ -59,7 +59,7 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 		t.Fatal("Should have no error getting unexpired webhook")
 	}
 
-	if _, err := cws.Get(h2.Id); err.StatusCode != http.StatusNotFound {
+	if _, err := cws.Get(h2.Id); err.(*model.AppError).StatusCode != http.StatusNotFound {
 		t.Fatal("Should have set the status as not found for expired webhook")
 	}
 
@@ -67,7 +67,7 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 		t.Fatal("Should be able to use webhook once")
 	}
 
-	if err := cws.TryUse(h1.Id, 1); err == nil || err.StatusCode != http.StatusBadRequest {
+	if err := cws.TryUse(h1.Id, 1); err == nil || err.(*model.AppError).StatusCode != http.StatusBadRequest {
 		t.Fatal("Should be able to use webhook once")
 	}
 }

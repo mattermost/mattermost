@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, error) {
 	post, err := a.GetSinglePost(reaction.PostId)
 	if err != nil {
 		return nil, err
@@ -51,11 +51,11 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	return reaction, nil
 }
 
-func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
+func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, error) {
 	return a.Srv.Store.Reaction().GetForPost(postId, true)
 }
 
-func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
+func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, error) {
 	reactions := make(map[string][]*model.Reaction)
 
 	allReactions, err := a.Srv.Store.Reaction().BulkGetForPosts(postIds)
@@ -83,7 +83,7 @@ func populateEmptyReactions(postIds []string, reactions map[string][]*model.Reac
 	return reactions
 }
 
-func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
+func (a *App) DeleteReactionForPost(reaction *model.Reaction) error {
 	post, err := a.GetSinglePost(reaction.PostId)
 	if err != nil {
 		return err

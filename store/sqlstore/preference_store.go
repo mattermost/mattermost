@@ -54,7 +54,7 @@ func (s SqlPreferenceStore) DeleteUnusedFeatures() {
 	s.GetMaster().Exec(sql, queryParams)
 }
 
-func (s SqlPreferenceStore) Save(preferences *model.Preferences) *model.AppError {
+func (s SqlPreferenceStore) Save(preferences *model.Preferences) error {
 	// wrap in a transaction so that if one fails, everything fails
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -75,7 +75,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) *model.AppError
 	return nil
 }
 
-func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
+func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) error {
 	preference.PreUpdate()
 
 	if err := preference.IsValid(); err != nil {
@@ -124,7 +124,7 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 	return model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.missing_driver.app_error", nil, "Failed to update preference because of missing driver", http.StatusNotImplemented)
 }
 
-func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
+func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) error {
 	if err := transaction.Insert(preference); err != nil {
 		if IsUniqueConstraintError(err, []string{"UserId", "preferences_pkey"}) {
 			return model.NewAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.exists.app_error", nil,
@@ -137,7 +137,7 @@ func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *mo
 	return nil
 }
 
-func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
+func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) error {
 	if _, err := transaction.Update(preference); err != nil {
 		return model.NewAppError("SqlPreferenceStore.update", "store.sql_preference.update.app_error", nil,
 			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusInternalServerError)
@@ -146,7 +146,7 @@ func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *mo
 	return nil
 }
 
-func (s SqlPreferenceStore) Get(userId string, category string, name string) (*model.Preference, *model.AppError) {
+func (s SqlPreferenceStore) Get(userId string, category string, name string) (*model.Preference, error) {
 	var preference *model.Preference
 
 	if err := s.GetReplica().SelectOne(&preference,
@@ -163,7 +163,7 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) (*m
 	return preference, nil
 }
 
-func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.Preferences, *model.AppError) {
+func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.Preferences, error) {
 	var preferences model.Preferences
 
 	if _, err := s.GetReplica().Select(&preferences,
@@ -181,7 +181,7 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.P
 
 }
 
-func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, *model.AppError) {
+func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, error) {
 	var preferences model.Preferences
 
 	if _, err := s.GetReplica().Select(&preferences,
@@ -196,7 +196,7 @@ func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, *model.App
 	return preferences, nil
 }
 
-func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) error {
 	query :=
 		`DELETE FROM
 			Preferences
@@ -210,7 +210,7 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError
 	return nil
 }
 
-func (s SqlPreferenceStore) Delete(userId, category, name string) *model.AppError {
+func (s SqlPreferenceStore) Delete(userId, category, name string) error {
 	query :=
 		`DELETE FROM Preferences
 		WHERE
@@ -227,7 +227,7 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) *model.AppErro
 	return nil
 }
 
-func (s SqlPreferenceStore) DeleteCategory(userId string, category string) *model.AppError {
+func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error {
 	_, err := s.GetMaster().Exec(
 		`DELETE FROM
 			Preferences
@@ -242,7 +242,7 @@ func (s SqlPreferenceStore) DeleteCategory(userId string, category string) *mode
 	return nil
 }
 
-func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) *model.AppError {
+func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) error {
 	_, err := s.GetMaster().Exec(
 		`DELETE FROM
 			Preferences
@@ -257,7 +257,7 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 	return nil
 }
 
-func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, *model.AppError) {
+func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 	query :=
 		`DELETE FROM
 			Preferences

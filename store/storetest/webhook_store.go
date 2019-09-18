@@ -54,7 +54,7 @@ func testWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
 
 func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
 
-	var err *model.AppError
+	var err error
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
@@ -81,7 +81,7 @@ func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
-	var err *model.AppError
+	var err error
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
@@ -109,7 +109,7 @@ func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
 		t.Fatal("Missing id should have failed")
 	}
 
-	if _, err = ss.Webhook().GetIncoming("123", true); err.StatusCode != http.StatusNotFound {
+	if _, err = ss.Webhook().GetIncoming("123", true); err.(*model.AppError).StatusCode != http.StatusNotFound {
 		t.Fatal("Should have set the status as not found for missing id")
 	}
 }
@@ -120,7 +120,7 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.TeamId = model.NewId()
 
-	var err *model.AppError
+	var err error
 	o1, err = ss.Webhook().SaveIncoming(o1)
 	if err != nil {
 		t.Fatal("unable to save webhook", err)
@@ -173,7 +173,7 @@ func testWebhookStoreGetIncomingListByUser(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
-	var err *model.AppError
+	var err error
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
@@ -197,7 +197,7 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 }
 
 func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, ss store.Store) {
-	var appErr *model.AppError
+	var appErr error
 
 	o1 := buildIncomingWebhook()
 	o1, appErr = ss.Webhook().SaveIncoming(o1)
@@ -252,7 +252,7 @@ func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
-	var err *model.AppError
+	var err error
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
@@ -275,7 +275,7 @@ func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
-	var err *model.AppError
+	var err error
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
@@ -299,7 +299,7 @@ func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
-	var err *model.AppError
+	var err error
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
@@ -538,7 +538,7 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, ss store.Store) {
-	var appErr *model.AppError
+	var appErr error
 
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()

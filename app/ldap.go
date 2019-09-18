@@ -25,7 +25,7 @@ func (a *App) SyncLdap() {
 	})
 }
 
-func (a *App) TestLdap() *model.AppError {
+func (a *App) TestLdap() error {
 	license := a.License()
 	if ldapI := a.Ldap; ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		if err := ldapI.RunTest(); err != nil {
@@ -41,7 +41,7 @@ func (a *App) TestLdap() *model.AppError {
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
-func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
+func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, error) {
 	var group *model.Group
 
 	if a.Ldap != nil {
@@ -61,7 +61,7 @@ func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 
 // GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
 // filter.
-func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, error) {
 	var groups []*model.Group
 	var total int
 
@@ -80,7 +80,7 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSe
 	return groups, total, nil
 }
 
-func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
+func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, error) {
 	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)
 	}
@@ -116,7 +116,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword
 	return "/login?extra=signin_change", nil
 }
 
-func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError) {
+func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, error) {
 	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusForbidden)
 	}

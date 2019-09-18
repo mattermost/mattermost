@@ -36,7 +36,7 @@ func (s SqlCommandWebhookStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_command_webhook_create_at", "CommandWebhooks", "CreateAt")
 }
 
-func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError) {
+func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
 	if len(webhook.Id) > 0 {
 		return nil, model.NewAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.existing.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
 	}
@@ -53,7 +53,7 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 	return webhook, nil
 }
 
-func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.AppError) {
+func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	var webhook model.CommandWebhook
 
 	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
@@ -69,7 +69,7 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.Ap
 	return &webhook, nil
 }
 
-func (s SqlCommandWebhookStore) TryUse(id string, limit int) *model.AppError {
+func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 	if sqlResult, err := s.GetMaster().Exec("UPDATE CommandWebhooks SET UseCount = UseCount + 1 WHERE Id = :Id AND UseCount < :UseLimit", map[string]interface{}{"Id": id, "UseLimit": limit}); err != nil {
 		return model.NewAppError("SqlCommandWebhookStore.TryUse", "store.sql_command_webhooks.try_use.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
 	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {

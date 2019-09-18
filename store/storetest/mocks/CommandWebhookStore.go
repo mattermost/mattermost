@@ -20,7 +20,7 @@ func (_m *CommandWebhookStore) Cleanup() {
 }
 
 // Get provides a mock function with given fields: id
-func (_m *CommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.AppError) {
+func (_m *CommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.CommandWebhook
@@ -45,7 +45,7 @@ func (_m *CommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.App
 }
 
 // Save provides a mock function with given fields: webhook
-func (_m *CommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError) {
+func (_m *CommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
 	ret := _m.Called(webhook)
 
 	var r0 *model.CommandWebhook
@@ -70,7 +70,7 @@ func (_m *CommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comma
 }
 
 // TryUse provides a mock function with given fields: id, limit
-func (_m *CommandWebhookStore) TryUse(id string, limit int) *model.AppError {
+func (_m *CommandWebhookStore) TryUse(id string, limit int) error {
 	ret := _m.Called(id, limit)
 
 	var r0 *model.AppError

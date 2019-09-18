@@ -87,16 +87,16 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	handler.ServeWebSocket(conn, r)
 }
 
-func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
+func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err error) {
 	mlog.Error(
 		"websocket routing error.",
 		mlog.Int64("seq", r.Seq),
 		mlog.String("user_id", conn.UserId),
-		mlog.String("system_message", err.SystemMessage(utils.T)),
+		mlog.String("system_message", err.(*model.AppError).SystemMessage(utils.T)),
 		mlog.Err(err),
 	)
 
-	err.DetailedError = ""
+	err.(*model.AppError).DetailedError = ""
 	errorResp := model.NewWebSocketError(r.Seq, err)
 
 	conn.Send <- errorResp

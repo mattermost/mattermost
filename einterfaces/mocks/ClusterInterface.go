@@ -14,7 +14,7 @@ type ClusterInterface struct {
 }
 
 // ConfigChanged provides a mock function with given fields: previousConfig, newConfig, sendToOtherServer
-func (_m *ClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
+func (_m *ClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) error {
 	ret := _m.Called(previousConfig, newConfig, sendToOtherServer)
 
 	var r0 *model.AppError
@@ -60,7 +60,7 @@ func (_m *ClusterInterface) GetClusterInfos() []*model.ClusterInfo {
 }
 
 // GetClusterStats provides a mock function with given fields:
-func (_m *ClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.AppError) {
+func (_m *ClusterInterface) GetClusterStats() ([]*model.ClusterStats, error) {
 	ret := _m.Called()
 
 	var r0 []*model.ClusterStats
@@ -85,7 +85,7 @@ func (_m *ClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.App
 }
 
 // GetLogs provides a mock function with given fields: page, perPage
-func (_m *ClusterInterface) GetLogs(page int, perPage int) ([]string, *model.AppError) {
+func (_m *ClusterInterface) GetLogs(page int, perPage int) ([]string, error) {
 	ret := _m.Called(page, perPage)
 
 	var r0 []string
@@ -126,7 +126,7 @@ func (_m *ClusterInterface) GetMyClusterInfo() *model.ClusterInfo {
 }
 
 // GetPluginStatuses provides a mock function with given fields:
-func (_m *ClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+func (_m *ClusterInterface) GetPluginStatuses() (model.PluginStatuses, error) {
 	ret := _m.Called()
 
 	var r0 model.PluginStatuses

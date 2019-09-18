@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError) {
+func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, error) {
 	termsOfService := &model.TermsOfService{
 		Text:   text,
 		UserId: userId,
@@ -20,10 +20,10 @@ func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, 
 	return a.Srv.Store.TermsOfService().Save(termsOfService)
 }
 
-func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
+func (a *App) GetLatestTermsOfService() (*model.TermsOfService, error) {
 	return a.Srv.Store.TermsOfService().GetLatest(true)
 }
 
-func (a *App) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
+func (a *App) GetTermsOfService(id string) (*model.TermsOfService, error) {
 	return a.Srv.Store.TermsOfService().Get(id, true)
 }

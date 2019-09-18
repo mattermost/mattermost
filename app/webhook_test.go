@@ -530,7 +530,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		WebhookResponse            *model.OutgoingWebhookResponse
 	}
 
-	createOutgoingWebhook := func(channel *model.Channel, testCallBackUrl string, th *TestHelper) (*model.OutgoingWebhook, *model.AppError) {
+	createOutgoingWebhook := func(channel *model.Channel, testCallBackUrl string, th *TestHelper) (*model.OutgoingWebhook, error) {
 		outgoingWebhook := model.OutgoingWebhook{
 			ChannelId:    channel.Id,
 			TeamId:       channel.TeamId,

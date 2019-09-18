@@ -45,7 +45,7 @@ func (p *HelpersImpl) EnsureChannel(channel *model.Channel) (retChannelId string
 	}
 
 	var existingChannel *model.Channel
-	var channelGetErr *model.AppError
+	var channelGetErr error
 
 	// If channel ID exists, get existing channel by ID else get it by Name
 	if channelIdBytes != nil {

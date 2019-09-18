@@ -35,7 +35,7 @@ func (s *Server) InitEmailBatching() {
 	}
 }
 
-func (a *App) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
+func (a *App) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) error {
 	if !*a.Config().EmailSettings.EnableEmailBatching {
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}

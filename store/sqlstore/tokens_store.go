@@ -32,7 +32,7 @@ func NewSqlTokenStore(sqlStore SqlStore) store.TokenStore {
 func (s SqlTokenStore) CreateIndexesIfNotExists() {
 }
 
-func (s SqlTokenStore) Save(token *model.Token) *model.AppError {
+func (s SqlTokenStore) Save(token *model.Token) error {
 	if err := token.IsValid(); err != nil {
 		return err
 	}
@@ -43,14 +43,14 @@ func (s SqlTokenStore) Save(token *model.Token) *model.AppError {
 	return nil
 }
 
-func (s SqlTokenStore) Delete(token string) *model.AppError {
+func (s SqlTokenStore) Delete(token string) error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE Token = :Token", map[string]interface{}{"Token": token}); err != nil {
 		return model.NewAppError("SqlTokenStore.Delete", "store.sql_recover.delete.app_error", nil, "", http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, *model.AppError) {
+func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	token := &model.Token{}
 
 	if err := s.GetReplica().SelectOne(token, "SELECT * FROM Tokens WHERE Token = :Token", map[string]interface{}{"Token": tokenString}); err != nil {
@@ -72,7 +72,7 @@ func (s SqlTokenStore) Cleanup() {
 	}
 }
 
-func (s SqlTokenStore) RemoveAllTokensByType(tokenType string) *model.AppError {
+func (s SqlTokenStore) RemoveAllTokensByType(tokenType string) error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE Type = :TokenType", map[string]interface{}{"TokenType": tokenType}); err != nil {
 		return model.NewAppError("SqlTokenStore.RemoveAllTokensByType", "store.sql_recover.remove_all_tokens_by_type.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

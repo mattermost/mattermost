@@ -32,7 +32,7 @@ func NewSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
 func (s SqlReactionStore) CreateIndexesIfNotExists() {
 }
 
-func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
 	reaction.PreSave()
 	if err := reaction.IsValid(); err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *mod
 	return reaction, nil
 }
 
-func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, model.NewAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -77,7 +77,7 @@ func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *m
 	return reaction, nil
 }
 
-func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
+func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 	var reactions []*model.Reaction
 
 	if _, err := s.GetReplica().Select(&reactions,
@@ -95,7 +95,7 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 	return reactions, nil
 }
 
-func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
+func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 	keys, params := MapStringsToQueryParams(postIds, "postId")
 	var reactions []*model.Reaction
 
@@ -112,7 +112,7 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 	return reactions, nil
 }
 
-func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
+func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	var reactions []*model.Reaction
 
 	if _, err := s.GetReplica().Select(&reactions,
@@ -147,7 +147,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppEr
 	return nil
 }
 
-func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == "postgres" {
 		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"

@@ -859,13 +859,13 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	th.App.AddUserToChannel(user1, team1channel2)
 	th.App.AddUserToChannel(user1, team2channel1)
 
-	addPermission := func(role *model.Role, permission string) *model.AppError {
+	addPermission := func(role *model.Role, permission string) error {
 		newPermissions := append(role.Permissions, permission)
 		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
 		return err
 	}
 
-	removePermission := func(role *model.Role, permission string) *model.AppError {
+	removePermission := func(role *model.Role, permission string) error {
 		newPermissions := []string{}
 		for _, oldPermission := range role.Permissions {
 			if permission != oldPermission {
@@ -971,13 +971,13 @@ func TestGetViewUsersRestrictionsForTeam(t *testing.T) {
 	th.App.AddUserToChannel(user1, team1channel2)
 	th.App.AddUserToChannel(user1, team2channel1)
 
-	addPermission := func(role *model.Role, permission string) *model.AppError {
+	addPermission := func(role *model.Role, permission string) error {
 		newPermissions := append(role.Permissions, permission)
 		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
 		return err
 	}
 
-	removePermission := func(role *model.Role, permission string) *model.AppError {
+	removePermission := func(role *model.Role, permission string) error {
 		newPermissions := []string{}
 		for _, oldPermission := range role.Permissions {
 			if permission != oldPermission {

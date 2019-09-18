@@ -60,7 +60,7 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 	return s3Clnt, nil
 }
 
-func (b *S3FileBackend) TestConnection() *model.AppError {
+func (b *S3FileBackend) TestConnection() error {
 	s3Clnt, err := b.s3New()
 	if err != nil {
 		return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.connection.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -84,7 +84,7 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 }
 
 // Caller must close the first return value
-func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, *model.AppError) {
+func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	s3Clnt, err := b.s3New()
 	if err != nil {
 		return nil, model.NewAppError("Reader", "api.file.reader.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -96,7 +96,7 @@ func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, *model.AppError) {
 	return minioObject, nil
 }
 
-func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
+func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
 	s3Clnt, err := b.s3New()
 	if err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -113,7 +113,7 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 }
 
-func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {
+func (b *S3FileBackend) FileExists(path string) (bool, error) {
 	s3Clnt, err := b.s3New()
 
 	if err != nil {
@@ -132,7 +132,7 @@ func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {
 	return false, model.NewAppError("FileExists", "api.file.file_exists.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 }
 
-func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
+func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	s3Clnt, err := b.s3New()
 	if err != nil {
 		return model.NewAppError("copyFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -149,7 +149,7 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 	return nil
 }
 
-func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
+func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	s3Clnt, err := b.s3New()
 	if err != nil {
 		return model.NewAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -169,7 +169,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	return nil
 }
 
-func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	s3Clnt, err := b.s3New()
 	if err != nil {
 		return 0, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -196,7 +196,7 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppE
 	return written, nil
 }
 
-func (b *S3FileBackend) RemoveFile(path string) *model.AppError {
+func (b *S3FileBackend) RemoveFile(path string) error {
 	s3Clnt, err := b.s3New()
 	if err != nil {
 		return model.NewAppError("RemoveFile", "utils.file.remove_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -229,7 +229,7 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan string {
 	return out
 }
 
-func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) {
+func (b *S3FileBackend) ListDirectory(path string) (*[]string, error) {
 	var paths []string
 
 	s3Clnt, err := b.s3New()
@@ -255,7 +255,7 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) 
 	return &paths, nil
 }
 
-func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
+func (b *S3FileBackend) RemoveDirectory(path string) error {
 	s3Clnt, err := b.s3New()
 	if err != nil {
 		return model.NewAppError("RemoveDirectory", "utils.file.remove_directory.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -284,7 +284,7 @@ func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
 	return options
 }
 
-func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
+func CheckMandatoryS3Fields(settings *model.FileSettings) error {
 	if settings.AmazonS3Bucket == nil || len(*settings.AmazonS3Bucket) == 0 {
 		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
 	}

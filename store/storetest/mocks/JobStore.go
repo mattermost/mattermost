@@ -15,7 +15,7 @@ type JobStore struct {
 }
 
 // Delete provides a mock function with given fields: id
-func (_m *JobStore) Delete(id string) (string, *model.AppError) {
+func (_m *JobStore) Delete(id string) (string, error) {
 	ret := _m.Called(id)
 
 	var r0 string
@@ -38,7 +38,7 @@ func (_m *JobStore) Delete(id string) (string, *model.AppError) {
 }
 
 // Get provides a mock function with given fields: id
-func (_m *JobStore) Get(id string) (*model.Job, *model.AppError) {
+func (_m *JobStore) Get(id string) (*model.Job, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.Job
@@ -63,7 +63,7 @@ func (_m *JobStore) Get(id string) (*model.Job, *model.AppError) {
 }
 
 // GetAllByStatus provides a mock function with given fields: status
-func (_m *JobStore) GetAllByStatus(status string) ([]*model.Job, *model.AppError) {
+func (_m *JobStore) GetAllByStatus(status string) ([]*model.Job, error) {
 	ret := _m.Called(status)
 
 	var r0 []*model.Job
@@ -88,7 +88,7 @@ func (_m *JobStore) GetAllByStatus(status string) ([]*model.Job, *model.AppError
 }
 
 // GetAllByType provides a mock function with given fields: jobType
-func (_m *JobStore) GetAllByType(jobType string) ([]*model.Job, *model.AppError) {
+func (_m *JobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 	ret := _m.Called(jobType)
 
 	var r0 []*model.Job
@@ -113,7 +113,7 @@ func (_m *JobStore) GetAllByType(jobType string) ([]*model.Job, *model.AppError)
 }
 
 // GetAllByTypePage provides a mock function with given fields: jobType, offset, limit
-func (_m *JobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (_m *JobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
 	ret := _m.Called(jobType, offset, limit)
 
 	var r0 []*model.Job
@@ -138,7 +138,7 @@ func (_m *JobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*
 }
 
 // GetAllPage provides a mock function with given fields: offset, limit
-func (_m *JobStore) GetAllPage(offset int, limit int) ([]*model.Job, *model.AppError) {
+func (_m *JobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
 	ret := _m.Called(offset, limit)
 
 	var r0 []*model.Job
@@ -163,7 +163,7 @@ func (_m *JobStore) GetAllPage(offset int, limit int) ([]*model.Job, *model.AppE
 }
 
 // GetCountByStatusAndType provides a mock function with given fields: status, jobType
-func (_m *JobStore) GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError) {
+func (_m *JobStore) GetCountByStatusAndType(status string, jobType string) (int64, error) {
 	ret := _m.Called(status, jobType)
 
 	var r0 int64
@@ -186,7 +186,7 @@ func (_m *JobStore) GetCountByStatusAndType(status string, jobType string) (int6
 }
 
 // GetNewestJobByStatusAndType provides a mock function with given fields: status, jobType
-func (_m *JobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError) {
+func (_m *JobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error) {
 	ret := _m.Called(status, jobType)
 
 	var r0 *model.Job
@@ -211,7 +211,7 @@ func (_m *JobStore) GetNewestJobByStatusAndType(status string, jobType string) (
 }
 
 // Save provides a mock function with given fields: job
-func (_m *JobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
+func (_m *JobStore) Save(job *model.Job) (*model.Job, error) {
 	ret := _m.Called(job)
 
 	var r0 *model.Job
@@ -236,7 +236,7 @@ func (_m *JobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
 }
 
 // UpdateOptimistically provides a mock function with given fields: job, currentStatus
-func (_m *JobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError) {
+func (_m *JobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
 	ret := _m.Called(job, currentStatus)
 
 	var r0 bool
@@ -259,7 +259,7 @@ func (_m *JobStore) UpdateOptimistically(job *model.Job, currentStatus string) (
 }
 
 // UpdateStatus provides a mock function with given fields: id, status
-func (_m *JobStore) UpdateStatus(id string, status string) (*model.Job, *model.AppError) {
+func (_m *JobStore) UpdateStatus(id string, status string) (*model.Job, error) {
 	ret := _m.Called(id, status)
 
 	var r0 *model.Job
@@ -284,7 +284,7 @@ func (_m *JobStore) UpdateStatus(id string, status string) (*model.Job, *model.A
 }
 
 // UpdateStatusOptimistically provides a mock function with given fields: id, currentStatus, newStatus
-func (_m *JobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError) {
+func (_m *JobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
 	ret := _m.Called(id, currentStatus, newStatus)
 
 	var r0 bool

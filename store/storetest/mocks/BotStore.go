@@ -15,7 +15,7 @@ type BotStore struct {
 }
 
 // Get provides a mock function with given fields: userId, includeDeleted
-func (_m *BotStore) Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (_m *BotStore) Get(userId string, includeDeleted bool) (*model.Bot, error) {
 	ret := _m.Called(userId, includeDeleted)
 
 	var r0 *model.Bot
@@ -40,7 +40,7 @@ func (_m *BotStore) Get(userId string, includeDeleted bool) (*model.Bot, *model.
 }
 
 // GetAll provides a mock function with given fields: options
-func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	ret := _m.Called(options)
 
 	var r0 []*model.Bot
@@ -65,7 +65,7 @@ func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.A
 }
 
 // PermanentDelete provides a mock function with given fields: userId
-func (_m *BotStore) PermanentDelete(userId string) *model.AppError {
+func (_m *BotStore) PermanentDelete(userId string) error {
 	ret := _m.Called(userId)
 
 	var r0 *model.AppError
@@ -81,7 +81,7 @@ func (_m *BotStore) PermanentDelete(userId string) *model.AppError {
 }
 
 // Save provides a mock function with given fields: bot
-func (_m *BotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (_m *BotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	ret := _m.Called(bot)
 
 	var r0 *model.Bot
@@ -106,7 +106,7 @@ func (_m *BotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) {
 }
 
 // Update provides a mock function with given fields: bot
-func (_m *BotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (_m *BotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	ret := _m.Called(bot)
 
 	var r0 *model.Bot

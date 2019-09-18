@@ -35,7 +35,7 @@ func MakeMigrationsList() []string {
 	}
 }
 
-func GetMigrationState(migration string, store store.Store) (string, *model.Job, *model.AppError) {
+func GetMigrationState(migration string, store store.Store) (string, *model.Job, error) {
 	if _, err := store.System().GetByName(migration); err == nil {
 		return MIGRATION_STATE_COMPLETED, nil, nil
 	}

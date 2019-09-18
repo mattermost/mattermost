@@ -34,7 +34,7 @@ func NewAutoUserCreator(a *App, client *model.Client4, team *model.Team) *AutoUs
 }
 
 // Basic test team and user so you always know one
-func (a *App) CreateBasicUser(client *model.Client4) *model.AppError {
+func (a *App) CreateBasicUser(client *model.Client4) error {
 	found, _ := client.TeamExists(BTEST_TEAM_NAME, "")
 	if !found {
 		newteam := &model.Team{DisplayName: BTEST_TEAM_DISPLAY_NAME, Name: BTEST_TEAM_NAME, Email: BTEST_TEAM_EMAIL, Type: BTEST_TEAM_TYPE}

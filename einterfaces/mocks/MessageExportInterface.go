@@ -15,7 +15,7 @@ type MessageExportInterface struct {
 }
 
 // RunExport provides a mock function with given fields: format, since
-func (_m *MessageExportInterface) RunExport(format string, since int64) *model.AppError {
+func (_m *MessageExportInterface) RunExport(format string, since int64) error {
 	ret := _m.Called(format, since)
 
 	var r0 *model.AppError
@@ -31,7 +31,7 @@ func (_m *MessageExportInterface) RunExport(format string, since int64) *model.A
 }
 
 // StartSynchronizeJob provides a mock function with given fields: ctx, exportFromTimestamp
-func (_m *MessageExportInterface) StartSynchronizeJob(ctx context.Context, exportFromTimestamp int64) (*model.Job, *model.AppError) {
+func (_m *MessageExportInterface) StartSynchronizeJob(ctx context.Context, exportFromTimestamp int64) (*model.Job, error) {
 	ret := _m.Called(ctx, exportFromTimestamp)
 
 	var r0 *model.Job

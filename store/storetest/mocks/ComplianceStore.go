@@ -15,7 +15,7 @@ type ComplianceStore struct {
 }
 
 // ComplianceExport provides a mock function with given fields: compliance
-func (_m *ComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, *model.AppError) {
+func (_m *ComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error) {
 	ret := _m.Called(compliance)
 
 	var r0 []*model.CompliancePost
@@ -40,7 +40,7 @@ func (_m *ComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*mo
 }
 
 // Get provides a mock function with given fields: id
-func (_m *ComplianceStore) Get(id string) (*model.Compliance, *model.AppError) {
+func (_m *ComplianceStore) Get(id string) (*model.Compliance, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.Compliance
@@ -65,7 +65,7 @@ func (_m *ComplianceStore) Get(id string) (*model.Compliance, *model.AppError) {
 }
 
 // GetAll provides a mock function with given fields: offset, limit
-func (_m *ComplianceStore) GetAll(offset int, limit int) (model.Compliances, *model.AppError) {
+func (_m *ComplianceStore) GetAll(offset int, limit int) (model.Compliances, error) {
 	ret := _m.Called(offset, limit)
 
 	var r0 model.Compliances
@@ -90,7 +90,7 @@ func (_m *ComplianceStore) GetAll(offset int, limit int) (model.Compliances, *mo
 }
 
 // MessageExport provides a mock function with given fields: after, limit
-func (_m *ComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, *model.AppError) {
+func (_m *ComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
 	ret := _m.Called(after, limit)
 
 	var r0 []*model.MessageExport
@@ -115,7 +115,7 @@ func (_m *ComplianceStore) MessageExport(after int64, limit int) ([]*model.Messa
 }
 
 // Save provides a mock function with given fields: compliance
-func (_m *ComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (_m *ComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
 	ret := _m.Called(compliance)
 
 	var r0 *model.Compliance
@@ -140,7 +140,7 @@ func (_m *ComplianceStore) Save(compliance *model.Compliance) (*model.Compliance
 }
 
 // Update provides a mock function with given fields: compliance
-func (_m *ComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (_m *ComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, error) {
 	ret := _m.Called(compliance)
 
 	var r0 *model.Compliance

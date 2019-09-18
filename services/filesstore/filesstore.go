@@ -16,21 +16,21 @@ type ReadCloseSeeker interface {
 }
 
 type FileBackend interface {
-	TestConnection() *model.AppError
+	TestConnection() error
 
-	Reader(path string) (ReadCloseSeeker, *model.AppError)
-	ReadFile(path string) ([]byte, *model.AppError)
-	FileExists(path string) (bool, *model.AppError)
-	CopyFile(oldPath, newPath string) *model.AppError
-	MoveFile(oldPath, newPath string) *model.AppError
-	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
-	RemoveFile(path string) *model.AppError
+	Reader(path string) (ReadCloseSeeker, error)
+	ReadFile(path string) ([]byte, error)
+	FileExists(path string) (bool, error)
+	CopyFile(oldPath, newPath string) error
+	MoveFile(oldPath, newPath string) error
+	WriteFile(fr io.Reader, path string) (int64, error)
+	RemoveFile(path string) error
 
-	ListDirectory(path string) (*[]string, *model.AppError)
-	RemoveDirectory(path string) *model.AppError
+	ListDirectory(path string) (*[]string, error)
+	RemoveDirectory(path string) error
 }
 
-func NewFileBackend(settings *model.FileSettings, enableComplianceFeatures bool) (FileBackend, *model.AppError) {
+func NewFileBackend(settings *model.FileSettings, enableComplianceFeatures bool) (FileBackend, error) {
 	switch *settings.DriverName {
 	case model.IMAGE_DRIVER_S3:
 		return &S3FileBackend{

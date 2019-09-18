@@ -13,7 +13,7 @@ type SamlInterface struct {
 }
 
 // BuildRequest provides a mock function with given fields: relayState
-func (_m *SamlInterface) BuildRequest(relayState string) (*model.SamlAuthRequest, *model.AppError) {
+func (_m *SamlInterface) BuildRequest(relayState string) (*model.SamlAuthRequest, error) {
 	ret := _m.Called(relayState)
 
 	var r0 *model.SamlAuthRequest
@@ -52,7 +52,7 @@ func (_m *SamlInterface) ConfigureSP() error {
 }
 
 // DoLogin provides a mock function with given fields: encodedXML, relayState
-func (_m *SamlInterface) DoLogin(encodedXML string, relayState map[string]string) (*model.User, *model.AppError) {
+func (_m *SamlInterface) DoLogin(encodedXML string, relayState map[string]string) (*model.User, error) {
 	ret := _m.Called(encodedXML, relayState)
 
 	var r0 *model.User
@@ -77,7 +77,7 @@ func (_m *SamlInterface) DoLogin(encodedXML string, relayState map[string]string
 }
 
 // GetMetadata provides a mock function with given fields:
-func (_m *SamlInterface) GetMetadata() (string, *model.AppError) {
+func (_m *SamlInterface) GetMetadata() (string, error) {
 	ret := _m.Called()
 
 	var r0 string
