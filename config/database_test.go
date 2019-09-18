@@ -137,6 +137,11 @@ func TestDatabaseStoreNew(t *testing.T) {
 		_, err := config.NewDatabaseStore("invalid")
 		require.Error(t, err)
 	})
+
+	t.Run("unsupported scheme with valid data source", func(t *testing.T) {
+		_, err := config.NewDatabaseStore(fmt.Sprintf("invalid://%s",  *sqlSettings.DataSource))
+		require.Error(t, err)
+	})
 }
 
 func TestDatabaseStoreGet(t *testing.T) {
