@@ -7,13 +7,16 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/services/marketplace"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/pkg/errors"
 )
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
@@ -99,10 +102,11 @@ func (a *App) SyncPluginsActiveState() {
 					continue
 				}
 
-				if activated && updatedManifest.HasClient() {
-					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
-					message.Add("manifest", updatedManifest.ClientManifest())
-					a.Publish(message)
+				if activated {
+					// Notify all cluster clients if ready
+					if err := a.notifyPluginEnabled(updatedManifest); err != nil {
+						a.Log.Error("Failed to notify cluster on plugin enable", mlog.Err(err))
+					}
 				}
 			}
 		}
@@ -287,6 +291,7 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 
 // EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
 // activation if inactive anywhere in the cluster.
+// Notifies cluster peers through config change.
 func (a *App) EnablePlugin(id string) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -316,7 +321,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
 	})
 
-	// This call will cause SyncPluginsActiveState to be called and the plugin to be activated
+	// This call will implicitly invoke SyncPluginsActiveState which will activate enabled plugins.
 	if err := a.SaveConfig(a.Config(), true); err != nil {
 		if err.Id == "ent.cluster.save_config.error" {
 			return model.NewAppError("EnablePlugin", "app.plugin.cluster.save_config.app_error", nil, "", http.StatusInternalServerError)
@@ -328,6 +333,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 }
 
 // DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
+// Notifies cluster peers through config change.
 func (a *App) DisablePlugin(id string) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -358,6 +364,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	})
 	a.UnregisterPluginCommands(id)
 
+	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
 	if err := a.SaveConfig(a.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -393,4 +400,152 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	}
 
 	return resp, nil
+}
+
+// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
+// and plugins that are installed locally.
+func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
+	var result []*model.MarketplacePlugin
+	pluginSet := map[string]bool{}
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	marketplaceClient, err := marketplace.NewClient(
+		*a.Config().PluginSettings.MarketplaceUrl,
+		a.HTTPService,
+	)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Fetch all plugins from marketplace.
+	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{
+		PerPage:       -1,
+		ServerVersion: model.CurrentVersion,
+	})
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, p := range marketplacePlugins {
+		if p.Manifest == nil || !pluginMatchesFilter(p.Manifest, filter.Filter) {
+			continue
+		}
+
+		marketplacePlugin := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: p,
+		}
+
+		var manifest *model.Manifest
+		if manifest, err = pluginsEnvironment.GetManifest(p.Manifest.Id); err != nil && err != plugin.ErrNotFound {
+			return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else if err == nil {
+			// Plugin is installed.
+			marketplacePlugin.InstalledVersion = manifest.Version
+		}
+
+		pluginSet[p.Manifest.Id] = true
+		result = append(result, marketplacePlugin)
+	}
+
+	// Include all other installed plugins.
+	plugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, plugin := range plugins {
+		if plugin.Manifest == nil || pluginSet[plugin.Manifest.Id] || !pluginMatchesFilter(plugin.Manifest, filter.Filter) {
+			continue
+		}
+
+		result = append(result, &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: plugin.Manifest,
+			},
+			InstalledVersion: plugin.Manifest.Version,
+		})
+	}
+
+	// Sort result alphabetically.
+	sort.SliceStable(result, func(i, j int) bool {
+		return strings.ToLower(result[i].Manifest.Name) < strings.ToLower(result[j].Manifest.Name)
+	})
+
+	return result, nil
+}
+
+func pluginMatchesFilter(manifest *model.Manifest, filter string) bool {
+	filter = strings.TrimSpace(strings.ToLower(filter))
+
+	if filter == "" {
+		return true
+	}
+
+	if strings.ToLower(manifest.Id) == filter {
+		return true
+	}
+
+	if strings.Contains(strings.ToLower(manifest.Name), filter) {
+		return true
+	}
+
+	if strings.Contains(strings.ToLower(manifest.Description), filter) {
+		return true
+	}
+
+	return false
+}
+
+// notifyPluginEnabled notifies connected websocket clients across all peers if the version of the given
+// plugin is same across them.
+//
+// When a peer finds itself in agreement with all other peers as to the version of the given plugin,
+// it will notify all connected websocket clients (across all peers) to trigger the (re-)installation.
+// There is a small chance that this never occurs, because the last server to finish installing dies before it can announce.
+// There is also a chance that multiple servers notify, but the webapp handles this idempotently.
+func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return errors.New("pluginsEnvironment is nil")
+	}
+	if !manifest.HasClient() || !pluginsEnvironment.IsActive(manifest.Id) {
+		return nil
+	}
+
+	var statuses model.PluginStatuses
+
+	if a.Cluster != nil {
+		var err *model.AppError
+		statuses, err = a.Cluster.GetPluginStatuses()
+		if err != nil {
+			return err
+		}
+	}
+
+	localStatus, err := a.GetPluginStatus(manifest.Id)
+	if err != nil {
+		return err
+	}
+	statuses = append(statuses, localStatus)
+
+	// This will not guard against the race condition of enabling a plugin immediately after installation.
+	// As GetPluginStatuses() will not return the new plugin (since other peers are racing to install),
+	// this peer will end up checking status against itself and will notify all webclients (including peer webclients),
+	// which may result in a 404.
+	for _, status := range statuses {
+		if status.PluginId == manifest.Id && status.Version != manifest.Version {
+			mlog.Debug("Not ready to notify webclients", mlog.String("cluster_id", status.ClusterId), mlog.String("plugin_id", manifest.Id))
+			return nil
+		}
+	}
+
+	// Notify all cluster peer clients.
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
+	message.Add("manifest", manifest.ClientManifest())
+	a.Publish(message)
+
+	return nil
 }

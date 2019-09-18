@@ -1224,6 +1224,58 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 	}
 }
 
+func TestPluginAPIKVCompareAndDelete(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	testCases := []struct {
+		Description   string
+		ExpectedValue []byte
+	}{
+		{
+			Description:   "Testing non-nil, non-empty value",
+			ExpectedValue: []byte("value1"),
+		},
+		{
+			Description:   "Testing empty value",
+			ExpectedValue: []byte(""),
+		},
+	}
+
+	for i, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			expectedKey := fmt.Sprintf("Key%d", i)
+			expectedValue1 := testCase.ExpectedValue
+			expectedValue2 := []byte("value2")
+
+			// Set the value
+			err := api.KVSet(expectedKey, expectedValue1)
+			require.Nil(t, err)
+
+			// Attempt delete using an incorrect old value
+			deleted, err := api.KVCompareAndDelete(expectedKey, expectedValue2)
+			require.Nil(t, err)
+			require.False(t, deleted)
+
+			// Make sure the value is still there
+			value, err := api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue1, value)
+
+			// Attempt delete using the proper value
+			deleted, err = api.KVCompareAndDelete(expectedKey, expectedValue1)
+			require.Nil(t, err)
+			require.True(t, deleted)
+
+			// Verify it's deleted
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Nil(t, value)
+		})
+	}
+}
+
 func TestPluginCreateBot(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -1278,4 +1330,78 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	actualPost, err := api.GetPost(post.Id)
 	require.Nil(t, err)
 	assert.Equal(t, model.StringArray{fileInfo.Id}, actualPost.FileIds)
+}
+
+func TestPluginAPIGetConfig(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	config := api.GetConfig()
+	if config.LdapSettings.BindPassword != nil && len(*config.LdapSettings.BindPassword) > 0 {
+		assert.Equal(t, *config.LdapSettings.BindPassword, model.FAKE_SETTING)
+	}
+
+	assert.Equal(t, *config.FileSettings.PublicLinkSalt, model.FAKE_SETTING)
+
+	if len(*config.FileSettings.AmazonS3SecretAccessKey) > 0 {
+		assert.Equal(t, *config.FileSettings.AmazonS3SecretAccessKey, model.FAKE_SETTING)
+	}
+
+	if config.EmailSettings.SMTPPassword != nil && len(*config.EmailSettings.SMTPPassword) > 0 {
+		assert.Equal(t, *config.EmailSettings.SMTPPassword, model.FAKE_SETTING)
+	}
+
+	if len(*config.GitLabSettings.Secret) > 0 {
+		assert.Equal(t, *config.GitLabSettings.Secret, model.FAKE_SETTING)
+	}
+
+	assert.Equal(t, *config.SqlSettings.DataSource, model.FAKE_SETTING)
+	assert.Equal(t, *config.SqlSettings.AtRestEncryptKey, model.FAKE_SETTING)
+	assert.Equal(t, *config.ElasticsearchSettings.Password, model.FAKE_SETTING)
+
+	for i := range config.SqlSettings.DataSourceReplicas {
+		assert.Equal(t, config.SqlSettings.DataSourceReplicas[i], model.FAKE_SETTING)
+	}
+
+	for i := range config.SqlSettings.DataSourceSearchReplicas {
+		assert.Equal(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
+	}
+}
+
+func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	config := api.GetUnsanitizedConfig()
+	if config.LdapSettings.BindPassword != nil && len(*config.LdapSettings.BindPassword) > 0 {
+		assert.NotEqual(t, *config.LdapSettings.BindPassword, model.FAKE_SETTING)
+	}
+
+	assert.NotEqual(t, *config.FileSettings.PublicLinkSalt, model.FAKE_SETTING)
+
+	if len(*config.FileSettings.AmazonS3SecretAccessKey) > 0 {
+		assert.NotEqual(t, *config.FileSettings.AmazonS3SecretAccessKey, model.FAKE_SETTING)
+	}
+
+	if config.EmailSettings.SMTPPassword != nil && len(*config.EmailSettings.SMTPPassword) > 0 {
+		assert.NotEqual(t, *config.EmailSettings.SMTPPassword, model.FAKE_SETTING)
+	}
+
+	if len(*config.GitLabSettings.Secret) > 0 {
+		assert.NotEqual(t, *config.GitLabSettings.Secret, model.FAKE_SETTING)
+	}
+
+	assert.NotEqual(t, *config.SqlSettings.DataSource, model.FAKE_SETTING)
+	assert.NotEqual(t, *config.SqlSettings.AtRestEncryptKey, model.FAKE_SETTING)
+	assert.NotEqual(t, *config.ElasticsearchSettings.Password, model.FAKE_SETTING)
+
+	for i := range config.SqlSettings.DataSourceReplicas {
+		assert.NotEqual(t, config.SqlSettings.DataSourceReplicas[i], model.FAKE_SETTING)
+	}
+
+	for i := range config.SqlSettings.DataSourceSearchReplicas {
+		assert.NotEqual(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
+	}
 }

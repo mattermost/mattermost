@@ -141,6 +141,7 @@ func TestSubmitDialogRequestToJson(t *testing.T) {
 func TestSubmitDialogResponseToJson(t *testing.T) {
 	t.Run("all fine", func(t *testing.T) {
 		request := SubmitDialogResponse{
+			Error: "some generic error",
 			Errors: map[string]string{
 				"text":  "some text",
 				"float": "1.2",
