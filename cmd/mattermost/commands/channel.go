@@ -570,7 +570,7 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 			return nil
 		}
 
-		var aErr *model.AppError
+		var aErr error
 		channel, aErr = a.GetChannelByName(args[0], team.Id, true)
 		if aErr != nil || channel == nil {
 			CommandPrettyPrintln(fmt.Sprintf("Channel %s is not found in team %s", args[0], teamArg))

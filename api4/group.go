@@ -187,7 +187,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
-	if appErr != nil && appErr.DetailedError != sql.ErrNoRows.Error() {
+	if appErr != nil && appErr.(*model.AppError).DetailedError != sql.ErrNoRows.Error() {
 		c.Err = appErr
 		return
 	}

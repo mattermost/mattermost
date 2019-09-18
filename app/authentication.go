@@ -115,7 +115,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password strin
 
 	ldapUser, err := a.Ldap.DoLogin(*ldapId, password)
 	if err != nil {
-		err.StatusCode = http.StatusUnauthorized
+		err.(*model.AppError).StatusCode = http.StatusUnauthorized
 		return nil, err
 	}
 

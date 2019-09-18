@@ -238,7 +238,7 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err *model.AppError
+	var err error
 	if c.Params.Permanent && *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
 		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
 	} else {
@@ -424,7 +424,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err *model.AppError
+	var err error
 	member := model.TeamMemberFromJson(r.Body)
 	if member.TeamId != c.Params.TeamId {
 		c.SetInvalidParam("team_id")
@@ -497,7 +497,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	inviteId := r.URL.Query().Get("invite_id")
 
 	var member *model.TeamMember
-	var err *model.AppError
+	var err error
 
 	if len(tokenId) > 0 {
 		member, err = c.App.AddTeamMemberByToken(c.App.Session.UserId, tokenId)
@@ -522,7 +522,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err *model.AppError
+	var err error
 	members := model.TeamMembersFromJson(r.Body)
 
 	if len(members) > MAX_ADD_MEMBERS_BATCH {
@@ -730,7 +730,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 
 func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	teams := []*model.Team{}
-	var err *model.AppError
+	var err error
 	var teamsWithCount *model.TeamsWithCount
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
@@ -784,7 +784,7 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var teams []*model.Team
-	var err *model.AppError
+	var err error
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
 		teams, err = c.App.SearchAllTeams(props.Term)
@@ -884,14 +884,14 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		var err *model.AppError
 		if err, log = c.App.SlackImport(fileData, fileSize, c.Params.TeamId); err != nil {
 			c.Err = err
-			c.Err.StatusCode = http.StatusBadRequest
+			c.Err.(*model.AppError).StatusCode = http.StatusBadRequest
 		}
 	}
 
 	data := map[string]string{}
 	data["results"] = base64.StdEncoding.EncodeToString([]byte(log.Bytes()))
 	if c.Err != nil {
-		w.WriteHeader(c.Err.StatusCode)
+		w.WriteHeader(c.Err.(*model.AppError).StatusCode)
 	}
 	w.Write([]byte(model.MapToJson(data)))
 }

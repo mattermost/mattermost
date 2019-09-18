@@ -106,7 +106,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		session, err := c.App.GetSession(token)
 		if err != nil {
 			c.Log.Info("Invalid session", mlog.Err(err))
-			if err.StatusCode == http.StatusInternalServerError {
+			if err.(*model.AppError).StatusCode == http.StatusInternalServerError {
 				c.Err = err
 			} else if h.RequireSession {
 				c.RemoveSessionCookie(w, r)
@@ -148,37 +148,37 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Handle errors that have occurred
 	if c.Err != nil {
-		c.Err.Translate(c.App.T)
-		c.Err.RequestId = c.App.RequestId
+		c.Err.(*model.AppError).Translate(c.App.T)
+		c.Err.(*model.AppError).RequestId = c.App.RequestId
 
-		if c.Err.Id == "api.context.session_expired.app_error" {
+		if c.Err.(*model.AppError).Id == "api.context.session_expired.app_error" {
 			c.LogInfo(c.Err)
 		} else {
 			c.LogError(c.Err)
 		}
 
-		c.Err.Where = r.URL.Path
+		c.Err.(*model.AppError).Where = r.URL.Path
 
 		// Block out detailed error when not in developer mode
 		if !*c.App.Config().ServiceSettings.EnableDeveloper {
-			c.Err.DetailedError = ""
+			c.Err.(*model.AppError).DetailedError = ""
 		}
 
 		// Sanitize all 5xx error messages in hardened mode
-		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
-			c.Err.Id = ""
-			c.Err.Message = "Internal Server Error"
-			c.Err.DetailedError = ""
-			c.Err.StatusCode = 500
-			c.Err.Where = ""
-			c.Err.IsOAuth = false
+		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.(*model.AppError).StatusCode >= 500 {
+			c.Err.(*model.AppError).Id = ""
+			c.Err.(*model.AppError).Message = "Internal Server Error"
+			c.Err.(*model.AppError).DetailedError = ""
+			c.Err.(*model.AppError).StatusCode = 500
+			c.Err.(*model.AppError).Where = ""
+			c.Err.(*model.AppError).IsOAuth = false
 		}
 
 		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || len(r.Header.Get("X-Mobile-App")) > 0 {
-			w.WriteHeader(c.Err.StatusCode)
-			w.Write([]byte(c.Err.ToJson()))
+			w.WriteHeader(c.Err.(*model.AppError).StatusCode)
+			w.Write([]byte(c.Err.(*model.AppError).ToJson()))
 		} else {
-			utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
+			utils.RenderWebAppError(c.App.Config(), w, r, c.Err.(*model.AppError), c.App.AsymmetricSigningKey())
 		}
 
 		if c.App.Metrics != nil {

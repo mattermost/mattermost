@@ -13,13 +13,13 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func (api *API) ApiWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
+func (api *API) ApiWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, error)) webSocketHandler {
 	return webSocketHandler{api.App, wh}
 }
 
 type webSocketHandler struct {
 	app         *app.App
-	handlerFunc func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)
+	handlerFunc func(*model.WebSocketRequest) (map[string]interface{}, error)
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
@@ -27,8 +27,8 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
-		mlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error()))
-		sessionErr.DetailedError = ""
+		mlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.(*model.AppError).SystemMessage(utils.T), sessionErr.Error()))
+		sessionErr.(*model.AppError).DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
 
 		conn.Send <- errResp
@@ -40,11 +40,11 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	r.Locale = conn.Locale
 
 	var data map[string]interface{}
-	var err *model.AppError
+	var err error
 
 	if data, err = wh.handlerFunc(r); err != nil {
-		mlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, r.Session.UserId, err.SystemMessage(utils.T), err.DetailedError))
-		err.DetailedError = ""
+		mlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, r.Session.UserId, err.(*model.AppError).SystemMessage(utils.T), err.(*model.AppError).DetailedError))
+		err.(*model.AppError).DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
 
 		conn.Send <- errResp

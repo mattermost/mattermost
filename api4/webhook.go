@@ -140,7 +140,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := c.App.Session.UserId
 
 	var hooks []*model.IncomingWebhook
-	var err *model.AppError
+	var err error
 
 	if len(teamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
@@ -184,7 +184,7 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hookId := c.Params.HookId
 
-	var err *model.AppError
+	var err error
 	var hook *model.IncomingWebhook
 	var channel *model.Channel
 
@@ -224,7 +224,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hookId := c.Params.HookId
 
-	var err *model.AppError
+	var err error
 	var hook *model.IncomingWebhook
 	var channel *model.Channel
 
@@ -353,7 +353,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := c.App.Session.UserId
 
 	var hooks []*model.OutgoingWebhook
-	var err *model.AppError
+	var err error
 
 	if len(channelId) > 0 {
 		if !c.App.SessionHasPermissionToChannel(c.App.Session, channelId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {

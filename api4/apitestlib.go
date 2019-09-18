@@ -404,7 +404,7 @@ func (me *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message 
 
 func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	var channel *model.Channel
 	if channel, err = me.App.GetOrCreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
 		mlog.Error(err.Error())

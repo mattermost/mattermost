@@ -25,7 +25,7 @@ func (a *App) GetSamlMetadata() (string, error) {
 
 	result, err := a.Saml.GetMetadata()
 	if err != nil {
-		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, err.StatusCode)
+		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "err="+err.(*model.AppError).Message, err.(*model.AppError).StatusCode)
 	}
 	return result, nil
 }

@@ -147,7 +147,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	group, err := c.App.GetGroupByRemoteID(ldapGroup.RemoteId, model.GroupSourceLdap)
-	if err != nil && err.DetailedError != sql.ErrNoRows.Error() {
+	if err != nil && err.(*model.AppError).DetailedError != sql.ErrNoRows.Error() {
 		c.Err = err
 		return
 	}

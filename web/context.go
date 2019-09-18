@@ -19,7 +19,7 @@ type Context struct {
 	App           *app.App
 	Log           *mlog.Logger
 	Params        *Params
-	Err           *model.AppError
+	Err           error
 	siteURLHeader string
 }
 
@@ -44,40 +44,40 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 func (c *Context) LogError(err error) {
 	// Filter out 404s, endless reconnects and browser compatibility errors
-	if err.StatusCode == http.StatusNotFound ||
-		(c.App.Path == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
-		err.Id == "web.check_browser_compatibility.app_error" {
+	if err.(*model.AppError).StatusCode == http.StatusNotFound ||
+		(c.App.Path == "/api/v3/users/websocket" && err.(*model.AppError).StatusCode == http.StatusUnauthorized) ||
+		err.(*model.AppError).Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else {
 		c.Log.Error(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
+			err.(*model.AppError).SystemMessage(utils.TDefault),
+			mlog.String("err_where", err.(*model.AppError).Where),
+			mlog.Int("http_code", err.(*model.AppError).StatusCode),
+			mlog.String("err_details", err.(*model.AppError).DetailedError),
 		)
 	}
 }
 
 func (c *Context) LogInfo(err error) {
 	// Filter out 401s
-	if err.StatusCode == http.StatusUnauthorized {
+	if err.(*model.AppError).StatusCode == http.StatusUnauthorized {
 		c.LogDebug(err)
 	} else {
 		c.Log.Info(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
+			err.(*model.AppError).SystemMessage(utils.TDefault),
+			mlog.String("err_where", err.(*model.AppError).Where),
+			mlog.Int("http_code", err.(*model.AppError).StatusCode),
+			mlog.String("err_details", err.(*model.AppError).DetailedError),
 		)
 	}
 }
 
 func (c *Context) LogDebug(err error) {
 	c.Log.Debug(
-		err.SystemMessage(utils.TDefault),
-		mlog.String("err_where", err.Where),
-		mlog.Int("http_code", err.StatusCode),
-		mlog.String("err_details", err.DetailedError),
+		err.(*model.AppError).SystemMessage(utils.TDefault),
+		mlog.String("err_where", err.(*model.AppError).Where),
+		mlog.Int("http_code", err.(*model.AppError).StatusCode),
+		mlog.String("err_details", err.(*model.AppError).DetailedError),
 	)
 }
 

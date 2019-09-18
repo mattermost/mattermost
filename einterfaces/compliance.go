@@ -9,5 +9,5 @@ import (
 
 type ComplianceInterface interface {
 	StartComplianceDailyJob()
-	RunComplianceJob(job *model.Compliance) *model.AppError
+	RunComplianceJob(job *model.Compliance) error
 }

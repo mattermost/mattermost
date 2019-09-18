@@ -80,7 +80,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now()
 	var resStruct *model.FileUploadResponse
-	var appErr *model.AppError
+	var appErr error
 
 	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil && err != http.ErrNotMultipart {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -541,7 +541,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	fileReader, err := c.App.FileReader(info.Path)
 	if err != nil {
 		c.Err = err
-		c.Err.StatusCode = http.StatusNotFound
+		c.Err.(*model.AppError).StatusCode = http.StatusNotFound
 		return
 	}
 	defer fileReader.Close()
@@ -583,7 +583,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	fileReader, err := c.App.FileReader(info.ThumbnailPath)
 	if err != nil {
 		c.Err = err
-		c.Err.StatusCode = http.StatusNotFound
+		c.Err.(*model.AppError).StatusCode = http.StatusNotFound
 		return
 	}
 	defer fileReader.Close()
@@ -658,7 +658,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	fileReader, err := c.App.FileReader(info.PreviewPath)
 	if err != nil {
 		c.Err = err
-		c.Err.StatusCode = http.StatusNotFound
+		c.Err.(*model.AppError).StatusCode = http.StatusNotFound
 		return
 	}
 	defer fileReader.Close()
@@ -712,20 +712,20 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(hash) == 0 {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
-		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err.(*model.AppError), c.App.AsymmetricSigningKey())
 		return
 	}
 
 	if subtle.ConstantTimeCompare([]byte(hash), []byte(app.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt))) != 1 {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
-		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err.(*model.AppError), c.App.AsymmetricSigningKey())
 		return
 	}
 
 	fileReader, err := c.App.FileReader(info.Path)
 	if err != nil {
 		c.Err = err
-		c.Err.StatusCode = http.StatusNotFound
+		c.Err.(*model.AppError).StatusCode = http.StatusNotFound
 	}
 	defer fileReader.Close()
 

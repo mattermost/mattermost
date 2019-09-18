@@ -46,7 +46,7 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	oldTermsOfService, err := c.App.GetLatestTermsOfService()
-	if err != nil && err.Id != app.ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND {
+	if err != nil && err.(*model.AppError).Id != app.ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND {
 		c.Err = err
 		return
 	}

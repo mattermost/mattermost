@@ -29,7 +29,7 @@ func (a *App) TestLdap() error {
 	license := a.License()
 	if ldapI := a.Ldap; ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		if err := ldapI.RunTest(); err != nil {
-			err.StatusCode = 500
+			err.(*model.AppError).StatusCode = 500
 			return err
 		}
 	} else {
@@ -45,7 +45,7 @@ func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, error) {
 	var group *model.Group
 
 	if a.Ldap != nil {
-		var err *model.AppError
+		var err error
 		group, err = a.Ldap.GetGroup(ldapGroupID)
 		if err != nil {
 			return nil, err
@@ -66,7 +66,7 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSe
 	var total int
 
 	if a.Ldap != nil {
-		var err *model.AppError
+		var err error
 		groups, total, err = a.Ldap.GetAllGroupsPage(page, perPage, opts)
 		if err != nil {
 			return nil, 0, err

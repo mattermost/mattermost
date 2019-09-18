@@ -837,7 +837,7 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var channels *model.ChannelList
-	var err *model.AppError
+	var err error
 	if c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
 		channels, err = c.App.SearchChannels(c.Params.TeamId, props.Term)
 	} else {
@@ -1273,7 +1273,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isNewMembership := false
 	if _, err = c.App.GetChannelMember(member.ChannelId, member.UserId); err != nil {
-		if err.Id == store.MISSING_CHANNEL_MEMBER_ERROR {
+		if err.(*model.AppError).Id == store.MISSING_CHANNEL_MEMBER_ERROR {
 			isNewMembership = true
 		} else {
 			c.Err = err

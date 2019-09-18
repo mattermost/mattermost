@@ -147,7 +147,7 @@ func (worker *Worker) setJobCanceled(job *model.Job) {
 func (worker *Worker) runMigration(key string, lastDone string) (bool, string, error) {
 	var done bool
 	var progress string
-	var err *model.AppError
+	var err error
 
 	switch key {
 	case model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2:

@@ -2519,7 +2519,7 @@ func (o *Config) SetDefaults() {
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
 }
 
-func (o *Config) IsValid() *AppError {
+func (o *Config) IsValid() error {
 	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}

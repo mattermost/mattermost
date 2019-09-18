@@ -118,5 +118,5 @@ type Scheduler interface {
 	JobType() string
 	Enabled(cfg *Config) bool
 	NextScheduleTime(cfg *Config, now time.Time, pendingJobs bool, lastSuccessfulJob *Job) *time.Time
-	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, *AppError)
+	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, error)
 }

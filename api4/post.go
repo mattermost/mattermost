@@ -148,7 +148,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var list *model.PostList
-	var err *model.AppError
+	var err error
 	etag := ""
 
 	if since > 0 {
@@ -263,7 +263,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	teamId := r.URL.Query().Get("team_id")
 
 	var posts *model.PostList
-	var err *model.AppError
+	var err error
 
 	if len(channelId) > 0 {
 		posts, err = c.App.GetFlaggedPostsForChannel(c.Params.UserId, channelId, c.Params.Page, c.Params.PerPage)

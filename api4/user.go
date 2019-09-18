@@ -94,7 +94,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	// No permission check required
 
 	var ruser *model.User
-	var err *model.AppError
+	var err error
 	if len(tokenId) > 0 {
 		var token *model.Token
 		token, err = c.App.Srv.Store.Token().GetByToken(tokenId)
@@ -156,7 +156,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.IsSystemAdmin() || c.App.Session.UserId == user.Id {
 		userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
-		if err != nil && err.StatusCode != http.StatusNotFound {
+		if err != nil && err.(*model.AppError).StatusCode != http.StatusNotFound {
 			c.Err = err
 			return
 		}
@@ -217,7 +217,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.IsSystemAdmin() || c.App.Session.UserId == user.Id {
 		userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
-		if err != nil && err.StatusCode != http.StatusNotFound {
+		if err != nil && err.(*model.AppError).StatusCode != http.StatusNotFound {
 			c.Err = err
 			return
 		}
@@ -826,6 +826,13 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
+		var err error
+		options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
 		result, err := c.App.AutocompleteUsersInTeam(teamId, name, options)
 		if err != nil {
 			c.Err = err
@@ -834,6 +841,13 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InTeam
 	} else {
+		var err error
+		options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
 		result, err := c.App.SearchUsersInTeam("", name, options)
 		if err != nil {
 			c.Err = err
@@ -877,7 +891,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Session.IsOAuth {
 		if ouser.Email != user.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-			c.Err.DetailedError += ", attempted email update by oauth app"
+			c.Err.(*model.AppError).DetailedError += ", attempted email update by oauth app"
 			return
 		}
 	}
@@ -932,7 +946,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if ouser.Email != *patch.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-			c.Err.DetailedError += ", attempted email update by oauth app"
+			c.Err.(*model.AppError).DetailedError += ", attempted email update by oauth app"
 			return
 		}
 	}
@@ -1140,7 +1154,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.App.Session.IsOAuth {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		c.Err.DetailedError += ", attempted access by oauth app"
+		c.Err.(*model.AppError).DetailedError += ", attempted access by oauth app"
 		return
 	}
 
@@ -1184,7 +1198,7 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.App.Session.IsOAuth {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		c.Err.DetailedError += ", attempted access by oauth app"
+		c.Err.(*model.AppError).DetailedError += ", attempted access by oauth app"
 		return
 	}
 
@@ -1216,7 +1230,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempted")
 
-	var err *model.AppError
+	var err error
 	if c.Params.UserId == c.App.Session.UserId {
 		currentPassword := props["current_password"]
 		if len(currentPassword) <= 0 {
@@ -1314,7 +1328,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		maskError := true
 
 		for _, unmaskedError := range unmaskedErrors {
-			if c.Err.Id == unmaskedError {
+			if c.Err.(*model.AppError).Id == unmaskedError {
 				maskError = false
 			}
 		}
@@ -1412,7 +1426,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
-	if err != nil && err.StatusCode != http.StatusNotFound {
+	if err != nil && err.(*model.AppError).StatusCode != http.StatusNotFound {
 		c.Err = err
 		return
 	}
@@ -1662,7 +1676,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	link := ""
-	var err *model.AppError
+	var err error
 
 	if switchRequest.EmailToOAuth() {
 		link, err = c.App.SwitchEmailToOAuth(w, r, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.NewService)
@@ -1699,7 +1713,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.App.Session.IsOAuth {
 		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
-		c.Err.DetailedError += ", attempted access by oauth app"
+		c.Err.(*model.AppError).DetailedError += ", attempted access by oauth app"
 		return
 	}
 

@@ -105,7 +105,7 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var apps []*model.OAuthApp
-	var err *model.AppError
+	var err error
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		apps, err = c.App.GetOAuthApps(c.Params.Page, c.Params.PerPage)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OAUTH) {

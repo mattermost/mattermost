@@ -26,7 +26,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
-	var err *model.AppError
+	var err error
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
 	contentType := r.Header.Get("Content-Type")
 

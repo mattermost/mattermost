@@ -53,7 +53,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.App.Session.IsOAuth {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		c.Err.DetailedError += ", attempted access by oauth app"
+		c.Err.(*model.AppError).DetailedError += ", attempted access by oauth app"
 		return
 	}
 
@@ -114,7 +114,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oauthApp, err := c.App.GetOAuthApp(authRequest.ClientId)
 	if err != nil {
-		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+		utils.RenderWebAppError(c.App.Config(), w, r, err.(*model.AppError), c.App.AsymmetricSigningKey())
 		return
 	}
 
@@ -146,7 +146,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session.UserId, authRequest)
 
 		if err != nil {
-			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+			utils.RenderWebAppError(c.App.Config(), w, r, err.(*model.AppError), c.App.AsymmetricSigningKey())
 			return
 		}
 
@@ -255,24 +255,24 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		err.Translate(c.App.T)
+		err.(*model.AppError).Translate(c.App.T)
 		mlog.Error(err.Error())
 		if action == model.OAUTH_ACTION_MOBILE {
-			w.Write([]byte(err.ToJson()))
+			w.Write([]byte(err.(*model.AppError).ToJson()))
 		} else {
-			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+			utils.RenderWebAppError(c.App.Config(), w, r, err.(*model.AppError), c.App.AsymmetricSigningKey())
 		}
 		return
 	}
 
 	user, err := c.App.CompleteOAuth(service, body, teamId, props)
 	if err != nil {
-		err.Translate(c.App.T)
+		err.(*model.AppError).Translate(c.App.T)
 		mlog.Error(err.Error())
 		if action == model.OAUTH_ACTION_MOBILE {
-			w.Write([]byte(err.ToJson()))
+			w.Write([]byte(err.(*model.AppError).ToJson()))
 		} else {
-			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+			utils.RenderWebAppError(c.App.Config(), w, r, err.(*model.AppError), c.App.AsymmetricSigningKey())
 		}
 		return
 	}
@@ -285,10 +285,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		session, err := c.App.DoLogin(w, r, user, "")
 		if err != nil {
-			err.Translate(c.App.T)
+			err.(*model.AppError).Translate(c.App.T)
 			c.Err = err
 			if action == model.OAUTH_ACTION_MOBILE {
-				w.Write([]byte(err.ToJson()))
+				w.Write([]byte(err.(*model.AppError).ToJson()))
 			}
 			return
 		}

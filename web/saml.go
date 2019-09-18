@@ -87,17 +87,17 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	action := relayProps["action"]
 	if user, err := samlInterface.DoLogin(encodedXML, relayProps); err != nil {
 		if action == model.OAUTH_ACTION_MOBILE {
-			err.Translate(c.App.T)
-			w.Write([]byte(err.ToJson()))
+			err.(*model.AppError).Translate(c.App.T)
+			w.Write([]byte(err.(*model.AppError).ToJson()))
 		} else {
 			c.Err = err
-			c.Err.StatusCode = http.StatusFound
+			c.Err.(*model.AppError).StatusCode = http.StatusFound
 		}
 		return
 	} else {
 		if err := c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
 			c.Err = err
-			c.Err.StatusCode = http.StatusFound
+			c.Err.(*model.AppError).StatusCode = http.StatusFound
 			return
 		}
 

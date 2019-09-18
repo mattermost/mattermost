@@ -62,7 +62,7 @@ func (srv *JobServer) SetJobSuccess(job *model.Job) error {
 	return nil
 }
 
-func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) error {
+func (srv *JobServer) SetJobError(job *model.Job, jobError error) error {
 	if jobError == nil {
 		_, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_ERROR)
 		return err
@@ -73,7 +73,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) erro
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
-	job.Data["error"] = jobError.Message + " — " + jobError.DetailedError
+	job.Data["error"] = jobError.(*model.AppError).Message + " — " + jobError.(*model.AppError).DetailedError
 
 	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS)
 	if err != nil {
