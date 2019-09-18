@@ -87,19 +87,6 @@ func (h *MainHelper) Main(m *testing.M) {
 				panic(fmt.Sprintf("Failed to restore current working directory to %s: %s", prevDir, err.Error()))
 			}
 		}()
-
-		// pluginDir := filepath.Join(h.testResourcePath, "plugins")
-		// webappDir := filepath.Join(h.testResourcePath, "bla")
-		// clientDir := filepath.Join(h.testResourcePath, "tests")
-		// if err := os.MkdirAll(webappDir, 0744); err != nil && !os.IsExist(err) {
-		// 	panic(fmt.Sprintf("Failed to create the webapp folder %s: %s", webappDir, err.Error()))
-		// }
-		// if err := os.MkdirAll(clientDir, 0744); err != nil && !os.IsExist(err) {
-		// 	panic(fmt.Sprintf("Failed to create the client folder %s: %s", clientDir, err.Error()))
-		// }
-		// if err := os.MkdirAll(pluginDir, 0744); err != nil && !os.IsExist(err) {
-		// 	panic(fmt.Sprintf("Failed to create the plugin folder %s: %s", pluginDir, err.Error()))
-		// }
 	}
 
 	h.status = m.Run()
