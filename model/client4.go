@@ -4519,6 +4519,31 @@ func (c *Client4) DisablePlugin(id string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// GetMarketplacePlugins will return a list of plugins that an admin can install.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) GetMarketplacePlugins(filter *MarketplacePluginFilter) ([]*MarketplacePlugin, *Response) {
+	route := c.GetPluginsRoute() + "/marketplace"
+	u, parseErr := url.Parse(route)
+	if parseErr != nil {
+		return nil, &Response{Error: NewAppError("GetMarketplacePlugins", "model.client.parse_plugins.app_error", nil, parseErr.Error(), http.StatusBadRequest)}
+	}
+
+	filter.ApplyToURL(u)
+
+	r, err := c.DoApiGet(u.String(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	plugins, readerErr := MarketplacePluginsFromReader(r.Body)
+	if readerErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError(route, "model.client.parse_plugins.app_error", nil, err.Error(), http.StatusBadRequest))
+	}
+
+	return plugins, BuildResponse(r)
+}
+
 // UpdateChannelScheme will update a channel's scheme.
 func (c *Client4) UpdateChannelScheme(channelId, schemeId string) (bool, *Response) {
 	sip := &SchemeIDPatch{SchemeID: &schemeId}
