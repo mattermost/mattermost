@@ -6023,10 +6023,6 @@
     "translation": "无法删除该用户被选择的信息(数量太多)，请重新运行"
   },
   {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "无法判断最大支持的消息大小"
-  },
-  {
     "id": "store.sql_post.save.app_error",
     "translation": "无法保存消息"
   },

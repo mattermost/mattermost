@@ -87,7 +87,7 @@ PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.1
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.3
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
@@ -144,6 +144,7 @@ govet: ## Runs govet against all packages.
 	$(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
 	$(GO) vet $(GOFLAGS) $(ALL_PACKAGES) || exit 1
 	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GOFLAGS) $(ALL_PACKAGES) || exit 1
+	$(GO) run plugin/checker/main.go
 
 gofmt: ## Runs gofmt against all packages.
 	@echo Running GOFMT

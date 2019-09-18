@@ -7,6 +7,7 @@ package api4
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -36,6 +37,8 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugin.Handle("/disable", api.ApiSessionRequired(disablePlugin)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
+
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(getMarketplacePlugins)).Methods("GET")
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -239,6 +242,43 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.ManifestListToJson(clientManifests)))
 }
 
+func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !*c.App.Config().PluginSettings.EnableMarketplace {
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marketplace_disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	filter, err := parseMarketplacePluginFilter(r.URL)
+	if err != nil {
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	plugins, appErr := c.App.GetMarketplacePlugins(filter)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	json, err := json.Marshal(plugins)
+	if err != nil {
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
+}
+
 func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePluginId()
 	if c.Err != nil {
@@ -285,4 +325,26 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, error) {
+	page, err := parseInt(u, "page", 0)
+	if err != nil {
+		return nil, err
+	}
+
+	perPage, err := parseInt(u, "per_page", 100)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := u.Query().Get("filter")
+	serverVersion := u.Query().Get("server_version")
+
+	return &model.MarketplacePluginFilter{
+		Page:          page,
+		PerPage:       perPage,
+		Filter:        filter,
+		ServerVersion: serverVersion,
+	}, nil
 }
