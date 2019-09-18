@@ -29,7 +29,7 @@ func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
 	}
 	translateFunc := utils.GetUserTranslations("en")
 	subject := getDirectMessageNotificationEmailSubject(user, post, translateFunc, "http://localhost:8065", "@sender", true)
-	require.True(t, strings.HasPrefix(subject, expectedPrefix), "Expected subject line prefix '"+expectedPrefix+"', got "+subject)
+	require.True(t, strings.HasPrefix(subject, expectedPrefix), fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
 }
 
 func TestGetGroupMessageNotificationEmailSubjectFull(t *testing.T) {
@@ -44,7 +44,7 @@ func TestGetGroupMessageNotificationEmailSubjectFull(t *testing.T) {
 	translateFunc := utils.GetUserTranslations("en")
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	subject := getGroupMessageNotificationEmailSubject(user, post, translateFunc, "http://localhost:8065", "sender", emailNotificationContentsType, true)
-	require.True(t, strings.HasPrefix(subject, expectedPrefix), "Expected subject line prefix '"+expectedPrefix+"', got "+subject)
+	require.True(t, strings.HasPrefix(subject, expectedPrefix), fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
 }
 
 func TestGetGroupMessageNotificationEmailSubjectGeneric(t *testing.T) {
@@ -59,7 +59,7 @@ func TestGetGroupMessageNotificationEmailSubjectGeneric(t *testing.T) {
 	translateFunc := utils.GetUserTranslations("en")
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
 	subject := getGroupMessageNotificationEmailSubject(user, post, translateFunc, "http://localhost:8065", "sender", emailNotificationContentsType, true)
-	require.True(t, strings.HasPrefix(subject, expectedPrefix), "Expected subject line prefix '"+expectedPrefix+"', got "+subject)
+	require.True(t, strings.HasPrefix(subject, expectedPrefix), fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
 }
 
 func TestGetNotificationEmailSubject(t *testing.T) {
@@ -73,7 +73,7 @@ func TestGetNotificationEmailSubject(t *testing.T) {
 	}
 	translateFunc := utils.GetUserTranslations("en")
 	subject := getNotificationEmailSubject(user, post, translateFunc, "http://localhost:8065", "team", true)
-	require.True(t, strings.HasPrefix(subject, expectedPrefix), "Expected subject line prefix '"+expectedPrefix+"', got "+subject)
+	require.True(t, strings.HasPrefix(subject, expectedPrefix), fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
 }
 
 func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
@@ -96,11 +96,11 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 	translateFunc := utils.GetUserTranslations("en")
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
-	require.True(t, strings.Contains(body, "You have a new notification."), "Expected email text 'You have a new notification. Got "+body)
-	require.True(t, strings.Contains(body, "Channel: "+channel.DisplayName), "Expected email text 'Channel: "+channel.DisplayName+"'. Got "+body)
-	require.True(t, strings.Contains(body, senderName+" - "), "Expected email text '"+senderName+" - '. Got "+body)
-	require.True(t, strings.Contains(body, post.Message), "Expected email text '"+post.Message+"'. Got "+body)
-	require.True(t, strings.Contains(body, teamURL), "Expected email text '"+teamURL+"'. Got "+body)
+	require.Contains(t, body, "You have a new notification.", fmt.Sprintf("Expected email text 'You have a new notification. Got %s", body))
+	require.Contains(t, body, "Channel: "+channel.DisplayName, "Expected email text 'Channel: %s'. Got %s", channel.DisplayName, body)
+	require.Contains(t, body, senderName+" - ", fmt.Sprintf("Expected email text '%s - '. Got %s", senderName, body))
+	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
+	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
@@ -123,11 +123,11 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 	translateFunc := utils.GetUserTranslations("en")
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
-	require.True(t, strings.Contains(body, "You have a new Group Message."), "Expected email text 'You have a new Group Message. Got "+body)
-	require.True(t, strings.Contains(body, "Channel: ChannelName"), "Expected email text 'Channel: ChannelName'. Got "+body)
-	require.True(t, strings.Contains(body, senderName+" - "), "Expected email text '"+senderName+" - '. Got "+body)
-	require.True(t, strings.Contains(body, post.Message), "Expected email text '"+post.Message+"'. Got "+body)
-	require.True(t, strings.Contains(body, teamURL), "Expected email text '"+teamURL+"'. Got "+body)
+	require.Contains(t, body, "You have a new Group Message.", fmt.Sprintf("Expected email text 'You have a new Group Message. Got "+body))
+	require.Contains(t, body, "Channel: ChannelName", fmt.Sprintf("Expected email text 'Channel: ChannelName'. Got %s", body))
+	require.Contains(t, body, senderName+" - ", fmt.Sprintf("Expected email text '%s - '. Got %s", senderName, body))
+	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
+	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
@@ -150,11 +150,11 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 	translateFunc := utils.GetUserTranslations("en")
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
-	require.True(t, strings.Contains(body, "You have a new notification."), "Expected email text 'You have a new notification. Got "+body)
-	require.True(t, strings.Contains(body, "Channel: "+channel.DisplayName), "Expected email text 'Channel: "+channel.DisplayName+"'. Got "+body)
-	require.True(t, strings.Contains(body, senderName+" - "), "Expected email text '"+senderName+" - '. Got "+body)
-	require.True(t, strings.Contains(body, post.Message), "Expected email text '"+post.Message+"'. Got "+body)
-	require.True(t, strings.Contains(body, teamURL), "Expected email text '"+teamURL+"'. Got "+body)
+	require.Contains(t, body, "You have a new notification.", fmt.Sprintf("Expected email text 'You have a new notification. Got "+body))
+	require.Contains(t, body, "Channel: "+channel.DisplayName, fmt.Sprintf("Expected email text 'Channel: "+channel.DisplayName+"'. Got "+body))
+	require.Contains(t, body, senderName+" - ", fmt.Sprintf("Expected email text '%s - '. Got %s", senderName, body))
+	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
+	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
@@ -177,10 +177,10 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 	translateFunc := utils.GetUserTranslations("en")
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
-	require.True(t, strings.Contains(body, "You have a new Direct Message."), "Expected email text 'You have a new Direct Message. Got "+body)
-	require.True(t, strings.Contains(body, senderName+" - "), "Expected email text '"+senderName+" - '. Got "+body)
-	require.True(t, strings.Contains(body, post.Message), "Expected email text '"+post.Message+"'. Got "+body)
-	require.True(t, strings.Contains(body, teamURL), "Expected email text '"+teamURL+"'. Got "+body)
+	require.Contains(t, body, "You have a new Direct Message.", fmt.Sprintf("Expected email text 'You have a new Direct Message. Got "+body))
+	require.Contains(t, body, senderName+" - ", fmt.Sprintf("Expected email text '%s - '. Got %s", senderName, body))
+	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
+	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testing.T) {
@@ -209,7 +209,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, false, translateFunc)
 	r, _ := regexp.Compile("E([S|D]+)T")
 	zone := r.FindString(body)
-	require.True(t, strings.Contains(body, "sender - 9:43 AM "+zone+", April 25"), "Expected email text 'sender - 9:43 AM "+zone+", April 25'. Got "+body)
+	require.Contains(t, body, "sender - 9:43 AM "+zone+", April 25", fmt.Sprintf("Expected email text 'sender - 9:43 AM %s, April 25'. Got %s", zone, body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing.T) {
@@ -249,7 +249,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	postTimeLine := fmt.Sprintf("sender - %s:%s %s, %s %s", formattedTime.Hour, formattedTime.Minute, formattedTime.TimeZone, formattedTime.Month, formattedTime.Day)
-	require.True(t, strings.Contains(body, postTimeLine), "Expected email text '"+postTimeLine+" '. Got "+body)
+	require.Contains(t, body, postTimeLine, fmt.Sprintf("Expected email text '%s'. Got %s", postTimeLine, body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) {
@@ -276,8 +276,8 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 	translateFunc := utils.GetUserTranslations("en")
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, false, translateFunc)
-	require.True(t, strings.Contains(body, "sender - 2:30 PM"), "Expected email text 'sender - 2:30 PM'. Got "+body)
-	require.True(t, strings.Contains(body, "April 25"), "Expected email text 'April 25'. Got "+body)
+	require.Contains(t, body, "sender - 2:30 PM", fmt.Sprintf("Expected email text 'sender - 2:30 PM'. Got %s", body))
+	require.Contains(t, body, "April 25", fmt.Sprintf("Expected email text 'April 25'. Got %s", body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) {
@@ -304,8 +304,8 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 	translateFunc := utils.GetUserTranslations("en")
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
-	require.True(t, strings.Contains(body, "sender - 14:30"), "Expected email text 'sender - 14:30'. Got "+body)
-	require.True(t, strings.Contains(body, "April 25"), "Expected email text 'April 25'. Got "+body)
+	require.Contains(t, body, "sender - 14:30", fmt.Sprintf("Expected email text 'sender - 14:30'. Got %s", body))
+	require.Contains(t, body, "April 25", fmt.Sprintf("Expected email text 'April 25'. Got %s", body))
 }
 
 // from here
@@ -329,10 +329,10 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 	translateFunc := utils.GetUserTranslations("en")
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
-	require.True(t, strings.Contains(body, "You have a new notification from "+senderName), "Expected email text 'You have a new notification from "+senderName+"'. Got "+body)
-	require.False(t, strings.Contains(body, "Channel: "+channel.DisplayName), "Did not expect email text 'Channel: "+channel.DisplayName+"'. Got "+body)
-	require.False(t, strings.Contains(body, post.Message), "Did not expect email text '"+post.Message+"'. Got "+body)
-	require.True(t, strings.Contains(body, teamURL), "Expected email text '"+teamURL+"'. Got "+body)
+	require.Contains(t, body, "You have a new notification from "+senderName, fmt.Sprintf("Expected email text 'You have a new notification from %s'. Got %s", senderName, body))
+	require.False(t, strings.Contains(body, "Channel: "+channel.DisplayName), fmt.Sprintf("Did not expect email text 'CHANNEL: %s'. Got %s", channel.DisplayName, body))
+	require.False(t, strings.Contains(body, post.Message), fmt.Sprintf("Did not expect email text '%s'. Got %s", post.Message, body))
+	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
 
 func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
@@ -355,10 +355,10 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 	translateFunc := utils.GetUserTranslations("en")
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
-	require.True(t, strings.Contains(body, "You have a new Group Message from "+senderName), "Expected email text 'You have a new Group Message from "+senderName+"'. Got "+body)
-	require.False(t, strings.Contains(body, "CHANNEL: "+channel.DisplayName), "Did not expect email text 'CHANNEL: "+channel.DisplayName+"'. Got "+body)
-	require.False(t, strings.Contains(body, post.Message), "Did not expect email text '"+post.Message+"'. Got "+body)
-	require.True(t, strings.Contains(body, teamURL), "Expected email text '"+teamURL+"'. Got "+body)
+	require.Contains(t, body, "You have a new Group Message from "+senderName, fmt.Sprintf("Expected email text 'You have a new Group Message from %s'. Got %s", senderName, body))
+	require.False(t, strings.Contains(body, "CHANNEL: "+channel.DisplayName), fmt.Sprintf("Did not expect email text 'CHANNEL: %s'. Got %s", channel.DisplayName, body))
+	require.False(t, strings.Contains(body, post.Message), fmt.Sprintf("Did not expect email text '%s'. Got %s", post.Message, body))
+	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
 
 func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T) {
@@ -381,10 +381,10 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 	translateFunc := utils.GetUserTranslations("en")
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
-	require.True(t, strings.Contains(body, "You have a new notification from "+senderName), "Expected email text 'You have a new notification from "+senderName+"'. Got "+body)
-	require.False(t, strings.Contains(body, "CHANNEL: "+channel.DisplayName), "Did not expect email text 'CHANNEL: "+channel.DisplayName+"'. Got "+body)
-	require.False(t, strings.Contains(body, post.Message), "Did not expect email text '"+post.Message+"'. Got "+body)
-	require.True(t, strings.Contains(body, teamURL), "Expected email text '"+teamURL+"'. Got "+body)
+	require.Contains(t, body, "You have a new notification from "+senderName, fmt.Sprintf("Expected email text 'You have a new notification from %s'. Got %s", senderName, body))
+	require.False(t, strings.Contains(body, "CHANNEL: "+channel.DisplayName), fmt.Sprintf("Did not expect email text 'CHANNEL: %s'. Got %s", channel.DisplayName, body))
+	require.False(t, strings.Contains(body, post.Message), fmt.Sprintf("Did not expect email text '%s'. Got %s", post.Message, body))
+	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
 
 func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) {
@@ -407,10 +407,10 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 	translateFunc := utils.GetUserTranslations("en")
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
-	require.True(t, strings.Contains(body, "You have a new Direct Message from "+senderName), "Expected email text 'You have a new Direct Message from "+senderName+"'. Got "+body)
-	require.False(t, strings.Contains(body, "CHANNEL: "+channel.DisplayName), "Did not expect email text 'CHANNEL: "+channel.DisplayName+"'. Got "+body)
-	require.False(t, strings.Contains(body, post.Message), "Did not expect email text '"+post.Message+"'. Got "+body)
-	require.True(t, strings.Contains(body, teamURL), "Expected email text '"+teamURL+"'. Got "+body)
+	require.Contains(t, body, "You have a new Direct Message from "+senderName, fmt.Sprintf("Expected email text 'You have a new Direct Message from "+senderName+"'. Got "+body))
+	require.False(t, strings.Contains(body, "CHANNEL: "+channel.DisplayName), fmt.Sprintf("Did not expect email text 'CHANNEL: %s'. Got %s", channel.DisplayName, body))
+	require.False(t, strings.Contains(body, post.Message), fmt.Sprintf("Did not expect email text '%s'. Got %s", post.Message, body))
+	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
 
 func TestGetNotificationEmailEscapingChars(t *testing.T) {
