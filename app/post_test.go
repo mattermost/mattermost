@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
@@ -1281,7 +1282,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		assert.Equal(t, 2, count)
 	})
 
-	t.Run("should return -1 for a direct channel", func(t *testing.T) {
+	t.Run("should return store.MentionAllPosts for a direct channel", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1300,7 +1301,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		count, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
-		assert.Equal(t, -1, count)
+		assert.Equal(t, store.MentionAllPosts, count)
 	})
 
 	t.Run("should not count mentions from the before the given post", func(t *testing.T) {

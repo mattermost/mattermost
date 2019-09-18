@@ -1914,7 +1914,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		return nil, appErr
 	}
 
-	if mentionCount == -1 {
+	if mentionCount == store.MentionAllPosts {
 		// Treat every unread post as a mention (like in a DM channel)
 		mentionCount = int(unread)
 	}
