@@ -812,10 +812,22 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	team, err := c.App.GetTeamByName(c.Params.TeamName)
+	if err != nil && err.StatusCode != http.StatusNotFound {
+		c.Err = err
+		return
+	}
+
 	exists := false
-	team, _ := c.App.GetTeamByName(c.Params.TeamName)
+
 	if team != nil {
-		teamMember, _ := c.App.GetTeamMember(team.Id, c.App.Session.UserId)
+		var teamMember *model.TeamMember
+		teamMember, err = c.App.GetTeamMember(team.Id, c.App.Session.UserId)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			c.Err = err
+			return
+		}
+
 		// Verify that the user can see the team (be a member or have the permission to list the team)
 		if (teamMember != nil && teamMember.DeleteAt == 0) ||
 			(team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS)) ||
