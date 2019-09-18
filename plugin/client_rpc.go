@@ -395,8 +395,11 @@ func (g *hooksRPCClient) FileWillBeUploaded(c *Context, info *model.FileInfo, fi
 		serveIOReader(file, uploadedFileConnection)
 	}()
 
+	replacementDone := make(chan bool)
 	replacementFileStreamId := g.muxBroker.NextId()
 	go func() {
+		defer close(replacementDone)
+
 		replacementFileConnection, err := g.muxBroker.Accept(replacementFileStreamId)
 		if err != nil {
 			g.log.Error("Plugin failed to serve replacement file stream. MuxBroker could not Accept connection", mlog.Err(err))
@@ -413,6 +416,9 @@ func (g *hooksRPCClient) FileWillBeUploaded(c *Context, info *model.FileInfo, fi
 	if err := g.client.Call("Plugin.FileWillBeUploaded", _args, _returns); err != nil {
 		g.log.Error("RPC call FileWillBeUploaded to plugin failed.", mlog.Err(err))
 	}
+
+	// Ensure the io.Copy from the replacementFileConnection above completes.
+	<-replacementDone
 
 	return _returns.A, _returns.B
 }
