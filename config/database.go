@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"io/ioutil"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -292,7 +293,13 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 
 // String returns the path to the database backing the config, masking the password.
 func (ds *DatabaseStore) String() string {
-	u, _ := url.Parse(ds.originalDsn)
+	tcpStripper := regexp.MustCompile(`@tcp\((.*)\)`)
+
+	// Remove @tcp and the branches from the host and parse the rest as URl
+	u, err := url.Parse(tcpStripper.ReplaceAllString(ds.originalDsn, `@$1`))
+	if err != nil {
+		return ""
+	}
 
 	// Strip out the password to avoid leaking in logs.
 	u.User = url.User(u.User.Username())
