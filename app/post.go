@@ -1224,7 +1224,12 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 	page := 0
 	perPage := 200
 	for {
-		postList, err := a.GetPostsAfterPost(post.ChannelId, post.Id, page, perPage)
+		postList, err := a.GetPostsAfterPost(model.GetPostsOptions{
+			ChannelId: post.ChannelId,
+			PostId:    post.Id,
+			Page:      page,
+			PerPage:   perPage,
+		})
 		if err != nil {
 			return 0, err
 		}
