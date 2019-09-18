@@ -494,6 +494,7 @@ func TestMoveOutgoingWebhook(t *testing.T) {
 	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing"))
 	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", th.BasicTeam.Id))
 	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", "invalid-team", "webhook"))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", "invalid-team", "webhook", "--channel"))
 
 	newTeam := th.CreateTeam()
 

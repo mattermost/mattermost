@@ -490,10 +490,14 @@ func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
 		return appError
 	}
 
-	channelId, _ := command.Flags().GetString("channel")
-	channel, channelErr := app.GetChannel(channelId)
+	channelId, channelErr := command.Flags().GetString("channel")
 	if channelErr != nil {
 		return channelErr
+	}
+
+	channel, getChannelErr := app.GetChannel(channelId)
+	if getChannelErr != nil {
+		return getChannelErr
 	}
 
 	deleteErr := app.DeleteOutgoingWebhook(webhook.Id)
