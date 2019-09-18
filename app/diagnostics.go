@@ -59,7 +59,8 @@ const (
 )
 
 func (a *App) SendDailyDiagnostics() {
-	a.sendDailyDiagnostics(false)
+	mlog.Error("Running daily diagnostics")
+	a.sendDailyDiagnostics(true)
 }
 
 func (a *App) sendDailyDiagnostics(override bool) {
@@ -80,6 +81,9 @@ func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
 		UserId:     a.DiagnosticId(),
 		Properties: properties,
 	})
+
+	mlog.Error("Sending data to uplink client")
+	a.Srv.uplinkClient.Track(event, properties)
 }
 
 func isDefault(setting interface{}, defaultValue interface{}) bool {

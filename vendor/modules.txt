@@ -56,6 +56,8 @@ github.com/gorilla/schema
 github.com/gorilla/websocket
 # github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 github.com/gregjones/httpcache
+# github.com/grundleborg/uplink v0.0.0-20190913140148-74e1aedc2d43
+github.com/grundleborg/uplink/client
 # github.com/hako/durafmt v0.0.0-20190612201238-650ed9f29a84
 github.com/hako/durafmt
 # github.com/hashicorp/errwrap v1.0.0
