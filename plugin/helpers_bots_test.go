@@ -4,12 +4,15 @@
 package plugin_test
 
 import (
+	"io/ioutil"
+	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -75,6 +78,64 @@ func TestEnsureBot(t *testing.T) {
 
 			assert.Equal(t, "", botId)
 			assert.NotNil(t, err)
+		})
+
+		t.Run("should set the bot profile image when specified", func(t *testing.T) {
+			expectedBotId := model.NewId()
+
+			api := setupAPI()
+			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+			api.On("GetUserByUsername", testbot.Username).Return(&model.User{
+				Id:    expectedBotId,
+				IsBot: true,
+			}, nil)
+			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
+			api.On("GetBundlePath").Return("", nil)
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{}
+			p.API = api
+
+			testsDir, _ := fileutils.FindDir("tests")
+			testImage := filepath.Join(testsDir, "test.png")
+
+			imageBytes, err := ioutil.ReadFile(testImage)
+			assert.Nil(t, err)
+			api.On("SetProfileImage", expectedBotId, imageBytes).Return(nil)
+
+			botId, err := p.EnsureBot(testbot, plugin.ProfileImagePath(testImage))
+			api.AssertCalled(t, "SetProfileImage", expectedBotId, imageBytes)
+			assert.Equal(t, expectedBotId, botId)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should set the bot icon image when specified", func(t *testing.T) {
+			expectedBotId := model.NewId()
+
+			api := setupAPI()
+			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+			api.On("GetUserByUsername", testbot.Username).Return(&model.User{
+				Id:    expectedBotId,
+				IsBot: true,
+			}, nil)
+			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
+			api.On("GetBundlePath").Return("", nil)
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{}
+			p.API = api
+
+			testsDir, _ := fileutils.FindDir("tests")
+			testImage := filepath.Join(testsDir, "test.png")
+
+			imageBytes, err := ioutil.ReadFile(testImage)
+			assert.Nil(t, err)
+			api.On("SetBotIconImage", expectedBotId, imageBytes).Return(nil)
+
+			botId, err := p.EnsureBot(testbot, plugin.IconImagePath(testImage))
+			api.AssertCalled(t, "SetBotIconImage", expectedBotId, imageBytes)
+			assert.Equal(t, expectedBotId, botId)
+			assert.Nil(t, err)
 		})
 	})
 
@@ -155,6 +216,64 @@ func TestEnsureBot(t *testing.T) {
 
 			assert.Equal(t, "", botId)
 			assert.NotNil(t, err)
+		})
+
+		t.Run("should create bot and set the bot profile image when specified", func(t *testing.T) {
+			expectedBotId := model.NewId()
+
+			api := setupAPI()
+			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
+			api.On("CreateBot", testbot).Return(&model.Bot{
+				UserId: expectedBotId,
+			}, nil)
+			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
+			api.On("GetBundlePath").Return("", nil)
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{}
+			p.API = api
+
+			testsDir, _ := fileutils.FindDir("tests")
+			testImage := filepath.Join(testsDir, "test.png")
+
+			imageBytes, err := ioutil.ReadFile(testImage)
+			assert.Nil(t, err)
+			api.On("SetProfileImage", expectedBotId, imageBytes).Return(nil)
+
+			botId, err := p.EnsureBot(testbot, plugin.ProfileImagePath(testImage))
+			api.AssertCalled(t, "SetProfileImage", expectedBotId, imageBytes)
+			assert.Equal(t, expectedBotId, botId)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should create bot and set the bot icon image when specified", func(t *testing.T) {
+			expectedBotId := model.NewId()
+
+			api := setupAPI()
+			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
+			api.On("CreateBot", testbot).Return(&model.Bot{
+				UserId: expectedBotId,
+			}, nil)
+			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
+			api.On("GetBundlePath").Return("", nil)
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{}
+			p.API = api
+
+			testsDir, _ := fileutils.FindDir("tests")
+			testImage := filepath.Join(testsDir, "test.png")
+
+			imageBytes, err := ioutil.ReadFile(testImage)
+			assert.Nil(t, err)
+			api.On("SetBotIconImage", expectedBotId, imageBytes).Return(nil)
+
+			botId, err := p.EnsureBot(testbot, plugin.IconImagePath(testImage))
+			api.AssertCalled(t, "SetBotIconImage", expectedBotId, imageBytes)
+			assert.Equal(t, expectedBotId, botId)
+			assert.Nil(t, err)
 		})
 	})
 }

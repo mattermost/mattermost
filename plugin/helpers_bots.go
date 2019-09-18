@@ -12,26 +12,26 @@ import (
 	"github.com/pkg/errors"
 )
 
-type ensureBotOptions struct {
+type EnsureBotOptions struct {
 	ProfileImagePath string
 	IconImagePath    string
 }
 
-type EnsureBotOption func(*ensureBotOptions)
+type EnsureBotOption func(*EnsureBotOptions)
 
 func ProfileImagePath(path string) EnsureBotOption {
-	return func(args *ensureBotOptions) {
+	return func(args *EnsureBotOptions) {
 		args.ProfileImagePath = path
 	}
 }
 
 func IconImagePath(path string) EnsureBotOption {
-	return func(args *ensureBotOptions) {
+	return func(args *EnsureBotOptions) {
 		args.IconImagePath = path
 	}
 }
 
-func (p *HelpersImpl) readImage(path string) ([]byte, error) {
+func (p *HelpersImpl) readFile(path string) ([]byte, error) {
 	bundlePath, err := p.API.GetBundlePath()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get bundle path")
@@ -44,9 +44,9 @@ func (p *HelpersImpl) readImage(path string) ([]byte, error) {
 	return imageBytes, nil
 }
 
-func (p *HelpersImpl) setIconAndProfileImageIfNotEmpty(botId string, profileImagePath string, iconImagePath string) error {
+func (p *HelpersImpl) setBotIconAndProfileImage(botId string, profileImagePath string, iconImagePath string) error {
 	if !(profileImagePath == "") {
-		imageBytes, err := p.readImage(profileImagePath)
+		imageBytes, err := p.readFile(profileImagePath)
 		if err != nil {
 			return errors.Wrap(err, "Failed to read profile image")
 		}
@@ -56,30 +56,27 @@ func (p *HelpersImpl) setIconAndProfileImageIfNotEmpty(botId string, profileImag
 		}
 	}
 	if !(iconImagePath == "") {
-		imageBytes, err := p.readImage(iconImagePath)
+		imageBytes, err := p.readFile(iconImagePath)
 		if err != nil {
 			return errors.Wrap(err, "Failed to read icon image")
 		}
 		setIconErr := p.API.SetBotIconImage(botId, imageBytes)
 		if setIconErr != nil {
-			return errors.Wrap(err, "Failed to set profile image")
+			return errors.Wrap(err, "Failed to set icon image")
 		}
 	}
 	return nil
 }
 
-// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
-// Returns the id of the resulting bot. A profile image or icon image may be optionally passed in to be set for
-// the existing or newly created bot.
-func (p *HelpersImpl) EnsureBot(bot *model.Bot, setters ...EnsureBotOption) (retBotId string, retErr error) {
+func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (retBotId string, retErr error) {
 	// Default options
-	args := &ensureBotOptions{
+	o := &EnsureBotOptions{
 		ProfileImagePath: "",
 		IconImagePath:    "",
 	}
 
-	for _, setter := range setters {
-		setter(args)
+	for _, setter := range options {
+		setter(o)
 	}
 
 	// Must provide a bot with a username
@@ -117,7 +114,7 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot, setters ...EnsureBotOption) (ret
 	// If the bot has already been created, there is nothing to do.
 	if botIdBytes != nil {
 		botId := string(botIdBytes)
-		setImagesErr := p.setIconAndProfileImageIfNotEmpty(botId, args.ProfileImagePath, args.IconImagePath)
+		setImagesErr := p.setBotIconAndProfileImage(botId, o.ProfileImagePath, o.IconImagePath)
 		if setImagesErr != nil {
 			return botId, errors.Wrap(setImagesErr, "Failed to set icon or profile image")
 		}
@@ -132,9 +129,9 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot, setters ...EnsureBotOption) (ret
 		} else {
 			p.API.LogError("Plugin attempted to use an account that already exists. Convert user to a bot account in the CLI by running 'mattermost user convert <username> --bot'. If the user is an existing user account you want to preserve, change its username and restart the Mattermost server, after which the plugin will create a bot account with that name. For more information about bot accounts, see https://mattermost.com/pl/default-bot-accounts", "username", bot.Username, "user_id", user.Id)
 		}
-		setImagesErr := p.setIconAndProfileImageIfNotEmpty(user.Id, args.ProfileImagePath, args.IconImagePath)
+		setImagesErr := p.setBotIconAndProfileImage(user.Id, o.ProfileImagePath, o.IconImagePath)
 		if setImagesErr != nil {
-			return user.Id, errors.Wrap(setImagesErr, "Failed to set icon or profile image")
+			return user.Id, setImagesErr
 		}
 		return user.Id, nil
 	}

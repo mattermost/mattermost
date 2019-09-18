@@ -11,7 +11,7 @@ type Helpers interface {
 	// the existing or newly created bot.
 	//
 	// Minimum server version: 5.10
-	EnsureBot(bot *model.Bot, setters ...EnsureBotOption) (string, error)
+	EnsureBot(bot *model.Bot, options ...EnsureBotOption) (string, error)
 
 	// KVSetJSON stores a key-value pair, unique per plugin, marshalling the given value as a JSON string.
 	KVSetJSON(key string, value interface{}) error
