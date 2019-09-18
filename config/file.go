@@ -94,12 +94,12 @@ func resolveConfigFilePath(path string) (string, error) {
 
 // resolveFilePath uses the name if name is absolute path.
 // otherwise returns the combined path/name
-func resolveFilePath(path string, name string) string {
+func (fs *FileStore) resolveFilePath(name string) string {
 	// Absolute paths are explicit and require no resolution.
 	if filepath.IsAbs(name) {
 		return name
 	}
-	return filepath.Join(filepath.Dir(path), name)
+	return filepath.Join(filepath.Dir(fs.path), name)
 }
 
 // Set replaces the current configuration in its entirety and updates the backing store.
@@ -170,7 +170,7 @@ func (fs *FileStore) Load() (err error) {
 
 // GetFile fetches the contents of a previously persisted configuration file.
 func (fs *FileStore) GetFile(name string) ([]byte, error) {
-	resolvedPath := resolveFilePath(fs.path, name)
+	resolvedPath := fs.resolveFilePath(name)
 
 	data, err := ioutil.ReadFile(resolvedPath)
 	if err != nil {
@@ -182,7 +182,7 @@ func (fs *FileStore) GetFile(name string) ([]byte, error) {
 
 // SetFile sets or replaces the contents of a configuration file.
 func (fs *FileStore) SetFile(name string, data []byte) error {
-	resolvedPath := resolveFilePath(fs.path, name)
+	resolvedPath := fs.resolveFilePath(name)
 
 	err := ioutil.WriteFile(resolvedPath, data, 0777)
 	if err != nil {
@@ -198,7 +198,7 @@ func (fs *FileStore) HasFile(name string) (bool, error) {
 		return false, nil
 	}
 
-	resolvedPath := resolveFilePath(fs.path, name)
+	resolvedPath := fs.resolveFilePath(name)
 
 	_, err := os.Stat(resolvedPath)
 	if err != nil && os.IsNotExist(err) {
@@ -214,6 +214,7 @@ func (fs *FileStore) HasFile(name string) (bool, error) {
 func (fs *FileStore) RemoveFile(name string) error {
 	if filepath.IsAbs(name) {
 		// Don't delete absolute filenames, as may be mounted drive, etc.
+		mlog.Debug("Absolute filename will not be removed from the operationg system", mlog.String("filename", name))
 		return nil
 	}
 	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
