@@ -4,10 +4,8 @@
 package sqlstore
 
 import (
-	"fmt"
-	"net/http"
-
 	"database/sql"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -62,7 +60,7 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 
 	if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
 		// there was no join event to update - this is best effort, so no need to raise an error
-		mlog.Warn(fmt.Sprintf("Channel join event for user %v and channel %v not found", userId, channelId), mlog.String("user_id", userId))
+		mlog.Warn("Channel join event for user and channel not found", mlog.String("user", userId), mlog.String("channel", channelId))
 	}
 	return nil
 }
