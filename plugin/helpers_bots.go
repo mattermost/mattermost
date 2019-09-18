@@ -116,7 +116,7 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (ret
 		botId := string(botIdBytes)
 		setImagesErr := p.setBotIconAndProfileImage(botId, o.ProfileImagePath, o.IconImagePath)
 		if setImagesErr != nil {
-			return botId, errors.Wrap(setImagesErr, "Failed to set icon or profile image")
+			return botId, setImagesErr
 		}
 	}
 
