@@ -295,7 +295,7 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 func (ds *DatabaseStore) String() string {
 	tcpStripper := regexp.MustCompile(`@tcp\((.*)\)`)
 
-	// Remove @tcp and the branches from the host and parse the rest as URl
+	// Remove @tcp and the parentheses from the host and parse the rest as a URL
 	u, err := url.Parse(tcpStripper.ReplaceAllString(ds.originalDsn, `@$1`))
 	if err != nil {
 		return ""
