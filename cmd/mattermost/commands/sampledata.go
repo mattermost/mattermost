@@ -17,6 +17,7 @@ import (
 
 	"github.com/icrowley/fake"
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/spf13/cobra"
 )
 
@@ -343,7 +344,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		}
 		importErr, lineNumber := a.BulkImport(bulkFile, false, workers)
 		if importErr != nil {
-			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber)
+			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.(*model.AppError).Where, importErr.(*model.AppError).Message, importErr.(*model.AppError).DetailedError, lineNumber)
 		}
 	} else if bulk != "-" {
 		err := bulkFile.Close()

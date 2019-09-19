@@ -658,7 +658,7 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	user.Email = newEmail
 	_, errUpdate := a.UpdateUser(user, true)
 	if errUpdate != nil {
-		return errors.New(errUpdate.Message)
+		return errors.New(errUpdate.(*model.AppError).Message)
 	}
 
 	return nil

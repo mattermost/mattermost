@@ -85,7 +85,7 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 
 	var teams []*model.Team
 	if len(args) < 1 {
-		var getErr *model.AppError
+		var getErr error
 		// If no team is specified, list all teams
 		teams, getErr = app.GetAllTeams()
 		if getErr != nil {
