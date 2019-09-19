@@ -23,6 +23,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+tcpStripper := regexp.MustCompile(`@tcp\((.*)\)`)
+
 // DatabaseStore is a config store backed by a database.
 type DatabaseStore struct {
 	commonStore
@@ -293,12 +295,10 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 
 // String returns the path to the database backing the config, masking the password.
 func (ds *DatabaseStore) String() string {
-	tcpStripper := regexp.MustCompile(`@tcp\((.*)\)`)
-
 	// Remove @tcp and the parentheses from the host and parse the rest as a URL
 	u, err := url.Parse(tcpStripper.ReplaceAllString(ds.originalDsn, `@$1`))
 	if err != nil {
-		return ""
+		return "(omitted due to error parsing the DSN)"
 	}
 
 	// Strip out the password to avoid leaking in logs.
