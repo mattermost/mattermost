@@ -153,6 +153,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	fmt.Println("ETAG***************** before", user.Username)
 
 	if user.IsBot {
 		bot, err := c.App.GetBot(c.Params.UserId, true)
@@ -179,6 +180,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
+		fmt.Println("ETAG***************** return", user.Username)
 		return
 	}
 
