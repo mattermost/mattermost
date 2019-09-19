@@ -191,9 +191,9 @@ jobs:
             export TAG="${CIRCLE_SHA1:0:7}"
             cd mattermost-server
             export MM_PACKAGE=https://releases.mattermost.com/mattermost-platform-pr/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
-            docker build --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-enterprise-edition:${TAG} build
+            docker build --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-team-edition:${TAG} build
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
-            docker push mattermost/mattermost-enterprise-edition:${TAG}
+            docker push mattermost/mattermost-team-edition:${TAG}
 
 
 workflows:
