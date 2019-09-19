@@ -257,8 +257,13 @@ func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotL
 
 	disableBotsSetting := *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
 
+	numBots := 10
+	if len(userBots) < 10 {
+		numBots = len(userBots)
+	}
+
 	var message, botList string
-	for _, bot := range userBots[:10] {
+	for _, bot := range userBots[:numBots] {
 		botList += fmt.Sprintf("* %v\n", bot.Username)
 	}
 
