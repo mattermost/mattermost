@@ -676,7 +676,7 @@ func SlackConvertPostsMarkup(posts map[string][]SlackPost) map[string][]SlackPos
 	return posts
 }
 
-func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
+func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string) (error, *bytes.Buffer) {
 	// Create log file
 	log := bytes.NewBufferString(utils.T("api.slackimport.slack_import.log"))
 
