@@ -7,12 +7,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/services/marketplace"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/pkg/errors"
 )
@@ -398,6 +400,103 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	}
 
 	return resp, nil
+}
+
+// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
+// and plugins that are installed locally.
+func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
+	var result []*model.MarketplacePlugin
+	pluginSet := map[string]bool{}
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	marketplaceClient, err := marketplace.NewClient(
+		*a.Config().PluginSettings.MarketplaceUrl,
+		a.HTTPService,
+	)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Fetch all plugins from marketplace.
+	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{
+		PerPage:       -1,
+		ServerVersion: model.CurrentVersion,
+	})
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, p := range marketplacePlugins {
+		if p.Manifest == nil || !pluginMatchesFilter(p.Manifest, filter.Filter) {
+			continue
+		}
+
+		marketplacePlugin := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: p,
+		}
+
+		var manifest *model.Manifest
+		if manifest, err = pluginsEnvironment.GetManifest(p.Manifest.Id); err != nil && err != plugin.ErrNotFound {
+			return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else if err == nil {
+			// Plugin is installed.
+			marketplacePlugin.InstalledVersion = manifest.Version
+		}
+
+		pluginSet[p.Manifest.Id] = true
+		result = append(result, marketplacePlugin)
+	}
+
+	// Include all other installed plugins.
+	plugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, plugin := range plugins {
+		if plugin.Manifest == nil || pluginSet[plugin.Manifest.Id] || !pluginMatchesFilter(plugin.Manifest, filter.Filter) {
+			continue
+		}
+
+		result = append(result, &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: plugin.Manifest,
+			},
+			InstalledVersion: plugin.Manifest.Version,
+		})
+	}
+
+	// Sort result alphabetically.
+	sort.SliceStable(result, func(i, j int) bool {
+		return strings.ToLower(result[i].Manifest.Name) < strings.ToLower(result[j].Manifest.Name)
+	})
+
+	return result, nil
+}
+
+func pluginMatchesFilter(manifest *model.Manifest, filter string) bool {
+	filter = strings.TrimSpace(strings.ToLower(filter))
+
+	if filter == "" {
+		return true
+	}
+
+	if strings.ToLower(manifest.Id) == filter {
+		return true
+	}
+
+	if strings.Contains(strings.ToLower(manifest.Name), filter) {
+		return true
+	}
+
+	if strings.Contains(strings.ToLower(manifest.Description), filter) {
+		return true
+	}
+
+	return false
 }
 
 // notifyPluginEnabled notifies connected websocket clients across all peers if the version of the given
