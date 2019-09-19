@@ -23,7 +23,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-tcpStripper := regexp.MustCompile(`@tcp\((.*)\)`)
+var tcpStripper = regexp.MustCompile(`@tcp\((.*)\)`)
 
 // DatabaseStore is a config store backed by a database.
 type DatabaseStore struct {
