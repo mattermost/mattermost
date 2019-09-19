@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/avct/uasurfer"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 type testUserAgent struct {
@@ -55,7 +55,7 @@ func TestGetPlatformName(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
 			actual := getPlatformName(ua)
-			require.Equalf(t, actual, expected[i], "%v Got %v, expected %v", userAgent.Name, actual, expected[i])
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }
@@ -84,7 +84,7 @@ func TestGetOSName(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
 			actual := getOSName(ua)
-			require.Equalf(t, actual, expected[i], "Got %v, expected %v", actual, expected[i])
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }
@@ -113,7 +113,7 @@ func TestGetBrowserName(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
 			actual := getBrowserName(ua, userAgent.UserAgent)
-			require.Equalf(t, actual, expected[i], "Got %v, expected %v", actual, expected[i])
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }
@@ -142,7 +142,7 @@ func TestGetBrowserVersion(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
 			actual := getBrowserVersion(ua, userAgent.UserAgent)
-			require.Equalf(t, actual, expected[i], "Got %v, expected %v", actual, expected[i])
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }
