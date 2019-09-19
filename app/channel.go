@@ -1787,13 +1787,21 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-
 	post, err := a.GetSinglePost(postID)
 	if err != nil {
 		return nil, err
 	}
 
-	unreadMentions := 0 // TODO: calculate this value, setting it to zero for now.
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	unreadMentions, err := a.countMentionsFromPost(user, post)
+	if err != nil {
+		return nil, err
+	}
+
 	return a.Srv.Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions)
 }
 

@@ -160,11 +160,11 @@ func (a *App) getPushNotificationMessage(postMessage string, explicitMention, ch
 		return senderName + userLocale("api.post.send_notifications_and_forget.push_explicit_mention")
 	}
 
-	if replyToThreadType == THREAD_ROOT {
+	if replyToThreadType == model.COMMENTS_NOTIFY_ROOT {
 		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_post")
 	}
 
-	if replyToThreadType == THREAD_ANY {
+	if replyToThreadType == model.COMMENTS_NOTIFY_ANY {
 		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_thread")
 	}
 
