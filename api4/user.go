@@ -806,7 +806,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var autocomplete model.UserAutocomplete
 
-	var err *model.AppError
+	var err error
 	options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
 	if err != nil {
 		c.Err = err
