@@ -23,13 +23,11 @@ func (_m *TokenStore) Cleanup() {
 func (_m *TokenStore) Delete(token string) error {
 	ret := _m.Called(token)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(token)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -48,13 +46,11 @@ func (_m *TokenStore) GetByToken(token string) (*model.Token, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(token)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -64,13 +60,11 @@ func (_m *TokenStore) GetByToken(token string) (*model.Token, error) {
 func (_m *TokenStore) RemoveAllTokensByType(tokenType string) error {
 	ret := _m.Called(tokenType)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(tokenType)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -80,13 +74,11 @@ func (_m *TokenStore) RemoveAllTokensByType(tokenType string) error {
 func (_m *TokenStore) Save(recovery *model.Token) error {
 	ret := _m.Called(recovery)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Token) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Token) error); ok {
 		r0 = rf(recovery)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0

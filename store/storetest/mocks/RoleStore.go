@@ -27,13 +27,11 @@ func (_m *RoleStore) Delete(roldId string) (*model.Role, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(roldId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -52,13 +50,11 @@ func (_m *RoleStore) Get(roleId string) (*model.Role, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(roleId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -77,13 +73,11 @@ func (_m *RoleStore) GetAll() ([]*model.Role, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -102,13 +96,11 @@ func (_m *RoleStore) GetByName(name string) (*model.Role, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(name)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -127,13 +119,11 @@ func (_m *RoleStore) GetByNames(names []string) ([]*model.Role, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
 		r1 = rf(names)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -143,13 +133,11 @@ func (_m *RoleStore) GetByNames(names []string) ([]*model.Role, error) {
 func (_m *RoleStore) PermanentDeleteAll() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -168,13 +156,11 @@ func (_m *RoleStore) Save(role *model.Role) (*model.Role, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Role) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Role) error); ok {
 		r1 = rf(role)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

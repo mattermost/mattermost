@@ -32,13 +32,11 @@ func (_m *CommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -57,13 +55,11 @@ func (_m *CommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comma
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.CommandWebhook) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.CommandWebhook) error); ok {
 		r1 = rf(webhook)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -73,13 +69,11 @@ func (_m *CommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comma
 func (_m *CommandWebhookStore) TryUse(id string, limit int) error {
 	ret := _m.Called(id, limit)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int) error); ok {
 		r0 = rf(id, limit)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0

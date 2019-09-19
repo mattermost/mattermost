@@ -18,13 +18,11 @@ type FileInfoStore struct {
 func (_m *FileInfoStore) AttachToPost(fileId string, postId string, creatorId string) error {
 	ret := _m.Called(fileId, postId, creatorId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
 		r0 = rf(fileId, postId, creatorId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -46,13 +44,11 @@ func (_m *FileInfoStore) DeleteForPost(postId string) (string, error) {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(postId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -71,13 +67,11 @@ func (_m *FileInfoStore) Get(id string) (*model.FileInfo, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -96,13 +90,11 @@ func (_m *FileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(path)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -121,13 +113,11 @@ func (_m *FileInfoStore) GetForPost(postId string, readFromMaster bool, includeD
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool, bool, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool, bool, bool) error); ok {
 		r1 = rf(postId, readFromMaster, includeDeleted, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -146,13 +136,11 @@ func (_m *FileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -167,13 +155,11 @@ func (_m *FileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 func (_m *FileInfoStore) PermanentDelete(fileId string) error {
 	ret := _m.Called(fileId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(fileId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -190,13 +176,11 @@ func (_m *FileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64) error); ok {
 		r1 = rf(endTime, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -213,13 +197,11 @@ func (_m *FileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -238,13 +220,11 @@ func (_m *FileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.FileInfo) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.FileInfo) error); ok {
 		r1 = rf(info)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

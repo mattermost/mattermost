@@ -27,13 +27,11 @@ func (_m *GroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string, int, int) error); ok {
 		r1 = rf(channelID, groupIDs, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -52,13 +50,11 @@ func (_m *GroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPa
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
 		r1 = rf(since)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -77,13 +73,11 @@ func (_m *GroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -100,13 +94,11 @@ func (_m *GroupStore) CountChannelMembersMinusGroupMembers(channelID string, gro
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(channelID, groupIDs)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -123,13 +115,11 @@ func (_m *GroupStore) CountGroupsByChannel(channelId string, opts model.GroupSea
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) error); ok {
 		r1 = rf(channelId, opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -146,13 +136,11 @@ func (_m *GroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpt
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) error); ok {
 		r1 = rf(teamId, opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -169,13 +157,11 @@ func (_m *GroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupIDs 
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(teamID, groupIDs)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -194,13 +180,11 @@ func (_m *GroupStore) Create(group *model.Group) (*model.Group, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Group) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Group) error); ok {
 		r1 = rf(group)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -219,13 +203,11 @@ func (_m *GroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.GroupSyncable) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.GroupSyncable) error); ok {
 		r1 = rf(groupSyncable)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -244,13 +226,11 @@ func (_m *GroupStore) Delete(groupID string) (*model.Group, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(groupID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -269,13 +249,11 @@ func (_m *GroupStore) DeleteGroupSyncable(groupID string, syncableID string, syn
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, model.GroupSyncableType) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, model.GroupSyncableType) error); ok {
 		r1 = rf(groupID, syncableID, syncableType)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -294,13 +272,11 @@ func (_m *GroupStore) DeleteMember(groupID string, userID string) (*model.GroupM
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(groupID, userID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -319,13 +295,11 @@ func (_m *GroupStore) Get(groupID string) (*model.Group, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(groupID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -344,13 +318,11 @@ func (_m *GroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Gr
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(model.GroupSource) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GroupSource) error); ok {
 		r1 = rf(groupSource)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -369,13 +341,11 @@ func (_m *GroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, model.GroupSyncableType) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, model.GroupSyncableType) error); ok {
 		r1 = rf(groupID, syncableType)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -394,13 +364,11 @@ func (_m *GroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
 		r1 = rf(groupIDs)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -419,13 +387,11 @@ func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSour
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, model.GroupSource) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, model.GroupSource) error); ok {
 		r1 = rf(remoteID, groupSource)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -444,13 +410,11 @@ func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncab
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, model.GroupSyncableType) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, model.GroupSyncableType) error); ok {
 		r1 = rf(groupID, syncableID, syncableType)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -469,13 +433,11 @@ func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpt
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int, model.GroupSearchOpts) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int, model.GroupSearchOpts) error); ok {
 		r1 = rf(page, perPage, opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -494,13 +456,11 @@ func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearc
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) error); ok {
 		r1 = rf(channelId, opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -519,13 +479,11 @@ func (_m *GroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) error); ok {
 		r1 = rf(teamId, opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -542,13 +500,11 @@ func (_m *GroupStore) GetMemberCount(groupID string) (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(groupID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -567,13 +523,11 @@ func (_m *GroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(groupID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -592,13 +546,11 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(groupID, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -617,13 +569,11 @@ func (_m *GroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []str
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string, int, int) error); ok {
 		r1 = rf(teamID, groupIDs, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -642,13 +592,11 @@ func (_m *GroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, er
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
 		r1 = rf(since)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -667,13 +615,11 @@ func (_m *GroupStore) TeamMembersToRemove() ([]*model.TeamMember, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -692,13 +638,11 @@ func (_m *GroupStore) Update(group *model.Group) (*model.Group, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Group) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Group) error); ok {
 		r1 = rf(group)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -717,13 +661,11 @@ func (_m *GroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.GroupSyncable) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.GroupSyncable) error); ok {
 		r1 = rf(groupSyncable)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -742,13 +684,11 @@ func (_m *GroupStore) UpsertMember(groupID string, userID string) (*model.GroupM
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(groupID, userID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

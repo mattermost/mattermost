@@ -26,13 +26,11 @@ func (_m *ChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType str
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, channelType)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -49,13 +47,11 @@ func (_m *ChannelStore) AnalyticsTypeCount(teamId string, channelType string) (i
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, channelType)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -74,13 +70,11 @@ func (_m *ChannelStore) AutocompleteInTeam(teamId string, term string, includeDe
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(teamId, term, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -99,13 +93,11 @@ func (_m *ChannelStore) AutocompleteInTeamForSearch(teamId string, userId string
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
 		r1 = rf(teamId, userId, term, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -115,13 +107,11 @@ func (_m *ChannelStore) AutocompleteInTeamForSearch(teamId string, userId string
 func (_m *ChannelStore) ClearAllCustomRoleAssignments() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -145,13 +135,11 @@ func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *mod
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.User, *model.User) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.User, *model.User) error); ok {
 		r1 = rf(userId, otherUserId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -161,13 +149,11 @@ func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *mod
 func (_m *ChannelStore) Delete(channelId string, time int64) error {
 	ret := _m.Called(channelId, time)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
 		r0 = rf(channelId, time)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -186,13 +172,11 @@ func (_m *ChannelStore) Get(id string, allowFromCache bool) (*model.Channel, err
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(id, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -211,13 +195,11 @@ func (_m *ChannelStore) GetAll(teamId string) ([]*model.Channel, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(teamId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -236,13 +218,11 @@ func (_m *ChannelStore) GetAllChannelMembersForUser(userId string, allowFromCach
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool, bool) error); ok {
 		r1 = rf(userId, allowFromCache, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -261,13 +241,11 @@ func (_m *ChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId stri
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(channelId, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -286,13 +264,11 @@ func (_m *ChannelStore) GetAllChannels(page int, perPage int, opts store.Channel
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int, store.ChannelSearchOpts) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int, store.ChannelSearchOpts) error); ok {
 		r1 = rf(page, perPage, opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -309,13 +285,11 @@ func (_m *ChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpts) (int64
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(store.ChannelSearchOpts) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(store.ChannelSearchOpts) error); ok {
 		r1 = rf(opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -334,13 +308,11 @@ func (_m *ChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, string) error); ok {
 		r1 = rf(limit, afterId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -359,13 +331,11 @@ func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId st
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, string) error); ok {
 		r1 = rf(limit, afterId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -384,13 +354,11 @@ func (_m *ChannelStore) GetByName(team_id string, name string, allowFromCache bo
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(team_id, name, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -409,13 +377,11 @@ func (_m *ChannelStore) GetByNameIncludeDeleted(team_id string, name string, all
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(team_id, name, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -434,13 +400,11 @@ func (_m *ChannelStore) GetByNames(team_id string, names []string, allowFromCach
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string, bool) error); ok {
 		r1 = rf(team_id, names, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -459,13 +423,11 @@ func (_m *ChannelStore) GetChannelCounts(teamId string, userId string) (*model.C
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -484,13 +446,11 @@ func (_m *ChannelStore) GetChannelMembersForExport(userId string, teamId string)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userId, teamId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -509,13 +469,11 @@ func (_m *ChannelStore) GetChannelMembersTimezones(channelId string) ([]model.St
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(channelId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -534,13 +492,11 @@ func (_m *ChannelStore) GetChannelUnread(channelId string, userId string) (*mode
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(channelId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -559,13 +515,11 @@ func (_m *ChannelStore) GetChannels(teamId string, userId string, includeDeleted
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(teamId, userId, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -584,13 +538,11 @@ func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64, int64, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64, int) error); ok {
 		r1 = rf(startTime, endTime, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -609,13 +561,11 @@ func (_m *ChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel,
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
 		r1 = rf(channelIds)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -634,13 +584,11 @@ func (_m *ChannelStore) GetChannelsByScheme(schemeId string, offset int, limit i
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(schemeId, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -659,13 +607,11 @@ func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int) (*mode
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(team_id, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -684,13 +630,11 @@ func (_m *ChannelStore) GetDeletedByName(team_id string, name string) (*model.Ch
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(team_id, name)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -709,13 +653,11 @@ func (_m *ChannelStore) GetForPost(postId string) (*model.Channel, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(postId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -734,13 +676,11 @@ func (_m *ChannelStore) GetFromMaster(id string) (*model.Channel, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -757,13 +697,11 @@ func (_m *ChannelStore) GetGuestCount(channelId string, allowFromCache bool) (in
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(channelId, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -796,13 +734,11 @@ func (_m *ChannelStore) GetMember(channelId string, userId string) (*model.Chann
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(channelId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -819,13 +755,11 @@ func (_m *ChannelStore) GetMemberCount(channelId string, allowFromCache bool) (i
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(channelId, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -858,13 +792,11 @@ func (_m *ChannelStore) GetMemberForPost(postId string, userId string) (*model.C
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(postId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -883,13 +815,11 @@ func (_m *ChannelStore) GetMembers(channelId string, offset int, limit int) (*mo
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(channelId, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -908,13 +838,11 @@ func (_m *ChannelStore) GetMembersByIds(channelId string, userIds []string) (*mo
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(channelId, userIds)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -933,13 +861,11 @@ func (_m *ChannelStore) GetMembersForUser(teamId string, userId string) (*model.
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -958,13 +884,11 @@ func (_m *ChannelStore) GetMembersForUserWithPagination(teamId string, userId st
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
 		r1 = rf(teamId, userId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -983,13 +907,11 @@ func (_m *ChannelStore) GetMoreChannels(teamId string, userId string, offset int
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
 		r1 = rf(teamId, userId, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1006,13 +928,11 @@ func (_m *ChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(channelId, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1045,13 +965,11 @@ func (_m *ChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(channelId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1070,13 +988,11 @@ func (_m *ChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(teamId, channelIds)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1095,13 +1011,11 @@ func (_m *ChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limi
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(teamId, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1120,13 +1034,11 @@ func (_m *ChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, erro
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(teamId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1136,13 +1048,11 @@ func (_m *ChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, erro
 func (_m *ChannelStore) IncrementMentionCount(channelId string, userId string) error {
 	ret := _m.Called(channelId, userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(channelId, userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1210,13 +1120,11 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId s
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(fromChannelId, fromUserId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1240,13 +1148,11 @@ func (_m *ChannelStore) MigratePublicChannels() error {
 func (_m *ChannelStore) PermanentDelete(channelId string) error {
 	ret := _m.Called(channelId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(channelId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1256,13 +1162,11 @@ func (_m *ChannelStore) PermanentDelete(channelId string) error {
 func (_m *ChannelStore) PermanentDeleteByTeam(teamId string) error {
 	ret := _m.Called(teamId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1272,13 +1176,11 @@ func (_m *ChannelStore) PermanentDeleteByTeam(teamId string) error {
 func (_m *ChannelStore) PermanentDeleteMembersByChannel(channelId string) error {
 	ret := _m.Called(channelId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(channelId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1288,13 +1190,11 @@ func (_m *ChannelStore) PermanentDeleteMembersByChannel(channelId string) error 
 func (_m *ChannelStore) PermanentDeleteMembersByUser(userId string) error {
 	ret := _m.Called(userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1304,13 +1204,11 @@ func (_m *ChannelStore) PermanentDeleteMembersByUser(userId string) error {
 func (_m *ChannelStore) RemoveAllDeactivatedMembers(channelId string) error {
 	ret := _m.Called(channelId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(channelId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1320,13 +1218,11 @@ func (_m *ChannelStore) RemoveAllDeactivatedMembers(channelId string) error {
 func (_m *ChannelStore) RemoveMember(channelId string, userId string) error {
 	ret := _m.Called(channelId, userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(channelId, userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1336,13 +1232,11 @@ func (_m *ChannelStore) RemoveMember(channelId string, userId string) error {
 func (_m *ChannelStore) ResetAllChannelSchemes() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1352,13 +1246,11 @@ func (_m *ChannelStore) ResetAllChannelSchemes() error {
 func (_m *ChannelStore) Restore(channelId string, time int64) error {
 	ret := _m.Called(channelId, time)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
 		r0 = rf(channelId, time)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1377,13 +1269,11 @@ func (_m *ChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Channel, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Channel, int64) error); ok {
 		r1 = rf(channel, maxChannelsPerTeam)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1402,13 +1292,11 @@ func (_m *ChannelStore) SaveDirectChannel(channel *model.Channel, member1 *model
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Channel, *model.ChannelMember, *model.ChannelMember) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Channel, *model.ChannelMember, *model.ChannelMember) error); ok {
 		r1 = rf(channel, member1, member2)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1427,13 +1315,11 @@ func (_m *ChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelM
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.ChannelMember) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.ChannelMember) error); ok {
 		r1 = rf(member)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1452,13 +1338,11 @@ func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchO
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, store.ChannelSearchOpts) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, store.ChannelSearchOpts) error); ok {
 		r1 = rf(term, opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1477,13 +1361,11 @@ func (_m *ChannelStore) SearchForUserInTeam(userId string, teamId string, term s
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
 		r1 = rf(userId, teamId, term, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1502,13 +1384,11 @@ func (_m *ChannelStore) SearchGroupChannels(userId string, term string) (*model.
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userId, term)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1527,13 +1407,11 @@ func (_m *ChannelStore) SearchInTeam(teamId string, term string, includeDeleted 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(teamId, term, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1552,13 +1430,11 @@ func (_m *ChannelStore) SearchMore(userId string, teamId string, term string) (*
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
 		r1 = rf(userId, teamId, term)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1568,13 +1444,11 @@ func (_m *ChannelStore) SearchMore(userId string, teamId string, term string) (*
 func (_m *ChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) error {
 	ret := _m.Called(channelId, deleteAt, updateAt)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64, int64) error); ok {
 		r0 = rf(channelId, deleteAt, updateAt)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1593,13 +1467,11 @@ func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Channel) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Channel) error); ok {
 		r1 = rf(channel)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1618,13 +1490,11 @@ func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
 		r1 = rf(channelIds, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1643,13 +1513,11 @@ func (_m *ChannelStore) UpdateMember(member *model.ChannelMember) (*model.Channe
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.ChannelMember) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.ChannelMember) error); ok {
 		r1 = rf(member)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1666,13 +1534,11 @@ func (_m *ChannelStore) UserBelongsToChannels(userId string, channelIds []string
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(userId, channelIds)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

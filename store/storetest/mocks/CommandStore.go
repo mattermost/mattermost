@@ -25,13 +25,11 @@ func (_m *CommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(teamId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -41,13 +39,11 @@ func (_m *CommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 func (_m *CommandStore) Delete(commandId string, time int64) error {
 	ret := _m.Called(commandId, time)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
 		r0 = rf(commandId, time)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -66,13 +62,11 @@ func (_m *CommandStore) Get(id string) (*model.Command, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -91,13 +85,11 @@ func (_m *CommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(teamId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -116,13 +108,11 @@ func (_m *CommandStore) GetByTrigger(teamId string, trigger string) (*model.Comm
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, trigger)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -132,13 +122,11 @@ func (_m *CommandStore) GetByTrigger(teamId string, trigger string) (*model.Comm
 func (_m *CommandStore) PermanentDeleteByTeam(teamId string) error {
 	ret := _m.Called(teamId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -148,13 +136,11 @@ func (_m *CommandStore) PermanentDeleteByTeam(teamId string) error {
 func (_m *CommandStore) PermanentDeleteByUser(userId string) error {
 	ret := _m.Called(userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -173,13 +159,11 @@ func (_m *CommandStore) Save(webhook *model.Command) (*model.Command, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Command) error); ok {
 		r1 = rf(webhook)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -198,13 +182,11 @@ func (_m *CommandStore) Update(hook *model.Command) (*model.Command, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Command) error); ok {
 		r1 = rf(hook)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

@@ -27,13 +27,11 @@ func (_m *LicenseStore) Get(id string) (*model.LicenseRecord, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -52,13 +50,11 @@ func (_m *LicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.LicenseRecord) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.LicenseRecord) error); ok {
 		r1 = rf(license)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

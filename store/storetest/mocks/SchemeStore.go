@@ -27,13 +27,11 @@ func (_m *SchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(schemeId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -52,13 +50,11 @@ func (_m *SchemeStore) Get(schemeId string) (*model.Scheme, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(schemeId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -77,13 +73,11 @@ func (_m *SchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(scope, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -102,13 +96,11 @@ func (_m *SchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(schemeName)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -118,13 +110,11 @@ func (_m *SchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 func (_m *SchemeStore) PermanentDeleteAll() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -143,13 +133,11 @@ func (_m *SchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Scheme) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Scheme) error); ok {
 		r1 = rf(scheme)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

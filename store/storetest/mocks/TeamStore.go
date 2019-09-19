@@ -25,13 +25,11 @@ func (_m *TeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, err
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(schemeId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -48,13 +46,11 @@ func (_m *TeamStore) AnalyticsPrivateTeamCount() (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -71,13 +67,11 @@ func (_m *TeamStore) AnalyticsPublicTeamCount() (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -94,13 +88,11 @@ func (_m *TeamStore) AnalyticsTeamCount() (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -110,13 +102,11 @@ func (_m *TeamStore) AnalyticsTeamCount() (int64, error) {
 func (_m *TeamStore) ClearAllCustomRoleAssignments() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -140,13 +130,11 @@ func (_m *TeamStore) Get(id string) (*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -163,13 +151,11 @@ func (_m *TeamStore) GetActiveMemberCount(teamId string, restrictions *model.Vie
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, *model.ViewUsersRestrictions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, *model.ViewUsersRestrictions) error); ok {
 		r1 = rf(teamId, restrictions)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -188,13 +174,11 @@ func (_m *TeamStore) GetAll() ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -213,13 +197,11 @@ func (_m *TeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.T
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, string) error); ok {
 		r1 = rf(limit, afterId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -238,13 +220,11 @@ func (_m *TeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
 		r1 = rf(offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -263,13 +243,11 @@ func (_m *TeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -288,13 +266,11 @@ func (_m *TeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*mod
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
 		r1 = rf(offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -313,13 +289,11 @@ func (_m *TeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*mode
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
 		r1 = rf(offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -338,13 +312,11 @@ func (_m *TeamStore) GetAllTeamListing() ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -363,13 +335,11 @@ func (_m *TeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
 		r1 = rf(offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -388,13 +358,11 @@ func (_m *TeamStore) GetByInviteId(inviteId string) (*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(inviteId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -413,13 +381,11 @@ func (_m *TeamStore) GetByName(name string) (*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(name)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -438,13 +404,11 @@ func (_m *TeamStore) GetChannelUnreadsForAllTeams(excludeTeamId string, userId s
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(excludeTeamId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -463,13 +427,11 @@ func (_m *TeamStore) GetChannelUnreadsForTeam(teamId string, userId string) ([]*
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -488,13 +450,11 @@ func (_m *TeamStore) GetMember(teamId string, userId string) (*model.TeamMember,
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -513,13 +473,11 @@ func (_m *TeamStore) GetMembers(teamId string, offset int, limit int, restrictio
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int, *model.ViewUsersRestrictions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int, *model.ViewUsersRestrictions) error); ok {
 		r1 = rf(teamId, offset, limit, restrictions)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -538,13 +496,11 @@ func (_m *TeamStore) GetMembersByIds(teamId string, userIds []string, restrictio
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string, *model.ViewUsersRestrictions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string, *model.ViewUsersRestrictions) error); ok {
 		r1 = rf(teamId, userIds, restrictions)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -563,13 +519,11 @@ func (_m *TeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMember
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -588,13 +542,11 @@ func (_m *TeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(schemeId, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -613,13 +565,11 @@ func (_m *TeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -638,13 +588,11 @@ func (_m *TeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -663,13 +611,11 @@ func (_m *TeamStore) GetTeamsForUserWithPagination(userId string, page int, perP
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(userId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -686,13 +632,11 @@ func (_m *TeamStore) GetTotalMemberCount(teamId string, restrictions *model.View
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, *model.ViewUsersRestrictions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, *model.ViewUsersRestrictions) error); ok {
 		r1 = rf(teamId, restrictions)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -711,13 +655,11 @@ func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]strin
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(userId, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -741,13 +683,11 @@ func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (m
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(fromTeamId, fromUserId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -757,13 +697,11 @@ func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (m
 func (_m *TeamStore) PermanentDelete(teamId string) error {
 	ret := _m.Called(teamId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -773,13 +711,11 @@ func (_m *TeamStore) PermanentDelete(teamId string) error {
 func (_m *TeamStore) RemoveAllMembersByTeam(teamId string) error {
 	ret := _m.Called(teamId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -789,13 +725,11 @@ func (_m *TeamStore) RemoveAllMembersByTeam(teamId string) error {
 func (_m *TeamStore) RemoveAllMembersByUser(userId string) error {
 	ret := _m.Called(userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -805,13 +739,11 @@ func (_m *TeamStore) RemoveAllMembersByUser(userId string) error {
 func (_m *TeamStore) RemoveMember(teamId string, userId string) error {
 	ret := _m.Called(teamId, userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(teamId, userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -821,13 +753,11 @@ func (_m *TeamStore) RemoveMember(teamId string, userId string) error {
 func (_m *TeamStore) ResetAllTeamSchemes() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -846,13 +776,11 @@ func (_m *TeamStore) Save(team *model.Team) (*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Team) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Team) error); ok {
 		r1 = rf(team)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -871,13 +799,11 @@ func (_m *TeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.TeamMember, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.TeamMember, int) error); ok {
 		r1 = rf(member, maxUsersPerTeam)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -896,13 +822,11 @@ func (_m *TeamStore) SearchAll(term string) ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(term)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -921,13 +845,11 @@ func (_m *TeamStore) SearchOpen(term string) ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(term)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -946,13 +868,11 @@ func (_m *TeamStore) SearchPrivate(term string) ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(term)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -971,13 +891,11 @@ func (_m *TeamStore) Update(team *model.Team) (*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Team) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Team) error); ok {
 		r1 = rf(team)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -987,13 +905,11 @@ func (_m *TeamStore) Update(team *model.Team) (*model.Team, error) {
 func (_m *TeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) error {
 	ret := _m.Called(teamId, curTime)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
 		r0 = rf(teamId, curTime)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1012,13 +928,11 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.TeamMember) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.TeamMember) error); ok {
 		r1 = rf(member)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1035,13 +949,11 @@ func (_m *TeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, 
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(userId, teamIds)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

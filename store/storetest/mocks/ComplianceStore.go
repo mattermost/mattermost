@@ -27,13 +27,11 @@ func (_m *ComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*mo
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Compliance) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Compliance) error); ok {
 		r1 = rf(compliance)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -52,13 +50,11 @@ func (_m *ComplianceStore) Get(id string) (*model.Compliance, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -77,13 +73,11 @@ func (_m *ComplianceStore) GetAll(offset int, limit int) (model.Compliances, err
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
 		r1 = rf(offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -102,13 +96,11 @@ func (_m *ComplianceStore) MessageExport(after int64, limit int) ([]*model.Messa
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
 		r1 = rf(after, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -127,13 +119,11 @@ func (_m *ComplianceStore) Save(compliance *model.Compliance) (*model.Compliance
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Compliance) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Compliance) error); ok {
 		r1 = rf(compliance)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -152,13 +142,11 @@ func (_m *ComplianceStore) Update(compliance *model.Compliance) (*model.Complian
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Compliance) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Compliance) error); ok {
 		r1 = rf(compliance)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

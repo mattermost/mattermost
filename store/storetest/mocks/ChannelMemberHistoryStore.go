@@ -27,13 +27,11 @@ func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, en
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64, int64, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64, string) error); ok {
 		r1 = rf(startTime, endTime, channelId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -43,13 +41,11 @@ func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, en
 func (_m *ChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) error {
 	ret := _m.Called(userId, channelId, joinTime)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
 		r0 = rf(userId, channelId, joinTime)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -59,13 +55,11 @@ func (_m *ChannelMemberHistoryStore) LogJoinEvent(userId string, channelId strin
 func (_m *ChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) error {
 	ret := _m.Called(userId, channelId, leaveTime)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
 		r0 = rf(userId, channelId, leaveTime)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -82,13 +76,11 @@ func (_m *ChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit i
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64) error); ok {
 		r1 = rf(endTime, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

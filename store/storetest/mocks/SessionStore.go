@@ -25,13 +25,11 @@ func (_m *SessionStore) AnalyticsSessionCount() (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -55,13 +53,11 @@ func (_m *SessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(sessionIdOrToken)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -80,13 +76,11 @@ func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -105,13 +99,11 @@ func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -121,13 +113,11 @@ func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.
 func (_m *SessionStore) PermanentDeleteSessionsByUser(teamId string) error {
 	ret := _m.Called(teamId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -137,13 +127,11 @@ func (_m *SessionStore) PermanentDeleteSessionsByUser(teamId string) error {
 func (_m *SessionStore) Remove(sessionIdOrToken string) error {
 	ret := _m.Called(sessionIdOrToken)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(sessionIdOrToken)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -153,13 +141,11 @@ func (_m *SessionStore) Remove(sessionIdOrToken string) error {
 func (_m *SessionStore) RemoveAllSessions() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -178,13 +164,11 @@ func (_m *SessionStore) Save(session *model.Session) (*model.Session, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Session) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Session) error); ok {
 		r1 = rf(session)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -201,13 +185,11 @@ func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
 		r1 = rf(id, deviceId, expiresAt)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -217,13 +199,11 @@ func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int
 func (_m *SessionStore) UpdateLastActivityAt(sessionId string, time int64) error {
 	ret := _m.Called(sessionId, time)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
 		r0 = rf(sessionId, time)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -233,13 +213,11 @@ func (_m *SessionStore) UpdateLastActivityAt(sessionId string, time int64) error
 func (_m *SessionStore) UpdateProps(session *model.Session) error {
 	ret := _m.Called(session)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Session) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Session) error); ok {
 		r0 = rf(session)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -256,13 +234,11 @@ func (_m *SessionStore) UpdateRoles(userId string, roles string) (string, error)
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userId, roles)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

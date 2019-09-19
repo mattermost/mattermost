@@ -18,13 +18,11 @@ type OAuthStore struct {
 func (_m *OAuthStore) DeleteApp(id string) error {
 	ret := _m.Called(id)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(id)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -43,13 +41,11 @@ func (_m *OAuthStore) GetAccessData(token string) (*model.AccessData, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(token)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -68,13 +64,11 @@ func (_m *OAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessDa
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(token)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -93,13 +87,11 @@ func (_m *OAuthStore) GetAccessDataByUserForApp(userId string, clientId string) 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userId, clientId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -118,13 +110,11 @@ func (_m *OAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -143,13 +133,11 @@ func (_m *OAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*mod
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(userId, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -168,13 +156,11 @@ func (_m *OAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp, error) 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
 		r1 = rf(offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -193,13 +179,11 @@ func (_m *OAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(code)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -218,13 +202,11 @@ func (_m *OAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(userId, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -243,13 +225,11 @@ func (_m *OAuthStore) GetPreviousAccessData(userId string, clientId string) (*mo
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userId, clientId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -259,13 +239,11 @@ func (_m *OAuthStore) GetPreviousAccessData(userId string, clientId string) (*mo
 func (_m *OAuthStore) PermanentDeleteAuthDataByUser(userId string) error {
 	ret := _m.Called(userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -275,13 +253,11 @@ func (_m *OAuthStore) PermanentDeleteAuthDataByUser(userId string) error {
 func (_m *OAuthStore) RemoveAccessData(token string) error {
 	ret := _m.Called(token)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(token)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -291,13 +267,11 @@ func (_m *OAuthStore) RemoveAccessData(token string) error {
 func (_m *OAuthStore) RemoveAllAccessData() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -307,13 +281,11 @@ func (_m *OAuthStore) RemoveAllAccessData() error {
 func (_m *OAuthStore) RemoveAuthData(code string) error {
 	ret := _m.Called(code)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(code)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -332,13 +304,11 @@ func (_m *OAuthStore) SaveAccessData(accessData *model.AccessData) (*model.Acces
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.AccessData) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.AccessData) error); ok {
 		r1 = rf(accessData)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -357,13 +327,11 @@ func (_m *OAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.OAuthApp) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.OAuthApp) error); ok {
 		r1 = rf(app)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -382,13 +350,11 @@ func (_m *OAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, e
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.AuthData) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.AuthData) error); ok {
 		r1 = rf(authData)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -407,13 +373,11 @@ func (_m *OAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.Acc
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.AccessData) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.AccessData) error); ok {
 		r1 = rf(accessData)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -432,13 +396,11 @@ func (_m *OAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.OAuthApp) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.OAuthApp) error); ok {
 		r1 = rf(app)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

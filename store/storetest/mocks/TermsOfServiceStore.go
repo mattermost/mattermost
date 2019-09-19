@@ -27,13 +27,11 @@ func (_m *TermsOfServiceStore) Get(id string, allowFromCache bool) (*model.Terms
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(id, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -52,13 +50,11 @@ func (_m *TermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfSer
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(bool) error); ok {
 		r1 = rf(allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -77,13 +73,11 @@ func (_m *TermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mode
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.TermsOfService) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.TermsOfService) error); ok {
 		r1 = rf(termsOfService)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

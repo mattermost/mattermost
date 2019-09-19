@@ -25,13 +25,11 @@ func (_m *JobStore) Delete(id string) (string, error) {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -50,13 +48,11 @@ func (_m *JobStore) Get(id string) (*model.Job, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -75,13 +71,11 @@ func (_m *JobStore) GetAllByStatus(status string) ([]*model.Job, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(status)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -100,13 +94,11 @@ func (_m *JobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(jobType)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -125,13 +117,11 @@ func (_m *JobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(jobType, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -150,13 +140,11 @@ func (_m *JobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
 		r1 = rf(offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -173,13 +161,11 @@ func (_m *JobStore) GetCountByStatusAndType(status string, jobType string) (int6
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(status, jobType)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -198,13 +184,11 @@ func (_m *JobStore) GetNewestJobByStatusAndType(status string, jobType string) (
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(status, jobType)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -223,13 +207,11 @@ func (_m *JobStore) Save(job *model.Job) (*model.Job, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Job) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Job) error); ok {
 		r1 = rf(job)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -246,13 +228,11 @@ func (_m *JobStore) UpdateOptimistically(job *model.Job, currentStatus string) (
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Job, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Job, string) error); ok {
 		r1 = rf(job, currentStatus)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -271,13 +251,11 @@ func (_m *JobStore) UpdateStatus(id string, status string) (*model.Job, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(id, status)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -294,13 +272,11 @@ func (_m *JobStore) UpdateStatusOptimistically(id string, currentStatus string, 
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
 		r1 = rf(id, currentStatus, newStatus)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

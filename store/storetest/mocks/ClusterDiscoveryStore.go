@@ -18,13 +18,11 @@ type ClusterDiscoveryStore struct {
 func (_m *ClusterDiscoveryStore) Cleanup() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -41,13 +39,11 @@ func (_m *ClusterDiscoveryStore) Delete(discovery *model.ClusterDiscovery) (bool
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.ClusterDiscovery) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.ClusterDiscovery) error); ok {
 		r1 = rf(discovery)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -64,13 +60,11 @@ func (_m *ClusterDiscoveryStore) Exists(discovery *model.ClusterDiscovery) (bool
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.ClusterDiscovery) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.ClusterDiscovery) error); ok {
 		r1 = rf(discovery)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -89,13 +83,11 @@ func (_m *ClusterDiscoveryStore) GetAll(discoveryType string, clusterName string
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(discoveryType, clusterName)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -105,13 +97,11 @@ func (_m *ClusterDiscoveryStore) GetAll(discoveryType string, clusterName string
 func (_m *ClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery) error {
 	ret := _m.Called(discovery)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.ClusterDiscovery) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.ClusterDiscovery) error); ok {
 		r0 = rf(discovery)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -121,13 +111,11 @@ func (_m *ClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery) error {
 func (_m *ClusterDiscoveryStore) SetLastPingAt(discovery *model.ClusterDiscovery) error {
 	ret := _m.Called(discovery)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.ClusterDiscovery) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.ClusterDiscovery) error); ok {
 		r0 = rf(discovery)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0

@@ -27,13 +27,11 @@ func (_m *LinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetada
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
 		r1 = rf(url, timestamp)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -52,13 +50,11 @@ func (_m *LinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*model.Link
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.LinkMetadata) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.LinkMetadata) error); ok {
 		r1 = rf(linkMetadata)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

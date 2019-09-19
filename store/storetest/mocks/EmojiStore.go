@@ -18,13 +18,11 @@ type EmojiStore struct {
 func (_m *EmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	ret := _m.Called(emoji, time)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Emoji, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Emoji, int64) error); ok {
 		r0 = rf(emoji, time)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -43,13 +41,11 @@ func (_m *EmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(id, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -68,13 +64,11 @@ func (_m *EmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji,
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(name, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -93,13 +87,11 @@ func (_m *EmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoj
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int, string) error); ok {
 		r1 = rf(offset, limit, sort)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -118,13 +110,11 @@ func (_m *EmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
 		r1 = rf(names)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -143,13 +133,11 @@ func (_m *EmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Emoji) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Emoji) error); ok {
 		r1 = rf(emoji)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -168,13 +156,11 @@ func (_m *EmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool, int) error); ok {
 		r1 = rf(name, prefixOnly, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

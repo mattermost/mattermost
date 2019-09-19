@@ -27,13 +27,11 @@ func (_m *AuditStore) Get(user_id string, offset int, limit int) (model.Audits, 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(user_id, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -50,13 +48,11 @@ func (_m *AuditStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, e
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64) error); ok {
 		r1 = rf(endTime, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -66,13 +62,11 @@ func (_m *AuditStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, e
 func (_m *AuditStore) PermanentDeleteByUser(userId string) error {
 	ret := _m.Called(userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -82,13 +76,11 @@ func (_m *AuditStore) PermanentDeleteByUser(userId string) error {
 func (_m *AuditStore) Save(audit *model.Audit) error {
 	ret := _m.Called(audit)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Audit) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Audit) error); ok {
 		r0 = rf(audit)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0

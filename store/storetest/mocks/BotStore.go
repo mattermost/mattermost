@@ -27,13 +27,11 @@ func (_m *BotStore) Get(userId string, includeDeleted bool) (*model.Bot, error) 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(userId, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -52,13 +50,11 @@ func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.BotGetOptions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.BotGetOptions) error); ok {
 		r1 = rf(options)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -68,13 +64,11 @@ func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 func (_m *BotStore) PermanentDelete(userId string) error {
 	ret := _m.Called(userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -93,13 +87,11 @@ func (_m *BotStore) Save(bot *model.Bot) (*model.Bot, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Bot) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
 		r1 = rf(bot)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -118,13 +110,11 @@ func (_m *BotStore) Update(bot *model.Bot) (*model.Bot, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Bot) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
 		r1 = rf(bot)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
