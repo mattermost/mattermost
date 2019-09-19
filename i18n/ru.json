@@ -1968,7 +1968,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "Команда {{.SenderStatus}} [[{.SenderName}}]] пригласила вас присоединиться к [[{.TeamDisplayName}}]]."
+    "translation": "Команда {{.SenderStatus}} [[{{.SenderName}}]] пригласила вас присоединиться к [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
