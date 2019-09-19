@@ -1678,7 +1678,7 @@ func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache boo
 			FROM Posts
 		WHERE
 			IsPinned = true
-			AND ChannelId = :ChannelId 
+			AND ChannelId = :ChannelId
 			AND DeleteAt = 0`, map[string]interface{}{"ChannelId": channelId})
 
 	if err != nil {
@@ -1880,8 +1880,8 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	return times, nil
 }
 
-// CountPostsSince gives the number of posts in a channel created since a given date.
-func (s SqlChannelStore) CountPostsSince(channelID string, since int64) (int64, *model.AppError) {
+// countPostsAfter returns the number of posts in the given channel created after but not including the given timestamp.
+func (s SqlChannelStore) countPostsAfter(channelID string, since int64) (int64, *model.AppError) {
 	countUnreadQuery := `
 	SELECT count(*)
 	FROM Posts
@@ -1898,20 +1898,25 @@ func (s SqlChannelStore) CountPostsSince(channelID string, since int64) (int64, 
 
 	unread, err := s.GetReplica().SelectInt(countUnreadQuery, countParams)
 	if err != nil {
-		return 0, model.NewAppError("SqlChannelStore.CountPostsSince", "store.sql_channel.count_posts_since.app_error", countParams, fmt.Sprintf("channel_id=%s, since=%d, err=%s", channelID, since, err), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlChannelStore.countPostsAfter", "store.sql_channel.count_posts_since.app_error", countParams, fmt.Sprintf("channel_id=%s, since=%d, err=%s", channelID, since, err), http.StatusInternalServerError)
 	}
 	return unread, nil
 }
 
-// UpdateLastViewedAtPost sets a channel as unread for a user at the time of the post selected and update the MentionCount
-// it returns a channelunread so redux can update the apps easily.
+// UpdateLastViewedAtPost updates a ChannelMember as if the user last read the channel at the time of the given post.
+// If the provided mentionCount is -1, the given post and all posts after it are considered to be mentions. Returns
+// an updated model.ChannelUnreadAt that can be returned to the client.
 func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError) {
-
 	unreadDate := unreadPost.CreateAt - 1
 
-	unread, appErr := s.CountPostsSince(unreadPost.ChannelId, unreadDate)
+	unread, appErr := s.countPostsAfter(unreadPost.ChannelId, unreadDate)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	if mentionCount == store.MentionAllPosts {
+		// Treat every unread post as a mention (like in a DM channel)
+		mentionCount = int(unread)
 	}
 
 	params := map[string]interface{}{
@@ -1943,7 +1948,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	}
 
 	chanUnreadQuery := `
-	SELECT 
+	SELECT
 		c.TeamId TeamId,
 		cm.UserId UserId,
 		cm.ChannelId ChannelId,
@@ -1951,11 +1956,11 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		cm.MentionCount MentionCount,
 		cm.LastViewedAt LastViewedAt,
 		cm.NotifyProps NotifyProps
-	FROM 
+	FROM
 		ChannelMembers cm
 	LEFT JOIN Channels c ON c.Id=cm.ChannelId
 	WHERE
-		cm.UserId = :userId 
+		cm.UserId = :userId
 		AND cm.channelId = :channelId
 		AND c.DeleteAt = 0
 	`

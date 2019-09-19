@@ -9,6 +9,10 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+const (
+	MentionAllPosts = -1
+)
+
 type StoreResult struct {
 	Data interface{}
 	Err  *model.AppError
