@@ -151,6 +151,11 @@ func (_m *MetricsInterface) ObservePostsSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
+// ObserveStoreMethodDuration provides a mock function with given fields: method, success, elapsed
+func (_m *MetricsInterface) ObserveStoreMethodDuration(method string, success string, elapsed float64) {
+	_m.Called(method, success, elapsed)
+}
+
 // StartServer provides a mock function with given fields:
 func (_m *MetricsInterface) StartServer() {
 	_m.Called()

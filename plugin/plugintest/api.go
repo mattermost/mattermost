@@ -27,13 +27,11 @@ func (_m *API) AddChannelMember(channelId string, userId string) (*model.Channel
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(channelId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -52,13 +50,11 @@ func (_m *API) AddReaction(reaction *model.Reaction) (*model.Reaction, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Reaction) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Reaction) error); ok {
 		r1 = rf(reaction)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -77,13 +73,11 @@ func (_m *API) CopyFileInfos(userId string, fileIds []string) ([]string, error) 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(userId, fileIds)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -102,13 +96,11 @@ func (_m *API) CreateBot(bot *model.Bot) (*model.Bot, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Bot) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
 		r1 = rf(bot)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -127,13 +119,11 @@ func (_m *API) CreateChannel(channel *model.Channel) (*model.Channel, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Channel) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Channel) error); ok {
 		r1 = rf(channel)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -152,13 +142,11 @@ func (_m *API) CreatePost(post *model.Post) (*model.Post, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Post) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Post) error); ok {
 		r1 = rf(post)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -177,13 +165,11 @@ func (_m *API) CreateTeam(team *model.Team) (*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Team) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Team) error); ok {
 		r1 = rf(team)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -202,13 +188,11 @@ func (_m *API) CreateTeamMember(teamId string, userId string) (*model.TeamMember
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -227,13 +211,11 @@ func (_m *API) CreateTeamMembers(teamId string, userIds []string, requestorId st
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string, string) error); ok {
 		r1 = rf(teamId, userIds, requestorId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -252,13 +234,11 @@ func (_m *API) CreateUser(user *model.User) (*model.User, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.User) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.User) error); ok {
 		r1 = rf(user)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -268,13 +248,11 @@ func (_m *API) CreateUser(user *model.User) (*model.User, error) {
 func (_m *API) DeleteBotIconImage(botUserId string) error {
 	ret := _m.Called(botUserId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(botUserId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -284,13 +262,11 @@ func (_m *API) DeleteBotIconImage(botUserId string) error {
 func (_m *API) DeleteChannel(channelId string) error {
 	ret := _m.Called(channelId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(channelId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -300,13 +276,11 @@ func (_m *API) DeleteChannel(channelId string) error {
 func (_m *API) DeleteChannelMember(channelId string, userId string) error {
 	ret := _m.Called(channelId, userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(channelId, userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -321,13 +295,11 @@ func (_m *API) DeleteEphemeralPost(userId string, postId string) {
 func (_m *API) DeletePost(postId string) error {
 	ret := _m.Called(postId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(postId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -337,13 +309,11 @@ func (_m *API) DeletePost(postId string) error {
 func (_m *API) DeleteTeam(teamId string) error {
 	ret := _m.Called(teamId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -353,13 +323,11 @@ func (_m *API) DeleteTeam(teamId string) error {
 func (_m *API) DeleteTeamMember(teamId string, userId string, requestorId string) error {
 	ret := _m.Called(teamId, userId, requestorId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
 		r0 = rf(teamId, userId, requestorId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -369,13 +337,11 @@ func (_m *API) DeleteTeamMember(teamId string, userId string, requestorId string
 func (_m *API) DeleteUser(userId string) error {
 	ret := _m.Called(userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -385,13 +351,11 @@ func (_m *API) DeleteUser(userId string) error {
 func (_m *API) DisablePlugin(id string) error {
 	ret := _m.Called(id)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(id)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -401,13 +365,11 @@ func (_m *API) DisablePlugin(id string) error {
 func (_m *API) EnablePlugin(id string) error {
 	ret := _m.Called(id)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(id)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -426,13 +388,11 @@ func (_m *API) GetBot(botUserId string, includeDeleted bool) (*model.Bot, error)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(botUserId, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -451,13 +411,11 @@ func (_m *API) GetBotIconImage(botUserId string) ([]byte, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(botUserId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -476,13 +434,11 @@ func (_m *API) GetBots(options *model.BotGetOptions) ([]*model.Bot, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.BotGetOptions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.BotGetOptions) error); ok {
 		r1 = rf(options)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -522,13 +478,11 @@ func (_m *API) GetChannel(channelId string) (*model.Channel, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(channelId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -547,13 +501,11 @@ func (_m *API) GetChannelByName(teamId string, name string, includeDeleted bool)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(teamId, name, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -572,13 +524,11 @@ func (_m *API) GetChannelByNameForTeamName(teamName string, channelName string, 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(teamName, channelName, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -597,13 +547,11 @@ func (_m *API) GetChannelMember(channelId string, userId string) (*model.Channel
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(channelId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -622,13 +570,11 @@ func (_m *API) GetChannelMembers(channelId string, page int, perPage int) (*mode
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(channelId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -647,13 +593,11 @@ func (_m *API) GetChannelMembersByIds(channelId string, userIds []string) (*mode
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(channelId, userIds)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -672,13 +616,11 @@ func (_m *API) GetChannelMembersForUser(teamId string, userId string, page int, 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
 		r1 = rf(teamId, userId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -697,13 +639,11 @@ func (_m *API) GetChannelStats(channelId string) (*model.ChannelStats, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(channelId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -722,13 +662,11 @@ func (_m *API) GetChannelsForTeamForUser(teamId string, userId string, includeDe
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(teamId, userId, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -777,13 +715,11 @@ func (_m *API) GetDirectChannel(userId1 string, userId2 string) (*model.Channel,
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userId1, userId2)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -802,13 +738,11 @@ func (_m *API) GetEmoji(emojiId string) (*model.Emoji, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(emojiId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -827,13 +761,11 @@ func (_m *API) GetEmojiByName(name string) (*model.Emoji, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(name)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -859,13 +791,11 @@ func (_m *API) GetEmojiImage(emojiId string) ([]byte, string, error) {
 		r1 = ret.Get(1).(string)
 	}
 
-	var r2 *model.AppError
-	if rf, ok := ret.Get(2).(func(string) *model.AppError); ok {
+	var r2 error
+	if rf, ok := ret.Get(2).(func(string) error); ok {
 		r2 = rf(emojiId)
 	} else {
-		if ret.Get(2) != nil {
-			r2 = ret.Get(2).(*model.AppError)
-		}
+		r2 = ret.Error(2)
 	}
 
 	return r0, r1, r2
@@ -884,13 +814,11 @@ func (_m *API) GetEmojiList(sortBy string, page int, perPage int) ([]*model.Emoj
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(sortBy, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -909,13 +837,11 @@ func (_m *API) GetFile(fileId string) ([]byte, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(fileId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -934,13 +860,11 @@ func (_m *API) GetFileInfo(fileId string) (*model.FileInfo, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(fileId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -957,13 +881,11 @@ func (_m *API) GetFileLink(fileId string) (string, error) {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(fileId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -982,13 +904,11 @@ func (_m *API) GetGroupChannel(userIds []string) (*model.Channel, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
 		r1 = rf(userIds)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1007,13 +927,11 @@ func (_m *API) GetLDAPUserAttributes(userId string, attributes []string) (map[st
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
 		r1 = rf(userId, attributes)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1064,13 +982,11 @@ func (_m *API) GetPluginStatus(id string) (*model.PluginStatus, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1089,13 +1005,11 @@ func (_m *API) GetPlugins() ([]*model.Manifest, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1114,13 +1028,11 @@ func (_m *API) GetPost(postId string) (*model.Post, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(postId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1139,13 +1051,11 @@ func (_m *API) GetPostThread(postId string) (*model.PostList, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(postId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1164,13 +1074,11 @@ func (_m *API) GetPostsAfter(channelId string, postId string, page int, perPage 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
 		r1 = rf(channelId, postId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1189,13 +1097,11 @@ func (_m *API) GetPostsBefore(channelId string, postId string, page int, perPage
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
 		r1 = rf(channelId, postId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1214,13 +1120,11 @@ func (_m *API) GetPostsForChannel(channelId string, page int, perPage int) (*mod
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(channelId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1239,13 +1143,11 @@ func (_m *API) GetPostsSince(channelId string, time int64) (*model.PostList, err
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
 		r1 = rf(channelId, time)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1264,13 +1166,11 @@ func (_m *API) GetProfileImage(userId string) ([]byte, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1289,13 +1189,11 @@ func (_m *API) GetPublicChannelsForTeam(teamId string, page int, perPage int) ([
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(teamId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1314,13 +1212,11 @@ func (_m *API) GetReactions(postId string) ([]*model.Reaction, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(postId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1353,13 +1249,11 @@ func (_m *API) GetSession(sessionId string) (*model.Session, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(sessionId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1376,13 +1270,11 @@ func (_m *API) GetSystemInstallDate() (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1401,13 +1293,11 @@ func (_m *API) GetTeam(teamId string) (*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(teamId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1426,13 +1316,11 @@ func (_m *API) GetTeamByName(name string) (*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(name)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1451,13 +1339,11 @@ func (_m *API) GetTeamIcon(teamId string) ([]byte, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(teamId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1476,13 +1362,11 @@ func (_m *API) GetTeamMember(teamId string, userId string) (*model.TeamMember, e
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1501,13 +1385,11 @@ func (_m *API) GetTeamMembers(teamId string, page int, perPage int) ([]*model.Te
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(teamId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1526,13 +1408,11 @@ func (_m *API) GetTeamMembersForUser(userId string, page int, perPage int) ([]*m
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(userId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1551,13 +1431,11 @@ func (_m *API) GetTeamStats(teamId string) (*model.TeamStats, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(teamId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1576,13 +1454,11 @@ func (_m *API) GetTeams() ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1601,13 +1477,11 @@ func (_m *API) GetTeamsForUser(userId string) ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1626,13 +1500,11 @@ func (_m *API) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, error)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1667,13 +1539,11 @@ func (_m *API) GetUser(userId string) (*model.User, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1692,13 +1562,11 @@ func (_m *API) GetUserByEmail(email string) (*model.User, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(email)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1717,13 +1585,11 @@ func (_m *API) GetUserByUsername(name string) (*model.User, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(name)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1742,13 +1608,11 @@ func (_m *API) GetUserStatus(userId string) (*model.Status, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1767,13 +1631,11 @@ func (_m *API) GetUserStatusesByIds(userIds []string) ([]*model.Status, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
 		r1 = rf(userIds)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1792,13 +1654,11 @@ func (_m *API) GetUsers(options *model.UserGetOptions) ([]*model.User, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) error); ok {
 		r1 = rf(options)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1817,13 +1677,11 @@ func (_m *API) GetUsersByUsernames(usernames []string) ([]*model.User, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
 		r1 = rf(usernames)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1842,13 +1700,11 @@ func (_m *API) GetUsersInChannel(channelId string, sortBy string, page int, perP
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
 		r1 = rf(channelId, sortBy, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1867,13 +1723,11 @@ func (_m *API) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.Us
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(teamId, page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1932,13 +1786,11 @@ func (_m *API) KVCompareAndDelete(key string, oldValue []byte) (bool, error) {
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []byte) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []byte) error); ok {
 		r1 = rf(key, oldValue)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1955,13 +1807,11 @@ func (_m *API) KVCompareAndSet(key string, oldValue []byte, newValue []byte) (bo
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []byte, []byte) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []byte, []byte) error); ok {
 		r1 = rf(key, oldValue, newValue)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1971,13 +1821,11 @@ func (_m *API) KVCompareAndSet(key string, oldValue []byte, newValue []byte) (bo
 func (_m *API) KVDelete(key string) error {
 	ret := _m.Called(key)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(key)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1987,13 +1835,11 @@ func (_m *API) KVDelete(key string) error {
 func (_m *API) KVDeleteAll() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2012,13 +1858,11 @@ func (_m *API) KVGet(key string) ([]byte, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(key)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2037,13 +1881,11 @@ func (_m *API) KVList(page int, perPage int) ([]string, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
 		r1 = rf(page, perPage)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2053,13 +1895,11 @@ func (_m *API) KVList(page int, perPage int) ([]string, error) {
 func (_m *API) KVSet(key string, value []byte) error {
 	ret := _m.Called(key, value)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []byte) error); ok {
 		r0 = rf(key, value)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2069,13 +1909,11 @@ func (_m *API) KVSet(key string, value []byte) error {
 func (_m *API) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) error {
 	ret := _m.Called(key, value, expireInSeconds)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, []byte, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []byte, int64) error); ok {
 		r0 = rf(key, value, expireInSeconds)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2131,13 +1969,11 @@ func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
 func (_m *API) OpenInteractiveDialog(dialog model.OpenDialogRequest) error {
 	ret := _m.Called(dialog)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(model.OpenDialogRequest) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.OpenDialogRequest) error); ok {
 		r0 = rf(dialog)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2156,13 +1992,11 @@ func (_m *API) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot,
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, *model.BotPatch) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, *model.BotPatch) error); ok {
 		r1 = rf(botUserId, botPatch)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2172,13 +2006,11 @@ func (_m *API) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot,
 func (_m *API) PermanentDeleteBot(botUserId string) error {
 	ret := _m.Called(botUserId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(botUserId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2202,13 +2034,11 @@ func (_m *API) ReadFile(path string) ([]byte, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(path)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2232,13 +2062,11 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 func (_m *API) RemovePlugin(id string) error {
 	ret := _m.Called(id)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(id)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2248,13 +2076,11 @@ func (_m *API) RemovePlugin(id string) error {
 func (_m *API) RemoveReaction(reaction *model.Reaction) error {
 	ret := _m.Called(reaction)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Reaction) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Reaction) error); ok {
 		r0 = rf(reaction)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2264,13 +2090,11 @@ func (_m *API) RemoveReaction(reaction *model.Reaction) error {
 func (_m *API) RemoveTeamIcon(teamId string) error {
 	ret := _m.Called(teamId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2280,13 +2104,11 @@ func (_m *API) RemoveTeamIcon(teamId string) error {
 func (_m *API) SaveConfig(config *model.Config) error {
 	ret := _m.Called(config)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Config) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Config) error); ok {
 		r0 = rf(config)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2296,13 +2118,11 @@ func (_m *API) SaveConfig(config *model.Config) error {
 func (_m *API) SavePluginConfig(config map[string]interface{}) error {
 	ret := _m.Called(config)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(map[string]interface{}) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(map[string]interface{}) error); ok {
 		r0 = rf(config)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2321,13 +2141,11 @@ func (_m *API) SearchChannels(teamId string, term string) ([]*model.Channel, err
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, term)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2346,13 +2164,11 @@ func (_m *API) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []*model.SearchParams) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []*model.SearchParams) error); ok {
 		r1 = rf(teamId, paramsList)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2371,13 +2187,11 @@ func (_m *API) SearchTeams(term string) ([]*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(term)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2396,13 +2210,11 @@ func (_m *API) SearchUsers(search *model.UserSearch) ([]*model.User, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.UserSearch) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.UserSearch) error); ok {
 		r1 = rf(search)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2428,13 +2240,11 @@ func (_m *API) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 func (_m *API) SendMail(to string, subject string, htmlBody string) error {
 	ret := _m.Called(to, subject, htmlBody)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
 		r0 = rf(to, subject, htmlBody)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2444,13 +2254,11 @@ func (_m *API) SendMail(to string, subject string, htmlBody string) error {
 func (_m *API) SetBotIconImage(botUserId string, data []byte) error {
 	ret := _m.Called(botUserId, data)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []byte) error); ok {
 		r0 = rf(botUserId, data)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2460,13 +2268,11 @@ func (_m *API) SetBotIconImage(botUserId string, data []byte) error {
 func (_m *API) SetProfileImage(userId string, data []byte) error {
 	ret := _m.Called(userId, data)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []byte) error); ok {
 		r0 = rf(userId, data)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2476,13 +2282,11 @@ func (_m *API) SetProfileImage(userId string, data []byte) error {
 func (_m *API) SetTeamIcon(teamId string, data []byte) error {
 	ret := _m.Called(teamId, data)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []byte) error); ok {
 		r0 = rf(teamId, data)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2515,13 +2319,11 @@ func (_m *API) UpdateBotActive(botUserId string, active bool) (*model.Bot, error
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(botUserId, active)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2540,13 +2342,11 @@ func (_m *API) UpdateChannel(channel *model.Channel) (*model.Channel, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Channel) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Channel) error); ok {
 		r1 = rf(channel)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2565,13 +2365,11 @@ func (_m *API) UpdateChannelMemberNotifications(channelId string, userId string,
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, map[string]string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, map[string]string) error); ok {
 		r1 = rf(channelId, userId, notifications)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2590,13 +2388,11 @@ func (_m *API) UpdateChannelMemberRoles(channelId string, userId string, newRole
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
 		r1 = rf(channelId, userId, newRoles)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2631,13 +2427,11 @@ func (_m *API) UpdatePost(post *model.Post) (*model.Post, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Post) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Post) error); ok {
 		r1 = rf(post)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2656,13 +2450,11 @@ func (_m *API) UpdateTeam(team *model.Team) (*model.Team, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Team) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Team) error); ok {
 		r1 = rf(team)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2681,13 +2473,11 @@ func (_m *API) UpdateTeamMemberRoles(teamId string, userId string, newRoles stri
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
 		r1 = rf(teamId, userId, newRoles)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2706,13 +2496,11 @@ func (_m *API) UpdateUser(user *model.User) (*model.User, error) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.User) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.User) error); ok {
 		r1 = rf(user)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2722,13 +2510,11 @@ func (_m *API) UpdateUser(user *model.User) (*model.User, error) {
 func (_m *API) UpdateUserActive(userId string, active bool) error {
 	ret := _m.Called(userId, active)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, bool) error); ok {
 		r0 = rf(userId, active)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -2747,13 +2533,11 @@ func (_m *API) UpdateUserStatus(userId string, status string) (*model.Status, er
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userId, status)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2772,13 +2556,11 @@ func (_m *API) UploadFile(data []byte, channelId string, filename string) (*mode
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]byte, string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]byte, string, string) error); ok {
 		r1 = rf(data, channelId, filename)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
