@@ -112,7 +112,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	a1.CallbackUrls = []string{"https://nowhere.com"}
 	a1.Homepage = "https://nowhere.com"
 
-	var err *model.AppError
+	var err error
 	a1, err = th.App.CreateOAuthApp(a1)
 	if err != nil {
 		t.Fatal(err)

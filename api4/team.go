@@ -881,7 +881,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var log *bytes.Buffer
 	switch importFrom {
 	case "slack":
-		var err *model.AppError
+		var err error
 		if err, log = c.App.SlackImport(fileData, fileSize, c.Params.TeamId); err != nil {
 			c.Err = err
 			c.Err.(*model.AppError).StatusCode = http.StatusBadRequest

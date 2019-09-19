@@ -148,7 +148,7 @@ func TestMoveChannel(t *testing.T) {
 		CreatorId:   th.BasicUser.Id,
 	}
 
-	var err *model.AppError
+	var err error
 	channel3, err = th.App.CreateChannel(channel3, false)
 	require.Nil(t, err)
 

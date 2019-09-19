@@ -142,7 +142,7 @@ func (me *TestHelper) CreateTeam() *model.Team {
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if team, err = me.App.CreateTeam(team); err != nil {
 		mlog.Error(err.Error())
 
@@ -173,7 +173,7 @@ func (me *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if guest {
 		if user, err = me.App.CreateGuest(user); err != nil {
 			mlog.Error(err.Error())
@@ -213,7 +213,7 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if channel, err = me.App.CreateChannel(channel, true); err != nil {
 		mlog.Error(err.Error())
 
@@ -236,7 +236,7 @@ func (me *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if channel, err = me.App.CreateChannel(channel, true); err != nil {
 		mlog.Error(err.Error())
 
@@ -249,7 +249,7 @@ func (me *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType
 
 func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	var channel *model.Channel
 	if channel, err = me.App.GetOrCreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
 		mlog.Error(err.Error())
@@ -263,7 +263,7 @@ func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 
 func (me *TestHelper) CreateGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	var channel *model.Channel
 	if channel, err = me.App.CreateGroupChannel([]string{me.BasicUser.Id, user1.Id, user2.Id}, me.BasicUser.Id); err != nil {
 		mlog.Error(err.Error())
@@ -286,7 +286,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if post, err = me.App.CreatePost(post, channel, false); err != nil {
 		mlog.Error(err.Error())
 
@@ -306,7 +306,7 @@ func (me *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if post, err = me.App.CreatePost(post, channel, false); err != nil {
 		mlog.Error(err.Error())
 
@@ -394,7 +394,7 @@ func (me *TestHelper) CreateGroup() *model.Group {
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if group, err = me.App.CreateGroup(group); err != nil {
 		mlog.Error(err.Error())
 

@@ -8,8 +8,8 @@ import (
 )
 
 type MfaInterface interface {
-	GenerateSecret(user *model.User) (string, []byte, *model.AppError)
-	Activate(user *model.User, token string) *model.AppError
-	Deactivate(userId string) *model.AppError
-	ValidateToken(secret, token string) (bool, *model.AppError)
+	GenerateSecret(user *model.User) (string, []byte, error)
+	Activate(user *model.User, token string) error
+	Deactivate(userId string) error
+	ValidateToken(secret, token string) (bool, error)
 }

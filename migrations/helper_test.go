@@ -116,7 +116,7 @@ func (me *TestHelper) CreateTeam() *model.Team {
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if team, err = me.App.CreateTeam(team); err != nil {
 		mlog.Error(err.Error())
 
@@ -139,7 +139,7 @@ func (me *TestHelper) CreateUser() *model.User {
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if user, err = me.App.CreateUser(user); err != nil {
 		mlog.Error(err.Error())
 
@@ -166,7 +166,7 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if channel, err = me.App.CreateChannel(channel, true); err != nil {
 		mlog.Error(err.Error())
 
@@ -179,7 +179,7 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 
 func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	var channel *model.Channel
 	if channel, err = me.App.GetOrCreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
 		mlog.Error(err.Error())
@@ -202,7 +202,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	}
 
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
+	var err error
 	if post, err = me.App.CreatePost(post, channel, false); err != nil {
 		mlog.Error(err.Error())
 

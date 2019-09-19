@@ -488,7 +488,7 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bo
 		close(cpc)
 	}()
 
-	var err *model.AppError
+	var err error
 	list := model.NewPostList()
 
 	rpr := <-rpc

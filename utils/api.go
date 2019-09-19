@@ -40,9 +40,9 @@ func OriginChecker(allowedOrigins string) func(*http.Request) bool {
 	}
 }
 
-func RenderWebAppError(config *model.Config, w http.ResponseWriter, r *http.Request, err *model.AppError, s crypto.Signer) {
-	RenderWebError(config, w, r, err.StatusCode, url.Values{
-		"message": []string{err.Message},
+func RenderWebAppError(config *model.Config, w http.ResponseWriter, r *http.Request, err error, s crypto.Signer) {
+	RenderWebError(config, w, r, err.(*model.AppError).StatusCode, url.Values{
+		"message": []string{err.(*model.AppError).Message},
 	}, s)
 }
 

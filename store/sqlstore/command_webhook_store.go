@@ -57,11 +57,11 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	var webhook model.CommandWebhook
 
 	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
-	var appErr *model.AppError
+	var appErr error
 	if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM CommandWebhooks WHERE Id = :Id AND CreateAt > :ExpTime", map[string]interface{}{"Id": id, "ExpTime": exptime}); err != nil {
 		appErr = model.NewAppError("SqlCommandWebhookStore.Get", "store.sql_command_webhooks.get.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
 		if err == sql.ErrNoRows {
-			appErr.StatusCode = http.StatusNotFound
+			appErr.(*model.AppError).StatusCode = http.StatusNotFound
 		}
 		return nil, appErr
 	}

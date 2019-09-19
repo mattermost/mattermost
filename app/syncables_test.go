@@ -335,7 +335,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 	userIDs := []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}
 
-	var err *model.AppError
+	var err error
 	// add users to teams and channels
 	for _, userID := range userIDs {
 		_, err = th.App.AddTeamMember(th.BasicTeam.Id, userID)
