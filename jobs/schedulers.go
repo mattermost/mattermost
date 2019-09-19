@@ -103,8 +103,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 							if scheduler != nil {
 								if scheduler.Enabled(cfg) {
 									if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
-										mlog.Warn(fmt.Sprintf("Failed to schedule job with scheduler: %v", scheduler.Name()))
-										mlog.Error(fmt.Sprint(err))
+										mlog.Error("Failed to schedule job", mlog.String("scheduler", scheduler.Name()), mlog.Err(err))
 									} else {
 										schedulers.setNextRunTime(cfg, idx, now, true)
 									}
@@ -148,7 +147,7 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now tim
 
 	if !pendingJobs {
 		if pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType()); err != nil {
-			mlog.Error("Failed to set next job run time: " + err.Error())
+			mlog.Error("Failed to set next job run time", mlog.Err(err))
 			schedulers.nextRunTimes[idx] = nil
 			return
 		} else {
@@ -158,13 +157,13 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now tim
 
 	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
 	if err != nil {
-		mlog.Error("Failed to set next job run time: " + err.Error())
+		mlog.Error("Failed to set next job run time", mlog.Err(err))
 		schedulers.nextRunTimes[idx] = nil
 		return
 	}
 
 	schedulers.nextRunTimes[idx] = scheduler.NextScheduleTime(cfg, now, pendingJobs, lastSuccessfulJob)
-	mlog.Debug(fmt.Sprintf("Next run time for scheduler %v: %v", scheduler.Name(), schedulers.nextRunTimes[idx]))
+	mlog.Debug("Next run time for scheduler", mlog.String("scheduler_name", scheduler.Name()), mlog.String("next_runtime", fmt.Sprintf("%v", schedulers.nextRunTimes[idx])))
 }
 
 func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (*model.Job, *model.AppError) {

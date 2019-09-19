@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"image"
 	"image/draw"
 	"image/gif"
@@ -285,13 +284,12 @@ func imageToPaletted(img image.Image) *image.Paletted {
 
 func (a *App) deleteEmojiImage(id string) {
 	if err := a.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
-		mlog.Error(fmt.Sprintf("Failed to rename image when deleting emoji %v", id))
+		mlog.Error("Failed to rename image when deleting emoji", mlog.String("emoji_id", id))
 	}
 }
 
 func (a *App) deleteReactionsForEmoji(emojiName string) {
 	if err := a.Srv.Store.Reaction().DeleteAllWithEmojiName(emojiName); err != nil {
-		mlog.Warn(fmt.Sprintf("Unable to delete reactions when deleting emoji with emoji name %v", emojiName))
-		mlog.Warn(fmt.Sprint(err))
+		mlog.Warn("Unable to delete reactions when deleting emoji", mlog.String("emoji_name", emojiName), mlog.Err(err))
 	}
 }

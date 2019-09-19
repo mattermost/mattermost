@@ -526,7 +526,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, err := th.App.Srv.Store.Post().GetPosts(channel.Id, 0, 1, false)
+	postList, err := th.App.Srv.Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
 	require.Nil(t, err)
 
 	if assert.Len(t, postList.Order, 1) {
@@ -1040,4 +1040,19 @@ func TestSearchChannelsForUser(t *testing.T) {
 
 		searchAndCheck(t, "dev", []string{"test-dev-1", "test-dev-2", "dev-3"})
 	})
+}
+
+func TestGetNumberOfChannelsOnTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.DeleteChannel(th.BasicChannel, th.BasicUser.Id)
+
+	count, err := th.App.GetNumberOfChannelsOnTeam(th.BasicTeam.Id, true)
+	require.Nil(t, err)
+	assert.Equal(t, 3, count)
+
+	count, err = th.App.GetNumberOfChannelsOnTeam(th.BasicTeam.Id, false)
+	require.Nil(t, err)
+	assert.Equal(t, 2, count)
 }

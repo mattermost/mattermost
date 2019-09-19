@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -14,6 +13,10 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
+
+type SqlRoleStore struct {
+	SqlStore
+}
 
 type Role struct {
 	Id            string
@@ -68,7 +71,9 @@ func (role Role) ToModel() *model.Role {
 	}
 }
 
-func initSqlSupplierRoles(sqlStore SqlStore) {
+func NewSqlRoleStore(sqlStore SqlStore) store.RoleStore {
+	s := &SqlRoleStore{sqlStore}
+
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(Role{}, "Roles").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
@@ -77,9 +82,13 @@ func initSqlSupplierRoles(sqlStore SqlStore) {
 		table.ColMap("Description").SetMaxSize(1024)
 		table.ColMap("Permissions").SetMaxSize(4096)
 	}
+	return s
 }
 
-func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
+func (s SqlRoleStore) CreateIndexesIfNotExists() {
+}
+
+func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
 		return nil, model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.invalid_role.app_error", nil, "", http.StatusBadRequest)
@@ -91,7 +100,7 @@ func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...s
 			return nil, model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		defer finalizeTransaction(transaction)
-		createdRole, appErr := s.createRole(ctx, role, transaction, hints...)
+		createdRole, appErr := s.createRole(role, transaction)
 		if appErr != nil {
 			transaction.Rollback()
 			return nil, appErr
@@ -112,7 +121,7 @@ func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...s
 	return dbRole.ToModel(), nil
 }
 
-func (s *SqlSupplier) createRole(ctx context.Context, role *model.Role, transaction *gorp.Transaction, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
+func (s *SqlRoleStore) createRole(role *model.Role, transaction *gorp.Transaction) (*model.Role, *model.AppError) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
 		return nil, model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.invalid_role.app_error", nil, "", http.StatusBadRequest)
@@ -131,7 +140,7 @@ func (s *SqlSupplier) createRole(ctx context.Context, role *model.Role, transact
 	return dbRole.ToModel(), nil
 }
 
-func (s *SqlSupplier) RoleGet(ctx context.Context, roleId string, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
+func (s *SqlRoleStore) Get(roleId string) (*model.Role, *model.AppError) {
 	var dbRole Role
 
 	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Id = :Id", map[string]interface{}{"Id": roleId}); err != nil {
@@ -144,7 +153,7 @@ func (s *SqlSupplier) RoleGet(ctx context.Context, roleId string, hints ...store
 	return dbRole.ToModel(), nil
 }
 
-func (s *SqlSupplier) RoleGetAll(ctx context.Context, hints ...store.LayeredStoreHint) ([]*model.Role, *model.AppError) {
+func (s *SqlRoleStore) GetAll() ([]*model.Role, *model.AppError) {
 	var dbRoles []Role
 
 	if _, err := s.GetReplica().Select(&dbRoles, "SELECT * from Roles", map[string]interface{}{}); err != nil {
@@ -161,7 +170,7 @@ func (s *SqlSupplier) RoleGetAll(ctx context.Context, hints ...store.LayeredStor
 	return roles, nil
 }
 
-func (s *SqlSupplier) RoleGetByName(ctx context.Context, name string, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
+func (s *SqlRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
 	var dbRole Role
 
 	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
@@ -174,7 +183,7 @@ func (s *SqlSupplier) RoleGetByName(ctx context.Context, name string, hints ...s
 	return dbRole.ToModel(), nil
 }
 
-func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints ...store.LayeredStoreHint) ([]*model.Role, *model.AppError) {
+func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError) {
 	var dbRoles []*Role
 
 	if len(names) == 0 {
@@ -202,7 +211,7 @@ func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints 
 	return roles, nil
 }
 
-func (s *SqlSupplier) RoleDelete(ctx context.Context, roleId string, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
+func (s *SqlRoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
 	// Get the role.
 	var role *Role
 	if err := s.GetReplica().SelectOne(&role, "SELECT * from Roles WHERE Id = :Id", map[string]interface{}{"Id": roleId}); err != nil {
@@ -224,7 +233,7 @@ func (s *SqlSupplier) RoleDelete(ctx context.Context, roleId string, hints ...st
 	return role.ToModel(), nil
 }
 
-func (s *SqlSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *model.AppError {
+func (s *SqlRoleStore) PermanentDeleteAll() *model.AppError {
 	if _, err := s.GetMaster().Exec("DELETE FROM Roles"); err != nil {
 		return model.NewAppError("SqlRoleStore.PermanentDeleteAll", "store.sql_role.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
