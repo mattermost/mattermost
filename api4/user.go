@@ -1381,8 +1381,42 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			password = "certificate"
 		}
 	}
-    loginId = r.Header.Get("X-BDP-USERNAME")
+	mlog.Info("LoginID before BDP Header: "+loginId)
+	if (loginId == r.Header.Get("X-BDP-USERNAME")) {
+		mlog.Info("Expected Login ID matches Login ID retrieved from session header. Logging in...")
+	    loginId = r.Header.Get("X-BDP-USERNAME")
+	} else {
+		mlog.Info("Expected Login ID does not match Login ID retrieved from session header. You will not be logged in...")
+	}
 	password = "certificate"
+
+	loginUser, err := c.App.GetUserForLogin("", loginId)
+// 	mlog.Info("Login User from GetUserForLogin: "+loginUser.Username)
+	if err != nil {
+		c.LogAuditWithUserId(id, "no user found failure - login_id="+loginId)
+		newUser := &model.User{
+			Email:         loginId + "@bdp.com",
+			Username:      loginId,
+			Nickname:      loginId,
+			Password:      "certificate",
+			EmailVerified: true,
+		}
+		mlog.Info("Login error for user "+loginId+". Attempting to create new user.")
+		mlog.Error(err.Error())
+		c.App.CreateUser(newUser)
+		c.App.DoLogin(w, r, newUser, "")
+        c.Err = err
+	}
+	//if user doesnt exist create user
+	if loginUser == nil {
+		mlog.Info("No Login user found for "+loginId+". New user will be created.")
+// 		c.App.CreateUser(loginUser)
+	} else {
+		mlog.Info("Login user: "+loginUser.Username)
+	}
+	//c.App.CreateUser()
+
+	//c.App.GetTeamByName()
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
