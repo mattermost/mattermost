@@ -6,6 +6,9 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"reflect"
+	"runtime"
+	"strings"
 	"time"
 
 	"github.com/NYTimes/gziphandler"
@@ -16,10 +19,20 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
+	handlerName := runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
+	pos := strings.LastIndex(handlerName, ".")
+	if pos != -1 && len(handlerName) > pos {
+		handlerName = handlerName[pos+1:]
+	}
+	return handlerName
+}
+
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      false,
 		RequireMfa:          false,
@@ -35,6 +48,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 	return &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      false,
 		RequireMfa:          false,
@@ -47,6 +61,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 type Handler struct {
 	GetGlobalAppOptions app.AppOptionCreator
 	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
+	HandlerName         string
 	RequireSession      bool
 	TrustRequester      bool
 	RequireMfa          bool
@@ -192,6 +207,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
+			c.App.Metrics.ObserveApiEndpointDuration(h.HandlerName, elapsed)
 		}
 	}
 }
@@ -249,6 +265,7 @@ func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 	handler := &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      false,
 		RequireMfa:          false,
@@ -267,6 +284,7 @@ func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 	handler := &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      true,
 		RequireMfa:          false,
@@ -284,6 +302,7 @@ func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 	handler := &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
 		RequireSession:      true,
 		TrustRequester:      false,
 		RequireMfa:          true,
@@ -302,6 +321,7 @@ func (w *Web) apiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 	handler := &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      true,
 		RequireMfa:          false,
