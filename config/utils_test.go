@@ -149,19 +149,23 @@ func TestStripPassword(t *testing.T) {
 	}{
 		"mysql": {
 			In:          "mysql://mmuser:password@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
-			ExpectedOut: "mysql://mmuser@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+		},
+		"mysql idempotent": {
+			In:          "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
 		},
 		"mysql: password with : and @": {
 			In:          "mysql://mmuser:p:assw@ord@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
-			ExpectedOut: "mysql://mmuser@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
 		},
 		"mysql: password with @ and :": {
 			In:          "mysql://mmuser:pa@sswo:rd@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
-			ExpectedOut: "mysql://mmuser@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
 		},
 		"postgres": {
 			In:          "postgres://mmuser:password@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
-			ExpectedOut: "postgres://mmuser@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+			ExpectedOut: "postgres://mmuser:@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
 		},
 		"malformed without :": {
 			In:          "postgres://mmuserpassword@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
