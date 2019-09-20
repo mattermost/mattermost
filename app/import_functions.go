@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"crypto/sha1"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -935,7 +934,7 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 					oldHash := sha1.Sum(oldFileData)
 
 					if bytes.Equal(oldHash[:], newHash[:]) {
-						mlog.Info(fmt.Sprintf("Skipping uploading of file with name %s, already exists", file.Name()))
+						mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
 						return nil, nil
 					}
 
@@ -947,13 +946,13 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 		fileInfo, err := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
 
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Failed to upload file: %s", err.Error()))
+			mlog.Error("Failed to upload file:", mlog.Err(err))
 			return nil, err
 		}
 
 		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{buf.Bytes()})
 
-		mlog.Info(fmt.Sprintf("uploading file with name %s", file.Name()))
+		mlog.Info("Uploading file with name", mlog.String("file_name", file.Name()))
 		return fileInfo, nil
 	}
 	return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -1091,7 +1090,7 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 func (a *App) UpdateFileInfoWithPostId(post *model.Post) {
 	for _, fileId := range post.FileIds {
 		if err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
-			mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, err), mlog.String("post_id", post.Id))
+			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}
 }
