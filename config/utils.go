@@ -140,3 +140,22 @@ func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfi
 	retCfg := ret.(model.Config)
 	return &retCfg, nil
 }
+
+// stripPassword remove the password from a given DSN
+func stripPassword(dsn string) string {
+	var prefix string
+	if strings.HasPrefix(dsn, "mysql://") {
+		prefix = "mysql://"
+	} else if strings.HasPrefix(dsn, "postgres://") {
+		prefix = "postgres://"
+	}
+	dsn = strings.TrimPrefix(dsn, prefix)
+
+	i := strings.Index(dsn, ":")
+	j := strings.LastIndex(dsn, "@")
+	if i < 0 || j < 0 || i > j {
+		return "(omitted due to error parsing the DSN)"
+	}
+
+	return prefix + dsn[:i] + dsn[j:]
+}
