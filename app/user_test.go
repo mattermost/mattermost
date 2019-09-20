@@ -899,7 +899,8 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 
 		assert.NotNil(t, restrictions)
 		assert.NotNil(t, restrictions.Teams)
-		assert.Len(t, restrictions.Channels, 0)
+		assert.NotNil(t, restrictions.Channels)
+		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions.Channels)
 		assert.ElementsMatch(t, []string{team1.Id, team2.Id}, restrictions.Teams)
 	})
 

@@ -136,16 +136,22 @@ func TestConfigSet(t *testing.T) {
 	})
 
 	t.Run("Error when the wrong value is set", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "set", "EmailSettings.ConnectionSecurity", "invalid"))
+		assert.Error(t, th.RunCommand(t, "config", "set", "EmailSettings.ConnectionSecurity", "invalid-key"))
 		output := th.CheckCommand(t, "config", "get", "EmailSettings.ConnectionSecurity")
-		assert.NotContains(t, string(output), "invalid")
+		assert.NotContains(t, string(output), "invalid-key")
+	})
+
+	t.Run("Error when the parameter of an unknown plugin is set", func(t *testing.T) {
+		output, err := th.RunCommandWithOutput(t, "config", "set", "PluginSettings.Plugins.someplugin", "true")
+		assert.Error(t, err)
+		assert.NotContains(t, string(output), "panic")
 	})
 
 	t.Run("Error when the wrong locale is set", func(t *testing.T) {
 		th.CheckCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es")
-		assert.Error(t, th.RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "invalid"))
+		assert.Error(t, th.RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "invalid-key"))
 		output := th.CheckCommand(t, "config", "get", "LocalizationSettings.DefaultServerLocale")
-		assert.NotContains(t, string(output), "invalid")
+		assert.NotContains(t, string(output), "invalid-key")
 		assert.NotContains(t, string(output), "\"en\"")
 	})
 

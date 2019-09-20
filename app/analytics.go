@@ -4,8 +4,6 @@
 package app
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -25,7 +23,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 	}
 
 	if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
-		mlog.Debug(fmt.Sprintf("More than %v users on the system, intensive queries skipped", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
+		mlog.Debug("More than limit users are on the system, intensive queries skipped", mlog.Int("limit", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
 		skipIntensiveQueries = true
 	}
 

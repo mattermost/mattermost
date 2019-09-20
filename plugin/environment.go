@@ -18,6 +18,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ErrNotFound = errors.New("Item not found")
+
 type apiImplCreatorFunc func(*model.Manifest) API
 
 // registeredPlugin stores the state for a given plugin that has been activated
@@ -162,6 +164,23 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 	return pluginStatuses, nil
 }
 
+// GetManifest returns a manifest for a given pluginId.
+// Returns ErrNotFound if plugin is not found.
+func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
+	plugins, err := env.Available()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get plugin statuses")
+	}
+
+	for _, plugin := range plugins {
+		if plugin.Manifest != nil && plugin.Manifest.Id == pluginId {
+			return plugin.Manifest, nil
+		}
+	}
+
+	return nil, ErrNotFound
+}
+
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
 	// Check if we are already active
 	if env.IsActive(id) {
@@ -284,16 +303,46 @@ func (env *Environment) RestartPlugin(id string) error {
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() {
+	if env.pluginHealthCheckJob != nil {
+		env.pluginHealthCheckJob.Cancel()
+	}
+
+	var wg sync.WaitGroup
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
 		rp := value.(*registeredPlugin)
 
-		if rp.supervisor != nil {
+		if rp.supervisor == nil {
+			return true
+		}
+
+		wg.Add(1)
+
+		done := make(chan bool)
+		go func() {
+			defer close(done)
 			if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
 				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
 			}
-			rp.supervisor.Shutdown()
-		}
+		}()
 
+		go func() {
+			defer wg.Done()
+
+			select {
+			case <-time.After(10 * time.Second):
+				env.logger.Warn("Plugin OnDeactivate() failed to complete in 10 seconds", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id))
+			case <-done:
+			}
+
+			rp.supervisor.Shutdown()
+		}()
+
+		return true
+	})
+
+	wg.Wait()
+
+	env.registeredPlugins.Range(func(key, value interface{}) bool {
 		env.registeredPlugins.Delete(key)
 
 		return true

@@ -268,6 +268,10 @@ func (c *Client4) GetTestEmailRoute() string {
 	return fmt.Sprintf("/email/test")
 }
 
+func (c *Client4) GetTestSiteURLRoute() string {
+	return fmt.Sprintf("/site_url/test")
+}
+
 func (c *Client4) GetTestS3Route() string {
 	return fmt.Sprintf("/file/s3_test")
 }
@@ -2096,6 +2100,17 @@ func (c *Client4) ConvertChannelToPrivate(channelId string) (*Channel, *Response
 	return ChannelFromJson(r.Body), BuildResponse(r)
 }
 
+// UpdateChannelPrivacy updates channel privacy
+func (c *Client4) UpdateChannelPrivacy(channelId string, privacy string) (*Channel, *Response) {
+	requestBody := map[string]string{"privacy": privacy}
+	r, err := c.DoApiPut(c.GetChannelRoute(channelId)+"/privacy", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelFromJson(r.Body), BuildResponse(r)
+}
+
 // RestoreChannel restores a previously deleted channel. Any missing fields are not updated.
 func (c *Client4) RestoreChannel(channelId string) (*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/restore", "")
@@ -2915,6 +2930,18 @@ func (c *Client4) GetPingWithServerStatus() (string, *Response) {
 // TestEmail will attempt to connect to the configured SMTP server.
 func (c *Client4) TestEmail(config *Config) (bool, *Response) {
 	r, err := c.DoApiPost(c.GetTestEmailRoute(), config.ToJson())
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// TestSiteURL will test the validity of a site URL.
+func (c *Client4) TestSiteURL(siteURL string) (bool, *Response) {
+	requestBody := make(map[string]string)
+	requestBody["site_url"] = siteURL
+	r, err := c.DoApiPost(c.GetTestSiteURLRoute(), MapToJson(requestBody))
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -4500,6 +4527,31 @@ func (c *Client4) DisablePlugin(id string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// GetMarketplacePlugins will return a list of plugins that an admin can install.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) GetMarketplacePlugins(filter *MarketplacePluginFilter) ([]*MarketplacePlugin, *Response) {
+	route := c.GetPluginsRoute() + "/marketplace"
+	u, parseErr := url.Parse(route)
+	if parseErr != nil {
+		return nil, &Response{Error: NewAppError("GetMarketplacePlugins", "model.client.parse_plugins.app_error", nil, parseErr.Error(), http.StatusBadRequest)}
+	}
+
+	filter.ApplyToURL(u)
+
+	r, err := c.DoApiGet(u.String(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	plugins, readerErr := MarketplacePluginsFromReader(r.Body)
+	if readerErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError(route, "model.client.parse_plugins.app_error", nil, err.Error(), http.StatusBadRequest))
+	}
+
+	return plugins, BuildResponse(r)
 }
 
 // UpdateChannelScheme will update a channel's scheme.

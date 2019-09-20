@@ -160,7 +160,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	}
 
 	// Get total number of channels on current team
-	count, err := a.GetNumberOfChannelsOnTeam(channel.TeamId)
+	count, err := a.GetNumberOfChannelsOnTeam(channel.TeamId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -1330,6 +1330,10 @@ func (a *App) GetChannelGuestCount(channelId string) (int64, *model.AppError) {
 	return a.Srv.Store.Channel().GetGuestCount(channelId, true)
 }
 
+func (a *App) GetChannelPinnedPostCount(channelId string) (int64, *model.AppError) {
+	return a.Srv.Store.Channel().GetPinnedPostCount(channelId, true)
+}
+
 func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
 	return a.Srv.Store.Channel().GetChannelCounts(teamId, userId)
 }
@@ -1720,12 +1724,23 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 	return nil
 }
 
-func (a *App) GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
+func (a *App) GetNumberOfChannelsOnTeam(teamId string, includeDeleted bool) (int, *model.AppError) {
 	// Get total number of channels on current team
 	list, err := a.Srv.Store.Channel().GetTeamChannels(teamId)
 	if err != nil {
 		return 0, err
 	}
+
+	if !includeDeleted {
+		count := 0
+		for _, channel := range *list {
+			if channel.DeleteAt == 0 {
+				count++
+			}
+		}
+		return count, nil
+	}
+
 	return len(*list), nil
 }
 
@@ -1772,13 +1787,21 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-
 	post, err := a.GetSinglePost(postID)
 	if err != nil {
 		return nil, err
 	}
 
-	unreadMentions := 0 // TODO: calculate this value, setting it to zero for now.
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	unreadMentions, err := a.countMentionsFromPost(user, post)
+	if err != nil {
+		return nil, err
+	}
+
 	channel, updateErr := a.Srv.Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions)
 	if err != nil {
 		return channel, updateErr

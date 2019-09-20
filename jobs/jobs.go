@@ -5,7 +5,6 @@ package jobs
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"net/http"
@@ -135,10 +134,10 @@ func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, can
 	for {
 		select {
 		case <-ctx.Done():
-			mlog.Debug(fmt.Sprintf("CancellationWatcher for Job: %v Aborting as job has finished.", jobId))
+			mlog.Debug("CancellationWatcher for Job Aborting as job has finished.", mlog.String("job_id", jobId))
 			return
 		case <-time.After(CANCEL_WATCHER_POLLING_INTERVAL * time.Millisecond):
-			mlog.Debug(fmt.Sprintf("CancellationWatcher for Job: %v polling.", jobId))
+			mlog.Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobId))
 			if jobStatus, err := srv.Store.Job().Get(jobId); err == nil {
 				if jobStatus.Status == model.JOB_STATUS_CANCEL_REQUESTED {
 					close(cancelChan)

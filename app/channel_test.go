@@ -526,7 +526,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, err := th.App.Srv.Store.Post().GetPosts(channel.Id, 0, 1, false)
+	postList, err := th.App.Srv.Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
 	require.Nil(t, err)
 
 	if assert.Len(t, postList.Order, 1) {
@@ -1042,6 +1042,21 @@ func TestSearchChannelsForUser(t *testing.T) {
 	})
 }
 
+func TestGetNumberOfChannelsOnTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.DeleteChannel(th.BasicChannel, th.BasicUser.Id)
+
+	count, err := th.App.GetNumberOfChannelsOnTeam(th.BasicTeam.Id, true)
+	require.Nil(t, err)
+	assert.Equal(t, 3, count)
+
+	count, err = th.App.GetNumberOfChannelsOnTeam(th.BasicTeam.Id, false)
+	require.Nil(t, err)
+	assert.Equal(t, 2, count)
+}
+
 func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1113,7 +1128,6 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		unread, err := th.App.GetChannelUnread(c1.Id, u2.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(0), unread.MsgCount)
-
 	})
 
 	t.Run("Unread on a private channel", func(t *testing.T) {
@@ -1133,6 +1147,48 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, int64(1), unread.MsgCount)
 		assert.Equal(t, pp2.CreateAt-1, response.LastViewedAt)
+	})
+
+	t.Run("Unread with mentions", func(t *testing.T) {
+		c2 := th.CreateChannel(th.BasicTeam)
+		_, err := th.App.AddUserToChannel(u2, c2)
+		require.Nil(t, err)
+
+		p4, err := th.App.CreatePost(&model.Post{
+			UserId:    u2.Id,
+			ChannelId: c2.Id,
+			Message:   "@" + u1.Username,
+		}, c2, false)
+		require.Nil(t, err)
+		th.CreatePost(c2)
+
+		response, err := th.App.MarkChannelAsUnreadFromPost(p4.Id, u1.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), response.MsgCount)
+		assert.Equal(t, int64(1), response.MentionCount)
+
+		unread, err := th.App.GetChannelUnread(c2.Id, u1.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(1), unread.MsgCount)
+		assert.Equal(t, int64(1), unread.MentionCount)
+	})
+
+	t.Run("Unread on a DM channel", func(t *testing.T) {
+		dc := th.CreateDmChannel(u2)
+
+		dm1 := th.CreatePost(dc)
+		th.CreatePost(dc)
+		th.CreatePost(dc)
+
+		response, err := th.App.MarkChannelAsUnreadFromPost(dm1.Id, u1.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(0), response.MsgCount)
+		assert.Equal(t, int64(3), response.MentionCount)
+
+		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(3), unread.MsgCount)
+		assert.Equal(t, int64(3), unread.MentionCount)
 	})
 
 	t.Run("Can't unread an imaginary post", func(t *testing.T) {
