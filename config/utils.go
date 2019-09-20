@@ -148,8 +148,15 @@ func stripPassword(dsn, schema string) string {
 
 	i := strings.Index(dsn, ":")
 	j := strings.LastIndex(dsn, "@")
-	if i < 0 || j < 0 || i > j {
+
+	// Return error if no @ sign is found
+	if j < 0 {
 		return "(omitted due to error parsing the DSN)"
+	}
+
+	// Return back the input if no password is found
+	if i < 0 || i > j {
+		return prefix + dsn
 	}
 
 	return prefix + dsn[:i+1] + dsn[j:]

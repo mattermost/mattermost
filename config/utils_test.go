@@ -173,10 +173,15 @@ func TestStripPassword(t *testing.T) {
 			Schema:      "postgres",
 			ExpectedOut: "postgres://mmuser:@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
 		},
+		"pipe": {
+			DSN:         "mysql://user@unix(/path/to/socket)/dbname",
+			Schema:      "mysql",
+			ExpectedOut: "mysql://user@unix(/path/to/socket)/dbname",
+		},
 		"malformed without :": {
 			DSN:         "postgres://mmuserpassword@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
 			Schema:      "postgres",
-			ExpectedOut: "(omitted due to error parsing the DSN)",
+			ExpectedOut: "postgres://mmuserpassword@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
 		},
 		"malformed without @": {
 			DSN:         "postgres://mmuser:passwordlocalhost:5432/mattermost?sslmode=disable&connect_timeout=10",
