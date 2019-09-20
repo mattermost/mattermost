@@ -1419,7 +1419,7 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 
 	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
 	if err != nil {
-		mlog.Error("SqlChannelStore.IsUserInChannelUseCache:", mlog.Err(err))
+		mlog.Error("Error getting all channel members for user", mlog.Err(err))
 		return false
 	}
 
