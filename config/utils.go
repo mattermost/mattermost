@@ -157,5 +157,5 @@ func stripPassword(dsn string) string {
 		return "(omitted due to error parsing the DSN)"
 	}
 
-	return prefix + dsn[:i] + dsn[j:]
+	return prefix + dsn[:i+1] + dsn[j:]
 }
