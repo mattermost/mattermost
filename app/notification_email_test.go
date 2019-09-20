@@ -29,7 +29,7 @@ func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
 	}
 	translateFunc := utils.GetUserTranslations("en")
 	subject := getDirectMessageNotificationEmailSubject(user, post, translateFunc, "http://localhost:8065", "@sender", true)
-	require.True(t, strings.HasPrefix(subject, expectedPrefix), fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
+	require.Regexp(t, regexp.MustCompile("^"+regexp.QuoteMeta(expectedPrefix)), subject, fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
 }
 
 func TestGetGroupMessageNotificationEmailSubjectFull(t *testing.T) {
@@ -44,7 +44,7 @@ func TestGetGroupMessageNotificationEmailSubjectFull(t *testing.T) {
 	translateFunc := utils.GetUserTranslations("en")
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	subject := getGroupMessageNotificationEmailSubject(user, post, translateFunc, "http://localhost:8065", "sender", emailNotificationContentsType, true)
-	require.True(t, strings.HasPrefix(subject, expectedPrefix), fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
+	require.Regexp(t, regexp.MustCompile("^"+regexp.QuoteMeta(expectedPrefix)), subject, fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
 }
 
 func TestGetGroupMessageNotificationEmailSubjectGeneric(t *testing.T) {
@@ -59,7 +59,7 @@ func TestGetGroupMessageNotificationEmailSubjectGeneric(t *testing.T) {
 	translateFunc := utils.GetUserTranslations("en")
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
 	subject := getGroupMessageNotificationEmailSubject(user, post, translateFunc, "http://localhost:8065", "sender", emailNotificationContentsType, true)
-	require.True(t, strings.HasPrefix(subject, expectedPrefix), fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
+	require.Regexp(t, regexp.MustCompile("^"+regexp.QuoteMeta(expectedPrefix)), subject, fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
 }
 
 func TestGetNotificationEmailSubject(t *testing.T) {
@@ -73,7 +73,7 @@ func TestGetNotificationEmailSubject(t *testing.T) {
 	}
 	translateFunc := utils.GetUserTranslations("en")
 	subject := getNotificationEmailSubject(user, post, translateFunc, "http://localhost:8065", "team", true)
-	require.True(t, strings.HasPrefix(subject, expectedPrefix), fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
+	require.Regexp(t, regexp.MustCompile("^"+regexp.QuoteMeta(expectedPrefix)), subject, fmt.Sprintf("Expected subject line prefix '%s', got %s", expectedPrefix, subject))
 }
 
 func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
