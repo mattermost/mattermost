@@ -144,40 +144,48 @@ func TestFixInvalidLocales(t *testing.T) {
 
 func TestStripPassword(t *testing.T) {
 	for name, test := range map[string]struct {
-		In          string
+		DSN         string
+		Schema      string
 		ExpectedOut string
 	}{
 		"mysql": {
-			In:          "mysql://mmuser:password@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			DSN:         "mysql://mmuser:password@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			Schema:      "mysql",
 			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
 		},
 		"mysql idempotent": {
-			In:          "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			DSN:         "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			Schema:      "mysql",
 			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
 		},
 		"mysql: password with : and @": {
-			In:          "mysql://mmuser:p:assw@ord@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			DSN:         "mysql://mmuser:p:assw@ord@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			Schema:      "mysql",
 			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
 		},
 		"mysql: password with @ and :": {
-			In:          "mysql://mmuser:pa@sswo:rd@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			DSN:         "mysql://mmuser:pa@sswo:rd@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			Schema:      "mysql",
 			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
 		},
 		"postgres": {
-			In:          "postgres://mmuser:password@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+			DSN:         "postgres://mmuser:password@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+			Schema:      "postgres",
 			ExpectedOut: "postgres://mmuser:@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
 		},
 		"malformed without :": {
-			In:          "postgres://mmuserpassword@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+			DSN:         "postgres://mmuserpassword@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+			Schema:      "postgres",
 			ExpectedOut: "(omitted due to error parsing the DSN)",
 		},
 		"malformed without @": {
-			In:          "postgres://mmuser:passwordlocalhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+			DSN:         "postgres://mmuser:passwordlocalhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+			Schema:      "postgres",
 			ExpectedOut: "(omitted due to error parsing the DSN)",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			out := stripPassword(test.In)
+			out := stripPassword(test.DSN, test.Schema)
 
 			assert.Equal(t, test.ExpectedOut, out)
 		})
