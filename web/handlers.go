@@ -4,7 +4,9 @@
 package web
 
 import (
+	"context"
 	"fmt"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -86,6 +88,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Params = ParamsFromRequest(r)
 	c.App.Path = r.URL.Path
 	c.Log = c.App.Log
+
+	span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
+	span.SetTag("request_id", c.App.RequestId)
+	span.SetTag("ip_address", c.App.IpAddress)
+	span.SetTag("user_agent", c.App.UserAgent)
+	span.SetTag("url", c.App.Path)
+	defer span.Finish()
+	c.App.Context = ctx
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath

@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	context2 "context"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -21,7 +22,7 @@ func TestReactionStore(t *testing.T, ss store.Store) {
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
-	post, err := ss.Post().Save(&model.Post{
+	post, err := ss.Post().Save(context2.Background(), &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
@@ -109,7 +110,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
-	post, err := ss.Post().Save(&model.Post{
+	post, err := ss.Post().Save(context2.Background(), &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
@@ -235,17 +236,17 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	emojiToDelete := model.NewId()
 
-	post, err1 := ss.Post().Save(&model.Post{
+	post, err1 := ss.Post().Save(context2.Background(), &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
 	require.Nil(t, err1)
-	post2, err2 := ss.Post().Save(&model.Post{
+	post2, err2 := ss.Post().Save(context2.Background(), &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
 	require.Nil(t, err2)
-	post3, err3 := ss.Post().Save(&model.Post{
+	post3, err3 := ss.Post().Save(context2.Background(), &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
@@ -343,7 +344,7 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 }
 
 func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
-	post, err1 := ss.Post().Save(&model.Post{
+	post, err1 := ss.Post().Save(context2.Background(), &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})

@@ -4,8 +4,10 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"net/http"
 	"sort"
 	"strconv"
@@ -694,7 +696,10 @@ func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 	}
 }
 
-func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) Get(ctx context.Context, id string, allowFromCache bool) (*model.Channel, *model.AppError) {
+	span, _ := tracing.StartSpanWithParentByContext(ctx, "SqlChannelStore:Get")
+	defer span.Finish()
+	span.SetTag("channel_id", id)
 	return s.get(id, false, allowFromCache)
 }
 

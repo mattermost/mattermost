@@ -4,6 +4,7 @@
 package api4
 
 import (
+	context2 "context"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -388,7 +389,7 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 }
 
 func (me *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
-	post, err := me.App.Srv.Store.Post().Save(&model.Post{
+	post, err := me.App.Srv.Store.Post().Save(context2.Background(), &model.Post{
 		UserId:    me.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   message,

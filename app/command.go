@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -213,7 +214,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	chanChan := make(chan store.StoreResult, 1)
 	go func() {
-		channel, err := a.Srv.Store.Channel().Get(args.ChannelId, true)
+		channel, err := a.Srv.Store.Channel().Get(context.Background(), args.ChannelId, true)
 		chanChan <- store.StoreResult{Data: channel, Err: err}
 		close(chanChan)
 	}()

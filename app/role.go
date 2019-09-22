@@ -16,14 +16,20 @@ func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
 }
 
 func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
+	span, prevCtx := a.TraceStart("app:GetAllRoles")
+	defer a.TraceFinish(span, prevCtx)
 	return a.Srv.Store.Role().GetAll()
 }
 
 func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
+	span, prevCtx := a.TraceStart("app:GetRoleByName")
+	defer a.TraceFinish(span, prevCtx)
 	return a.Srv.Store.Role().GetByName(name)
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
+	span, prevCtx := a.TraceStart("app:GetRolesByNames")
+	defer a.TraceFinish(span, prevCtx)
 	return a.Srv.Store.Role().GetByNames(names)
 }
 

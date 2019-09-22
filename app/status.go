@@ -175,6 +175,9 @@ func (a *App) SetStatusLastActivityAt(userId string, activityAt int64) {
 }
 
 func (a *App) SetStatusOnline(userId string, manual bool) {
+	span, prevCtx := a.TraceStart("app:SetStatusOnline")
+	defer a.TraceFinish(span, prevCtx)
+
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}

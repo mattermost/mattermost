@@ -33,11 +33,16 @@ func (api *API) InitPost() {
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, prevCtx := c.App.TraceStart("api4:post:CreatePost")
+	defer c.App.TraceFinish(span, prevCtx)
+
 	post := model.PostFromJson(r.Body)
 	if post == nil {
 		c.SetInvalidParam("post")
 		return
 	}
+
+	span.SetTag("channel_id", post.ChannelId)
 
 	post.UserId = c.App.Session.UserId
 

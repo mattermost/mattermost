@@ -16,10 +16,16 @@ func (a *App) MakePermissionError(permission *model.Permission) *model.AppError 
 }
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
+	span, prevCtx := a.TraceStart("app:SessionHasPermissionTo")
+	defer a.TraceFinish(span, prevCtx)
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
 func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
+	span, prevCtx := a.TraceStart("app:SessionHasPermissionToTeam")
+	defer a.TraceFinish(span, prevCtx)
+	span.SetTag("team_id", teamId)
+
 	if teamId == "" {
 		return false
 	}
@@ -35,6 +41,10 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, p
 }
 
 func (a *App) SessionHasPermissionToChannel(session model.Session, channelId string, permission *model.Permission) bool {
+	span, prevCtx := a.TraceStart("app:SessionHasPermissionToChannel")
+	defer a.TraceFinish(span, prevCtx)
+	span.SetTag("channel_id", channelId)
+
 	if channelId == "" {
 		return false
 	}
@@ -187,6 +197,9 @@ func (a *App) HasPermissionToUser(askingUserId string, userId string) bool {
 }
 
 func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	span, prevCtx := a.TraceStart("app:RolesGrantPermission")
+	defer a.TraceFinish(span, prevCtx)
+
 	roles, err := a.GetRolesByNames(roleNames)
 	if err != nil {
 		// This should only happen if something is very broken. We can't realistically

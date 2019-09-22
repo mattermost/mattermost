@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	context2 "context"
 	"testing"
 	"time"
 
@@ -102,7 +103,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	o1.UserId = u1.Id
 	o1.CreateAt = model.GetMillis()
 	o1.Message = "zz" + model.NewId() + "b"
-	o1, err = ss.Post().Save(o1)
+	o1, err = ss.Post().Save(context2.Background(), o1)
 	require.Nil(t, err)
 
 	o1a := &model.Post{}
@@ -110,7 +111,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	o1a.UserId = u1.Id
 	o1a.CreateAt = o1.CreateAt + 10
 	o1a.Message = "zz" + model.NewId() + "b"
-	_, err = ss.Post().Save(o1a)
+	_, err = ss.Post().Save(context2.Background(), o1a)
 	require.Nil(t, err)
 
 	o2 := &model.Post{}
@@ -118,7 +119,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	o2.UserId = u1.Id
 	o2.CreateAt = o1.CreateAt + 20
 	o2.Message = "zz" + model.NewId() + "b"
-	_, err = ss.Post().Save(o2)
+	_, err = ss.Post().Save(context2.Background(), o2)
 	require.Nil(t, err)
 
 	o2a := &model.Post{}
@@ -126,7 +127,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	o2a.UserId = u2.Id
 	o2a.CreateAt = o1.CreateAt + 30
 	o2a.Message = "zz" + model.NewId() + "b"
-	o2a, err = ss.Post().Save(o2a)
+	o2a, err = ss.Post().Save(context2.Background(), o2a)
 	require.Nil(t, err)
 
 	time.Sleep(100 * time.Millisecond)
@@ -213,7 +214,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	o1.UserId = u1.Id
 	o1.CreateAt = model.GetMillis()
 	o1.Message = "zz" + model.NewId() + "b"
-	o1, err = ss.Post().Save(o1)
+	o1, err = ss.Post().Save(context2.Background(), o1)
 	require.Nil(t, err)
 
 	o1a := &model.Post{}
@@ -221,7 +222,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	o1a.UserId = u1.Id
 	o1a.CreateAt = o1.CreateAt + 10
 	o1a.Message = "zz" + model.NewId() + "b"
-	_, err = ss.Post().Save(o1a)
+	_, err = ss.Post().Save(context2.Background(), o1a)
 	require.Nil(t, err)
 
 	o2 := &model.Post{}
@@ -229,7 +230,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	o2.UserId = u1.Id
 	o2.CreateAt = o1.CreateAt + 20
 	o2.Message = "zz" + model.NewId() + "b"
-	_, err = ss.Post().Save(o2)
+	_, err = ss.Post().Save(context2.Background(), o2)
 	require.Nil(t, err)
 
 	o2a := &model.Post{}
@@ -237,7 +238,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	o2a.UserId = u2.Id
 	o2a.CreateAt = o1.CreateAt + 30
 	o2a.Message = "zz" + model.NewId() + "b"
-	_, err = ss.Post().Save(o2a)
+	_, err = ss.Post().Save(context2.Background(), o2a)
 	require.Nil(t, err)
 
 	o3 := &model.Post{}
@@ -245,7 +246,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	o3.UserId = u1.Id
 	o3.CreateAt = o1.CreateAt + 40
 	o3.Message = "zz" + model.NewId() + "b"
-	o3, err = ss.Post().Save(o3)
+	o3, err = ss.Post().Save(context2.Background(), o3)
 	require.Nil(t, err)
 
 	time.Sleep(100 * time.Millisecond)
@@ -317,7 +318,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		CreateAt:  startTime,
 		Message:   "zz" + model.NewId() + "a",
 	}
-	post1, err = ss.Post().Save(post1)
+	post1, err = ss.Post().Save(context2.Background(), post1)
 	require.Nil(t, err)
 
 	post2 := &model.Post{
@@ -326,7 +327,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		CreateAt:  startTime + 10,
 		Message:   "zz" + model.NewId() + "b",
 	}
-	post2, err = ss.Post().Save(post2)
+	post2, err = ss.Post().Save(context2.Background(), post2)
 	require.Nil(t, err)
 
 	// fetch the message exports for both posts that user1 sent
@@ -419,7 +420,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		CreateAt:  startTime,
 		Message:   "zz" + model.NewId() + "a",
 	}
-	post1, err = ss.Post().Save(post1)
+	post1, err = ss.Post().Save(context2.Background(), post1)
 	require.Nil(t, err)
 
 	post2 := &model.Post{
@@ -428,7 +429,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		CreateAt:  startTime + 10,
 		Message:   "zz" + model.NewId() + "b",
 	}
-	post2, err = ss.Post().Save(post2)
+	post2, err = ss.Post().Save(context2.Background(), post2)
 	require.Nil(t, err)
 
 	// fetch the message exports for both posts that user1 sent
@@ -517,7 +518,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 		CreateAt:  startTime + 20,
 		Message:   "zz" + model.NewId() + "c",
 	}
-	post, err = ss.Post().Save(post)
+	post, err = ss.Post().Save(context2.Background(), post)
 	require.Nil(t, err)
 
 	// fetch the message export for the post that user1 sent
@@ -613,7 +614,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 		CreateAt:  startTime + 20,
 		Message:   "zz" + model.NewId() + "c",
 	}
-	post, err = ss.Post().Save(post)
+	post, err = ss.Post().Save(context2.Background(), post)
 	require.Nil(t, err)
 
 	// fetch the message export for the post that user1 sent

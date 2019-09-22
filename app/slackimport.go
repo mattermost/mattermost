@@ -6,6 +6,7 @@ package app
 import (
 	"archive/zip"
 	"bytes"
+	context2 "context"
 	"encoding/json"
 	"io"
 	"mime/multipart"
@@ -784,7 +785,7 @@ func (a *App) OldImportPost(post *model.Post) string {
 		post.RootId = firstPostId
 		post.ParentId = firstPostId
 
-		_, err := a.Srv.Store.Post().Save(post)
+		_, err := a.Srv.Store.Post().Save(context2.Background(), post)
 		if err != nil {
 			mlog.Debug("Error saving post.", mlog.String("user_id", post.UserId), mlog.String("message", post.Message))
 		}

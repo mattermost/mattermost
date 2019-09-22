@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -51,7 +52,7 @@ func getChannelFromChannelArg(a *app.App, channelArg string) *model.Channel {
 	}
 
 	if channel == nil {
-		if ch, errCh := a.Srv.Store.Channel().Get(channelPart, true); errCh == nil {
+		if ch, errCh := a.Srv.Store.Channel().Get(context.Background(), channelPart, true); errCh == nil {
 			channel = ch
 		}
 	}

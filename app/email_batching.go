@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"strconv"
@@ -212,7 +213,7 @@ func (s *Server) sendBatchedEmailNotification(userId string, notifications []*ba
 			continue
 		}
 
-		channel, errCh := s.Store.Channel().Get(notification.post.ChannelId, true)
+		channel, errCh := s.Store.Channel().Get(context.Background(), notification.post.ChannelId, true)
 		if errCh != nil {
 			mlog.Warn("Unable to find channel of post for batched email notification")
 			continue

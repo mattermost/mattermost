@@ -6,6 +6,9 @@ package app
 import "github.com/mattermost/mattermost-server/plugin"
 
 func (a *App) PluginContext() *plugin.Context {
+	span, prevCtx := a.TraceStart("app:PluginContext")
+	defer a.TraceFinish(span, prevCtx)
+
 	context := &plugin.Context{
 		RequestId:      a.RequestId,
 		SessionId:      a.Session.Id,

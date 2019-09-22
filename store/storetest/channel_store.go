@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"sort"
 	"strconv"
 	"strings"
@@ -382,7 +383,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	require.Nil(t, err)
 
 	c1 := &model.Channel{}
-	if c1, err = ss.Channel().Get(o1.Id, false); err != nil {
+	if c1, err = ss.Channel().Get(context.Background(), o1.Id, false); err != nil {
 		t.Fatal(err)
 	} else {
 		if c1.ToJson() != o1.ToJson() {
@@ -390,7 +391,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 		}
 	}
 
-	if _, err = ss.Channel().Get("", false); err == nil {
+	if _, err = ss.Channel().Get(context.Background(),"", false); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 
@@ -429,7 +430,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	_, err = ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
 	require.Nil(t, err)
 
-	if c2, err := ss.Channel().Get(o2.Id, false); err != nil {
+	if c2, err := ss.Channel().Get(context.Background(), o2.Id, false); err != nil {
 		t.Fatal(err)
 	} else {
 		if c2.ToJson() != o2.ToJson() {
@@ -437,7 +438,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 		}
 	}
 
-	if c4, err := ss.Channel().Get(o2.Id, true); err != nil {
+	if c4, err := ss.Channel().Get(context.Background(), o2.Id, true); err != nil {
 		t.Fatal(err)
 	} else {
 		if c4.ToJson() != o2.ToJson() {
@@ -546,7 +547,7 @@ func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
 	o1, err := ss.Channel().Save(ch, -1)
 	require.Nil(t, err)
 
-	p1, err := ss.Post().Save(&model.Post{
+	p1, err := ss.Post().Save(context.Background(), &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
@@ -573,7 +574,7 @@ func testChannelStoreRestore(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if c, _ := ss.Channel().Get(o1.Id, false); c.DeleteAt == 0 {
+	if c, _ := ss.Channel().Get(context.Background(), o1.Id, false); c.DeleteAt == 0 {
 		t.Fatal("should have been deleted")
 	}
 
@@ -581,7 +582,7 @@ func testChannelStoreRestore(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if c, _ := ss.Channel().Get(o1.Id, false); c.DeleteAt != 0 {
+	if c, _ := ss.Channel().Get(context.Background(), o1.Id, false); c.DeleteAt != 0 {
 		t.Fatal("should have been restored")
 	}
 
@@ -638,7 +639,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if c, _ := ss.Channel().Get(o1.Id, false); c.DeleteAt == 0 {
+	if c, _ := ss.Channel().Get(context.Background(), o1.Id, false); c.DeleteAt == 0 {
 		t.Fatal("should have been deleted")
 	}
 
@@ -878,7 +879,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	c1, err := ss.Channel().Save(c1, -1)
 	require.Nil(t, err)
 
-	c1t1, _ := ss.Channel().Get(c1.Id, false)
+	c1t1, _ := ss.Channel().Get(context.Background(), c1.Id, false)
 	assert.EqualValues(t, 0, c1t1.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	u1 := model.User{}
@@ -911,7 +912,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(&o2)
 	require.Nil(t, err)
 
-	c1t2, _ := ss.Channel().Get(c1.Id, false)
+	c1t2, _ := ss.Channel().Get(context.Background(), c1.Id, false)
 	assert.EqualValues(t, 0, c1t2.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	count, err := ss.Channel().GetMemberCount(o1.ChannelId, true)
@@ -949,7 +950,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have removed 1 member")
 	}
 
-	c1t3, _ := ss.Channel().Get(c1.Id, false)
+	c1t3, _ := ss.Channel().Get(context.Background(), c1.Id, false)
 	assert.EqualValues(t, 0, c1t3.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	member, _ := ss.Channel().GetMember(o1.ChannelId, o1.UserId)
@@ -961,7 +962,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("Should have been a duplicate")
 	}
 
-	c1t4, _ := ss.Channel().Get(c1.Id, false)
+	c1t4, _ := ss.Channel().Get(context.Background(), c1.Id, false)
 	assert.EqualValues(t, 0, c1t4.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 }
 
@@ -974,7 +975,7 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	c1, err := ss.Channel().Save(c1, -1)
 	require.Nil(t, err)
 
-	c1t1, _ := ss.Channel().Get(c1.Id, false)
+	c1t1, _ := ss.Channel().Get(context.Background(), c1.Id, false)
 	assert.EqualValues(t, 0, c1t1.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	u1 := model.User{}
@@ -1007,7 +1008,7 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(&o2)
 	require.Nil(t, err)
 
-	c1t2, _ := ss.Channel().Get(c1.Id, false)
+	c1t2, _ := ss.Channel().Get(context.Background(), c1.Id, false)
 	assert.EqualValues(t, 0, c1t2.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	count, err := ss.Channel().GetMemberCount(o1.ChannelId, false)
@@ -1978,7 +1979,7 @@ func testChannelStoreGetMemberForPost(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	p1, err := ss.Post().Save(&model.Post{
+	p1, err := ss.Post().Save(context.Background(), &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
@@ -3343,7 +3344,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	o1, err := ss.Channel().Save(ch1, -1)
 	require.Nil(t, err)
 
-	p1, err := ss.Post().Save(&model.Post{
+	p1, err := ss.Post().Save(context.Background(), &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
@@ -3366,7 +3367,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	o2, err := ss.Channel().Save(ch2, -1)
 	require.Nil(t, err)
 
-	_, err = ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(context.Background(), &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o2.Id,
 		Message:   "test",
@@ -3391,7 +3392,7 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 	o1, err := ss.Channel().Save(ch1, -1)
 	require.Nil(t, err)
 
-	_, err = ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(context.Background(), &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
@@ -3399,7 +3400,7 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	_, err = ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(context.Background(), &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
@@ -3427,14 +3428,14 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 	o2, err := ss.Channel().Save(ch2, -1)
 	require.Nil(t, err)
 
-	_, err = ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(context.Background(), &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o2.Id,
 		Message:   "test",
 	})
 	require.Nil(t, err)
 
-	_, err = ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(context.Background(), &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o2.Id,
 		Message:   "test",
@@ -3640,8 +3641,8 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 	err = ss.Channel().ResetAllChannelSchemes()
 	assert.Nil(t, err)
 
-	c1, _ = ss.Channel().Get(c1.Id, true)
-	c2, _ = ss.Channel().Get(c2.Id, true)
+	c1, _ = ss.Channel().Get(context.Background(), c1.Id, true)
+	c2, _ = ss.Channel().Get(context.Background(), c2.Id, true)
 
 	assert.Equal(t, "", *c1.SchemeId)
 	assert.Equal(t, "", *c2.SchemeId)

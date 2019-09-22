@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context2 "context"
 	model "github.com/mattermost/mattermost-server/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -693,7 +694,7 @@ func (_m *PostStore) PermanentDeleteByUser(userId string) *model.AppError {
 }
 
 // Save provides a mock function with given fields: post
-func (_m *PostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+func (_m *PostStore) Save(ctx context2.Context, post *model.Post) (*model.Post, *model.AppError) {
 	ret := _m.Called(post)
 
 	var r0 *model.Post

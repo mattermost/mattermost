@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -32,6 +33,7 @@ type App struct {
 	Path           string
 	UserAgent      string
 	AcceptLanguage string
+	Context 	   context.Context
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
@@ -50,6 +52,7 @@ type App struct {
 
 func New(options ...AppOption) *App {
 	app := &App{}
+	app.Context = context.Background()
 
 	for _, option := range options {
 		option(app)

@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"net/http"
 	"strings"
 
@@ -496,10 +497,16 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannel")
+	c.App.Context = ctx
+	defer span.Finish()
+
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
 	}
+
+	span.SetTag("channel_id", c.Params.ChannelId)
 
 	channel, err := c.App.GetChannel(c.Params.ChannelId)
 	if err != nil {

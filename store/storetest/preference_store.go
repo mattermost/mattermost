@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	context2 "context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -355,7 +356,7 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 	o1.UserId = userId
 	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o1.CreateAt = 1000
-	o1, err := ss.Post().Save(o1)
+	o1, err := ss.Post().Save(context2.Background(), o1)
 	require.Nil(t, err)
 
 	preference1 := model.Preference{

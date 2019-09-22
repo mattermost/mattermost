@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -25,8 +26,11 @@ const (
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
+	span, prevCtx := a.TraceStart("app:CreatePostAsUser")
+	defer a.TraceFinish(span, prevCtx)
+
 	// Check that channel has not been deleted
-	channel, errCh := a.Srv.Store.Channel().Get(post.ChannelId, true)
+	channel, errCh := a.Srv.Store.Channel().Get(context.Background(), post.ChannelId, true)
 	if errCh != nil {
 		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, errCh.Error(), http.StatusBadRequest)
 		return nil, err
@@ -88,7 +92,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 }
 
 func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
-	channel, err := a.Srv.Store.Channel().Get(post.ChannelId, true)
+	channel, err := a.Srv.Store.Channel().Get(context.Background(), post.ChannelId, true)
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +102,8 @@ func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
 func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, err *model.AppError) {
+	span, prevCtx := a.TraceStart("app:deduplicateCreatePost")
+	defer a.TraceFinish(span, prevCtx)
 	// We rely on the client sending the pending post id across "duplicate" requests. If there
 	// isn't one, we can't deduplicate, so allow creation normally.
 	if post.PendingPostId == "" {
@@ -138,6 +144,9 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 }
 
 func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError) {
+	span, prevCtx := a.TraceStart("app:CreatePost")
+	defer a.TraceFinish(span, prevCtx)
+
 	foundPost, err := a.deduplicateCreatePost(post)
 	if err != nil {
 		return nil, err
@@ -262,7 +271,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 	}
 
-	rpost, err := a.Srv.Store.Post().Save(post)
+	rpost, err := a.Srv.Store.Post().Save(a.Context, post)
 	if err != nil {
 		return nil, err
 	}
@@ -315,6 +324,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 }
 
 func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
+	span, prevCtx := a.TraceStart("app:attachFilesToPost")
+	defer a.TraceFinish(span, prevCtx)
+
 	var attachedIds []string
 	for _, fileId := range post.FileIds {
 		err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
@@ -417,6 +429,9 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 }
 
 func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
+	span, prevCtx := a.TraceStart("app:SendEphemeralPost")
+	defer a.TraceFinish(span, prevCtx)
+
 	post.Type = model.POST_EPHEMERAL
 
 	// fill in fields which haven't been specified which have sensible defaults
@@ -1137,6 +1152,9 @@ func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
 }
 
 func (a *App) PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post {
+	span, prevCtx := a.TraceStart("app:PostWithProxyRemovedFromImageURLs")
+	defer a.TraceFinish(span, prevCtx)
+
 	if f := a.ImageProxyRemover(); f != nil {
 		return post.WithRewrittenImageURLs(f)
 	}

@@ -4,8 +4,10 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -91,7 +93,10 @@ func (s *SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+func (s *SqlPostStore) Save(ctx context.Context, post *model.Post) (*model.Post, *model.AppError) {
+	span, ctx := tracing.StartSpanWithParentByContext(ctx, "SqlPostStore:Save")
+	defer span.Finish()
+
 	if len(post.Id) > 0 {
 		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 	}

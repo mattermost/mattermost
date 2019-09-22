@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	context2 "context"
 	"crypto/sha1"
 	"io"
 	"net/http"
@@ -895,7 +896,7 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 	}
 
 	if reply.Id == "" {
-		if _, err := a.Srv.Store.Post().Save(reply); err != nil {
+		if _, err := a.Srv.Store.Post().Save(context2.Background(), reply); err != nil {
 			return err
 		}
 	} else {
@@ -1019,7 +1020,7 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	}
 
 	if post.Id == "" {
-		if _, err = a.Srv.Store.Post().Save(post); err != nil {
+		if _, err = a.Srv.Store.Post().Save(context2.Background(), post); err != nil {
 			return err
 		}
 	} else {
@@ -1248,7 +1249,7 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	}
 
 	if post.Id == "" {
-		if _, err = a.Srv.Store.Post().Save(post); err != nil {
+		if _, err = a.Srv.Store.Post().Save(context2.Background(), post); err != nil {
 			return err
 		}
 	} else {

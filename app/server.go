@@ -33,6 +33,7 @@ import (
 	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/services/imageproxy"
 	"github.com/mattermost/mattermost-server/services/timezones"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -200,6 +201,12 @@ func NewServer(options ...Option) (*Server, error) {
 	s.AddConfigListener(func(_, _ *model.Config) {
 		s.InitEmailBatching()
 	})
+
+	// Initialize Tracing Backend
+	err = tracing.Initialize()
+	if err != nil {
+		return nil, err
+	}
 
 	// Start plugin health check job
 	pluginsEnvironment := s.PluginsEnvironment

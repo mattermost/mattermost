@@ -270,6 +270,9 @@ func (a *App) AttachDeviceId(sessionId string, deviceId string, expiresAt int64)
 }
 
 func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
+	span, prevCtx := a.TraceStart("app:UpdateLastActivityAtIfNeeded")
+	defer a.TraceFinish(span, prevCtx)
+
 	now := model.GetMillis()
 
 	a.UpdateWebConnUserActivity(session, now)

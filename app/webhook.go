@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"regexp"
@@ -409,7 +410,7 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 	}
 
 	if len(hook.ChannelId) != 0 {
-		channel, errCh := a.Srv.Store.Channel().Get(hook.ChannelId, true)
+		channel, errCh := a.Srv.Store.Channel().Get(context.Background(), hook.ChannelId, true)
 		if errCh != nil {
 			return nil, errCh
 		}
@@ -633,7 +634,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		}
 	} else {
 		var err *model.AppError
-		channel, err = a.Srv.Store.Channel().Get(hook.ChannelId, true)
+		channel, err = a.Srv.Store.Channel().Get(context.Background(), hook.ChannelId, true)
 		if err != nil {
 			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+err.Message, err.StatusCode)
 		}

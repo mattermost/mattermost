@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	context2 "context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -187,7 +188,7 @@ func createPost(ss store.Store, channelId, userId, rootId, parentId string) *mod
 	m.RootId = rootId
 	m.ParentId = parentId
 	m.Message = "zz" + model.NewId() + "b"
-	p, _ := ss.Post().Save(&m)
+	p, _ := ss.Post().Save(context2.Background(), &m)
 	return p
 }
 

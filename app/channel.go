@@ -4,7 +4,9 @@
 package app
 
 import (
+	"context"
 	"fmt"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"net/http"
 	"strings"
 	"time"
@@ -1152,7 +1154,11 @@ func (a *App) PostUpdateChannelDisplayNameMessage(userId string, channel *model.
 }
 
 func (a *App) GetChannel(channelId string) (*model.Channel, *model.AppError) {
-	channel, errCh := a.Srv.Store.Channel().Get(channelId, true)
+	span, ctx := tracing.StartSpanWithParentByContext(a.Context, "app:GetChannel")
+	defer span.Finish()
+	a.Context = ctx
+
+	channel, errCh := a.Srv.Store.Channel().Get(ctx, channelId, true)
 	if errCh != nil {
 		if errCh.Id == "store.sql_channel.get.existing.app_error" {
 			errCh.StatusCode = http.StatusNotFound
@@ -1459,7 +1465,7 @@ func (a *App) postJoinTeamMessage(user *model.User, channel *model.Channel) *mod
 func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	sc := make(chan store.StoreResult, 1)
 	go func() {
-		channel, err := a.Srv.Store.Channel().Get(channelId, true)
+		channel, err := a.Srv.Store.Channel().Get(context.Background(), channelId, true)
 		sc <- store.StoreResult{Data: channel, Err: err}
 		close(sc)
 	}()
@@ -1893,7 +1899,7 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 	channelsToClearPushNotifications := []string{}
 	if *a.Config().EmailSettings.SendPushNotifications {
 		for _, channelId := range channelIds {
-			channel, errCh := a.Srv.Store.Channel().Get(channelId, true)
+			channel, errCh := a.Srv.Store.Channel().Get(context.Background(), channelId, true)
 			if errCh != nil {
 				mlog.Warn(fmt.Sprintf("Failed to get channel %v", errCh))
 				continue

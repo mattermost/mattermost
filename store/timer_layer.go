@@ -7,6 +7,7 @@
 package store
 
 import (
+	"context"
 	timemodule "time"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
@@ -617,10 +618,10 @@ func (s *TimerLayerChannelStore) Delete(channelId string, time int64) *model.App
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) Get(ctx context.Context, id string, allowFromCache bool) (*model.Channel, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.ChannelStore.Get(id, allowFromCache)
+	resultVar0, resultVar1 := s.ChannelStore.Get(ctx, id, allowFromCache)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
@@ -4425,10 +4426,10 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(userId string) *model.AppErr
 	return resultVar0
 }
 
-func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) Save(ctx context.Context, post *model.Post) (*model.Post, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.Save(post)
+	resultVar0, resultVar1 := s.PostStore.Save(context.Background(), post)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)

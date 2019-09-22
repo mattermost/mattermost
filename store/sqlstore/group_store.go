@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -361,7 +362,7 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
-		if _, err := s.Channel().Get(groupSyncable.SyncableId, false); err != nil {
+		if _, err := s.Channel().Get(context.Background(), groupSyncable.SyncableId, false); err != nil {
 			return nil, err
 		}
 

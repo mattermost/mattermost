@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -448,7 +449,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	_, err = ss.Scheme().Delete(d5.Id)
 	assert.Nil(t, err)
 
-	c6, err := ss.Channel().Get(c5.Id, true)
+	c6, err := ss.Channel().Get(context.Background(), c5.Id, true)
 	assert.Nil(t, err)
 	assert.Equal(t, "", *c6.SchemeId)
 }

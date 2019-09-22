@@ -6,6 +6,7 @@
 package store
 
 import (
+	"context"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -112,7 +113,7 @@ type ChannelStore interface {
 	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
-	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
+	Get(ctx context.Context, id string, allowFromCache bool) (*model.Channel, *model.AppError)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamId, name string)
 	GetFromMaster(id string) (*model.Channel, *model.AppError)
@@ -198,7 +199,7 @@ type ChannelMemberHistoryStore interface {
 }
 
 type PostStore interface {
-	Save(post *model.Post) (*model.Post, *model.AppError)
+	Save(ctx context.Context, post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
 	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)

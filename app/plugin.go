@@ -25,6 +25,9 @@ import (
 // To get the plugins environment when the plugins are disabled, manually acquire the plugins
 // lock instead.
 func (a *App) GetPluginsEnvironment() *plugin.Environment {
+	span, prevCtx := a.TraceStart("app:GetPluginsEnvironment")
+	defer a.TraceFinish(span, prevCtx)
+
 	if !*a.Config().PluginSettings.Enable {
 		return nil
 	}
