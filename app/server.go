@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	uplink "github.com/grundleborg/uplink/client"
+	uplink "github.com/grundleborg/uplink-go"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	analytics "github.com/segmentio/analytics-go"

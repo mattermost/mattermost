@@ -56,8 +56,8 @@ github.com/gorilla/schema
 github.com/gorilla/websocket
 # github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 github.com/gregjones/httpcache
-# github.com/grundleborg/uplink v0.0.0-20190913140148-74e1aedc2d43
-github.com/grundleborg/uplink/client
+# github.com/grundleborg/uplink-go v0.0.0-20190923123949-4863fa2ce406
+github.com/grundleborg/uplink-go
 # github.com/hako/durafmt v0.0.0-20190612201238-650ed9f29a84
 github.com/hako/durafmt
 # github.com/hashicorp/errwrap v1.0.0
@@ -214,7 +214,7 @@ github.com/spf13/pflag
 github.com/ssor/bom
 # github.com/stretchr/objx v0.2.0
 github.com/stretchr/objx
-# github.com/stretchr/testify v1.3.0
+# github.com/stretchr/testify v1.4.0
 github.com/stretchr/testify/require
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/assert

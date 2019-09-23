@@ -16,7 +16,6 @@ require (
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-gorp/gorp v2.0.0+incompatible // indirect
-	github.com/go-ldap/ldap v3.0.3+incompatible // indirect
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
@@ -27,7 +26,7 @@ require (
 	github.com/gorilla/schema v1.1.0
 	github.com/gorilla/websocket v1.4.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
-	github.com/grundleborg/uplink v0.0.0-20190916173839-4f548c343584
+	github.com/grundleborg/uplink-go v0.0.0-20190923123949-4863fa2ce406
 	github.com/hako/durafmt v0.0.0-20190612201238-650ed9f29a84
 	github.com/hashicorp/go-hclog v0.9.2
 	github.com/hashicorp/go-immutable-radix v1.1.0 // indirect
@@ -76,7 +75,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.4.0
 	github.com/throttled/throttled v2.2.4+incompatible
 	github.com/tylerb/graceful v1.2.15
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
