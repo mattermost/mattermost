@@ -105,7 +105,7 @@ type Server struct {
 
 	diagnosticId     string
 	diagnosticClient analytics.Client
-	uplinkClient     uplink.Client
+	uplinkClient     *uplink.Client
 
 	phase2PermissionsMigrationComplete bool
 
@@ -767,7 +767,7 @@ func (s *Server) initDiagnostics(endpoint string) {
 		})
 
 		s.diagnosticClient = client
-		s.uplinkClient = uplink.New("https://uplink-test.dev.spinmint.com/v0/log", "dev", s.diagnosticId)
+		*s.uplinkClient = uplink.New("https://uplink-test.dev.spinmint.com/v0/log", "dev", s.diagnosticId)
 	}
 }
 
@@ -777,9 +777,9 @@ func (s *Server) shutdownDiagnostics() error {
 		return s.diagnosticClient.Close()
 	}
 
-	//if s.uplinkClient != nil {
+	if s.uplinkClient != nil {
 		return s.uplinkClient.Close()
-	//}
+	}
 
 	return nil
 }
