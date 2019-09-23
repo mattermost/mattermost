@@ -111,6 +111,12 @@ func SetupTestResources() (string, error) {
 		return "", errors.Wrapf(err, "failed to create plugins directory %s", pluginsDir)
 	}
 
+	clientDir := path.Join(tempDir, "client")
+	err = os.Mkdir(clientDir, 0700)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to create client directory %s", clientDir)
+	}
+
 	err = setupConfig(path.Join(tempDir, "config"))
 	if err != nil {
 		return "", errors.Wrap(err, "failed to setup config")
@@ -168,10 +174,10 @@ func setupConfig(configDir string) error {
 		return errors.Wrapf(err, "failed to create config directory %s", configDir)
 	}
 
-	configJson := path.Join(configDir, "config.json")
-	err = ioutil.WriteFile(configJson, []byte(config.ToJson()), 0644)
+	configJSON := path.Join(configDir, "config.json")
+	err = ioutil.WriteFile(configJSON, []byte(config.ToJson()), 0644)
 	if err != nil {
-		return errors.Wrapf(err, "failed to write config to %s", configJson)
+		return errors.Wrapf(err, "failed to write config to %s", configJSON)
 	}
 
 	return nil
