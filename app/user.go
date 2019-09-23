@@ -589,8 +589,8 @@ func (a *App) GetUsersNotInChannelPage(teamId string, channelId string, groupCon
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersWithoutTeam(page*perPage, perPage, viewRestrictions)
+func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersWithoutTeam(options)
 	if err != nil {
 		return nil, err
 	}
@@ -598,8 +598,8 @@ func (a *App) GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool, viewR
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	return a.Srv.Store.User().GetProfilesWithoutTeam(offset, limit, viewRestrictions)
+func (a *App) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	return a.Srv.Store.User().GetProfilesWithoutTeam(options)
 }
 
 // GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
