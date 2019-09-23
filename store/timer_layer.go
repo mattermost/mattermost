@@ -8,6 +8,7 @@ package store
 
 import (
 	"context"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	timemodule "time"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
@@ -4427,9 +4428,12 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(userId string) *model.AppErr
 }
 
 func (s *TimerLayerPostStore) Save(ctx context.Context, post *model.Post) (*model.Post, *model.AppError) {
+	span, ctx := tracing.StartSpanWithParentByContext(ctx, "TimerLayerPostStore:Save")
+	defer span.Finish()
+
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.Save(context.Background(), post)
+	resultVar0, resultVar1 := s.PostStore.Save(ctx, post)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
