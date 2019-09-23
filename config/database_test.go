@@ -6,7 +6,6 @@ package config_test
 import (
 	"bytes"
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -135,6 +134,11 @@ func TestDatabaseStoreNew(t *testing.T) {
 
 	t.Run("unsupported scheme", func(t *testing.T) {
 		_, err := config.NewDatabaseStore("invalid")
+		require.Error(t, err)
+	})
+
+	t.Run("unsupported scheme with valid data source", func(t *testing.T) {
+		_, err := config.NewDatabaseStore(fmt.Sprintf("invalid://%s", *sqlSettings.DataSource))
 		require.Error(t, err)
 	})
 }
@@ -930,14 +934,11 @@ func TestDatabaseStoreString(t *testing.T) {
 	sqlSettings := mainHelper.GetSqlSettings()
 	ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 	require.NoError(t, err)
+	require.NotNil(t, ds)
 	defer ds.Close()
 
-	actualStringURL, err := url.Parse(ds.String())
-	require.NoError(t, err)
-
-	assert.Equal(t, *sqlSettings.DriverName, actualStringURL.Scheme)
-	actualUsername := actualStringURL.User.Username()
-	actualPassword, _ := actualStringURL.User.Password()
-	assert.NotEmpty(t, actualUsername)
-	assert.Empty(t, actualPassword, "should mask password")
+	maskedDSN := ds.String()
+	assert.True(t, strings.HasPrefix(maskedDSN, "mysql://"))
+	assert.True(t, strings.Contains(maskedDSN, "mmuser"))
+	assert.False(t, strings.Contains(maskedDSN, "mostest"))
 }
