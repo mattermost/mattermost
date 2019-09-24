@@ -33,14 +33,14 @@ func (u *UserSearch) ToJson() []byte {
 
 // UserSearchFromJson will decode the input and return a User
 func UserSearchFromJson(data io.Reader) *UserSearch {
-	var us *UserSearch
+	us := UserSearch{}
 	json.NewDecoder(data).Decode(&us)
 
 	if us.Limit == 0 {
 		us.Limit = USER_SEARCH_DEFAULT_LIMIT
 	}
 
-	return us
+	return &us
 }
 
 // UserSearchOptions captures internal parameters derived from the user's permissions and a

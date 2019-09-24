@@ -18,6 +18,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ErrNotFound = errors.New("Item not found")
+
 type apiImplCreatorFunc func(*model.Manifest) API
 
 // registeredPlugin stores the state for a given plugin that has been activated
@@ -160,6 +162,23 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 	}
 
 	return pluginStatuses, nil
+}
+
+// GetManifest returns a manifest for a given pluginId.
+// Returns ErrNotFound if plugin is not found.
+func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
+	plugins, err := env.Available()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get plugin statuses")
+	}
+
+	for _, plugin := range plugins {
+		if plugin.Manifest != nil && plugin.Manifest.Id == pluginId {
+			return plugin.Manifest, nil
+		}
+	}
+
+	return nil, ErrNotFound
 }
 
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
