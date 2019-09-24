@@ -4017,10 +4017,10 @@ func (s *TimerLayerPostStore) Delete(postId string, time int64, deleteByID strin
 	return resultVar0
 }
 
-func (s *TimerLayerPostStore) Get(id string) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.Get(id)
+	resultVar0, resultVar1 := s.PostStore.Get(id, skipFetchThreads)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
@@ -4221,10 +4221,10 @@ func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.GetPosts(channelId, offset, limit, allowFromCache)
+	resultVar0, resultVar1 := s.PostStore.GetPosts(options, allowFromCache)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
@@ -4238,10 +4238,10 @@ func (s *TimerLayerPostStore) GetPosts(channelId string, offset int, limit int, 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.GetPostsAfter(channelId, postId, numPosts, offset)
+	resultVar0, resultVar1 := s.PostStore.GetPostsAfter(options)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
@@ -4272,10 +4272,10 @@ func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.GetPostsBefore(channelId, postId, numPosts, offset)
+	resultVar0, resultVar1 := s.PostStore.GetPostsBefore(options)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
@@ -4323,10 +4323,10 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.GetPostsSince(channelId, time, allowFromCache)
+	resultVar0, resultVar1 := s.PostStore.GetPostsSince(options, allowFromCache)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)
@@ -6856,10 +6856,10 @@ func (s *TimerLayerUserStore) GetProfilesNotInTeam(teamId string, groupConstrain
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (s *TimerLayerUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.UserStore.GetProfilesWithoutTeam(offset, limit, viewRestrictions)
+	resultVar0, resultVar1 := s.UserStore.GetProfilesWithoutTeam(options)
 
 	t := timemodule.Now()
 	elapsed := t.Sub(start)

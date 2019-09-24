@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -89,7 +88,13 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 }
 
 func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
-	mlog.Error(fmt.Sprintf("websocket routing error: seq=%v uid=%v %v [details: %v]", r.Seq, conn.UserId, err.SystemMessage(utils.T), err.DetailedError))
+	mlog.Error(
+		"websocket routing error.",
+		mlog.Int64("seq", r.Seq),
+		mlog.String("user_id", conn.UserId),
+		mlog.String("system_message", err.SystemMessage(utils.T)),
+		mlog.Err(err),
+	)
 
 	err.DetailedError = ""
 	errorResp := model.NewWebSocketError(r.Seq, err)

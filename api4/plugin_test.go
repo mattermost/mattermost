@@ -11,6 +11,8 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -36,9 +38,7 @@ func TestPlugin(t *testing.T) {
 
 	path, _ := fileutils.FindDir("tests")
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Install from URL
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -270,9 +270,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 	path, _ := fileutils.FindDir("tests")
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	testCluster.ClearMessages()
 
@@ -331,9 +329,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 func TestDisableOnRemove(t *testing.T) {
 	path, _ := fileutils.FindDir("tests")
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	testCases := []struct {
 		Description string
@@ -430,6 +426,324 @@ func TestDisableOnRemove(t *testing.T) {
 			require.True(t, ok)
 		})
 	}
+}
+
+func TestGetMarketplacePlugins(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.EnableMarketplace = false
+	})
+
+	t.Run("marketplace disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = false
+			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNotImplementedStatus(t, resp)
+		require.Nil(t, plugins)
+	})
+
+	t.Run("no server", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, plugins)
+	})
+
+	t.Run("no permission", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
+		})
+
+		plugins, resp := th.Client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, plugins)
+	})
+
+	t.Run("empty response from server", func(t *testing.T) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Len(t, plugins, 0)
+	})
+
+	t.Run("verify server version is passed through", func(t *testing.T) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			serverVersion, ok := req.URL.Query()["server_version"]
+			require.True(t, ok)
+			require.Len(t, serverVersion, 1)
+			require.Equal(t, model.CurrentVersion, serverVersion[0])
+			require.NotEqual(t, 0, len(serverVersion[0]))
+
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Len(t, plugins, 0)
+	})
+}
+
+func TestGetInstalledMarketplacePlugins(t *testing.T) {
+	samplePlugins := []*model.MarketplacePlugin{
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "https://github.com/mattermost/mattermost-plugin-nps",
+				IconData:    "http://example.com/icon.svg",
+				DownloadURL: "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				Manifest: &model.Manifest{
+					Id:               "com.mattermost.nps",
+					Name:             "User Satisfaction Surveys",
+					Description:      "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost.",
+					Version:          "1.0.3",
+					MinServerVersion: "5.14.0",
+				},
+			},
+			InstalledVersion: "",
+		},
+	}
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	t.Run("marketplace client returns not-installed plugin", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal(samplePlugins)
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Equal(t, samplePlugins, plugins)
+
+		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		CheckNoError(t, resp)
+
+		expectedPlugins := append(samplePlugins, &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "",
+				IconData:    "",
+				DownloadURL: "",
+				Manifest:    manifest,
+			},
+			InstalledVersion: manifest.Version,
+		})
+		sort.SliceStable(expectedPlugins, func(i, j int) bool {
+			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		})
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Equal(t, expectedPlugins, plugins)
+
+		ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Equal(t, samplePlugins, plugins)
+	})
+
+	t.Run("marketplace client returns installed plugin", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.EnableMarketplace = true
+		})
+
+		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		CheckNoError(t, resp)
+
+		newPlugin := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "HomepageURL",
+				IconData:    "IconData",
+				DownloadURL: "DownloadURL",
+				Manifest:    manifest,
+			},
+			InstalledVersion: manifest.Version,
+		}
+		expectedPlugins := append(samplePlugins, newPlugin)
+		sort.SliceStable(expectedPlugins, func(i, j int) bool {
+			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		})
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0], newPlugin})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Equal(t, expectedPlugins, plugins)
+
+		ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		newPlugin.InstalledVersion = manifest.Version
+		require.Equal(t, expectedPlugins, plugins)
+	})
+}
+
+func TestSearchGetMarketplacePlugins(t *testing.T) {
+	samplePlugins := []*model.MarketplacePlugin{
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "https://github.com/mattermost/mattermost-plugin-nps",
+				IconData:    "Cjxzdmcgdmlld0JveD0nMCAwIDEwNSA5MycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz4KPHBhdGggZD0nTTY2LDBoMzl2OTN6TTM4LDBoLTM4djkzek01MiwzNWwyNSw1OGgtMTZsLTgtMThoLTE4eicgZmlsbD0nI0VEMUMyNCcvPgo8L3N2Zz4K",
+				DownloadURL: "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				Manifest: &model.Manifest{
+					Id:               "com.mattermost.nps",
+					Name:             "User Satisfaction Surveys",
+					Description:      "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost.",
+					Version:          "1.0.3",
+					MinServerVersion: "5.14.0",
+				},
+			},
+			InstalledVersion: "",
+		},
+	}
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	tarDataV2, err := ioutil.ReadFile(filepath.Join(path, "testpluginv2.tar.gz"))
+	require.NoError(t, err)
+
+	t.Run("search installed plugin", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal(samplePlugins)
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Equal(t, samplePlugins, plugins)
+
+		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		CheckNoError(t, resp)
+
+		newPluginV1 := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "",
+				IconData:    "",
+				DownloadURL: "",
+				Manifest:    manifest,
+			},
+			InstalledVersion: manifest.Version,
+		}
+		expectedPlugins := append(samplePlugins, newPluginV1)
+
+		manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarDataV2))
+		CheckNoError(t, resp)
+		newPluginV2 := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "",
+				IconData:    "",
+				DownloadURL: "",
+				Manifest:    manifest,
+			},
+			InstalledVersion: manifest.Version,
+		}
+		expectedPlugins = append(expectedPlugins, newPluginV2)
+		sort.SliceStable(expectedPlugins, func(i, j int) bool {
+			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		})
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Equal(t, expectedPlugins, plugins)
+
+		// Search for plugins from the server
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "testplugin_v2"})
+		CheckNoError(t, resp)
+		require.Equal(t, []*model.MarketplacePlugin{newPluginV2}, plugins)
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "dsgsdg_v2"})
+		CheckNoError(t, resp)
+		require.Equal(t, []*model.MarketplacePlugin{newPluginV2}, plugins)
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "User Satisfaction Surveys"})
+		CheckNoError(t, resp)
+		require.Equal(t, samplePlugins, plugins)
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "NOFILTER"})
+		CheckNoError(t, resp)
+		require.Nil(t, plugins)
+	})
 }
 
 func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.ClusterMessage {
