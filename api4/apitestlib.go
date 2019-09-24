@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -137,16 +136,6 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 		}
 		th.tempWorkspace = dir
 	}
-
-	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
-	webappDir := filepath.Join(th.tempWorkspace, "webapp")
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Directory = pluginDir
-		*cfg.PluginSettings.ClientDirectory = webappDir
-	})
-
-	th.App.InitPlugins(pluginDir, webappDir)
 
 	return th
 }
