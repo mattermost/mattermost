@@ -171,8 +171,10 @@ const (
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
 
-	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
-	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
+	PLUGIN_SETTINGS_DEFAULT_DIRECTORY          = "./plugins"
+	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
+	PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE = true
+	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://marketplace.integrations.mattermost.com"
 
 	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
@@ -2201,6 +2203,8 @@ type PluginSettings struct {
 	ClientDirectory          *string `restricted:"true"`
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
+	EnableMarketplace        *bool
+	MarketplaceUrl           *string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2220,20 +2224,12 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.EnableHealthCheck = NewBool(true)
 	}
 
-	if s.Directory == nil {
+	if s.Directory == nil || *s.Directory == "" {
 		s.Directory = NewString(PLUGIN_SETTINGS_DEFAULT_DIRECTORY)
 	}
 
-	if *s.Directory == "" {
-		*s.Directory = PLUGIN_SETTINGS_DEFAULT_DIRECTORY
-	}
-
-	if s.ClientDirectory == nil {
+	if s.ClientDirectory == nil || *s.ClientDirectory == "" {
 		s.ClientDirectory = NewString(PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY)
-	}
-
-	if *s.ClientDirectory == "" {
-		*s.ClientDirectory = PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY
 	}
 
 	if s.Plugins == nil {
@@ -2247,6 +2243,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["com.mattermost.nps"] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
+	}
+
+	if s.EnableMarketplace == nil {
+		s.EnableMarketplace = NewBool(PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE)
+	}
+
+	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" {
+		s.MarketplaceUrl = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 	}
 }
 
