@@ -10,35 +10,44 @@ import (
 )
 
 func TestGroupMsgUsernames(t *testing.T) {
-	if users, parsedMessage := groupMsgUsernames(""); len(users) != 0 || parsedMessage != "" {
-		t.Fatal("error parsing empty message")
-	}
-	if users, parsedMessage := groupMsgUsernames("test"); len(users) != 1 || parsedMessage != "" {
-		t.Fatal("error parsing simple user")
-	}
-	if users, parsedMessage := groupMsgUsernames("test1, test2, test3 , test4"); len(users) != 4 || parsedMessage != "" {
-		t.Fatal("error parsing various users")
-	}
+	assert := assert.New(t)
 
-	if users, parsedMessage := groupMsgUsernames("test1, test2 message with spaces"); len(users) != 2 || parsedMessage != "message with spaces" {
-		t.Fatal("error parsing message")
-	}
+	users, parsedMessage := groupMsgUsernames("")
+	assert.Len(users, 0)
+	assert.Empty(parsedMessage)
 
-	if users, parsedMessage := groupMsgUsernames("test1, test2 message with, comma"); len(users) != 2 || parsedMessage != "message with, comma" {
-		t.Fatal("error parsing messages with comma")
-	}
+	users, parsedMessage = groupMsgUsernames("test")
+	assert.Len(users, 1)
+	assert.Empty(parsedMessage)
 
-	if users, parsedMessage := groupMsgUsernames("test1,,,test2"); len(users) != 2 || parsedMessage != "" {
-		t.Fatal("error parsing multiple commas in username ")
-	}
+	users, parsedMessage = groupMsgUsernames("test1, test2, test3 , test4")
+	assert.Len(users, 4)
+	assert.Empty(parsedMessage)
 
-	if users, parsedMessage := groupMsgUsernames("    test1,       test2     other message         "); len(users) != 2 || parsedMessage != "other message" {
-		t.Fatal("error parsing strange usage of spaces")
-	}
+	users, parsedMessage = groupMsgUsernames("test1, test2 message with spaces")
+	assert.Len(users, 2)
+	assert.Equal(parsedMessage, "message with spaces", "error parsing message")
 
-	if users, _ := groupMsgUsernames("    test1,       test2,,123,@321,+123"); len(users) != 5 || users[0] != "test1" || users[1] != "test2" || users[2] != "123" || users[3] != "321" || users[4] != "+123" {
-		t.Fatal("error parsing different types of users")
-	}
+	users, parsedMessage = groupMsgUsernames("test1, test2 message with, comma")
+	assert.Len(users, 2)
+	assert.Equal(parsedMessage, "message with, comma", "error parsing messages with comma")
+
+	users, parsedMessage = groupMsgUsernames("test1,,,test2")
+	assert.Len(users, 2)
+	assert.Empty(parsedMessage)
+
+	users, parsedMessage = groupMsgUsernames("    test1,       test2     other message         ")
+	assert.Len(users, 2)
+	assert.Equal(parsedMessage, "other message", "error parsing strange usage of spaces")
+
+	users, _ = groupMsgUsernames("    test1,       test2,,123,@321,+123")
+	assert.Len(users, 5)
+	assert.Equal(users[0], "test1")
+	assert.Equal(users[1], "test2")
+	assert.Equal(users[2], "123")
+	assert.Equal(users[3], "321")
+	assert.Equal(users[4], "+123")
+	assert.Equal(parsedMessage, "other message", "error parsing different types of users")
 }
 
 func TestGroupMsgProvider(t *testing.T) {
