@@ -190,10 +190,14 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 		Path: filePath2,
 	}
 
+	embeddedFiles := map[string]io.Reader{
+		"test": bytes.NewReader([]byte("test data")),
+	}
+
 	headers := make(map[string]string)
 	headers["TestHeader"] = "TestValue"
 
-	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, replyTo, emailSubject, emailBody, attachments, headers, cfg, true); err != nil {
+	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, replyTo, emailSubject, emailBody, attachments, embeddedFiles, headers, cfg, true); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {
@@ -349,7 +353,7 @@ func TestSendMail(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			appErr = SendMail(mocm, "", "", mail.Address{}, tc.replyTo, "", "", nil, nil, mockBackend, time.Now())
+			appErr = SendMail(mocm, "", "", mail.Address{}, tc.replyTo, "", "", nil, nil, nil, mockBackend, time.Now())
 			require.Nil(t, appErr)
 			if len(tc.contains) > 0 {
 				require.Contains(t, string(mocm.data), tc.contains)
