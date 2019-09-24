@@ -15,5 +15,5 @@ We have a docker image to build `mattermost-server` and it is based on Go docker
 In our Docker Hub Repository we have the following images:
 
 - `mattermost/mattermost-build-server:dec-7-2018` which is based on Go 1.11 you can use for MM versions <= `5.9.0`
-- `mattermost/mattermost-build-server:feb-28-2019` which is based on Go 1.12
-
+- `mattermost/mattermost-build-server:feb-28-2019` which is based on Go 1.12 you can use for MM versions > `5.9.0` <= `5.15.0`
+- `mattermost/mattermost-build-server:sep-17-2019` which is based on Go 1.12.9 you can use for MM versions >= `5.16.0`
