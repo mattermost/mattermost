@@ -202,9 +202,9 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	//Check if the email was send to the right email address
 	var resultsMailbox JSONMessageHeaderInbucket
 	err = RetryInbucket(5, func() error {
-		var err error
-		resultsMailbox, err = GetMailBox(smtpTo)
-		return err
+		var mailErr error
+		resultsMailbox, mailErr = GetMailBox(smtpTo)
+		return mailErr
 	})
 	require.Nil(t, err, "No emails found for address %s. error: %v", smtpTo, err)
 	require.NotEqual(t, len(resultsMailbox), 0)
