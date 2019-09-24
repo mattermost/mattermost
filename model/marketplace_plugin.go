@@ -67,3 +67,16 @@ func (filter *MarketplacePluginFilter) ApplyToURL(u *url.URL) {
 	q.Add("server_version", filter.ServerVersion)
 	u.RawQuery = q.Encode()
 }
+
+// PluginRequest struct describes parameters of the requested plugin
+type PluginRequest struct {
+	Id      string
+	Version string
+}
+
+// PluginRequestFromReader decodes a json-encoded plugin request from the given io.Reader.
+func PluginRequestFromReader(reader io.Reader) *PluginRequest {
+	var r *PluginRequest
+	json.NewDecoder(reader).Decode(&r)
+	return r
+}

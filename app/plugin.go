@@ -402,6 +402,21 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	return resp, nil
 }
 
+// GetMarketplacePlugin returns plugin from marketplace-server
+func (a *App) GetMarketplacePlugin(request *model.PluginRequest) (*model.MarketplacePlugin, *model.AppError) {
+	filter := &model.MarketplacePluginFilter{Filter: request.Id}
+	plugins, err := a.GetMarketplacePlugins(filter)
+	if err != nil {
+		return nil, err
+	}
+	for _, plugin := range plugins {
+		if plugin.Manifest.Version == request.Version {
+			return plugin, nil
+		}
+	}
+	return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, "", http.StatusInternalServerError)
+}
+
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 // and plugins that are installed locally.
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
