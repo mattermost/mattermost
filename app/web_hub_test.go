@@ -100,6 +100,6 @@ func TestHubStopRaceCondition(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(15 * time.Second):
-		t.Fatalf("hub call did not return within 15 seconds after stop")
+		require.FailNow(t, "hub call did not return within 15 seconds after stop")
 	}
 }
