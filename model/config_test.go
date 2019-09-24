@@ -95,6 +95,45 @@ func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	}
 }
 
+func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.SignatureAlgorithm != SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM {
+		t.Fatal("SamlSettings.SignatureAlgorithm default not set")
+	}
+
+	if *c1.SamlSettings.DigestAlgorithm != SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM {
+		t.Fatal("SamlSettings.DigestAlgorithm default not set")
+	}
+	if *c1.SamlSettings.CanonicalAlgorithm != SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM {
+		t.Fatal("SamlSettings.CanonicalAlgorithm default not set")
+	}
+}
+
+func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
+	const testAlgorithm = "FakeAlgorithm"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			CanonicalAlgorithm: NewString(testAlgorithm),
+			SignatureAlgorithm: NewString(testAlgorithm),
+			DigestAlgorithm:    NewString(testAlgorithm),
+		},
+	}
+
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.SignatureAlgorithm != testAlgorithm {
+		t.Fatal("SamlSettings.SignatureAlgorithm should be overwritten")
+	}
+	if *c1.SamlSettings.DigestAlgorithm != testAlgorithm {
+		t.Fatal("SamlSettings.DigestAlgorithm should be overwritten")
+	}
+	if *c1.SamlSettings.CanonicalAlgorithm != testAlgorithm {
+		t.Fatal("SamlSettings.CanonicalAlgorithm should be overwritten")
+	}
+}
+
 func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()

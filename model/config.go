@@ -137,6 +137,9 @@ const (
 	SAML_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE   = ""
 	SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE     = ""
 	SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE   = ""
+	SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM  = ""
+	SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM     = ""
+	SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM  = ""
 
 	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://mattermost.com/download/#mattermostApps"
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
@@ -1885,6 +1888,10 @@ type SamlSettings struct {
 	IdpDescriptorUrl            *string
 	AssertionConsumerServiceURL *string
 
+	SignatureAlgorithm *string
+	DigestAlgorithm    *string
+	CanonicalAlgorithm *string
+
 	ScopingIDPProviderId *string
 	ScopingIDPName       *string
 
@@ -1932,6 +1939,18 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.SignRequest == nil {
 		s.SignRequest = NewBool(false)
+	}
+
+	if s.SignatureAlgorithm == nil {
+		s.SignatureAlgorithm = NewString(SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM)
+	}
+
+	if s.DigestAlgorithm == nil {
+		s.DigestAlgorithm = NewString(SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM)
+	}
+
+	if s.CanonicalAlgorithm == nil {
+		s.CanonicalAlgorithm = NewString(SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM)
 	}
 
 	if s.IdpUrl == nil {
