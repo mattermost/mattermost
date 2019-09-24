@@ -47,7 +47,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	}
 	configStore, err := config.NewStore(configDSN, !disableConfigWatch)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to load configuration")
 	}
 
 	return runServer(configStore, disableConfigWatch, usedPlatform, interruptChan)
