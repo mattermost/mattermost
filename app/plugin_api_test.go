@@ -684,6 +684,31 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	assert.Equal(t, pluginManifests, plugins)
 }
 
+func TestPluginAPIUploadPlugin(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	pluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+	defer os.RemoveAll(webappPluginDir)
+
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	require.NoError(t, err)
+
+	th.App.SetPluginsEnvironment(env)
+
+	file := strings.NewReader("test")
+
+	// check existing user first
+	_, err = api.UploadPlugin(file, true)
+	assert.NotNil(t, err, "should not allow upload if upload disabled")
+	assert.Equal(t, err.Error(), "uploadPlugin: Plugins and/or plugin uploads have been disabled., ")
+}
+
 func TestPluginAPIGetTeamIcon(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
