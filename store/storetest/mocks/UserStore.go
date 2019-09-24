@@ -709,13 +709,13 @@ func (_m *UserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, 
 	return r0, r1
 }
 
-// GetProfilesWithoutTeam provides a mock function with given fields: offset, limit, viewRestrictions
-func (_m *UserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	ret := _m.Called(offset, limit, viewRestrictions)
+// GetProfilesWithoutTeam provides a mock function with given fields: options
+func (_m *UserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	ret := _m.Called(options)
 
 	var r0 []*model.User
-	if rf, ok := ret.Get(0).(func(int, int, *model.ViewUsersRestrictions) []*model.User); ok {
-		r0 = rf(offset, limit, viewRestrictions)
+	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) []*model.User); ok {
+		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -723,8 +723,8 @@ func (_m *UserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestricti
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int, *model.ViewUsersRestrictions) *model.AppError); ok {
-		r1 = rf(offset, limit, viewRestrictions)
+	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
+		r1 = rf(options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
