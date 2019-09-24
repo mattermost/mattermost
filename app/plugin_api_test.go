@@ -703,7 +703,6 @@ func TestPluginAPIUploadPlugin(t *testing.T) {
 
 	file := strings.NewReader("test")
 
-	// check existing user first
 	_, err = api.UploadPlugin(file, true)
 	assert.NotNil(t, err, "should not allow upload if upload disabled")
 	assert.Equal(t, err.Error(), "uploadPlugin: Plugins and/or plugin uploads have been disabled., ")
