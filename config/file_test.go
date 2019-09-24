@@ -890,6 +890,17 @@ func TestFileGetFile(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []byte("test"), data)
 	})
+
+	t.Run("get via absolute path", func(t *testing.T) {
+		err := fs.SetFile("new", []byte("new file"))
+		require.NoError(t, err)
+
+		data, err := fs.GetFile(filepath.Join(filepath.Dir(path), "new"))
+
+		require.NoError(t, err)
+		require.Equal(t, []byte("new file"), data)
+	})
+
 }
 
 func TestFileSetFile(t *testing.T) {
@@ -920,6 +931,18 @@ func TestFileSetFile(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []byte("overwritten file"), data)
 	})
+
+	t.Run("set via absolute path", func(t *testing.T) {
+		absolutePath := filepath.Join(filepath.Dir(path), "new")
+		err := fs.SetFile(absolutePath, []byte("new file"))
+		require.NoError(t, err)
+
+		data, err := fs.GetFile("new")
+
+		require.NoError(t, err)
+		require.Equal(t, []byte("new file"), data)
+	})
+
 }
 
 func TestFileHasFile(t *testing.T) {
@@ -987,6 +1010,23 @@ func TestFileHasFile(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, has)
 	})
+
+	t.Run("has via absolute path", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		err = fs.SetFile("existing", []byte("existing file"))
+		require.NoError(t, err)
+
+		has, err := fs.HasFile(filepath.Join(filepath.Dir(path), "existing"))
+		require.NoError(t, err)
+		require.True(t, has)
+	})
+
 }
 
 func TestFileRemoveFile(t *testing.T) {
@@ -1051,6 +1091,27 @@ func TestFileRemoveFile(t *testing.T) {
 
 		_, err = fs.GetFile("existing")
 		require.Error(t, err)
+	})
+
+	t.Run("don't remove via absolute path", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		err = fs.SetFile("existing", []byte("existing file"))
+		require.NoError(t, err)
+
+		filename := filepath.Join(filepath.Dir(path), "existing")
+		err = fs.RemoveFile(filename)
+		require.NoError(t, err)
+
+		has, err := fs.HasFile(filename)
+		require.NoError(t, err)
+		require.True(t, has)
+
 	})
 }
 
