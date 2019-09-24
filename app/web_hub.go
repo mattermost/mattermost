@@ -72,7 +72,7 @@ func (a *App) TotalWebsocketConnections() int {
 func (a *App) HubStart() {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
-	mlog.Info(fmt.Sprintf("Starting %v websocket hubs", numberOfHubs))
+	mlog.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
 	a.Srv.Hubs = make([]*Hub, numberOfHubs)
 	a.Srv.HubsStopCheckingForDeadlock = make(chan bool, 1)
@@ -95,7 +95,12 @@ func (a *App) HubStart() {
 			case <-ticker.C:
 				for _, hub := range a.Srv.Hubs {
 					if len(hub.broadcast) >= DEADLOCK_WARN {
-						mlog.Error(fmt.Sprintf("Hub processing might be deadlock on hub %v goroutine %v with %v events in the buffer", hub.connectionIndex, hub.goroutineId, len(hub.broadcast)))
+						mlog.Error(
+							"Hub processing might be deadlock with events in the buffer",
+							mlog.Int("hub", hub.connectionIndex),
+							mlog.Int("goroutine", hub.goroutineId),
+							mlog.Int("events", len(hub.broadcast)),
+						)
 						buf := make([]byte, 1<<16)
 						runtime.Stack(buf, true)
 						output := fmt.Sprintf("%s", buf)
@@ -103,7 +108,7 @@ func (a *App) HubStart() {
 
 						for _, part := range splits {
 							if strings.Contains(part, fmt.Sprintf("%v", hub.goroutineId)) {
-								mlog.Error(fmt.Sprintf("Trace for possible deadlock goroutine %v", part))
+								mlog.Error("Trace for possible deadlock goroutine", mlog.String("trace", part))
 							}
 						}
 					}
@@ -433,7 +438,7 @@ func (h *Hub) Start() {
 
 	doStart = func() {
 		h.goroutineId = getGoroutineId()
-		mlog.Debug(fmt.Sprintf("Hub for index %v is starting with goroutine %v", h.connectionIndex, h.goroutineId))
+		mlog.Debug("Hub for index is starting with goroutine", mlog.Int("index", h.connectionIndex), mlog.Int("goroutine", h.goroutineId))
 
 		connections := newHubConnectionIndex()
 
@@ -489,7 +494,7 @@ func (h *Hub) Start() {
 						select {
 						case webCon.Send <- msg:
 						default:
-							mlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webCon.UserId))
 							close(webCon.Send)
 							connections.Remove(webCon)
 						}
@@ -523,7 +528,7 @@ func (h *Hub) Start() {
 	doRecover = func() {
 		if !h.ExplicitStop {
 			if r := recover(); r != nil {
-				mlog.Error(fmt.Sprintf("Recovering from Hub panic. Panic was: %v", r))
+				mlog.Error("Recovering from Hub panic.", mlog.Any("panic", r))
 			} else {
 				mlog.Error("Webhub stopped unexpectedly. Recovering.")
 			}
