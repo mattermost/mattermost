@@ -52,46 +52,67 @@ func TestGroupMsgProvider(t *testing.T) {
 	th.LinkUserToTeam(th.BasicUser, team)
 	cmd := &groupmsgProvider{}
 
-	// Check without permission to create a GM channel.
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
-		T:       i18n.IdentityTfunc(),
-		SiteURL: "http://test.url",
-		TeamId:  team.Id,
-		UserId:  th.BasicUser.Id,
-		Session: model.Session{
-			Roles: "",
-		},
-	}, targetUsers+"hello")
+	t.Run("Check without permission to create a GM channel.", func(t *testing.T) {
+		resp := cmd.DoCommand(th.App, &model.CommandArgs{
+			T:       i18n.IdentityTfunc(),
+			SiteURL: "http://test.url",
+			TeamId:  team.Id,
+			UserId:  th.BasicUser.Id,
+			Session: model.Session{
+				Roles: "",
+			},
+		}, targetUsers+"hello")
 
-	channelName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
-	assert.Equal(t, "api.command_groupmsg.permission.app_error", resp.Text)
-	assert.Equal(t, "", resp.GotoLocation)
+		assert.Equal(t, "api.command_groupmsg.permission.app_error", resp.Text)
+		assert.Equal(t, "", resp.GotoLocation)
+	})
 
-	// Check with permission to create a GM channel.
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
-		T:       i18n.IdentityTfunc(),
-		SiteURL: "http://test.url",
-		TeamId:  team.Id,
-		UserId:  th.BasicUser.Id,
-		Session: model.Session{
-			Roles: model.SYSTEM_USER_ROLE_ID,
-		},
-	}, targetUsers+"hello")
+	t.Run("Check without permissions to view a user in the list.", func(t *testing.T) {
+		th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+		resp := cmd.DoCommand(th.App, &model.CommandArgs{
+			T:       i18n.IdentityTfunc(),
+			SiteURL: "http://test.url",
+			TeamId:  team.Id,
+			UserId:  th.BasicUser.Id,
+			Session: model.Session{
+				Roles: model.SYSTEM_USER_ROLE_ID,
+			},
+		}, targetUsers+"hello")
 
-	assert.Equal(t, "", resp.Text)
-	assert.Equal(t, "http://test.url/"+team.Name+"/channels/"+channelName, resp.GotoLocation)
+		assert.Equal(t, "api.command_groupmsg.invalid_user.app_error", resp.Text)
+		assert.Equal(t, "", resp.GotoLocation)
+	})
 
-	// Check without permission to post to an existing GM channel.
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
-		T:       i18n.IdentityTfunc(),
-		SiteURL: "http://test.url",
-		TeamId:  team.Id,
-		UserId:  th.BasicUser.Id,
-		Session: model.Session{
-			Roles: "",
-		},
-	}, targetUsers+"hello")
+	t.Run("Check with permission to create a GM channel.", func(t *testing.T) {
+		resp := cmd.DoCommand(th.App, &model.CommandArgs{
+			T:       i18n.IdentityTfunc(),
+			SiteURL: "http://test.url",
+			TeamId:  team.Id,
+			UserId:  th.BasicUser.Id,
+			Session: model.Session{
+				Roles: model.SYSTEM_USER_ROLE_ID,
+			},
+		}, targetUsers+"hello")
 
-	assert.Equal(t, "", resp.Text)
-	assert.Equal(t, "http://test.url/"+team.Name+"/channels/"+channelName, resp.GotoLocation)
+		channelName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		assert.Equal(t, "", resp.Text)
+		assert.Equal(t, "http://test.url/"+team.Name+"/channels/"+channelName, resp.GotoLocation)
+	})
+
+	t.Run("Check without permission to post to an existing GM channel.", func(t *testing.T) {
+		resp := cmd.DoCommand(th.App, &model.CommandArgs{
+			T:       i18n.IdentityTfunc(),
+			SiteURL: "http://test.url",
+			TeamId:  team.Id,
+			UserId:  th.BasicUser.Id,
+			Session: model.Session{
+				Roles: "",
+			},
+		}, targetUsers+"hello")
+
+		channelName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		assert.Equal(t, "", resp.Text)
+		assert.Equal(t, "http://test.url/"+team.Name+"/channels/"+channelName, resp.GotoLocation)
+	})
 }
