@@ -853,7 +853,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	}
 
 	if len(opts.Q) > 0 {
-		pattern := fmt.Sprintf("%%%s%%", opts.Q)
+		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
 		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 			operatorKeyword = "LIKE"
@@ -919,7 +919,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	}
 
 	if len(opts.Q) > 0 {
-		pattern := fmt.Sprintf("%%%s%%", opts.Q)
+		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
 		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 			operatorKeyword = "LIKE"

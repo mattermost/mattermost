@@ -544,7 +544,7 @@ func TestGetEmbedForPost(t *testing.T) {
 			</head>
 			</html>`))
 		} else {
-			t.Fatal("Invalid path", r.URL.Path)
+			require.Fail(t, "Invalid path", r.URL.Path)
 		}
 	}))
 	defer server.Close()

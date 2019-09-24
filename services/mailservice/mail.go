@@ -6,7 +6,6 @@ package mailservice
 import (
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"io"
 	"mime"
 	"net"
@@ -139,14 +138,14 @@ func ConnectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpConnectionInfo) (*smtp.Client, *model.AppError) {
 	c, err := smtp.NewClient(conn, connectionInfo.SmtpServerName+":"+connectionInfo.SmtpPort)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Failed to open a connection to SMTP server %v", err))
+		mlog.Error("Failed to open a connection to SMTP server", mlog.Err(err))
 		return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if hostname != "" {
 		err = c.Hello(hostname)
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Failed to to set the HELO to SMTP server %v", err))
+			mlog.Error("Failed to to set the HELO to SMTP server", mlog.Err(err))
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -191,14 +190,14 @@ func TestConnection(config *model.Config) {
 
 	conn, err1 := ConnectToSMTPServer(config)
 	if err1 != nil {
-		mlog.Error(fmt.Sprintf("SMTP server settings do not appear to be configured properly err=%v details=%v", utils.T(err1.Message), err1.DetailedError))
+		mlog.Error("SMTP server settings do not appear to be configured properly", mlog.Err(err1))
 		return
 	}
 	defer conn.Close()
 
 	c, err2 := NewSMTPClient(conn, config)
 	if err2 != nil {
-		mlog.Error(fmt.Sprintf("SMTP server settings do not appear to be configured properly err=%v details=%v", utils.T(err2.Message), err2.DetailedError))
+		mlog.Error("SMTP server settings do not appear to be configured properly", mlog.Err(err2))
 		return
 	}
 	defer c.Quit()
@@ -240,13 +239,13 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, replyTo mail.Addre
 }
 
 func SendMail(c smtpClient, mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
-	mlog.Debug(fmt.Sprintf("sending mail to %v with subject of '%v'", smtpTo, subject))
+	mlog.Debug("sending mail", mlog.String("to", smtpTo), mlog.String("subject", subject))
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
 
 	txtBody, err := html2text.FromString(htmlBody)
 	if err != nil {
-		mlog.Warn(fmt.Sprint(err))
+		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
 		txtBody = ""
 	}
 

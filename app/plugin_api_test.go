@@ -340,13 +340,11 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
 
 	var pluginConfig map[string]interface{}
-	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {
-		t.Fatal(err)
-	}
+	err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig)
+	require.NoError(t, err)
 
-	if err := api.SavePluginConfig(pluginConfig); err != nil {
-		t.Fatal(err)
-	}
+	appErr := api.SavePluginConfig(pluginConfig)
+	require.Nil(t, appErr)
 
 	type Configuration struct {
 		MyStringSetting string
@@ -355,14 +353,12 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 	}
 
 	savedConfiguration := new(Configuration)
-	if err := api.LoadPluginConfiguration(savedConfiguration); err != nil {
-		t.Fatal(err)
-	}
+	err = api.LoadPluginConfiguration(savedConfiguration)
+	require.NoError(t, err)
 
 	expectedConfiguration := new(Configuration)
-	if err := json.Unmarshal([]byte(pluginConfigJsonString), &expectedConfiguration); err != nil {
-		t.Fatal(err)
-	}
+	err = json.Unmarshal([]byte(pluginConfigJsonString), &expectedConfiguration)
+	require.NoError(t, err)
 
 	assert.Equal(t, expectedConfiguration, savedConfiguration)
 }
@@ -387,9 +383,9 @@ func TestPluginAPIGetPluginConfig(t *testing.T) {
 	pluginConfigJsonString := `{"mystringsetting": "str", "myintsetting": 32, "myboolsetting": true}`
 	var pluginConfig map[string]interface{}
 
-	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {
-		t.Fatal(err)
-	}
+	err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig)
+	require.NoError(t, err)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["pluginid"] = pluginConfig
 	})
@@ -403,9 +399,9 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	defer th.TearDown()
 
 	var pluginJson map[string]interface{}
-	if err := json.Unmarshal([]byte(`{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`), &pluginJson); err != nil {
-		t.Fatal(err)
-	}
+	err := json.Unmarshal([]byte(`{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`), &pluginJson)
+	require.NoError(t, err)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
@@ -474,9 +470,9 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	defer th.TearDown()
 
 	var pluginJson map[string]interface{}
-	if err := json.Unmarshal([]byte(`{"mystringsetting": "override"}`), &pluginJson); err != nil {
-		t.Fatal(err)
-	}
+	err := json.Unmarshal([]byte(`{"mystringsetting": "override"}`), &pluginJson)
+	require.NoError(t, err)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
@@ -1330,4 +1326,78 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	actualPost, err := api.GetPost(post.Id)
 	require.Nil(t, err)
 	assert.Equal(t, model.StringArray{fileInfo.Id}, actualPost.FileIds)
+}
+
+func TestPluginAPIGetConfig(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	config := api.GetConfig()
+	if config.LdapSettings.BindPassword != nil && len(*config.LdapSettings.BindPassword) > 0 {
+		assert.Equal(t, *config.LdapSettings.BindPassword, model.FAKE_SETTING)
+	}
+
+	assert.Equal(t, *config.FileSettings.PublicLinkSalt, model.FAKE_SETTING)
+
+	if len(*config.FileSettings.AmazonS3SecretAccessKey) > 0 {
+		assert.Equal(t, *config.FileSettings.AmazonS3SecretAccessKey, model.FAKE_SETTING)
+	}
+
+	if config.EmailSettings.SMTPPassword != nil && len(*config.EmailSettings.SMTPPassword) > 0 {
+		assert.Equal(t, *config.EmailSettings.SMTPPassword, model.FAKE_SETTING)
+	}
+
+	if len(*config.GitLabSettings.Secret) > 0 {
+		assert.Equal(t, *config.GitLabSettings.Secret, model.FAKE_SETTING)
+	}
+
+	assert.Equal(t, *config.SqlSettings.DataSource, model.FAKE_SETTING)
+	assert.Equal(t, *config.SqlSettings.AtRestEncryptKey, model.FAKE_SETTING)
+	assert.Equal(t, *config.ElasticsearchSettings.Password, model.FAKE_SETTING)
+
+	for i := range config.SqlSettings.DataSourceReplicas {
+		assert.Equal(t, config.SqlSettings.DataSourceReplicas[i], model.FAKE_SETTING)
+	}
+
+	for i := range config.SqlSettings.DataSourceSearchReplicas {
+		assert.Equal(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
+	}
+}
+
+func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	config := api.GetUnsanitizedConfig()
+	if config.LdapSettings.BindPassword != nil && len(*config.LdapSettings.BindPassword) > 0 {
+		assert.NotEqual(t, *config.LdapSettings.BindPassword, model.FAKE_SETTING)
+	}
+
+	assert.NotEqual(t, *config.FileSettings.PublicLinkSalt, model.FAKE_SETTING)
+
+	if len(*config.FileSettings.AmazonS3SecretAccessKey) > 0 {
+		assert.NotEqual(t, *config.FileSettings.AmazonS3SecretAccessKey, model.FAKE_SETTING)
+	}
+
+	if config.EmailSettings.SMTPPassword != nil && len(*config.EmailSettings.SMTPPassword) > 0 {
+		assert.NotEqual(t, *config.EmailSettings.SMTPPassword, model.FAKE_SETTING)
+	}
+
+	if len(*config.GitLabSettings.Secret) > 0 {
+		assert.NotEqual(t, *config.GitLabSettings.Secret, model.FAKE_SETTING)
+	}
+
+	assert.NotEqual(t, *config.SqlSettings.DataSource, model.FAKE_SETTING)
+	assert.NotEqual(t, *config.SqlSettings.AtRestEncryptKey, model.FAKE_SETTING)
+	assert.NotEqual(t, *config.ElasticsearchSettings.Password, model.FAKE_SETTING)
+
+	for i := range config.SqlSettings.DataSourceReplicas {
+		assert.NotEqual(t, config.SqlSettings.DataSourceReplicas[i], model.FAKE_SETTING)
+	}
+
+	for i := range config.SqlSettings.DataSourceSearchReplicas {
+		assert.NotEqual(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
+	}
 }

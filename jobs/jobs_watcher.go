@@ -4,7 +4,6 @@
 package jobs
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -68,7 +67,7 @@ func (watcher *Watcher) Stop() {
 func (watcher *Watcher) PollAndNotify() {
 	jobs, err := watcher.srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Error occurred getting all pending statuses: %v", err.Error()))
+		mlog.Error("Error occurred getting all pending statuses.", mlog.Err(err))
 		return
 	}
 
