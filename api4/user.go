@@ -1404,6 +1404,10 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.Info("Login error for user "+loginId+". Attempting to create new user.")
 		mlog.Error(err.Error())
 		c.App.CreateUser(newUser)
+		default_team, err := c.App.GetTeamByName("bdp")
+		mlog.Info("DEFAULT TEAM NAME: "+default_team.Name)
+		mlog.Info("DEFAULT TEAM ID: "+default_team.Id)
+		c.App.AddUserToTeamByTeamId(default_team.Id, newUser)
 		c.App.DoLogin(w, r, newUser, "")
         c.Err = err
 	}
