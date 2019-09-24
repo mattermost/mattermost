@@ -68,12 +68,10 @@ func TestClientConfigWithComputed(t *testing.T) {
 	defer th.TearDown()
 
 	config := th.App.ClientConfigWithComputed()
-	if _, ok := config["NoAccounts"]; !ok {
-		t.Fatal("expected NoAccounts in returned config")
-	}
-	if _, ok := config["MaxPostSize"]; !ok {
-		t.Fatal("expected MaxPostSize in returned config")
-	}
+	_, ok := config["NoAccounts"]
+	assert.True(t, ok, "expected NoAccounts in returned config")
+	_, ok = config["MaxPostSize"]
+	assert.True(t, ok, "expected MaxPostSize in returned config")
 }
 
 func TestEnsureInstallationDate(t *testing.T) {
