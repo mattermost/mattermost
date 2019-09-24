@@ -43,7 +43,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["ExperimentalEnableDefaultChannelLeaveJoinMessages"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages)
 	props["ExperimentalGroupUnreadChannels"] = *c.ServiceSettings.ExperimentalGroupUnreadChannels
 	props["EnableSVGs"] = strconv.FormatBool(*c.ServiceSettings.EnableSVGs)
-	props["SkipLoginPage"] = strconv.FormatBool(*c.ServiceSettings.SkipLoginPage)
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
