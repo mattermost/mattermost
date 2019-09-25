@@ -100,6 +100,7 @@ jobs:
       - run:
           name: Prepare for Postgres schema migration validation
           command: |
+            cd mattermost-server/build
             echo "Creating databases"
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
             echo "Importing postgres dump from version 5.0"
@@ -130,15 +131,16 @@ jobs:
       - run:
           name: Analyze dump for Postgres schema migration
           command: |
-              echo "Generating dump"
-              docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
-              docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
+            cd mattermost-server/build
+            echo "Generating dump"
+            docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
+            docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
 
-              echo "Removing databases created for db comparison"
-              docker-compose --no-ansi exec -T postgres sh -c \'exec echo \"DROP DATABASE migrated; DROP DATABASE latest;\" | exec psql -U mmuser mattermost_test\'
+            echo "Removing databases created for db comparison"
+            docker-compose --no-ansi exec -T postgres sh -c \'exec echo \"DROP DATABASE migrated; DROP DATABASE latest;\" | exec psql -U mmuser mattermost_test\'
 
-              echo "Generating diff"
-              diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || cat diff.txt && exit 1
+            echo "Generating diff"
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || cat diff.txt && exit 1
       - run:
           name: Run Tests
           command: |
