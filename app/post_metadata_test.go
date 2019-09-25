@@ -60,7 +60,8 @@ func TestPreparePostListForClient(t *testing.T) {
 func TestPreparePostForClient(t *testing.T) {
 	var serverURL string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
+		switch r.URL.Path {
+		case "/":
 			w.Header().Set("Content-Type", "text/html")
 			w.Write([]byte(`
 			<html>
@@ -73,25 +74,25 @@ func TestPreparePostForClient(t *testing.T) {
 			<meta property="og:description" content="Contribute to hmhealey/test-files development by creating an account on GitHub." />
 			</head>
 			</html>`))
-		} else if r.URL.Path == "/test-image1.png" {
+		case "/test-image1.png":
 			file, err := testutils.ReadTestFile("test.png")
 			require.Nil(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
-		} else if r.URL.Path == "/test-image2.png" {
+		case "/test-image2.png":
 			file, err := testutils.ReadTestFile("test-data-graph.png")
 			require.Nil(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
-		} else if r.URL.Path == "/test-image3.png" {
+		case "/test-image3.png":
 			file, err := testutils.ReadTestFile("qa-data-graph.png")
 			require.Nil(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
-		} else {
+		default:
 			require.Fail(t, "Invalid path", r.URL.Path)
 		}
 	}))
@@ -534,7 +535,8 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	var serverURL string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
+		switch r.URL.Path {
+		case "/":
 			w.Header().Set("Content-Type", "text/html")
 			w.Write([]byte(`
 			<html>
@@ -547,13 +549,13 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 			<meta property="og:description" content="Contribute to hmhealey/test-files development by creating an account on GitHub." />
 			</head>
 			</html>`))
-		} else if r.URL.Path == "/test-image3.png" {
+		case "/test-image3.png":
 			file, err := testutils.ReadTestFile("qa-data-graph.png")
 			require.Nil(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
-		} else {
+		default:
 			require.Fail(t, "Invalid path", r.URL.Path)
 		}
 	}))
