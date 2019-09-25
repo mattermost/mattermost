@@ -137,9 +137,20 @@ const (
 	SAML_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE   = ""
 	SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE     = ""
 	SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE   = ""
-	SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM  = ""
-	SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM     = ""
-	SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM  = ""
+
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1    = "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256  = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA384  = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512  = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"
+	SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM = SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1
+
+	SAML_SETTINGS_DIGEST_ALGORITHM_SHA1    = "http://www.w3.org/2000/09/xmldsig#sha1"
+	SAML_SETTINGS_DIGEST_ALGORITHM_SHA256  = "http://www.w3.org/2001/04/xmlenc#sha256"
+	SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM = SAML_SETTINGS_DIGEST_ALGORITHM_SHA1
+
+	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N    = "http://www.w3.org/2001/10/xml-exc-c14n#"
+	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11  = "http://www.w3.org/2006/12/xml-c14n11"
+	SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM = SAML_SETTINGS_CANONICAL_ALGORITHM_C14N
 
 	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://mattermost.com/download/#mattermostApps"
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
@@ -2818,6 +2829,16 @@ func (ss *SamlSettings) isValid() *AppError {
 
 		if len(*ss.EmailAttribute) == 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if !(*ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA384 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_signature_algorithm.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !(*ss.DigestAlgorithm == SAML_SETTINGS_DIGEST_ALGORITHM_SHA1 || *ss.DigestAlgorithm == SAML_SETTINGS_DIGEST_ALGORITHM_SHA256) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_digest_algorithm.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !(*ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N || *ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

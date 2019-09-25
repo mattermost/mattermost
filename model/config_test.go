@@ -134,6 +134,67 @@ func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
 	}
 }
 
+func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	*c1.SamlSettings.Enable = true
+	*c1.SamlSettings.Verify = false
+	*c1.SamlSettings.Encrypt = false
+
+	*c1.SamlSettings.IdpUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.EmailAttribute = "Email"
+	*c1.SamlSettings.UsernameAttribute = "Username"
+
+	err := c1.SamlSettings.isValid()
+	if err != nil {
+		t.Fatal("SAMLSettings validation should pass with default settings")
+	}
+}
+
+func TestConfigIsValidFakeAlgorithm(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	*c1.SamlSettings.Enable = true
+	*c1.SamlSettings.Verify = false
+	*c1.SamlSettings.Encrypt = false
+
+	*c1.SamlSettings.IdpUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.EmailAttribute = "Email"
+	*c1.SamlSettings.UsernameAttribute = "Username"
+
+	temp := *c1.SamlSettings.CanonicalAlgorithm
+	*c1.SamlSettings.CanonicalAlgorithm = "Fake Algorithm"
+	err := c1.SamlSettings.isValid()
+	if err == nil {
+		t.Fatal("SAMLSettings validation should fail with fake Canonical Algorithm")
+	}
+	require.Equal(t, "model.config.is_valid.saml_canonical_algorithm.app_error", err.Message)
+	*c1.SamlSettings.CanonicalAlgorithm = temp
+
+	temp = *c1.SamlSettings.DigestAlgorithm
+	*c1.SamlSettings.DigestAlgorithm = "Fake Algorithm"
+	err = c1.SamlSettings.isValid()
+	if err == nil {
+		t.Fatal("SAMLSettings validation should pass fake digest Algorithm")
+	}
+	require.Equal(t, "model.config.is_valid.saml_digest_algorithm.app_error", err.Message)
+	*c1.SamlSettings.DigestAlgorithm = temp
+
+	temp = *c1.SamlSettings.SignatureAlgorithm
+	*c1.SamlSettings.SignatureAlgorithm = "Fake Algorithm"
+	err = c1.SamlSettings.isValid()
+	if err == nil {
+		t.Fatal("SAMLSettings validation should pass with fake signature settings")
+	}
+	require.Equal(t, "model.config.is_valid.saml_signature_algorithm.app_error", err.Message)
+}
+
 func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
