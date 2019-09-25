@@ -1419,7 +1419,7 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 
 	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
 	if err != nil {
-		mlog.Error("SqlChannelStore.IsUserInChannelUseCache: " + err.Error())
+		mlog.Error("Error getting all channel members for user", mlog.Err(err))
 		return false
 	}
 
@@ -2008,7 +2008,7 @@ func (s SqlChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel
 	_, err := s.GetReplica().Select(&channels, query, params)
 
 	if err != nil {
-		mlog.Error(fmt.Sprint(err))
+		mlog.Error("Query error getting channels by ids", mlog.Err(err))
 		return nil, model.NewAppError("SqlChannelStore.GetChannelsByIds", "store.sql_channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError)
 	}
 	return channels, nil

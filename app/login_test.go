@@ -6,6 +6,8 @@ package app
 import (
 	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCheckForClientSideCert(t *testing.T) {
@@ -30,8 +32,6 @@ func TestCheckForClientSideCert(t *testing.T) {
 
 		_, _, actualEmail := th.App.CheckForClientSideCert(r)
 
-		if actualEmail != tt.expectedEmail {
-			t.Fatalf("CheckForClientSideCert(%v): expected %v, actual %v", tt.subject, tt.expectedEmail, actualEmail)
-		}
+		require.Equal(t, actualEmail, tt.expectedEmail, "CheckForClientSideCert(%v): expected %v, actual %v", tt.subject, tt.expectedEmail, actualEmail)
 	}
 }
