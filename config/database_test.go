@@ -465,10 +465,8 @@ func TestDatabaseStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 
 		_, err = ds.Set(newCfg)
-		if assert.Error(t, err) {
-			t.Log(err.Error())
-			assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to query active configuration"))
-		}
+		require.Error(t, err)
+		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to query active configuration"), "unexpected error: "+err.Error())
 
 		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
 	})
@@ -486,9 +484,8 @@ func TestDatabaseStoreSet(t *testing.T) {
 		newCfg.ServiceSettings.SiteURL = sToP(longSiteURL)
 
 		_, err = ds.Set(newCfg)
-		if assert.Error(t, err) {
-			assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: marshalled configuration failed length check: value is too long"))
-		}
+		require.Error(t, err)
+		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: marshalled configuration failed length check: value is too long"), "unexpected error: "+err.Error())
 	})
 
 	t.Run("listeners notified", func(t *testing.T) {
