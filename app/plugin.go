@@ -257,9 +257,7 @@ func (a *App) SyncPlugins() *model.AppError {
 }
 
 func (a *App) ShutDownPlugins() {
-	a.Srv.PluginsLock.Lock()
-	pluginsEnvironment := a.Srv.PluginsEnvironment
-	defer a.Srv.PluginsLock.Unlock()
+	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return
 	}
@@ -270,6 +268,8 @@ func (a *App) ShutDownPlugins() {
 
 	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
 	a.Srv.PluginConfigListenerId = ""
+	a.Srv.PluginsLock.Lock()
+	defer a.Srv.PluginsLock.Unlock()
 	a.Srv.PluginsEnvironment = nil
 }
 
