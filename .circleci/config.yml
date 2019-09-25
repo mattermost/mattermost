@@ -140,7 +140,51 @@ jobs:
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
             echo "Generating diff"
-            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || cat diff.txt && exit 1
+            diff migrated.sql latest.sql > diff.txt && (cat diff.txt && echo "Both schemas are same") || (cat diff.txt && exit 1)
+      - run:
+          name: Prepare for MySQL schema migration validation
+          command: |
+            cd mattermost-server/build
+            echo "Creating databases"
+            docker-compose --no-ansi exec exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
+            echo "Importing mysql dump from version 5.0"
+            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-5.0.sql
+      - run:
+          name: Run MySQL migrations
+          command: |
+            ulimit -n 8096
+            mkdir -p mattermost-server/client/plugins
+            docker run -it --net circleci_mm-test \
+              --env CI_INBUCKET_HOST=inbucket \
+              --env CI_MINIO_HOST=minio \
+              --env CI_INBUCKET_PORT=10080 \
+              --env CI_MINIO_PORT=9000 \
+              --env CI_INBUCKET_SMTP_PORT=10025 \
+              --env CI_LDAP_HOST=openldap \
+              --env IS_CI="true" \
+              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
+              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
+              --env MM_SQLSETTINGS_DRIVERNAME=mysql \
+              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
+              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              -v ~/go/src:/go/src \
+              -w /go/src/github.com/mattermost/mattermost-server \
+              mattermost/mattermost-build-server:feb-28-2019 \
+              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
+          no_output_timeout: 1h
+      - run:
+          name: Analyze dump for MySQL schema migration
+          command: |
+            cd mattermost-server/build
+            echo "Generating dump"
+            docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
+            docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
+
+            echo "Removing databases created for db comparison"
+            docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
+
+            echo "Generating diff"
+            diff migrated.sql latest.sql > diff.txt && (cat diff.txt && echo "Both schemas are same") || (cat diff.txt && exit 1)
       - run:
           name: Run Tests
           command: |
