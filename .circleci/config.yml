@@ -104,7 +104,7 @@ jobs:
             echo "Creating databases"
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
             echo "Importing postgres dump from version 5.0"
-            docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < $(pwd)/scripts/mattermost-postgresql-5.0.sql
+            docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
       - run:
           name: Run Postgres migrations
           command: |
@@ -137,7 +137,7 @@ jobs:
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
 
             echo "Removing databases created for db comparison"
-            docker-compose --no-ansi exec -T postgres sh -c \'exec echo \"DROP DATABASE migrated; DROP DATABASE latest;\" | exec psql -U mmuser mattermost_test\'
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
             echo "Generating diff"
             diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || cat diff.txt && exit 1
