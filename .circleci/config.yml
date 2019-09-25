@@ -52,7 +52,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:feb-28-2019
+      - image: mattermost/mattermost-build-server:sep-17-2019
     working_directory: /go/src/github.com/mattermost
     steps:
       - attach_workspace:
@@ -119,7 +119,7 @@ jobs:
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mattermost-server \
-              mattermost/mattermost-build-server:feb-28-2019 \
+              mattermost/mattermost-build-server:sep-17-2019 \
               bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
           no_output_timeout: 1h
       - run:
