@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-// defaultLog manually encodes the log to STDOUT, providing a basic, default logging implementation
+// defaultLog manually encodes the log to STDERR, providing a basic, default logging implementation
 // before mlog is fully configured.
 func defaultLog(level, msg string, fields ...Field) {
 	log := struct {
