@@ -746,6 +746,110 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 	})
 }
 
+func TestInstallMarketplacePlugin(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.EnableMarketplace = false
+	})
+
+	samplePlugins := []*model.MarketplacePlugin{
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "https://github.com/mattermost/mattermost-plugin-nps",
+				IconData:    "http://example.com/icon.svg",
+				DownloadURL: "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				Manifest: &model.Manifest{
+					Id:               "com.mattermost.nps",
+					Name:             "User Satisfaction Surveys",
+					Description:      "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost.",
+					Version:          "1.0.3",
+					MinServerVersion: "5.14.0",
+				},
+			},
+			InstalledVersion: "",
+		},
+	}
+
+	t.Run("marketplace disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = false
+			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
+		})
+
+		plugins, resp := th.SystemAdminClient.InstallMarketplacePlugin("", "")
+		CheckNotImplementedStatus(t, resp)
+		require.Nil(t, plugins)
+	})
+
+	t.Run("no server", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
+		})
+
+		plugins, resp := th.SystemAdminClient.InstallMarketplacePlugin("", "")
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, plugins)
+	})
+
+	t.Run("no permission", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
+		})
+
+		plugins, resp := th.Client.InstallMarketplacePlugin("", "")
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, plugins)
+	})
+
+	t.Run("plugin not found on the server", func(t *testing.T) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			res.Write(json)
+
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugins, resp := th.SystemAdminClient.InstallMarketplacePlugin("some_plugin_id", "0.0.1")
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, plugins)
+	})
+
+	t.Run("plugin found on the server", func(t *testing.T) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
+			require.NoError(t, err)
+			res.Write(json)
+
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin("com.mattermost.nps", "1.0.3")
+		CheckNoError(t, resp)
+		require.NotNil(t, plugin)
+		require.Equal(t, "com.mattermost.nps", plugin.Id)
+		require.Equal(t, "1.0.3", plugin.Version)
+	})
+}
+
 func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.ClusterMessage {
 	var result []*model.ClusterMessage
 	for _, msg := range msgs {

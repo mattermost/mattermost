@@ -4452,6 +4452,18 @@ func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifes
 	return ManifestFromJson(r.Body), BuildResponse(r)
 }
 
+// InstallMarketplacePlugin will install marketplace plugin
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) InstallMarketplacePlugin(pluginId, version string) (*Manifest, *Response) {
+	data := map[string]interface{}{"Id": pluginId, "Version": version}
+	r, err := c.DoApiPost(c.GetPluginsRoute()+"/marketplace", StringInterfaceToJson(data))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ManifestFromJson(r.Body), BuildResponse(r)
+}
+
 // GetPlugins will return a list of plugin manifests for currently active plugins.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) GetPlugins() (*PluginsResponse, *Response) {

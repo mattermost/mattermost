@@ -3519,6 +3519,10 @@
     "translation": "Failed to get plugins from the marketplace server."
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Plugin not found"
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "Failed to marshal marketplace plugins."
   },
