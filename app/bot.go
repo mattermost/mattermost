@@ -77,9 +77,12 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	user.Username = patchedUser.Username
 	user.Email = patchedUser.Email
 	user.FirstName = patchedUser.FirstName
+	user.UpdateAt = model.GetMillis()
 	if _, err := a.Srv.Store.User().Update(user, true); err != nil {
 		return nil, err
 	}
+
+	a.sendUpdatedUserEvent(*patchedUser)
 
 	return a.Srv.Store.Bot().Update(bot)
 }
