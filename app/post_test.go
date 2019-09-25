@@ -258,22 +258,17 @@ func TestUpdatePostEditAt(t *testing.T) {
 	*post = *th.BasicPost
 
 	post.IsPinned = true
-	if saved, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal(err)
-	} else if saved.EditAt != post.EditAt {
-		t.Fatal("shouldn't have updated post.EditAt when pinning post")
-
-		*post = *saved
-	}
+	saved, err := th.App.UpdatePost(post, true)
+	require.Nil(t, err)
+	assert.Equal(t, saved.EditAt, post.EditAt, "shouldn't have updated post.EditAt when pinning post")
+	*post = *saved
 
 	time.Sleep(time.Millisecond * 100)
 
 	post.Message = model.NewId()
-	if saved, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal(err)
-	} else if saved.EditAt == post.EditAt {
-		t.Fatal("should have updated post.EditAt when updating post message")
-	}
+	saved, err = th.App.UpdatePost(post, true)
+	require.Nil(t, err)
+	assert.NotEqual(t, saved.EditAt, post.EditAt, "should have updated post.EditAt when updating post message")
 
 	time.Sleep(time.Millisecond * 200)
 }
@@ -290,25 +285,23 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
 	})
-	if _, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal(err)
-	}
+	_, err := th.App.UpdatePost(post, true)
+	require.Nil(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = 1000000000
 	})
 	post.Message = model.NewId()
-	if _, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal("should allow you to edit the post")
-	}
+
+	_, err = th.App.UpdatePost(post, true)
+	require.Nil(t, err, "should allow you to edit the post")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = 1
 	})
 	post.Message = model.NewId()
-	if _, err := th.App.UpdatePost(post, true); err == nil {
-		t.Fatal("should fail on update old post")
-	}
+	_, err = th.App.UpdatePost(post, true)
+	require.NotNil(t, err, "should fail on update old post")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
@@ -339,14 +332,11 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	userNotInChannel := th.BasicUser
 	rootPost := th.BasicPost
 
-	if _, err := th.App.AddUserToChannel(userInChannel, channel); err != nil {
-		t.Fatal(err)
-	}
+	_, err := th.App.AddUserToChannel(userInChannel, channel)
+	require.Nil(t, err)
 
-	if err := th.App.RemoveUserFromChannel(userNotInChannel.Id, "", channel); err != nil {
-		t.Fatal(err)
-	}
-
+	err = th.App.RemoveUserFromChannel(userNotInChannel.Id, "", channel)
+	require.Nil(t, err)
 	replyPost := model.Post{
 		Message:       "asd",
 		ChannelId:     channel.Id,
@@ -357,9 +347,8 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := th.App.CreatePostAsUser(&replyPost, ""); err != nil {
-		t.Fatal(err)
-	}
+	_, err = th.App.CreatePostAsUser(&replyPost, "")
+	require.Nil(t, err)
 }
 
 func TestPostAttachPostToChildPost(t *testing.T) {
@@ -381,9 +370,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 	}
 
 	res1, err := th.App.CreatePostAsUser(&replyPost1, "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	replyPost2 := model.Post{
 		Message:       "reply two",
@@ -396,9 +383,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 	}
 
 	_, err = th.App.CreatePostAsUser(&replyPost2, "")
-	if err.StatusCode != http.StatusBadRequest {
-		t.Fatal(fmt.Sprintf("Expected BadRequest error, got %v", err))
-	}
+	assert.Equalf(t, err.StatusCode, http.StatusBadRequest, "Expected BadRequest error, got %v", err)
 
 	replyPost3 := model.Post{
 		Message:       "reply three",
@@ -410,9 +395,8 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := th.App.CreatePostAsUser(&replyPost3, ""); err != nil {
-		t.Fatal(err)
-	}
+	_, err = th.App.CreatePostAsUser(&replyPost3, "")
+	assert.Nil(t, err)
 }
 
 func TestPostChannelMentions(t *testing.T) {
@@ -428,9 +412,7 @@ func TestPostChannelMentions(t *testing.T) {
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
 	}, false)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
+	require.Nil(t, err)
 	defer th.App.PermanentDeleteChannel(channelToMention)
 
 	_, err = th.App.AddUserToChannel(user, channel)
@@ -617,14 +599,11 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	data := []byte("abcd")
 
 	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
-	if err != nil {
-		t.Fatal(err)
-	} else {
-		defer func() {
-			th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
-			th.App.RemoveFile(info1.Path)
-		}()
-	}
+	require.Nil(t, err)
+	defer func() {
+		th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.RemoveFile(info1.Path)
+	}()
 
 	post := &model.Post{
 		Message:       "asd",
