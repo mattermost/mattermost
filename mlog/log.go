@@ -86,7 +86,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	}
 
 	if config.EnableConsole {
-		writer := zapcore.Lock(os.Stdout)
+		writer := zapcore.Lock(os.Stderr)
 		core := zapcore.NewCore(makeEncoder(config.ConsoleJson), writer, logger.consoleLevel)
 		cores = append(cores, core)
 	}

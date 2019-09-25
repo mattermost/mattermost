@@ -6,6 +6,7 @@ package mlog
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 )
 
 // defaultLog manually encodes the log to STDOUT, providing a basic, default logging implementation
@@ -22,9 +23,9 @@ func defaultLog(level, msg string, fields ...Field) {
 	}
 
 	if b, err := json.Marshal(log); err != nil {
-		fmt.Printf(`{"level":"error","msg":"failed to encode log message"}%s`, "\n")
+		fmt.Fprintf(os.Stderr, `{"level":"error","msg":"failed to encode log message"}%s`, "\n")
 	} else {
-		fmt.Printf("%s\n", b)
+		fmt.Fprintf(os.Stderr, "%s\n", b)
 	}
 }
 
