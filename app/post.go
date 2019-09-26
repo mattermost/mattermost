@@ -634,8 +634,8 @@ func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
 	return a.Srv.Store.Post().GetSingle(postId)
 }
 
-func (a *App) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	return a.Srv.Store.Post().Get(postId, false)
+func (a *App) GetPostThread(postId string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+	return a.Srv.Store.Post().Get(postId, skipFetchThreads)
 }
 
 func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
@@ -789,7 +789,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 		return model.NewPostList(), nil
 	}
 
-	postList, err := a.GetPostThread(lastUnreadPostId)
+	postList, err := a.GetPostThread(lastUnreadPostId, false)
 	if err != nil {
 		return nil, err
 	}

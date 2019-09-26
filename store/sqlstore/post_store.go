@@ -282,7 +282,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *
 	var post model.Post
 	var postFetchQuery string
 	if skipFetchThreads {
-		postFetchQuery = "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.RootId)  FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
+		postFetchQuery = "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.RootId) as ReplyCount  FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
 	} else {
 		postFetchQuery = "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0"
 	}
@@ -541,20 +541,28 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	}
 
 	var posts []*model.Post
+
+	replyCountQuery1 := ""
+	replyCountQuery2 := ""
+	if options.SkipFetchThreads {
+		replyCountQuery1 = ` ,(SELECT COUNT(Posts.Id) FROM Posts WHERE p1.RootId = '' AND Posts.RootId = p1.Id) as ReplyCount`
+		replyCountQuery2 = ` ,(SELECT COUNT(Posts.Id) FROM Posts WHERE p2.RootId = '' AND Posts.RootId = p2.Id) as ReplyCount`
+	}
+
 	_, err := s.GetReplica().Select(&posts,
 		`(SELECT
-			*
+			*`+replyCountQuery1+`
 		FROM
-			Posts
+			Posts p1
 		WHERE
 			(UpdateAt > :Time
 				AND ChannelId = :ChannelId)
 			LIMIT 1000)
 		UNION
 			(SELECT
-			    *
+			    *`+replyCountQuery2+`
 			FROM
-			    Posts
+			    Posts p2
 			WHERE
 			    Id
 			IN
