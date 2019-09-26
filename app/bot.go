@@ -223,7 +223,7 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 
 	// Set icon
 	file.Seek(0, 0)
-	if _, err := a.WriteFile(file, getBotIconPath(botUserId)); err != nil {
+	if _, err = a.WriteFile(file, getBotIconPath(botUserId)); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -244,11 +244,11 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 	}
 
 	// Delete icon
-	if err := a.RemoveFile(getBotIconPath(botUserId)); err != nil {
+	if err = a.RemoveFile(getBotIconPath(botUserId)); err != nil {
 		return model.NewAppError("DeleteBotIconImage", "api.bot.delete_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := a.Srv.Store.User().UpdateLastPictureUpdate(botUserId); err != nil {
+	if err = a.Srv.Store.User().UpdateLastPictureUpdate(botUserId); err != nil {
 		mlog.Error(err.Error())
 	}
 
