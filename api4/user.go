@@ -1389,38 +1389,42 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.Info("Expected Login ID does not match Login ID retrieved from session header. You will not be logged in...")
 	}
 	password = "certificate"
-
+	default_team := &model.Team{
+			DisplayName: "bdp",
+            Name:        "bdp",
+            Email:       "bdp@bdp.com",
+            Type:        model.TEAM_OPEN,
+            AllowOpenInvite: true,
+		}
+	existingTeam, err := c.App.GetTeamByName(default_team.Name)
+	if err != nil {
+		mlog.Info("Default team "+default_team.Name+" does not exist. Attempting to create team.")
+		c.App.CreateTeam(default_team)
+	} else {
+		mlog.Info("Default team "+existingTeam.Name+" exists. Attempting to join team.")
+	}
 	loginUser, err := c.App.GetUserForLogin("", loginId)
-// 	mlog.Info("Login User from GetUserForLogin: "+loginUser.Username)
+
 	if err != nil {
 		c.LogAuditWithUserId(id, "no user found failure - login_id="+loginId)
-		newUser := &model.User{
-			Email:         loginId + "@bdp.com",
-			Username:      loginId,
-			Nickname:      loginId,
-			Password:      "certificate",
-			EmailVerified: true,
-		}
-		mlog.Info("Login error for user "+loginId+". Attempting to create new user.")
-		mlog.Error(err.Error())
-		c.App.CreateUser(newUser)
-		default_team, err := c.App.GetTeamByName("bdp")
-		mlog.Info("DEFAULT TEAM NAME: "+default_team.Name)
-		mlog.Info("DEFAULT TEAM ID: "+default_team.Id)
-		c.App.AddUserToTeamByTeamId(default_team.Id, newUser)
-		c.App.DoLogin(w, r, newUser, "")
-        c.Err = err
-	}
-	//if user doesnt exist create user
-	if loginUser == nil {
-		mlog.Info("No Login user found for "+loginId+". New user will be created.")
-// 		c.App.CreateUser(loginUser)
-	} else {
-		mlog.Info("Login user: "+loginUser.Username)
-	}
-	//c.App.CreateUser()
 
-	//c.App.GetTeamByName()
+
+		mlog.Info("Login error for user "+loginId+". Attempting to create new user.")
+		loginUser = &model.User{
+        			Email:         loginId + "@bdp.com",
+        			Username:      loginId,
+        			Nickname:      loginId,
+        			Password:      "certificate",
+        			EmailVerified: true,
+        		}
+		c.App.CreateUser(loginUser)
+		c.App.AddUserToTeamByTeamId(default_team.Name, loginUser)
+        c.Err = err
+        return
+	} else {
+		c.App.AddUserToTeamByTeamId(default_team.Name, loginUser)
+	}
+	session, err := c.App.DoLogin(w, r, loginUser, deviceId)
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
@@ -1444,7 +1448,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	session, err := c.App.DoLogin(w, r, user, deviceId)
+	session, err = c.App.DoLogin(w, r, user, deviceId)
 	if err != nil {
 		c.Err = err
 		return
