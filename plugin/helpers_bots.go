@@ -44,30 +44,6 @@ func (p *HelpersImpl) readFile(path string) ([]byte, error) {
 	return imageBytes, nil
 }
 
-func (p *HelpersImpl) setBotIconAndProfileImage(botId string, profileImagePath string, iconImagePath string) error {
-	if !(profileImagePath == "") {
-		imageBytes, err := p.readFile(profileImagePath)
-		if err != nil {
-			return errors.Wrap(err, "Failed to read profile image")
-		}
-		setProfileErr := p.API.SetProfileImage(botId, imageBytes)
-		if setProfileErr != nil {
-			return errors.Wrap(err, "Failed to set profile image")
-		}
-	}
-	if !(iconImagePath == "") {
-		imageBytes, err := p.readFile(iconImagePath)
-		if err != nil {
-			return errors.Wrap(err, "Failed to read icon image")
-		}
-		setIconErr := p.API.SetBotIconImage(botId, imageBytes)
-		if setIconErr != nil {
-			return errors.Wrap(err, "Failed to set icon image")
-		}
-	}
-	return nil
-}
-
 func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (retBotId string, retErr error) {
 	// Default options
 	o := &EnsureBotOptions{
@@ -79,6 +55,19 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (ret
 		setter(o)
 	}
 
+	botId, err := p.ensureBot(bot)
+	if err != nil {
+		return "", err
+	}
+
+	err = p.setBotImages(botId, o.ProfileImagePath, o.IconImagePath)
+	if err != nil {
+		return "", err
+	}
+	return botId, nil
+}
+
+func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotId string, retErr error) {
 	// Must provide a bot with a username
 	if bot == nil || len(bot.Username) < 1 {
 		return "", errors.New("passed a bad bot, nil or no username")
@@ -114,10 +103,7 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (ret
 	// If the bot has already been created, there is nothing to do.
 	if botIdBytes != nil {
 		botId := string(botIdBytes)
-		setImagesErr := p.setBotIconAndProfileImage(botId, o.ProfileImagePath, o.IconImagePath)
-		if setImagesErr != nil {
-			return botId, setImagesErr
-		}
+		return botId, nil
 	}
 
 	// Check for an existing bot user with that username. If one exists, then use that.
@@ -128,10 +114,6 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (ret
 			}
 		} else {
 			p.API.LogError("Plugin attempted to use an account that already exists. Convert user to a bot account in the CLI by running 'mattermost user convert <username> --bot'. If the user is an existing user account you want to preserve, change its username and restart the Mattermost server, after which the plugin will create a bot account with that name. For more information about bot accounts, see https://mattermost.com/pl/default-bot-accounts", "username", bot.Username, "user_id", user.Id)
-		}
-		setImagesErr := p.setBotIconAndProfileImage(user.Id, o.ProfileImagePath, o.IconImagePath)
-		if setImagesErr != nil {
-			return user.Id, setImagesErr
 		}
 		return user.Id, nil
 	}
@@ -145,6 +127,29 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (ret
 	if kvSetErr := p.API.KVSet(BOT_USER_KEY, []byte(createdBot.UserId)); kvSetErr != nil {
 		p.API.LogWarn("Failed to set created bot user id.", "userid", createdBot.UserId, "err", kvSetErr)
 	}
-
 	return createdBot.UserId, nil
+}
+
+func (p *HelpersImpl) setBotImages(botId string, profileImagePath string, iconImagePath string) error {
+	if profileImagePath != "" {
+		imageBytes, appErr := p.readFile(profileImagePath)
+		if appErr != nil {
+			return errors.Wrap(appErr, "failed to read profile image")
+		}
+		err := p.API.SetProfileImage(botId, imageBytes)
+		if err != nil {
+			return errors.Wrap(err, "failed to set profile image")
+		}
+	}
+	if iconImagePath != "" {
+		imageBytes, appErr := p.readFile(iconImagePath)
+		if appErr != nil {
+			return errors.Wrap(appErr, "failed to read icon image")
+		}
+		err := p.API.SetBotIconImage(botId, imageBytes)
+		if err != nil {
+			return errors.Wrap(err, "failed to set icon image")
+		}
+	}
+	return nil
 }
