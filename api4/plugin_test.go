@@ -780,9 +780,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugins, resp := th.SystemAdminClient.InstallMarketplacePlugin("", "")
+		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin("", "")
 		CheckNotImplementedStatus(t, resp)
-		require.Nil(t, plugins)
+		require.Nil(t, plugin)
 	})
 
 	t.Run("no server", func(t *testing.T) {
@@ -791,9 +791,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugins, resp := th.SystemAdminClient.InstallMarketplacePlugin("", "")
+		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin("", "")
 		CheckInternalErrorStatus(t, resp)
-		require.Nil(t, plugins)
+		require.Nil(t, plugin)
 	})
 
 	t.Run("no permission", func(t *testing.T) {
@@ -802,9 +802,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugins, resp := th.Client.InstallMarketplacePlugin("", "")
+		plugin, resp := th.Client.InstallMarketplacePlugin("", "")
 		CheckForbiddenStatus(t, resp)
-		require.Nil(t, plugins)
+		require.Nil(t, plugin)
 	})
 
 	t.Run("plugin not found on the server", func(t *testing.T) {
@@ -813,18 +813,17 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
 			require.NoError(t, err)
 			res.Write(json)
-
 		}))
-		defer func() { testServer.Close() }()
+		defer testServer.Close()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableMarketplace = true
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		plugins, resp := th.SystemAdminClient.InstallMarketplacePlugin("some_plugin_id", "0.0.1")
+		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin("some_plugin_id", "0.0.1")
 		CheckInternalErrorStatus(t, resp)
-		require.Nil(t, plugins)
+		require.Nil(t, plugin)
 	})
 
 	t.Run("plugin found on the server", func(t *testing.T) {
@@ -833,9 +832,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
 			require.NoError(t, err)
 			res.Write(json)
-
 		}))
-		defer func() { testServer.Close() }()
+		defer testServer.Close()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableMarketplace = true
