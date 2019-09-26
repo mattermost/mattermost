@@ -8,7 +8,6 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -228,13 +227,9 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	updateErr := a.Srv.Store.User().UpdateLastPictureUpdate(botUserId)
-	if updateErr != nil {
-		mlog.Error(updateErr.Error())
-	}else{
-		lastUpdateTime := time.Now().UnixNano() / int64(time.Millisecond)
-		bot.LastIconUpdate = lastUpdateTime
-		a.Srv.Store.Bot().Update(bot)
+	bot.LastIconUpdate = model.GetMillis()
+	if _, err = a.Srv.Store.Bot().Update(bot); err != nil {
+		return err
 	}
 	a.invalidateUserCacheAndPublish(botUserId)
 
@@ -257,9 +252,10 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 		mlog.Error(err.Error())
 	}
 
-	lastUpdateTime := int64(0)
-	bot.LastIconUpdate = lastUpdateTime
-	a.Srv.Store.Bot().Update(bot)
+	bot.LastIconUpdate = int64(0)
+	if _, err = a.Srv.Store.Bot().Update(bot); err != nil {
+		return err
+	}
 
 	a.invalidateUserCacheAndPublish(botUserId)
 

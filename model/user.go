@@ -85,9 +85,9 @@ type User struct {
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
+	BotLastIconUpdate      int64     `db:"-" json:"bot_last_icon_update,omitempty"`
 	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
-	BotLastIconUpdate 	   int64	 `json:"bot_last_icon_update,omitempty"`
 }
 
 type UserUpdate struct {
