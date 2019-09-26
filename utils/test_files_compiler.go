@@ -5,11 +5,11 @@ package utils
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -38,23 +38,13 @@ func CompileGo(t *testing.T, sourceCode, outputPath string) {
 	err = ioutil.WriteFile(main, []byte(sourceCode), 0600)
 	require.NoError(t, err)
 
-	if os.Getenv("GO111MODULE") != "off" {
-		var mattermostServerPath string
-
-		// Generate a go.mod file relying on the local copy of the mattermost-server.
-		// testlib linked mattermost-server into the general temporary directory for this test.
-		mattermostServerPath, err = filepath.Abs("mattermost-server")
-		require.NoError(t, err)
-
-		goMod(t, dir, "init", "mattermost.com/test")
-		goMod(t, dir, "edit", "-require", "github.com/mattermost/mattermost-server@v0.0.0")
-		goMod(t, dir, "edit", "-replace", fmt.Sprintf("github.com/mattermost/mattermost-server@v0.0.0=%s", mattermostServerPath))
-		goMod(t, dir, "edit", "-replace", fmt.Sprintf("git.apache.org/thrift.git=%s", "github.com/apache/thrift@v0.0.0-20180902110319-2566ecd5d999"))
-	}
+	_, sourceFile, _, ok := runtime.Caller(0)
+	require.True(t, ok)
+	serverPath := filepath.Dir(filepath.Dir(sourceFile))
 
 	out := &bytes.Buffer{}
-	cmd := exec.Command("go", "build", "-o", outputPath, "main.go")
-	cmd.Dir = dir
+	cmd := exec.Command("go", "build", "-mod=vendor", "-o", outputPath, main)
+	cmd.Dir = serverPath
 	cmd.Stdout = out
 	cmd.Stderr = out
 	err = cmd.Run()
