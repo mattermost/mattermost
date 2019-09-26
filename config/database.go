@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"database/sql"
 	"io/ioutil"
-	"net/url"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -101,23 +100,22 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 // By contrast, a Postgres DSN is returned unmodified.
 func parseDSN(dsn string) (string, string, error) {
 	// Treat the DSN as the URL that it is.
-	u, err := url.Parse(dsn)
-	if err != nil {
-		return "", "", errors.Wrap(err, "failed to parse DSN as URL")
+	s := strings.SplitN(dsn, "://", 2)
+	if len(s) != 2 {
+		errors.New("failed to parse DSN as URL")
 	}
 
-	scheme := u.Scheme
+	scheme := s[0]
 	switch scheme {
 	case "mysql":
 		// Strip off the mysql:// for the dsn with which to connect.
-		u.Scheme = ""
-		dsn = strings.TrimPrefix(u.String(), "//")
+		dsn = s[1]
 
 	case "postgres":
 		// No changes required
 
 	default:
-		return "", "", errors.Wrapf(err, "unsupported scheme %s", scheme)
+		return "", "", errors.Errorf("unsupported scheme %s", scheme)
 	}
 
 	return scheme, dsn, nil
@@ -293,12 +291,7 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 
 // String returns the path to the database backing the config, masking the password.
 func (ds *DatabaseStore) String() string {
-	u, _ := url.Parse(ds.originalDsn)
-
-	// Strip out the password to avoid leaking in logs.
-	u.User = url.User(u.User.Username())
-
-	return u.String()
+	return stripPassword(ds.originalDsn, ds.driverName)
 }
 
 // Close cleans up resources associated with the store.

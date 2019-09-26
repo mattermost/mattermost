@@ -23,13 +23,13 @@ func TestMuteCommandNoChannel(t *testing.T) {
 	channel1 := th.BasicChannel
 	channel1M, channel1MError := th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
 
-	if channel1MError != nil {
-		t.Fatal("User is not a member of channel 1")
-	}
-
-	if channel1M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
-		t.Fatal("channel shouldn't be muted on initial setup")
-	}
+	assert.Nil(t, channel1MError, "User is not a member of channel 1")
+	assert.NotEqual(
+		t,
+		channel1M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP],
+		model.CHANNEL_NOTIFY_MENTION,
+		"Channel shouldn't be muted on initial setup",
+	)
 
 	cmd := &MuteProvider{}
 	resp := cmd.DoCommand(th.App, &model.CommandArgs{
