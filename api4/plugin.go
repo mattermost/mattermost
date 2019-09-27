@@ -104,10 +104,7 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	force := false
-	if r.URL.Query().Get("force") == "true" {
-		force = true
-	}
+	force := r.URL.Query().Get("force") == "true"
 	downloadUrl := r.URL.Query().Get("plugin_download_url")
 
 	installFromUrl(c, w, downloadUrl, force)
@@ -129,7 +126,11 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	pluginRequest := model.PluginRequestFromReader(r.Body)
+	pluginRequest, err := model.PluginRequestFromReader(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
 	plugin, appErr := c.App.GetMarketplacePlugin(pluginRequest)
 	if appErr != nil {
 		c.Err = appErr

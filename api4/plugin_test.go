@@ -773,14 +773,14 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			InstalledVersion: "",
 		},
 	}
-
+	request := &model.InstallMarketplacePluginRequest{Id: "", Version: ""}
 	t.Run("marketplace disabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableMarketplace = false
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin("", "")
+		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin(request)
 		CheckNotImplementedStatus(t, resp)
 		require.Nil(t, plugin)
 	})
@@ -791,7 +791,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin("", "")
+		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin(request)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, plugin)
 	})
@@ -802,7 +802,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
 
-		plugin, resp := th.Client.InstallMarketplacePlugin("", "")
+		plugin, resp := th.Client.InstallMarketplacePlugin(request)
 		CheckForbiddenStatus(t, resp)
 		require.Nil(t, plugin)
 	})
@@ -820,8 +820,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.EnableMarketplace = true
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
-
-		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin("some_plugin_id", "0.0.1")
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "some_plugin_id", Version: "0.0.1"}
+		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, plugin)
 	})
@@ -839,8 +839,8 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.EnableMarketplace = true
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
-
-		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin("com.mattermost.nps", "1.0.3")
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "com.mattermost.nps", Version: "1.0.3"}
+		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckNoError(t, resp)
 		require.NotNil(t, plugin)
 		require.Equal(t, "com.mattermost.nps", plugin.Id)

@@ -3515,6 +3515,10 @@
     "translation": "Marketplace has been disabled. Please check your logs for details."
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "Failed to get plugins from the marketplace server."
   },

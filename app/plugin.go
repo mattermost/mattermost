@@ -403,18 +403,22 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 }
 
 // GetMarketplacePlugin returns plugin from marketplace-server
-func (a *App) GetMarketplacePlugin(request *model.PluginRequest) (*model.MarketplacePlugin, *model.AppError) {
-	filter := &model.MarketplacePluginFilter{Filter: request.Id}
-	plugins, err := a.GetMarketplacePlugins(filter)
+func (a *App) GetMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.BaseMarketplacePlugin, *model.AppError) {
+	marketplaceClient, err := marketplace.NewClient(
+		*a.Config().PluginSettings.MarketplaceUrl,
+		a.HTTPService,
+	)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	for _, plugin := range plugins {
-		if plugin.Manifest.Version == request.Version {
-			return plugin, nil
-		}
+
+	filter := &model.MarketplacePluginFilter{Filter: request.Id}
+
+	plugin, err := marketplaceClient.GetPlugin(filter, request.Version)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, "", http.StatusInternalServerError)
+	return plugin, nil
 }
 
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
