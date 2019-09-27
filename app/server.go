@@ -760,7 +760,7 @@ func (s *Server) initDiagnostics(endpoint string) {
 			config.BatchSize = 1
 		}
 		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
-		client.Enqueue(&analytics.Identify{
+		client.Enqueue(analytics.Identify{
 			UserId: s.diagnosticId,
 		})
 
