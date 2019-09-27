@@ -174,7 +174,7 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY          = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
 	PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE = true
-	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://marketplace.integrations.mattermost.com"
+	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://api.integrations.mattermost.com"
 
 	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
