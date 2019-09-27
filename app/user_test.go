@@ -81,7 +81,7 @@ func TestCreateOAuthUser(t *testing.T) {
 	user, err := th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
 	require.Nil(t, err)
 
-	require.Equal(t, user.Username, glUser.Username, "usernames didn't match")
+	require.Equal(t, glUser.Username, user.Username, "usernames didn't match")
 
 	th.App.PermanentDeleteUser(user)
 
@@ -101,7 +101,7 @@ func TestCreateProfileImage(t *testing.T) {
 
 	colorful := color.RGBA{116, 49, 196, 255}
 
-	require.Equal(t, img.At(1, 1), colorful, "Failed to create correct color")
+	require.Equal(t, colorful, img.At(1, 1), "Failed to create correct color")
 }
 
 func TestSetDefaultProfileImage(t *testing.T) {
@@ -152,7 +152,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 		guest.Email = "asdf@bar.com"
 		updatedGuest, err := th.App.UpdateUser(guest, false)
 		require.Nil(t, err)
-		require.Equal(t, updatedGuest.Email, guest.Email)
+		require.Equal(t, guest.Email, updatedGuest.Email)
 	})
 
 	t.Run("Guest users should be affected by guest restricted domains", func(t *testing.T) {
@@ -170,7 +170,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 		guest.Email = "asdf@foo.com"
 		updatedGuest, err := th.App.UpdateUser(guest, false)
 		require.Nil(t, err)
-		require.Equal(t, updatedGuest.Email, guest.Email)
+		require.Equal(t, guest.Email, updatedGuest.Email)
 	})
 }
 
@@ -266,7 +266,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(th.App, user.Id, t)
 
-			require.Equal(t, user.Username, gitlabUserObj.Username, "user's username is not updated")
+			require.Equal(t, gitlabUserObj.Username, user.Username, "user's username is not updated")
 		})
 
 		t.Run("ExistinguserWithSameUsername", func(t *testing.T) {
@@ -293,7 +293,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(th.App, user.Id, t)
 
-			require.Equal(t, user.Email, gitlabUserObj.Email, "user's email is not updated")
+			require.Equal(t, gitlabUserObj.Email, user.Email, "user's email is not updated")
 
 			require.True(t, user.EmailVerified, "user's email should have been verified")
 		})
@@ -321,7 +321,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 		user = getUserFromDB(th.App, user.Id, t)
 
-		require.Equal(t, user.FirstName, "Updated", "user's first name is not updated")
+		require.Equal(t, "Updated", user.FirstName, "user's first name is not updated")
 	})
 
 	t.Run("UpdateLastName", func(t *testing.T) {
@@ -333,7 +333,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 		user = getUserFromDB(th.App, user.Id, t)
 
-		require.Equal(t, user.LastName, "Lastname", "user's last name is not updated")
+		require.Equal(t, "Lastname", user.LastName, "user's last name is not updated")
 	})
 }
 
@@ -519,10 +519,10 @@ func TestGetUsersByStatus(t *testing.T) {
 			offlineUser2,
 		}
 
-		require.Equalf(t, len(usersByStatus), len(expectedUsersByStatus), "received only %v users, expected %v", len(usersByStatus), len(expectedUsersByStatus))
+		require.Equalf(t, len(expectedUsersByStatus), len(usersByStatus), "received only %v users, expected %v", len(usersByStatus), len(expectedUsersByStatus))
 
 		for i := range usersByStatus {
-			require.Equalf(t, usersByStatus[i].Id, expectedUsersByStatus[i].Id, "received user %v at index %v, expected %v", usersByStatus[i].Username, i, expectedUsersByStatus[i].Username)
+			require.Equalf(t, expectedUsersByStatus[i].Id, usersByStatus[i].Id, "received user %v at index %v, expected %v", usersByStatus[i].Username, i, expectedUsersByStatus[i].Username)
 		}
 	})
 
@@ -530,7 +530,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		usersByStatus, err := th.App.GetUsersInChannelPageByStatus(channel.Id, 0, 3, true)
 		require.Nil(t, err)
 
-		require.Equal(t, len(usersByStatus), 3, "received too many users")
+		require.Equal(t, 3, len(usersByStatus), "received too many users")
 
 		require.False(
 			t,
@@ -538,12 +538,12 @@ func TestGetUsersByStatus(t *testing.T) {
 			"expected to receive online users first",
 		)
 
-		require.Equal(t, usersByStatus[2].Id, awayUser1.Id, "expected to receive away users second")
+		require.Equal(t, awayUser1.Id, usersByStatus[2].Id, "expected to receive away users second")
 
 		usersByStatus, err = th.App.GetUsersInChannelPageByStatus(channel.Id, 1, 3, true)
 		require.Nil(t, err)
 
-		require.Equal(t, usersByStatus[0].Id, awayUser2.Id, "expected to receive away users second")
+		require.Equal(t, awayUser2.Id, usersByStatus[0].Id, "expected to receive away users second")
 
 		require.False(
 			t,
@@ -554,7 +554,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		usersByStatus, err = th.App.GetUsersInChannelPageByStatus(channel.Id, 1, 4, true)
 		require.Nil(t, err)
 
-		require.Equal(t, len(usersByStatus), 4, "received too many users")
+		require.Equal(t, 4, len(usersByStatus), "received too many users")
 
 		require.False(
 			t,
@@ -625,7 +625,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		newUser, err := th.App.CreateUserWithToken(&user, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 		assert.False(t, newUser.IsGuest())
-		require.Equal(t, newUser.Email, invitationEmail, "The user email must be the invitation one")
+		require.Equal(t, invitationEmail, newUser.Email, "The user email must be the invitation one")
 
 		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
@@ -647,7 +647,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 
 		assert.True(t, newGuest.IsGuest())
-		require.Equal(t, newGuest.Email, invitationEmail, "The user email must be the invitation one")
+		require.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
 		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
 
