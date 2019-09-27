@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"database/sql"
 	"io/ioutil"
+	"regexp"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
