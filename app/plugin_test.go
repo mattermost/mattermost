@@ -425,7 +425,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	require.NotNil(t, err)
 
 	err = th.App.DeletePublicKey("wrong file name")
-	require.NotNil(t, err)
+	require.Nil(t, err)
 	err = th.App.DeletePublicKey("wrong-file-name.plugin.asc")
 	require.Nil(t, err)
 
