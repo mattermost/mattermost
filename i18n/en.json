@@ -1537,10 +1537,6 @@
     "translation": "An error occurred while getting the public key from the store"
   },
   {
-    "id": "api.plugin.get_public_key.not_a_public_key.app_error",
-    "translation": "Provided file name is not a known public key"
-  },
-  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
