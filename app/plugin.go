@@ -429,7 +429,7 @@ func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
 // AddPublicKey method will add plugin public key to the config.
 func (a *App) AddPublicKey(file string) *model.AppError {
 	if !strings.HasSuffix(file, PluginSignaturePublicKeyFileExtention) {
-		filename += PluginSignaturePublicKeyFileExtention
+		file += PluginSignaturePublicKeyFileExtention
 	}
 	filename := filepath.Base(file)
 	if err := a.writePublicKeyFile(file); err != nil {
@@ -448,7 +448,7 @@ func (a *App) AddPublicKey(file string) *model.AppError {
 // DeletePublicKey method will add plugin public key to the config.
 func (a *App) DeletePublicKey(file string) *model.AppError {
 	if !strings.HasSuffix(file, PluginSignaturePublicKeyFileExtention) {
-		filename += PluginSignaturePublicKeyFileExtention
+		file += PluginSignaturePublicKeyFileExtention
 	}
 	filename := filepath.Base(file)
 	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
