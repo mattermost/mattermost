@@ -2204,7 +2204,7 @@ type PluginSettings struct {
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
 	EnableMarketplace        *bool
-	VerifySignature			*bool
+	VerifySignature          *bool
 	MarketplaceUrl           *string
 	SignaturePublicKeyFiles  []string
 }
