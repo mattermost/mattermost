@@ -1509,10 +1509,6 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.plugin.add_public_key.not_a_public_key.app_error",
-    "translation": "Public key should have the extension .asc"
-  },
-  {
     "id": "api.plugin.add_public_key.open.app_error",
     "translation": "An error occurred while opening the public key file"
   },
@@ -1527,10 +1523,6 @@
   {
     "id": "api.plugin.delete_public_key.delete.app_error",
     "translation": "An error occurred while deleting the public key"
-  },
-  {
-    "id": "api.plugin.delete_public_key.not_a_public_key.app_error",
-    "translation": "Provided file name is not a known public key"
   },
   {
     "id": "api.plugin.get_public_key.get_file.app_error",
