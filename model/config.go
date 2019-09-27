@@ -174,11 +174,7 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY          = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
 	PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE = true
-<<<<<<< HEAD
-	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://marketplace.integrations.mattermost.com/"
-=======
 	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://marketplace.integrations.mattermost.com"
->>>>>>> plugin_signing
 
 	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
@@ -2208,11 +2204,9 @@ type PluginSettings struct {
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
 	EnableMarketplace        *bool
+	VerifySignature			*bool
 	MarketplaceUrl           *string
-<<<<<<< HEAD
 	SignaturePublicKeyFiles  []string
-=======
->>>>>>> plugin_signing
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2259,6 +2253,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" {
 		s.MarketplaceUrl = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
+	}
+
+	if s.VerifySignature == nil {
+		s.VerifySignature = NewBool(true)
 	}
 
 	if s.SignaturePublicKeyFiles == nil {
