@@ -100,7 +100,6 @@ func TestCreateBot(t *testing.T) {
 		require.Equal(t, "store.sql_user.save.username_exists.app_error", err.Id)
 	})
 }
-
 func TestPatchBot(t *testing.T) {
 	t.Run("invalid patch for user", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -171,6 +170,9 @@ func TestPatchBot(t *testing.T) {
 
 		patchedBot, err := th.App.PatchBot(createdBot.UserId, botPatch)
 		require.Nil(t, err)
+
+		// patchedBot should create a new .UpdateAt time
+		require.NotEqual(t, createdBot.UpdateAt, patchedBot.UpdateAt)
 
 		createdBot.Username = "username2"
 		createdBot.DisplayName = "updated bot"
