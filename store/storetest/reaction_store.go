@@ -42,7 +42,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	}
 
 	var secondUpdateAt int64
-	postList, err := ss.Post().Get(reaction1.PostId, false)
+	postList, err := ss.Post().Get(reaction1.PostId)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	postList, err = ss.Post().Get(reaction2.PostId, false)
+	postList, err = ss.Post().Get(reaction2.PostId)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 
 	_, err = ss.Reaction().Save(reaction)
 	require.Nil(t, err)
-	result, err := ss.Post().Get(reaction.PostId, false)
+	result, err := ss.Post().Get(reaction.PostId)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,7 +138,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 	} else if len(reactions) != 0 {
 		t.Fatal("should've deleted reaction")
 	}
-	postList, err := ss.Post().Get(post.Id, false)
+	postList, err := ss.Post().Get(post.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -316,7 +316,7 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	}
 
 	// check that the posts are updated
-	postList, err := ss.Post().Get(post.Id, false)
+	postList, err := ss.Post().Get(post.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -324,7 +324,7 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 		t.Fatal("post should still have reactions")
 	}
 
-	postList, err = ss.Post().Get(post2.Id, false)
+	postList, err = ss.Post().Get(post2.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -332,7 +332,7 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 		t.Fatal("post should still have reactions")
 	}
 
-	postList, err = ss.Post().Get(post3.Id, false)
+	postList, err = ss.Post().Get(post3.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
