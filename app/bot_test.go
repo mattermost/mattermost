@@ -86,6 +86,7 @@ func TestCreateBot(t *testing.T) {
 		require.Equal(t, "store.sql_user.save.username_exists.app_error", err.Id)
 	})
 }
+
 func TestPatchBot(t *testing.T) {
 	t.Run("invalid patch for user", func(t *testing.T) {
 		th := Setup(t).InitBasic()
