@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-ldap/ldap"
+	"github.com/mattermost/ldap"
 )
 
 const (
@@ -138,7 +138,7 @@ const (
 	SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE     = ""
 	SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE   = ""
 
-	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://about.mattermost.com/downloads/"
+	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://mattermost.com/download/#mattermostApps"
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
 	NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK     = "https://about.mattermost.com/mattermost-ios-app/"
 
@@ -174,7 +174,11 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY          = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
 	PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE = true
+<<<<<<< HEAD
 	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://marketplace.integrations.mattermost.com/"
+=======
+	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://marketplace.integrations.mattermost.com"
+>>>>>>> plugin_signing
 
 	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
@@ -1233,7 +1237,7 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
-		s.SMTPPort = NewString("2500")
+		s.SMTPPort = NewString("10025")
 	}
 
 	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
@@ -2205,7 +2209,10 @@ type PluginSettings struct {
 	PluginStates             map[string]*PluginState
 	EnableMarketplace        *bool
 	MarketplaceUrl           *string
+<<<<<<< HEAD
 	SignaturePublicKeyFiles  []string
+=======
+>>>>>>> plugin_signing
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {

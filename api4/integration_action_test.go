@@ -142,8 +142,20 @@ func TestOpenDialog(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
 
-	// Should pass with no elements
+	// Should pass with markdown formatted introduction text
 	request.URL = "http://localhost:8065"
+	request.Dialog.IntroductionText = "**Some** _introduction text"
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
+
+	// Should pass with empty introduction text
+	request.Dialog.IntroductionText = ""
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
+
+	// Should pass with no elements
 	request.Dialog.Elements = nil
 	pass, resp = Client.OpenInteractiveDialog(request)
 	CheckNoError(t, resp)

@@ -90,6 +90,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 		keywordQuery = "AND ("
 
 		for index, keyword := range keywords {
+			keyword = sanitizeSearchTerm(keyword, "\\")
 			if index >= 1 {
 				keywordQuery += " OR LOWER(Posts.Message) LIKE :Keyword" + strconv.Itoa(index)
 			} else {
@@ -211,6 +212,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		`SELECT
 			Posts.Id AS PostId,
 			Posts.CreateAt AS PostCreateAt,
+			Posts.UpdateAt AS PostUpdateAt,
 			Posts.Message AS PostMessage,
 			Posts.Type AS PostType,
 			Posts.OriginalId AS PostOriginalId,
@@ -239,9 +241,9 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
-			Posts.CreateAt > :StartTime AND
+			(Posts.CreateAt > :StartTime OR Posts.EditAt > :StartTime) AND
 			Posts.Type = ''
-		ORDER BY PostCreateAt
+		ORDER BY PostUpdateAt
 		LIMIT :Limit`
 
 	var cposts []*model.MessageExport

@@ -6023,10 +6023,6 @@
     "translation": "無法選擇該使用者的訊息以刪除 (數量太多)，請重新執行"
   },
   {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "無法判定最大支援的訊息大小"
-  },
-  {
     "id": "store.sql_post.save.app_error",
     "translation": "無法儲存訊息"
   },

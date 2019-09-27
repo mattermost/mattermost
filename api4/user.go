@@ -86,6 +86,8 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user.SanitizeInput()
+
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
 
@@ -555,7 +557,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersWithoutTeamPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		profiles, err = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
 	} else if len(notInChannelId) > 0 {
 		if !c.App.SessionHasPermissionToChannel(c.App.Session, notInChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
@@ -804,6 +806,13 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var autocomplete model.UserAutocomplete
 
+	var err *model.AppError
+	options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	if len(channelId) > 0 {
 		// Applying the provided teamId here is useful for DMs and GMs which don't belong
 		// to a team. Applying it when the channel does belong to a team makes less sense,
@@ -817,13 +826,6 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
-		var err *model.AppError
-		options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
 		result, err := c.App.AutocompleteUsersInTeam(teamId, name, options)
 		if err != nil {
 			c.Err = err
@@ -832,13 +834,6 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InTeam
 	} else {
-		var err *model.AppError
-		options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
 		result, err := c.App.SearchUsersInTeam("", name, options)
 		if err != nil {
 			c.Err = err

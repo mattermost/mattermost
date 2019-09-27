@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -145,6 +146,47 @@ func TestEmailTest(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
 		_, resp := th.SystemAdminClient.TestEmail(&config)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestSiteURLTest(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/valid/api/v4/system/ping") {
+			w.WriteHeader(200)
+		} else {
+			w.WriteHeader(400)
+		}
+	}))
+	defer ts.Close()
+
+	validSiteURL := ts.URL + "/valid"
+	invalidSiteURL := ts.URL + "/invalid"
+
+	t.Run("as system admin", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.TestSiteURL("")
+		CheckBadRequestStatus(t, resp)
+
+		_, resp = th.SystemAdminClient.TestSiteURL(invalidSiteURL)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp = th.SystemAdminClient.TestSiteURL(validSiteURL)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := Client.TestSiteURL(validSiteURL)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as restricted system admin", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		_, resp := Client.TestSiteURL(validSiteURL)
 		CheckForbiddenStatus(t, resp)
 	})
 }
