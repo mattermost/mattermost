@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"database/sql"
 	"io/ioutil"
+	"regexp"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -20,6 +21,14 @@ import (
 	// Load the Postgres driver
 	_ "github.com/lib/pq"
 )
+
+// MaxWriteLength defines the maximum length accepted for write to the Configurations or
+// ConfigurationFiles table.
+//
+// It is imposed by MySQL's default max_allowed_packet value of 4Mb.
+const MaxWriteLength = 4 * 1024 * 1024
+
+var tcpStripper = regexp.MustCompile(`@tcp\((.*)\)`)
 
 // DatabaseStore is a config store backed by a database.
 type DatabaseStore struct {
@@ -61,6 +70,8 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 }
 
 // initializeConfigurationsTable ensures the requisite tables in place to form the backing store.
+//
+// Uses MEDIUMTEXT on MySQL, and TEXT on sane databases.
 func initializeConfigurationsTable(db *sqlx.DB) error {
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS Configurations (
@@ -84,6 +95,20 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 	`)
 	if err != nil {
 		return errors.Wrap(err, "failed to create ConfigurationFiles table")
+	}
+
+	// Change from TEXT (65535 limit) to MEDIUM TEXT (16777215) on MySQL. This is a
+	// backwards-compatible migration for any existing schema.
+	if db.DriverName() == "mysql" {
+		_, err = db.Exec(`ALTER TABLE Configurations MODIFY Value MEDIUMTEXT`)
+		if err != nil {
+			return errors.Wrap(err, "failed to alter Configurations table")
+		}
+
+		_, err = db.Exec(`ALTER TABLE ConfigurationFiles MODIFY Data MEDIUMTEXT`)
+		if err != nil {
+			return errors.Wrap(err, "failed to alter ConfigurationFiles table")
+		}
 	}
 
 	return nil
@@ -126,6 +151,15 @@ func (ds *DatabaseStore) Set(newCfg *model.Config) (*model.Config, error) {
 	return ds.commonStore.set(newCfg, true, ds.commonStore.validate, ds.persist)
 }
 
+// maxLength identifies the maximum length of a configuration or configuration file
+func (ds *DatabaseStore) checkLength(length int) error {
+	if ds.db.DriverName() == "mysql" && length > MaxWriteLength {
+		return errors.Errorf("value is too long: %d > %d bytes", length, MaxWriteLength)
+	}
+
+	return nil
+}
+
 // persist writes the configuration to the configured database.
 func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	b, err := marshalConfig(cfg)
@@ -136,6 +170,11 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	id := model.NewId()
 	value := string(b)
 	createAt := model.GetMillis()
+
+	err = ds.checkLength(len(value))
+	if err != nil {
+		return errors.Wrap(err, "marshalled configuration failed length check")
+	}
 
 	tx, err := ds.db.Beginx()
 	if err != nil {
@@ -232,6 +271,11 @@ func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
 
 // SetFile sets or replaces the contents of a configuration file.
 func (ds *DatabaseStore) SetFile(name string, data []byte) error {
+	err := ds.checkLength(len(data))
+	if err != nil {
+		return errors.Wrap(err, "file data failed length check")
+	}
+
 	params := map[string]interface{}{
 		"name":      name,
 		"data":      data,
