@@ -417,7 +417,7 @@ func (a *App) GetPluginPublicKeys() ([]string, *model.AppError) {
 // GetPublicKey will return the actual public key saved in the `filename` file.
 func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
 	if !strings.HasSuffix(filename, PluginSignaturePublicKeyFileExtention) {
-		return nil, model.NewAppError("GetPublicKey", "api.plugin.get_public_key.not_a_public_key.app_error", nil, "", http.StatusInternalServerError)
+		filename += PluginSignaturePublicKeyFileExtention
 	}
 	data, err := a.Srv.configStore.GetFile(filename)
 	if err != nil {
@@ -429,7 +429,7 @@ func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
 // AddPublicKey method will add plugin public key to the config.
 func (a *App) AddPublicKey(file string) *model.AppError {
 	if !strings.HasSuffix(file, PluginSignaturePublicKeyFileExtention) {
-		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.not_a_public_key.app_error", nil, "", http.StatusInternalServerError)
+		filename += PluginSignaturePublicKeyFileExtention
 	}
 	filename := filepath.Base(file)
 	if err := a.writePublicKeyFile(file); err != nil {
@@ -448,7 +448,7 @@ func (a *App) AddPublicKey(file string) *model.AppError {
 // DeletePublicKey method will add plugin public key to the config.
 func (a *App) DeletePublicKey(file string) *model.AppError {
 	if !strings.HasSuffix(file, PluginSignaturePublicKeyFileExtention) {
-		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.not_a_public_key.app_error", nil, "", http.StatusInternalServerError)
+		filename += PluginSignaturePublicKeyFileExtention
 	}
 	filename := filepath.Base(file)
 	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
@@ -460,6 +460,8 @@ func (a *App) DeletePublicKey(file string) *model.AppError {
 	})
 
 	return nil
+}
+
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 // and plugins that are installed locally.
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
