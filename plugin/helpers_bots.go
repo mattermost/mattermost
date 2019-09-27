@@ -132,23 +132,23 @@ func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotId string, retErr error) 
 
 func (p *HelpersImpl) setBotImages(botId string, profileImagePath string, iconImagePath string) error {
 	if profileImagePath != "" {
-		imageBytes, appErr := p.readFile(profileImagePath)
-		if appErr != nil {
-			return errors.Wrap(appErr, "failed to read profile image")
-		}
-		err := p.API.SetProfileImage(botId, imageBytes)
+		imageBytes, err := p.readFile(profileImagePath)
 		if err != nil {
-			return errors.Wrap(err, "failed to set profile image")
+			return errors.Wrap(err, "failed to read profile image")
+		}
+		appErr := p.API.SetProfileImage(botId, imageBytes)
+		if appErr != nil {
+			return errors.Wrap(appErr, "failed to set profile image")
 		}
 	}
 	if iconImagePath != "" {
-		imageBytes, appErr := p.readFile(iconImagePath)
-		if appErr != nil {
-			return errors.Wrap(appErr, "failed to read icon image")
-		}
-		err := p.API.SetBotIconImage(botId, imageBytes)
+		imageBytes, err := p.readFile(iconImagePath)
 		if err != nil {
-			return errors.Wrap(err, "failed to set icon image")
+			return errors.Wrap(err, "failed to read icon image")
+		}
+		appErr := p.API.SetBotIconImage(botId, imageBytes)
+		if appErr != nil {
+			return errors.Wrap(appErr, "failed to set icon image")
 		}
 	}
 	return nil
