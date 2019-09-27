@@ -308,7 +308,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(th.App, user.Id, t)
 
-			require.NotEqual(t, user.Email, gitlabUserObj.Email, "user's email is updated though there already exists another user with the same email")
+			require.NotEqual(t, gitlabUserObj.Email, user.Email, "user's email is updated though there already exists another user with the same email")
 		})
 	})
 
