@@ -11,14 +11,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/viper"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 const noSettingsNamed = "unable to find a setting named: %s"
@@ -80,8 +79,20 @@ var MigrateConfigCmd = &cobra.Command{
 	RunE:    configMigrateCmdF,
 }
 
+var ConfigResetCmd = &cobra.Command{
+	Use:     "reset",
+	Short:   "Reset config setting",
+	Long:    "Resets the value of a config setting by its name in dot notation or a setting section. Accepts multiple values for array settings.",
+	Example: "config reset SqlSettings.DriverName LogSettings",
+	RunE:    configResetCmdF,
+}
+
 func init() {
 	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
+	MigrateConfigCmd.Flags().String("from", "", "Config from which to migrate")
+	MigrateConfigCmd.Flags().String("to", "", "Config to which to migrate")
+	MigrateConfigCmd.MarkFlagRequired("to")
+	ConfigResetCmd.Flags().Bool("confirm", false, "Confirm you really want to reset all configuration settings to its default value")
 	ConfigShowCmd.Flags().Bool("json", false, "Output the configuration as JSON.")
 
 	ConfigCmd.AddCommand(
@@ -91,6 +102,7 @@ func init() {
 		ConfigShowCmd,
 		ConfigSetCmd,
 		MigrateConfigCmd,
+		ConfigResetCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -365,6 +377,90 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 	default:
 		return errors.New("type not supported yet")
 	}
+}
+
+func configResetCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+
+	defer app.Shutdown()
+
+	defaultConfig := &model.Config{}
+	defaultConfig.SetDefaults()
+
+	confirmFlag, _ := command.Flags().GetBool("confirm")
+
+	if confirmFlag {
+		app.SaveConfig(defaultConfig, false)
+		return nil
+	}
+
+	if !confirmFlag && len(args) == 0 {
+		var confirmResetAll string
+		CommandPrettyPrintln("Are you sure you want to reset all the configuration settings?(YES/NO): ")
+		fmt.Scanln(&confirmResetAll)
+		if confirmResetAll == "YES" {
+			app.SaveConfig(defaultConfig, false)
+			return nil
+		}
+	}
+
+	tempConfig := app.Config()
+	tempConfigMap := configToMap(*tempConfig)
+	defaultConfigMap := configToMap(*defaultConfig)
+	for _, arg := range args {
+		err = changeMap(tempConfigMap, defaultConfigMap, strings.Split(arg, "."))
+		if err != nil {
+			return errors.Wrap(err, "Failed to reset config")
+		}
+	}
+	bs, err := json.Marshal(tempConfigMap)
+	if err != nil {
+		fmt.Printf("Error while marshalling map to json %s\n", err)
+		os.Exit(1)
+	}
+	err = json.Unmarshal(bs, tempConfig)
+	if err != nil {
+		fmt.Printf("Error while unmarshalling json to struct %s\n", err)
+		os.Exit(1)
+	}
+	if changed := config.FixInvalidLocales(tempConfig); changed {
+		return errors.New("Invalid locale configuration")
+	}
+	app.SaveConfig(tempConfig, false)
+
+	return nil
+}
+
+func changeMap(oldConfigMap, defaultConfigMap map[string]interface{}, configSettings []string) error {
+	resOld, ok := oldConfigMap[configSettings[0]]
+	if !ok {
+		return fmt.Errorf("Unable to find a setting with that name %s", configSettings[0])
+	}
+	resDef := defaultConfigMap[configSettings[0]]
+	valueOld := reflect.ValueOf(resOld)
+
+	if valueOld.Kind() == reflect.Map {
+		if len(configSettings) == 1 {
+			return changeSection(resOld.(map[string]interface{}), resDef.(map[string]interface{}))
+		}
+		return changeMap(resOld.(map[string]interface{}), resDef.(map[string]interface{}), configSettings[1:])
+	}
+	if len(configSettings) == 1 {
+		oldConfigMap[configSettings[0]] = defaultConfigMap[configSettings[0]]
+		return nil
+	}
+	return fmt.Errorf("Unable to find a setting with that name %s", configSettings[0])
+}
+
+func changeSection(oldConfigMap, defaultConfigMap map[string]interface{}) error {
+	valueOld := reflect.ValueOf(oldConfigMap)
+	for _, key := range valueOld.MapKeys() {
+		oldConfigMap[key.String()] = defaultConfigMap[key.String()]
+	}
+	return nil
 }
 
 // configToMap converts our config into a map
