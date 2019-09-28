@@ -138,6 +138,20 @@ const (
 	SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE     = ""
 	SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE   = ""
 
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1    = "RSAwithSHA1"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256  = "RSAwithSHA256"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA384  = "RSAwithSHA384"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512  = "RSAwithSHA512"
+	SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM = SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1
+
+	SAML_SETTINGS_DIGEST_ALGORITHM_SHA1    = "SHA1"
+	SAML_SETTINGS_DIGEST_ALGORITHM_SHA256  = "SHA256"
+	SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM = SAML_SETTINGS_DIGEST_ALGORITHM_SHA1
+
+	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N    = "Canonical1.0"
+	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11  = "Canonical1.1"
+	SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM = SAML_SETTINGS_CANONICAL_ALGORITHM_C14N
+
 	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://mattermost.com/download/#mattermostApps"
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
 	NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK     = "https://about.mattermost.com/mattermost-ios-app/"
@@ -174,7 +188,7 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY          = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
 	PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE = true
-	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://marketplace.integrations.mattermost.com"
+	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://api.integrations.mattermost.com"
 
 	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
@@ -1885,6 +1899,10 @@ type SamlSettings struct {
 	IdpDescriptorUrl            *string
 	AssertionConsumerServiceURL *string
 
+	SignatureAlgorithm *string
+	DigestAlgorithm    *string
+	CanonicalAlgorithm *string
+
 	ScopingIDPProviderId *string
 	ScopingIDPName       *string
 
@@ -1932,6 +1950,18 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.SignRequest == nil {
 		s.SignRequest = NewBool(false)
+	}
+
+	if s.SignatureAlgorithm == nil {
+		s.SignatureAlgorithm = NewString(SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM)
+	}
+
+	if s.DigestAlgorithm == nil {
+		s.DigestAlgorithm = NewString(SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM)
+	}
+
+	if s.CanonicalAlgorithm == nil {
+		s.CanonicalAlgorithm = NewString(SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM)
 	}
 
 	if s.IdpUrl == nil {
@@ -2799,6 +2829,16 @@ func (ss *SamlSettings) isValid() *AppError {
 
 		if len(*ss.EmailAttribute) == 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if !(*ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA384 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_signature_algorithm.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !(*ss.DigestAlgorithm == SAML_SETTINGS_DIGEST_ALGORITHM_SHA1 || *ss.DigestAlgorithm == SAML_SETTINGS_DIGEST_ALGORITHM_SHA256) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_digest_algorithm.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !(*ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N || *ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
