@@ -451,7 +451,6 @@ func TestDatabaseStoreSet(t *testing.T) {
 	})
 
 	t.Run("persist failed", func(t *testing.T) {
-		t.Skip("skipping persistence test inside Set")
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
@@ -466,11 +465,27 @@ func TestDatabaseStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 
 		_, err = ds.Set(newCfg)
-		if assert.Error(t, err) {
-			assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to write to database"))
-		}
+		require.Error(t, err)
+		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to query active configuration"), "unexpected error: "+err.Error())
 
 		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
+	})
+
+	t.Run("persist failed: too long", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
+		defer tearDown()
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		longSiteURL := fmt.Sprintf("http://%s", strings.Repeat("a", config.MaxWriteLength))
+		newCfg := emptyConfig.Clone()
+		newCfg.ServiceSettings.SiteURL = sToP(longSiteURL)
+
+		_, err = ds.Set(newCfg)
+		require.Error(t, err)
+		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: marshalled configuration failed length check: value is too long"), "unexpected error: "+err.Error())
 	})
 
 	t.Run("listeners notified", func(t *testing.T) {
@@ -808,6 +823,22 @@ func TestDatabaseSetFile(t *testing.T) {
 		data, err := ds.GetFile("existing")
 		require.NoError(t, err)
 		require.Equal(t, []byte("overwritten file"), data)
+	})
+
+	t.Run("max length", func(t *testing.T) {
+		longFile := bytes.Repeat([]byte{0x0}, config.MaxWriteLength)
+
+		err := ds.SetFile("toolong", longFile)
+		require.NoError(t, err)
+	})
+
+	t.Run("too long", func(t *testing.T) {
+		longFile := bytes.Repeat([]byte{0x0}, config.MaxWriteLength+1)
+
+		err := ds.SetFile("toolong", longFile)
+		if assert.Error(t, err) {
+			assert.True(t, strings.HasPrefix(err.Error(), "file data failed length check: value is too long"))
+		}
 	})
 }
 
