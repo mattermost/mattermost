@@ -6,6 +6,7 @@ package plugintest
 
 import (
 	model "github.com/mattermost/mattermost-server/model"
+	plugin "github.com/mattermost/mattermost-server/plugin"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -121,6 +122,27 @@ func (_m *Helpers) KVSetWithExpiryJSON(key string, value interface{}, expireInSe
 		r0 = rf(key, value, expireInSeconds)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ShouldProcessMessage provides a mock function with given fields: post, botUserId, options
+func (_m *Helpers) ShouldProcessMessage(post *model.Post, botUserId string, options ...plugin.ShouldProcessMessageOption) bool {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, post, botUserId)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.Post, string, ...plugin.ShouldProcessMessageOption) bool); ok {
+		r0 = rf(post, botUserId, options...)
+	} else {
+		r0 = ret.Get(0).(bool)
 	}
 
 	return r0

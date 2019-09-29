@@ -37,6 +37,8 @@ type Helpers interface {
 	//
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
+
+	ShouldProcessMessage(post *model.Post, botUserId string, options ...ShouldProcessMessageOption) bool
 }
 
 type HelpersImpl struct {

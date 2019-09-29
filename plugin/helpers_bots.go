@@ -7,7 +7,48 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
+	"strings"
 )
+
+type shouldProcessMessageOptions struct {
+	AllowSelf           bool
+	AllowSystemMessages bool
+	AllowBots           bool
+	FilterChannelIDs    []string
+	FilterUserIDs       []string
+}
+
+type ShouldProcessMessageOption func(*shouldProcessMessageOptions)
+
+func AllowSelf() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.AllowSelf = true
+	}
+}
+
+func AllowSystemMessages() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.AllowSystemMessages = true
+	}
+}
+
+func FilterChannelIDs(filterChannelIDs []string) ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.FilterChannelIDs = filterChannelIDs
+	}
+}
+
+func AllowBots() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.AllowBots = true
+	}
+}
+
+func FilterUserIDs(filterUserIDs []string) ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.FilterUserIDs = filterUserIDs
+	}
+}
 
 func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) {
 	// Must provide a bot with a username
@@ -71,4 +112,68 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) 
 	}
 
 	return createdBot.UserId, nil
+}
+
+func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, botUserId string, options ...ShouldProcessMessageOption) bool {
+	messageProcessOptions := initialiseOptions(options)
+
+	if !messageProcessOptions.AllowSelf {
+		if post.UserId == botUserId {
+			return false
+		}
+	}
+
+	if !messageProcessOptions.AllowSystemMessages {
+		if post.IsSystemMessage() {
+			return false
+		}
+	}
+
+	if !contains(messageProcessOptions.FilterChannelIDs, post.ChannelId) {
+		channel, _ := p.API.GetChannel(post.ChannelId)
+
+		if !IsBotDMChannel(channel, botUserId) {
+			return false
+		}
+	}
+
+	if !contains(messageProcessOptions.FilterUserIDs, post.UserId) {
+		user, _ := p.API.GetUser(post.UserId)
+		if !messageProcessOptions.AllowBots {
+			if user.IsBot {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func initialiseOptions(options []ShouldProcessMessageOption) *shouldProcessMessageOptions {
+	messageProcessOptions := &shouldProcessMessageOptions{}
+	for _, option := range options {
+		option(messageProcessOptions)
+	}
+	return messageProcessOptions
+}
+
+func IsBotDMChannel(channel *model.Channel, botUserID string) bool {
+	if channel.Type != model.CHANNEL_DIRECT {
+		return false
+	}
+
+	if !strings.HasPrefix(channel.Name, botUserID+"__") && !strings.HasSuffix(channel.Name, "__"+botUserID) {
+		return false
+	}
+
+	return true
+}
+
+func contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
 }
