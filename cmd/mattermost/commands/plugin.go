@@ -4,9 +4,10 @@
 package commands
 
 import (
-	"errors"
+	// "errors"
 	"os"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -200,7 +201,7 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 
 	pluginsResp, appErr := a.GetPlugins()
 	if appErr != nil {
-		return errors.New("Unable to list plugins. Error: " + appErr.Error())
+		return errors.Wrap(appErr, "Unable to list plugins.")
 	}
 
 	CommandPrettyPrintln("Listing active plugins")
@@ -225,12 +226,12 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 
 	verbose, err := command.Flags().GetString("verbose")
 	if err != nil {
-		return errors.New("failed reading verbose. Error: " + err.Error())
+		return errors.Wrap(err, "Failed reading verbose flag.")
 	}
 
 	pluginPublicKeysResp, appErr := a.GetPluginPublicKeys()
 	if appErr != nil {
-		return errors.New("Unable to list public keys. Error: " + appErr.Error())
+		return errors.Wrap(appErr, "Unable to list public keys.")
 	}
 
 	if verbose == "" {
