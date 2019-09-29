@@ -55,6 +55,8 @@ func TestPluginPublicKeys(t *testing.T) {
 
 	output := th.CheckCommand(t, "plugin", "keys")
 	assert.Contains(t, output, "public-key")
+	assert.NotContains(t, output, "Plugin name:")
+
 }
 
 func TestPluginPublicKeyDetails(t *testing.T) {
@@ -66,8 +68,10 @@ func TestPluginPublicKeyDetails(t *testing.T) {
 
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "keys", "verbose")
-	assert.Contains(t, output, "public-key")
+	output := th.CheckCommand(t, "plugin", "keys", "--verbose", "true")
+	assert.Contains(t, output, "Plugin name: public-key")
+	output = th.CheckCommand(t, "plugin", "keys", "--verbose")
+	assert.Contains(t, output, "Plugin name: public-key")
 }
 
 func TestAddPluginPublicKeys(t *testing.T) {

@@ -82,7 +82,7 @@ var PluginDeletePublicKeyCmd = &cobra.Command{
 }
 
 func init() {
-	PluginPublicKeysCmd.Flags().String("verbose", "", "List names and details of all public keys installed on your Mattermost server.")
+	PluginPublicKeysCmd.Flags().Bool("verbose", false, "List names and details of all public keys installed on your Mattermost server.")
 	PluginPublicKeysCmd.AddCommand(
 		PluginAddPublicKeyCmd,
 		PluginDeletePublicKeyCmd,
@@ -224,7 +224,7 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	verbose, err := command.Flags().GetString("verbose")
+	verbose, err := command.Flags().GetBool("verbose")
 	if err != nil {
 		return errors.Wrap(err, "Failed reading verbose flag.")
 	}
@@ -234,17 +234,17 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(appErr, "Unable to list public keys.")
 	}
 
-	if verbose == "" {
-		for _, publicKey := range pluginPublicKeysResp {
-			CommandPrettyPrintln(publicKey)
-		}
-	} else {
+	if verbose {
 		for _, publicKey := range pluginPublicKeysResp {
 			key, err := a.GetPublicKey(publicKey)
 			if err != nil {
 				CommandPrintErrorln("Unable to get plugin public key: " + publicKey + ". Error: " + err.Error())
 			}
 			CommandPrettyPrintln("Plugin name: " + publicKey + ". \nPublic key: \n" + string(key) + "\n")
+		}
+	} else {
+		for _, publicKey := range pluginPublicKeysResp {
+			CommandPrettyPrintln(publicKey)
 		}
 	}
 
