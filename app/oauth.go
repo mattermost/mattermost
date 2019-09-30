@@ -67,7 +67,7 @@ func (a *App) DeleteOAuthApp(appId string) *model.AppError {
 	}
 
 	if err := a.InvalidateAllCaches(); err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("error in invalidating cache", mlog.Err(err))
 	}
 
 	return nil
@@ -146,7 +146,7 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 	}
 
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("error getting oauth redirect uri", mlog.Err(err))
 		return authRequest.RedirectUri + "?error=server_error&state=" + authRequest.State, nil
 	}
 
@@ -159,7 +159,7 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 	}
 
 	if err = a.Srv.Store.Preference().Save(&model.Preferences{authorizedApp}); err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("error saving store prefrence", mlog.Err(err))
 		return authRequest.RedirectUri + "?error=server_error&state=" + authRequest.State, nil
 	}
 
@@ -189,7 +189,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(userId string, authRequest *mod
 	accessData := &model.AccessData{ClientId: authRequest.ClientId, UserId: user.Id, Token: session.Token, RefreshToken: "", RedirectUri: authRequest.RedirectUri, ExpiresAt: session.ExpiresAt, Scope: authRequest.Scope}
 
 	if _, err := a.Srv.Store.OAuth().SaveAccessData(accessData); err != nil {
-		mlog.Error(fmt.Sprint(err))
+		mlog.Error("error saving oauth access data in implicit flow", mlog.Err(err))
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
 	}
 
@@ -267,7 +267,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			accessData = &model.AccessData{ClientId: clientId, UserId: user.Id, Token: session.Token, RefreshToken: model.NewId(), RedirectUri: redirectUri, ExpiresAt: session.ExpiresAt, Scope: authData.Scope}
 
 			if _, err = a.Srv.Store.OAuth().SaveAccessData(accessData); err != nil {
-				mlog.Error(fmt.Sprint(err))
+				mlog.Error("error saving oauth access data in token for code flow", mlog.Err(err))
 				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
 			}
 
@@ -324,7 +324,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
 	// Remove the previous session
 	if err := a.Srv.Store.Session().Remove(accessData.Token); err != nil {
-		mlog.Error(fmt.Sprint(err))
+		mlog.Error("error removing access data token from session", mlog.Err(err))
 	}
 
 	session, err := a.newSession(appName, user)
@@ -337,7 +337,7 @@ func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData
 	accessData.ExpiresAt = session.ExpiresAt
 
 	if _, err := a.Srv.Store.OAuth().UpdateAccessData(accessData); err != nil {
-		mlog.Error(fmt.Sprint(err))
+		mlog.Error("error updating oauth access data", mlog.Err(err))
 		return nil, model.NewAppError("newSessionUpdateToken", "web.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
 	}
 	accessRsp := &model.AccessResponse{
@@ -583,7 +583,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 
 	a.Srv.Go(func() {
 		if err = a.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error(err.Error())
+			mlog.Error("error sending signin change email", mlog.Err(err))
 		}
 	})
 
@@ -711,7 +711,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	appErr = a.DeleteToken(expectedToken)
 	if appErr != nil {
-		mlog.Error(appErr.Error())
+		mlog.Error("error deleting token", mlog.Err(appErr))
 	}
 
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
@@ -786,7 +786,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		bodyString := string(bodyBytes)
 
-		mlog.Error("Error getting OAuth user: " + bodyString)
+		mlog.Error("Error getting OAuth user", mlog.String("body_string", bodyString))
 
 		if service == model.SERVICE_GITLAB && resp.StatusCode == http.StatusForbidden && strings.Contains(bodyString, "Terms of Service") {
 			// Return a nicer error when the user hasn't accepted GitLab's terms of service
@@ -852,7 +852,7 @@ func (a *App) SwitchOAuthToEmail(email, password, requesterId string) (string, *
 
 	a.Srv.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error(err.Error())
+			mlog.Error("error sending signin change email", mlog.Err(err))
 		}
 	})
 
