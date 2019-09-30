@@ -218,3 +218,15 @@ func (l *BotList) Etag() string {
 func MakeBotNotFoundError(userId string) *AppError {
 	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]interface{}{"user_id": userId}, "", http.StatusNotFound)
 }
+
+func IsBotDMChannel(channel *Channel, botUserID string) bool {
+	if channel.Type != CHANNEL_DIRECT {
+		return false
+	}
+
+	if !strings.HasPrefix(channel.Name, botUserID+"__") && !strings.HasSuffix(channel.Name, "__"+botUserID) {
+		return false
+	}
+
+	return true
+}

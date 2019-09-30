@@ -128,7 +128,7 @@ func (_m *Helpers) KVSetWithExpiryJSON(key string, value interface{}, expireInSe
 }
 
 // ShouldProcessMessage provides a mock function with given fields: post, botUserId, options
-func (_m *Helpers) ShouldProcessMessage(post *model.Post, botUserId string, options ...plugin.ShouldProcessMessageOption) bool {
+func (_m *Helpers) ShouldProcessMessage(post *model.Post, botUserId string, options ...plugin.ShouldProcessMessageOption) (bool, error) {
 	_va := make([]interface{}, len(options))
 	for _i := range options {
 		_va[_i] = options[_i]
@@ -145,5 +145,12 @@ func (_m *Helpers) ShouldProcessMessage(post *model.Post, botUserId string, opti
 		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Post, string, ...plugin.ShouldProcessMessageOption) error); ok {
+		r1 = rf(post, botUserId, options...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 type shouldProcessMessageOptions struct {
@@ -114,66 +113,51 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) 
 	return createdBot.UserId, nil
 }
 
-func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, botUserId string, options ...ShouldProcessMessageOption) bool {
-	messageProcessOptions := initialiseOptions(options)
+func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, botUserId string, options ...ShouldProcessMessageOption) (bool, error) {
+	messageProcessOptions := &shouldProcessMessageOptions{}
+	for _, option := range options {
+		option(messageProcessOptions)
+	}
 
 	if !messageProcessOptions.AllowSelf {
 		if post.UserId == botUserId {
-			return false
+			return false, nil
 		}
 	}
 
 	if !messageProcessOptions.AllowSystemMessages {
 		if post.IsSystemMessage() {
-			return false
+			return false, nil
 		}
 	}
 
-	if !contains(messageProcessOptions.FilterChannelIDs, post.ChannelId) {
-		channel, _ := p.API.GetChannel(post.ChannelId)
+	if !utils.StringInSlice(post.ChannelId, messageProcessOptions.FilterChannelIDs) {
+		channel, appErr := p.API.GetChannel(post.ChannelId)
 
-		if !IsBotDMChannel(channel, botUserId) {
-			return false
+		if appErr != nil {
+			p.API.LogError("Unable to get channel", "err", appErr)
+			return false, errors.Wrap(appErr, "unable to get channel")
+		}
+
+		if !model.IsBotDMChannel(channel, botUserId) {
+			return false, nil
 		}
 	}
 
-	if !contains(messageProcessOptions.FilterUserIDs, post.UserId) {
-		user, _ := p.API.GetUser(post.UserId)
+	if !utils.StringInSlice(post.UserId, messageProcessOptions.FilterUserIDs) {
+		user, appErr := p.API.GetUser(post.UserId)
+
+		if appErr != nil {
+			p.API.LogError("Unable to get user", "err", appErr)
+			return false, errors.Wrap(appErr, "unable to get user")
+		}
+
 		if !messageProcessOptions.AllowBots {
 			if user.IsBot {
-				return false
+				return false, nil
 			}
 		}
 	}
 
-	return true
-}
-
-func initialiseOptions(options []ShouldProcessMessageOption) *shouldProcessMessageOptions {
-	messageProcessOptions := &shouldProcessMessageOptions{}
-	for _, option := range options {
-		option(messageProcessOptions)
-	}
-	return messageProcessOptions
-}
-
-func IsBotDMChannel(channel *model.Channel, botUserID string) bool {
-	if channel.Type != model.CHANNEL_DIRECT {
-		return false
-	}
-
-	if !strings.HasPrefix(channel.Name, botUserID+"__") && !strings.HasSuffix(channel.Name, "__"+botUserID) {
-		return false
-	}
-
-	return true
-}
-
-func contains(a []string, x string) bool {
-	for _, n := range a {
-		if x == n {
-			return true
-		}
-	}
-	return false
+	return true, nil
 }
