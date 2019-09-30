@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Помилка при спробі аутентифікації за допомогою MFA маркера"
+    "translation": "Невірний MFA токен."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",

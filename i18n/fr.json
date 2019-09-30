@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Une erreur s'est produite lors de l'authentification du jeton MFA"
+    "translation": "Jeton MFA invalide"
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",

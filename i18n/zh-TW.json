@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
+    "translation": "無效的多重要素驗證 Token。"
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",

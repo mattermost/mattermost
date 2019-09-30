@@ -173,7 +173,7 @@
   },
   {
     "id": "api.channel.add_guest.added",
-    "translation": "%v agregado al canal como invitado por %v."
+    "translation": "%v agregado al canal como huésped por %v."
   },
   {
     "id": "api.channel.add_member.added",
@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
-    "translation": "%v se ha unido al canal como invitado."
+    "translation": "%v se ha unido al canal como huésped."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -377,11 +377,11 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "Actualización del miembro de canal invalido: No puedes agregar o eliminar el rol de invitado manualmente"
+    "translation": "Actualización del miembro de canal invalido: No puedes agregar o eliminar el rol de huésped manualmente"
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-    "translation": "Actualización del miembro de canal invalido: Un usuario debe ser invitado o usuario, pero no los dos."
+    "translation": "Actualización del miembro de canal invalido: Un usuario debe ser huésped o usuario, pero no los dos."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
@@ -401,7 +401,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "Actualización del miembro de equipo invalido: No puedes agregar o eliminar el rol de invitado manualmente"
+    "translation": "Actualización del miembro de equipo invalido: No puedes agregar o eliminar el rol de huésped manualmente"
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -1876,11 +1876,11 @@
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": "Las cuentas de invitado están deshabilitadas."
+    "translation": "Las cuentas de huéspedes están deshabilitadas."
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "La licencia actual no es compatible con cuentas de invitado"
+    "translation": "La licencia actual no es compatible con cuentas de huéspedes"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1928,11 +1928,11 @@
   },
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Las cuentas de invitado están deshabilitadas"
+    "translation": "Las cuentas de huéspedes están deshabilitadas"
   },
   {
     "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "La licencia actual no es compatible con cuentas de invitado"
+    "translation": "La licencia actual no es compatible con cuentas de huéspedes"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
@@ -1980,11 +1980,11 @@
   },
   {
     "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Las cuentas de invitado están deshabilitadas."
+    "translation": "Las cuentas de huéspedes están deshabilitadas."
   },
   {
     "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "La licencia actual no es compatible con cuentas de invitado"
+    "translation": "La licencia actual no es compatible con cuentas de huéspedes"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
@@ -2060,7 +2060,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": "Actualización del miembro de equipo invalido: Un usuario debe ser un invitado o un usuario pero no los dos."
+    "translation": "Actualización del miembro de equipo invalido: Un usuario debe ser un huésped o un usuario pero no los dos."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2156,11 +2156,11 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], ha invitado a unirte al equipo [[{{.TeamDisplayName}}]] como invitado."
+    "translation": "[[{{.SenderName}}]], ha invitado a unirte al equipo [[{{.TeamDisplayName}}]] como huésped."
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} como invitado"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} como huésped"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2412,11 +2412,11 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "Las cuentas de invitado están deshabilitadas"
+    "translation": "Las cuentas de huéspedes están deshabilitadas"
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
-    "translation": "La licencia actual no es compatible con cuentas de invitado"
+    "translation": "La licencia actual no es compatible con cuentas de huéspedes"
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
@@ -2440,7 +2440,7 @@
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": "No se puede convertir el usuario como invitado porque ya es un invitado"
+    "translation": "No se puede convertir el usuario como huésped porque ya es un huésped"
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
@@ -2484,11 +2484,11 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Las cuentas de invitado están deshabilitadas"
+    "translation": "Las cuentas de huéspedes están deshabilitadas"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
-    "translation": "La licencia actual no es compatible con cuentas de invitado"
+    "translation": "La licencia actual no es compatible con cuentas de huéspedes"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2544,7 +2544,7 @@
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "No se puede convertir el invitado a un usuario regular porque no es un invitado"
+    "translation": "No se puede convertir el huésped a un usuario regular porque no es un huésped"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2664,7 +2664,7 @@
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "El correo electrónico provisto no pertenece a un dominio permitido. Por favor contacta a un administrador o registrate con un correo electrónico diferente."
+    "translation": "El correo electrónico provisto no pertenece a un dominio permitido para cuentas de huéspedes. Por favor contacta a un administrador o registrate con un correo electrónico diferente."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -3508,19 +3508,19 @@
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "No se pudo crear el cliente del mercado de plugins."
+    "translation": "No se pudo crear el cliente del marketplace."
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "El mercado de plugins ha sido deshabilitado. Por favor revisa los registros para más información."
+    "translation": "El Marketplace ha sido deshabilitado. Por favor revisa los registros para más información."
   },
   {
     "id": "app.plugin.marketplace_plugins.app_error",
-    "translation": "No se pudo obtener los plugins desde el servidor de mercado de plugins."
+    "translation": "No se pudo obtener los plugins desde el servidor del marketplace."
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Error al formar el mercado de plugins."
+    "translation": "Error al formar los plugins del marketplace."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Error intentando autenticar el token MFA"
+    "translation": "Token MFA inválido."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",

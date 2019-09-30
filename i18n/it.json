@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Errore cercando di autenticare il token MFA"
+    "translation": "Token MFA invalido."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
