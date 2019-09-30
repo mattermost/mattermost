@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -67,7 +66,7 @@ func (s *Server) RunOldAppInitalization() error {
 	}
 
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
+		mlog.Error("Failed to parse server templates ", mlog.Err(err))
 	} else {
 		s.FakeApp().Srv.htmlTemplateWatcher = htmlTemplateWatcher
 	}
