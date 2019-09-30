@@ -1387,6 +1387,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	    loginId = r.Header.Get("X-BDP-USERNAME")
 	} else {
 		mlog.Info("Expected Login ID does not match Login ID retrieved from session header. You will not be logged in...")
+		return
 	}
 	password = "certificate"
 	default_team := &model.Team{
@@ -1400,6 +1401,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		mlog.Info("Default team "+default_team.Name+" does not exist. Attempting to create team.")
 		c.App.CreateTeam(default_team)
+		return
 	} else {
 		mlog.Info("Default team "+existingTeam.Name+" exists. Attempting to join team.")
 	}
@@ -1418,13 +1420,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
         			EmailVerified: true,
         		}
 		c.App.CreateUser(loginUser)
-		c.App.AddUserToTeamByTeamId(default_team.Name, loginUser)
         c.Err = err
         return
-	} else {
-		c.App.AddUserToTeamByTeamId(default_team.Name, loginUser)
 	}
-	session, err := c.App.DoLogin(w, r, loginUser, deviceId)
+
+	c.App.AddUserToTeamByTeamId(default_team.Name, loginUser)
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
@@ -1448,7 +1448,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	session, err = c.App.DoLogin(w, r, user, deviceId)
+	session, err := c.App.DoLogin(w, r, user, deviceId)
 	if err != nil {
 		c.Err = err
 		return
