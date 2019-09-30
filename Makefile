@@ -118,7 +118,7 @@ all: run ## Alias for 'run'.
 include build/*.mk
 
 start-docker: ## Starts the docker containers for local development.
-ifeq ($(IS_CI),true)
+ifneq ($(IS_CI),false)
 	@echo CI Build: skipping docker start
 else ifeq ($(MM_NO_DOCKER),true)
 	@echo No Docker Enabled: skipping docker start
