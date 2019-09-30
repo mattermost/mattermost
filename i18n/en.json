@@ -4707,6 +4707,14 @@
     "translation": "Service Provider Login URL must be a valid URL and start with http:// or https://."
   },
   {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "Invalid Canonical Algorithm."
+  },
+  {
+    "id": "model.config.is_valid.saml_digest_algorithm.app_error",
+    "translation": "Invalid Digest Algorithm."
+  },
+  {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Invalid Email attribute. Must be set."
   },
@@ -4729,6 +4737,10 @@
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
     "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Invalid Signature Algorithm."
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
