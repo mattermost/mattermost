@@ -43,9 +43,7 @@ func (a *App) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
 }
 
 func (a *App) SyncPluginsActiveState() {
-	a.Srv.PluginsLock.RLock()
-	pluginsEnvironment := a.Srv.PluginsEnvironment
-	a.Srv.PluginsLock.RUnlock()
+	pluginsEnvironment := a.GetPluginsEnvironment()
 
 	if pluginsEnvironment == nil {
 		return
@@ -124,9 +122,7 @@ func (a *App) NewPluginAPI(manifest *model.Manifest) plugin.API {
 }
 
 func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
-	a.Srv.PluginsLock.RLock()
-	pluginsEnvironment := a.Srv.PluginsEnvironment
-	a.Srv.PluginsLock.RUnlock()
+	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment != nil || !*a.Config().PluginSettings.Enable {
 		a.SyncPluginsActiveState()
 		return
@@ -268,9 +264,7 @@ func (a *App) ShutDownPlugins() {
 
 	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
 	a.Srv.PluginConfigListenerId = ""
-	a.Srv.PluginsLock.Lock()
-	defer a.Srv.PluginsLock.Unlock()
-	a.Srv.PluginsEnvironment = nil
+	a.SetPluginsEnvironment(nil)
 }
 
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
