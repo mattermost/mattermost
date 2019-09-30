@@ -199,7 +199,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 			autoResponderRelated := status.Status == model.STATUS_OUT_OF_OFFICE || post.Type == model.POST_AUTO_RESPONDER
 
-			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 && !autoResponderRelated {
+			if userAllowsEmails && a.emailNotificationsAllowedForStatus(status.Status) && profileMap[id].DeleteAt == 0 && !autoResponderRelated {
 				a.sendNotificationEmail(notification, profileMap[id], team)
 			}
 		}
@@ -394,6 +394,9 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 	return true, nil
 }
 
+func (a *App) emailNotificationsAllowedForStatus(status string) bool {
+	return status != model.STATUS_ONLINE && status != model.STATUS_DND
+}
 func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
 	if post.IsSystemMessage() {
 		return nil, nil, nil

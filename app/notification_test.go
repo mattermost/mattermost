@@ -1789,3 +1789,16 @@ func TestGetNotificationNameFormat(t *testing.T) {
 		assert.Equal(t, model.SHOW_USERNAME, th.App.GetNotificationNameFormat(th.BasicUser))
 	})
 }
+
+func TestEmailNotifications(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("email notification allowed for specific statuses", func(t *testing.T) {
+		assert.True(t, th.App.emailNotificationsAllowedForStatus(model.STATUS_OUT_OF_OFFICE))
+		assert.False(t, th.App.emailNotificationsAllowedForStatus(model.STATUS_ONLINE))
+		assert.True(t, th.App.emailNotificationsAllowedForStatus(model.STATUS_OFFLINE))
+		assert.False(t, th.App.emailNotificationsAllowedForStatus(model.STATUS_DND))
+		assert.True(t, th.App.emailNotificationsAllowedForStatus(model.STATUS_AWAY))
+	})
+}
