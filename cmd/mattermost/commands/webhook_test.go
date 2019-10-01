@@ -160,7 +160,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	th.CheckCommand(t, "webhook", "create-incoming", "--channel", th.BasicChannel.Id, "--user", th.BasicUser.Email, "--description", description, "--display-name", displayName)
 
 	webhooks, err := th.App.GetIncomingWebhooksPage(0, 1000)
-	require.NoError(t, err, "unable to retrieve incoming webhooks")
+	require.Nil(t, err, "unable to retrieve incoming webhooks")
 
 	found := false
 	for _, webhook := range webhooks {
@@ -205,7 +205,7 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	}
 
 	oldHook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, incomingWebhook)
-	require.NoError(t, err, "unable to create incoming webhooks")
+	require.Nil(t, err, "unable to create incoming webhooks")
 
 	defer func() {
 		th.App.DeleteIncomingWebhook(oldHook.Id)
@@ -285,7 +285,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	th.CheckCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicChannel.Id, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user)
 
 	webhooks, err := th.App.GetOutgoingWebhooksPage(0, 1000)
-	require.NoError(t, err, "Unable to retreive outgoing webhooks")
+	require.Nil(t, err, "Unable to retreive outgoing webhooks")
 
 	found := false
 	for _, webhook := range webhooks {
@@ -334,7 +334,7 @@ func TestModifyOutgoingWebhook(t *testing.T) {
 	}
 
 	oldHook, err := th.App.CreateOutgoingWebhook(outgoingWebhook)
-	require.NoError(t, err, "unable to create outgoing webhooks: "+err.Error())
+	require.Nil(t, err, "unable to create outgoing webhooks: ")
 
 	defer func() {
 		th.App.DeleteOutgoingWebhook(oldHook.Id)
