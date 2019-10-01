@@ -145,6 +145,13 @@ jobs:
           path: ~/go/src/github.com/mattermost/mattermost-server/test-results/
       - store_artifacts:
           path: ~/go/src/github.com/mattermost/mattermost-server/test-results/
+
+  test-schema:
+    executor:
+      name: ubuntu
+    steps:
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost
       - run:
           name: Postgres schema migration validation
           command: |
@@ -277,6 +284,9 @@ workflows:
       #     requires:
       #       - setup
       - test:
+          requires:
+            - setup
+      - test-schema:
           requires:
             - setup
       - build:
