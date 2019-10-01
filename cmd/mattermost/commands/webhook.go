@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -510,7 +511,7 @@ func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
 	webhook.ChannelId = channel.Id
 	_, createErr := app.CreateOutgoingWebhook(webhook)
 	if createErr != nil {
-		return createErr
+		return model.NewAppError("moveOutgoingWebhookCmd", "cli.outgoing_webhook.inconsistent_state.app_error", nil, "", http.StatusInternalServerError)
 	}
 	return nil
 }
