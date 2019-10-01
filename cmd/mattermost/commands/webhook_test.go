@@ -225,7 +225,7 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	th.CheckCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", modifiedChannelId, "--description", modifiedDescription, "--display-name", modifiedDisplayName, "--icon", modifiedIconUrl, "--lock-to-channel", strconv.FormatBool(modifiedChannelLocked))
 
 	modifiedHook, err := th.App.GetIncomingWebhook(oldHook.Id)
-	require.NoError(t, err, "unable to retrieve modified incoming webhook")
+	require.Nil(t, err, "unable to retrieve modified incoming webhook")
 
 	successUpdate := modifiedHook.DisplayName != modifiedDisplayName || modifiedHook.Description != modifiedDescription || modifiedHook.IconURL != modifiedIconUrl || modifiedHook.ChannelLocked != modifiedChannelLocked || modifiedHook.ChannelId != modifiedChannelId
 	require.False(t, successUpdate, "Failed to update incoming webhook")
@@ -372,7 +372,7 @@ func TestModifyOutgoingWebhook(t *testing.T) {
 	)
 
 	modifiedHook, err := th.App.GetOutgoingWebhook(oldHook.Id)
-	require.NoError(t, err, "unable to retrieve modified outgoing webhook")
+	require.Nil(t, err, "unable to retrieve modified outgoing webhook")
 
 	updateFailed := modifiedHook.ChannelId != modifiedChannelID ||
 		modifiedHook.DisplayName != modifiedDisplayName ||
@@ -437,6 +437,6 @@ func TestDeleteWebhooks(t *testing.T) {
 
 	hooksAfterDeletion := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
-	assert.Contains(t, hooksAfterDeletion, dispName, "Should not have incoming webhooks")
-	assert.Contains(t, hooksAfterDeletion, dispName2, "Should not have outgoing webhooks")
+	assert.NotContains(t, hooksAfterDeletion, dispName, "Should not have incoming webhooks")
+	assert.NotContains(t, hooksAfterDeletion, dispName2, "Should not have outgoing webhooks")
 }
