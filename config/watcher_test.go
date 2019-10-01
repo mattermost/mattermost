@@ -47,17 +47,21 @@ func TestWatcher(t *testing.T) {
 
 	// Write to a different file
 	ioutil.WriteFile(filepath.Join(tempDir, "unrelated"), []byte("data"), 0644)
-	select {
-	case <-called:
-		t.Fatal("callback should not have been called for unrelated file")
-	case <-time.After(1 * time.Second):
-	}
+	require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called for unrelated file")
 
 	// Write to the watched file
 	ioutil.WriteFile(f.Name(), []byte("data"), 0644)
+	require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when file written")
+}
+
+// wasCalled reports whether a given callback channel was called
+// within the specified time duration or not.
+func wasCalled(c chan bool, duration time.Duration) bool {
+	wasCalled := false
 	select {
-	case <-called:
-	case <-time.After(5 * time.Second):
-		t.Fatal("callback should have been called when file written")
+	case <-c:
+		wasCalled = true
+	case <-time.After(duration):
 	}
+	return wasCalled
 }
