@@ -162,16 +162,16 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		assert.Equal(t, "Custom Brand", *cfg.TeamSettings.CustomBrandText)
 
 		if teamSettings, ok := envCfg["TeamSettings"]; !ok {
-			t.Fatal("TeamSettings is missing from envConfig")
+			require.Fail(t, "TeamSettings is missing from envConfig")
 		} else if teamSettingsAsMap, ok := teamSettings.(map[string]interface{}); !ok {
-			t.Fatal("TeamSettings is not a map in envConfig")
+			require.Fail(t, "TeamSettings is not a map in envConfig")
 		} else {
 			if siteNameInEnv, ok := teamSettingsAsMap["SiteName"].(bool); !ok || !siteNameInEnv {
-				t.Fatal("SiteName should be in envConfig")
+				require.Fail(t, "SiteName should be in envConfig")
 			}
 
 			if customBrandTextInEnv, ok := teamSettingsAsMap["CustomBrandText"].(bool); !ok || !customBrandTextInEnv {
-				t.Fatal("SiteName should be in envConfig")
+				require.Fail(t, "SiteName should be in envConfig")
 			}
 		}
 
@@ -184,7 +184,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		assert.Equal(t, "Mattermost", *cfg.TeamSettings.SiteName)
 
 		if _, ok := envCfg["TeamSettings"]; ok {
-			t.Fatal("TeamSettings should be missing from envConfig")
+			require.Fail(t, "TeamSettings should be missing from envConfig")
 		}
 	})
 
@@ -196,16 +196,16 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		require.Nil(t, err)
 
 		if *cfg.ServiceSettings.EnableCommands {
-			t.Fatal("Couldn't read config from environment var")
+			require.Fail(t, "Couldn't read config from environment var")
 		}
 
 		if serviceSettings, ok := envCfg["ServiceSettings"]; !ok {
-			t.Fatal("ServiceSettings is missing from envConfig")
+			require.Fail(t, "ServiceSettings is missing from envConfig")
 		} else if serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{}); !ok {
-			t.Fatal("ServiceSettings is not a map in envConfig")
+			require.Fail(t, "ServiceSettings is not a map in envConfig")
 		} else {
 			if enableCommandsInEnv, ok := serviceSettingsAsMap["EnableCommands"].(bool); !ok || !enableCommandsInEnv {
-				t.Fatal("EnableCommands should be in envConfig")
+				require.Fail(t, "EnableCommands should be in envConfig")
 			}
 		}
 	})
@@ -220,12 +220,12 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		assert.Equal(t, 400, *cfg.ServiceSettings.ReadTimeout)
 
 		if serviceSettings, ok := envCfg["ServiceSettings"]; !ok {
-			t.Fatal("ServiceSettings is missing from envConfig")
+			require.Fail(t, "ServiceSettings is missing from envConfig")
 		} else if serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{}); !ok {
-			t.Fatal("ServiceSettings is not a map in envConfig")
+			require.Fail(t, "ServiceSettings is not a map in envConfig")
 		} else {
 			if readTimeoutInEnv, ok := serviceSettingsAsMap["ReadTimeout"].(bool); !ok || !readTimeoutInEnv {
-				t.Fatal("ReadTimeout should be in envConfig")
+				require.Fail(t, "ReadTimeout should be in envConfig")
 			}
 		}
 	})
@@ -240,12 +240,12 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		assert.Equal(t, "https://example.com", *cfg.ServiceSettings.SiteURL)
 
 		if serviceSettings, ok := envCfg["ServiceSettings"]; !ok {
-			t.Fatal("ServiceSettings is missing from envConfig")
+			require.Fail(t, "ServiceSettings is missing from envConfig")
 		} else if serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{}); !ok {
-			t.Fatal("ServiceSettings is not a map in envConfig")
+			require.Fail(t, "ServiceSettings is not a map in envConfig")
 		} else {
 			if siteURLInEnv, ok := serviceSettingsAsMap["SiteURL"].(bool); !ok || !siteURLInEnv {
-				t.Fatal("SiteURL should be in envConfig")
+				require.Fail(t, "SiteURL should be in envConfig")
 			}
 		}
 	})
@@ -260,12 +260,12 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		assert.Empty(t, *cfg.SupportSettings.TermsOfServiceLink)
 
 		if supportSettings, ok := envCfg["SupportSettings"]; !ok {
-			t.Fatal("SupportSettings is missing from envConfig")
+			require.Fail(t, "SupportSettings is missing from envConfig")
 		} else if supportSettingsAsMap, ok := supportSettings.(map[string]interface{}); !ok {
-			t.Fatal("SupportSettings is not a map in envConfig")
+			require.Fail(t, "SupportSettings is not a map in envConfig")
 		} else {
 			if termsOfServiceLinkInEnv, ok := supportSettingsAsMap["TermsOfServiceLink"].(bool); !ok || !termsOfServiceLinkInEnv {
-				t.Fatal("TermsOfServiceLink should be in envConfig")
+				require.Fail(t, "TermsOfServiceLink should be in envConfig")
 			}
 		}
 	})
@@ -286,15 +286,15 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		assert.Equal(t, "/temp/clientplugins", *cfg.PluginSettings.ClientDirectory)
 
 		if pluginSettings, ok := envCfg["PluginSettings"]; !ok {
-			t.Fatal("PluginSettings is missing from envConfig")
+			require.Fail(t, "PluginSettings is missing from envConfig")
 		} else if pluginSettingsAsMap, ok := pluginSettings.(map[string]interface{}); !ok {
-			t.Fatal("PluginSettings is not a map in envConfig")
+			require.Fail(t, "PluginSettings is not a map in envConfig")
 		} else {
 			if directory, ok := pluginSettingsAsMap["Directory"].(bool); !ok || !directory {
-				t.Fatal("Directory should be in envConfig")
+				require.Fail(t, "Directory should be in envConfig")
 			}
 			if clientDirectory, ok := pluginSettingsAsMap["ClientDirectory"].(bool); !ok || !clientDirectory {
-				t.Fatal("ClientDirectory should be in envConfig")
+				require.Fail(t, "ClientDirectory should be in envConfig")
 			}
 		}
 	})
@@ -311,42 +311,42 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		require.Nil(t, err)
 
 		if pluginsJira, ok := cfg.PluginSettings.Plugins["jira"]; !ok {
-			t.Fatal("PluginSettings.Plugins.jira is missing from config")
+			require.Fail(t, "PluginSettings.Plugins.jira is missing from config")
 		} else {
 			if enabled, ok := pluginsJira["enabled"]; !ok {
-				t.Fatal("PluginSettings.Plugins.jira.enabled is missing from config")
+				require.Fail(t, "PluginSettings.Plugins.jira.enabled is missing from config")
 			} else {
 				assert.Equal(t, "true", enabled)
 			}
 
 			if secret, ok := pluginsJira["secret"]; !ok {
-				t.Fatal("PluginSettings.Plugins.jira.secret is missing from config")
+				require.Fail(t, "PluginSettings.Plugins.jira.secret is missing from config")
 			} else {
 				assert.Equal(t, "config-secret", secret)
 			}
 		}
 
 		if pluginStatesJira, ok := cfg.PluginSettings.PluginStates["jira"]; !ok {
-			t.Fatal("PluginSettings.PluginStates.jira is missing from config")
+			require.Fail(t, "PluginSettings.PluginStates.jira is missing from config")
 		} else {
 			require.Equal(t, true, pluginStatesJira.Enable)
 		}
 
 		if pluginSettings, ok := envCfg["PluginSettings"]; !ok {
-			t.Fatal("PluginSettings is missing from envConfig")
+			require.Fail(t, "PluginSettings is missing from envConfig")
 		} else if pluginSettingsAsMap, ok := pluginSettings.(map[string]interface{}); !ok {
-			t.Fatal("PluginSettings is not a map in envConfig")
+			require.Fail(t, "PluginSettings is not a map in envConfig")
 		} else {
 			if plugins, ok := pluginSettingsAsMap["Plugins"].(map[string]interface{}); !ok {
-				t.Fatal("PluginSettings.Plugins is not a map in envConfig")
+				require.Fail(t, "PluginSettings.Plugins is not a map in envConfig")
 			} else if _, ok := plugins["jira"].(map[string]interface{}); ok {
-				t.Fatal("PluginSettings.Plugins.jira should not be a map in envConfig")
+				require.Fail(t, "PluginSettings.Plugins.jira should not be a map in envConfig")
 			}
 
 			if pluginStates, ok := pluginSettingsAsMap["PluginStates"].(map[string]interface{}); !ok {
-				t.Fatal("PluginSettings.PluginStates is missing from envConfig")
+				require.Fail(t, "PluginSettings.PluginStates is missing from envConfig")
 			} else if _, ok := pluginStates["jira"].(map[string]interface{}); ok {
-				t.Fatal("PluginSettings.PluginStates.jira should not be a map in envConfig")
+				require.Fail(t, "PluginSettings.PluginStates.jira should not be a map in envConfig")
 			}
 		}
 	})
