@@ -402,6 +402,24 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	return resp, nil
 }
 
+// GetMarketplacePlugin returns plugin from marketplace-server
+func (a *App) GetMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.BaseMarketplacePlugin, *model.AppError) {
+	marketplaceClient, err := marketplace.NewClient(
+		*a.Config().PluginSettings.MarketplaceUrl,
+		a.HTTPService,
+	)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	filter := &model.MarketplacePluginFilter{Filter: request.Id}
+	plugin, err := marketplaceClient.GetPlugin(filter, request.Version)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return plugin, nil
+}
+
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 // and plugins that are installed locally.
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
