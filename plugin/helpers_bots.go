@@ -45,11 +45,7 @@ func (p *HelpersImpl) readFile(path string) ([]byte, error) {
 }
 
 func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (retBotId string, retErr error) {
-	// Default options
-	o := &EnsureBotOptions{
-		ProfileImagePath: "",
-		IconImagePath:    "",
-	}
+	o := &EnsureBotOptions{}
 
 	for _, setter := range options {
 		setter(o)
@@ -130,7 +126,7 @@ func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotId string, retErr error) 
 	return createdBot.UserId, nil
 }
 
-func (p *HelpersImpl) setBotImages(botId string, profileImagePath string, iconImagePath string) error {
+func (p *HelpersImpl) setBotImages(botId, profileImagePath, iconImagePath string) error {
 	if profileImagePath != "" {
 		imageBytes, err := p.readFile(profileImagePath)
 		if err != nil {
