@@ -10,7 +10,6 @@ import (
 )
 
 type shouldProcessMessageOptions struct {
-	AllowSelf           bool
 	AllowSystemMessages bool
 	AllowBots           bool
 	FilterChannelIDs    []string
@@ -18,12 +17,6 @@ type shouldProcessMessageOptions struct {
 }
 
 type ShouldProcessMessageOption func(*shouldProcessMessageOptions)
-
-func AllowSelf() ShouldProcessMessageOption {
-	return func(options *shouldProcessMessageOptions) {
-		options.AllowSelf = true
-	}
-}
 
 func AllowSystemMessages() ShouldProcessMessageOption {
 	return func(options *shouldProcessMessageOptions) {
@@ -119,12 +112,6 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, botUserId string, o
 		option(messageProcessOptions)
 	}
 
-	if !messageProcessOptions.AllowSelf {
-		if post.UserId == botUserId {
-			return false, nil
-		}
-	}
-
 	if !messageProcessOptions.AllowSystemMessages {
 		if post.IsSystemMessage() {
 			return false, nil
@@ -135,7 +122,6 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, botUserId string, o
 		channel, appErr := p.API.GetChannel(post.ChannelId)
 
 		if appErr != nil {
-			p.API.LogError("Unable to get channel", "err", appErr)
 			return false, errors.Wrap(appErr, "unable to get channel")
 		}
 
@@ -148,7 +134,6 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, botUserId string, o
 		user, appErr := p.API.GetUser(post.UserId)
 
 		if appErr != nil {
-			p.API.LogError("Unable to get user", "err", appErr)
 			return false, errors.Wrap(appErr, "unable to get user")
 		}
 
