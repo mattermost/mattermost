@@ -68,7 +68,7 @@ func (filter *MarketplacePluginFilter) ApplyToURL(u *url.URL) {
 	u.RawQuery = q.Encode()
 }
 
-// InstallMarketplacePluginRequest struct describes parameters of the requested plugin
+// InstallMarketplacePluginRequest struct describes parameters of the requested plugin.
 type InstallMarketplacePluginRequest struct {
 	Id      string `json:"id"`
 	Version string `json:"version"`
@@ -84,8 +84,8 @@ func PluginRequestFromReader(reader io.Reader) (*InstallMarketplacePluginRequest
 	return r, nil
 }
 
-// ToJSON method will return json from plugin request
-func (r *InstallMarketplacePluginRequest) ToJSON() (string, error) {
+// ToJson method will return json from plugin request.
+func (r *InstallMarketplacePluginRequest) ToJson() (string, error) {
 	b, err := json.Marshal(r)
 	if err != nil {
 		return "", err

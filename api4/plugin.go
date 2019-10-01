@@ -128,7 +128,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 
 	pluginRequest, err := model.PluginRequestFromReader(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, err.Error(), http.StatusNotImplemented)
 		return
 	}
 	plugin, appErr := c.App.GetMarketplacePlugin(pluginRequest)

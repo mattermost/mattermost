@@ -4455,7 +4455,7 @@ func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifes
 // InstallMarketplacePlugin will install marketplace plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequest) (*Manifest, *Response) {
-	json, err := request.ToJSON()
+	json, err := request.ToJson()
 	if err != nil {
 		return nil, &Response{Error: NewAppError("InstallMarketplacePlugin", "model.client.plugin_request_to_json.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}

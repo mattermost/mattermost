@@ -413,7 +413,6 @@ func (a *App) GetMarketplacePlugin(request *model.InstallMarketplacePluginReques
 	}
 
 	filter := &model.MarketplacePluginFilter{Filter: request.Id}
-
 	plugin, err := marketplaceClient.GetPlugin(filter, request.Version)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
