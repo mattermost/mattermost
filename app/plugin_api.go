@@ -666,9 +666,8 @@ func (api *PluginAPI) UploadPlugin(file io.Reader, replace bool) (*model.Manifes
 	if err != nil {
 		return nil, model.NewAppError("uploadPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest)
 	}
-	fileReader := bytes.NewReader(fileBuffer)
 
-	return api.app.InstallPlugin(fileReader, replace)
+	return api.app.InstallPlugin(bytes.NewReader(fileBuffer), replace)
 }
 
 // KV Store Section
