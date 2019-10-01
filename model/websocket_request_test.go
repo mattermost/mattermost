@@ -15,7 +15,7 @@ func TestWebSocketRequest(t *testing.T) {
 	json := m.ToJson()
 	result := WebSocketRequestFromJson(strings.NewReader(json))
 
-	require.NotNil(t, result, "should not be nil")
+	require.NotNil(t, result)
 
 	badresult := WebSocketRequestFromJson(strings.NewReader("junk"))
 
