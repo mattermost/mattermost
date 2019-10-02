@@ -5451,6 +5451,10 @@
     "translation": "Unable to connect to the WebSocket server."
   },
   {
+    "id": "model.websocket_client.authentication_challenge.app_error",
+    "translation": "WebSocket authentication challenge failed."
+  },
+  {
     "id": "oauth.gitlab.tos.error",
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },

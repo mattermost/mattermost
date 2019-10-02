@@ -60,7 +60,10 @@ func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken strin
 
 	client.configurePingHandling()
 
-	client.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": authToken})
+	err = client.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": authToken})
+	if err != nil {
+		return client, NewAppError("NewWebSocketClient", "model.websocket_client.authentication_challenge.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	return client, nil
 }
@@ -93,7 +96,10 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
 	wsc.ResponseChannel = make(chan *WebSocketResponse, 100)
 
-	wsc.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": wsc.AuthToken})
+	err = wsc.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": wsc.AuthToken})
+	if err != nil {
+		return NewAppError("ConnectWithDialer", "model.websocket_client.authentication_challenge.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	return nil
 }
@@ -137,7 +143,7 @@ func (wsc *WebSocketClient) Listen() {
 	}()
 }
 
-func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface{}) {
+func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface{}) error {
 	req := &WebSocketRequest{}
 	req.Seq = wsc.Sequence
 	req.Action = action
@@ -145,32 +151,32 @@ func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface
 
 	wsc.Sequence++
 
-	wsc.Conn.WriteJSON(req)
+	return wsc.Conn.WriteJSON(req)
 }
 
 // UserTyping will push a user_typing event out to all connected users
 // who are in the specified channel
-func (wsc *WebSocketClient) UserTyping(channelId, parentId string) {
+func (wsc *WebSocketClient) UserTyping(channelId, parentId string) error {
 	data := map[string]interface{}{
 		"channel_id": channelId,
 		"parent_id":  parentId,
 	}
 
-	wsc.SendMessage("user_typing", data)
+	return wsc.SendMessage("user_typing", data)
 }
 
 // GetStatuses will return a map of string statuses using user id as the key
-func (wsc *WebSocketClient) GetStatuses() {
-	wsc.SendMessage("get_statuses", nil)
+func (wsc *WebSocketClient) GetStatuses() error {
+	return wsc.SendMessage("get_statuses", nil)
 }
 
 // GetStatusesByIds will fetch certain user statuses based on ids and return
 // a map of string statuses using user id as the key
-func (wsc *WebSocketClient) GetStatusesByIds(userIds []string) {
+func (wsc *WebSocketClient) GetStatusesByIds(userIds []string) error {
 	data := map[string]interface{}{
 		"user_ids": userIds,
 	}
-	wsc.SendMessage("get_statuses_by_ids", data)
+	return wsc.SendMessage("get_statuses_by_ids", data)
 }
 
 func (wsc *WebSocketClient) configurePingHandling() {
@@ -185,8 +191,7 @@ func (wsc *WebSocketClient) pingHandler(appData string) error {
 	}
 
 	wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
-	wsc.Conn.WriteMessage(websocket.PongMessage, []byte{})
-	return nil
+	return wsc.Conn.WriteMessage(websocket.PongMessage, []byte{})
 }
 
 func (wsc *WebSocketClient) pingWatchdog() {
