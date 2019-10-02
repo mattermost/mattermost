@@ -23,7 +23,7 @@ func TestWebSocketEvent(t *testing.T) {
 	require.True(t, m.IsValid(), "should be valid")
 
 	require.Equal(t, m.Broadcast.TeamId, result.Broadcast.TeamId, "Ids do not match")
-	
+
 	require.Equal(t, m.Data["RootId"], result.Data["RootId"], "Ids do not match")
 }
 
