@@ -22,7 +22,7 @@ import (
 
 // PluginSignaturePublicKeyFileExtention is the extention of the public key file.
 // Only this file extention is permitted.
-const PluginSignaturePublicKeyFileExtention = ".plugin.asc"
+const PluginSignaturePublicKeyFileExtention = ".plugin.gpg"
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.

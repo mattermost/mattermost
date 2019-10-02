@@ -69,7 +69,7 @@ var PluginAddPublicKeyCmd = &cobra.Command{
 	Use:     "add [keys]",
 	Short:   "Adds public key(s)",
 	Long:    "Adds public key(s) for plugins on your Mattermost server.",
-	Example: `  plugin keys add my-pk-file1.plugin.asc my-pk-file2.plugin.asc`,
+	Example: `  plugin keys add my-pk-file1.plugin.gpg my-pk-file2.plugin.gpg`,
 	RunE:    pluginAddPublicKeyCmdF,
 }
 
@@ -77,7 +77,7 @@ var PluginDeletePublicKeyCmd = &cobra.Command{
 	Use:     "delete [keys]",
 	Short:   "Deletes public key(s)",
 	Long:    "Deletes public key(s) for plugins on your Mattermost server.",
-	Example: `  plugin keys delete my-pk-file1.plugin.asc my-pk-file2.plugin.asc `,
+	Example: `  plugin keys delete my-pk-file1.plugin.gpg my-pk-file2.plugin.gpg `,
 	RunE:    pluginDeletePublicKeyCmdF,
 }
 

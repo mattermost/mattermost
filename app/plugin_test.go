@@ -411,7 +411,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	path, _ := fileutils.FindDir("tests")
-	publicKeyFilename := "test-public-key.plugin.asc"
+	publicKeyFilename := "test-public-key.plugin.gpg"
 	publicKey, err := ioutil.ReadFile(filepath.Join(path, publicKeyFilename))
 	require.Nil(t, err)
 
@@ -421,12 +421,12 @@ func TestPluginPublicKeys(t *testing.T) {
 	require.True(t, bytes.Equal(file, publicKey))
 	_, err = th.App.GetPublicKey("wrong file name")
 	require.NotNil(t, err)
-	_, err = th.App.GetPublicKey("wrong-file-name.plugin.asc")
+	_, err = th.App.GetPublicKey("wrong-file-name.plugin.gpg")
 	require.NotNil(t, err)
 
 	err = th.App.DeletePublicKey("wrong file name")
 	require.Nil(t, err)
-	err = th.App.DeletePublicKey("wrong-file-name.plugin.asc")
+	err = th.App.DeletePublicKey("wrong-file-name.plugin.gpg")
 	require.Nil(t, err)
 
 	err = th.App.DeletePublicKey(publicKeyFilename)
