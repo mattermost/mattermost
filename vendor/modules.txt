@@ -212,7 +212,7 @@ github.com/spf13/pflag
 github.com/ssor/bom
 # github.com/stretchr/objx v0.2.0
 github.com/stretchr/objx
-# github.com/stretchr/testify v1.3.0
+# github.com/stretchr/testify v1.4.0
 github.com/stretchr/testify/require
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/assert
