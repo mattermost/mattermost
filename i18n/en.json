@@ -3851,6 +3851,14 @@
     "translation": "Elasticsearch is already started"
   },
   {
+    "id": "ent.elasticsearch.start.get_server_version.app_error",
+    "translation": "Failed to get Elasticsearch server version"
+  },
+  {
+    "id": "ent.elasticsearch.start.parse_server_version.app_error",
+    "translation": "Failed to parse Elasticsearch server version"
+  },
+  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Failed to create Elasticsearch bulk processor"
   },

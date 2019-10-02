@@ -23,7 +23,7 @@ import (
 	_ "github.com/prometheus/client_golang/prometheus"
 	_ "github.com/prometheus/client_golang/prometheus/promhttp"
 	_ "github.com/tylerb/graceful"
-	_ "gopkg.in/olivere/elastic.v5"
+	_ "gopkg.in/olivere/elastic.v6"
 )
 
 func main() {
