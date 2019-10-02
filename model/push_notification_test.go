@@ -4,6 +4,7 @@
 package model
 
 import (
+	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 )
@@ -13,9 +14,7 @@ func TestPushNotification(t *testing.T) {
 	json := msg.ToJson()
 	result := PushNotificationFromJson(strings.NewReader(json))
 
-	if msg.Platform != result.Platform {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, msg.Platform, result.Platform, "Ids do not match")
 }
 
 func TestPushNotificationDeviceId(t *testing.T) {
@@ -23,72 +22,44 @@ func TestPushNotificationDeviceId(t *testing.T) {
 	msg := PushNotification{Platform: "test"}
 
 	msg.SetDeviceIdAndPlatform("android:12345")
-	if msg.Platform != "android" {
-		t.Fatal(msg.Platform)
-	}
-	if msg.DeviceId != "12345" {
-		t.Fatal(msg.DeviceId)
-	}
+	require.Equal(t, msg.Platform, "android", msg.Platform)
+	require.Equal(t, msg.DeviceId, "12345", msg.DeviceId)
 	msg.Platform = ""
 	msg.DeviceId = ""
 
 	msg.SetDeviceIdAndPlatform("android:12:345")
-	if msg.Platform != "android" {
-		t.Fatal(msg.Platform)
-	}
-	if msg.DeviceId != "12:345" {
-		t.Fatal(msg.DeviceId)
-	}
+	require.Equal(t, msg.Platform, "android", msg.Platform)
+	require.Equal(t, msg.DeviceId, "12:345", msg.DeviceId)
 	msg.Platform = ""
 	msg.DeviceId = ""
 
 	msg.SetDeviceIdAndPlatform("android::12345")
-	if msg.Platform != "android" {
-		t.Fatal(msg.Platform)
-	}
-	if msg.DeviceId != ":12345" {
-		t.Fatal(msg.DeviceId)
-	}
+	require.Equal(t, msg.Platform, "android", msg.Platform)
+	require.Equal(t, msg.DeviceId, ":12345", msg.DeviceId)
 	msg.Platform = ""
 	msg.DeviceId = ""
 
 	msg.SetDeviceIdAndPlatform(":12345")
-	if msg.Platform != "" {
-		t.Fatal(msg.Platform)
-	}
-	if msg.DeviceId != "12345" {
-		t.Fatal(msg.DeviceId)
-	}
+	require.Equal(t, msg.Platform, "", msg.Platform)
+	require.Equal(t, msg.DeviceId, "12345", msg.DeviceId)
 	msg.Platform = ""
 	msg.DeviceId = ""
 
 	msg.SetDeviceIdAndPlatform("android:")
-	if msg.Platform != "android" {
-		t.Fatal(msg.Platform)
-	}
-	if msg.DeviceId != "" {
-		t.Fatal(msg.DeviceId)
-	}
+	require.Equal(t, msg.Platform, "android", msg.Platform)
+	require.Equal(t, msg.DeviceId, "", msg.DeviceId)
 	msg.Platform = ""
 	msg.DeviceId = ""
 
 	msg.SetDeviceIdAndPlatform("")
-	if msg.Platform != "" {
-		t.Fatal(msg.Platform)
-	}
-	if msg.DeviceId != "" {
-		t.Fatal(msg.DeviceId)
-	}
+	require.Equal(t, msg.Platform, "", msg.Platform)
+	require.Equal(t, msg.DeviceId, "", msg.DeviceId)
 	msg.Platform = ""
 	msg.DeviceId = ""
 
 	msg.SetDeviceIdAndPlatform(":")
-	if msg.Platform != "" {
-		t.Fatal(msg.Platform)
-	}
-	if msg.DeviceId != "" {
-		t.Fatal(msg.DeviceId)
-	}
+	require.Equal(t, msg.Platform, "", msg.Platform)
+	require.Equal(t, msg.DeviceId, "", msg.DeviceId)
 	msg.Platform = ""
 	msg.DeviceId = ""
 }
