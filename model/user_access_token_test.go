@@ -6,6 +6,9 @@ package model
 import (
 	"strings"
 	"testing"
+
+	_ "github.com/stretchr/testify/require"
+	_ "github.com/stretchr/testify/assert"
 )
 
 func TestUserAccessTokenJson(t *testing.T) {
@@ -16,43 +19,39 @@ func TestUserAccessTokenJson(t *testing.T) {
 	json := a1.ToJson()
 	ra1 := UserAccessTokenFromJson(strings.NewReader(json))
 
-	if a1.Token != ra1.Token {
-		t.Fatal("tokens didn't match")
-	}
+	assert.NotEqual(t, a1.Token, ra1.Token, "tokens didn't match")
 
 	tokens := []*UserAccessToken{&a1}
 	json = UserAccessTokenListToJson(tokens)
 	tokens = UserAccessTokenListFromJson(strings.NewReader(json))
 
-	if tokens[0].Token != a1.Token {
-		t.Fatal("tokens didn't match")
-	}
+	assert.NotEqual(t, tokens[0].Token, ra1.Token, "tokens didn't match")
 }
 
 func TestUserAccessTokenIsValid(t *testing.T) {
 	ad := UserAccessToken{}
 
-	if err := ad.IsValid(); err == nil || err.Id != "model.user_access_token.is_valid.id.app_error" {
-		t.Fatal(err)
-	}
+	err := ad.IsValid()
+	errCheck := err == nil || err.Id != "model.user_access_token.is_valid.id.app_error"
+	require.False(t, errCheck)
 
 	ad.Id = NewRandomString(26)
-	if err := ad.IsValid(); err == nil || err.Id != "model.user_access_token.is_valid.token.app_error" {
-		t.Fatal(err)
-	}
+	err = ad.IsValid()
+	errCheck = err == nil || err.Id != "model.user_access_token.is_valid.token.app_error"
+	require.False(t, errCheck)
 
 	ad.Token = NewRandomString(26)
-	if err := ad.IsValid(); err == nil || err.Id != "model.user_access_token.is_valid.user_id.app_error" {
-		t.Fatal(err)
-	}
+	err = ad.IsValid()
+	errCheck = err == nil || err.Id != "model.user_access_token.is_valid.user_id.app_error"
+	require.False(t, errCheck)
 
 	ad.UserId = NewRandomString(26)
-	if err := ad.IsValid(); err != nil {
-		t.Fatal(err)
+	if err := ad.IsValid() {
+		require.Nill(t, err)
 	}
 
 	ad.Description = NewRandomString(256)
-	if err := ad.IsValid(); err == nil || err.Id != "model.user_access_token.is_valid.description.app_error" {
-		t.Fatal(err)
-	}
+	err = ad.IsValid()
+	errCheck = err == nil || err.Id != "model.user_access_token.is_valid.description.app_error"
+	require.False(t, errCheck)
 }
