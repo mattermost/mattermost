@@ -168,9 +168,8 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	assert.Nil(t, err)
 
 	// create two files with the same name that will both be attached to the email
-	fileName := "file.txt"
-	filePath1 := fmt.Sprintf("test1/%s", fileName)
-	filePath2 := fmt.Sprintf("test2/%s", fileName)
+	filePath1 := fmt.Sprintf("test1/%s", "file1.txt")
+	filePath2 := fmt.Sprintf("test2/%s", "file2.txt")
 	fileContents1 := []byte("hello world")
 	fileContents2 := []byte("foo bar")
 	_, err = fileBackend.WriteFile(bytes.NewReader(fileContents1), filePath1)
@@ -182,68 +181,70 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 
 	attachments := make([]*model.FileInfo, 2)
 	attachments[0] = &model.FileInfo{
-		Name: fileName,
+		Name: "file1.txt",
 		Path: filePath1,
 	}
 	attachments[1] = &model.FileInfo{
-		Name: fileName,
+		Name: "file2.txt",
 		Path: filePath2,
+	}
+
+	embeddedFiles := map[string]io.Reader{
+		"test": bytes.NewReader([]byte("test data")),
 	}
 
 	headers := make(map[string]string)
 	headers["TestHeader"] = "TestValue"
 
-	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, replyTo, emailSubject, emailBody, attachments, headers, cfg, true); err != nil {
-		t.Log(err)
-		t.Fatal("Should connect to the STMP Server")
-	} else {
-		//Check if the email was send to the right email address
-		var resultsMailbox JSONMessageHeaderInbucket
-		err := RetryInbucket(5, func() error {
-			var err error
-			resultsMailbox, err = GetMailBox(smtpTo)
-			return err
-		})
-		if err != nil {
-			t.Log(err)
-			t.Fatal("No emails found for address " + smtpTo)
-		}
-		if err == nil && len(resultsMailbox) > 0 {
-			if !strings.ContainsAny(resultsMailbox[0].To[0], smtpTo) {
-				t.Fatal("Wrong To recipient")
-			} else {
-				if resultsEmail, err := GetMessageFromMailbox(smtpTo, resultsMailbox[0].ID); err == nil {
-					if !strings.Contains(resultsEmail.Body.Text, emailBody) {
-						t.Log(resultsEmail.Body.Text)
-						t.Fatal("Received message")
-					}
+	err = SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, replyTo, emailSubject, emailBody, attachments, embeddedFiles, headers, cfg, true)
+	require.Nil(t, err, "Should connect to the STMP Server: %v", err)
 
-					// verify that the To header of the email message is set to the MIME recipient, even though we got it out of the SMTP recipient's email inbox
-					assert.Equal(t, mimeTo, resultsEmail.Header["To"][0])
+	//Check if the email was send to the right email address
+	var resultsMailbox JSONMessageHeaderInbucket
+	err = RetryInbucket(5, func() error {
+		var mailErr error
+		resultsMailbox, mailErr = GetMailBox(smtpTo)
+		return mailErr
+	})
+	require.Nil(t, err, "No emails found for address %s. error: %v", smtpTo, err)
+	require.NotEqual(t, len(resultsMailbox), 0)
 
-					// verify that the MIME from address is correct - unfortunately, we can't verify the SMTP from address
-					assert.Equal(t, from.String(), resultsEmail.Header["From"][0])
+	require.Contains(t, resultsMailbox[0].To[0], mimeTo, "Wrong To recipient")
 
-					// check that the custom mime headers came through - header case seems to get mutated
-					assert.Equal(t, "TestValue", resultsEmail.Header["Testheader"][0])
+	resultsEmail, err := GetMessageFromMailbox(smtpTo, resultsMailbox[0].ID)
+	require.Nil(t, err)
 
-					// ensure that the attachments were successfully sent
-					assert.Len(t, resultsEmail.Attachments, 2)
-					assert.Equal(t, fileName, resultsEmail.Attachments[0].Filename)
-					assert.Equal(t, fileName, resultsEmail.Attachments[1].Filename)
-					attachment1 := string(resultsEmail.Attachments[0].Bytes)
-					attachment2 := string(resultsEmail.Attachments[1].Bytes)
-					if attachment1 == string(fileContents1) {
-						assert.Equal(t, attachment2, string(fileContents2))
-					} else if attachment1 == string(fileContents2) {
-						assert.Equal(t, attachment2, string(fileContents1))
-					} else {
-						assert.Fail(t, "Unrecognized attachment contents")
-					}
-				}
-			}
-		}
+	require.Contains(t, emailBody, resultsEmail.Body.Text, "Wrong received message")
+
+	// verify that the To header of the email message is set to the MIME recipient, even though we got it out of the SMTP recipient's email inbox
+	assert.Equal(t, mimeTo, resultsEmail.Header["To"][0])
+
+	// verify that the MIME from address is correct - unfortunately, we can't verify the SMTP from address
+	assert.Equal(t, from.String(), resultsEmail.Header["From"][0])
+
+	// check that the custom mime headers came through - header case seems to get mutated
+	assert.Equal(t, "TestValue", resultsEmail.Header["Testheader"][0])
+
+	// ensure that the attachments were successfully sent
+	assert.Len(t, resultsEmail.Attachments, 3)
+
+	attachmentsFilenames := []string{
+		resultsEmail.Attachments[0].Filename,
+		resultsEmail.Attachments[1].Filename,
+		resultsEmail.Attachments[2].Filename,
 	}
+	assert.Contains(t, attachmentsFilenames, "file1.txt")
+	assert.Contains(t, attachmentsFilenames, "file2.txt")
+	assert.Contains(t, attachmentsFilenames, "test")
+
+	attachment1 := string(resultsEmail.Attachments[0].Bytes)
+	attachment2 := string(resultsEmail.Attachments[1].Bytes)
+	attachment3 := string(resultsEmail.Attachments[2].Bytes)
+	attachmentsData := []string{attachment1, attachment2, attachment3}
+
+	assert.Contains(t, attachmentsData, string(fileContents1))
+	assert.Contains(t, attachmentsData, string(fileContents2))
+	assert.Contains(t, attachmentsData, "test data")
 }
 
 func TestAuthMethods(t *testing.T) {
@@ -349,7 +350,7 @@ func TestSendMail(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			appErr = SendMail(mocm, "", "", mail.Address{}, tc.replyTo, "", "", nil, nil, mockBackend, time.Now())
+			appErr = SendMail(mocm, "", "", mail.Address{}, tc.replyTo, "", "", nil, nil, nil, mockBackend, time.Now())
 			require.Nil(t, appErr)
 			if len(tc.contains) > 0 {
 				require.Contains(t, string(mocm.data), tc.contains)

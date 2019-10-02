@@ -6771,6 +6771,10 @@
     "translation": "Unable to find the existing team"
   },
   {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "Unable to find the existing team"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme"
   },
