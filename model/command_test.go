@@ -75,13 +75,13 @@ func TestCommandIsValid(t *testing.T) {
 	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.Trigger = strings.Repeat("1", 129)
-	require.Nil(t, o.IsValid())
-
-	o.Trigger = strings.Repeat("1", 128)
 	require.NotNil(t, o.IsValid(), "should be invalid")
 
-	o.URL = ""
+	o.Trigger = strings.Repeat("1", 128)
 	require.Nil(t, o.IsValid())
+
+	o.URL = ""
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.URL = "1234"
 	require.NotNil(t, o.IsValid(), "should be invalid")
@@ -96,19 +96,19 @@ func TestCommandIsValid(t *testing.T) {
 	require.Nil(t, o.IsValid())
 
 	o.Method = COMMAND_METHOD_POST
-	require.NotNil(t, o.IsValid(), "should be invalid")
+	require.Nil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 65)
-	require.Nil(t, o.IsValid())
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.DisplayName = strings.Repeat("1", 64)
-	require.NotNil(t, o.IsValid(), "should be invalid")
-
-	o.Description = strings.Repeat("1", 129)
 	require.Nil(t, o.IsValid())
 
+	o.Description = strings.Repeat("1", 129)
+	require.Nil(t, o.IsValid(), "should be invalid")
+
 	o.Description = strings.Repeat("1", 128)
-	require.NotNil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid())
 }
 
 func TestCommandPreSave(t *testing.T) {
