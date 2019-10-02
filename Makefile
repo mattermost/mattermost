@@ -84,12 +84,12 @@ TE_PACKAGES=$(shell go list ./...)
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.1
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.3
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.2.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
