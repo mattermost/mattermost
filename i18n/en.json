@@ -3535,8 +3535,16 @@
     "translation": "Marketplace has been disabled. Please check your logs for details."
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "Failed to get plugins from the marketplace server."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Plugin not found."
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -4727,6 +4735,14 @@
     "translation": "Service Provider Login URL must be a valid URL and start with http:// or https://."
   },
   {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "Invalid Canonical Algorithm."
+  },
+  {
+    "id": "model.config.is_valid.saml_digest_algorithm.app_error",
+    "translation": "Invalid Digest Algorithm."
+  },
+  {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Invalid Email attribute. Must be set."
   },
@@ -4749,6 +4765,10 @@
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
     "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Invalid Signature Algorithm."
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -6776,6 +6796,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Unable to find the existing team"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Unable to find the existing team"
   },
   {

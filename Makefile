@@ -3,6 +3,7 @@
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 IS_CI ?= false
+MM_NO_DOCKER ?= false
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
@@ -117,27 +118,35 @@ all: run ## Alias for 'run'.
 include build/*.mk
 
 start-docker: ## Starts the docker containers for local development.
-ifeq ($(IS_CI),false)
+ifneq ($(IS_CI),false)
+	@echo CI Build: skipping docker start
+else ifeq ($(MM_NO_DOCKER),true)
+	@echo No Docker Enabled: skipping docker start
+else
 	@echo Starting docker containers
 
 	docker-compose run --rm start_dependencies
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
-
-else
-	@echo CI Build: skipping docker start
 endif
 
 stop-docker: ## Stops the docker containers for local development.
+ifeq ($(MM_NO_DOCKER),true)
+	@echo No Docker Enabled: skipping docker stop
+else
 	@echo Stopping docker containers
 
 	docker-compose stop
-
+endif
 
 clean-docker: ## Deletes the docker containers for local development.
+ifeq ($(MM_NO_DOCKER),true)
+	@echo No Docker Enabled: skipping docker clean
+else
 	@echo Removing docker containers
 
 	docker-compose down -v
 	docker-compose rm -v
+endif
 
 
 govet: ## Runs govet against all packages.
