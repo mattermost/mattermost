@@ -332,7 +332,7 @@ func (s *Server) Shutdown() error {
 
 	err := s.shutdownDiagnostics()
 	if err != nil {
-		mlog.Error("Unable to cleanly shutdown diagnostic client: ", mlog.Err(err))
+		mlog.Error("Unable to cleanly shutdown diagnostic client ", mlog.Err(err))
 	}
 
 	s.StopHTTPServer()
@@ -502,7 +502,7 @@ func (s *Server) Start() error {
 
 	if *s.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
-			mlog.Error("Unable to setup forwarding: ", mlog.Err(err))
+			mlog.Error("Unable to setup forwarding ", mlog.Err(err))
 		} else if port != "443" {
 			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
@@ -519,7 +519,7 @@ func (s *Server) Start() error {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
 					if err != nil {
-						mlog.Error("Unable to setup forwarding: ", mlog.Err(err))
+						mlog.Error("Unable to setup forwarding ", mlog.Err(err))
 						return
 					}
 					defer redirectListener.Close()
@@ -605,7 +605,7 @@ func (s *Server) Start() error {
 		}
 
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical("Error starting server, ", mlog.Err(err))
+			mlog.Critical("Error starting server ", mlog.Err(err))
 			time.Sleep(time.Second)
 		}
 
