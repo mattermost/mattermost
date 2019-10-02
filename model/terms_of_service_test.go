@@ -8,44 +8,31 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTermsOfServiceIsValid(t *testing.T) {
 	s := TermsOfService{}
 
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.Error(t, s.IsValid(), "should be invalid")
 
 	s.Id = NewId()
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.Error(t, s.IsValid(), "should be invalid")
 
 	s.CreateAt = GetMillis()
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.Error(t, s.IsValid(), "should be invalid")
 
 	s.UserId = NewId()
-	if err := s.IsValid(); err != nil {
-		t.Fatal("should be invalid")
-	}
+	require.Error(t, s.IsValid(), "should be invalid")
 
 	s.Text = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V2+1)
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.Error(t, s.IsValid(), "should be invalid")
 
 	s.Text = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V2)
-	if err := s.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, s.IsValid(), "should be valid")
 
 	s.Text = "test"
-	if err := s.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, s.IsValid(), "should be valid")
 }
 
 func TestTermsOfServiceJson(t *testing.T) {
