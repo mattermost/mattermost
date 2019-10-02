@@ -972,7 +972,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "用户不能从此频道移除因为他们属于连接到此频道的组。如果想从此频道移除他们，必须从连动组里移除。"
+    "translation": "用户不能从此频道移除因为他们属于关联到此频道的组。如果想从此频道移除他们，必须从关联组里移除。"
   },
   {
     "id": "api.command_remove.hint",
@@ -1538,11 +1538,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} 以及 @{{.LastUsername}} 未被通知因为他们不在此频道。他们未能被添加到频道因为他们不是连动组的成员。他们必须添加到连动组才能添加到此频道。"
+    "translation": "@{{.Usernames}} 以及 @{{.LastUsername}} 未被通知因为他们不在此频道。他们未能被添加到频道因为他们不是关联组的成员。他们必须添加到关联组才能添加到此频道。"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} 未被通知因为他不在此频道。他们未能被添加到频道因为他们不是连动组的成员。他们必须添加到连动组才能添加到此频道。"
+    "translation": "@{{.Username}} 未被通知因为他不在此频道。他们未能被添加到频道因为他们不是关联组的成员。他们必须添加到关联组才能添加到此频道。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1936,7 +1936,7 @@
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-    "translation": "The channels of the invite must be part of the team of the invite."
+    "translation": "邀请到的频道必须属于团队。"
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2148,7 +2148,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]]，邀请您加入 [[{{.TeamDisplayName}}]]。"
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2156,11 +2156,11 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "translation": "[[{{.SenderName}}]]，邀请您以游客加入团队 [[{{.TeamDisplayName}}]]。"
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您以游客加入团队 {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2420,7 +2420,7 @@
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
-    "translation": "Unable to create the user, invalid invitation."
+    "translation": "无法创建用户，无效的邀请。"
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -3380,7 +3380,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "您有来自 @{{.SenderName}} 的新私信"
+    "translation": "您有来自 {{.SenderName}} 的新私信"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
@@ -3388,7 +3388,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "您有来自 @{{.SenderName}} 的新团体消息"
+    "translation": "您有来自 {{.SenderName}} 的新团体消息"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3396,11 +3396,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "您有来自 @{{.SenderName}} 的新通知"
+    "translation": "您有来自 {{.SenderName}} 的新通知"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3412,7 +3412,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3424,7 +3424,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3508,19 +3508,19 @@
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Failed to create marketplace client."
+    "translation": "创建集市客户端失败。"
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "日志已停用。请检查您的日志了解详情。"
+    "translation": "集市已停用。请检查您的日志了解详情。"
   },
   {
     "id": "app.plugin.marketplace_plugins.app_error",
-    "translation": "Failed to get plugins from the marketplace server."
+    "translation": "从集市服务器获取插件失败。"
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Failed to marshal marketplace plugins."
+    "translation": "封装集市插件失败。"
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "尝试验证多重验证令牌时出现错误"
+    "translation": "无效的多重验证令牌。"
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4516,15 +4516,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search ConnectionUrl 设定。"
+    "translation": "当 Elasticsearch 索引开启时必须提供 Elasticsearch ConnectionUrl 设定。"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "当 Elastic Search AutocompleteEnabled 设为是时必须设定 Elastic Search IndexingEnabled 为是。"
+    "translation": "当 Elasticsearch AutocompleteEnabled 设为是时必须设定 Elasticsearch IndexingEnabled 为是。"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "当 Elastic Search SearchEnabled 设为是时必须设定 Elastic Search IndexingEnabled 为是。"
+    "translation": "当 Elasticsearch SearchEnabled 设为是时必须设定 Elasticsearch IndexingEnabled 为是。"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -5684,7 +5684,7 @@
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
-    "translation": "无法获得该频道成员数"
+    "translation": "无法获得该频道指定消息数"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
@@ -6636,7 +6636,7 @@
   },
   {
     "id": "store.sql_session.update_props.app_error",
-    "translation": "Unable to update session props"
+    "translation": "无法更新会话属性"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
@@ -6696,11 +6696,11 @@
   },
   {
     "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "无法团队计数"
+    "translation": "无法统计私有团队数"
   },
   {
     "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "无法团队计数"
+    "translation": "无法统计公开团队数"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -7404,7 +7404,7 @@
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "下载 Mattermost 应用或使用支持的浏览器以获得更好的体验。"
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
@@ -7412,15 +7412,15 @@
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "安装说明"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "安装说明"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "了解更多关于支持的浏览器。"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -7448,11 +7448,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "We no longer support this browser"
+    "translation": "我们不再支持此浏览器"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "We no longer support this version of your browser"
+    "translation": "我们不再支持此浏览器版本"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
@@ -7460,7 +7460,7 @@
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "设为默认"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",

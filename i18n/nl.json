@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Er is een probleem bij het authenticeren met een MFA token opgetreden"
+    "translation": "Ongeldige 'MFA' token."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",

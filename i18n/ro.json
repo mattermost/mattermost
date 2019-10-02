@@ -173,7 +173,7 @@
   },
   {
     "id": "api.channel.add_guest.added",
-    "translation": "%v adăugat la canal de %v."
+    "translation": "%v adăugat la canal ca invitat de %v."
   },
   {
     "id": "api.channel.add_member.added",
@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
-    "translation": "%v joined the channel as guest."
+    "translation": "%v s-a alăturat canalului ca invitat."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "The default channel cannot be made private."
+    "translation": "Canalul implicit nu poate fi făcut privat."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -1876,11 +1876,11 @@
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "Conturile oaspeților sunt dezactivate."
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "licența dvs. nu are suport pentru grupuri ldap"
+    "translation": "Licența dvs. nu acceptă conturile de invitați"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1928,15 +1928,15 @@
   },
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Conturile oaspeților sunt dezactivate"
   },
   {
     "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "licența dvs. nu are suport pentru grupuri ldap"
+    "translation": "Licența dvs. nu acceptă conturile de invitați"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-    "translation": "The channels of the invite must be part of the team of the invite."
+    "translation": "Canalele invitației trebuie să facă parte din echipa invitației."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -1980,11 +1980,11 @@
   },
   {
     "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "Conturile oaspeților sunt dezactivate."
   },
   {
     "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "licența dvs. nu are suport pentru grupuri ldap"
+    "translation": "Licența dvs. nu acceptă conturile de invitați"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
@@ -2148,7 +2148,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]], te-a invitat să te înscrii la [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2156,11 +2156,11 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "translation": "[[{{.SenderName}}]], v-a invitat să vă alăturați echipei [[{{.TeamDisplayName}}]] ca oaspete."
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} te-a invitat să te alături echipei {{ .TeamDisplayName}}"
+    "translation": "[{{.SiteName}}] {{.SenderName}} v-a invitat să vă alăturați echipei {{.TeamDisplayName}} ca oaspete"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2412,15 +2412,15 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Conturile oaspeților sunt dezactivate"
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
-    "translation": "licența dvs. nu are suport pentru grupuri ldap"
+    "translation": "Licența dvs. nu acceptă conturile de invitați"
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
-    "translation": "Unable to create the user, invalid invitation."
+    "translation": "Imposibil de creat utilizatorul, invitație nevalidă."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2440,7 +2440,7 @@
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": "Unable to convert the user to guest because is already a guest"
+    "translation": "Imposibil de convertit utilizatorul în invitat, deoarece este deja invitat"
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
@@ -2484,11 +2484,11 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Conturile oaspeților sunt dezactivate"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
-    "translation": "licența dvs. nu are suport pentru grupuri ldap"
+    "translation": "Licența dvs. nu acceptă conturile de invitați"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2504,7 +2504,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Introduceți un e-mail valid sau un nume de utilizator și/sau o parolă, sau conectați-vă utilizând altă metodă.\n"
+    "translation": "Introduceți un e-mail valid sau un nume de utilizator și/sau o parolă, sau conectați-vă utilizând altă metodă."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
@@ -2544,7 +2544,7 @@
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "Unable to convert the guest to regular user because is not a guest"
+    "translation": "Nu se poate converti invitatul în utilizator obișnuit, deoarece nu este invitat"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2660,11 +2660,11 @@
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
-    "translation": "E-mail pe care aţi furnizat nu aparţin unui domeniu acceptat. Vă rugăm să contactați administratorul sau Înscrieţi-vă cu un e-mail diferit."
+    "translation": "E-mailul furnizat nu aparține unui domeniu acceptat. Vă rugăm să contactați administratorul sau să vă înscrieți cu un e-mail diferit."
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "E-mail pe care aţi furnizat nu aparţin unui domeniu acceptat. Vă rugăm să contactați administratorul sau Înscrieţi-vă cu un e-mail diferit."
+    "translation": "E-mailul furnizat nu aparține unui domeniu acceptat pentru conturile de invitați. Vă rugăm să contactați administratorul sau să vă înscrieți cu un e-mail diferit."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2780,7 +2780,7 @@
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": "This is not a valid live URL"
+    "translation": "Aceasta nu este o adresă URL validă"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3508,19 +3508,19 @@
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Failed to create marketplace client."
+    "translation": "Nu a reușit să creeze clientul de pe piață."
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "S-a dezactivat plugin-uri. Verificați jurnalele pentru detalii."
+    "translation": "Piața a fost dezactivată. Vă rugăm să verificați jurnalele pentru detalii."
   },
   {
     "id": "app.plugin.marketplace_plugins.app_error",
-    "translation": "Failed to get plugins from the marketplace server."
+    "translation": "Eșecul de a primi pluginuri de pe serverul de pe piață."
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Failed to marshal marketplace plugins."
+    "translation": "Nu a reușit plugin-urile de pe piața Marshal."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Eroare la încercarea de a autentifica tokenul MFA"
+    "translation": "Jetonul MFA nevalid."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4516,15 +4516,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Setarea căutare ConnectionUrl elastice se indică când indexarea căutării elastice este activată."
+    "translation": "Setarea Elasticsearch ConnectionUrl trebuie să fie asigurată atunci când este activată indexarea Elastic Search."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Setarea Elastic Search IndexingEnabled trebuie să fie setată la true când Elastic Search AutocompleteEnabled este setat la true."
+    "translation": "Setarea Elasticsearch IndexingEnabled trebuie să fie adevărată atunci când Elastic Search AutocompleteEnabled este setat pe true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastice setarea căutare IndexingEnabled trebuie setat la adevărat când Elastic Căutaţi SearchEnabled este setată la true."
+    "translation": "Elasticsearch IndexingEnabled trebuie să fie setat pe true când Elastic Search SearchEnabled este setat pe true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4912,11 +4912,11 @@
   },
   {
     "id": "model.guest.is_valid.channel.app_error",
-    "translation": "Cod de identificare invalid"
+    "translation": "Canal invalid"
   },
   {
     "id": "model.guest.is_valid.channels.app_error",
-    "translation": "Cod de identificare invalid"
+    "translation": "Canale invalide"
   },
   {
     "id": "model.guest.is_valid.email.app_error",
@@ -4924,7 +4924,7 @@
   },
   {
     "id": "model.guest.is_valid.emails.app_error",
-    "translation": "E-mail invalid"
+    "translation": "E-mailuri invalide"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -5684,7 +5684,7 @@
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
-    "translation": "Nu se poate calcula numărul membrilor canalului"
+    "translation": "Imposibil de obținut numărul postării canalului fixat"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
@@ -6636,7 +6636,7 @@
   },
   {
     "id": "store.sql_session.update_props.app_error",
-    "translation": "Unable to update session props"
+    "translation": "Imposibil de actualizat accesorii de sesiune"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
@@ -6928,23 +6928,23 @@
   },
   {
     "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Actualizarea elementului canal a eșuat"
+    "translation": "Actualizarea canalelor de utilizator nu a reușit"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Nu s-a efectuat tranzacția bazei de date"
+    "translation": "Nu a reușit să efectueze tranzacția cu baza de date"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Nu a reușit să înceapă tranzacția bazei de date"
+    "translation": "Nu a reușit să înceapă tranzacția cu baza de date"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Actualizarea elementului canal a eșuat"
+    "translation": "Nu a reușit să actualizeze membrii echipelor de utilizator"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Imposibil de actualizat utilizator"
+    "translation": "Actualizarea utilizatorului a eșuat"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -7028,23 +7028,23 @@
   },
   {
     "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Actualizarea elementului canal a eșuat"
+    "translation": "Actualizarea canalelor de utilizator nu a reușit"
   },
   {
     "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Nu s-a efectuat tranzacția bazei de date"
+    "translation": "Nu a reușit să efectueze tranzacția cu baza de date"
   },
   {
     "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Nu a reușit să înceapă tranzacția bazei de date"
+    "translation": "Nu a reușit să înceapă tranzacția cu baza de date"
   },
   {
     "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Actualizarea elementului canal a eșuat"
+    "translation": "Nu a reușit să actualizeze membrii echipelor de utilizator"
   },
   {
     "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Imposibil de actualizat utilizator"
+    "translation": "Actualizarea utilizatorului a eșuat"
   },
   {
     "id": "store.sql_user.save.app_error",
@@ -7372,15 +7372,15 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Get the latest Chrome browser"
+    "translation": "Obțineți cel mai recent browser Chrome"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Get the latest Firefox browser"
+    "translation": "Obțineți cel mai recent browser Firefox"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Get the latest Safari browser"
+    "translation": "Obțineți cel mai recent browser Safari"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
@@ -7400,43 +7400,43 @@
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": "Download the App"
+    "translation": "Descărcați Aplicația"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "Descărcați aplicația Mattermost sau utilizați un browser acceptat pentru o experiență mai bună."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": "Download the App"
+    "translation": "Descărcați Aplicația"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "Ghid de instalare"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "Ghid de instalare"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "Aflați mai multe despre browserele acceptate."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Versiunea 61+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Versiunea 44+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Versiunea 60+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Versiunea 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -7448,23 +7448,23 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "We no longer support this browser"
+    "translation": "Nu mai acceptăm acest browser"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "We no longer support this version of your browser"
+    "translation": "Nu mai acceptăm această versiune a browserului dvs."
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
-    "translation": "Open Edge"
+    "translation": "Deschide Edge"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "Face implicit"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
-    "translation": "or"
+    "translation": "sau"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",

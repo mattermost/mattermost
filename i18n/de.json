@@ -173,7 +173,7 @@
   },
   {
     "id": "api.channel.add_guest.added",
-    "translation": "%v wurde durch %v zum Kanal hinzugefügt."
+    "translation": "%v wurde durch %v als Gast zum Kanal hinzugefügt."
   },
   {
     "id": "api.channel.add_member.added",
@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
-    "translation": "%v joined the channel as guest."
+    "translation": "%v hat den Kanal als Gast betreten."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "The default channel cannot be made private."
+    "translation": "Der Standardkanal kann nicht privat gemacht werden."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -1876,11 +1876,11 @@
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "Gastkonten sind deaktiviert."
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "Ihre Lizenz unterstützt LDAP-Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1928,15 +1928,15 @@
   },
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Gastkonten sind deaktiviert"
   },
   {
     "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Ihre Lizenz unterstützt LDAP-Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-    "translation": "The channels of the invite must be part of the team of the invite."
+    "translation": "Die Kanäle der Einladung müssen Teil des Teams der Einladung sein."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -1980,11 +1980,11 @@
   },
   {
     "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "Gastkonten sind deaktiviert."
   },
   {
     "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "Ihre Lizenz unterstützt LDAP-Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
@@ -2148,7 +2148,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]] hat Sie eingeladen [[{{.TeamDisplayName}}]] beizutreten."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2156,11 +2156,11 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "translation": "[[{{.SenderName}}]] hat Sie eingeladen, dem Team [[{{.TeamDisplayName}}]] als Gast beizutreten."
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} hat Sie eingeladen, dem Team {{ .TeamDisplayName }} beizutreten"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} hat Sie eingeladen, dem Team {{ .TeamDisplayName }} als Gast beizutreten"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2412,15 +2412,15 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Gastkonten sind deaktiviert."
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
-    "translation": "Ihre Lizenz unterstützt LDAP-Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
-    "translation": "Unable to create the user, invalid invitation."
+    "translation": "Konnte Benutzer nicht erstellen, ungültige Einladung."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2440,7 +2440,7 @@
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": "Unable to convert the user to guest because is already a guest"
+    "translation": "Der Benutzer kann nicht in einen Gast umgewandelt werden, da er bereits ein Gast ist."
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
@@ -2484,11 +2484,11 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Gastkonten sind deaktiviert"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
-    "translation": "Ihre Lizenz unterstützt LDAP-Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2504,7 +2504,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Gültige E-Mail und/oder Passwort eingeben oder mit anderer Anmeldemethode anmelden.\n"
+    "translation": "Gültige E-Mail und/oder Passwort eingeben oder mit anderer Anmeldemethode anmelden."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
@@ -2544,7 +2544,7 @@
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "Unable to convert the guest to regular user because is not a guest"
+    "translation": "Der Gast kann nicht in einen regulären Benutzer umgewandelt werden, da er kein Gast ist."
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2664,7 +2664,7 @@
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "Die angegebene E-Mail-Adresse gehört nicht zu den zugelassenen Domains. Bitte kontaktieren Sie ihren Administrator oder registrieren Sie sich mit einer andere E-Mail-Adresse."
+    "translation": "Die angegebene E-Mail-Adresse gehört nicht zu den zugelassenen Domains für Gastkonten. Bitte kontaktieren Sie ihren Administrator oder registrieren Sie sich mit einer andere E-Mail-Adresse."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -3380,7 +3380,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "Sie haben eine neue Direktnachricht von @{{.SenderName}}"
+    "translation": "Sie haben eine neue Direktnachricht von {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
@@ -3388,7 +3388,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Sie haben eine neue Gruppennachricht von @{{.SenderName}}"
+    "translation": "Sie haben eine neue Gruppennachricht von {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3396,11 +3396,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "Sie haben eine neue Benachrichtigung von @{{.SenderName}}"
+    "translation": "Sie haben eine neue Benachrichtigung von@{{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3412,7 +3412,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3424,7 +3424,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Fehler beim Authentifizieren des MFA-Tokens."
+    "translation": "Ungültiger MFA-Token."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -6696,7 +6696,7 @@
   },
   {
     "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "Konnte die Anzahl der Teams nicht abrufen."
+    "translation": "Konnte die Anzahl der privaten Teams nicht abrufen."
   },
   {
     "id": "store.sql_team.analytics_public_team_count.app_error",

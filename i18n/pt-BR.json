@@ -2660,11 +2660,11 @@
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
-    "translation": "O email que você forneceu não pertence a um domínio aceito. Por favor contacte o seu administrador ou se inscreve com um email diferente."
+    "translation": "O email que você forneceu não pertence a um domínio aceito. Por favor contacte o administrador ou se inscreva com um email diferente."
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "O email que você forneceu não pertence a um domínio aceito. Por favor contacte o seu administrador ou se inscreve com um email diferente."
+    "translation": "O email que você forneceu não pertence a um domínio aceito. Por favor contacte o administrador ou se inscreva com um email diferente."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2780,7 +2780,7 @@
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": "This is not a valid live URL"
+    "translation": "Essa não é uma URL ativa válida"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3380,7 +3380,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "Você tem uma nova Mensagem Direta de @{{.SenderName}}"
+    "translation": "Você tem uma nova Mensagem Direta de {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
@@ -3388,7 +3388,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Você tem uma nova Mensagem de Grupo de @{{.SenderName}}"
+    "translation": "Você tem uma nova Mensagem de Grupo de {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3396,11 +3396,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "Você tem uma nova notificação de @{{.SenderName}}"
+    "translation": "Você tem uma nova notificação de {{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3412,7 +3412,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3424,7 +3424,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Erro ao tentar autenticar o token MFA"
+    "translation": "Token MFA inválido."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4516,15 +4516,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "A ElasticSearch ConnectionUrl deve ser fornecida quando ElasticSearch indexing está ativado."
+    "translation": "ElasticSearch ConnectionUrl deve ser fornecida quando ElasticSearch indexing está ativado."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "O opção Elastic Search IndexingEnabled deve ser configurada para verdadeiro quando o Elastic Search AutocompleteEnabled estiver configurado como verdadeiro."
+    "translation": "A opção Elastic Search IndexingEnabled deve ser configurada para verdadeiro quando o Elastic Search AutocompleteEnabled estiver configurado como verdadeiro."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "O opção ElasticSearch IndexingEnabled deve ser configurada para verdadeiro quando o ElasticSearch SearchEnabled estiver configurado como verdadeiro."
+    "translation": "A opção ElasticSearch IndexingEnabled deve ser configurada para verdadeiro quando o Elastic Search SearchEnabled estiver configurado como verdadeiro."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4912,11 +4912,11 @@
   },
   {
     "id": "model.guest.is_valid.channel.app_error",
-    "translation": "Id do canal inválida"
+    "translation": "Canal inválido"
   },
   {
     "id": "model.guest.is_valid.channels.app_error",
-    "translation": "Id do canal inválida"
+    "translation": "Canais inválidos"
   },
   {
     "id": "model.guest.is_valid.email.app_error",
@@ -4924,7 +4924,7 @@
   },
   {
     "id": "model.guest.is_valid.emails.app_error",
-    "translation": "Email inválido"
+    "translation": "Emails inválidos"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -5684,7 +5684,7 @@
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
-    "translation": "Não foi possível obter o número de membros do canal"
+    "translation": "Não foi possível obter o número de publicações fixadas"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
@@ -6696,11 +6696,11 @@
   },
   {
     "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "Não foi possível contar as equipes"
+    "translation": "Não foi possível contar as equipes privadas"
   },
   {
     "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "Não foi possível contar as equipes"
+    "translation": "Não foi possível contar as equipes públicas"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -6940,7 +6940,7 @@
   },
   {
     "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Falha ao atualizar o membro do canal"
+    "translation": "Falha ao atualizar o membro da equipe"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
@@ -7040,7 +7040,7 @@
   },
   {
     "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Falha ao atualizar o membro do canal"
+    "translation": "Falha ao atualizar o membro da equipe"
   },
   {
     "id": "store.sql_user.promote_guest.user_update.app_error",
@@ -7372,23 +7372,23 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Get the latest Chrome browser"
+    "translation": "Obter o último navegador Chrome"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Get the latest Firefox browser"
+    "translation": "Obter o último navegador Firefox"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Get the latest Safari browser"
+    "translation": "Obter o último navegador Safari"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
-    "translation": "Google Chrome 43+"
+    "translation": "Google Chrome"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.edge",
-    "translation": "Microsoft Edge 40+"
+    "translation": "Microsoft Edge"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.firefox",
@@ -7400,43 +7400,43 @@
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": "Download the App"
+    "translation": "Baixar o App"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "Baixar o aplicativo Mattermost ou usar um navegador suportado para uma melhor experiencia."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": "Download the App"
+    "translation": "Baixar o App"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "Guia de Instalação"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "Guia de Instalação"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "Saiba mais sobre navegadores suportados."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Versão 61+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Versão 44+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Versão 60+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Versão 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -7456,15 +7456,15 @@
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
-    "translation": "Open Edge"
+    "translation": "Abrir Edge"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "Tornar padrão"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
-    "translation": "or"
+    "translation": "ou"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",

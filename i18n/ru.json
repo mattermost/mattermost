@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Ошибка при попытке аутентификации с помощью MFA токена"
+    "translation": "Неверный MFA маркер."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -6876,15 +6876,15 @@
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
+    "translation": "Не удалось созранить условия использования."
   },
   {
     "id": "store.sql_terms_of_service_store.get.app_error",
-    "translation": "Unable to fetch terms of service."
+    "translation": "Не удалось получить условия использования."
   },
   {
     "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
-    "translation": "No terms of service found."
+    "translation": "Условия использования не найдены."
   },
   {
     "id": "store.sql_terms_of_service_store.save.existing.app_error",

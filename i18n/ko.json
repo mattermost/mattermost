@@ -1876,7 +1876,7 @@
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "게스트 계정이 비활성화됨."
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
@@ -1928,7 +1928,7 @@
   },
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "게스트 계정이 비활성화됨."
   },
   {
     "id": "api.team.invate_guests_to_channels.license.error",
@@ -1980,7 +1980,7 @@
   },
   {
     "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "게스트 계정이 비활성화됨."
   },
   {
     "id": "api.team.promote_guest_to_user.license.error",
@@ -2412,7 +2412,7 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "Guest accounts are disabled"
+    "translation": "게스트 계정이 비활성화됨."
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
@@ -2484,7 +2484,7 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "게스트 계정이 비활성화됨."
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
@@ -2540,7 +2540,7 @@
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": "인증 전송이 구성되지 않았거나 이 서버에서 사용 가능합니다."
+    "translation": "이 서버에서 인증정보 전송이 설정되지 않았거나 사용이 불가능합니다."
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
@@ -4192,7 +4192,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "MFA 토큰을 인증하는 중 오류가 발생했습니다"
+    "translation": "올바르지 않은 MFA 토큰"
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
