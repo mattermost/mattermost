@@ -19,13 +19,13 @@ func TestUserAccessTokenJson(t *testing.T) {
 	json := a1.ToJson()
 	ra1 := UserAccessTokenFromJson(strings.NewReader(json))
 
-	assert.NotEqual(t, a1.Token, ra1.Token, "tokens didn't match")
+	require.Equal(t, a1.Token, ra1.Token, "tokens didn't match")
 
 	tokens := []*UserAccessToken{&a1}
 	json = UserAccessTokenListToJson(tokens)
 	tokens = UserAccessTokenListFromJson(strings.NewReader(json))
 
-	assert.NotEqual(t, tokens[0].Token, ra1.Token, "tokens didn't match")
+	require.Equal(t, tokens[0].Token, ra1.Token, "tokens didn't match")
 }
 
 func TestUserAccessTokenIsValid(t *testing.T) {
