@@ -479,7 +479,7 @@ func TestFileStoreSet(t *testing.T) {
 		select {
 		case <-called:
 		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
+			require.Fail(t, "callback should have been called when config written")
 		}
 	})
 
@@ -515,7 +515,7 @@ func TestFileStoreSet(t *testing.T) {
 		select {
 		case <-called:
 		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
+			require.Fail(t, "callback should have been called when config written")
 		}
 	})
 }
@@ -751,7 +751,7 @@ func TestFileStoreLoad(t *testing.T) {
 		select {
 		case <-called:
 		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config loaded")
+			require.Fail(t, "callback should have been called when config loaded")
 		}
 	})
 }
@@ -787,7 +787,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		ioutil.WriteFile(path, cfgData, 0644)
 		select {
 		case <-called:
-			t.Fatal("callback should not have been called since watching disabled")
+			require.Fail(t, "callback should not have been called since watching disabled")
 		case <-time.After(1 * time.Second):
 		}
 	})
@@ -811,7 +811,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		select {
 		case <-called:
 		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
+			require.Fail(t, "callback should have been called when config written")
 		}
 	})
 }
