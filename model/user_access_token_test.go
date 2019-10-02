@@ -46,9 +46,7 @@ func TestUserAccessTokenIsValid(t *testing.T) {
 	require.False(t, errCheck)
 
 	ad.UserId = NewRandomString(26)
-	if err := ad.IsValid() {
-		require.Nill(t, err)
-	}
+	require.Nil(t, ad.IsValid())
 
 	ad.Description = NewRandomString(256)
 	err = ad.IsValid()
