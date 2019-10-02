@@ -460,6 +460,8 @@ func (a *App) DeletePublicKey(file string) *model.AppError {
 	})
 
 	return nil
+}
+
 // GetMarketplacePlugin returns plugin from marketplace-server
 func (a *App) GetMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.BaseMarketplacePlugin, *model.AppError) {
 	marketplaceClient, err := marketplace.NewClient(
