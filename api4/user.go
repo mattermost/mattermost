@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
+	"strings"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -1382,9 +1382,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	mlog.Info("LoginID before BDP Header: "+loginId)
-	if (loginId == r.Header.Get("X-BDP-USERNAME")) {
+	if (loginId == strings.ToLower(strings.Replace(r.Header.Get("X-BDP-USERNAME"), " ", "_", -1))) {
 		mlog.Info("Expected Login ID matches Login ID retrieved from session header. Logging in...")
 	    loginId = r.Header.Get("X-BDP-USERNAME")
+	    loginId = strings.ToLower(strings.Replace(loginId, " ", "_", -1))
+
 	} else {
 		mlog.Info("Expected Login ID does not match Login ID retrieved from session header. You will not be logged in...")
 		return
