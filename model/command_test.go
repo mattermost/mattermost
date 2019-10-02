@@ -36,79 +36,79 @@ func TestCommandIsValid(t *testing.T) {
 	require.Nil(t, o.IsValid())
 
 	o.Id = ""
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.Id = NewId()
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.Token = ""
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.Token = NewId()
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.CreateAt = 0
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.CreateAt = GetMillis()
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.UpdateAt = 0
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.UpdateAt = GetMillis()
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.CreatorId = ""
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.CreatorId = NewId()
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.TeamId = ""
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.TeamId = NewId()
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.Trigger = ""
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.Trigger = strings.Repeat("1", 129)
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.Trigger = strings.Repeat("1", 128)
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.URL = ""
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.URL = "1234"
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.URL = "https://example.com"
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.Method = "https://example.com"
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.Method = COMMAND_METHOD_GET
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.Method = COMMAND_METHOD_POST
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.DisplayName = strings.Repeat("1", 65)
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 64)
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.Description = strings.Repeat("1", 129)
-	require.NotNil(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.Description = strings.Repeat("1", 128)
-	require.Nil(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 }
 
 func TestCommandPreSave(t *testing.T) {
