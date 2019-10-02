@@ -65,9 +65,9 @@ func TestLeaveTeam(t *testing.T) {
 
 	require.False(t, found, "profile should not be on team")
 
-	if teams, err := th.App.Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id); err != nil {
-		require.Equal(t, 0, len(teams), "Shouldn't be in team")
-	}
+	teams, err := th.App.Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.Equal(t, 0, len(teams), "Shouldn't be in team")
 }
 
 func TestListTeams(t *testing.T) {
