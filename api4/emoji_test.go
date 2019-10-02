@@ -238,9 +238,9 @@ func TestGetEmojiList(t *testing.T) {
 			found = true
 			break
 		}
-		if found {
-			t.Fatalf("should not get a deleted emoji %v", emojis[0].Id)
-		}
+	}
+	if found {
+		t.Fatalf("should not get a deleted emoji %v", emojis[0].Id)
 	}
 
 	listEmoji, resp = Client.GetEmojiList(0, 1)

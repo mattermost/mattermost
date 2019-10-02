@@ -56,8 +56,7 @@ func firstNImages(images []*opengraph.Image, maxImages int) []*opengraph.Image {
 	}
 	numImages := len(images)
 	if numImages > maxImages {
-		subImages := make([]*opengraph.Image, maxImages)
-		subImages = images[0:maxImages]
+		subImages := images[0:maxImages]
 		return subImages
 	}
 	return images
