@@ -274,10 +274,11 @@ func (a *App) ShutDownPlugins() {
 	// Acquiring lock manually before cleaning up PluginsEnvironment.
 	a.Srv.PluginsLock.Lock()
 	defer a.Srv.PluginsLock.Unlock()
-	if a.Srv.PluginsEnvironment != pluginsEnvironment {
+	if a.Srv.PluginsEnvironment == pluginsEnvironment {
+		a.Srv.PluginsEnvironment = nil
+	} else {
 		mlog.Warn("Another PluginsEnvironment detected while shutting down plugins.")
 	}
-	a.Srv.PluginsEnvironment = nil
 }
 
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
