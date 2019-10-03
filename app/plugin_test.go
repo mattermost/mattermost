@@ -414,8 +414,9 @@ func TestPluginPublicKeys(t *testing.T) {
 	publicKeyFilename := "test-public-key.plugin.gpg"
 	publicKey, err := ioutil.ReadFile(filepath.Join(path, publicKeyFilename))
 	require.Nil(t, err)
-
-	th.App.AddPublicKey(filepath.Join(path, publicKeyFilename))
+	fileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
+	require.Nil(t, err)
+	th.App.AddPublicKey(publicKeyFilename, fileReader)
 	file, err := th.App.GetPublicKey(publicKeyFilename)
 	require.Nil(t, err)
 	require.True(t, bytes.Equal(file, publicKey))

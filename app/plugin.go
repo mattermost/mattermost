@@ -4,6 +4,7 @@
 package app
 
 import (
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -409,16 +410,21 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 
 // GetPluginPublicKeys returns all public keys listed in the config.
 func (a *App) GetPluginPublicKeys() ([]string, *model.AppError) {
-	config := a.Config().PluginSettings
-
-	return config.SignaturePublicKeyFiles, nil
+	keys := a.Config().PluginSettings.SignaturePublicKeyFiles
+	originalKeys := make([]string, 0, len(keys))
+	for _, key := range keys {
+		if !strings.HasSuffix(key, PluginSignaturePublicKeyFileExtention) {
+			return nil, model.NewAppError("GetPluginPublicKeys", "api.plugin.get_plugin_public_keys.app_error", nil, "", http.StatusInternalServerError)
+		}
+		originalKeys = append(originalKeys, key[:len(key)-len(PluginSignaturePublicKeyFileExtention)])
+	}
+	return originalKeys, nil
 }
 
 // GetPublicKey will return the actual public key saved in the `filename` file.
 func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
-	if !strings.HasSuffix(filename, PluginSignaturePublicKeyFileExtention) {
-		filename += PluginSignaturePublicKeyFileExtention
-	}
+	filename += PluginSignaturePublicKeyFileExtention
+
 	data, err := a.Srv.configStore.GetFile(filename)
 	if err != nil {
 		return nil, model.NewAppError("GetPublicKey", "api.plugin.get_public_key.get_file.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -427,29 +433,26 @@ func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
 }
 
 // AddPublicKey method will add plugin public key to the config.
-func (a *App) AddPublicKey(file string) *model.AppError {
-	if !strings.HasSuffix(file, PluginSignaturePublicKeyFileExtention) {
-		file += PluginSignaturePublicKeyFileExtention
-	}
-	filename := filepath.Base(file)
-	if err := a.writePublicKeyFile(file); err != nil {
+func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
+	name += PluginSignaturePublicKeyFileExtention
+
+	if err := a.writePublicKeyFile(name, key); err != nil {
 		return err
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
-		if !containsPK(cfg.PluginSettings.SignaturePublicKeyFiles, filename) {
-			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, filename)
+		if !containsPK(cfg.PluginSettings.SignaturePublicKeyFiles, name) {
+			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, name)
 		}
 	})
 
 	return nil
 }
 
-// DeletePublicKey method will add plugin public key to the config.
+// DeletePublicKey method will delete plugin public key from the config.
 func (a *App) DeletePublicKey(file string) *model.AppError {
-	if !strings.HasSuffix(file, PluginSignaturePublicKeyFileExtention) {
-		file += PluginSignaturePublicKeyFileExtention
-	}
+	file += PluginSignaturePublicKeyFileExtention
+
 	filename := filepath.Base(file)
 	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
 		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -628,15 +631,8 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	return nil
 }
 
-func (a *App) writePublicKeyFile(file string) *model.AppError {
-	filename := filepath.Base(file)
-	fileReader, err := os.Open(file)
-	if err != nil {
-		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.open.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	defer fileReader.Close()
-
-	data, err := ioutil.ReadAll(fileReader)
+func (a *App) writePublicKeyFile(filename string, key io.Reader) *model.AppError {
+	data, err := ioutil.ReadAll(key)
 	if err != nil {
 		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.read.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

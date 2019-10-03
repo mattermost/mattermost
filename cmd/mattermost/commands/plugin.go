@@ -4,9 +4,11 @@
 package commands
 
 import (
-	// "errors"
+	"net/http"
 	"os"
+	"path/filepath"
 
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -263,11 +265,18 @@ func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 	}
 
 	for _, pkFile := range args {
-		if err := a.AddPublicKey(pkFile); err != nil {
+		filename := filepath.Base(pkFile)
+		fileReader, err := os.Open(pkFile)
+		if err != nil {
+			return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.open.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if err := a.AddPublicKey(filename, fileReader); err != nil {
 			CommandPrintErrorln("Unable to add public key: " + pkFile + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Added public key: " + pkFile)
 		}
+		fileReader.Close()
 
 	}
 
