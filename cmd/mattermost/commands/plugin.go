@@ -97,6 +97,7 @@ func init() {
 		PluginListCmd,
 		PluginPublicKeysCmd,
 	)
+
 	RootCmd.AddCommand(PluginCmd)
 }
 
@@ -254,7 +255,6 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 }
 
 func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
-	println("0000 wtf!!!")
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -266,13 +266,9 @@ func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 	}
 
 	for _, pkFile := range args {
-		println("0000 in loop", pkFile)
 		filename := filepath.Base(pkFile)
-		println("0000 filename", filename)
 		fileReader, err := os.Open(pkFile)
-		println("0000 fileReader", fileReader)
 		if err != nil {
-			println("0000 fileReadererr", err.Error())
 			return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 

@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
@@ -51,17 +50,12 @@ func TestPluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key" + app.PluginSignaturePublicKeyFileExtention}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
 	th.SetConfig(cfg)
 
 	output := th.CheckCommand(t, "plugin", "keys")
 	assert.Contains(t, output, "public-key")
 	assert.NotContains(t, output, "Plugin name:")
-
-	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
-	th.SetConfig(cfg)
-	err := th.RunCommand(t, "plugin", "keys")
-	assert.NotNil(t, err)
 }
 
 func TestPluginPublicKeyDetails(t *testing.T) {
@@ -69,7 +63,7 @@ func TestPluginPublicKeyDetails(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key" + app.PluginSignaturePublicKeyFileExtention}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
 
 	th.SetConfig(cfg)
 
@@ -84,7 +78,7 @@ func TestAddPluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key" + app.PluginSignaturePublicKeyFileExtention}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
 	th.SetConfig(cfg)
 
 	err := th.RunCommand(t, "plugin", "keys", "add", "pk1")
@@ -96,7 +90,7 @@ func TestDeletePluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"pk1" + app.PluginSignaturePublicKeyFileExtention}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"pk1"}
 	th.SetConfig(cfg)
 
 	output := th.CheckCommand(t, "plugin", "keys", "delete", "pk1")

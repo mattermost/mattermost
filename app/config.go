@@ -47,11 +47,9 @@ func (a *App) EnvironmentConfig() map[string]interface{} {
 }
 
 func (s *Server) UpdateConfig(f func(*model.Config)) {
-	println("!here!")
 	old := s.Config()
 	updated := old.Clone()
 	f(updated)
-	println("!!!!!updated", fmt.Sprintf("%v", updated.PluginSettings.SignaturePublicKeyFiles))
 	if _, err := s.configStore.Set(updated); err != nil {
 		mlog.Error("Failed to update config", mlog.Err(err))
 	}
