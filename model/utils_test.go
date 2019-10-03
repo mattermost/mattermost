@@ -286,7 +286,7 @@ func TestStringArray_Equal(t *testing.T) {
 func TestParseHashtags(t *testing.T) {
 	for input, output := range hashtags {
 		o, _ := ParseHashtags(input)
-		require.Equal(t, o, output, "failed to parse hashtags from input=" + input + " expected=" + output + " actual=" + o)
+		require.Equal(t, o, output, "failed to parse hashtags from input="+input+" expected="+output+" actual="+o)
 	}
 }
 
