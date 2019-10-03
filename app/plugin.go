@@ -157,6 +157,10 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	}
 	a.SetPluginsEnvironment(env)
 
+	if err := a.initPluginPublicKeys(); err != nil {
+		mlog.Error("Can't init plugin public keys", mlog.Err(err))
+	}
+
 	if err := a.SyncPlugins(); err != nil {
 		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
 	}
@@ -628,6 +632,27 @@ func (a *App) writeFile(filename string, key io.Reader) *model.AppError {
 	err = a.Srv.configStore.SetFile(filename, data)
 	if err != nil {
 		return model.NewAppError("writeFile", "app.plugin.write_file.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *App) initPluginPublicKeys() *model.AppError {
+	path := "plugin/public_keys/"
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return model.NewAppError("initPluginPublicKeys", "app.plugin.init_public_keys.read_dir.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, file := range files {
+		filename := filepath.Join(path, file.Name())
+		fileReader, err := os.Open(filename)
+		if err != nil {
+			return model.NewAppError("initPluginPublicKeys", "app.plugin.init_public_keys.open_key.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if err := a.AddPublicKey(file.Name(), fileReader); err != nil {
+			return model.NewAppError("initPluginPublicKeys", "app.plugin.init_public_keys.add_key.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
 	}
 	return nil
 }
