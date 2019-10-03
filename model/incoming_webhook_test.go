@@ -15,64 +15,64 @@ func TestIncomingWebhookJson(t *testing.T) {
 	json := o.ToJson()
 	ro := IncomingWebhookFromJson(strings.NewReader(json))
 
-	require.Equal(t, o.Id, ro.Id, "Ids do not match")
+	require.Equal(t, o.Id, ro.Id)
 }
 
 func TestIncomingWebhookIsValid(t *testing.T) {
 	o := IncomingWebhook{}
 
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.Id = NewId()
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.CreateAt = GetMillis()
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.UpdateAt = GetMillis()
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.UserId = "123"
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.UserId = NewId()
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.ChannelId = "123"
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.ChannelId = NewId()
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.TeamId = "123"
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.TeamId = NewId()
-	require.Equal(t, (*AppError)(nil), o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 65)
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 64)
-	require.Equal(t, (*AppError)(nil), o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.Description = strings.Repeat("1", 501)
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.Description = strings.Repeat("1", 500)
-	require.Equal(t, (*AppError)(nil), o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.Username = strings.Repeat("1", 65)
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.Username = strings.Repeat("1", 64)
-	require.Equal(t, (*AppError)(nil), o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.IconURL = strings.Repeat("1", 1025)
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.Error(t, o.IsValid())
 
 	o.IconURL = strings.Repeat("1", 1024)
-	require.Equal(t, (*AppError)(nil), o.IsValid())
+	require.Nil(t, o.IsValid())
 }
 
 func TestIncomingWebhookPreSave(t *testing.T) {
@@ -143,18 +143,18 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
 
 		// After it has been decoded, the JSON string won't contain the escape char anymore
 		expected := strings.Replace(text, `\"`, `"`, -1)
-		require.NotNil(t, iwr, "IncomingWebhookRequest should not be nil")
-		require.Equalf(t, expected, iwr.Text, "Sample %d text should be: %s, got: %s", i, expected, iwr.Text)
+		require.NotNil(t, iwr)
+		require.Equal(t, expected, iwr.Text)
 
 		attachment := iwr.Attachments[0]
-		require.Equalf(t, expected, attachment.Text, "Sample %d attachment text should be: %s, got: %s", i, expected, attachment.Text)
+		require.Equal(t, expected, attachment.Text)
 	}
 }
 
 func TestIncomingWebhookNullArrayItems(t *testing.T) {
 	payload := `{"attachments":[{"fields":[{"title":"foo","value":"bar","short":true}, null]}, null]}`
 	iwr, _ := IncomingWebhookRequestFromJson(strings.NewReader(payload))
-	require.NotNil(t, iwr,"IncomingWebhookRequest should not be nil" )
-	require.Len(t, iwr.Attachments, 1, "expected one attachment")
-	require.Len(t, iwr.Attachments[0].Fields, 1, "expected one field")
+	require.NotNil(t, iwr)
+	require.Len(t, iwr.Attachments, 1)
+	require.Len(t, iwr.Attachments[0].Fields, 1)
 }
