@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -28,7 +29,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -255,17 +255,17 @@ type LocalResponseWriter struct {
 	status int
 }
 
-func (w *LocalResponseWriter) Header() http.Header {
+func (w LocalResponseWriter) Header() http.Header {
 	return make(http.Header)
 }
 
-func (w *LocalResponseWriter) Write(bytes []byte) (int, error) {
+func (w LocalResponseWriter) Write(bytes []byte) (int, error) {
 	w.data = make([]byte, len(bytes))
 	copy(w.data, bytes)
 	return len(w.data), nil
 }
 
-func (w *LocalResponseWriter) WriteHeader(statusCode int) {
+func (w LocalResponseWriter) WriteHeader(statusCode int) {
 	w.status = statusCode
 }
 
@@ -284,15 +284,6 @@ func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model
 	}
 	pluginId := result[1]
 
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	hooks, err := pluginsEnvironment.HooksForPlugin(pluginId)
-	if err != nil {
-		if strings.Contains(err.Error(), "plugin not found") {
-			return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusNotFound)
-		}
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
-	}
-
 	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginId)
 
 	w := LocalResponseWriter{}
@@ -302,16 +293,11 @@ func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model
 	}
 	r.Header.Set("Mattermost-User-ID", a.Session.UserId)
 	r.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
+	params := make(map[string]string)
+	params["plugin_id"] = pluginId
+	r = mux.SetURLVars(r, params)
 
-	c := &plugin.Context{
-		SessionId:      model.NewId(),
-		RequestId:      model.NewId(),
-		IpAddress:      "localhost",
-		AcceptLanguage: "*",
-		UserAgent:      "",
-	}
-
-	hooks.ServeHTTP(c, &w, r)
+	a.ServePluginRequest(w, r)
 
 	resp := &http.Response{
 		Status:           "",
