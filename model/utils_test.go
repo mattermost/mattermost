@@ -18,30 +18,22 @@ import (
 func TestNewId(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		id := NewId()
-		if len(id) > 26 {
-			t.Fatal("ids shouldn't be longer than 26 chars")
-		}
+		assert.LessOrEqual(t, len(id), 26, "ids shouldn't be longer than 26 chars")
 	}
 }
 
 func TestRandomString(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		r := NewRandomString(32)
-		if len(r) != 32 {
-			t.Fatal("should be 32 chars")
-		}
+		assert.Equal(t, len(r), 32, "should be 32 chars")
 	}
 }
 
 func TestGetMillisForTime(t *testing.T) {
 	thisTimeMillis := int64(1471219200000)
 	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
-
 	result := GetMillisForTime(thisTime)
-
-	if thisTimeMillis != result {
-		t.Fatalf(fmt.Sprintf("millis are not the same: %d and %d", thisTimeMillis, result))
-	}
+	assert.Equal(t, thisTimeMillis, result, fmt.Sprintf("millis are not the same: %d and %d", thisTimeMillis, result))	
 }
 
 func TestPadDateStringZeros(t *testing.T) {
@@ -99,15 +91,10 @@ func TestMapJson(t *testing.T) {
 	json := MapToJson(m)
 
 	rm := MapFromJson(strings.NewReader(json))
-
-	if rm["id"] != "test_id" {
-		t.Fatal("map should be valid")
-	}
-
+	assert.Equal(t, rm["id"], "test_id", "map should be valid")
+	
 	rm2 := MapFromJson(strings.NewReader(""))
-	if len(rm2) > 0 {
-		t.Fatal("make should be ivalid")
-	}
+	assert.LessOrEqual(t, len(rm2), 0, "make should be invalid")
 }
 
 func TestIsValidEmail(t *testing.T) {
@@ -195,13 +182,8 @@ func TestIsValidEmail(t *testing.T) {
 }
 
 func TestValidLower(t *testing.T) {
-	if !IsLower("corey+test@hulen.com") {
-		t.Error("should be valid")
-	}
-
-	if IsLower("Corey+test@hulen.com") {
-		t.Error("should be invalid")
-	}
+	assert.Equal(t, IsLower("corey+test@hulen.com"), true, "should be valid")	
+	assert.Equal(t, IsLower("Corey+test@hulen.com"), false, "should be invalid")	
 }
 
 func TestEtag(t *testing.T) {
@@ -295,9 +277,8 @@ func TestStringArray_Equal(t *testing.T) {
 
 func TestParseHashtags(t *testing.T) {
 	for input, output := range hashtags {
-		if o, _ := ParseHashtags(input); o != output {
-			t.Fatal("failed to parse hashtags from input=" + input + " expected=" + output + " actual=" + o)
-		}
+		o, _ := ParseHashtags(input)
+		assert.Equal(t, o, output, "failed to parse hashtags from input=" + input + " expected=" + output + " actual=" + o)
 	}
 }
 
@@ -350,16 +331,12 @@ func TestIsValidAlphaNum(t *testing.T) {
 
 	for _, tc := range cases {
 		actual := IsValidAlphaNum(tc.Input)
-		if actual != tc.Result {
-			t.Fatalf("case: %v\tshould returned: %#v", tc, tc.Result)
-		}
+		assert.Equal(t, actual, tc.Result, fmt.Sprintf("case: %v\tshould returned: %#v", tc, tc.Result))
 	}
 }
 
 func TestGetServerIpAddress(t *testing.T) {
-	if len(GetServerIpAddress("")) == 0 {
-		t.Fatal("Should find local ip address")
-	}
+	assert.NotEqual(t, len(GetServerIpAddress("")), 0, "Should find local ip address")
 }
 
 func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {
@@ -419,9 +396,7 @@ func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {
 
 	for _, tc := range casesWithFormat {
 		actual := IsValidAlphaNumHyphenUnderscore(tc.Input, true)
-		if actual != tc.Result {
-			t.Fatalf("case: %v\tshould returned: %#v", tc, tc.Result)
-		}
+		assert.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 
 	casesWithoutFormat := []struct {
@@ -489,9 +464,7 @@ func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {
 
 	for _, tc := range casesWithoutFormat {
 		actual := IsValidAlphaNumHyphenUnderscore(tc.Input, false)
-		if actual != tc.Result {
-			t.Fatalf("case: '%v'\tshould returned: %#v", tc.Input, tc.Result)
-		}
+		assert.Equalf(t, actual, tc.Result, "case: '%v'\tshould returned: %#v", tc.Input, tc.Result)
 	}
 }
 
@@ -524,9 +497,7 @@ func TestIsValidId(t *testing.T) {
 
 	for _, tc := range cases {
 		actual := IsValidId(tc.Input)
-		if actual != tc.Result {
-			t.Fatalf("case: %v\tshould returned: %#v", tc, tc.Result)
-		}
+		assert.Equal(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }
 
