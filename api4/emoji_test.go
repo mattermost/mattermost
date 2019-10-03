@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateEmoji(t *testing.T) {
@@ -239,9 +240,7 @@ func TestGetEmojiList(t *testing.T) {
 			break
 		}
 	}
-	if found {
-		t.Fatalf("should not get a deleted emoji %v", emojis[0].Id)
-	}
+	require.Falsef(t, found, "should not get a deleted emoji %v", emojis[0].Id)
 
 	listEmoji, resp = Client.GetEmojiList(0, 1)
 	CheckNoError(t, resp)
