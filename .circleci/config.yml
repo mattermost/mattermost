@@ -27,7 +27,8 @@ jobs:
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
-          curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || npm ci && cd node_modules/mattermost-redux && npm i && npm run build && cd ../.. && make test build
+          npm ci
+          curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || cd node_modules/mattermost-redux && npm i && npm run build && cd ../.. && make test build
       - persist_to_workspace:
           root: /go/src/github.com/mattermost
           paths:
