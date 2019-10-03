@@ -418,7 +418,7 @@ func (a *App) GetPluginPublicKeys() ([]string, *model.AppError) {
 
 // GetPublicKey will return the actual public key saved in the `filename` file.
 func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
-	filename += PluginSignaturePublicKeyFileExtention
+	filename += pluginSignaturePublicKeyFileExtention
 
 	data, err := a.Srv.configStore.GetFile(filename)
 	if err != nil {
@@ -429,7 +429,7 @@ func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
 
 // AddPublicKey method will add plugin public key to the config.
 func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
-	if err := a.writeFile(name+PluginSignaturePublicKeyFileExtention, key); err != nil {
+	if err := a.writeFile(name+pluginSignaturePublicKeyFileExtention, key); err != nil {
 		return err
 	}
 	a.UpdateConfig(func(cfg *model.Config) {
@@ -443,7 +443,7 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 
 // DeletePublicKey method will delete plugin public key from the config.
 func (a *App) DeletePublicKey(file string) *model.AppError {
-	file += PluginSignaturePublicKeyFileExtention
+	file += pluginSignaturePublicKeyFileExtention
 
 	filename := filepath.Base(file)
 	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
