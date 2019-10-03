@@ -3491,6 +3491,18 @@
     "translation": "Unable to get plugin statuses"
   },
   {
+    "id": "app.plugin.init_public_keys.add_key.app_error",
+    "translation": "Unable to add plugin public key(s)"
+  },
+  {
+    "id": "app.plugin.init_public_keys.open_key.app_error",
+    "translation": "Unable to open plugin public key"
+  },
+  {
+    "id": "app.plugin.init_public_keys.read_dir.app_error",
+    "translation": "Unable to read plugin public keys dir"
+  },
+  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },

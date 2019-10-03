@@ -21,9 +21,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// PluginSignaturePublicKeyFileExtention is the extention of the public key file.
-// Only this file extention is permitted.
-const PluginSignaturePublicKeyFileExtention = ".plugin.gpg"
+// pluginSignaturePublicKeyFileExtention is the extention of the public key file.
+const pluginSignaturePublicKeyFileExtention = ".plugin.gpg"
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.
