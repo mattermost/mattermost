@@ -33,9 +33,7 @@ func TestCreateUserWithTeam(t *testing.T) {
 
 	}
 
-	if !found {
-		t.Fatal("Failed to create User")
-	}
+	require.True(t, found, "Failed to create User")
 }
 
 func TestCreateUserWithoutTeam(t *testing.T) {
@@ -48,11 +46,10 @@ func TestCreateUserWithoutTeam(t *testing.T) {
 
 	th.CheckCommand(t, "user", "create", "--email", email, "--password", "mypassword1", "--username", username)
 
-	if user, err := th.App.Srv.Store.User().GetByEmail(email); err != nil {
-		t.Fatal(err)
-	} else {
-		require.Equal(t, email, user.Email)
-	}
+	user, err := th.App.Srv.Store.User().GetByEmail(email)
+	require.Nil(t, err)
+
+	require.Equal(t, email, user.Email)
 }
 
 func TestResetPassword(t *testing.T) {
@@ -84,16 +81,14 @@ func TestChangeUserEmail(t *testing.T) {
 	newEmail := model.NewId() + "@mattermost-test.com"
 
 	th.CheckCommand(t, "user", "email", th.BasicUser.Username, newEmail)
-	if _, err := th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email); err == nil {
-		t.Fatal("should've updated to the new email")
-	}
-	if user, err := th.App.Srv.Store.User().GetByEmail(newEmail); err != nil {
-		t.Fatal(err)
-	} else {
-		if user.Email != newEmail {
-			t.Fatal("should've updated to the new email")
-		}
-	}
+	_, err := th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email)
+	require.NotNil(t, err, "should've updated to the new email")
+
+	user, err := th.App.Srv.Store.User().GetByEmail(newEmail)
+	require.Nil(t, err)
+
+	require.Equal(t, user.Email, newEmail, "should've updated to the new email")
+
 
 	// should fail because using an invalid email
 	require.Error(t, th.RunCommand(t, "user", "email", th.BasicUser.Username, "wrong$email.com"))
