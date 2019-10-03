@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
@@ -50,13 +51,17 @@ func TestPluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key" + app.PluginSignaturePublicKeyFileExtention}
 	th.SetConfig(cfg)
 
 	output := th.CheckCommand(t, "plugin", "keys")
 	assert.Contains(t, output, "public-key")
 	assert.NotContains(t, output, "Plugin name:")
 
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
+	th.SetConfig(cfg)
+	err := th.RunCommand(t, "plugin", "keys")
+	assert.NotNil(t, err)
 }
 
 func TestPluginPublicKeyDetails(t *testing.T) {
@@ -64,7 +69,7 @@ func TestPluginPublicKeyDetails(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key" + app.PluginSignaturePublicKeyFileExtention}
 
 	th.SetConfig(cfg)
 
@@ -79,11 +84,11 @@ func TestAddPluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key"}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"public-key" + app.PluginSignaturePublicKeyFileExtention}
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "keys", "add", "pk1.gpg")
-	assert.Contains(t, output, "pk1.gpg.plugin.gpg: no such file or directory")
+	err := th.RunCommand(t, "plugin", "keys", "add", "pk1")
+	assert.NotNil(t, err)
 }
 
 func TestDeletePluginPublicKeys(t *testing.T) {
@@ -91,9 +96,29 @@ func TestDeletePluginPublicKeys(t *testing.T) {
 	defer th.TearDown()
 
 	cfg := th.Config()
-	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"pk1.gpg"}
+	cfg.PluginSettings.SignaturePublicKeyFiles = []string{"pk1" + app.PluginSignaturePublicKeyFileExtention}
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "keys", "delete", "pk1.gpg")
-	assert.Contains(t, output, "Deleted public key: pk1.gpg")
+	output := th.CheckCommand(t, "plugin", "keys", "delete", "pk1")
+	assert.Contains(t, output, "Deleted public key: pk1")
+}
+
+func TestPluginPublicKeysFlow(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	path, _ := fileutils.FindDir("tests")
+	name := "test-public-key.plugin.gpg"
+	output := th.CheckCommand(t, "plugin", "keys", "add", filepath.Join(path, name))
+	assert.Contains(t, output, "Added public key: "+filepath.Join(path, name))
+
+	output = th.CheckCommand(t, "plugin", "keys")
+	assert.Contains(t, output, name)
+	assert.NotContains(t, output, "Plugin name:")
+
+	output = th.CheckCommand(t, "plugin", "keys", "--verbose")
+	assert.Contains(t, output, "Plugin name: "+name)
+
+	output = th.CheckCommand(t, "plugin", "keys", "delete", name)
+	assert.Contains(t, output, "Deleted public key: "+name)
 }

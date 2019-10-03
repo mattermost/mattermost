@@ -71,7 +71,7 @@ var PluginAddPublicKeyCmd = &cobra.Command{
 	Use:     "add [keys]",
 	Short:   "Adds public key(s)",
 	Long:    "Adds public key(s) for plugins on your Mattermost server.",
-	Example: `  plugin keys add my-pk-file1.plugin.gpg my-pk-file2.plugin.gpg`,
+	Example: `  plugin keys add my-pk-file1 my-pk-file2`,
 	RunE:    pluginAddPublicKeyCmdF,
 }
 
@@ -79,7 +79,7 @@ var PluginDeletePublicKeyCmd = &cobra.Command{
 	Use:     "delete [keys]",
 	Short:   "Deletes public key(s)",
 	Long:    "Deletes public key(s) for plugins on your Mattermost server.",
-	Example: `  plugin keys delete my-pk-file1.plugin.gpg my-pk-file2.plugin.gpg `,
+	Example: `  plugin keys delete my-pk-file1 my-pk-file2`,
 	RunE:    pluginDeletePublicKeyCmdF,
 }
 
@@ -254,6 +254,7 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 }
 
 func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
+	println("0000 wtf!!!")
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -265,9 +266,13 @@ func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 	}
 
 	for _, pkFile := range args {
+		println("0000 in loop", pkFile)
 		filename := filepath.Base(pkFile)
+		println("0000 filename", filename)
 		fileReader, err := os.Open(pkFile)
+		println("0000 fileReader", fileReader)
 		if err != nil {
+			println("0000 fileReadererr", err.Error())
 			return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 

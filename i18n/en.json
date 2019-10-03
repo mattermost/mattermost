@@ -1525,6 +1525,10 @@
     "translation": "An error occurred while deleting the public key"
   },
   {
+    "id": "api.plugin.get_plugin_public_keys.app_error",
+    "translation": "Wrong key detected. Please delete"
+  },
+  {
     "id": "api.plugin.get_public_key.get_file.app_error",
     "translation": "An error occurred while getting the public key from the store"
   },
