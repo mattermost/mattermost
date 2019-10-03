@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand"
 	"net"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -242,6 +243,21 @@ func (m *Memberlist) probeNodeByAddr(addr string) {
 	m.probeNode(n)
 }
 
+// failedRemote checks the error and decides if it indicates a failure on the
+// other end.
+func failedRemote(err error) bool {
+	switch t := err.(type) {
+	case *net.OpError:
+		if strings.HasPrefix(t.Net, "tcp") {
+			switch t.Op {
+			case "dial", "read", "write":
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // probeNode handles a single round of failure checking on a node.
 func (m *Memberlist) probeNode(node *nodeState) {
 	defer metrics.MeasureSince([]string{"memberlist", "probeNode"}, time.Now())
@@ -272,10 +288,20 @@ func (m *Memberlist) probeNode(node *nodeState) {
 	// soon as possible.
 	deadline := sent.Add(probeInterval)
 	addr := node.Address()
+
+	// Arrange for our self-awareness to get updated.
+	var awarenessDelta int
+	defer func() {
+		m.awareness.ApplyDelta(awarenessDelta)
+	}()
 	if node.State == stateAlive {
 		if err := m.encodeAndSendMsg(addr, pingMsg, &ping); err != nil {
 			m.logger.Printf("[ERR] memberlist: Failed to send ping: %s", err)
-			return
+			if failedRemote(err) {
+				goto HANDLE_REMOTE_FAILURE
+			} else {
+				return
+			}
 		}
 	} else {
 		var msgs [][]byte
@@ -296,7 +322,11 @@ func (m *Memberlist) probeNode(node *nodeState) {
 		compound := makeCompoundMessage(msgs)
 		if err := m.rawSendMsgPacket(addr, &node.Node, compound.Bytes()); err != nil {
 			m.logger.Printf("[ERR] memberlist: Failed to send compound ping and suspect message to %s: %s", addr, err)
-			return
+			if failedRemote(err) {
+				goto HANDLE_REMOTE_FAILURE
+			} else {
+				return
+			}
 		}
 	}
 
@@ -305,10 +335,7 @@ func (m *Memberlist) probeNode(node *nodeState) {
 	// which will improve our health until we get to the failure scenarios
 	// at the end of this function, which will alter this delta variable
 	// accordingly.
-	awarenessDelta := -1
-	defer func() {
-		m.awareness.ApplyDelta(awarenessDelta)
-	}()
+	awarenessDelta = -1
 
 	// Wait for response or round-trip-time.
 	select {
@@ -333,9 +360,10 @@ func (m *Memberlist) probeNode(node *nodeState) {
 		// probe interval it will give the TCP fallback more time, which
 		// is more active in dealing with lost packets, and it gives more
 		// time to wait for indirect acks/nacks.
-		m.logger.Printf("[DEBUG] memberlist: Failed ping: %v (timeout reached)", node.Name)
+		m.logger.Printf("[DEBUG] memberlist: Failed ping: %s (timeout reached)", node.Name)
 	}
 
+HANDLE_REMOTE_FAILURE:
 	// Get some random live nodes.
 	m.nodeLock.RLock()
 	kNodes := kRandomNodes(m.config.IndirectChecks, m.nodes, func(n *nodeState) bool {
