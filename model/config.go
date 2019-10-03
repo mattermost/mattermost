@@ -1912,6 +1912,7 @@ type SamlSettings struct {
 
 	// User Mapping
 	IdAttribute        *string
+	GuestAttribute     *string
 	FirstNameAttribute *string
 	LastNameAttribute  *string
 	EmailAttribute     *string
@@ -2004,6 +2005,9 @@ func (s *SamlSettings) SetDefaults() {
 		s.IdAttribute = NewString(SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE)
 	}
 
+	if s.GuestAttribute == nil {
+		s.GuestAttribute = NewString(SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE)
+	}
 	if s.FirstNameAttribute == nil {
 		s.FirstNameAttribute = NewString(SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE)
 	}
@@ -2839,6 +2843,15 @@ func (ss *SamlSettings) isValid() *AppError {
 		}
 		if !(*ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N || *ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if len(*ss.GuestAttribute) > 0 {
+			if !(strings.Contains(*ss.GuestAttribute, "=")) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+			if len(strings.Split(*ss.GuestAttribute, "=")) != 2 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 	}
 
