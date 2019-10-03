@@ -102,7 +102,7 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
 		`,
 	}
 
-	for i, text := range texts {
+	for _, text := range texts {
 		// build a sample payload with the text
 		payload := `{
         "text": "` + text + `",
