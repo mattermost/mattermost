@@ -255,17 +255,17 @@ type LocalResponseWriter struct {
 	status int
 }
 
-func (w LocalResponseWriter) Header() http.Header {
+func (w *LocalResponseWriter) Header() http.Header {
 	return make(http.Header)
 }
 
-func (w LocalResponseWriter) Write(bytes []byte) (int, error) {
+func (w *LocalResponseWriter) Write(bytes []byte) (int, error) {
 	w.data = make([]byte, len(bytes))
 	copy(w.data, bytes)
 	return len(w.data), nil
 }
 
-func (w LocalResponseWriter) WriteHeader(statusCode int) {
+func (w *LocalResponseWriter) WriteHeader(statusCode int) {
 	w.status = statusCode
 }
 
@@ -286,7 +286,7 @@ func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model
 
 	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginId)
 
-	w := LocalResponseWriter{}
+	w := &LocalResponseWriter{}
 	r, err := http.NewRequest("POST", path, bytes.NewReader(body))
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
