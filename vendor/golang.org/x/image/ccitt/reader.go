@@ -67,6 +67,62 @@ func invertBytes(b []byte) {
 	}
 }
 
+func reverseBitsWithinBytes(b []byte) {
+	for i, c := range b {
+		b[i] = bits.Reverse8(c)
+	}
+}
+
+// highBits writes to dst (1 bit per pixel, most significant bit first) the
+// high (0x80) bits from src (1 byte per pixel). It returns the number of bytes
+// written and read such that dst[:d] is the packed form of src[:s].
+//
+// For example, if src starts with the 8 bytes [0x7D, 0x7E, 0x7F, 0x80, 0x81,
+// 0x82, 0x00, 0xFF] then 0x1D will be written to dst[0].
+//
+// If src has (8 * len(dst)) or more bytes then only len(dst) bytes are
+// written, (8 * len(dst)) bytes are read, and invert is ignored.
+//
+// Otherwise, if len(src) is not a multiple of 8 then the final byte written to
+// dst is padded with 1 bits (if invert is true) or 0 bits. If inverted, the 1s
+// are typically temporary, e.g. they will be flipped back to 0s by an
+// invertBytes call in the highBits caller, reader.Read.
+func highBits(dst []byte, src []byte, invert bool) (d int, s int) {
+	// Pack as many complete groups of 8 src bytes as we can.
+	n := len(src) / 8
+	if n > len(dst) {
+		n = len(dst)
+	}
+	dstN := dst[:n]
+	for i := range dstN {
+		src8 := src[i*8 : i*8+8]
+		dstN[i] = ((src8[0] & 0x80) >> 0) |
+			((src8[1] & 0x80) >> 1) |
+			((src8[2] & 0x80) >> 2) |
+			((src8[3] & 0x80) >> 3) |
+			((src8[4] & 0x80) >> 4) |
+			((src8[5] & 0x80) >> 5) |
+			((src8[6] & 0x80) >> 6) |
+			((src8[7] & 0x80) >> 7)
+	}
+	d, s = n, 8*n
+	dst, src = dst[d:], src[s:]
+
+	// Pack up to 7 remaining src bytes, if there's room in dst.
+	if (len(dst) > 0) && (len(src) > 0) {
+		dstByte := byte(0)
+		if invert {
+			dstByte = 0xFF >> uint(len(src))
+		}
+		for n, srcByte := range src {
+			dstByte |= (srcByte & 0x80) >> uint(n)
+		}
+		dst[0] = dstByte
+		d, s = d+1, s+len(src)
+	}
+	return d, s
+}
+
 type bitReader struct {
 	r io.Reader
 
@@ -78,7 +134,7 @@ type bitReader struct {
 	// order is whether to process r's bytes LSB first or MSB first.
 	order Order
 
-	// The low nBits bits of the bits field hold upcoming bits in LSB order.
+	// The high nBits bits of the bits field hold upcoming bits in MSB order.
 	bits  uint64
 	nBits uint32
 
@@ -90,7 +146,7 @@ type bitReader struct {
 
 func (b *bitReader) alignToByteBoundary() {
 	n := b.nBits & 7
-	b.bits >>= n
+	b.bits <<= n
 	b.nBits -= n
 }
 
@@ -105,10 +161,10 @@ const nextBitMaxNBits = 31
 func (b *bitReader) nextBit() (uint32, error) {
 	for {
 		if b.nBits > 0 {
-			bit := uint32(b.bits) & 1
-			b.bits >>= 1
+			bit := (b.bits >> 63) & 1
+			b.bits <<= 1
 			b.nBits--
-			return bit, nil
+			return uint32(bit), nil
 		}
 
 		if available := b.bw - b.br; available >= 4 {
@@ -118,12 +174,12 @@ func (b *bitReader) nextBit() (uint32, error) {
 			// checks that the generated maxCodeLength constant fits.
 			//
 			// If changing the Uint32 call, also change nextBitMaxNBits.
-			b.bits = uint64(binary.LittleEndian.Uint32(b.bytes[b.br:]))
+			b.bits = uint64(binary.BigEndian.Uint32(b.bytes[b.br:])) << 32
 			b.br += 4
 			b.nBits = 32
 			continue
 		} else if available > 0 {
-			b.bits = uint64(b.bytes[b.br])
+			b.bits = uint64(b.bytes[b.br]) << (7 * 8)
 			b.br++
 			b.nBits = 8
 			continue
@@ -138,23 +194,20 @@ func (b *bitReader) nextBit() (uint32, error) {
 		b.bw = uint32(n)
 		b.readErr = err
 
-		if b.order != LSB {
-			written := b.bytes[:b.bw]
-			for i, x := range written {
-				written[i] = bits.Reverse8(x)
-			}
+		if b.order != MSB {
+			reverseBitsWithinBytes(b.bytes[:b.bw])
 		}
 	}
 }
 
 func decode(b *bitReader, decodeTable [][2]int16) (uint32, error) {
-	nBitsRead, bitsRead, state := uint32(0), uint32(0), int32(1)
+	nBitsRead, bitsRead, state := uint32(0), uint64(0), int32(1)
 	for {
 		bit, err := b.nextBit()
 		if err != nil {
 			return 0, err
 		}
-		bitsRead |= bit << nBitsRead
+		bitsRead |= uint64(bit) << (63 - nBitsRead)
 		nBitsRead++
 		// The "&1" is redundant, but can eliminate a bounds check.
 		state = int32(decodeTable[state][bit&1])
@@ -162,7 +215,7 @@ func decode(b *bitReader, decodeTable [][2]int16) (uint32, error) {
 			return uint32(^state), nil
 		} else if state == 0 {
 			// Unread the bits we've read, then return errInvalidCode.
-			b.bits = (b.bits << nBitsRead) | uint64(bitsRead)
+			b.bits = (b.bits >> nBitsRead) | bitsRead
 			b.nBits += nBitsRead
 			return 0, errInvalidCode
 		}
@@ -254,25 +307,10 @@ func (z *reader) Read(p []byte) (int, error) {
 			z.rowsRemaining--
 		}
 
-		// Pack from z.curr (1 byte per pixel) to p (1 bit per pixel), up to 8
-		// elements per iteration.
-		i := 0
-		for ; i < len(p); i++ {
-			numToPack := len(z.curr) - z.ri
-			if numToPack <= 0 {
-				break
-			} else if numToPack > 8 {
-				numToPack = 8
-			}
-
-			byteValue := byte(0)
-			for j := 0; j < numToPack; j++ {
-				byteValue |= (z.curr[z.ri] & 0x80) >> uint(j)
-				z.ri++
-			}
-			p[i] = byteValue
-		}
-		p = p[i:]
+		// Pack from z.curr (1 byte per pixel) to p (1 bit per pixel).
+		packD, packS := highBits(p, z.curr[z.ri:], z.invert)
+		p = p[packD:]
+		z.ri += packS
 
 		// Prepare to decode the next row, if necessary.
 		if z.ri == len(z.curr) {
@@ -282,7 +320,6 @@ func (z *reader) Read(p []byte) (int, error) {
 	}
 
 	n := len(originalP) - len(p)
-	// TODO: when invert is true, should the end-of-row padding bits be 0 or 1?
 	if z.invert {
 		invertBytes(originalP[:n])
 	}
@@ -366,6 +403,10 @@ func (z *reader) decodeRow() error {
 	z.atStartOfRow = true
 	z.penColorIsWhite = true
 
+	if z.align {
+		z.br.alignToByteBoundary()
+	}
+
 	switch z.subFormat {
 	case Group3:
 		for ; z.wi < len(z.curr); z.atStartOfRow = false {
@@ -376,10 +417,6 @@ func (z *reader) decodeRow() error {
 		return z.decodeEOL()
 
 	case Group4:
-		if z.align {
-			z.br.alignToByteBoundary()
-		}
-
 		for ; z.wi < len(z.curr); z.atStartOfRow = false {
 			mode, err := decode(&z.br, modeDecodeTable[:])
 			if err != nil {
