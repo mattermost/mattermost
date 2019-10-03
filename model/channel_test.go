@@ -44,16 +44,10 @@ func TestChannelPatch(t *testing.T) {
 	o.Patch(p)
 
 	require.Equal(t, *p.Name, o.Name, "do not match")
-
 	require.Equal(t, *p.DisplayName, o.DisplayName, "do not match")
-
 	require.Equal(t, *p.Header, o.Header, "do not match")
-
 	require.Equal(t, *p.Purpose, o.Purpose, "do not match")
-
-	require.Equalf(t, *p.GroupConstrained, *o.GroupConstrained, "expected %v got %v", *p.GroupConstrained,
-		*o.GroupConstrained)
-
+	require.Equalf(t, *p.GroupConstrained, *o.GroupConstrained, "expected %v got %v", *p.GroupConstrained, *o.GroupConstrained)
 }
 
 func TestChannelIsValid(t *testing.T) {
