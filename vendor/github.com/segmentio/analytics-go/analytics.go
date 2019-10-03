@@ -14,6 +14,7 @@ import (
 
 // Version of the client.
 const Version = "3.0.0"
+const unimplementedError = "not implemented"
 
 // This interface is the main API exposed by the analytics package.
 // Values that satsify this interface are returned by the client constructors
@@ -104,8 +105,46 @@ func makeHttpClient(transport http.RoundTripper) http.Client {
 	return httpClient
 }
 
+func dereferenceMessage(msg Message) Message {
+	switch m := msg.(type) {
+	case *Alias:
+		if m == nil {
+			return nil
+		}
+		return *m
+	case *Group:
+		if m == nil {
+			return nil
+		}
+		return *m
+	case *Identify:
+		if m == nil {
+			return nil
+		}
+		return *m
+	case *Page:
+		if m == nil {
+			return nil
+		}
+		return *m
+	case *Screen:
+		if m == nil {
+			return nil
+		}
+		return *m
+	case *Track:
+		if m == nil {
+			return nil
+		}
+		return *m
+	}
+
+	return msg
+}
+
 func (c *client) Enqueue(msg Message) (err error) {
-	if err = msg.validate(); err != nil {
+	msg = dereferenceMessage(msg)
+	if err = msg.Validate(); err != nil {
 		return
 	}
 
@@ -148,6 +187,10 @@ func (c *client) Enqueue(msg Message) (err error) {
 		m.MessageId = makeMessageId(m.MessageId, id)
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
 		msg = m
+
+	default:
+		err = fmt.Errorf("messages with custom types cannot be enqueued: %T", msg)
+		return
 	}
 
 	defer func() {

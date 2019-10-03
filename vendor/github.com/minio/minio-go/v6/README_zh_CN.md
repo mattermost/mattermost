@@ -16,7 +16,7 @@ MinIO Go Client SDK提供了简单的API来访问任何与Amazon S3兼容的对�
 
 本文我们将学习如何安装MinIO client SDK，连接到MinIO，并提供一下文件上传的示例。对于完整的API以及示例，请参考[Go Client API Reference](https://docs.min.io/docs/golang-client-api-reference)。
 
-本文假设你已经有 [Go开发环境](https://docs.min.io/docs/how-to-install-golang)。
+本文假设你已经有 [Go开发环境](https://golang.org/doc/install)。
 
 ## 从Github下载
 ```sh
