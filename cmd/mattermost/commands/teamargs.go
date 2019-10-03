@@ -21,7 +21,7 @@ func getTeamFromTeamArg(a *app.App, teamArg string) *model.Team {
 	var team *model.Team
 	team, err := a.Srv.Store.Team().GetByName(teamArg)
 
-	if team == nil {
+	if err != nil {
 		var t *model.Team
 		if t, err = a.Srv.Store.Team().Get(teamArg); err == nil {
 			team = t
