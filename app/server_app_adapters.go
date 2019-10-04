@@ -66,7 +66,7 @@ func (s *Server) RunOldAppInitalization() error {
 	}
 
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		mlog.Error("Failed to parse server templates ", mlog.Err(err))
+		mlog.Error("Failed to parse server templates", mlog.Err(err))
 	} else {
 		s.FakeApp().Srv.htmlTemplateWatcher = htmlTemplateWatcher
 	}
