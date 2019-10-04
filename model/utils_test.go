@@ -25,7 +25,7 @@ func TestNewId(t *testing.T) {
 func TestRandomString(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		r := NewRandomString(32)
-		require.Equal(t, len(r), 32, "should be 32 chars")
+		require.Len(t, r, 32)
 	}
 }
 
@@ -344,7 +344,7 @@ func TestIsValidAlphaNum(t *testing.T) {
 }
 
 func TestGetServerIpAddress(t *testing.T) {
-	require.NotEqual(t, len(GetServerIpAddress("")), 0, "Should find local ip address")
+	require.NotEmpty(t, GetServerIpAddress(""), "Should find local ip address")
 }
 
 func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {
