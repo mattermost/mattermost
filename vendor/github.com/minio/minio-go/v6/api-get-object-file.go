@@ -100,7 +100,7 @@ func (c Client) fGetObjectWithContext(ctx context.Context, bucketName, objectNam
 	}
 
 	// Seek to current position for incoming reader.
-	objectReader, objectStat, err := c.getObject(ctx, bucketName, objectName, opts)
+	objectReader, objectStat, _, err := c.getObject(ctx, bucketName, objectName, opts)
 	if err != nil {
 		return err
 	}

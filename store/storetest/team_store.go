@@ -745,7 +745,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 	assert.Nil(t, err)
 	assert.Equal(t, []*model.Team{t1, t3, t5}, teams)
 
-	teams, err = ss.Team().GetAllPublicTeamPageListing(1, 1)
+	_, err = ss.Team().GetAllPublicTeamPageListing(1, 1)
 	assert.Nil(t, err)
 }
 
