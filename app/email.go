@@ -4,7 +4,10 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"net/mail"
 	"net/url"
 	"path"
 	"strings"
@@ -367,6 +370,17 @@ func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 		return
 	}
 
+	sender, appErr := a.GetUser(senderUserId)
+	if appErr != nil {
+		a.Log.Error("Email invite not sent, unable to find the sender user.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(appErr))
+		return
+	}
+
+	senderProfileImage, _, appErr := a.GetProfileImage(sender)
+	if appErr != nil {
+		a.Log.Warn("Unable to get the sender user profile image.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(appErr))
+	}
+
 	if rateLimited {
 		a.Log.Error("Invite emails rate limited.",
 			mlog.String("user_id", senderUserId),
@@ -430,7 +444,14 @@ func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 				mlog.Info(fmt.Sprintf("sending invitation to %v %v", invite, bodyPage.Props["Link"]))
 			}
 
-			if err := a.SendMail(invite, subject, bodyPage.Render()); err != nil {
+			embeddedFiles := make(map[string]io.Reader)
+			if senderProfileImage != nil {
+				embeddedFiles = map[string]io.Reader{
+					"user-avatar.png": bytes.NewReader(senderProfileImage),
+				}
+			}
+
+			if err := a.SendMailWithEmbeddedFiles(invite, subject, bodyPage.Render(), embeddedFiles); err != nil {
 				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
 			}
 		}
@@ -497,4 +518,13 @@ func (a *App) SendNotificationMail(to, subject, htmlBody string) *model.AppError
 func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
 	license := a.License()
 	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
+}
+
+func (a *App) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
+	license := a.License()
+	config := a.Config()
+	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
+	replyTo := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.ReplyToAddress}
+
+	return mailservice.SendMailUsingConfigAdvanced(to, to, fromMail, replyTo, subject, htmlBody, nil, embeddedFiles, nil, config, license != nil && *license.Features.Compliance)
 }
