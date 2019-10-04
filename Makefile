@@ -3,6 +3,7 @@
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 IS_CI ?= false
+MM_NO_DOCKER ?= false
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
@@ -80,15 +81,15 @@ TESTFLAGSEE ?= -short
 TE_PACKAGES=$(shell go list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.0
+PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.1.1
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.1
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
-PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.1.3
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.2.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
@@ -117,27 +118,35 @@ all: run ## Alias for 'run'.
 include build/*.mk
 
 start-docker: ## Starts the docker containers for local development.
-ifeq ($(IS_CI),false)
+ifneq ($(IS_CI),false)
+	@echo CI Build: skipping docker start
+else ifeq ($(MM_NO_DOCKER),true)
+	@echo No Docker Enabled: skipping docker start
+else
 	@echo Starting docker containers
 
 	docker-compose run --rm start_dependencies
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
-
-else
-	@echo CI Build: skipping docker start
 endif
 
 stop-docker: ## Stops the docker containers for local development.
+ifeq ($(MM_NO_DOCKER),true)
+	@echo No Docker Enabled: skipping docker stop
+else
 	@echo Stopping docker containers
 
 	docker-compose stop
-
+endif
 
 clean-docker: ## Deletes the docker containers for local development.
+ifeq ($(MM_NO_DOCKER),true)
+	@echo No Docker Enabled: skipping docker clean
+else
 	@echo Removing docker containers
 
 	docker-compose down -v
 	docker-compose rm -v
+endif
 
 
 govet: ## Runs govet against all packages.
@@ -314,7 +323,7 @@ run-server: validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) --disableconfigwatch | \
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) --disableconfigwatch 2>&1 | \
 	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) logs --logrus &
 
 debug-server: start-docker ## Compile and start server using delve.

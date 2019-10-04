@@ -24,7 +24,7 @@ e2e:
 	@if [ "$(RUN_E2E_TESTS)" != "true" ]; then \
 	  echo "Skipping end to end tests."; else \
 		go get github.com/segmentio/library-e2e-tester/cmd/tester; \
-		tester -segment-write-key=$(SEGMENT_WRITE_KEY) -webhook-auth-username=$(WEBHOOK_AUTH_USERNAME) -webhook-bucket=$(WEBHOOK_BUCKET) -path='cli'; fi
+		tester -segment-write-key=$(SEGMENT_WRITE_KEY) -webhook-auth-username=$(WEBHOOK_AUTH_USERNAME) -webhook-bucket=$(WEBHOOK_BUCKET) -path='cli' -concurrency=2 -skip='advance|alias'; fi
 
 ci: dependencies test e2e
 

@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"database/sql"
 	"io/ioutil"
-	"regexp"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -27,8 +26,6 @@ import (
 //
 // It is imposed by MySQL's default max_allowed_packet value of 4Mb.
 const MaxWriteLength = 4 * 1024 * 1024
-
-var tcpStripper = regexp.MustCompile(`@tcp\((.*)\)`)
 
 // DatabaseStore is a config store backed by a database.
 type DatabaseStore struct {
