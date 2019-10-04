@@ -810,7 +810,7 @@ func (_m *UserStore) GetTeamGroupUsers(teamID string) ([]*model.User, *model.App
 }
 
 // GetUnreadCount provides a mock function with given fields: userId
-func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
+func (_m *UserStore) GetUnreadCount(userId string) (int64, *model.AppError) {
 	ret := _m.Called(userId)
 
 	var r0 int64
@@ -820,11 +820,13 @@ func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(userId)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
 	}
 
 	return r0, r1
