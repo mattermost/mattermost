@@ -213,10 +213,11 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
-	mlog.Info("Current ", mlog.String("version", model.CurrentVersion), mlog.String("buildNumber", model.BuildNumber), mlog.String("buildDate", model.BuildDate), mlog.String("buildHash", model.BuildHash), mlog.String("enterprise", model.BuildHashEnterprise))
-	mlog.Info("Enterprise ", mlog.String("Enabled", model.BuildEnterpriseReady))
+	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
+	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
+
 	pwd, _ := os.Getwd()
-	mlog.Info("Current working  ", mlog.String("directory", pwd))
+	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
 
 	s.checkPushNotificationServerUrl()
@@ -332,7 +333,7 @@ func (s *Server) Shutdown() error {
 
 	err := s.shutdownDiagnostics()
 	if err != nil {
-		mlog.Error("Unable to cleanly shutdown diagnostic client ", mlog.Err(err))
+		mlog.Error("Unable to cleanly shutdown diagnostic client", mlog.Err(err))
 	}
 
 	s.StopHTTPServer()
@@ -486,7 +487,7 @@ func (s *Server) Start() error {
 	}
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
-	mlog.Info("Server is listening ", mlog.String("on", listener.Addr().String()))
+	mlog.Info(fmt.Sprintf("Server is listening on %v", listener.Addr().String()))
 
 	// Migration from old let's encrypt library
 	if *s.Config().ServiceSettings.UseLetsEncrypt {
@@ -502,7 +503,7 @@ func (s *Server) Start() error {
 
 	if *s.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
-			mlog.Error("Unable to setup forwarding ", mlog.Err(err))
+			mlog.Error("Unable to setup forwarding", mlog.Err(err))
 		} else if port != "443" {
 			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
@@ -519,7 +520,7 @@ func (s *Server) Start() error {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
 					if err != nil {
-						mlog.Error("Unable to setup forwarding ", mlog.Err(err))
+						mlog.Error("Unable to setup forwarding", mlog.Err(err))
 						return
 					}
 					defer redirectListener.Close()
@@ -605,7 +606,7 @@ func (s *Server) Start() error {
 		}
 
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical("Error starting server ", mlog.Err(err))
+			mlog.Critical("Error starting server", mlog.Err(err))
 			time.Sleep(time.Second)
 		}
 
