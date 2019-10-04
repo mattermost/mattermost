@@ -699,7 +699,7 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	uploads := make(map[string]*zip.File)
 	for _, file := range zipreader.File {
 		if file.UncompressedSize64 > SLACK_IMPORT_MAX_FILE_SIZE {
-			log.WriteString(utils.T("api.slackimport.slack_import.note1"))
+			log.WriteString(utils.T("api.slackimport.slack_import.zip.file_too_large", map[string]interface{}{"Filename": file.Name}))
 			continue
 		}
 		reader, err := file.Open()
