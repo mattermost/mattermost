@@ -8,31 +8,30 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestTermsOfServiceIsValid(t *testing.T) {
 	s := TermsOfService{}
 
-	require.Error(t, s.IsValid(), "should be invalid")
+	assert.Error(t, s.IsValid(), "should be invalid")
 
 	s.Id = NewId()
-	require.Error(t, s.IsValid(), "should be invalid")
+	assert.Error(t, s.IsValid(), "should be invalid")
 
 	s.CreateAt = GetMillis()
-	require.Error(t, s.IsValid(), "should be invalid")
+	assert.Error(t, s.IsValid(), "should be invalid")
 
 	s.UserId = NewId()
-	require.Error(t, s.IsValid(), "should be invalid")
+	assert.Error(t, s.IsValid(), "should be invalid")
 
 	s.Text = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V2+1)
-	require.Error(t, s.IsValid(), "should be invalid")
+	assert.Error(t, s.IsValid(), "should be invalid")
 
 	s.Text = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V2)
-	require.Nil(t, s.IsValid(), "should be valid")
+	assert.Nil(t, s.IsValid(), "should be valid")
 
 	s.Text = "test"
-	require.Nil(t, s.IsValid(), "should be valid")
+	assert.Nil(t, s.IsValid(), "should be valid")
 }
 
 func TestTermsOfServiceJson(t *testing.T) {
