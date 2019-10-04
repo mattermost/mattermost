@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestChannelViewJson(t *testing.T) {
@@ -15,8 +15,8 @@ func TestChannelViewJson(t *testing.T) {
 	json := o.ToJson()
 	ro := ChannelViewFromJson(strings.NewReader(json))
 
-	require.Equal(t, o.ChannelId, ro.ChannelId, "ChannelIdIds do not match")
-	require.Equal(t, o.PrevChannelId, ro.PrevChannelId, "PrevChannelIds do not match")
+	assert.Equal(t, o.ChannelId, ro.ChannelId, "ChannelIdIds do not match")
+	assert.Equal(t, o.PrevChannelId, ro.PrevChannelId, "PrevChannelIds do not match")
 }
 
 func TestChannelViewResponseJson(t *testing.T) {
@@ -25,6 +25,6 @@ func TestChannelViewResponseJson(t *testing.T) {
 	json := o.ToJson()
 	ro := ChannelViewResponseFromJson(strings.NewReader(json))
 
-	require.Equal(t, o.Status, ro.Status, "ChannelIdIds do not match")
-	require.Equal(t, o.LastViewedAtTimes[id], ro.LastViewedAtTimes[id], "LastViewedAtTimes do not match")
+	assert.Equal(t, o.Status, ro.Status, "ChannelIdIds do not match")
+	assert.Equal(t, o.LastViewedAtTimes[id], ro.LastViewedAtTimes[id], "LastViewedAtTimes do not match")
 }
