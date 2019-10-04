@@ -32,7 +32,7 @@ func TestSaveStatus(t *testing.T) {
 
 			after, err := th.App.GetStatus(user.Id)
 			require.Nil(t, err, "failed to get status after save: %v", err)
-			require.Equal(t, after.Status, statusString, "failed to save status, got %v, expected %v", after.Status, statusString)
+			require.Equal(t, statusString, after.Status, "failed to save status, got %v, expected %v", after.Status, statusString)
 		})
 	}
 }
