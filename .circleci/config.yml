@@ -146,6 +146,100 @@ jobs:
       - store_artifacts:
           path: ~/go/src/github.com/mattermost/mattermost-server/test-results/
 
+  test-schema:
+    executor:
+      name: ubuntu
+    steps:
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost
+      - run:
+          name: Run Docker compose
+          command: |
+            cd mattermost-server/build
+            docker-compose --no-ansi run --rm start_dependencies
+            cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+            docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+            docker-compose --no-ansi ps
+          background: true
+      - run:
+          name: Wait for docker compose
+          command: |
+            sleep 5
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - run:
+          name: Postgres schema migration validation
+          command: |
+            ulimit -n 8096
+            mkdir -p mattermost-server/client/plugins
+            cd mattermost-server/build
+            echo "Creating databases"
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
+            echo "Importing postgres dump from version 5.0"
+            docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
+            docker run -it --net circleci_mm-test \
+              --env CI_INBUCKET_HOST=inbucket \
+              --env CI_MINIO_HOST=minio \
+              --env CI_INBUCKET_PORT=10080 \
+              --env CI_MINIO_PORT=9000 \
+              --env CI_INBUCKET_SMTP_PORT=10025 \
+              --env CI_LDAP_HOST=openldap \
+              --env IS_CI="true" \
+              --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
+              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
+              --env MM_SQLSETTINGS_DRIVERNAME=postgres \
+              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
+              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              -v ~/go/src:/go/src \
+              -w /go/src/github.com/mattermost/mattermost-server \
+              mattermost/mattermost-build-server:feb-28-2019 \
+              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
+            echo "Generating dump"
+            docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
+            docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
+            echo "Removing databases created for db comparison"
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
+
+            echo "Generating diff"
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (cat diff.txt && exit 1)
+          no_output_timeout: 1h
+      - run:
+          name: MySQL schema migration validation
+          command: |
+            ulimit -n 8096
+            mkdir -p mattermost-server/client/plugins
+            cd mattermost-server/build
+            echo "Creating databases"
+            docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
+            echo "Importing mysql dump from version 5.0"
+            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-5.0.sql
+            docker run -it --net circleci_mm-test \
+              --env CI_INBUCKET_HOST=inbucket \
+              --env CI_MINIO_HOST=minio \
+              --env CI_INBUCKET_PORT=10080 \
+              --env CI_MINIO_PORT=9000 \
+              --env CI_INBUCKET_SMTP_PORT=10025 \
+              --env CI_LDAP_HOST=openldap \
+              --env IS_CI="true" \
+              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
+              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
+              --env MM_SQLSETTINGS_DRIVERNAME=mysql \
+              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
+              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              -v ~/go/src:/go/src \
+              -w /go/src/github.com/mattermost/mattermost-server \
+              mattermost/mattermost-build-server:feb-28-2019 \
+              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
+            echo "Generating dump"
+            docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
+            docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
+
+            echo "Removing databases created for db comparison"
+            docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
+
+            echo "Generating diff"
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (cat diff.txt && exit 1)
+          no_output_timeout: 1h
   upload-s3-sha:
     docker:
       - image: 'circleci/python:2.7'
@@ -205,6 +299,9 @@ workflows:
       #     requires:
       #       - setup
       - test:
+          requires:
+            - setup
+      - test-schema:
           requires:
             - setup
       - build:
