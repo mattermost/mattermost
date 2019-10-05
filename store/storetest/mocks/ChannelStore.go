@@ -646,6 +646,31 @@ func (_m *ChannelStore) GetChannelsByScheme(schemeId string, offset int, limit i
 	return r0, r1
 }
 
+// GetChannelsOpt provides a mock function with given fields: opt
+func (_m *ChannelStore) GetChannelsOpt(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+	ret := _m.Called(opt)
+
+	var r0 *model.ChannelList
+	if rf, ok := ret.Get(0).(func(*model.GetChannelsOptions) *model.ChannelList); ok {
+		r0 = rf(opt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.GetChannelsOptions) *model.AppError); ok {
+		r1 = rf(opt)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetDeleted provides a mock function with given fields: team_id, offset, limit
 func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int) (*model.ChannelList, *model.AppError) {
 	ret := _m.Called(team_id, offset, limit)

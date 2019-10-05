@@ -84,6 +84,19 @@ type DirectChannelForExport struct {
 	Members *[]string
 }
 
+// GetChannelsOptions contains options for getting channels
+type GetChannelsOptions struct {
+	// ChannelTypes optionally limits the types of channels to return.
+	// See model.CHANNEL*OPEN, model.CHANNEL_PRIVATE, model.CHANNEL_DIRECT, and model.CHANNEL*GROUP.
+	ChannelTypes []string
+	// UserIds optionally limits the channels to those containing the given users.
+	UserIds []string
+	// Page limits to the requested page of results.
+	Page int
+	// PerPage limits the number of results to fetch per page.
+	PerPage int
+}
+
 // ChannelSearchOpts contains options for searching channels.
 //
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.

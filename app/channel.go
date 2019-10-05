@@ -1164,6 +1164,10 @@ func (a *App) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 	return channel, nil
 }
 
+func (a *App) GetChannelsOpt(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+	return a.Srv.Store.Channel().GetChannelsOpt(opt)
+}
+
 func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	var channel *model.Channel
 	var err *model.AppError

@@ -5647,6 +5647,10 @@
     "translation": "No channel found"
   },
   {
+    "id": "store.sql_channel.get_channels_opt.get.app_error",
+    "translation": ""
+  },
+  {
     "id": "store.sql_channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel"
   },
