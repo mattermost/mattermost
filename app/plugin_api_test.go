@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -689,23 +690,36 @@ func TestPluginAPIUploadPlugin(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	pluginDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	webappPluginDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(pluginDir)
-	defer os.RemoveAll(webappPluginDir)
-
-	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	require.NoError(t, err)
 
-	th.App.SetPluginsEnvironment(env)
-
-	file := strings.NewReader("test")
-
-	_, err = api.UploadPlugin(file, true)
+	_, err = api.UploadPlugin(bytes.NewReader(tarData), true)
 	assert.NotNil(t, err, "should not allow upload if upload disabled")
 	assert.Equal(t, err.Error(), "uploadPlugin: Plugins and/or plugin uploads have been disabled., ")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	manifest, err := api.UploadPlugin(bytes.NewReader(tarData), true)
+	defer os.RemoveAll("plugins/testplugin")
+	require.Nil(t, err)
+	assert.Equal(t, "testplugin", manifest.Id)
+
+	// Successfully installed
+	pluginsResp, err := api.GetPlugins()
+	require.Nil(t, err)
+
+	found := false
+	for _, m := range pluginsResp {
+		if m.Id == manifest.Id {
+			found = true
+		}
+	}
+
+	assert.True(t, found)
 }
 
 func TestPluginAPIGetTeamIcon(t *testing.T) {
