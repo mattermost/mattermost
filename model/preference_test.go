@@ -58,7 +58,7 @@ func TestPreferencePreUpdate(t *testing.T) {
 
 	var props map[string]string
 	if err := json.NewDecoder(strings.NewReader(preference.Value)).Decode(&props); err != nil {
-		t.Fatal(err)
+		require.NotNil(t, err)
 	}
 
 	require.Equal(t, "#ff0000", props["color"], "shouldn't have changed valid props")
