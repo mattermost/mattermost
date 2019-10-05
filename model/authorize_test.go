@@ -18,10 +18,7 @@ func TestAuthJson(t *testing.T) {
 
 	json := a1.ToJson()
 	ra1 := AuthDataFromJson(strings.NewReader(json))
-
-	if a1.Code != ra1.Code {
-		t.Fatal("codes didn't match")
-	}
+	require.Equal(t, a1.Code, ra1.Code, "codes didn't match")
 
 	a2 := AuthorizeRequest{}
 	a2.ClientId = NewId()
@@ -55,10 +52,7 @@ func TestAuthIsValid(t *testing.T) {
 	require.NotNil(t, ad.IsValid())
 
 	ad.UserId = NewRandomString(28)
-	require.NotNil(t, ad.IsValid(), "Should have failed Client Id")
-	if err := ad.IsValid(); err == nil {
-		t.Fatal("Should have failed User Id")
-	}
+	require.NotNil(t, ad.IsValid(), "Should have failed User Id")
 
 	ad.UserId = NewId()
 	require.NotNil(t, ad.IsValid())
