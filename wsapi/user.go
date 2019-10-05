@@ -42,6 +42,12 @@ func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]
 		return nil, NewInvalidWebSocketParamError(req.Action, "user_is_active")
 	}
 
+	if prevStatus, err := api.App.GetStatus(req.Session.UserId); err == nil {
+		if prevStatus.Manual && prevStatus.Status != model.STATUS_ONLINE && prevStatus.Status != model.STATUS_AWAY {
+			return nil, nil
+		}
+	}
+
 	var manual bool
 	if manual, ok = req.Data["manual"].(bool); !ok {
 		manual = false
