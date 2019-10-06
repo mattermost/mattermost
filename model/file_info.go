@@ -158,7 +158,7 @@ func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
 				if gifConfig, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
 					// Still return the rest of the info even though it doesn't appear to be an actual gif
 					info.HasPreviewImage = true
-					err = NewAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "name="+name, http.StatusBadRequest)
+					return info, NewAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "name="+name, http.StatusBadRequest)
 				} else {
 					info.HasPreviewImage = len(gifConfig.Image) == 1
 				}
