@@ -1761,6 +1761,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			if tc.TotalCount != nil {
 				var count int64
 				count, err = ss.Group().CountGroupsByChannel(tc.ChannelId, tc.Opts)
+				require.Nil(t, err)
 				require.Equal(t, *tc.TotalCount, count)
 			}
 		})
@@ -1975,6 +1976,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			if tc.TotalCount != nil {
 				var count int64
 				count, err = ss.Group().CountGroupsByTeam(tc.TeamId, tc.Opts)
+				require.Nil(t, err)
 				require.Equal(t, *tc.TotalCount, count)
 			}
 		})
