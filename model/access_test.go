@@ -20,7 +20,7 @@ func TestAccessJson(t *testing.T) {
 	json := a1.ToJson()
 	ra1 := AccessDataFromJson(strings.NewReader(json))
 
-	require.Equal(t, a1.Token, ra1.Token, "tokens didn't match")
+	require.Equal(t, a1.Token, ra1.Token)
 }
 
 func TestAccessIsValid(t *testing.T) {
@@ -29,40 +29,40 @@ func TestAccessIsValid(t *testing.T) {
 	require.NotNil(t, ad.IsValid())
 
 	ad.ClientId = NewRandomString(28)
-	require.Error(t, ad.IsValid(), "Should have failed Client Id")
+	require.Error(t, ad.IsValid())
 
 	ad.ClientId = ""
-	require.Error(t, ad.IsValid(), "Should have failed Client Id")
+	require.Error(t, ad.IsValid())
 
 	ad.ClientId = NewId()
 	require.NotNil(t, ad.IsValid())
 
 	ad.UserId = NewRandomString(28)
-	require.Error(t, ad.IsValid(), "Should have failed User Id")
+	require.Error(t, ad.IsValid())
 
 	ad.UserId = ""
-	require.Error(t, ad.IsValid(), "Should have failed User Id")
+	require.Error(t, ad.IsValid())
 
 	ad.UserId = NewId()
-	require.Error(t, ad.IsValid(), "should have failed")
+	require.Error(t, ad.IsValid())
 
 	ad.Token = NewRandomString(22)
-	require.Error(t, ad.IsValid(), "Should have failed Token")
+	require.Error(t, ad.IsValid())
 
 	ad.Token = NewId()
 	require.NotNil(t, ad.IsValid())
 
 	ad.RefreshToken = NewRandomString(28)
-	require.Error(t, ad.IsValid(), "Should have failed Refresh Token")
+	require.Error(t, ad.IsValid())
 
 	ad.RefreshToken = NewId()
 	require.NotNil(t, ad.IsValid())
 
 	ad.RedirectUri = ""
-	require.Error(t, ad.IsValid(), "Should have failed Redirect URI not set")
+	require.Error(t, ad.IsValid())
 
 	ad.RedirectUri = NewRandomString(28)
-	require.Error(t, ad.IsValid(), "Should have failed invalid URL")
+	require.Error(t, ad.IsValid())
 
 	ad.RedirectUri = "http://example.com"
 	require.Error(t, ad.IsValid(), ad.IsValid())
