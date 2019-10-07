@@ -282,7 +282,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *
 	var post model.Post
 	var postFetchQuery string
 	if skipFetchThreads {
-		postFetchQuery = "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.RootId) as ReplyCount  FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
+		postFetchQuery = "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id) as ReplyCount  FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
 	} else {
 		postFetchQuery = "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0"
 	}
