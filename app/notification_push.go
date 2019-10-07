@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"hash/fnv"
 	"net/http"
 	"strings"
@@ -174,7 +173,7 @@ func (a *App) getPushNotificationMessage(postMessage string, explicitMention, ch
 func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId string) {
 	sessions, err := a.getMobileAppSessions(userId)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("error getting mobile app sessions", mlog.Err(err))
 		return
 	}
 
@@ -187,7 +186,7 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 
 	if unreadCount, err := a.Srv.Store.User().GetUnreadCount(userId); err != nil {
 		msg.Badge = 0
-		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", userId, err), mlog.String("user_id", userId))
+		mlog.Error("We could not get the unread message count for", mlog.String("user_id", userId), mlog.Err(err))
 	} else {
 		msg.Badge = int(unreadCount)
 	}
@@ -267,7 +266,7 @@ func (a *App) pushNotificationWorker(notifications chan PushNotification) {
 				notification.replyToThreadType,
 			)
 		default:
-			mlog.Error(fmt.Sprintf("Invalid notification type %v", notification.notificationType))
+			mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
 		}
 	}
 }
@@ -446,14 +445,14 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 	if user.NotifyProps["push"] == "all" {
 		if unreadCount, err := a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id); err != nil {
 			msg.Badge = 1
-			mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, err), mlog.String("user_id", user.Id))
+			mlog.Error("We could not get the unread message count for the user", mlog.String("user_id", user.Id), mlog.Err(err))
 		} else {
 			msg.Badge = int(unreadCount)
 		}
 	} else {
 		if unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id); err != nil {
 			msg.Badge = 1
-			mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, err), mlog.String("user_id", user.Id))
+			mlog.Error("We could not get the unread message count for the user", mlog.String("user_id", user.Id), mlog.Err(err))
 		} else {
 			msg.Badge = int(unreadCount)
 		}
