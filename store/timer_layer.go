@@ -6504,7 +6504,7 @@ func (s *TimerLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, *
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserStore) GetUnreadCount(userId string) (int64, error) {
+func (s *TimerLayerUserStore) GetUnreadCount(userId string) (int64, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserStore.GetUnreadCount(userId)

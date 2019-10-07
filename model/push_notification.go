@@ -15,9 +15,12 @@ const (
 	PUSH_NOTIFY_APPLE_REACT_NATIVE   = "apple_rn"
 	PUSH_NOTIFY_ANDROID_REACT_NATIVE = "android_rn"
 
-	PUSH_TYPE_MESSAGE = "message"
-	PUSH_TYPE_CLEAR   = "clear"
-	PUSH_MESSAGE_V2   = "v2"
+	PUSH_TYPE_MESSAGE      = "message"
+	PUSH_TYPE_CLEAR        = "clear"
+	PUSH_TYPE_UPDATE_BADGE = "update_badge"
+	PUSH_MESSAGE_V2        = "v2"
+
+	PUSH_SOUND_NONE = "none"
 
 	// The category is set to handle a set of interactive Actions
 	// with the push notifications
