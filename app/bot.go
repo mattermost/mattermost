@@ -212,7 +212,7 @@ func (a *App) SetBotIconImageFromMultiPartFile(botUserId string, imageData *mult
 
 // SetBotIconImage sets LHS icon for a bot.
 func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError {
-	bot, err := a.Srv.Store.Bot().Get(botUserId, true)
+	bot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return err
 	}
