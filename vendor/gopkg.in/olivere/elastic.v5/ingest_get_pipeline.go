@@ -111,7 +111,11 @@ func (s *IngestGetPipelineService) Do(ctx context.Context) (IngestGetPipelineRes
 // IngestGetPipelineResponse is the response of IngestGetPipelineService.Do.
 type IngestGetPipelineResponse map[string]*IngestGetPipeline
 
+// IngestGetPipeline describes a specific ingest pipeline, its
+// processors etc.
 type IngestGetPipeline struct {
-	ID     string                 `json:"id"`
-	Config map[string]interface{} `json:"config"`
+	Description string                   `json:"description"`
+	Processors  []map[string]interface{} `json:"processors"`
+	Version     int64                    `json:"version,omitempty"`
+	OnFailure   []map[string]interface{} `json:"on_failure,omitempty"`
 }
