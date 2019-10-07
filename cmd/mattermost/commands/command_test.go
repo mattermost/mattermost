@@ -121,7 +121,7 @@ func TestCreateCommand(t *testing.T) {
 				assert.Equal(t,cmds[0].Trigger,"testcmd","Failed to create command")
 				assert.Contains(t, string(actual), "PASS")
 			} else {
-				assert.Greater(t,len(cmds),1,"Created command that shouldn't have been created")
+				assert.LessOrEqual(t,len(cmds),1,"Created command that shouldn't have been created")
 				assert.Contains(t, string(actual), testCase.ExpectedErr)
 			}
 		})
