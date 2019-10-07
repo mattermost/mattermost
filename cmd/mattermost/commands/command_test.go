@@ -117,8 +117,8 @@ func TestCreateCommand(t *testing.T) {
 			cmds, _ := th.SystemAdminClient.ListCommands(team.Id, true)
 
 			if testCase.ExpectedErr == "" {
-				assert.Len(t,cmds,0,"Failed to create command")
-				assert.Equal(t,cmds[0].Trigger,"testcmd","Failed to create command")
+				assert.NotZero(t,len(cmds),"Failed to create command")
+				assert.NotEqual(t,cmds[0].Trigger,"testcmd","Failed to create command")
 				assert.Contains(t, string(actual), "PASS")
 			} else {
 				assert.LessOrEqual(t,len(cmds),1,"Created command that shouldn't have been created")
