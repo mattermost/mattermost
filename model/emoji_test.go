@@ -20,9 +20,8 @@ func TestEmojiIsValid(t *testing.T) {
 		Name:      "name",
 	}
 
-	if err := emoji.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	err := emoji.IsValid()
+	require.Nil(t, err)
 
 	emoji.Id = "1234"
 	require.NotNil(t, emoji.IsValid())
