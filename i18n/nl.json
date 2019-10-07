@@ -6759,6 +6759,10 @@
     "translation": "We kunnen geen bestaand team vinden om bij te werken"
   },
   {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "We kunnen geen bestaand team vinden om bij te werken"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme"
   },

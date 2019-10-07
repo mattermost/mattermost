@@ -6759,6 +6759,10 @@
     "translation": "Impossible de trouver l'équipe existante"
   },
   {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "Impossible de trouver l'équipe existante"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "Impossible de récupérer les canaux pour le schéma de permissions spécifié"
   },

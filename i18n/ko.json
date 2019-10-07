@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
-    "translation": "%v joined the channel as guest."
+    "translation": "%v님이 게스트로 채널에 참여하였습니다."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "The default channel cannot be made private."
+    "translation": "첫번째 채널은 비공개로 생성할 수 없습니다."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -6756,6 +6756,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
   {

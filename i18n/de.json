@@ -6700,7 +6700,7 @@
   },
   {
     "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "Konnte die Anzahl der Teams nicht abrufen."
+    "translation": "Konnte die Anzahl der öffentlichen Teams nicht abrufen."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -6756,6 +6756,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Konnte das existierende Team nicht finden."
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Konnte das existierende Team nicht finden."
   },
   {

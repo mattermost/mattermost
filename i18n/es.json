@@ -6759,6 +6759,10 @@
     "translation": "No se puede encontrar el equipo existente"
   },
   {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "No se puede encontrar el equipo existente"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "No se pudo obtener los canales para el esquema suministrado"
   },

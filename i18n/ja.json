@@ -6759,6 +6759,10 @@
     "translation": "既存のチームが見付かりませんでした"
   },
   {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "既存のチームが見付かりませんでした"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "与えられたスキームにおけるチャンネルを取得できませんでした"
   },
