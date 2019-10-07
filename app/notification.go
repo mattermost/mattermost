@@ -399,9 +399,6 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 	return true, nil
 }
 
-func (a *App) emailNotificationsAllowedForStatus(status string) bool {
-	return status != model.STATUS_ONLINE && status != model.STATUS_DND
-}
 func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
 	if post.IsSystemMessage() {
 		return nil, nil, nil
