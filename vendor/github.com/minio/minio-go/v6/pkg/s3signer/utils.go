@@ -19,9 +19,10 @@ package s3signer
 
 import (
 	"crypto/hmac"
-	"crypto/sha256"
 	"net/http"
 	"strings"
+
+	"github.com/minio/sha256-simd"
 )
 
 // unsignedPayload - value to be set to X-Amz-Content-Sha256 header when
