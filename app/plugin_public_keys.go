@@ -1,3 +1,12 @@
+package app
+
+import (
+	"bytes"
+	"net/http"
+
+	"github.com/mattermost/mattermost-server/model"
+)
+
 var publicKey []byte = []byte(`-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mDMEXZXngxYJKwYBBAHaRw8BAQdAW4JhUqF56i0NjgBaZv8z/m0a6+bLjpRPNrpH
