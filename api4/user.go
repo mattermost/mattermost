@@ -344,6 +344,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
+
 		return
 	}
 
@@ -1381,10 +1382,13 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			password = "certificate"
 		}
 	}
+
+	if (*c.App.Config().ServiceSettings.LoginWithCertificate) {
 	mlog.Info("LoginID before BDP Header: "+loginId)
-	if (loginId == strings.ToLower(strings.Replace(r.Header.Get("X-BDP-USERNAME"), " ", "_", -1))) {
+	mlog.Info("Custom cert header: " + r.Header.Get(*c.App.Config().ServiceSettings.CustomCertHeader))
+	if (loginId == strings.ToLower(strings.Replace(r.Header.Get(*c.App.Config().ServiceSettings.CustomCertHeader), " ", "_", -1))) {
 		mlog.Info("Expected Login ID matches Login ID retrieved from session header. Logging in...")
-	    loginId = r.Header.Get("X-BDP-USERNAME")
+	    loginId = r.Header.Get(*c.App.Config().ServiceSettings.CustomCertHeader)
 	    loginId = strings.ToLower(strings.Replace(loginId, " ", "_", -1))
 
 	} else {
@@ -1425,8 +1429,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
         c.Err = err
         return
 	}
-
 	c.App.AddUserToTeamByTeamId(default_team.Name, loginUser)
+	}
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)

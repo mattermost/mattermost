@@ -300,6 +300,9 @@ func (a *App) trackConfig() {
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
+		"skip_login_page":										   *cfg.ServiceSettings.SkipLoginPage,
+		"login_with_certificate":								   *cfg.ServiceSettings.LoginWithCertificate,
+		"custom_cert_header":							  		   isDefault(*cfg.ServiceSettings.CustomCertHeader, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{

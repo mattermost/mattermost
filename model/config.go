@@ -308,6 +308,9 @@ type ServiceSettings struct {
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 	EnableBotAccountCreation                          *bool
 	EnableSVGs                                        *bool
+	SkipLoginPage									  *bool
+	LoginWithCertificate							  *bool
+	CustomCertHeader								  *string `restricted:"true"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -675,6 +678,16 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		} else {
 			s.EnableSVGs = NewBool(false)
 		}
+	}
+
+	if s.SkipLoginPage == nil {
+		s.SkipLoginPage = NewBool(false)
+	}
+	if s.LoginWithCertificate == nil {
+		s.LoginWithCertificate = NewBool(false)
+	}
+	if s.CustomCertHeader == nil {
+		s.CustomCertHeader = NewString("")
 	}
 }
 

@@ -65,6 +65,15 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 
 		return user, nil
 	}
+
+	//if we are logging it with a certificate, skip user authentication
+	if (!(*a.Config().ServiceSettings.LoginWithCertificate)) {
+	// and then authenticate them
+    	if user, err = a.authenticateUser(user, password, mfaToken); err != nil {
+    		return nil, err
+    	}
+    }
+
 	return user, nil
 }
 
