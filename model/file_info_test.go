@@ -24,46 +24,37 @@ func TestFileInfoIsValid(t *testing.T) {
 		Path:      "fake/path.png",
 	}
 
-	err := info.IsValid()
-	require.Nil(t, err)
+	require.Nil(t, info.IsValid())
 
 	info.Id = ""
-	err = info.IsValid()
-	require.NotNil(t, err, "empty Id isn't valid")
+	require.NotNil(t, info.IsValid(), "empty Id isn't valid")
 
 	info.Id = NewId()
 	info.CreateAt = 0
-	err = info.IsValid()
-	require.NotNil(t, err, "empty CreateAt isn't valid")
+	require.NotNil(t, info.IsValid(), "empty CreateAt isn't valid")
 
 	info.CreateAt = 1234
 	info.UpdateAt = 0
-	err = info.IsValid()
-	require.NotNil(t, err, "empty UpdateAt isn't valid")
+	require.NotNil(t, info.IsValid(), "empty UpdateAt isn't valid")
 
 	info.UpdateAt = 1234
 	info.PostId = NewId()
-	err = info.IsValid()
-	require.Nil(t, err)
+	require.Nil(t, info.IsValid())
 
 	info.Path = ""
-	err = info.IsValid()
-	require.NotNil(t, err, "empty Path isn't valid")
+	require.NotNil(t, info.IsValid(), "empty Path isn't valid")
 
 	info.Path = "fake/path.png"
-	err = info.IsValid()
-	require.Nil(t, err)
+	require.Nil(t, info.IsValid())
 }
 
 func TestFileInfoIsImage(t *testing.T) {
 	info := &FileInfo{
 		MimeType: "image/png",
 	}
-
-	assert.False(t, !info.IsImage(), "file is an image")
+	assert.True(t, info.IsImage(), "file is an image")
 
 	info.MimeType = "text/plain"
-
 	assert.False(t, info.IsImage(), "file is not an image")
 }
 
@@ -75,13 +66,13 @@ func TestGetInfoForFile(t *testing.T) {
 	assert.Equalf(t, info.Name, "file.txt", "Got incorrect filename: %v", info.Name)
 	assert.Equalf(t, info.Extension, "txt", "Got incorrect extension: %v", info.Extension)
 	assert.EqualValuesf(t, info.Size, 1000, "Got incorrect size: %v", info.Size)
-	assert.Falsef(t, !strings.HasPrefix(info.MimeType, "text/plain"), "Got incorrect mime type: %v", info.MimeType)
+	assert.Truef(t, strings.HasPrefix(info.MimeType, "text/plain"), "Got incorrect mime type: %v", info.MimeType)
 	assert.Equalf(t, info.Width, 0, "Got incorrect width: %v", info.Width)
 	assert.Equalf(t, info.Height, 0, "Got incorrect height: %v", info.Height)
 	assert.Falsef(t, info.HasPreviewImage, "Got incorrect has preview image: %v", info.HasPreviewImage)
 
 	pngFile, err := ioutil.ReadFile("../tests/test.png")
-	if err != nil {
+	if err != nil { // err.Error() might be nil
 		require.Nilf(t, err, "Failed to load test.png: %v", err.Error())
 	}
 
@@ -93,12 +84,11 @@ func TestGetInfoForFile(t *testing.T) {
 	assert.Equalf(t, info.MimeType, "image/png", "Got incorrect mime type: %v", info.MimeType)
 	assert.Equalf(t, info.Width, 408, "Got incorrect width: %v", info.Width)
 	assert.Equalf(t, info.Height, 336, "Got incorrect height: %v", info.Height)
-	assert.Falsef(t, !info.HasPreviewImage, "Got incorrect has preview image: %v", info.HasPreviewImage)
+	assert.Truef(t, info.HasPreviewImage, "Got incorrect has preview image: %v", info.HasPreviewImage)
 
 	// base 64 encoded version of handtinywhite.gif from http://probablyprogramming.com/2009/03/15/the-tiniest-gif-ever
 	gifFile, _ := base64.StdEncoding.DecodeString("R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=")
 	info, err = GetInfoForBytes("handtinywhite.gif", gifFile)
-
 	require.Nil(t, err)
 	assert.Equalf(t, info.Name, "handtinywhite.gif", "Got incorrect filename: %v", info.Name)
 	assert.Equalf(t, info.Extension, "gif", "Got incorrect extension: %v", info.Extension)
@@ -106,10 +96,10 @@ func TestGetInfoForFile(t *testing.T) {
 	assert.Equalf(t, info.MimeType, "image/gif", "Got incorrect mime type: %v", info.MimeType)
 	assert.Equalf(t, info.Width, 1, "Got incorrect width: %v", info.Width)
 	assert.Equalf(t, info.Height, 1, "Got incorrect height: %v", info.Height)
-	assert.Falsef(t, !info.HasPreviewImage, "Got incorrect has preview image: %v", info.HasPreviewImage)
+	assert.Truef(t, info.HasPreviewImage, "Got incorrect has preview image: %v", info.HasPreviewImage)
 
 	animatedGifFile, err := ioutil.ReadFile("../tests/testgif.gif")
-	if err != nil {
+	if err != nil { // err.Error() might be nil
 		require.Nilf(t, err, "Failed to load testgif.gif: %v", err.Error())
 	}
 
