@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClusterDiscovery(t *testing.T) {
@@ -20,8 +20,8 @@ func TestClusterDiscovery(t *testing.T) {
 	json := o.ToJson()
 	result1 := ClusterDiscoveryFromJson(strings.NewReader(json))
 
-	require.NotNil(t, result1)
-	require.Equal(t, "cluster_name", result1.ClusterName)
+	assert.NotNil(t, result1)
+	assert.Equal(t, "cluster_name", result1.ClusterName)
 
 	result2 := ClusterDiscoveryFromJson(strings.NewReader(json))
 	result3 := ClusterDiscoveryFromJson(strings.NewReader(json))
@@ -32,7 +32,7 @@ func TestClusterDiscovery(t *testing.T) {
 	result3.Id = "3"
 	result3.Hostname = "something_diff"
 
-	require.True(t, o.IsEqual(result1))
+	assert.True(t, o.IsEqual(result1))
 
 	list := make([]*ClusterDiscovery, 0)
 	list = append(list, &o)
@@ -44,7 +44,7 @@ func TestClusterDiscovery(t *testing.T) {
 		return !o.IsEqual(in)
 	})
 
-	require.Len(t, rlist, 1)
+	assert.Len(t, rlist, 1)
 
 	o.AutoFillHostname()
 	o.Hostname = ""
