@@ -522,7 +522,7 @@ func (m *Memberlist) handleIndirectPing(buf []byte, from net.Addr) {
 	// Send the ping.
 	addr := joinHostPort(net.IP(ind.Target).String(), ind.Port)
 	if err := m.encodeAndSendMsg(addr, pingMsg, &ping); err != nil {
-		m.logger.Printf("[ERR] memberlist: Failed to send ping: %s %s", err, LogAddress(from))
+		m.logger.Printf("[ERR] memberlist: Failed to send indirect ping: %s %s", err, LogAddress(from))
 	}
 
 	// Setup a timer to fire off a nack if no ack is seen in time.
