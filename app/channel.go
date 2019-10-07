@@ -1806,12 +1806,16 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 	if err != nil {
 		return channel, updateErr
 	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_UNREAD, channel.TeamId, channel.ChannelId, channel.UserId, nil)
 	message.Add("msg_count", channel.MsgCount)
 	message.Add("mention_count", channel.MentionCount)
 	message.Add("last_viewed_at", channel.LastViewedAt)
 	message.Add("post_id", postID)
 	a.Publish(message)
+
+	a.UpdateMobileAppBadge(userID)
+
 	return channel, nil
 }
 

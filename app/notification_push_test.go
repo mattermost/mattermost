@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
@@ -942,7 +943,8 @@ func TestBuildPushNotificationMessage(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			receiver.NotifyProps["push"] = tc.pushNotifyProps
-			msg := th.App.BuildPushNotificationMessage(post, receiver, channel, channel.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			msg, err := th.App.BuildPushNotificationMessage(post, receiver, channel, channel.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			require.Nil(t, err)
 			assert.Equal(t, tc.expectedBadge, msg.Badge)
 		})
 	}

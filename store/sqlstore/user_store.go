@@ -1129,7 +1129,7 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	return v, nil
 }
 
-func (us SqlUserStore) GetUnreadCount(userId string) (int64, error) {
+func (us SqlUserStore) GetUnreadCount(userId string) (int64, *model.AppError) {
 	query := `
 		SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
 		FROM Channels c
