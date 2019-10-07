@@ -119,7 +119,7 @@ func TestCreateCommand(t *testing.T) {
 			require.Nil(t, response.Error, "Failed to list commands")
 
 			if testCase.ExpectedErr == "" {
-				require.NotEqual(t, 0, len(cmds), "Failed to create command")
+				require.NotEmpty(t, cmds, "Failed to create command")
 				require.Equal(t, "testcmd", cmds[0].Trigger)
 				assert.Contains(t, string(actual), "PASS")
 			} else {
