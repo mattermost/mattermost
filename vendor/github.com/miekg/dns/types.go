@@ -438,24 +438,53 @@ func (rr *TXT) String() string { return rr.Hdr.String() + sprintTxt(rr.Txt) }
 
 func sprintName(s string) string {
 	var dst strings.Builder
-	dst.Grow(len(s))
+
 	for i := 0; i < len(s); {
 		if i+1 < len(s) && s[i] == '\\' && s[i+1] == '.' {
-			dst.WriteString(s[i : i+2])
+			if dst.Len() != 0 {
+				dst.WriteString(s[i : i+2])
+			}
 			i += 2
 			continue
 		}
 
 		b, n := nextByte(s, i)
-		switch {
-		case n == 0:
-			i++ // dangling back slash
-		case b == '.':
-			dst.WriteByte('.')
+		if n == 0 {
+			i++
+			continue
+		}
+		if b == '.' {
+			if dst.Len() != 0 {
+				dst.WriteByte('.')
+			}
+			i += n
+			continue
+		}
+		switch b {
+		case ' ', '\'', '@', ';', '(', ')', '"', '\\': // additional chars to escape
+			if dst.Len() == 0 {
+				dst.Grow(len(s) * 2)
+				dst.WriteString(s[:i])
+			}
+			dst.WriteByte('\\')
+			dst.WriteByte(b)
 		default:
-			writeDomainNameByte(&dst, b)
+			if ' ' <= b && b <= '~' {
+				if dst.Len() != 0 {
+					dst.WriteByte(b)
+				}
+			} else {
+				if dst.Len() == 0 {
+					dst.Grow(len(s) * 2)
+					dst.WriteString(s[:i])
+				}
+				dst.WriteString(escapeByte(b))
+			}
 		}
 		i += n
+	}
+	if dst.Len() == 0 {
+		return s
 	}
 	return dst.String()
 }
@@ -508,16 +537,6 @@ func sprintTxt(txt []string) string {
 		out.WriteByte('"')
 	}
 	return out.String()
-}
-
-func writeDomainNameByte(s *strings.Builder, b byte) {
-	switch b {
-	case '.', ' ', '\'', '@', ';', '(', ')': // additional chars to escape
-		s.WriteByte('\\')
-		s.WriteByte(b)
-	default:
-		writeTXTStringByte(s, b)
-	}
 }
 
 func writeTXTStringByte(s *strings.Builder, b byte) {
