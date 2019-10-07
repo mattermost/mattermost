@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/utils/testutils"
 )
 
 func TestWatcherInvalidDirectory(t *testing.T) {
@@ -47,17 +49,9 @@ func TestWatcher(t *testing.T) {
 
 	// Write to a different file
 	ioutil.WriteFile(filepath.Join(tempDir, "unrelated"), []byte("data"), 0644)
-	select {
-	case <-called:
-		t.Fatal("callback should not have been called for unrelated file")
-	case <-time.After(1 * time.Second):
-	}
+	require.False(t, testutils.WasCalled(called, 1*time.Second), "callback should not have been called for unrelated file")
 
 	// Write to the watched file
 	ioutil.WriteFile(f.Name(), []byte("data"), 0644)
-	select {
-	case <-called:
-	case <-time.After(5 * time.Second):
-		t.Fatal("callback should have been called when file written")
-	}
+	require.True(t, testutils.WasCalled(called, 5*time.Second), "callback should have been called when file written")
 }
