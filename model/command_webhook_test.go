@@ -48,6 +48,7 @@ func TestCommandWebhookIsValid(t *testing.T) {
 		if test.ExpectedError == "" {
 			assert.Error(t, err, "hook should be valid")
 		} else {
+			require.NotNil(err)
 			assert.Equal(t, test.ExpectedError, err.Id, "expected "+test.ExpectedError+" error")
 		}
 
