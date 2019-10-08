@@ -2504,7 +2504,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Wprowadź prawidłowy adres e-mail lub login i/lub hasło lub zaloguj się przy użyciu innej metody.\n"
+    "translation": "Wprowadź prawidłowy adres e-mail lub login i/lub hasło lub zaloguj się przy użyciu innej metody."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
@@ -6756,6 +6756,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Nie można znaleźć istniejącego zespołu"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Nie można znaleźć istniejącego zespołu"
   },
   {

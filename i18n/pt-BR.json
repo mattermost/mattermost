@@ -2544,7 +2544,7 @@
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "Unable to convert the guest to regular user because is not a guest"
+    "translation": "Não foi possível converter o convidado em usuário comum porque não é um convidado"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -3508,7 +3508,7 @@
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Failed to create marketplace client."
+    "translation": "Falha ao criar cliente do marketplace."
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
@@ -3516,11 +3516,11 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.app_error",
-    "translation": "Failed to get plugins from the marketplace server."
+    "translation": "Falha ao obter plugins do servidor marketplace."
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Failed to marshal marketplace plugins."
+    "translation": "Falha ao decodificar os plugins do marketplace."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -6636,7 +6636,7 @@
   },
   {
     "id": "store.sql_session.update_props.app_error",
-    "translation": "Unable to update session props"
+    "translation": "Não foi possível atualizar as propriedades da sessão"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
@@ -6756,6 +6756,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Não foi possível encontrar a equipe existente"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Não foi possível encontrar a equipe existente"
   },
   {
@@ -7448,11 +7452,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "We no longer support this browser"
+    "translation": "Este navegador não é mais suportado"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "We no longer support this version of your browser"
+    "translation": "A versão deste navegador não é mais suportada"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",

@@ -6759,6 +6759,10 @@
     "translation": "Не вдається знайти існуючу команду"
   },
   {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "Не вдається знайти існуючу команду"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "Неможливо отримати канали для наданої схеми"
   },

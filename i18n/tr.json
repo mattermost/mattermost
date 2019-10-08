@@ -6759,6 +6759,10 @@
     "translation": "Var olan takım bulunamadı"
   },
   {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "Var olan takım bulunamadı"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı"
   },

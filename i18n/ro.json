@@ -6759,6 +6759,10 @@
     "translation": "În imposibilitatea de a găsi echipa existentă"
   },
   {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "Imposibil de găsit echipa existentă"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "Nu se pot obține canalele pentru schema furnizată"
   },

@@ -6759,6 +6759,10 @@
     "translation": "未找到现有的团队"
   },
   {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "未找到现有的团队"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "无法用提供的方案获取频道"
   },

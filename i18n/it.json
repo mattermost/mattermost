@@ -6759,6 +6759,10 @@
     "translation": "Non è stato possibile trovare la squadra esistente"
   },
   {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "Non è stato possibile trovare la squadra esistente"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "Impossibile ottenere i canali per lo schema fornito"
   },
