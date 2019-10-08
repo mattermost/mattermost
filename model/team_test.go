@@ -89,7 +89,7 @@ var domains = []struct {
 func TestValidTeamName(t *testing.T) {
 	for _, v := range domains {
 		actual := IsValidTeamName(v.value)
-		assert.Equal(t, actual, v.expected)
+		assert.Equal(t, v.expected, actual)
 	}
 }
 
@@ -105,19 +105,19 @@ var tReservedDomains = []struct {
 func TestReservedTeamName(t *testing.T) {
 	for _, v := range tReservedDomains {
 		actual := IsReservedTeamName(v.value)
-		assert.Equal(t, actual, v.expected)
+		assert.Equal(t, v.expected, actual)
 	}
 }
 
 func TestCleanTeamName(t *testing.T) {
 	actual := CleanTeamName("Jimbo's Admin")
-	require.Equal(t, actual, "jimbos-admin", "didn't clean name properly")
+	require.Equal(t, "jimbos-admin", actual, "didn't clean name properly")
 
 	actual = CleanTeamName("Admin Really cool")
-	require.Equal(t, actual, "really-cool", "didn't clean name properly")
+	require.Equal(t, "really-cool", actual, "didn't clean name properly")
 
 	actual = CleanTeamName("super-duper-guys")
-	require.Equal(t, actual, "super-duper-guys", "didn't clean name properly")
+	require.Equal(t, "super-duper-guys", actual, "didn't clean name properly")
 }
 
 func TestTeamPatch(t *testing.T) {
