@@ -24,8 +24,8 @@ func TestCheckHelpersVersionComments(t *testing.T) {
 			name:    "invalid versions",
 			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/invalid",
 			expected: result{
-				errors:   []string{"test/invalid/invalid.go:20:2: documented minimum version too low for method LowerVersionMethod"},
-				warnings: []string{"test/invalid/invalid.go:23:2: documented minimum version too high for method HigherVersionMethod"},
+				Errors:   []string{"test/invalid/invalid.go:20:2: documented minimum version too low for method LowerVersionMethod"},
+				Warnings: []string{"test/invalid/invalid.go:23:2: documented minimum version too high for method HigherVersionMethod"},
 			},
 		},
 	}

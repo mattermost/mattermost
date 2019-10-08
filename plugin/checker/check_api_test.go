@@ -12,6 +12,7 @@ import (
 func TestCheckAPIVersionComments(t *testing.T) {
 	testCases := []struct {
 		name, pkgPath, err string
+		expected           result
 	}{
 		{
 			name:    "valid comments",
@@ -21,7 +22,9 @@ func TestCheckAPIVersionComments(t *testing.T) {
 		{
 			name:    "invalid comments",
 			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/invalid",
-			err:     "test/invalid/invalid.go:15:2: missing a minimum server version comment\n",
+			expected: result{
+				Errors: []string{"test/invalid/invalid.go:15:2: missing a minimum server version comment"},
+			},
 		},
 		{
 			name:    "missing API interface",
@@ -37,7 +40,8 @@ func TestCheckAPIVersionComments(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := checkAPIVersionComments(tc.pkgPath)
+			res, err := checkAPIVersionComments(tc.pkgPath)
+			assert.Equal(t, res, tc.expected)
 
 			if tc.err != "" {
 				assert.EqualError(t, err, tc.err)

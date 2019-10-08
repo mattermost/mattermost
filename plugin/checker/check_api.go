@@ -4,33 +4,26 @@
 package main
 
 import (
-	"bytes"
-	"fmt"
 	"go/ast"
 	"go/token"
 
 	"github.com/mattermost/mattermost-server/plugin/checker/internal/asthelpers"
 	"github.com/mattermost/mattermost-server/plugin/checker/internal/version"
-
-	"github.com/pkg/errors"
 )
 
-func checkAPIVersionComments(pkgPath string) error {
+func checkAPIVersionComments(pkgPath string) (result, error) {
 	pkg, err := asthelpers.GetPackage(pkgPath)
 	if err != nil {
-		return err
+		return result{}, err
 	}
 
 	apiInterface, err := asthelpers.FindInterface("API", pkg.Syntax)
 	if err != nil {
-		return err
+		return result{}, err
 	}
 
 	invalidMethods := findInvalidMethods(apiInterface.Methods.List)
-	if len(invalidMethods) > 0 {
-		return errors.New(renderErrorMessage(pkg.Fset, invalidMethods))
-	}
-	return nil
+	return result{Errors: renderErrors(pkg.Fset, invalidMethods)}, nil
 }
 
 func findInvalidMethods(methods []*ast.Field) []*ast.Field {
@@ -47,10 +40,10 @@ func hasValidMinimumVersionComment(s string) bool {
 	return version.ExtractMinimumVersionFromComment(s) != ""
 }
 
-func renderErrorMessage(fset *token.FileSet, methods []*ast.Field) string {
-	out := &bytes.Buffer{}
+func renderErrors(fset *token.FileSet, methods []*ast.Field) []string {
+	var out []string
 	for _, m := range methods {
-		fmt.Fprintln(out, renderWithFilePosition(fset, m.Pos(), "missing a minimum server version comment"))
+		out = append(out, renderWithFilePosition(fset, m.Pos(), "missing a minimum server version comment"))
 	}
-	return out.String()
+	return out
 }

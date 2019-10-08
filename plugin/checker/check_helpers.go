@@ -15,11 +15,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type result struct {
-	warnings []string
-	errors   []string
-}
-
 func checkHelpersVersionComments(pkgPath string) (result, error) {
 	pkg, err := asthelpers.GetPackage(pkgPath)
 	if err != nil {
@@ -65,7 +60,7 @@ func validateMethods(
 
 		implVer, ok := implVersions[name]
 		if !ok {
-			res.errors = append(res.errors, renderWithFilePosition(
+			res.Errors = append(res.Errors, renderWithFilePosition(
 				fset,
 				pos,
 				fmt.Sprintf("missing implementation for method %s", name)),
@@ -78,13 +73,13 @@ func validateMethods(
 		}
 
 		if helperVer.LessThan(implVer) {
-			res.errors = append(res.errors, renderWithFilePosition(
+			res.Errors = append(res.Errors, renderWithFilePosition(
 				fset,
 				pos,
 				fmt.Sprintf("documented minimum version too low for method %s", name)),
 			)
 		} else {
-			res.warnings = append(res.warnings, renderWithFilePosition(
+			res.Warnings = append(res.Warnings, renderWithFilePosition(
 				fset,
 				pos,
 				fmt.Sprintf("documented minimum version too high for method %s", name)),

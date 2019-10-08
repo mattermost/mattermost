@@ -154,7 +154,7 @@ govet: ## Runs govet against all packages.
 	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
 	$(GO) vet $(GOFLAGS) $(ALL_PACKAGES) || exit 1
 	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GOFLAGS) $(ALL_PACKAGES) || exit 1
-	$(GO) run plugin/checker/main.go
+	$(GO) run ./plugin/checker
 
 gofmt: ## Runs gofmt against all packages.
 	@echo Running GOFMT
