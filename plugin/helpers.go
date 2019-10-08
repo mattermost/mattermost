@@ -5,6 +5,7 @@ package plugin
 
 import "github.com/mattermost/mattermost-server/model"
 
+// Helpers interface that encompasses methods for plugin helpers to ensure bots and interact with data store
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
 	// Returns the id of the resulting bot.
@@ -39,6 +40,7 @@ type Helpers interface {
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 }
 
+// HelpersImpl implements the helpers interface with an API that retrieves data on behalf of the plugin
 type HelpersImpl struct {
 	API API
 }
