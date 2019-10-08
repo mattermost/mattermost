@@ -16,24 +16,24 @@ func TestCheckAPIVersionComments(t *testing.T) {
 	}{
 		{
 			name:    "valid comments",
-			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/valid",
+			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/internal/test/valid",
 			err:     "",
 		},
 		{
 			name:    "invalid comments",
-			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/invalid",
+			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/internal/test/invalid",
 			expected: result{
-				Errors: []string{"test/invalid/invalid.go:15:2: missing a minimum server version comment on method InvalidMethod"},
+				Errors: []string{"internal/test/invalid/invalid.go:15:2: missing a minimum server version comment on method InvalidMethod"},
 			},
 		},
 		{
 			name:    "missing API interface",
-			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/missing",
+			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/internal/test/missing",
 			err:     "could not find API interface",
 		},
 		{
 			name:    "non-existent package path",
-			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/does_not_exist",
+			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/internal/test/does_not_exist",
 			err:     "could not find API interface",
 		},
 	}

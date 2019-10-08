@@ -17,15 +17,15 @@ func TestCheckHelpersVersionComments(t *testing.T) {
 	}{
 		{
 			name:     "valid versions",
-			pkgPath:  "github.com/mattermost/mattermost-server/plugin/checker/test/valid",
+			pkgPath:  "github.com/mattermost/mattermost-server/plugin/checker/internal/test/valid",
 			expected: result{},
 		},
 		{
 			name:    "invalid versions",
-			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/invalid",
+			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/internal/test/invalid",
 			expected: result{
-				Errors:   []string{"test/invalid/invalid.go:20:2: documented minimum server version too low on method LowerVersionMethod"},
-				Warnings: []string{"test/invalid/invalid.go:23:2: documented minimum server version too high on method HigherVersionMethod"},
+				Errors:   []string{"internal/test/invalid/invalid.go:20:2: documented minimum server version too low on method LowerVersionMethod"},
+				Warnings: []string{"internal/test/invalid/invalid.go:23:2: documented minimum server version too high on method HigherVersionMethod"},
 			},
 		},
 	}
