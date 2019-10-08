@@ -14,3 +14,23 @@ type API interface {
 	// plugin comment checker with an invalid comment.
 	InvalidMethod()
 }
+
+type Helpers interface {
+	// Minimum server version: 1.1
+	LowerVersionMethod()
+
+	// Minimum server version: 1.3
+	HigherVersionMethod()
+}
+
+type HelpersImpl struct {
+	api API
+}
+
+func (h *HelpersImpl) LowerVersionMethod() {
+	h.api.ValidMethod()
+}
+
+func (h *HelpersImpl) HigherVersionMethod() {
+	h.api.ValidMethod()
+}

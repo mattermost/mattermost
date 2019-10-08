@@ -9,4 +9,28 @@ type API interface {
 	//
 	// Minimum server version: 1.2.3
 	ValidMethod()
+
+	// Minimum server version: 1.5
+	NewerValidMethod()
+}
+
+type Helpers interface {
+	// Minimum server version: 1.2.3
+	ValidHelperMethod()
+
+	// Minimum server version: 1.5
+	NewerValidHelperMethod()
+}
+
+type HelpersImpl struct {
+	api API
+}
+
+func (h *HelpersImpl) ValidHelperMethod() {
+	h.api.ValidMethod()
+}
+
+func (h *HelpersImpl) NewerValidHelperMethod() {
+	h.api.NewerValidMethod()
+	h.api.ValidMethod()
 }

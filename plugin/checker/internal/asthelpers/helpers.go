@@ -13,7 +13,7 @@ import (
 
 func GetPackage(pkgPath string) (*packages.Package, error) {
 	cfg := &packages.Config{
-		Mode: packages.NeedName | packages.NeedTypes | packages.NeedSyntax,
+		Mode: packages.NeedName | packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo,
 	}
 	pkgs, err := packages.Load(cfg, pkgPath)
 	if err != nil {
@@ -27,7 +27,15 @@ func GetPackage(pkgPath string) (*packages.Package, error) {
 }
 
 func FindInterface(name string, files []*ast.File) (*ast.InterfaceType, error) {
-	var iface *ast.InterfaceType
+	iface, _, err := FindInterfaceWithIdent(name, files)
+	return iface, err
+}
+
+func FindInterfaceWithIdent(name string, files []*ast.File) (*ast.InterfaceType, *ast.Ident, error) {
+	var (
+		ident *ast.Ident
+		iface *ast.InterfaceType
+	)
 
 	for _, f := range files {
 		ast.Inspect(f, func(n ast.Node) bool {
@@ -37,6 +45,7 @@ func FindInterface(name string, files []*ast.File) (*ast.InterfaceType, error) {
 				}
 
 				if i, ok := t.Type.(*ast.InterfaceType); ok && t.Name.Name == name {
+					ident = t.Name
 					iface = i
 					return false
 				}
@@ -45,10 +54,10 @@ func FindInterface(name string, files []*ast.File) (*ast.InterfaceType, error) {
 		})
 
 		if iface != nil {
-			return iface, nil
+			return iface, ident, nil
 		}
 	}
-	return nil, errors.Errorf("could not find %s interface", name)
+	return nil, nil, errors.Errorf("could not find %s interface", name)
 }
 
 func FindMethodsCalledOnType(info *types.Info, typ types.Type, caller *ast.FuncDecl) []string {
