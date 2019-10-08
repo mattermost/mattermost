@@ -320,7 +320,6 @@ type ServiceSettings struct {
 	DisableLegacyMFA                                  *bool `restricted:"true"`
 	ExperimentalStrictCSRFEnforcement                 *bool `restricted:"true"`
 	EnableEmailInvitations                            *bool
-	ExperimentalLdapGroupSync                         *bool
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 	EnableBotAccountCreation                          *bool
 	EnableSVGs                                        *bool
@@ -667,10 +666,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.DisableLegacyMFA == nil {
 		s.DisableLegacyMFA = NewBool(!isUpdate)
-	}
-
-	if s.ExperimentalLdapGroupSync == nil {
-		s.ExperimentalLdapGroupSync = NewBool(false)
 	}
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
