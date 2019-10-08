@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSuggestCommandJson(t *testing.T) {
@@ -13,7 +15,5 @@ func TestSuggestCommandJson(t *testing.T) {
 	json := command.ToJson()
 	result := SuggestCommandFromJson(strings.NewReader(json))
 
-	if command.Suggestion != result.Suggestion {
-		t.Fatal("Ids do not match")
-	}
+	assert.Equal(t, command.Suggestion, result.Suggestion, "Ids do not match")
 }
