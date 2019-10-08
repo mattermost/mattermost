@@ -130,7 +130,7 @@ func (s *Server) RunOldAppInitalization() error {
 		appErr = backend.TestConnection()
 	}
 	if appErr != nil {
-		mlog.Error("Problem with file storage settings: " + appErr.Error())
+		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	}
 
 	if model.BuildEnterpriseReady == "true" {
