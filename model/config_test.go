@@ -63,52 +63,49 @@ func TestConfigEmptySiteName(t *testing.T) {
 	}
 	c1.SetDefaults()
 
-	if *c1.TeamSettings.SiteName != TEAM_SETTINGS_DEFAULT_SITE_NAME {
-		t.Fatal("TeamSettings.SiteName should default to " + TEAM_SETTINGS_DEFAULT_SITE_NAME)
-	}
+	require.Equal(t, TEAM_SETTINGS_DEFAULT_SITE_NAME, *c1.TeamSettings.SiteName,
+		"TeamSettings.SiteName should default to "+TEAM_SETTINGS_DEFAULT_SITE_NAME,
+	)
 }
 
 func TestConfigDefaultFileSettingsDirectory(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if *c1.FileSettings.Directory != "./data/" {
-		t.Fatal("FileSettings.Directory should default to './data/'")
-	}
+	require.Equal(t, "./data/", *c1.FileSettings.Directory,
+		"FileSettings.Directory should default to './data/'",
+	)
 }
 
 func TestConfigDefaultEmailNotificationContentsType(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if *c1.EmailSettings.EmailNotificationContentsType != EMAIL_NOTIFICATION_CONTENTS_FULL {
-		t.Fatal("EmailSettings.EmailNotificationContentsType should default to 'full'")
-	}
+	require.Equal(t, EMAIL_NOTIFICATION_CONTENTS_FULL, *c1.EmailSettings.EmailNotificationContentsType,
+		"EmailSettings.EmailNotificationContentsType should default to 'full'",
+	)
 }
 
 func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if *c1.FileSettings.AmazonS3SSE {
-		t.Fatal("FileSettings.AmazonS3SSE should default to false")
-	}
+	assert.False(t, *c1.FileSettings.AmazonS3SSE, "FileSettings.AmazonS3SSE should default to false")
 }
 
 func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if *c1.SamlSettings.SignatureAlgorithm != SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM {
-		t.Fatal("SamlSettings.SignatureAlgorithm default not set")
-	}
-
-	if *c1.SamlSettings.DigestAlgorithm != SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM {
-		t.Fatal("SamlSettings.DigestAlgorithm default not set")
-	}
-	if *c1.SamlSettings.CanonicalAlgorithm != SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM {
-		t.Fatal("SamlSettings.CanonicalAlgorithm default not set")
-	}
+	require.Equal(t, SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM, *c1.SamlSettings.SignatureAlgorithm,
+		"SamlSettings.SignatureAlgorithm default not set",
+	)
+	require.Equal(t, SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM, *c1.SamlSettings.DigestAlgorithm,
+		"SamlSettings.DigestAlgorithm default not set",
+	)
+	require.Equal(t, SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM, *c1.SamlSettings.CanonicalAlgorithm,
+		"SamlSettings.CanonicalAlgorithm default not set",
+	)
 }
 
 func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
@@ -123,15 +120,15 @@ func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
 
 	c1.SetDefaults()
 
-	if *c1.SamlSettings.SignatureAlgorithm != testAlgorithm {
-		t.Fatal("SamlSettings.SignatureAlgorithm should be overwritten")
-	}
-	if *c1.SamlSettings.DigestAlgorithm != testAlgorithm {
-		t.Fatal("SamlSettings.DigestAlgorithm should be overwritten")
-	}
-	if *c1.SamlSettings.CanonicalAlgorithm != testAlgorithm {
-		t.Fatal("SamlSettings.CanonicalAlgorithm should be overwritten")
-	}
+	require.Equal(t, testAlgorithm, *c1.SamlSettings.SignatureAlgorithm,
+		"SamlSettings.SignatureAlgorithm should be overwritten",
+	)
+	require.Equal(t, testAlgorithm, *c1.SamlSettings.DigestAlgorithm,
+		"SamlSettings.DigestAlgorithm should be overwritten",
+	)
+	require.Equal(t, testAlgorithm, *c1.SamlSettings.CanonicalAlgorithm,
+		"SamlSettings.CanonicalAlgorithm should be overwritten",
+	)
 }
 
 func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
@@ -150,7 +147,7 @@ func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
 
 	err := c1.SamlSettings.isValid()
 	if err != nil {
-		t.Fatal("SAMLSettings validation should pass with default settings")
+		require.Nil(t, err, "SAMLSettings validation should pass with default settings")
 	}
 }
 
@@ -172,7 +169,7 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 	*c1.SamlSettings.CanonicalAlgorithm = "Fake Algorithm"
 	err := c1.SamlSettings.isValid()
 	if err == nil {
-		t.Fatal("SAMLSettings validation should fail with fake Canonical Algorithm")
+		require.NotNil(t, err, "SAMLSettings validation should fail with fake Canonical Algorithm")
 	}
 	require.Equal(t, "model.config.is_valid.saml_canonical_algorithm.app_error", err.Message)
 	*c1.SamlSettings.CanonicalAlgorithm = temp
@@ -181,7 +178,7 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 	*c1.SamlSettings.DigestAlgorithm = "Fake Algorithm"
 	err = c1.SamlSettings.isValid()
 	if err == nil {
-		t.Fatal("SAMLSettings validation should pass fake digest Algorithm")
+		require.NotNil(t, err, "SAMLSettings validation should pass fake digest Algorithm")
 	}
 	require.Equal(t, "model.config.is_valid.saml_digest_algorithm.app_error", err.Message)
 	*c1.SamlSettings.DigestAlgorithm = temp
@@ -190,7 +187,7 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 	*c1.SamlSettings.SignatureAlgorithm = "Fake Algorithm"
 	err = c1.SamlSettings.isValid()
 	if err == nil {
-		t.Fatal("SAMLSettings validation should pass with fake signature settings")
+		require.NotNil(t, err, "SAMLSettings validation should pass with fake signature settings")
 	}
 	require.Equal(t, "model.config.is_valid.saml_signature_algorithm.app_error", err.Message)
 }
@@ -199,9 +196,9 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED {
-		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should default to 'disabled'")
-	}
+	require.Equal(t, GROUP_UNREAD_CHANNELS_DISABLED, *c1.ServiceSettings.ExperimentalGroupUnreadChannels,
+		"ServiceSettings.ExperimentalGroupUnreadChannels should default to 'disabled'",
+	)
 
 	// This setting was briefly a boolean, so ensure that those values still work as expected
 	c1 = Config{
@@ -211,9 +208,9 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	}
 	c1.SetDefaults()
 
-	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON {
-		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should set true to 'default on'")
-	}
+	require.Equal(t, GROUP_UNREAD_CHANNELS_DEFAULT_ON, *c1.ServiceSettings.ExperimentalGroupUnreadChannels,
+		"ServiceSettings.ExperimentalGroupUnreadChannels should set true to 'default on'",
+	)
 
 	c1 = Config{
 		ServiceSettings: ServiceSettings{
@@ -222,9 +219,9 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	}
 	c1.SetDefaults()
 
-	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED {
-		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should set false to 'disabled'")
-	}
+	require.Equal(t, GROUP_UNREAD_CHANNELS_DISABLED, *c1.ServiceSettings.ExperimentalGroupUnreadChannels,
+		"ServiceSettings.ExperimentalGroupUnreadChannels should set false to 'disabled'",
+	)
 }
 
 func TestConfigDefaultNPSPluginState(t *testing.T) {
@@ -284,7 +281,7 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	// should fail fast because ts.SiteName is not set
 	err := c1.TeamSettings.isValid()
 	if err == nil {
-		t.Fatal("TeamSettings validation should fail with an empty SiteName")
+		require.NotNil(t, err, "TeamSettings validation should fail with an empty SiteName")
 	}
 }
 
