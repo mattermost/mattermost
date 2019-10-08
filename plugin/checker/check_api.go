@@ -7,14 +7,12 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
-	"os"
-	"path/filepath"
+	"go/token"
 
 	"github.com/mattermost/mattermost-server/plugin/checker/internal/asthelpers"
 	"github.com/mattermost/mattermost-server/plugin/checker/internal/version"
 
 	"github.com/pkg/errors"
-	"golang.org/x/tools/go/packages"
 )
 
 func checkAPIVersionComments(pkgPath string) error {
@@ -30,7 +28,7 @@ func checkAPIVersionComments(pkgPath string) error {
 
 	invalidMethods := findInvalidMethods(apiInterface.Methods.List)
 	if len(invalidMethods) > 0 {
-		return errors.New(renderErrorMessage(pkg, invalidMethods))
+		return errors.New(renderErrorMessage(pkg.Fset, invalidMethods))
 	}
 	return nil
 }
@@ -49,24 +47,10 @@ func hasValidMinimumVersionComment(s string) bool {
 	return version.ExtractMinimumVersionFromComment(s) != ""
 }
 
-func renderErrorMessage(pkg *packages.Package, methods []*ast.Field) string {
-	cwd, _ := os.Getwd()
+func renderErrorMessage(fset *token.FileSet, methods []*ast.Field) string {
 	out := &bytes.Buffer{}
-
 	for _, m := range methods {
-		pos := pkg.Fset.Position(m.Pos())
-		filename, err := filepath.Rel(cwd, pos.Filename)
-		if err != nil {
-			// If deriving a relative path fails for some reason,
-			// we prefer to still print the absolute path to the file.
-			filename = pos.Filename
-		}
-		fmt.Fprintf(out,
-			"%s:%d:%d: missing a minimum server version comment\n",
-			filename,
-			pos.Line,
-			pos.Column,
-		)
+		fmt.Fprintln(out, renderWithFilePosition(fset, m.Pos(), "missing a minimum server version comment"))
 	}
 	return out.String()
 }
