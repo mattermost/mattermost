@@ -6,16 +6,14 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"go/ast"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 
-	"go/ast"
-
-	"golang.org/x/tools/go/packages"
+	"github.com/mattermost/mattermost-server/plugin/checker/internal/version"
 
 	"github.com/pkg/errors"
+	"golang.org/x/tools/go/packages"
 )
 
 const pluginPackagePath = "github.com/mattermost/mattermost-server/plugin"
@@ -92,15 +90,8 @@ func findInvalidMethods(methods []*ast.Field) []*ast.Field {
 	return invalid
 }
 
-var versionRequirementRE = regexp.MustCompile(`^Minimum server version: \d+\.\d+(\.\d+)?$`)
-
 func hasValidMinimumVersionComment(s string) bool {
-	lines := strings.Split(strings.TrimSpace(s), "\n")
-	if len(lines) > 0 {
-		lastLine := lines[len(lines)-1]
-		return versionRequirementRE.MatchString(lastLine)
-	}
-	return false
+	return version.ExtractMinimumVersionFromComment(s) != ""
 }
 
 func renderErrorMessage(pkg *packages.Package, methods []*ast.Field) string {
