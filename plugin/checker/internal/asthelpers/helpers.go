@@ -5,6 +5,7 @@ package asthelpers
 
 import (
 	"go/ast"
+	"go/types"
 
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/packages"
@@ -48,4 +49,42 @@ func FindInterface(name string, files []*ast.File) (*ast.InterfaceType, error) {
 		}
 	}
 	return nil, errors.Errorf("could not find %s interface", name)
+}
+
+func FindMethodsCalledOnType(info *types.Info, typ types.Type, caller *ast.FuncDecl) []string {
+	var methods []string
+
+	ast.Inspect(caller, func(n ast.Node) bool {
+		if s, ok := n.(*ast.SelectorExpr); ok {
+
+			var receiver *ast.Ident
+			switch r := s.X.(type) {
+			case *ast.Ident:
+				// Left-hand side of the selector is an identifier, eg:
+				//
+				//   a := p.API
+				//   a.GetTeams()
+				//
+				receiver = r
+			case *ast.SelectorExpr:
+				// Left-hand side of the selector is a selector, eg:
+				//
+				//   p.API.GetTeams()
+				//
+				receiver = r.Sel
+			}
+
+			if receiver != nil {
+				obj := info.ObjectOf(receiver)
+				if obj != nil && types.Identical(obj.Type(), typ) {
+					methods = append(methods, s.Sel.Name)
+				}
+				return false
+			}
+
+		}
+		return true
+	})
+
+	return methods
 }
