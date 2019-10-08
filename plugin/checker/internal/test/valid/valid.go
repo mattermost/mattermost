@@ -20,6 +20,9 @@ type Helpers interface {
 
 	// Minimum server version: 1.5
 	NewerValidHelperMethod()
+
+	// Minimum server version: 1.5
+	IndirectReferenceMethod()
 }
 
 type HelpersImpl struct {
@@ -33,4 +36,9 @@ func (h *HelpersImpl) ValidHelperMethod() {
 func (h *HelpersImpl) NewerValidHelperMethod() {
 	h.api.NewerValidMethod()
 	h.api.ValidMethod()
+}
+
+func (h *HelpersImpl) IndirectReferenceMethod() {
+	a := h.api
+	a.NewerValidMethod()
 }
