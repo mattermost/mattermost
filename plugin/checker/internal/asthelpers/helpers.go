@@ -25,13 +25,17 @@ func GetPackage(pkgPath string) (*packages.Package, error) {
 	return pkgs[0], nil
 }
 
-func FindAPIInterface(files []*ast.File) *ast.InterfaceType {
-	for _, f := range files {
-		var iface *ast.InterfaceType
+func FindInterface(name string, files []*ast.File) (*ast.InterfaceType, error) {
+	var iface *ast.InterfaceType
 
+	for _, f := range files {
 		ast.Inspect(f, func(n ast.Node) bool {
 			if t, ok := n.(*ast.TypeSpec); ok {
-				if i, ok := t.Type.(*ast.InterfaceType); ok && t.Name.Name == "API" {
+				if iface != nil {
+					return false
+				}
+
+				if i, ok := t.Type.(*ast.InterfaceType); ok && t.Name.Name == name {
 					iface = i
 					return false
 				}
@@ -40,8 +44,8 @@ func FindAPIInterface(files []*ast.File) *ast.InterfaceType {
 		})
 
 		if iface != nil {
-			return iface
+			return iface, nil
 		}
 	}
-	return nil
+	return nil, errors.Errorf("could not find %s interface", name)
 }

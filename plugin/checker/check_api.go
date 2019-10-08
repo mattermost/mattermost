@@ -23,9 +23,9 @@ func checkAPIVersionComments(pkgPath string) error {
 		return err
 	}
 
-	apiInterface := asthelpers.FindAPIInterface(pkg.Syntax)
-	if apiInterface == nil {
-		return errors.Errorf("could not find API interface in package %s", pkgPath)
+	apiInterface, err := asthelpers.FindInterface("API", pkg.Syntax)
+	if err != nil {
+		return err
 	}
 
 	invalidMethods := findInvalidMethods(apiInterface.Methods.List)

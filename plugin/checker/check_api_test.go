@@ -26,12 +26,12 @@ func TestCheckAPIVersionComments(t *testing.T) {
 		{
 			name:    "missing API interface",
 			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/missing",
-			err:     "could not find API interface in package github.com/mattermost/mattermost-server/plugin/checker/test/missing",
+			err:     "could not find API interface",
 		},
 		{
 			name:    "non-existent package path",
 			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/does_not_exist",
-			err:     "could not find API interface in package github.com/mattermost/mattermost-server/plugin/checker/test/does_not_exist",
+			err:     "could not find API interface",
 		},
 	}
 
