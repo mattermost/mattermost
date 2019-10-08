@@ -158,7 +158,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
 	if appErr != nil {
-		mlog.Error(appErr.Error())
+		mlog.Error("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
 	}
 
 	args.TriggerId = triggerId
@@ -362,7 +362,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	_, err := a.HandleCommandResponsePost(command, args, response, builtIn)
 
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("error occurred in handling command response post", mlog.Err(err))
 		lastError = err
 	}
 
@@ -371,7 +371,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 			_, err := a.HandleCommandResponsePost(command, args, resp, builtIn)
 
 			if err != nil {
-				mlog.Error(err.Error())
+				mlog.Error("error occurred in handling command response post", mlog.Err(err))
 				lastError = err
 			}
 		}

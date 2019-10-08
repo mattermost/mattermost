@@ -3,10 +3,8 @@ module github.com/minio/minio-go/v6
 go 1.12
 
 require (
-	github.com/a8m/mark v0.1.1-0.20170507133748-44f2db618845 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/gernest/wow v0.1.0 // indirect
-	github.com/minio/cli v1.20.0 // indirect
+	github.com/minio/sha256-simd v0.1.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect

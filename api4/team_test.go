@@ -1359,13 +1359,26 @@ func TestAddTeamMember(t *testing.T) {
 	team := th.BasicTeam
 	otherUser := th.CreateUser()
 
+	th.App.SetLicense(model.NewTestLicense(""))
+	defer th.App.SetLicense(nil)
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+	guest := th.CreateUser()
+	_, resp := th.SystemAdminClient.DemoteUserToGuest(guest.Id)
+	CheckNoError(t, resp)
+
 	if err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, ""); err != nil {
 		t.Fatalf(err.Error())
 	}
 
 	// Regular user can't add a member to a team they don't belong to.
 	th.LoginBasic2()
-	_, resp := Client.AddTeamMember(team.Id, otherUser.Id)
+	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckForbiddenStatus(t, resp)
 	if resp.Error == nil {
 		t.Fatalf("Error is nil")
@@ -1505,6 +1518,15 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNotFoundStatus(t, resp)
 	th.App.DeleteToken(token)
+
+	// by invite_id
+	th.App.SetLicense(model.NewTestLicense(""))
+	defer th.App.SetLicense(nil)
+	_, resp = Client.Login(guest.Email, guest.Password)
+	CheckNoError(t, resp)
+
+	tm, resp = Client.AddTeamMemberFromInvite("", team.InviteId)
+	CheckForbiddenStatus(t, resp)
 
 	// by invite_id
 	Client.Login(otherUser.Email, otherUser.Password)
@@ -2102,25 +2124,94 @@ func TestTeamExists(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
-	team := th.BasicTeam
+	public_member_team := th.BasicTeam
+	err := th.App.UpdateTeamPrivacy(public_member_team.Id, model.TEAM_OPEN, true)
+	require.Nil(t, err)
 
-	th.LoginBasic()
+	public_not_member_team := th.CreateTeamWithClient(th.SystemAdminClient)
+	err = th.App.UpdateTeamPrivacy(public_not_member_team.Id, model.TEAM_OPEN, true)
+	require.Nil(t, err)
 
-	exists, resp := Client.TeamExists(team.Name, "")
-	CheckNoError(t, resp)
-	if !exists {
-		t.Fatal("team should exist")
-	}
+	private_member_team := th.CreateTeamWithClient(th.SystemAdminClient)
+	th.LinkUserToTeam(th.BasicUser, private_member_team)
+	err = th.App.UpdateTeamPrivacy(private_member_team.Id, model.TEAM_INVITE, false)
+	require.Nil(t, err)
 
-	exists, resp = Client.TeamExists("testingteam", "")
-	CheckNoError(t, resp)
-	if exists {
-		t.Fatal("team should not exist")
-	}
+	private_not_member_team := th.CreateTeamWithClient(th.SystemAdminClient)
+	err = th.App.UpdateTeamPrivacy(private_not_member_team.Id, model.TEAM_INVITE, false)
+	require.Nil(t, err)
 
-	Client.Logout()
-	_, resp = Client.TeamExists(team.Name, "")
-	CheckUnauthorizedStatus(t, resp)
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	th.AddPermissionToRole(model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_LIST_PRIVATE_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+
+	t.Run("Logged user with permissions and valid public team", func(t *testing.T) {
+		th.LoginBasic()
+		exists, resp := Client.TeamExists(public_not_member_team.Name, "")
+		CheckNoError(t, resp)
+		assert.True(t, exists, "team should exist")
+	})
+
+	t.Run("Logged user with permissions and valid private team", func(t *testing.T) {
+		th.LoginBasic()
+		exists, resp := Client.TeamExists(private_not_member_team.Name, "")
+		CheckNoError(t, resp)
+		assert.True(t, exists, "team should exist")
+	})
+
+	t.Run("Logged user and invalid team", func(t *testing.T) {
+		th.LoginBasic()
+		exists, resp := Client.TeamExists("testingteam", "")
+		CheckNoError(t, resp)
+		assert.False(t, exists, "team should not exist")
+	})
+
+	t.Run("Logged out user", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.TeamExists(public_not_member_team.Name, "")
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("Logged without LIST_PUBLIC_TEAMS permissions and member public team", func(t *testing.T) {
+		th.LoginBasic()
+		th.RemovePermissionFromRole(model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		exists, resp := Client.TeamExists(public_member_team.Name, "")
+		CheckNoError(t, resp)
+		assert.True(t, exists, "team should be visible")
+	})
+
+	t.Run("Logged without LIST_PUBLIC_TEAMS permissions and not member public team", func(t *testing.T) {
+		th.LoginBasic()
+		th.RemovePermissionFromRole(model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		exists, resp := Client.TeamExists(public_not_member_team.Name, "")
+		CheckNoError(t, resp)
+		assert.False(t, exists, "team should not be visible")
+	})
+
+	t.Run("Logged without LIST_PRIVATE_TEAMS permissions and member private team", func(t *testing.T) {
+		th.LoginBasic()
+		th.RemovePermissionFromRole(model.PERMISSION_LIST_PRIVATE_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		exists, resp := Client.TeamExists(private_member_team.Name, "")
+		CheckNoError(t, resp)
+		assert.True(t, exists, "team should be visible")
+	})
+
+	t.Run("Logged without LIST_PRIVATE_TEAMS permissions and not member private team", func(t *testing.T) {
+		th.LoginBasic()
+		th.RemovePermissionFromRole(model.PERMISSION_LIST_PRIVATE_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		exists, resp := Client.TeamExists(private_not_member_team.Name, "")
+		CheckNoError(t, resp)
+		assert.False(t, exists, "team should not be visible")
+	})
 }
 
 func TestImportTeam(t *testing.T) {
