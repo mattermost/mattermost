@@ -22,7 +22,6 @@ func TestClusterMessage(t *testing.T) {
 	require.Equal(t, "hello", result.Data)
 
 	badresult := ClusterMessageFromJson(strings.NewReader("junk"))
-	if badresult != nil {
-		t.Fatal("should not have parsed")
-	}
+
+	require.Nil(t, badresult, "should not have parsed")
 }
