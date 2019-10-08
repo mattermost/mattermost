@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -96,7 +95,7 @@ func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 func (a *App) UpdateSessionsIsGuest(userId string, isGuest bool) {
 	sessions, err := a.Srv.Store.Session().GetSessions(userId)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Unable to get user sessions: userId=%s err=%s", userId, err.Error()))
+		mlog.Error("Unable to get user sessions", mlog.String("user_id", userId), mlog.Err(err))
 	}
 
 	for _, session := range sessions {
@@ -107,7 +106,7 @@ func (a *App) UpdateSessionsIsGuest(userId string, isGuest bool) {
 		}
 		err := a.Srv.Store.Session().UpdateProps(session)
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Unable to update isGuest session: %s", err.Error()))
+			mlog.Error("Unable to update isGuest session", mlog.Err(err))
 			continue
 		}
 		a.AddSessionToCache(session)
@@ -214,7 +213,7 @@ func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentS
 	}
 	for _, session := range sessions {
 		if session.DeviceId == deviceId && session.Id != currentSessionId {
-			mlog.Debug(fmt.Sprintf("Revoking sessionId=%v for userId=%v re-login with same device Id", session.Id, userId), mlog.String("user_id", userId))
+			mlog.Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userId))
 			if err := a.RevokeSession(session); err != nil {
 				// Soft error so we still remove the other sessions
 				mlog.Error(err.Error())
@@ -279,7 +278,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	if err := a.Srv.Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
-		mlog.Error(fmt.Sprintf("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", session.UserId, session.Id, err), mlog.String("user_id", session.UserId))
+		mlog.Error("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 	}
 
 	session.LastActivityAt = now
