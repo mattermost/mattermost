@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRunCheck(t *testing.T) {
+func TestCheckAPIVersionComments(t *testing.T) {
 	testCases := []struct {
 		name, pkgPath, err string
 	}{
@@ -37,7 +37,7 @@ func TestRunCheck(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := runCheck(tc.pkgPath)
+			err := checkAPIVersionComments(tc.pkgPath)
 
 			if tc.err != "" {
 				assert.EqualError(t, err, tc.err)
