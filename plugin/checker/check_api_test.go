@@ -23,7 +23,7 @@ func TestCheckAPIVersionComments(t *testing.T) {
 			name:    "invalid comments",
 			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/invalid",
 			expected: result{
-				Errors: []string{"test/invalid/invalid.go:15:2: missing a minimum server version comment"},
+				Errors: []string{"test/invalid/invalid.go:15:2: missing a minimum server version comment on method InvalidMethod"},
 			},
 		},
 		{

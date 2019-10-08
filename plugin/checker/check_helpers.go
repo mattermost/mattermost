@@ -68,6 +68,15 @@ func validateMethods(
 			continue
 		}
 
+		if helperVer == "" {
+			res.Errors = append(res.Errors, renderWithFilePosition(
+				fset,
+				pos,
+				fmt.Sprintf("missing a minimum server version comment on method %s", name)),
+			)
+			continue
+		}
+
 		if helperVer == implVer {
 			continue
 		}
@@ -76,13 +85,13 @@ func validateMethods(
 			res.Errors = append(res.Errors, renderWithFilePosition(
 				fset,
 				pos,
-				fmt.Sprintf("documented minimum version too low for method %s", name)),
+				fmt.Sprintf("documented minimum server version too low on method %s", name)),
 			)
 		} else {
 			res.Warnings = append(res.Warnings, renderWithFilePosition(
 				fset,
 				pos,
-				fmt.Sprintf("documented minimum version too high for method %s", name)),
+				fmt.Sprintf("documented minimum server version too high on method %s", name)),
 			)
 		}
 	}
