@@ -219,7 +219,10 @@ check-licenses: ## Checks license status.
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
+check-style: govet gofmt check-licenses check-plugin-golint ## Runs govet and gofmt against all packages and also ensures plugin package golint compliant
+
+check-plugin-golint: # checks if golint returns any uncompliant code for any file that starts with plugin/helpers
+	@! golint ./plugin/ | grep plugin/helpers 
 
 test-te-race: ## Checks for race conditions in the team edition.
 	@echo Testing TE race conditions
