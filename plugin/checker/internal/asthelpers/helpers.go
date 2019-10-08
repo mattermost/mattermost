@@ -88,3 +88,33 @@ func FindMethodsCalledOnType(info *types.Info, typ types.Type, caller *ast.FuncD
 
 	return methods
 }
+
+func FindReceiverMethods(receiverName string, files []*ast.File) []*ast.FuncDecl {
+	var fns []*ast.FuncDecl
+	for _, f := range files {
+		ast.Inspect(f, func(n ast.Node) bool {
+			if fn, ok := n.(*ast.FuncDecl); ok {
+				r := extractReceiverTypeName(fn)
+				if r == receiverName {
+					fns = append(fns, fn)
+				}
+			}
+			return true
+		})
+	}
+	return fns
+}
+
+func extractReceiverTypeName(fn *ast.FuncDecl) string {
+	if fn.Recv != nil {
+		t := fn.Recv.List[0].Type
+		// Unwrap the pointer type (a star expression)
+		if se, ok := t.(*ast.StarExpr); ok {
+			t = se.X
+		}
+		if id, ok := t.(*ast.Ident); ok {
+			return id.Name
+		}
+	}
+	return ""
+}
