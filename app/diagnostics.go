@@ -300,9 +300,13 @@ func (a *App) trackConfig() {
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
+
+		//adding in custom configurations that are not standard OOTB with MM but allow additional control for our use case
 		"skip_login_page":										   *cfg.ServiceSettings.SkipLoginPage,
 		"login_with_certificate":								   *cfg.ServiceSettings.LoginWithCertificate,
 		"custom_cert_header":							  		   isDefault(*cfg.ServiceSettings.CustomCertHeader, ""),
+		"default_team_name":							  		   isDefault(*cfg.ServiceSettings.DefaultTeamName, ""),
+
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{

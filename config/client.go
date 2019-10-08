@@ -43,9 +43,12 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["ExperimentalEnableDefaultChannelLeaveJoinMessages"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages)
 	props["ExperimentalGroupUnreadChannels"] = *c.ServiceSettings.ExperimentalGroupUnreadChannels
 	props["EnableSVGs"] = strconv.FormatBool(*c.ServiceSettings.EnableSVGs)
+
+	//adding in custom configurations that are not standard OOTB with MM but allow additional control for our use case
 	props["SkipLoginPage"] = strconv.FormatBool(*c.ServiceSettings.SkipLoginPage)
 	props["LoginWithCertificate"] = strconv.FormatBool(*c.ServiceSettings.LoginWithCertificate)
 	props["CustomCertHeader"] = *c.ServiceSettings.CustomCertHeader
+	props["DefaultTeamName"] = *c.ServiceSettings.DefaultTeamName
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
 	props["ExperimentalEnableClickToReply"] = strconv.FormatBool(*c.ExperimentalSettings.EnableClickToReply)
@@ -209,9 +212,13 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
 
 	props["SiteName"] = *c.TeamSettings.SiteName
+
+	//adding in custom configurations that are not standard OOTB with MM but allow additional control for our use case
+
 	props["SkipLoginPage"] = strconv.FormatBool(*c.ServiceSettings.SkipLoginPage)
 	props["LoginWithCertificate"] = strconv.FormatBool(*c.ServiceSettings.LoginWithCertificate)
 	props["CustomCertHeader"] = *c.ServiceSettings.CustomCertHeader
+	props["DefaultTeamName"] = *c.ServiceSettings.DefaultTeamName
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
 	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)

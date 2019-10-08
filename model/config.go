@@ -308,9 +308,10 @@ type ServiceSettings struct {
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 	EnableBotAccountCreation                          *bool
 	EnableSVGs                                        *bool
-	SkipLoginPage									  *bool
+	SkipLoginPage									  *bool				//adding in custom configuration values
 	LoginWithCertificate							  *bool
 	CustomCertHeader								  *string `restricted:"true"`
+	DefaultTeamName								      *string `restricted:"true"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -680,6 +681,9 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		}
 	}
 
+	//adding in default values for custom configurations
+
+
 	if s.SkipLoginPage == nil {
 		s.SkipLoginPage = NewBool(false)
 	}
@@ -689,6 +693,9 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.CustomCertHeader == nil {
 		s.CustomCertHeader = NewString("")
 	}
+	if s.DefaultTeamName == nil {
+    		s.DefaultTeamName = NewString("")
+    	}
 }
 
 type ClusterSettings struct {

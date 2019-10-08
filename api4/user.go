@@ -1383,53 +1383,60 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	/*
+	Added in custom configuration setting to allow the user to login with a custom certificate
+	if this setting is set to true, it will use the value in ServiceSettings.CustomCertHeader to set the login id of the user
+	this setting also creates a user if the value returned from the header is not already a user in the MM database
+	as well as creates a default team that all newly created users are added to */
+
 	if (*c.App.Config().ServiceSettings.LoginWithCertificate) {
-	mlog.Info("LoginID before BDP Header: "+loginId)
-	mlog.Info("Custom cert header: " + r.Header.Get(*c.App.Config().ServiceSettings.CustomCertHeader))
-	if (loginId == strings.ToLower(strings.Replace(r.Header.Get(*c.App.Config().ServiceSettings.CustomCertHeader), " ", "_", -1))) {
-		mlog.Info("Expected Login ID matches Login ID retrieved from session header. Logging in...")
-	    loginId = r.Header.Get(*c.App.Config().ServiceSettings.CustomCertHeader)
-	    loginId = strings.ToLower(strings.Replace(loginId, " ", "_", -1))
 
-	} else {
-		mlog.Info("Expected Login ID does not match Login ID retrieved from session header. You will not be logged in...")
-		return
-	}
-	password = "certificate"
-	default_team := &model.Team{
-			DisplayName: "bdp",
-            Name:        "bdp",
-            Email:       "bdp@bdp.com",
-            Type:        model.TEAM_OPEN,
-            AllowOpenInvite: true,
+		if (loginId == strings.ToLower(strings.Replace(r.Header.Get(*c.App.Config().ServiceSettings.CustomCertHeader), " ", "_", -1))) {
+			mlog.Info("Expected Login ID matches Login ID retrieved from session header. Logging in...")
+			loginId = r.Header.Get(*c.App.Config().ServiceSettings.CustomCertHeader)
+			loginId = strings.ToLower(strings.Replace(loginId, " ", "_", -1))
+
+		} else {
+			mlog.Info("Expected Login ID does not match Login ID retrieved from session header. You will not be logged in...")
+			return
 		}
-	existingTeam, err := c.App.GetTeamByName(default_team.Name)
-	if err != nil {
-		mlog.Info("Default team "+default_team.Name+" does not exist. Attempting to create team.")
-		c.App.CreateTeam(default_team)
-		return
-	} else {
-		mlog.Info("Default team "+existingTeam.Name+" exists. Attempting to join team.")
-	}
-	loginUser, err := c.App.GetUserForLogin("", loginId)
+		password = "certificate"
+		teamName := *c.App.Config().ServiceSettings.DefaultTeamName
 
-	if err != nil {
-		c.LogAuditWithUserId(id, "no user found failure - login_id="+loginId)
+		if (teamName != ""){
+			default_team := &model.Team{
+        				DisplayName: teamName,
+        				Name:        teamName,
+        				Email:       teamName+"@"+teamName+".com",
+        				Type:        model.TEAM_OPEN,
+        				AllowOpenInvite: true,
+        			}
+        		existingTeam, err := c.App.GetTeamByName(default_team.Name)
+        		if err != nil {
+        			mlog.Info("Default team "+default_team.Name+" does not exist. Attempting to create team.")
+        			c.App.CreateTeam(default_team)
+        			return
+        		} else {
+        			mlog.Info("Default team "+existingTeam.Name+" exists. Attempting to join team.")
+				}
+		}
+		loginUser, err := c.App.GetUserForLogin("", loginId)
 
-
-		mlog.Info("Login error for user "+loginId+". Attempting to create new user.")
-		loginUser = &model.User{
-        			Email:         loginId + "@bdp.com",
+		if err != nil {
+			c.LogAuditWithUserId(id, "no user found failure - login_id="+loginId)
+			mlog.Info("Login error for user "+loginId+". Attempting to create new user.")
+			loginUser = &model.User{
+     	   			Email:         loginId + teamName+".com",
         			Username:      loginId,
         			Nickname:      loginId,
         			Password:      "certificate",
         			EmailVerified: true,
-        		}
+        	}
 		c.App.CreateUser(loginUser)
         c.Err = err
         return
-	}
-	c.App.AddUserToTeamByTeamId(default_team.Name, loginUser)
+		}
+	c.App.AddUserToTeamByTeamId(teamName, loginUser)
 	}
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
