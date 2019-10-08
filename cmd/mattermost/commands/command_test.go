@@ -114,16 +114,17 @@ func TestCreateCommand(t *testing.T) {
 		t.Run(testCase.Description, func(t *testing.T) {
 			actual, _ := th.RunCommandWithOutput(t, testCase.Args...)
 
-			cmds, _ := th.SystemAdminClient.ListCommands(team.Id, true)
+			cmds, response := th.SystemAdminClient.ListCommands(team.Id, true)
+
+			require.Nil(t, response.Error, "Failed to list commands")
 
 			if testCase.ExpectedErr == "" {
-				if len(cmds) == 0 || cmds[0].Trigger != "testcmd" {
-					t.Fatal("Failed to create command")
-				}
+				require.NotEmpty(t, cmds, "Failed to create command")
+				require.Equal(t, "testcmd", cmds[0].Trigger)
 				assert.Contains(t, string(actual), "PASS")
 			} else {
 				if len(cmds) > 1 {
-					t.Fatal("Created command that shouldn't have been created")
+					require.Fail(t, "Created command that shouldn't have been created")
 				}
 				assert.Contains(t, string(actual), testCase.ExpectedErr)
 			}
