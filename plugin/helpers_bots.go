@@ -10,6 +10,12 @@ import (
 )
 
 func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) {
+	const minimumSupportedVersion = "5.10"
+
+	if p.API.GetServerVersion() < minimumSupportedVersion {
+		return "", errors.New("incompatible server version for plugin")
+	}
+
 	// Must provide a bot with a username
 	if bot == nil || len(bot.Username) < 1 {
 		return "", errors.New("passed a bad bot, nil or no username")
