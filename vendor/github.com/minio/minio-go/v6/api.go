@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"hash"
@@ -38,6 +37,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/minio/sha256-simd"
 
 	"golang.org/x/net/publicsuffix"
 
@@ -103,7 +104,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v6.0.34"
+	libraryVersion = "v6.0.38"
 )
 
 // User Agent should always following the below style.
