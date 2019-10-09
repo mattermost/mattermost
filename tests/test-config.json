@@ -65,7 +65,6 @@
         "ImageProxyOptions": "",
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "ExperimentalLdapGroupSync": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
