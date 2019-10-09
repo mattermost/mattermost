@@ -2996,6 +2996,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 
 	user.Timezone["manualTimezone"] = ""
 	_, resp = Client.UpdateUser(user)
+	CheckNoError(t, resp)
 
 	timezone, resp = Client.GetChannelMembersTimezones(th.BasicChannel.Id)
 	CheckNoError(t, resp)
