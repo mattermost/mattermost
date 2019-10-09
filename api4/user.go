@@ -1426,7 +1426,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAuditWithUserId(id, "no user found failure - login_id="+loginId)
 			mlog.Info("Login error for user "+loginId+". Attempting to create new user.")
 			loginUser = &model.User{
-     	   			Email:         loginId + teamName+".com",
+     	   			Email:         loginId + "@"+teamName+".com",
         			Username:      loginId,
         			Nickname:      loginId,
         			Password:      "certificate",
