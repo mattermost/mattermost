@@ -298,15 +298,9 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
-      - test:
-          requires:
-            - setup
-      - test-schema:
-          requires:
-            - setup
       - build:
           requires:
-            - test
+            - setup
       - upload-s3-sha:
           context: mattermost-ci-s3
           requires:
@@ -319,3 +313,9 @@ workflows:
           context: matterbuild-docker
           requires:
             - upload-s3-sha
+      - test:
+          requires:
+            - setup
+      - test-schema:
+          requires:
+            - setup
