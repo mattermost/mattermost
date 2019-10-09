@@ -78,6 +78,122 @@ func TestWebSocket(t *testing.T) {
 	}
 }
 
+func TestUserUpdateActiveStatus(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	require.Nil(t, err)
+	defer WebSocketClient.Close()
+
+	WebSocketClient.Listen()
+
+	for name, tc := range map[string]struct {
+		OldStatus            *model.Status
+		UserIsActive         bool
+		Manual               bool
+		ExpectedStatusString string
+	}{
+		"User set dnd manually": {
+			OldStatus: &model.Status{
+				Status: model.STATUS_DND,
+				Manual: true,
+			},
+			UserIsActive:         true,
+			Manual:               true,
+			ExpectedStatusString: model.STATUS_DND,
+		},
+		"User set out of office manually": {
+			OldStatus: &model.Status{
+				Status: model.STATUS_OUT_OF_OFFICE,
+				Manual: true,
+			},
+			UserIsActive:         true,
+			Manual:               true,
+			ExpectedStatusString: model.STATUS_OUT_OF_OFFICE,
+		},
+		"User set offline manually": {
+			OldStatus: &model.Status{
+				Status: model.STATUS_OFFLINE,
+				Manual: true,
+			},
+			UserIsActive:         true,
+			Manual:               true,
+			ExpectedStatusString: model.STATUS_OFFLINE,
+		},
+		"App automatically set user offline, user is active": {
+			OldStatus: &model.Status{
+				Status: model.STATUS_OFFLINE,
+				Manual: false,
+			},
+			UserIsActive:         true,
+			Manual:               false,
+			ExpectedStatusString: model.STATUS_ONLINE,
+		},
+		"App automatically set user offline, user is not active": {
+			OldStatus: &model.Status{
+				Status: model.STATUS_OFFLINE,
+				Manual: false,
+			},
+			UserIsActive:         false,
+			Manual:               false,
+			ExpectedStatusString: model.STATUS_AWAY,
+		},
+		"User manually set away, user is active with manual true": {
+			OldStatus: &model.Status{
+				Status: model.STATUS_AWAY,
+				Manual: true,
+			},
+			UserIsActive:         true,
+			Manual:               true,
+			ExpectedStatusString: model.STATUS_ONLINE,
+		},
+		"User manually set away, user is active with manual false": {
+			OldStatus: &model.Status{
+				Status: model.STATUS_AWAY,
+				Manual: true,
+			},
+			UserIsActive:         true,
+			Manual:               false,
+			ExpectedStatusString: model.STATUS_AWAY,
+		},
+		"User automatically set away, user is active with manual false": {
+			OldStatus: &model.Status{
+				Status: model.STATUS_AWAY,
+				Manual: false,
+			},
+			UserIsActive:         true,
+			Manual:               false,
+			ExpectedStatusString: model.STATUS_ONLINE,
+		},
+		"User was online, no longer active": {
+			OldStatus: &model.Status{
+				Status: model.STATUS_ONLINE,
+				Manual: false,
+			},
+			UserIsActive:         false,
+			Manual:               false,
+			ExpectedStatusString: model.STATUS_AWAY,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			userId := th.BasicUser.Id
+			tc.OldStatus.UserId = userId
+
+			th.App.SaveAndBroadcastStatus(tc.OldStatus)
+
+			WebSocketClient.UserUpdateActiveStatus(tc.UserIsActive, tc.Manual)
+			time.Sleep(300 * time.Millisecond)
+			resp := <-WebSocketClient.ResponseChannel
+			require.Nil(t, resp.Error)
+
+			status, err := th.App.GetStatus(userId)
+			require.Nil(t, err)
+			require.Equal(t, tc.ExpectedStatusString, status.Status)
+		})
+	}
+}
+
 func TestWebSocketEvent(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

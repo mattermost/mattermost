@@ -159,6 +159,17 @@ func (wsc *WebSocketClient) UserTyping(channelId, parentId string) {
 	wsc.SendMessage("user_typing", data)
 }
 
+// UserUpdateActiveStatus will push a user_update_active_status event
+// to report if the user is active on their computer
+func (wsc *WebSocketClient) UserUpdateActiveStatus(userIsActive, manual bool) {
+	data := map[string]interface{}{
+		"user_is_active": userIsActive,
+		"manual":         manual,
+	}
+
+	wsc.SendMessage("user_update_active_status", data)
+}
+
 // GetStatuses will return a map of string statuses using user id as the key
 func (wsc *WebSocketClient) GetStatuses() {
 	wsc.SendMessage("get_statuses", nil)
