@@ -277,7 +277,7 @@ func (a *App) ShutDownPlugins() {
 	if a.Srv.PluginsEnvironment == pluginsEnvironment {
 		a.Srv.PluginsEnvironment = nil
 	} else {
-		mlog.Debug("Another PluginsEnvironment detected while shutting down plugins.")
+		mlog.Warn("Another PluginsEnvironment detected while shutting down plugins.")
 	}
 }
 
