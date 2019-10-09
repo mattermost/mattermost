@@ -69,13 +69,6 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		close(pchan)
 	}()
 
-	cchan := make(chan store.StoreResult, 1)
-	go func() {
-		channel, err := a.Srv.Store.Channel().GetForPost(postId)
-		cchan <- store.StoreResult{Data: channel, Err: err}
-		close(cchan)
-	}()
-
 	result := <-pchan
 	if result.Err != nil {
 		if cookie == nil {
@@ -100,11 +93,6 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		upstreamURL = cookie.Integration.URL
 	} else {
 		post := result.Data.(*model.Post)
-		result = <-cchan
-		if result.Err != nil {
-			return "", result.Err
-		}
-		channel := result.Data.(*model.Channel)
 
 		action := post.GetAction(actionId)
 		if action == nil || action.Integration == nil {
@@ -112,7 +100,6 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		}
 
 		upstreamRequest.ChannelId = post.ChannelId
-		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = action.Type
 		upstreamRequest.Context = action.Integration.Context
 		datasource = action.DataSource
@@ -139,6 +126,50 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 		upstreamURL = action.Integration.URL
 	}
+
+	// get channel, user and team details
+	chanChan := make(chan store.StoreResult, 1)
+	go func() {
+		channel, err := a.Srv.Store.Channel().Get(upstreamRequest.ChannelId, true)
+		chanChan <- store.StoreResult{Data: channel, Err: err}
+		close(chanChan)
+	}()
+
+	userChan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(upstreamRequest.UserId)
+		userChan <- store.StoreResult{Data: user, Err: err}
+		close(userChan)
+	}()
+
+	cr := <-chanChan
+	if cr.Err != nil {
+		return "", cr.Err
+	}
+	channel := cr.Data.(*model.Channel)
+	upstreamRequest.ChannelName = channel.Name
+	upstreamRequest.TeamId = channel.TeamId
+
+	ur := <-userChan
+	if ur.Err != nil {
+		return "", ur.Err
+	}
+	user := ur.Data.(*model.User)
+	upstreamRequest.UserName = user.Username
+
+	teamChan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(channel.TeamId)
+		teamChan <- store.StoreResult{Data: team, Err: err}
+		close(teamChan)
+	}()
+
+	tr := <-teamChan
+	if tr.Err != nil {
+		return "", tr.Err
+	}
+	team := tr.Data.(*model.Team)
+	upstreamRequest.TeamDomain = team.Name
 
 	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
 		if selectedOption != "" {
