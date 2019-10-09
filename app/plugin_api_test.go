@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"image"
 	"image/color"
 	"image/png"
@@ -1400,4 +1401,15 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 	for i := range config.SqlSettings.DataSourceSearchReplicas {
 		assert.NotEqual(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
 	}
+}
+
+func TestPluginCallLogAPI(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	pluginID := "com.mattermost.sample"
+	path, _ := fileutils.FindDir("mattermost-server/app/plugin_api_test")
+	pluginCode, err := ioutil.ReadFile(filepath.Join(path, "plugin_using_log_api.go"))
+	assert.NoError(t, err)
+	setupPluginApiTest(t, string(pluginCode),
+		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
 }
