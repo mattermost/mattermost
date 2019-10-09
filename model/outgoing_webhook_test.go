@@ -5,9 +5,10 @@ package model
 
 import (
 	"net/url"
-	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestOutgoingWebhookJson(t *testing.T) {
@@ -15,132 +16,81 @@ func TestOutgoingWebhookJson(t *testing.T) {
 	json := o.ToJson()
 	ro := OutgoingWebhookFromJson(strings.NewReader(json))
 
-	if o.Id != ro.Id {
-		t.Fatal("Ids do not match")
-	}
+	assert.Equal(t, o.Id, ro.Id, "Ids do not match")
 }
 
 func TestOutgoingWebhookIsValid(t *testing.T) {
 	o := OutgoingWebhook{}
-
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `empty declaration should be invalid`)
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `Id = NewId should be invalid`)
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `CreateAt = GetMillis should be invalid`)
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `UpdateAt = GetMillis should be invalid`)
 
 	o.CreatorId = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `CreatorId = "123" should be invalid`)
 
 	o.CreatorId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `CreatorId = NewId should be invalid`)
 
 	o.Token = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `Token = "123" should be invalid`)
 
 	o.Token = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `Token = NewId should be invalid`)
 
 	o.ChannelId = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `ChannelId = "123" should be invalid`)
 
 	o.ChannelId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `ChannelId = NewId should be invalid`)
 
 	o.TeamId = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `TeamId = "123" should be invalid`)
 
 	o.TeamId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `TeamId = NewId should be invalid`)
 
 	o.CallbackURLs = []string{"nowhere.com/"}
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `nowhere.com/ for CallbackURLs should be invalid`)
 
 	o.CallbackURLs = []string{"http://nowhere.com/"}
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, o.IsValid(), `http://nowhere.com/" for CallbackURLs should be valid`)
 
 	o.DisplayName = strings.Repeat("1", 65)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `DisplayName length must less than 65`)
 
 	o.DisplayName = strings.Repeat("1", 64)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, o.IsValid(), `DisplayName 64 length should be valid`)
 
 	o.Description = strings.Repeat("1", 501)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `Description with more than 500 characters should be invalid`)
 
 	o.Description = strings.Repeat("1", 500)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, o.IsValid(), `Description 500 length should be valid`)
 
 	o.ContentType = strings.Repeat("1", 129)
-	if err := o.IsValid(); err == nil {
-		t.Fatal(err)
-	}
+	assert.NotNil(t, o.IsValid(), `ContentType with more than 128 characters should be invalid`)
 
 	o.ContentType = strings.Repeat("1", 128)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, o.IsValid(), `ContentType 128 length should be valid`)
 
 	o.Username = strings.Repeat("1", 65)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), `Username with more than 64 characters should be invalid`)
 
 	o.Username = strings.Repeat("1", 64)
-	if err := o.IsValid(); err != nil {
-		t.Fatal("should be invalid")
-	}
+	assert.Nil(t, o.IsValid(), `Username 64 length should be valid`)
 
 	o.IconURL = strings.Repeat("1", 1025)
-	if err := o.IsValid(); err == nil {
-		t.Fatal(err)
-	}
+	assert.NotNil(t, o.IsValid(), `IconURL with more than 1024 characters should be invalid`)
 
 	o.IconURL = strings.Repeat("1", 1024)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, o.IsValid(), `IconURL 1024 length should be valid`)
 }
 
 func TestOutgoingWebhookPayloadToFormValues(t *testing.T) {
@@ -171,9 +121,9 @@ func TestOutgoingWebhookPayloadToFormValues(t *testing.T) {
 	v.Set("text", "Text")
 	v.Set("trigger_word", "TriggerWord")
 	v.Set("file_ids", "FileIds")
-	if got, want := p.ToFormValues(), v.Encode(); !reflect.DeepEqual(got, want) {
-		t.Fatalf("Got %+v, wanted %+v", got, want)
-	}
+	got := p.ToFormValues()
+	want := v.Encode()
+	assert.Equalf(t, got, want, "Got %+v, wanted %+v", got, want)
 }
 
 func TestOutgoingWebhookPreSave(t *testing.T) {
@@ -189,12 +139,8 @@ func TestOutgoingWebhookPreUpdate(t *testing.T) {
 func TestOutgoingWebhookTriggerWordStartsWith(t *testing.T) {
 	o := OutgoingWebhook{Id: NewId()}
 	o.TriggerWords = append(o.TriggerWords, "foo")
-	if !o.TriggerWordStartsWith("foobar") {
-		t.Fatal("Should return true")
-	}
-	if o.TriggerWordStartsWith("barfoo") {
-		t.Fatal("Should return false")
-	}
+	assert.True(t, o.TriggerWordStartsWith("foobar"), "Should return true")
+	assert.False(t, o.TriggerWordStartsWith("barfoo"), "Should return false")
 }
 
 func TestOutgoingWebhookResponseJson(t *testing.T) {
@@ -204,7 +150,5 @@ func TestOutgoingWebhookResponseJson(t *testing.T) {
 	json := o.ToJson()
 	ro, _ := OutgoingWebhookResponseFromJson(strings.NewReader(json))
 
-	if *o.Text != *ro.Text {
-		t.Fatal("Text does not match")
-	}
+	assert.Equal(t, *o.Text, *ro.Text, "Text does not match")
 }
