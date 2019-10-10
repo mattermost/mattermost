@@ -251,6 +251,12 @@ func (c Client) SelectObjectContent(ctx context.Context, bucketName, objectName 
 		return nil, err
 	}
 
+	return NewSelectResults(resp, bucketName)
+}
+
+// NewSelectResults creates a Select Result parser that parses the response
+// and returns a Reader that will return parsed and assembled select output.
+func NewSelectResults(resp *http.Response, bucketName string) (*SelectResults, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, httpRespToErrorResponse(resp, bucketName, "")
 	}

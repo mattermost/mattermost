@@ -129,6 +129,35 @@ Original image                     | Saturation = 30                            
 -----------------------------------|----------------------------------------------|---------------------------------------------
 ![srcImage](testdata/flowers_small.png) | ![dstImage](testdata/out_saturation_p30.png) | ![dstImage](testdata/out_saturation_m30.png)
 
+## FAQ
+
+### Incorrect image orientation after processing (e.g. an image appears rotated after resizing)
+
+Most probably, the given image contains the EXIF orientation tag.
+The stadard `image/*` packages do not support loading and saving
+this kind of information. To fix the issue, try opening images with
+the `AutoOrientation` decode option. If this option is set to `true`,
+the image orientation is changed after decoding, according to the
+orientation tag (if present). Here's the example:
+
+```go
+img, err := imaging.Open("test.jpg", imaging.AutoOrientation(true))
+```
+
+### What's the difference between `imaging` and `gift` packages?
+
+[imaging](https://github.com/disintegration/imaging)
+is designed to be a lightweight and simple image manipulation package.
+It provides basic image processing functions and a few helper functions
+such as `Open` and `Save`. It consistently returns *image.NRGBA image 
+type (8 bits per channel, RGBA).
+
+[gift](https://github.com/disintegration/gift)
+supports more advanced image processing, for example, sRGB/Linear color
+space conversions. It also supports different output image types
+(e.g. 16 bits per channel) and provides easy-to-use API for chaining
+multiple processing steps together.
+
 ## Example code
 
 ```go
