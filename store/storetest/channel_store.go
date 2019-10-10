@@ -52,7 +52,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("ChannelMemberStore", func(t *testing.T) { testChannelMemberStore(t, ss) })
 	t.Run("ChannelDeleteMemberStore", func(t *testing.T) { testChannelDeleteMemberStore(t, ss) })
 	t.Run("GetChannels", func(t *testing.T) { testChannelStoreGetChannels(t, ss) })
-	t.Run("GetChannelsOpt", func(t *testing.T) { testChannelStoreGetChannelsWithOptions(t, ss) })
+	t.Run("GetChannelsWithOptions", func(t *testing.T) { testChannelStoreGetChannelsWithOptions(t, ss) })
 	t.Run("GetAllChannels", func(t *testing.T) { testChannelStoreGetAllChannels(t, ss, s) })
 	t.Run("GetMoreChannels", func(t *testing.T) { testChannelStoreGetMoreChannels(t, ss) })
 	t.Run("GetPublicChannelsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsForTeam(t, ss) })
@@ -1118,6 +1118,7 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 
 func testChannelStoreGetChannelsWithOptions(t *testing.T, ss store.Store) {
 	cleanupChannels(t, ss)
+	defer cleanupChannels(t, ss)
 
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
