@@ -160,7 +160,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	}
 
 	// Get total number of channels on current team
-	count, err := a.GetNumberOfChannelsOnTeam(channel.TeamId, false)
+	count, err := a.GetNumberOfChannelsOnTeam(channel.TeamId)
 	if err != nil {
 		return nil, err
 	}
@@ -1724,23 +1724,12 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 	return nil
 }
 
-func (a *App) GetNumberOfChannelsOnTeam(teamId string, includeDeleted bool) (int, *model.AppError) {
+func (a *App) GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 	// Get total number of channels on current team
 	list, err := a.Srv.Store.Channel().GetTeamChannels(teamId)
 	if err != nil {
 		return 0, err
 	}
-
-	if !includeDeleted {
-		count := 0
-		for _, channel := range *list {
-			if channel.DeleteAt == 0 {
-				count++
-			}
-		}
-		return count, nil
-	}
-
 	return len(*list), nil
 }
 
