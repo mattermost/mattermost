@@ -2008,15 +2008,15 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
 	require.Nil(t, unreadCountErr)
-	require.Equal(t, 3, badge, "should have 3 unread messages")
+	require.Equal(t, int64(3), badge, "should have 3 unread messages")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
 	require.Nil(t, unreadCountErr)
-	require.Equal(t, 1, badge, "should have 1 unread messages for that channel")
+	require.Equal(t, int64(1), badge, "should have 1 unread messages for that channel")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c2.Id)
 	require.Nil(t, unreadCountErr)
-	require.Equal(t, 2, badge, "should have 2 unread messages for that channel")
+	require.Equal(t, int64(2), badge, "should have 2 unread messages for that channel")
 }
 
 func testUserStoreUpdateMfaSecret(t *testing.T, ss store.Store) {
