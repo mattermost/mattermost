@@ -195,6 +195,21 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 	require.Equal(t, "model.config.is_valid.saml_signature_algorithm.app_error", err.Message)
 }
 
+func TestConfigOverwriteGuestSettings(t *testing.T) {
+	const attribute = "FakeAttributeName"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			GuestAttribute: NewString(attribute),
+		},
+	}
+
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.GuestAttribute != attribute {
+		t.Fatal("SamlSettings.GuestAttribute should be overwritten")
+	}
+}
+
 func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
