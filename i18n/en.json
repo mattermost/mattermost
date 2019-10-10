@@ -5655,7 +5655,7 @@
     "translation": "No channel found"
   },
   {
-    "id": "store.sql_channel.get_channels_opt.get.app_error",
+    "id": "store.sql_channel.get_channels_with_options.get.app_error",
     "translation": "Unable to get the channels with options"
   },
   {
