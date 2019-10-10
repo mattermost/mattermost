@@ -413,7 +413,7 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 		user, err = a.Srv.Store.User().Get(reaction.UserId)
 		if err != nil {
 			if err.Id == store.MISSING_ACCOUNT_ERROR { // this is a valid case, the user that reacted might've been deleted by now
-				mlog.Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.Bool(reaction.UserId))
+				mlog.Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.String("reaction_UserId", reaction.UserId))
 				continue
 			}
 			return nil, err
