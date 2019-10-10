@@ -3499,7 +3499,7 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	result, err := ss.User().AnalyticsGetSystemAdminCount()
-	require.Nil(t, err, "couldn't save user")
+	require.Nil(t, err)
 	require.Equal(t, countBefore+1, result, "Did not get the expected number of system admins.")
 
 }
