@@ -43,13 +43,11 @@ func TestWebhookStore(t *testing.T, ss store.Store) {
 func testWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
 	o1 := buildIncomingWebhook()
 
-	if _, err := ss.Webhook().SaveIncoming(o1); err != nil {
-		t.Fatal("couldn't save item", err)
-	}
+	_, err := ss.Webhook().SaveIncoming(o1)
+	require.Nil(t, err, "couldn't save item")
 
-	if _, err := ss.Webhook().SaveIncoming(o1); err == nil {
-		t.Fatal("shouldn't be able to update from save")
-	}
+	_, err = ss.Webhook().SaveIncoming(o1)
+	require.NotNil(t, err, "shouldn't be able to update from save")
 }
 
 func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
@@ -58,9 +56,7 @@ func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+	require.Nil(t, err, "unable to save webhook")
 
 	previousUpdatedAt := o1.UpdateAt
 
@@ -70,14 +66,9 @@ func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
 	webhook, err := ss.Webhook().UpdateIncoming(o1)
 	require.Nil(t, err)
 
-	if webhook.UpdateAt == previousUpdatedAt {
-		t.Fatal("should have updated the UpdatedAt of the hook")
-	}
+	require.NotEqual(t, webhook.UpdateAt, previousUpdatedAt, "should have updated the UpdatedAt of the hook")
 
-	if webhook.DisplayName != "TestHook" {
-		t.Fatal("display name is not updated")
-	}
-
+	require.Equal(t, "TestHook", webhook.DisplayName, "display name is not updated")
 }
 
 func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
@@ -85,33 +76,24 @@ func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+	require.Nil(t, err, "unable to save webhook")
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, false)
 	require.Nil(t, err)
-	if webhook.CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned webhook")
-	}
+	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
 	webhook, err = ss.Webhook().GetIncoming(o1.Id, true)
 	require.Nil(t, err)
-	if webhook.CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned webhook")
-	}
+	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if _, err = ss.Webhook().GetIncoming("123", false); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err = ss.Webhook().GetIncoming("123", false)
+	require.NotNil(t, err, "Missing id should have failed")
 
-	if _, err = ss.Webhook().GetIncoming("123", true); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err = ss.Webhook().GetIncoming("123", true)
+	require.NotNil(t, err, "Missing id should have failed")
 
-	if _, err = ss.Webhook().GetIncoming("123", true); err.StatusCode != http.StatusNotFound {
-		t.Fatal("Should have set the status as not found for missing id")
-	}
+	_, err = ss.Webhook().GetIncoming("123", true)
+	require.Equal(t, err.StatusCode, http.StatusNotFound, "Should have set the status as not found for missing id")
 }
 
 func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
@@ -122,12 +104,10 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 
 	var err *model.AppError
 	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+	require.Nil(t, err, "unable to save webhook")
 
 	if hooks, err := ss.Webhook().GetIncomingList(0, 1000); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
 		found := false
 		for _, hook := range hooks {
@@ -135,17 +115,13 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 				found = true
 			}
 		}
-		if !found {
-			t.Fatal("missing webhook")
-		}
+		require.True(t, found, "missing webhook")
 	}
 
 	if hooks, err := ss.Webhook().GetIncomingList(0, 1); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
-		if len(hooks) != 1 {
-			t.Fatal("only 1 should be returned")
-		}
+		require.Equal(t, 1, len(hooks), "only 1 should be returned")
 	}
 }
 
@@ -180,19 +156,15 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	if hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
-		if hooks[0].CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned webhook")
-		}
+		require.Equal(t, hooks[0].CreateAt, o1.CreateAt, "invalid returned webhook")
 	}
 
 	if hooks, err := ss.Webhook().GetIncomingByTeam("123", 0, 100); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
-		if len(hooks) != 0 {
-			t.Fatal("no webhooks should have returned")
-		}
+		require.Equal(t, 0, len(hooks), "no webhooks should have returned")
 	}
 }
 
@@ -232,22 +204,16 @@ func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
 	o1 := buildIncomingWebhook()
 
 	o1, err := ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook")
-	}
+	require.Nil(t, err, "unable to save webhook")
 
 	webhooks, err := ss.Webhook().GetIncomingByChannel(o1.ChannelId)
 	require.Nil(t, err)
-	if webhooks[0].CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned webhook")
-	}
+	require.Equal(t, webhooks[0].CreateAt, o1.CreateAt, "invalid returned webhook")
 
 	if webhooks, err = ss.Webhook().GetIncomingByChannel("123"); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
-		if len(webhooks) != 0 {
-			t.Fatal("no webhooks should have returned")
-		}
+		require.Equal(t, 0, len(webhooks), "no webhooks should have returned")
 	}
 }
 
@@ -256,19 +222,14 @@ func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+	require.Nil(t, err, "unable to save webhook")
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
 	require.Nil(t, err)
-	if webhook.CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned webhook")
-	}
+	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if err = ss.Webhook().DeleteIncoming(o1.Id, model.GetMillis()); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Webhook().DeleteIncoming(o1.Id, model.GetMillis())
+	require.Nil(t, err)
 
 	webhook, err = ss.Webhook().GetIncoming(o1.Id, true)
 	require.NotNil(t, err)
@@ -279,23 +240,17 @@ func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+	require.Nil(t, err, "unable to save webhook")
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
 	require.Nil(t, err)
-	if webhook.CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned webhook")
-	}
+	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if err = ss.Webhook().PermanentDeleteIncomingByChannel(o1.ChannelId); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Webhook().PermanentDeleteIncomingByChannel(o1.ChannelId)
+	require.Nil(t, err)
 
-	if _, err = ss.Webhook().GetIncoming(o1.Id, true); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err = ss.Webhook().GetIncoming(o1.Id, true)
+	require.NotNil(t, err, "Missing id should have failed")
 }
 
 func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
@@ -303,23 +258,17 @@ func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+	require.Nil(t, err, "unable to save webhook")
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
 	require.Nil(t, err)
-	if webhook.CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned webhook")
-	}
+	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if err = ss.Webhook().PermanentDeleteIncomingByUser(o1.UserId); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Webhook().PermanentDeleteIncomingByUser(o1.UserId)
+	require.Nil(t, err)
 
-	if _, err = ss.Webhook().GetIncoming(o1.Id, true); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err = ss.Webhook().GetIncoming(o1.Id, true)
+	require.NotNil(t, err, "Missing id should have failed")
 }
 
 func buildIncomingWebhook() *model.IncomingWebhook {
@@ -340,13 +289,11 @@ func testWebhookStoreSaveOutgoing(t *testing.T, ss store.Store) {
 	o1.Username = "test-user-name"
 	o1.IconURL = "http://nowhere.com/icon"
 
-	if _, err := ss.Webhook().SaveOutgoing(&o1); err != nil {
-		t.Fatal("couldn't save item", err)
-	}
+	_, err := ss.Webhook().SaveOutgoing(&o1)
+	require.Nil(t, err, "couldn't save item")
 
-	if _, err := ss.Webhook().SaveOutgoing(&o1); err == nil {
-		t.Fatal("shouldn't be able to update from save")
-	}
+	_, err := ss.Webhook().SaveOutgoing(&o1)
+	require.NotNil(t, err, "shouldn't be able to update from save")
 }
 
 func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
@@ -362,13 +309,10 @@ func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
 
 	webhook, err := ss.Webhook().GetOutgoing(o1.Id)
 	require.Nil(t, err)
-	if webhook.CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned webhook")
-	}
+	require.Equal(webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if _, err := ss.Webhook().GetOutgoing("123"); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err := ss.Webhook().GetOutgoing("123")
+	require.NotNil(t, err, "Missing id should have failed")
 }
 
 func testWebhookStoreGetOutgoingListByUser(t *testing.T, ss store.Store) {
@@ -413,7 +357,7 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 	o2, _ = ss.Webhook().SaveOutgoing(o2)
 
 	if r1, err := ss.Webhook().GetOutgoingList(0, 1000); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
 		hooks := r1
 		found1 := false
@@ -429,20 +373,14 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 			}
 		}
 
-		if !found1 {
-			t.Fatal("missing hook1")
-		}
-		if !found2 {
-			t.Fatal("missing hook2")
-		}
+		require.True(t, found1, "missing hook1")
+		require.True(t, found2, "missing hook2")
 	}
 
 	if result, err := ss.Webhook().GetOutgoingList(0, 2); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
-		if len(result) != 2 {
-			t.Fatal("wrong number of hooks returned")
-		}
+		require.Equal(t, 2, len(result), "wrong number of hooks returned")
 	}
 }
 
@@ -456,19 +394,15 @@ func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
 	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
 	if r1, err := ss.Webhook().GetOutgoingByChannel(o1.ChannelId, 0, 100); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
-		if r1[0].CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned webhook")
-		}
+		require.Equal(t, r1[0].CreateAt, o1.CreateAt, "invalid returned webhook")
 	}
 
 	if result, err := ss.Webhook().GetOutgoingByChannel("123", -1, -1); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
-		if len(result) != 0 {
-			t.Fatal("no webhooks should have returned")
-		}
+		require.Equal(t, 0, en(result), "no webhooks should have returned")
 	}
 }
 
@@ -521,19 +455,15 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
 	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
 	if r1, err := ss.Webhook().GetOutgoingByTeam(o1.TeamId, 0, 100); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
-		if r1[0].CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned webhook")
-		}
+		require.Equal(t, r1[0].CreateAt, o1.CreateAt, "invalid returned webhook")
 	}
 
 	if result, err := ss.Webhook().GetOutgoingByTeam("123", -1, -1); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
-		if len(result) != 0 {
-			t.Fatal("no webhooks should have returned")
-		}
+		require.Equal(t, 0, len(result), "no webhooks should have returned")
 	}
 }
 
@@ -589,17 +519,13 @@ func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {
 
 	webhook, err := ss.Webhook().GetOutgoing(o1.Id)
 	require.Nil(t, err)
-	if webhook.CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned webhook")
-	}
+	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if err := ss.Webhook().DeleteOutgoing(o1.Id, model.GetMillis()); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Webhook().DeleteOutgoing(o1.Id, model.GetMillis())
+	require.Nil(t, err)
 
-	if _, err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err = ss.Webhook().GetOutgoing(o1.Id)
+	require.NotNil(t, err, "Missing id should have failed")
 }
 
 func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, ss store.Store) {
@@ -613,17 +539,13 @@ func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, ss store.Store) {
 
 	webhook, err := ss.Webhook().GetOutgoing(o1.Id)
 	require.Nil(t, err)
-	if webhook.CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned webhook")
-	}
+	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if err := ss.Webhook().PermanentDeleteOutgoingByChannel(o1.ChannelId); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Webhook().PermanentDeleteOutgoingByChannel(o1.ChannelId)
+	require.Nil(t, err)
 
-	if _, err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err = ss.Webhook().GetOutgoing(o1.Id)
+	require.NotNil(t, err, "Missing id should have failed")
 }
 
 func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
@@ -637,17 +559,13 @@ func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
 
 	webhook, err := ss.Webhook().GetOutgoing(o1.Id)
 	require.Nil(t, err)
-	if webhook.CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned webhook")
-	}
+	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if err := ss.Webhook().PermanentDeleteOutgoingByUser(o1.CreatorId); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Webhook().PermanentDeleteOutgoingByUser(o1.CreatorId)
+	require.Nil(t, err)
 
-	if _, err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err = ss.Webhook().GetOutgoing(o1.Id)
+	require.NotNil(t, err, "Missing id should have failed")
 }
 
 func testWebhookStoreUpdateOutgoing(t *testing.T, ss store.Store) {
@@ -664,9 +582,8 @@ func testWebhookStoreUpdateOutgoing(t *testing.T, ss store.Store) {
 	o1.Token = model.NewId()
 	o1.Username = "another-test-user-name"
 
-	if _, err := ss.Webhook().UpdateOutgoing(o1); err != nil {
-		t.Fatal(err)
-	}
+	_, err := ss.Webhook().UpdateOutgoing(o1)
+	require.Nil(t, err)
 }
 
 func testWebhookStoreCountIncoming(t *testing.T, ss store.Store) {
@@ -678,13 +595,9 @@ func testWebhookStoreCountIncoming(t *testing.T, ss store.Store) {
 	_, _ = ss.Webhook().SaveIncoming(o1)
 
 	c, err := ss.Webhook().AnalyticsIncomingCount("")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
-	if c == 0 {
-		t.Fatal("should have at least 1 incoming hook")
-	}
+	require.NotEqual(t, 0, c, "should have at least 1 incoming hook")
 }
 
 func testWebhookStoreCountOutgoing(t *testing.T, ss store.Store) {
@@ -697,10 +610,8 @@ func testWebhookStoreCountOutgoing(t *testing.T, ss store.Store) {
 	ss.Webhook().SaveOutgoing(o1)
 
 	if r, err := ss.Webhook().AnalyticsOutgoingCount(""); err != nil {
-		t.Fatal(err)
+		require.Nil(t, err)
 	} else {
-		if r == 0 {
-			t.Fatal("should have at least 1 outgoing hook")
-		}
+		require.NotEqual(t, 0, r, "should have at least 1 outgoing hook")
 	}
 }
