@@ -100,7 +100,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 
 	a.Srv.Go(func() {
 		if err := a.SendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
-			mlog.Error("Error while sending the email", mlog.String(user.Email), mlog.Err(err))
+			mlog.Error("Error while sending the email", mlog.String("User", user.Email), mlog.Err(err))
 		}
 	})
 
