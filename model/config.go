@@ -2787,7 +2787,7 @@ func (ls *LdapSettings) isValid() *AppError {
 
 		if *ls.GuestFilter != "" {
 			if _, err := ldap.CompileFilter(*ls.GuestFilter); err != nil {
-				return NewAppError("ValidateFilter", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
 	}
