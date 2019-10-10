@@ -419,7 +419,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	th.App.AddPublicKey(publicKeyFilename, fileReader)
 	file, err := th.App.GetPublicKey(publicKeyFilename)
 	require.Nil(t, err)
-	require.True(t, bytes.Equal(file, publicKey))
+	require.Equal(t, publicKey, file)
 	_, err = th.App.GetPublicKey("wrong file name")
 	require.NotNil(t, err)
 	_, err = th.App.GetPublicKey("wrong-file-name.plugin.gpg")

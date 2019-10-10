@@ -416,18 +416,18 @@ func (a *App) GetPluginPublicKeys() ([]string, *model.AppError) {
 	return a.Config().PluginSettings.SignaturePublicKeyFiles, nil
 }
 
-// GetPublicKey will return the actual public key saved in the `filename` file.
-func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
-	filename += pluginSignaturePublicKeyFileExtention
+// GetPublicKey will return the actual public key saved in the `name` file.
+func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
+	name += pluginSignaturePublicKeyFileExtention
 
-	data, err := a.Srv.configStore.GetFile(filename)
+	data, err := a.Srv.configStore.GetFile(name)
 	if err != nil {
 		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return data, nil
 }
 
-// AddPublicKey method will add plugin public key to the config.
+// AddPublicKey will add plugin public key to the config.
 func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	if err := a.writeFile(name+pluginSignaturePublicKeyFileExtention, key); err != nil {
 		return err
@@ -441,11 +441,11 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	return nil
 }
 
-// DeletePublicKey method will delete plugin public key from the config.
-func (a *App) DeletePublicKey(file string) *model.AppError {
-	file += pluginSignaturePublicKeyFileExtention
+// DeletePublicKey will delete plugin public key from the config.
+func (a *App) DeletePublicKey(name string) *model.AppError {
+	name += pluginSignaturePublicKeyFileExtention
 
-	filename := filepath.Base(file)
+	filename := filepath.Base(name)
 	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
 		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

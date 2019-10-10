@@ -1510,7 +1510,7 @@
   },
   {
     "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "An error occurred while opening the public key file"
+    "translation": "An error occurred while opening the public key file."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -3464,7 +3464,7 @@
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
-    "translation": "An error occurred while deleting the public key"
+    "translation": "An error occurred while deleting the public key."
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -3492,7 +3492,7 @@
   },
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
-    "translation": "An error occurred while getting the public key from the store"
+    "translation": "An error occurred while getting the public key from the store."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3500,7 +3500,7 @@
   },
   {
     "id": "app.plugin.init_public_keys.add_key.app_error",
-    "translation": "Unable to add plugin public key(s)"
+    "translation": "Unable to add plugin public key(s)."
   },
   {
     "id": "app.plugin.install.app_error",
@@ -3588,11 +3588,11 @@
   },
   {
     "id": "app.plugin.write_file.read.app_error",
-    "translation": "An error occurred while reading the file"
+    "translation": "An error occurred while reading the file."
   },
   {
     "id": "app.plugin.write_file.saving.app_error",
-    "translation": "An error occurred while saving the file"
+    "translation": "An error occurred while saving the file."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
