@@ -1184,6 +1184,7 @@ func testChannelStoreGetChannelsWithOptions(t *testing.T, ss store.Store) {
 			channels, err := ss.Channel().GetChannelsWithOptions(&model.GetChannelsOptions{
 				UserIds:      tt.inputUserID,
 				ChannelTypes: tt.inputChannelType,
+				Page:         10,
 			})
 			require.Nil(t, err)
 			assert.Equal(t, tt.expectedLength, len(*channels))
