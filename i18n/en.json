@@ -4723,6 +4723,10 @@
     "translation": "Invalid Email attribute. Must be set."
   },
   {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
+  },
+  {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
     "translation": "Identity Provider Public Certificate missing. Did you forget to upload it?"
   },
