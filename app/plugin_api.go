@@ -327,7 +327,7 @@ func (api *PluginAPI) GetChannel(channelId string) (*model.Channel, *model.AppEr
 }
 
 func (api *PluginAPI) GetChannels(options *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
-	return api.app.GetChannelsOpt(options)
+	return api.app.GetChannelsWithOptions(options)
 }
 
 func (api *PluginAPI) GetChannelByName(teamId, name string, includeDeleted bool) (*model.Channel, *model.AppError) {

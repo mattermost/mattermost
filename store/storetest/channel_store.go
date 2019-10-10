@@ -1123,7 +1123,7 @@ func testChannelStoreGetChannelsWithOptions(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_DIRECT
+	o1.Type = model.CHANNEL_OPEN
 	_, err := ss.Channel().Save(&o1, -1)
 	require.Nil(t, err)
 

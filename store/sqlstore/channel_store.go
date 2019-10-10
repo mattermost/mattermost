@@ -928,11 +928,11 @@ func (s SqlChannelStore) GetChannelsWithOptions(opt *model.GetChannelsOptions) (
 		query = query.Where(fmt.Sprintf("c.Id IN (SELECT DISTINCT(ChannelId) FROM ChannelMembers where UserId IN ('%s'))", strings.Join(opt.UserIds, "', '")))
 	}
 
-	if opt.Page != 0 {
+	if opt.Page > 0 {
 		query = query.Limit(uint64(opt.Page))
 	}
 
-	if opt.PerPage != 0 {
+	if opt.PerPage > 0 {
 		query = query.Offset(uint64(opt.PerPage))
 	}
 
