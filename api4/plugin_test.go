@@ -308,6 +308,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	webSocketClient, err := th.CreateWebSocketSystemAdminClient()
 	require.Nil(t, err)
 	webSocketClient.Listen()
+	defer webSocketClient.Close()
 	done := make(chan bool)
 	go func() {
 		for {
