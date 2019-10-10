@@ -646,8 +646,8 @@ func (_m *ChannelStore) GetChannelsByScheme(schemeId string, offset int, limit i
 	return r0, r1
 }
 
-// GetChannelsOpt provides a mock function with given fields: opt
-func (_m *ChannelStore) GetChannelsOpt(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+// GetChannelsWithOptions provides a mock function with given fields: opt
+func (_m *ChannelStore) GetChannelsWithOptions(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
 	ret := _m.Called(opt)
 
 	var r0 *model.ChannelList

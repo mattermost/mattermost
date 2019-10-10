@@ -915,7 +915,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetChannelsOpt(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+func (s SqlChannelStore) GetChannelsWithOptions(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("c.*").
 		From("Channels AS c")

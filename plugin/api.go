@@ -284,7 +284,7 @@ type API interface {
 
 	// GetChannels gets channels by options
 	//
-	// Minimum server version: 5.16
+	// Minimum server version: 5.18
 	GetChannels(options *model.GetChannelsOptions) (*model.ChannelList, *model.AppError)
 
 	// GetChannelByName gets a channel by its name, given a team id.
