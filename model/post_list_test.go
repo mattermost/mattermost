@@ -24,9 +24,9 @@ func TestPostListJson(t *testing.T) {
 	json := pl.ToJson()
 	rpl := PostListFromJson(strings.NewReader(json))
 
-	assert.Equal(t, rpl.Posts[p1.Id].Message, p1.Message, "failed to serialize p1 message")
-	assert.Equal(t, rpl.Posts[p2.Id].Message, p2.Message, "failed to serialize p2 message")
-	assert.Equal(t, rpl.Order[1], p2.Id, "failed to serialize p2 Id")
+	assert.Equal(t, p1.Message, rpl.Posts[p1.Id].Message, "failed to serialize p1 message")
+	assert.Equal(t, p2.Message, rpl.Posts[p2.Id].Message, "failed to serialize p2 message")
+	assert.Equal(t, p2.Id, rpl.Order[1], "failed to serialize p2 Id")
 }
 
 func TestPostListExtend(t *testing.T) {
