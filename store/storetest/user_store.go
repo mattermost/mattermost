@@ -129,7 +129,7 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 
 		defer func() { require.Nil(t, ss.User().PermanentDelete(u.Id)) }()
 
-		_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, maxUsersPerTeam)
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, maxUsersPerTeam)
 		require.Nil(t, err)
 	}
 
