@@ -305,7 +305,9 @@ pipeline {
 						/usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T postgres sh -c \'exec echo \"DROP DATABASE migrated; DROP DATABASE latest;\" | exec psql -U mmuser mattermost_test\'
 
 						echo "Generating diff"
+						set +e
 						diff migrated.sql latest.sql > diff.txt
+						set -e
 						export diffErrorCode=\$?
 
 						if [ \$diffErrorCode -eq 0 ]; then echo \"Both schemas are same\";else cat diff.txt; fi
