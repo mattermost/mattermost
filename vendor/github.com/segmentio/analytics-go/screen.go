@@ -2,6 +2,8 @@ package analytics
 
 import "time"
 
+var _ Message = (*Screen)(nil)
+
 // This type represents object sent in a screen call as described in
 // https://segment.com/docs/libraries/http/#screen
 type Screen struct {
@@ -19,7 +21,11 @@ type Screen struct {
 	Integrations Integrations `json:"integrations,omitempty"`
 }
 
-func (msg Screen) validate() error {
+func (msg Screen) internal() {
+	panic(unimplementedError)
+}
+
+func (msg Screen) Validate() error {
 	if len(msg.UserId) == 0 && len(msg.AnonymousId) == 0 {
 		return FieldError{
 			Type:  "analytics.Screen",
