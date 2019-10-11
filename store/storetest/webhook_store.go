@@ -292,7 +292,7 @@ func testWebhookStoreSaveOutgoing(t *testing.T, ss store.Store) {
 	_, err := ss.Webhook().SaveOutgoing(&o1)
 	require.Nil(t, err, "couldn't save item")
 
-	_, err := ss.Webhook().SaveOutgoing(&o1)
+	_, err = ss.Webhook().SaveOutgoing(&o1)
 	require.NotNil(t, err, "shouldn't be able to update from save")
 }
 
@@ -309,9 +309,9 @@ func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
 
 	webhook, err := ss.Webhook().GetOutgoing(o1.Id)
 	require.Nil(t, err)
-	require.Equal(webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
+	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	_, err := ss.Webhook().GetOutgoing("123")
+	_, err = ss.Webhook().GetOutgoing("123")
 	require.NotNil(t, err, "Missing id should have failed")
 }
 
@@ -402,7 +402,7 @@ func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
 	if result, err := ss.Webhook().GetOutgoingByChannel("123", -1, -1); err != nil {
 		require.Nil(t, err)
 	} else {
-		require.Equal(t, 0, en(result), "no webhooks should have returned")
+		require.Equal(t, 0, len(result), "no webhooks should have returned")
 	}
 }
 
