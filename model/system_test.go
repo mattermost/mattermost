@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSystemJson(t *testing.T) {
@@ -13,7 +15,5 @@ func TestSystemJson(t *testing.T) {
 	json := system.ToJson()
 	result := SystemFromJson(strings.NewReader(json))
 
-	if result.Name != "test" {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, "test", result.Name, "ids do not match")
 }
