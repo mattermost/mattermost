@@ -18,7 +18,7 @@ import (
 
 func stopOnError(err LineImportWorkerError) bool {
 	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
-		mlog.Warn("Large image import error", mlog.String("app_error", err.Error.Error()))
+		mlog.Warn("Large image import error", mlog.Err(err.Error))
 		return false
 	}
 	return true
