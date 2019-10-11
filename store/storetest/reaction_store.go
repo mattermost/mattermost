@@ -417,22 +417,18 @@ func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
 	}
 
 	postIds := []string{postId, post2Id, post3Id}
-	if returned, err := ss.Reaction().BulkGetForPosts(postIds); err != nil {
-		t.Fatal(err)
-	} else if len(returned) != 5 {
-		t.Fatal("should've returned 5 reactions")
-	} else {
-		post4IdFound := false
-		for _, reaction := range returned {
-			if reaction.PostId == post4Id {
-				post4IdFound = true
-				break
-			}
-		}
+	returned, err := ss.Reaction().BulkGetForPosts(postIds)
+	require.Nil(t, err)
+	require.Equal(t, len(returned), 5, "should've returned 5 reactions")
 
-		if post4IdFound {
-			t.Fatal("Wrong reaction returned")
+	post4IdFound := false
+	for _, reaction := range returned {
+		if reaction.PostId == post4Id {
+			post4IdFound = true
+			break
 		}
 	}
+
+	require.False(t, post4IdFound, "Wrong reaction returned")
 
 }
