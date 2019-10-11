@@ -4,12 +4,13 @@
 package app
 
 import (
-	"github.com/stretchr/testify/require"
 	"os"
 	"strings"
 	"testing"
 	"text/template"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -196,6 +197,114 @@ func TestPluginDeadlock(t *testing.T) {
 		done := make(chan bool)
 		go func() {
 			SetAppEnvironmentWithPlugins(t, plugins, th.App, th.App.NewPluginAPI)
+			close(done)
+		}()
+
+		select {
+		case <-done:
+		case <-time.After(30 * time.Second):
+			require.Fail(t, "plugin failed to activate: likely deadlocked")
+			go func() {
+				time.Sleep(5 * time.Second)
+				os.Exit(1)
+			}()
+		}
+	})
+
+	t.Run("CreatePost on OnDeactivate Plugin", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+
+		pluginPostOnActivate := template.Must(template.New("pluginPostOnActivate").Parse(`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnDeactivate() error {
+				_, err := p.API.CreatePost(&model.Post{
+					UserId: "{{.User.Id}}",
+					ChannelId: "{{.Channel.Id}}",
+					Message:   "OnDeactivate",
+				})
+				if err != nil {
+					panic(err.Error())
+				}
+
+				return nil
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				updatedPost := &model.Post{
+					UserId: "{{.User.Id}}",
+					ChannelId: "{{.Channel.Id}}",
+					Message:   "messageUpdated",
+					Props: map[string]interface{}{
+						"from_plugin": true,
+					},
+				}
+
+				return updatedPost, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+`,
+		))
+
+		templateData := struct {
+			User    *model.User
+			Channel *model.Channel
+		}{
+			th.BasicUser,
+			th.BasicChannel,
+		}
+
+		plugins := []string{}
+		pluginTemplates := []*template.Template{
+			pluginPostOnActivate,
+		}
+		for _, pluginTemplate := range pluginTemplates {
+			b := &strings.Builder{}
+			pluginTemplate.Execute(b, templateData)
+
+			plugins = append(plugins, b.String())
+		}
+
+		done := make(chan bool)
+		go func() {
+			posts, appErr := th.App.GetPosts(th.BasicChannel.Id, 0, 2)
+			require.Nil(t, appErr)
+			require.NotNil(t, posts)
+
+			messageWillBePostedCalled := false
+			for _, p := range posts.Posts {
+				if p.Message == "messageUpdated" {
+					messageWillBePostedCalled = true
+				}
+			}
+			require.False(t, messageWillBePostedCalled, "MessageWillBePosted should not have been called")
+
+			SetAppEnvironmentWithPlugins(t, plugins, th.App, th.App.NewPluginAPI)
+			th.TearDown()
+
+			posts, appErr = th.App.GetPosts(th.BasicChannel.Id, 0, 2)
+			require.Nil(t, appErr)
+			require.NotNil(t, posts)
+
+			messageWillBePostedCalled = false
+			for _, p := range posts.Posts {
+				if p.Message == "messageUpdated" {
+					messageWillBePostedCalled = true
+				}
+			}
+			require.True(t, messageWillBePostedCalled, "MessageWillBePosted was not called on deactivate")
 			close(done)
 		}()
 
