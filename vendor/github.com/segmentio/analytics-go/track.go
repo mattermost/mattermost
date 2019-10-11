@@ -2,6 +2,8 @@ package analytics
 
 import "time"
 
+var _ Message = (*Track)(nil)
+
 // This type represents object sent in a track call as described in
 // https://segment.com/docs/libraries/http/#track
 type Track struct {
@@ -19,7 +21,11 @@ type Track struct {
 	Integrations Integrations `json:"integrations,omitempty"`
 }
 
-func (msg Track) validate() error {
+func (msg Track) internal() {
+	panic(unimplementedError)
+}
+
+func (msg Track) Validate() error {
 	if len(msg.Event) == 0 {
 		return FieldError{
 			Type:  "analytics.Track",
