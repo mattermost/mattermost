@@ -22,6 +22,10 @@ make ARGS="config set SqlSettings.DataSource 'mmuser:mostest@tcp(localhost:3306)
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
+echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
+docker exec mattermost-mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+docker exec mattermost-mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+
 echo "Generating dump"
 docker exec mattermost-mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > $DUMPDIR/migrated.sql
 docker exec mattermost-mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > $DUMPDIR/latest.sql
