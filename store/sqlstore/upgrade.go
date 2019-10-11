@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_15_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_16_0
 	VERSION_5_16_0           = "5.16.0"
 	VERSION_5_15_0           = "5.15.0"
 	VERSION_5_14_0           = "5.14.0"
@@ -736,15 +736,12 @@ func UpgradeDatabaseToVersion515(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion516(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.16.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_15_0, VERSION_5_16_0) {
-
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		sqlStore.GetMaster().Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
-	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
+	if shouldPerformUpgrade(sqlStore, VERSION_5_15_0, VERSION_5_16_0) {
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			sqlStore.GetMaster().Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
+		} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
+		}
+		saveSchemaVersion(sqlStore, VERSION_5_16_0)
 	}
-
-	// 	saveSchemaVersion(sqlStore, VERSION_5_16_0)
-	// }
 }
