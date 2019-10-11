@@ -313,7 +313,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 
 		pluginStatesJira, ok := cfg.PluginSettings.PluginStates["jira"]
 		require.True(t, ok, "PluginSettings.PluginStates.jira is missing from config")
-		require.Equal(t, "true", pluginStatesJira.Enable)
+		require.Equal(t, true, pluginStatesJira.Enable)
 
 		pluginSettings, ok := envCfg["PluginSettings"]
 		require.True(t, ok, "PluginSettings is missing from envConfig")
@@ -325,13 +325,13 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		require.True(t, ok, "PluginSettings.Plugins is not a map in envConfig")
 
 		_, ok = plugins["jira"].(map[string]interface{})
-		require.True(t, ok, "PluginSettings.Plugins.jira should not be a map in envConfig")
+		require.False(t, ok, "PluginSettings.Plugins.jira should not be a map in envConfig")
 
 		pluginStates, ok := pluginSettingsAsMap["PluginStates"].(map[string]interface{})
 		require.True(t, ok, "PluginSettings.PluginStates is missing from envConfig")
 
 		_, ok = pluginStates["jira"].(map[string]interface{})
-		require.True(t, ok, "PluginSettings.PluginStates.jira should not be a map in envConfig")
+		require.False(t, ok, "PluginSettings.PluginStates.jira should not be a map in envConfig")
 	})
 }
 
