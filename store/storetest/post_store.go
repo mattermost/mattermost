@@ -1008,8 +1008,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 				post1.Id: post1,
 				post2.Id: post2,
 				post3.Id: post3,
-				post4.Id: post4,
-				post6.Id: post6,
 			}, postList.Posts)
 		})
 
@@ -1031,7 +1029,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			assert.Equal(t, []string{post6.Id, post5.Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				post2.Id: post2,
-				post4.Id: post4,
 				post5.Id: post5,
 				post6.Id: post6,
 			}, postList.Posts)
@@ -1735,6 +1732,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 		UserId:      model.NewId(),
 	}
 	_, err = ss.Bot().Save(bot1)
+	require.Nil(t, err)
 
 	b1 := &model.Post{}
 	b1.Message = "bot message one"
@@ -2118,6 +2116,7 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "b"
 	o1, err := ss.Post().Save(o1)
+	require.Nil(t, err)
 	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
@@ -2135,6 +2134,7 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "b"
 	o3.DeleteAt = 1
 	o3, err = ss.Post().Save(o3)
+	require.Nil(t, err)
 	time.Sleep(2 * time.Millisecond)
 
 	o4 := &model.Post{}
@@ -2280,6 +2280,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3.UserId = model.NewId()
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3, err = ss.Post().Save(o3)
+	require.Nil(t, err)
 
 	r1, err := ss.Post().Get(o1.Id, false)
 	if err != nil {
@@ -2489,6 +2490,7 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o3.RootId = o1.Id
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3, err = ss.Post().Save(o3)
+	require.Nil(t, err)
 
 	if r, err := ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100); err != nil {
 		t.Fatal(err)
