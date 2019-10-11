@@ -42,15 +42,13 @@ func testSystemStore(t *testing.T, ss store.Store) {
 func testSystemStoreSaveOrUpdate(t *testing.T, ss store.Store) {
 	system := &model.System{Name: model.NewId(), Value: "value"}
 
-	if err := ss.System().SaveOrUpdate(system); err != nil {
-		t.Fatal(err)
-	}
+	err := ss.System().SaveOrUpdate(system)
+	require.Nil(t, err)
 
 	system.Value = "value2"
 
-	if err := ss.System().SaveOrUpdate(system); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.System().SaveOrUpdate(system)
+	require.Nil(t, err)
 }
 
 func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {
