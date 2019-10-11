@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -109,6 +110,8 @@ func testReactionSave(t *testing.T, ss store.Store) {
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
+	assert := assert.New(t)
+
 	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
@@ -123,30 +126,25 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 
 	_, err = ss.Reaction().Save(reaction)
 	require.Nil(t, err)
+
 	result, err := ss.Post().Get(reaction.PostId, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
+
 	firstUpdateAt := result.Posts[post.Id].UpdateAt
 
-	if _, err = ss.Reaction().Delete(reaction); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.Reaction().Delete(reaction)
+	require.Nil(t, err)
 
-	if reactions, rErr := ss.Reaction().GetForPost(post.Id, false); rErr != nil {
-		t.Fatal(rErr)
-	} else if len(reactions) != 0 {
-		t.Fatal("should've deleted reaction")
-	}
+	reactions, rErr := ss.Reaction().GetForPost(post.Id, false)
+	require.Nil(t, rErr)
+
+	assert.Equal(len(reactions), 0, "should've deleted reaction")
+
 	postList, err := ss.Post().Get(post.Id, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if postList.Posts[post.Id].HasReactions {
-		t.Fatal("should've set HasReactions = false on post")
-	} else if postList.Posts[post.Id].UpdateAt == firstUpdateAt {
-		t.Fatal("should mark post as updated after deleting reactions")
-	}
+	require.Nil(t, err)
+
+	assert.Equal(postList.Posts[post.Id].HasReactions, false, "should've set HasReactions = false on post")
+	assert.NotEqual(postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should mark post as updated after deleting reactions")
 }
 
 func testReactionGetForPost(t *testing.T, ss store.Store) {
