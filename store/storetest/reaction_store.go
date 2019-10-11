@@ -140,6 +140,8 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 }
 
 func testReactionGetForPost(t *testing.T, ss store.Store) {
+	assert := assert.New(t)
+
 	postId := model.NewId()
 
 	userId := model.NewId()
@@ -172,52 +174,48 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 	}
 
-	if returned, err := ss.Reaction().GetForPost(postId, false); err != nil {
-		t.Fatal(err)
-	} else if len(returned) != 3 {
-		t.Fatal("should've returned 3 reactions")
-	} else {
-		for _, reaction := range reactions {
-			found := false
+	returned, err := ss.Reaction().GetForPost(postId, false)
+	require.Nil(t, err)
+	require.Equal(t, len(returned), 3, "should've returned 3 reactions")
 
-			for _, returnedReaction := range returned {
-				if returnedReaction.UserId == reaction.UserId && returnedReaction.PostId == reaction.PostId &&
-					returnedReaction.EmojiName == reaction.EmojiName {
-					found = true
-					break
-				}
-			}
+	for _, reaction := range reactions {
+		found := false
 
-			if !found && reaction.PostId == postId {
-				t.Fatalf("should've returned reaction for post %v", reaction)
-			} else if found && reaction.PostId != postId {
-				t.Fatal("shouldn't have returned reaction for another post")
+		for _, returnedReaction := range returned {
+			if returnedReaction.UserId == reaction.UserId && returnedReaction.PostId == reaction.PostId &&
+				returnedReaction.EmojiName == reaction.EmojiName {
+				found = true
+				break
 			}
+		}
+
+		if !found {
+			assert.NotEqual(reaction.PostId, postId, "should've returned reaction for post %v", reaction)
+		} else if found {
+			assert.Equal(reaction.PostId, postId, "shouldn't have returned reaction for another post")
 		}
 	}
 
 	// Should return cached item
-	if returned, err := ss.Reaction().GetForPost(postId, true); err != nil {
-		t.Fatal(err)
-	} else if len(returned) != 3 {
-		t.Fatal("should've returned 3 reactions")
-	} else {
-		for _, reaction := range reactions {
-			found := false
+	returned, err = ss.Reaction().GetForPost(postId, true)
+	require.Nil(t, err)
+	require.Equal(t, len(returned), 3, "should've returned 3 reactions")
 
-			for _, returnedReaction := range returned {
-				if returnedReaction.UserId == reaction.UserId && returnedReaction.PostId == reaction.PostId &&
-					returnedReaction.EmojiName == reaction.EmojiName {
-					found = true
-					break
-				}
-			}
+	for _, reaction := range reactions {
+		found := false
 
-			if !found && reaction.PostId == postId {
-				t.Fatalf("should've returned reaction for post %v", reaction)
-			} else if found && reaction.PostId != postId {
-				t.Fatal("shouldn't have returned reaction for another post")
+		for _, returnedReaction := range returned {
+			if returnedReaction.UserId == reaction.UserId && returnedReaction.PostId == reaction.PostId &&
+				returnedReaction.EmojiName == reaction.EmojiName {
+				found = true
+				break
 			}
+		}
+
+		if !found {
+			assert.NotEqual(reaction.PostId, postId, "should've returned reaction for post %v", reaction)
+		} else if found {
+			assert.Equal(reaction.PostId, postId, "shouldn't have returned reaction for another post")
 		}
 	}
 }
