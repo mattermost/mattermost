@@ -22,6 +22,8 @@ func TestReactionStore(t *testing.T, ss store.Store) {
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
+	assert := assert.New(t)
+
 	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
@@ -35,30 +37,27 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		EmojiName: model.NewId(),
 	}
 	reaction, err := ss.Reaction().Save(reaction1)
-	if err != nil {
-		t.Fatal(err)
-	} else if saved := reaction; saved.UserId != reaction1.UserId ||
-		saved.PostId != reaction1.PostId || saved.EmojiName != reaction1.EmojiName {
-		t.Fatal("should've saved reaction and returned it")
-	}
+	require.Nil(t, err)
+
+	saved := reaction
+	assert.Equal(saved.UserId, reaction1.UserId, "should've saved reaction user_id and returned it")
+	assert.Equal(saved.PostId, reaction1.PostId, "should've saved reaction post_id and returned it")
+	assert.Equal(saved.EmojiName, reaction1.EmojiName, "should've saved reaction emoji_name and returned it")
 
 	var secondUpdateAt int64
 	postList, err := ss.Post().Get(reaction1.PostId, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !postList.Posts[post.Id].HasReactions {
-		t.Fatal("should've set HasReactions = true on post")
-	} else if postList.Posts[post.Id].UpdateAt == firstUpdateAt {
-		t.Fatal("should've marked post as updated when HasReactions changed")
-	} else {
+	require.Nil(t, err)
+
+	assert.Equal(postList.Posts[post.Id].HasReactions, true, "should've set HasReactions = true on post")
+	assert.NotEqual(postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should've marked post as updated when HasReactions changed")
+
+	if postList.Posts[post.Id].HasReactions && postList.Posts[post.Id].UpdateAt != firstUpdateAt {
 		secondUpdateAt = postList.Posts[post.Id].UpdateAt
 	}
 
-	if _, err = ss.Reaction().Save(reaction1); err != nil {
-		t.Log(err)
-		t.Fatal("should've allowed saving a duplicate reaction")
-	}
+	_, err = ss.Reaction().Save(reaction1)
+	t.Log(err)
+	assert.Nil(err, "should've allowed saving a duplicate reaction")
 
 	// different user
 	reaction2 := &model.Reaction{
@@ -66,18 +65,13 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId:    reaction1.PostId,
 		EmojiName: reaction1.EmojiName,
 	}
-	if _, err = ss.Reaction().Save(reaction2); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.Reaction().Save(reaction2)
+	require.Nil(t, err)
 
 	postList, err = ss.Post().Get(reaction2.PostId, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
-	if postList.Posts[post.Id].UpdateAt == secondUpdateAt {
-		t.Fatal("should've marked post as updated even if HasReactions doesn't change")
-	}
+	assert.NotEqual(postList.Posts[post.Id].UpdateAt, secondUpdateAt, "should've marked post as updated even if HasReactions doesn't change")
 
 	// different post
 	reaction3 := &model.Reaction{
@@ -85,9 +79,8 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId:    model.NewId(),
 		EmojiName: reaction1.EmojiName,
 	}
-	if _, err := ss.Reaction().Save(reaction3); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.Reaction().Save(reaction3)
+	require.Nil(t, err)
 
 	// different emoji
 	reaction4 := &model.Reaction{
@@ -95,18 +88,17 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId:    reaction1.PostId,
 		EmojiName: model.NewId(),
 	}
-	if _, err := ss.Reaction().Save(reaction4); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.Reaction().Save(reaction4)
+	require.Nil(t, err)
 
 	// invalid reaction
 	reaction5 := &model.Reaction{
 		UserId: reaction1.UserId,
 		PostId: reaction1.PostId,
 	}
-	if _, err := ss.Reaction().Save(reaction5); err == nil {
-		t.Fatal("should've failed for invalid reaction")
-	}
+	_, err = ss.Reaction().Save(reaction5)
+	require.NotNil(t, err, "should've failed for invalid reaction")
+
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
