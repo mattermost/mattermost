@@ -353,24 +353,21 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 	}
 
-	if returned, err := ss.Reaction().GetForPost(post.Id, false); err != nil {
-		t.Fatal(err)
-	} else if len(returned) != 4 {
-		t.Fatal("expected 4 reactions")
-	}
+	returned, err := ss.Reaction().GetForPost(post.Id, false)
+	require.Nil(t, err)
+	require.Equal(t, len(returned), 4, "expected 4 reactions")
 
-	_, err := ss.Reaction().PermanentDeleteBatch(1800, 1000)
+	_, err = ss.Reaction().PermanentDeleteBatch(1800, 1000)
 	require.Nil(t, err)
 
 	// This is to force a clear of the cache.
 	_, err = ss.Reaction().Delete(lastReaction)
 	require.Nil(t, err)
 
-	if returned, err := ss.Reaction().GetForPost(post.Id, false); err != nil {
-		t.Fatal(err)
-	} else if len(returned) != 1 {
-		t.Fatalf("expected 1 reaction. Got: %v", len(returned))
-	}
+	returned, err = ss.Reaction().GetForPost(post.Id, false)
+	require.Nil(t, err)
+	require.Equal(t, len(returned), 1, "expected 1 reaction. Got: %v", len(returned))
+
 }
 
 func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
