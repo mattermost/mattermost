@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLicenseFeaturesToMap(t *testing.T) {
@@ -102,27 +104,20 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 func TestLicenseIsExpired(t *testing.T) {
 	l1 := License{}
 	l1.ExpiresAt = GetMillis() - 1000
-	if !l1.IsExpired() {
-		t.Fatal("license should be expired")
-	}
+	assert.True(t, l1.IsExpired())
 
 	l1.ExpiresAt = GetMillis() + 10000
-	if l1.IsExpired() {
-		t.Fatal("license should not be expired")
-	}
+	assert.False(t, l1.IsExpired())
 }
 
 func TestLicenseIsStarted(t *testing.T) {
 	l1 := License{}
 	l1.StartsAt = GetMillis() - 1000
-	if !l1.IsStarted() {
-		t.Fatal("license should be started")
-	}
+
+	assert.True(t, l1.IsStarted())
 
 	l1.StartsAt = GetMillis() + 10000
-	if l1.IsStarted() {
-		t.Fatal("license should not be started")
-	}
+	assert.False(t, l1.IsStarted())
 }
 
 func TestLicenseToFromJson(t *testing.T) {
@@ -147,9 +142,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	j := l.ToJson()
 
 	l1 := LicenseFromJson(strings.NewReader(j))
-	if l1 == nil {
-		t.Fatalf("Decoding failed but should have passed.")
-	}
+	assert.NotNil(t, l1)
 
 	CheckString(t, l1.Id, l.Id)
 	CheckInt64(t, l1.IssuedAt, l.IssuedAt)
@@ -184,9 +177,7 @@ func TestLicenseToFromJson(t *testing.T) {
 
 	invalid := `{"asdf`
 	l2 := LicenseFromJson(strings.NewReader(invalid))
-	if l2 != nil {
-		t.Fatalf("Should have failed but didn't")
-	}
+	assert.Nil(t, l2)
 }
 
 func TestLicenseRecordIsValid(t *testing.T) {
@@ -195,38 +186,31 @@ func TestLicenseRecordIsValid(t *testing.T) {
 		Bytes:    "asdfghjkl;",
 	}
 
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err := lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.Id = NewId()
 	lr.CreateAt = 0
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err = lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.CreateAt = GetMillis()
 	lr.Bytes = ""
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err = lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.Bytes = strings.Repeat("0123456789", 1001)
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err = lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.Bytes = "ASDFGHJKL;"
-	if err := lr.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	err = lr.IsValid()
+	assert.Nil(t, err)
 }
 
 func TestLicenseRecordPreSave(t *testing.T) {
 	lr := LicenseRecord{}
 	lr.PreSave()
 
-	if lr.CreateAt == 0 {
-		t.Fatal("CreateAt should not be zero")
-	}
+	assert.NotZero(t, lr.CreateAt)
 }
