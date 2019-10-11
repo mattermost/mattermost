@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSaveStatus(t *testing.T) {
@@ -30,11 +31,8 @@ func TestSaveStatus(t *testing.T) {
 			th.App.SaveAndBroadcastStatus(status)
 
 			after, err := th.App.GetStatus(user.Id)
-			if err != nil {
-				t.Fatalf("failed to get status after save: %v", err)
-			} else if after.Status != statusString {
-				t.Fatalf("failed to save status, got %v, expected %v", after.Status, statusString)
-			}
+			require.Nil(t, err, "failed to get status after save: %v", err)
+			require.Equal(t, statusString, after.Status, "failed to save status, got %v, expected %v", after.Status, statusString)
 		})
 	}
 }
