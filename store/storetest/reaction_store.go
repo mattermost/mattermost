@@ -221,6 +221,8 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 }
 
 func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
+	assert := assert.New(t)
+
 	emojiToDelete := model.NewId()
 
 	post, err1 := ss.Post().Save(&model.Post{
@@ -274,60 +276,39 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 	}
 
-	if err := ss.Reaction().DeleteAllWithEmojiName(emojiToDelete); err != nil {
-		t.Fatal(err)
-	}
+	err := ss.Reaction().DeleteAllWithEmojiName(emojiToDelete)
+	require.Nil(t, err)
 
 	// check that the reactions were deleted
-	if returned, err := ss.Reaction().GetForPost(post.Id, false); err != nil {
-		t.Fatal(err)
-	} else if len(returned) != 1 {
-		t.Fatal("should've only removed reactions with emoji name")
-	} else {
-		for _, reaction := range returned {
-			if reaction.EmojiName == "smile" {
-				t.Fatal("should've removed reaction with emoji name")
-			}
-		}
+	returned, err := ss.Reaction().GetForPost(post.Id, false)
+	require.Nil(t, err)
+	require.Equal(t, len(returned), 1, "should've only removed reactions with emoji name")
+
+	for _, reaction := range returned {
+		assert.NotEqual(reaction.EmojiName, "smile", "should've removed reaction with emoji name")
 	}
 
-	if returned, err := ss.Reaction().GetForPost(post2.Id, false); err != nil {
-		t.Fatal(err)
-	} else if len(returned) != 1 {
-		t.Fatal("should've only removed reactions with emoji name")
-	}
+	returned, err = ss.Reaction().GetForPost(post2.Id, false)
+	require.Nil(t, err)
+	assert.Equal(len(returned), 1, "should've only removed reactions with emoji name")
 
-	if returned, err := ss.Reaction().GetForPost(post3.Id, false); err != nil {
-		t.Fatal(err)
-	} else if len(returned) != 0 {
-		t.Fatal("should've only removed reactions with emoji name")
-	}
+	returned, err = ss.Reaction().GetForPost(post3.Id, false)
+	require.Nil(t, err)
+	assert.Equal(len(returned), 0, "should've only removed reactions with emoji name")
 
 	// check that the posts are updated
 	postList, err := ss.Post().Get(post.Id, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !postList.Posts[post.Id].HasReactions {
-		t.Fatal("post should still have reactions")
-	}
+	require.Nil(t, err)
+	assert.True(postList.Posts[post.Id].HasReactions, "post should still have reactions")
 
 	postList, err = ss.Post().Get(post2.Id, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !postList.Posts[post2.Id].HasReactions {
-		t.Fatal("post should still have reactions")
-	}
+	require.Nil(t, err)
+	assert.True(postList.Posts[post2.Id].HasReactions, "post should still have reactions")
 
 	postList, err = ss.Post().Get(post3.Id, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
+	assert.False(postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
 
-	if postList.Posts[post3.Id].HasReactions {
-		t.Fatal("post shouldn't have reactions any more")
-	}
 }
 
 func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
