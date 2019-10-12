@@ -22,7 +22,6 @@ func TestReactionStore(t *testing.T, ss store.Store) {
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
-	assert := assert.New(t)
 
 	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
@@ -40,16 +39,16 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	saved := reaction
-	assert.Equal(saved.UserId, reaction1.UserId, "should've saved reaction user_id and returned it")
-	assert.Equal(saved.PostId, reaction1.PostId, "should've saved reaction post_id and returned it")
-	assert.Equal(saved.EmojiName, reaction1.EmojiName, "should've saved reaction emoji_name and returned it")
+	assert.Equal(t, saved.UserId, reaction1.UserId, "should've saved reaction user_id and returned it")
+	assert.Equal(t, saved.PostId, reaction1.PostId, "should've saved reaction post_id and returned it")
+	assert.Equal(t, saved.EmojiName, reaction1.EmojiName, "should've saved reaction emoji_name and returned it")
 
 	var secondUpdateAt int64
 	postList, err := ss.Post().Get(reaction1.PostId, false)
 	require.Nil(t, err)
 
-	assert.Equal(postList.Posts[post.Id].HasReactions, true, "should've set HasReactions = true on post")
-	assert.NotEqual(postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should've marked post as updated when HasReactions changed")
+	assert.Equal(t, postList.Posts[post.Id].HasReactions, true, "should've set HasReactions = true on post")
+	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should've marked post as updated when HasReactions changed")
 
 	if postList.Posts[post.Id].HasReactions && postList.Posts[post.Id].UpdateAt != firstUpdateAt {
 		secondUpdateAt = postList.Posts[post.Id].UpdateAt
@@ -57,7 +56,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 
 	_, err = ss.Reaction().Save(reaction1)
 	t.Log(err)
-	assert.Nil(err, "should've allowed saving a duplicate reaction")
+	assert.Nil(t, err, "should've allowed saving a duplicate reaction")
 
 	// different user
 	reaction2 := &model.Reaction{
@@ -71,7 +70,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	postList, err = ss.Post().Get(reaction2.PostId, false)
 	require.Nil(t, err)
 
-	assert.NotEqual(postList.Posts[post.Id].UpdateAt, secondUpdateAt, "should've marked post as updated even if HasReactions doesn't change")
+	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, secondUpdateAt, "should've marked post as updated even if HasReactions doesn't change")
 
 	// different post
 	reaction3 := &model.Reaction{
@@ -102,7 +101,6 @@ func testReactionSave(t *testing.T, ss store.Store) {
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
-	assert := assert.New(t)
 
 	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
@@ -130,17 +128,16 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 	reactions, rErr := ss.Reaction().GetForPost(post.Id, false)
 	require.Nil(t, rErr)
 
-	assert.Equal(len(reactions), 0, "should've deleted reaction")
+	assert.Equal(t, len(reactions), 0, "should've deleted reaction")
 
 	postList, err := ss.Post().Get(post.Id, false)
 	require.Nil(t, err)
 
-	assert.Equal(postList.Posts[post.Id].HasReactions, false, "should've set HasReactions = false on post")
-	assert.NotEqual(postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should mark post as updated after deleting reactions")
+	assert.Equal(t, postList.Posts[post.Id].HasReactions, false, "should've set HasReactions = false on post")
+	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should mark post as updated after deleting reactions")
 }
 
 func testReactionGetForPost(t *testing.T, ss store.Store) {
-	assert := assert.New(t)
 
 	postId := model.NewId()
 
@@ -190,9 +187,9 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 		}
 
 		if !found {
-			assert.NotEqual(reaction.PostId, postId, "should've returned reaction for post %v", reaction)
+			assert.NotEqual(t, reaction.PostId, postId, "should've returned reaction for post %v", reaction)
 		} else if found {
-			assert.Equal(reaction.PostId, postId, "shouldn't have returned reaction for another post")
+			assert.Equal(t, reaction.PostId, postId, "shouldn't have returned reaction for another post")
 		}
 	}
 
@@ -213,15 +210,14 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 		}
 
 		if !found {
-			assert.NotEqual(reaction.PostId, postId, "should've returned reaction for post %v", reaction)
+			assert.NotEqual(t, reaction.PostId, postId, "should've returned reaction for post %v", reaction)
 		} else if found {
-			assert.Equal(reaction.PostId, postId, "shouldn't have returned reaction for another post")
+			assert.Equal(t, reaction.PostId, postId, "shouldn't have returned reaction for another post")
 		}
 	}
 }
 
 func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
-	assert := assert.New(t)
 
 	emojiToDelete := model.NewId()
 
@@ -285,29 +281,29 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	require.Equal(t, len(returned), 1, "should've only removed reactions with emoji name")
 
 	for _, reaction := range returned {
-		assert.NotEqual(reaction.EmojiName, "smile", "should've removed reaction with emoji name")
+		assert.NotEqual(t, reaction.EmojiName, "smile", "should've removed reaction with emoji name")
 	}
 
 	returned, err = ss.Reaction().GetForPost(post2.Id, false)
 	require.Nil(t, err)
-	assert.Equal(len(returned), 1, "should've only removed reactions with emoji name")
+	assert.Equal(t, len(returned), 1, "should've only removed reactions with emoji name")
 
 	returned, err = ss.Reaction().GetForPost(post3.Id, false)
 	require.Nil(t, err)
-	assert.Equal(len(returned), 0, "should've only removed reactions with emoji name")
+	assert.Equal(t, len(returned), 0, "should've only removed reactions with emoji name")
 
 	// check that the posts are updated
 	postList, err := ss.Post().Get(post.Id, false)
 	require.Nil(t, err)
-	assert.True(postList.Posts[post.Id].HasReactions, "post should still have reactions")
+	assert.True(t, postList.Posts[post.Id].HasReactions, "post should still have reactions")
 
 	postList, err = ss.Post().Get(post2.Id, false)
 	require.Nil(t, err)
-	assert.True(postList.Posts[post2.Id].HasReactions, "post should still have reactions")
+	assert.True(t, postList.Posts[post2.Id].HasReactions, "post should still have reactions")
 
 	postList, err = ss.Post().Get(post3.Id, false)
 	require.Nil(t, err)
-	assert.False(postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
+	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
 
 }
 
