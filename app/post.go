@@ -619,15 +619,15 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 }
 
 func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	return a.Srv.Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: offset, PerPage: limit}, true)
+	return a.Srv.Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: offset, PerPage: limit}, false)
 }
 
 func (a *App) GetPostsEtag(channelId string) string {
-	return a.Srv.Store.Post().GetEtag(channelId, true)
+	return a.Srv.Store.Post().GetEtag(channelId, false)
 }
 
 func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
-	return a.Srv.Store.Post().GetPostsSince(options, true)
+	return a.Srv.Store.Post().GetPostsSince(options, false)
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
@@ -789,7 +789,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 		return model.NewPostList(), nil
 	}
 
-	postList, err := a.GetPostThread(lastUnreadPostId, false)
+	postList, err := a.GetPostThread(lastUnreadPostId, skipFetchThreads)
 	if err != nil {
 		return nil, err
 	}
