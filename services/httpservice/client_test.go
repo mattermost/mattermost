@@ -104,11 +104,14 @@ func TestDialContextFilter(t *testing.T) {
 			return nil, nil
 		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) bool { return !IsReservedIP(ip) })
 		_, err := filter(context.Background(), "", tc.Addr)
-		switch {
-		case tc.IsValid == (err == AddressForbidden) || (err != nil && err != AddressForbidden):
-			require.Failf(t, "unexpected err for %v (%v)", tc.Addr, err)
-		case tc.IsValid != didDial:
-			require.Failf(t, "unexpected didDial for %v", tc.Addr)
+
+		if tc.IsValid {
+			require.Nil(t, err)
+			require.True(t, didDial)
+		} else {
+			require.NotNil(t, err)
+			require.Equal(t, err, AddressForbidden)
+			require.False(t, didDial)
 		}
 	}
 }
