@@ -99,7 +99,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 
 	a.Srv.Go(func() {
 		if err := a.SendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
-			mlog.Error("Error to send the email", mlog.String("to", user.Email), mlog.Err(err))
+			mlog.Error("Error sending the email", mlog.String("user_email", user.Email), mlog.Err(err))
 		}
 	})
 
@@ -284,7 +284,7 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) string {
 	team, err := a.GetTeamByName(teamName)
 	if err != nil {
-		mlog.Error("Encountered error while looking up team by name", mlog.String("Team Name", teamName), mlog.Err(err))
+		mlog.Error("Encountered error while looking up team by name", mlog.String("team_name", teamName), mlog.Err(err))
 		return postMessage
 	}
 
