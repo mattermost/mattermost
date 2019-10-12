@@ -49,9 +49,7 @@ func TestFileInfoIsValid(t *testing.T) {
 }
 
 func TestFileInfoIsImage(t *testing.T) {
-	info := &FileInfo{
-		MimeType: "image/png",
-	}
+	info := &FileInfo{MimeType: "image/png"}
 	assert.True(t, info.IsImage(), "file is an image")
 
 	info.MimeType = "text/plain"
@@ -72,9 +70,7 @@ func TestGetInfoForFile(t *testing.T) {
 	assert.Falsef(t, info.HasPreviewImage, "Got incorrect has preview image: %v", info.HasPreviewImage)
 
 	pngFile, err := ioutil.ReadFile("../tests/test.png")
-	if err != nil { // err.Error() might be nil
-		require.Nilf(t, err, "Failed to load test.png: %v", err.Error())
-	}
+	require.Nilf(t, err, "Failed to load test.png")
 
 	info, err = GetInfoForBytes("test.png", pngFile)
 	require.Nil(t, err)
@@ -99,9 +95,7 @@ func TestGetInfoForFile(t *testing.T) {
 	assert.Truef(t, info.HasPreviewImage, "Got incorrect has preview image: %v", info.HasPreviewImage)
 
 	animatedGifFile, err := ioutil.ReadFile("../tests/testgif.gif")
-	if err != nil { // err.Error() might be nil
-		require.Nilf(t, err, "Failed to load testgif.gif: %v", err.Error())
-	}
+	require.Nilf(t, err, "Failed to load testgif.gif")
 
 	info, err = GetInfoForBytes("testgif.gif", animatedGifFile)
 	require.Nil(t, err)
