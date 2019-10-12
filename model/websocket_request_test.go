@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestWebSocketRequest(t *testing.T) {
@@ -13,13 +15,9 @@ func TestWebSocketRequest(t *testing.T) {
 	json := m.ToJson()
 	result := WebSocketRequestFromJson(strings.NewReader(json))
 
-	if result == nil {
-		t.Fatal("should not be nil")
-	}
+	require.NotNil(t, result)
 
 	badresult := WebSocketRequestFromJson(strings.NewReader("junk"))
 
-	if badresult != nil {
-		t.Fatal("should have been nil")
-	}
+	require.Nil(t, badresult)
 }
