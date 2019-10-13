@@ -198,8 +198,6 @@ func TestConfigReset(t *testing.T) {
 		output2 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
 		assert.Contains(t, string(output1), "true")
 		assert.Contains(t, string(output2), "true")
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "true"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "true"))
 	})
 
 	t.Run("Success when a configuration section is given", func(t *testing.T) {
@@ -213,10 +211,6 @@ func TestConfigReset(t *testing.T) {
 		assert.Contains(t, string(output1), "true")
 		assert.Contains(t, string(output2), "true")
 		assert.Contains(t, string(output3), "false")
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "true"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "true"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "true"))
-
 	})
 
 	t.Run("Success when a configuration setting is given", func(t *testing.T) {
@@ -227,8 +221,6 @@ func TestConfigReset(t *testing.T) {
 		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
 		assert.Contains(t, string(output1), "true")
 		assert.Contains(t, string(output2), "false")
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "true"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "true"))
 	})
 }
 
