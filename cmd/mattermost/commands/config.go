@@ -380,21 +380,20 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 }
 
 func configResetCmdF(command *cobra.Command, args []string) error {
-	app, err := InitDBCommandContextCobra(command)
+	configStore, err := getConfigStore(command)
 	if err != nil {
 		return err
 	}
-
-	defer app.Shutdown()
 
 	defaultConfig := &model.Config{}
 	defaultConfig.SetDefaults()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
-
 	if confirmFlag {
-		app.SaveConfig(defaultConfig, false)
-		return nil
+		if _, err := configStore.Set(defaultConfig); err != nil {
+			return errors.Wrap(err, "failed to set config")
+		}
+		configStore.Set(defaultConfig)
 	}
 
 	if !confirmFlag && len(args) == 0 {
@@ -402,12 +401,13 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		CommandPrettyPrintln("Are you sure you want to reset all the configuration settings?(YES/NO): ")
 		fmt.Scanln(&confirmResetAll)
 		if confirmResetAll == "YES" {
-			app.SaveConfig(defaultConfig, false)
-			return nil
+			if _, err := configStore.Set(defaultConfig); err != nil {
+				return errors.Wrap(err, "failed to set config")
+			}
 		}
 	}
 
-	tempConfig := app.Config()
+	tempConfig := configStore.Get()
 	tempConfigMap := configToMap(*tempConfig)
 	defaultConfigMap := configToMap(*defaultConfig)
 	for _, arg := range args {
@@ -429,7 +429,10 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 	if changed := config.FixInvalidLocales(tempConfig); changed {
 		return errors.New("Invalid locale configuration")
 	}
-	app.SaveConfig(tempConfig, false)
+
+	if _, err := configStore.Set(tempConfig); err != nil {
+		return errors.Wrap(err, "failed to set config")
+	}
 
 	return nil
 }
