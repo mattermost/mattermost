@@ -302,7 +302,7 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
 	if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
-		mlog.Error("Failed to save status for", mlog.String("user_id", status.UserId), mlog.Err(err))
+		mlog.Error("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
 	a.BroadcastStatus(status)
