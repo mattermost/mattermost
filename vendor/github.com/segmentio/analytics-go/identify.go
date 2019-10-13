@@ -2,6 +2,8 @@ package analytics
 
 import "time"
 
+var _ Message = (*Identify)(nil)
+
 // This type represents object sent in an identify call as described in
 // https://segment.com/docs/libraries/http/#identify
 type Identify struct {
@@ -18,7 +20,11 @@ type Identify struct {
 	Integrations Integrations `json:"integrations,omitempty"`
 }
 
-func (msg Identify) validate() error {
+func (msg Identify) internal() {
+	panic(unimplementedError)
+}
+
+func (msg Identify) Validate() error {
 	if len(msg.UserId) == 0 && len(msg.AnonymousId) == 0 {
 		return FieldError{
 			Type:  "analytics.Identify",

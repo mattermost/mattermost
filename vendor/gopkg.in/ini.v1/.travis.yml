@@ -9,6 +9,7 @@ go:
   - 1.11.x
   - 1.12.x
 
+install: skip
 script:
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/smartystreets/goconvey
