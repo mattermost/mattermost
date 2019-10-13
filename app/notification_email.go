@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"html"
 	"html/template"
 	"net/url"
