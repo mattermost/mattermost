@@ -1359,13 +1359,26 @@ func TestAddTeamMember(t *testing.T) {
 	team := th.BasicTeam
 	otherUser := th.CreateUser()
 
+	th.App.SetLicense(model.NewTestLicense(""))
+	defer th.App.SetLicense(nil)
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+	guest := th.CreateUser()
+	_, resp := th.SystemAdminClient.DemoteUserToGuest(guest.Id)
+	CheckNoError(t, resp)
+
 	if err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, ""); err != nil {
 		t.Fatalf(err.Error())
 	}
 
 	// Regular user can't add a member to a team they don't belong to.
 	th.LoginBasic2()
-	_, resp := Client.AddTeamMember(team.Id, otherUser.Id)
+	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckForbiddenStatus(t, resp)
 	if resp.Error == nil {
 		t.Fatalf("Error is nil")
@@ -1505,6 +1518,15 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNotFoundStatus(t, resp)
 	th.App.DeleteToken(token)
+
+	// by invite_id
+	th.App.SetLicense(model.NewTestLicense(""))
+	defer th.App.SetLicense(nil)
+	_, resp = Client.Login(guest.Email, guest.Password)
+	CheckNoError(t, resp)
+
+	tm, resp = Client.AddTeamMemberFromInvite("", team.InviteId)
+	CheckForbiddenStatus(t, resp)
 
 	// by invite_id
 	Client.Login(otherUser.Email, otherUser.Password)
