@@ -3489,18 +3489,22 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSuppli
 
 	// Daily counts (without bots)
 	count, err := ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+	require.Nil(t, err)
 	assert.Equal(t, int64(2), count)
 
 	// Daily counts (with bots)
 	count, err = ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true})
+	require.Nil(t, err)
 	assert.Equal(t, int64(3), count)
 
 	// Monthly counts (without bots)
 	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+	require.Nil(t, err)
 	assert.Equal(t, int64(3), count)
 
 	// Monthly counts - (with bots)
 	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true})
+	require.Nil(t, err)
 	assert.Equal(t, int64(4), count)
 }
 
@@ -4878,6 +4882,7 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.Nil(t, err)

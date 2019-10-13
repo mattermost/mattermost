@@ -40,11 +40,11 @@ func testAuditStore(t *testing.T, ss store.Store) {
 	assert.Equal(t, "extra", audits[0].ExtraInfo)
 
 	audits, err = ss.Audit().Get("missing", 0, 100)
-
+	require.Nil(t, err)
 	assert.Len(t, audits, 0)
 
 	audits, err = ss.Audit().Get("", 0, 100)
-
+	require.Nil(t, err)
 	if len(audits) < 4 {
 		t.Fatal("Failed to save and retrieve 4 audit logs")
 	}
@@ -65,12 +65,14 @@ func testAuditStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.Nil(t, ss.Audit().Save(a3))
 
 	audits, err := ss.Audit().Get(a1.UserId, 0, 100)
+	require.Nil(t, err)
 	assert.Len(t, audits, 3)
 
 	_, err = ss.Audit().PermanentDeleteBatch(cutoff, 1000000)
 	require.Nil(t, err)
 
 	audits, err = ss.Audit().Get(a1.UserId, 0, 100)
+	require.Nil(t, err)
 	assert.Len(t, audits, 1)
 
 	require.Nil(t, ss.Audit().PermanentDeleteByUser(a1.UserId))
