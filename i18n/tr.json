@@ -1875,6 +1875,10 @@
     "translation": "Takıma kullanıcı eklemek için parametre zorunludur."
   },
   {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Konuklar bir takıma ancak bir çağrı bağlantısı ile katılabilir. Lütfen takıma katılmak için bir konuk e-posta çağrısı isteğinde bulunun."
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Konuk hesapları kullanılmıyor."
   },
@@ -6756,6 +6760,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Var olan takım bulunamadı"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Var olan takım bulunamadı"
   },
   {

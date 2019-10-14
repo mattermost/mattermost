@@ -173,7 +173,7 @@
   },
   {
     "id": "api.channel.add_guest.added",
-    "translation": "%v 已被 %v 加入頻道。"
+    "translation": "%v 已被 %v 作為訪客加入頻道。"
   },
   {
     "id": "api.channel.add_member.added",
@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
-    "translation": "%v joined the channel as guest."
+    "translation": "%v 已作為訪客加入頻道。"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "The default channel cannot be made private."
+    "translation": "不能將預設頻道設為私人。"
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -1875,12 +1875,16 @@
     "translation": "需要參數以新增團隊成員。"
   },
   {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "訪客帳號已停用"
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "授權不支援 LDAP 群組"
+    "translation": "授權不支援訪客帳號"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1928,15 +1932,15 @@
   },
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "訪客帳號已停用"
   },
   {
     "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "授權不支援 LDAP 群組"
+    "translation": "授權不支援訪客帳號"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-    "translation": "The channels of the invite must be part of the team of the invite."
+    "translation": "邀請的頻道必須屬於邀請的團隊"
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -1980,11 +1984,11 @@
   },
   {
     "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "訪客帳號已停用"
   },
   {
     "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "授權不支援 LDAP 群組"
+    "translation": "授權不支援訪客帳號"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
@@ -2148,7 +2152,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]] 邀請您加入 [[{{.TeamDisplayName}}]]。"
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2156,11 +2160,11 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "translation": "[[{{.SenderName}}]] 邀請您以訪客身份加入 [[{{.TeamDisplayName}}]]。"
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀請您加入團隊 {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀請您以訪客身份加入 [[{{.TeamDisplayName}}]]。"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2412,15 +2416,15 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "Guest accounts are disabled"
+    "translation": "訪客帳號已停用"
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
-    "translation": "授權不支援 LDAP 群組"
+    "translation": "授權不支援訪客帳號"
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
-    "translation": "Unable to create the user, invalid invitation."
+    "translation": "無法建立使用者，無效的邀請。"
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2440,7 +2444,7 @@
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": "Unable to convert the user to guest because is already a guest"
+    "translation": "由於使用者已是訪客，無法將使用者轉換成訪客"
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
@@ -2484,11 +2488,11 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "訪客帳號已停用"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
-    "translation": "授權不支援 LDAP 群組"
+    "translation": "授權不支援訪客帳號"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2504,7 +2508,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "輸入一個有效的電子郵件地址或使用者名稱與/或密碼，或使用其他方式登入。\n"
+    "translation": "輸入一個有效的電子郵件地址或使用者名稱與/或密碼，或使用其他方式登入。"
   },
   {
     "id": "api.user.login.invalid_credentials_username",
@@ -2544,7 +2548,7 @@
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "Unable to convert the guest to regular user because is not a guest"
+    "translation": "由於使用者不是訪客，無法將訪客轉換成一般使用者"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2664,7 +2668,7 @@
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "您提供的電子郵件地址不屬於一個可接受的網域。請聯繫系統管理員或使用另一個不同的電子郵件地址註冊。"
+    "translation": "您提供的電子郵件地址不屬於一個可接受訪客帳號的網域。請聯繫系統管理員或使用另一個不同的電子郵件地址註冊。"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2780,7 +2784,7 @@
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": "This is not a valid live URL"
+    "translation": "此網址無效"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3380,7 +3384,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "您有 1 筆新的直接傳訊，來自@{{.SenderName}}。"
+    "translation": "您有 1 筆新的直接傳訊，來自 {{.SenderName}}。"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
@@ -3388,7 +3392,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "您有 1 筆新的群組訊息，來自@{{.SenderName}}。"
+    "translation": "您有 1 筆新的群組訊息，來自 {{.SenderName}}。"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3396,11 +3400,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "您有一筆新通知，來自 @{{.SenderName}}。"
+    "translation": "您有一筆新通知，來自 {{.SenderName}}。"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3412,7 +3416,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3424,7 +3428,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3508,19 +3512,19 @@
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Failed to create marketplace client."
+    "translation": "無法建立市集用戶端"
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "模組已被停用。詳情請看系統紀錄。"
+    "translation": "市集已被停用。詳情請看系統紀錄。"
   },
   {
     "id": "app.plugin.marketplace_plugins.app_error",
-    "translation": "Failed to get plugins from the marketplace server."
+    "translation": "無法從市集伺服器取得模組。"
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Failed to marshal marketplace plugins."
+    "translation": "無法封送處理市集模組。"
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -4524,7 +4528,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch IndexingEnabled 為啟用。"
+    "translation": "當啟用 ElasticSearch SearchEnabled 時必須設定 ElasticSearch IndexingEnabled 為啟用。"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4912,11 +4916,11 @@
   },
   {
     "id": "model.guest.is_valid.channel.app_error",
-    "translation": "無效的頻道 ID"
+    "translation": "無效的頻道"
   },
   {
     "id": "model.guest.is_valid.channels.app_error",
-    "translation": "無效的頻道 ID"
+    "translation": "無效的頻道"
   },
   {
     "id": "model.guest.is_valid.email.app_error",
@@ -5684,7 +5688,7 @@
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
-    "translation": "無法取得頻道成員數"
+    "translation": "無法取得頻道釘選訊息數"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
@@ -6636,7 +6640,7 @@
   },
   {
     "id": "store.sql_session.update_props.app_error",
-    "translation": "Unable to update session props"
+    "translation": "無法更新工作階段屬性"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
@@ -6696,11 +6700,11 @@
   },
   {
     "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "無法計算團隊數量"
+    "translation": "無法計算私人團隊數量"
   },
   {
     "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "無法計算團隊數量"
+    "translation": "無法計算公開團隊數量"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -6757,6 +6761,10 @@
   {
     "id": "store.sql_team.get_by_name.app_error",
     "translation": "找不到已存在的團隊來更新"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "找不到已存在的團隊"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
@@ -6940,7 +6948,7 @@
   },
   {
     "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "更新頻道成員時失敗"
+    "translation": "更新團隊成員時失敗"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
@@ -7040,7 +7048,7 @@
   },
   {
     "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "更新頻道成員時失敗"
+    "translation": "更新團隊成員時失敗"
   },
   {
     "id": "store.sql_user.promote_guest.user_update.app_error",
@@ -7372,23 +7380,23 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Get the latest Chrome browser"
+    "translation": "取得最新的 Chrome 瀏覽器"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Get the latest Firefox browser"
+    "translation": "取得最新的 Firefox 瀏覽器"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Get the latest Safari browser"
+    "translation": "取得最新的 Safari 瀏覽器"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
-    "translation": "Google Chrome 43+"
+    "translation": "Google Chrome"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.edge",
-    "translation": "Microsoft Edge 40+"
+    "translation": "Microsoft Edge"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.firefox",
@@ -7400,27 +7408,27 @@
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": "Download the App"
+    "translation": "下載應用程式"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "下載 Mattermost 應用程式或只用支援的瀏覽器以獲得更好的體驗。"
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": "Download the App"
+    "translation": "下載應用程式"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "安裝說明"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "安裝說明"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "了解更多關於支援的瀏覽器。"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -7448,23 +7456,23 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "We no longer support this browser"
+    "translation": "我們不再支援此瀏覽器"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "We no longer support this version of your browser"
+    "translation": "我們不再支援瀏覽器的此版本"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
-    "translation": "Open Edge"
+    "translation": "開啟 Edge"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "設為預設"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
-    "translation": "or"
+    "translation": "或"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",

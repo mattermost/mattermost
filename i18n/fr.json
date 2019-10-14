@@ -173,7 +173,7 @@
   },
   {
     "id": "api.channel.add_guest.added",
-    "translation": "%v a été ajouté au canal par %v."
+    "translation": "%v a été ajouté au canal en tant qu'invité par %v."
   },
   {
     "id": "api.channel.add_member.added",
@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
-    "translation": "%v joined the channel as guest."
+    "translation": "%v a rejoint le canal en tant qu'invité."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "The default channel cannot be made private."
+    "translation": "Le canal par défaut ne peut pas être rendu privé."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -1676,7 +1676,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "L'édition de messages est seulement autorisée pendant {{.timeLimit}} secondes. Veuillez demander à votre administrateur système pour plus d'informations."
+    "translation": "L'édition de messages est seulement autorisée pendant {{.timeLimit}} secondes. Veuillez demander à votre administrateur système pour en savoir plus."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1875,12 +1875,16 @@
     "translation": "Paramètre requis pour ajouter l'utilisateur à une équipe."
   },
   {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "Les comptes invités sont désactivés."
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "votre licence ne supporte pas les groupes ldap"
+    "translation": "Votre licence ne supporte pas les comptes invités"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1928,15 +1932,15 @@
   },
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Les comptes invités sont désactivés"
   },
   {
     "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "votre licence ne supporte pas les groupes ldap"
+    "translation": "Votre licence ne supporte pas les comptes invités"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-    "translation": "The channels of the invite must be part of the team of the invite."
+    "translation": "Les canaux présents dans l'invitation doivent faire partie de la même équipe pour laquelle vous êtes invité."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -1952,11 +1956,11 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "La création d'équipes est désactivée. Veuillez demander à votre administrateur système pour plus d'informations."
+    "translation": "La création d'équipes est désactivée. Veuillez demander à votre administrateur système pour en savoir plus."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "L'adresse e-mail doit être liée à un domaine spécifique (ex. @exemple.com). Veuillez demander à votre administrateur système pour plus d'informations."
+    "translation": "L'adresse e-mail doit être liée à un domaine spécifique (ex. @exemple.com). Veuillez demander à votre administrateur système pour en savoir plus."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -1964,7 +1968,7 @@
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
-    "translation": "L'adresse e-mail doit être liée à un domaine spécifique (ex. @exemple.com). Veuillez demander à votre équipe ou votre administrateur système pour plus d'informations."
+    "translation": "L'adresse e-mail doit être liée à un domaine spécifique (ex. @exemple.com). Veuillez demander à votre équipe ou votre administrateur système pour en savoir plus."
   },
   {
     "id": "api.team.leave.left",
@@ -1980,11 +1984,11 @@
   },
   {
     "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "Les comptes invités sont désactivés."
   },
   {
     "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "votre licence ne supporte pas les groupes ldap"
+    "translation": "Votre licence ne supporte pas les comptes invités"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
@@ -2148,7 +2152,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]], vous a invité à rejoindre [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2156,11 +2160,11 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "translation": "[[{{.SenderName}}]], vous a invité à rejoindre l'équipe [[{{.TeamDisplayName}}]] en tant qu'invité."
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} vous a invité à rejoindre l'équipe {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} vous a invité à rejoindre l'équipe {{ .TeamDisplayName }} en tant qu'invité"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2412,15 +2416,15 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Les comptes invités sont désactivés"
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
-    "translation": "votre licence ne supporte pas les groupes ldap"
+    "translation": "Votre licence ne supporte pas les comptes invités"
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
-    "translation": "Unable to create the user, invalid invitation."
+    "translation": "Impossible de créer l'utilisateur, invitation invalide"
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2440,7 +2444,7 @@
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": "Unable to convert the user to guest because is already a guest"
+    "translation": "Impossible de convertir l'utilisateur en utilisateur invité, car il est déjà un utilisateur invité."
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
@@ -2484,11 +2488,11 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Les comptes invités sont désactivés"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
-    "translation": "votre licence ne supporte pas les groupes ldap"
+    "translation": "Votre licence ne supporte pas les comptes invités"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2504,7 +2508,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Spécifiez une adresse e­­-mail, un nom d'utilisateur et/ou un mot de passe valide, ou connectez-vous à l'aide d'une autre méthode d'authentification.\n"
+    "translation": "Spécifiez une adresse e­­-mail, un nom d'utilisateur et/ou un mot de passe valide, ou connectez-vous à l'aide d'une autre méthode d'authentification."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
@@ -2544,7 +2548,7 @@
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "Unable to convert the guest to regular user because is not a guest"
+    "translation": "Impossible de convertir l'utilisateur en utilisateur standard, car il n'est pas un utilisateur invité."
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2664,7 +2668,7 @@
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "Votre adresse e-mail ne correspond pas à un domaine valide. Veuillez contacter votre administrateur ou enregistrez-vous avec une autre adresse e-mail."
+    "translation": "Votre adresse e-mail ne correspond pas à un domaine valide pour les comptes invités. Veuillez contacter votre administrateur ou enregistrez-vous avec une autre adresse e-mail."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2780,7 +2784,7 @@
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": "This is not a valid live URL"
+    "translation": "URL de production invalide"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3400,7 +3404,7 @@
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3412,7 +3416,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3424,7 +3428,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3460,7 +3464,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Les plugins ont été désactivés. Veuillez consulter vos journaux (logs) pour plus d'information."
+    "translation": "Les plugins ont été désactivés. Veuillez consulter vos journaux (logs) pour en savoir plus."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3508,19 +3512,19 @@
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Failed to create marketplace client."
+    "translation": "Impossible de créer une place de marché client."
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "Les plugins ont été désactivés. Veuillez consulter vos journaux (logs) pour plus d'information."
+    "translation": "La fonctionnalité de place de marché a été désactivée. Veuillez consulter vos journaux (logs) pour en savoir plus."
   },
   {
     "id": "app.plugin.marketplace_plugins.app_error",
-    "translation": "Failed to get plugins from the marketplace server."
+    "translation": "Impossible de récupérer les plugins du serveur de place de marché."
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Failed to marshal marketplace plugins."
+    "translation": "Impossible d'interpréter les données des plugins de la place de marché."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3604,7 +3608,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "Les jetons d'accès personnel sont désactivés sur ce serveur. Veuillez contacter votre administrateur système pour plus d'informations."
+    "translation": "Les jetons d'accès personnel sont désactivés sur ce serveur. Veuillez contacter votre administrateur système pour en savoir plus."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -4192,7 +4196,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Jeton MFA invalide"
+    "translation": "Jeton MFA invalide."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4516,15 +4520,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Le paramètre ConnectionUrl d'ElasticSearch doit être spécifié lorsque l'indexation avec ElasticSearch est activée."
+    "translation": "Le paramètre ConnectionUrl doit être spécifié lorsque l'indexation avec Elasticsearch est activée."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Le paramètre IndexingEnabled d'ElasticSearch doit être activé lorsque la propriété AutocompleteEnabled d'Elasticsearch est activée."
+    "translation": "Le paramètre IndexingEnabled doit être activé lorsque la propriété AutocompleteEnabled d'Elasticsearch est activée."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Le paramètre IndexingEnabled d'ElasticSearch doit être activé lorsque la propriété SearchEnabled d'ElasticSearch est activée."
+    "translation": "Le paramètre IndexingEnabled doit être activé lorsque la propriété SearchEnabled d'Elasticsearch est activée."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4912,11 +4916,11 @@
   },
   {
     "id": "model.guest.is_valid.channel.app_error",
-    "translation": "Id canal invalide"
+    "translation": "Canal invalide"
   },
   {
     "id": "model.guest.is_valid.channels.app_error",
-    "translation": "Id canal invalide"
+    "translation": "Canaux invalides"
   },
   {
     "id": "model.guest.is_valid.email.app_error",
@@ -4924,7 +4928,7 @@
   },
   {
     "id": "model.guest.is_valid.emails.app_error",
-    "translation": "Adresse e-mail invalide"
+    "translation": "Adresses e-mail invalides"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -5684,7 +5688,7 @@
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
-    "translation": "Impossible de récupérer le nombre de membres du canal"
+    "translation": "Impossible de récupérer le nombre de messages épinglés au canal"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
@@ -6636,7 +6640,7 @@
   },
   {
     "id": "store.sql_session.update_props.app_error",
-    "translation": "Unable to update session props"
+    "translation": "Impossible de mettre à jour les propriétés de la session"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
@@ -6696,11 +6700,11 @@
   },
   {
     "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "Impossible de compter les équipes"
+    "translation": "Impossible de compter les équipes privées"
   },
   {
     "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "Impossible de compter les équipes"
+    "translation": "Impossible de compter les équipes publiques"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -6756,6 +6760,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Impossible de trouver l'équipe existante"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Impossible de trouver l'équipe existante"
   },
   {
@@ -6928,7 +6936,7 @@
   },
   {
     "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Impossible de mettre à jour le membre du canal"
+    "translation": "Impossible de mettre à jour les canaux de l'utilisateur auxquels il appartient"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
@@ -6940,7 +6948,7 @@
   },
   {
     "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Impossible de mettre à jour le membre du canal"
+    "translation": "Impossible de mettre à jour les équipes de l'utilisateur auxquelles il appartient"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
@@ -7028,7 +7036,7 @@
   },
   {
     "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Impossible de mettre à jour le membre du canal"
+    "translation": "Impossible de mettre à jour les canaux de l'utilisateur auxquels il appartient"
   },
   {
     "id": "store.sql_user.promote_guest.commit_transaction.app_error",
@@ -7040,7 +7048,7 @@
   },
   {
     "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Impossible de mettre à jour le membre du canal"
+    "translation": "Impossible de mettre à jour les équipes de l'utilisateur auxquelles il appartient"
   },
   {
     "id": "store.sql_user.promote_guest.user_update.app_error",
@@ -7372,23 +7380,23 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Get the latest Chrome browser"
+    "translation": "Téléchargez la dernière version du navigateur Google Chrome"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Get the latest Firefox browser"
+    "translation": "Téléchargez la dernière version du navigateur Firefox"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Get the latest Safari browser"
+    "translation": "Téléchargez la dernière version du navigateur Safari"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
-    "translation": "Google Chrome 43+"
+    "translation": "Google Chrome"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.edge",
-    "translation": "Microsoft Edge 40+"
+    "translation": "Microsoft Edge"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.firefox",
@@ -7400,27 +7408,27 @@
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": "Download the App"
+    "translation": "Télécharger l'application"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "Téléchargez l'application Mattermost ou utilisez un navigateur web actuellement supporté pour une expérience utilisateur optimale."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": "Download the App"
+    "translation": "Télécharger l'application"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "Guide d'installation"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "Guide d'installation"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "En savoir plus sur les navigateurs web actuellement supportés."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -7448,23 +7456,23 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "We no longer support this browser"
+    "translation": "Ce navigateur web n'est plus supporté par Mattermost."
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "We no longer support this version of your browser"
+    "translation": "Cette version de navigateur web n'est plus supportée par Mattermost."
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
-    "translation": "Open Edge"
+    "translation": "Ouvrir Edge"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "Par défaut"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
-    "translation": "or"
+    "translation": "ou"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",

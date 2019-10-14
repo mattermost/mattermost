@@ -1875,6 +1875,10 @@
     "translation": "添加用户到团队所需的参数。"
   },
   {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "游客不能使用邀请链接加入团队。请申请使用游客邮件邀请加入团队."
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "游客帐号已停用。"
   },
@@ -6756,6 +6760,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "未找到现有的团队"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "未找到现有的团队"
   },
   {

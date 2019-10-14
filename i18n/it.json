@@ -1875,6 +1875,10 @@
     "translation": "Parametro necessario per aggiungere l'utente alla squadra."
   },
   {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Agli ospiti è impedito di accedere alle squadre seguendo un collegamento. Per favore richiedere un'email di invito alla squadra."
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Gli account ospite sono disattivati."
   },
@@ -6756,6 +6760,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Non è stato possibile trovare la squadra esistente"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Non è stato possibile trovare la squadra esistente"
   },
   {
