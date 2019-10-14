@@ -78,7 +78,7 @@ TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list $(GOFLAGS) ./...)
+TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.1.1
@@ -104,7 +104,7 @@ else
 	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
-EE_PACKAGES=$(shell $(GO) list $(GOFLAGS) ./enterprise/...)
+EE_PACKAGES=$(shell $(GO) list ./enterprise/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
