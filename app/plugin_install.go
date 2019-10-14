@@ -243,7 +243,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 	if err := a.RemoveFile(storePluginFileName); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
+	a.RemoveFile(fmt.Sprintf("%s.sig", storePluginFileName))
 	a.notifyClusterPluginEvent(
 		model.CLUSTER_EVENT_REMOVE_PLUGIN,
 		model.PluginEventData{

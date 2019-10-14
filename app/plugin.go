@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -255,7 +256,20 @@ func (a *App) SyncPlugins() *model.AppError {
 			continue
 		}
 		defer reader.Close()
-
+		var sigReader filesstore.ReadCloseSeeker
+		sigReader, appErr = a.FileReader(fmt.Sprintf("%s.sig", path))
+		if appErr != nil {
+			if *a.Config().PluginSettings.RequirePluginSignature {
+				mlog.Error("Failed to detect plugin signature in the file store.", mlog.String("bundle", path), mlog.Err(appErr))
+				continue
+			}
+		} else {
+			if err := a.VerifyPlugin(reader, sigReader); err != nil {
+				mlog.Error("Failed to verify plugin signature in the file store.", mlog.String("bundle", path), mlog.Err(err))
+				continue
+			}
+		}
+		reader.Seek(0, 0)
 		mlog.Info("Syncing plugin from file store", mlog.String("bundle", path))
 		if _, err := a.installPluginLocally(reader, true); err != nil {
 			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", path), mlog.Err(err))

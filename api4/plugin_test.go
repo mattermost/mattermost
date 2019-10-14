@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -755,6 +756,17 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		*cfg.PluginSettings.EnableUploads = true
 		*cfg.PluginSettings.EnableMarketplace = false
 	})
+	path, _ := fileutils.FindDir("tests")
+	signatureFilename := "com.mattermost.demo-plugin-0.3.0.tar.gz.sig"
+	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
+	require.Nil(t, err)
+	sigFile, err := ioutil.ReadAll(signatureFileReader)
+	require.Nil(t, err)
+	demoPluginSignature := base64.StdEncoding.EncodeToString(sigFile)
+
+	publicKeyFilename := "development-public-key.asc"
+	publicKeyFileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
+	require.Nil(t, err)
 
 	samplePlugins := []*model.MarketplacePlugin{
 		{
@@ -772,6 +784,22 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			},
 			InstalledVersion: "",
 		},
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "https://github.com/mattermost/mattermost-plugin-demo",
+				IconData:    "http://example.com/icon.svg",
+				DownloadURL: "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.3.0/com.mattermost.demo-plugin-0.3.0.tar.gz",
+				Manifest: &model.Manifest{
+					Id:               "com.mattermost.demo-plugin",
+					Name:             "Demo",
+					Description:      "This plugin demonstrates the capabilities of a Mattermost plugin.",
+					Version:          "0.3.0",
+					MinServerVersion: "5.14.0",
+				},
+				Signatures: []*model.PluginSignature{{Signature: demoPluginSignature, PublicKeyHash: "F3FACE"}},
+			},
+			InstalledVersion: "",
+		},
 	}
 	request := &model.InstallMarketplacePluginRequest{Id: "", Version: ""}
 	t.Run("marketplace disabled", func(t *testing.T) {
@@ -779,7 +807,6 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.EnableMarketplace = false
 			*cfg.PluginSettings.MarketplaceUrl = "invalid.com"
 		})
-
 		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin(request)
 		CheckNotImplementedStatus(t, resp)
 		require.Nil(t, plugin)
@@ -826,7 +853,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Nil(t, plugin)
 	})
 
-	t.Run("plugin found on the server", func(t *testing.T) {
+	t.Run("plugin not verified", func(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
 			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
@@ -841,10 +868,43 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		})
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "com.mattermost.nps", Version: "1.0.3"}
 		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, plugin)
+	})
+
+	t.Run("verify, install and remove plugin", func(t *testing.T) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[1]})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer testServer.Close()
+
+		err := th.App.AddPublicKey("pub_key", publicKeyFileReader)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "com.mattermost.demo-plugin", Version: "0.3.0"}
+		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckNoError(t, resp)
 		require.NotNil(t, plugin)
-		require.Equal(t, "com.mattermost.nps", plugin.Id)
-		require.Equal(t, "1.0.3", plugin.Version)
+		require.Equal(t, "com.mattermost.demo-plugin", plugin.Id)
+		require.Equal(t, "0.3.0", plugin.Version)
+
+		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "com.mattermost.demo-plugin.tar.gz.sig")
+		savedSigFile, err := th.App.ReadFile(filePath)
+		require.Nil(t, err)
+		require.EqualValues(t, sigFile, savedSigFile)
+
+		err = th.App.RemovePlugin(plugin.Id)
+		require.Nil(t, err)
+		exists, err := th.App.FileExists(filePath)
+		require.Nil(t, err)
+		require.False(t, exists)
 	})
 }
 

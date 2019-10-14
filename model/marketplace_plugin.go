@@ -10,12 +10,22 @@ import (
 	"strconv"
 )
 
+// PluginSignature is a public key signature of a plugin and the corresponding public key hash for use in verifying a plugin downloaded from the marketplace.
+type PluginSignature struct {
+	// Signature represents a signature of a plugin saved in base64 encoding.
+	Signature string `json:"signature"`
+	// PublicKeyHash represents first arbitrary number of symbols of the
+	// public key fingerprint, hashed using SHA-1 algorithm.
+	PublicKeyHash string `json:"public_key_hash"`
+}
+
 // BaseMarketplacePlugin is a Mattermost plugin received from the marketplace server.
 type BaseMarketplacePlugin struct {
-	HomepageURL string    `json:"homepage_url"`
-	DownloadURL string    `json:"download_url"`
-	IconData    string    `json:"icon_data"`
-	Manifest    *Manifest `json:"manifest"`
+	HomepageURL string             `json:"homepage_url"`
+	DownloadURL string             `json:"download_url"`
+	IconData    string             `json:"icon_data"`
+	Manifest    *Manifest          `json:"manifest"`
+	Signatures  []*PluginSignature `json:"signatures"`
 }
 
 // MarketplacePlugin is a state aware marketplace plugin.

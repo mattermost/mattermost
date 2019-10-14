@@ -7,10 +7,13 @@ package api4
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -107,7 +110,13 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	force := r.URL.Query().Get("force") == "true"
 	downloadUrl := r.URL.Query().Get("plugin_download_url")
 
-	installFromUrl(c, w, downloadUrl, force)
+	pluginFileBytes, err := downloadFromUrl(c, downloadUrl)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	installPlugin(c, w, pluginFileBytes, force)
 }
 
 func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -137,7 +146,25 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	installFromUrl(c, w, plugin.DownloadURL, true)
+	pluginFileBytes, appErr := downloadFromUrl(c, plugin.DownloadURL)
+	if err != nil {
+		c.Err = appErr
+		return
+	}
+	signature, appErr := verifyPlugin(c, plugin, pluginFileBytes)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// save the plugin signature to the store
+	filePath := filepath.Join(*c.App.Config().PluginSettings.Directory, fmt.Sprintf("%s.tar.gz.sig", plugin.Manifest.Id))
+	if _, appErr := c.App.WriteFile(bytes.NewReader(signature), filePath); appErr != nil {
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	installPlugin(c, w, pluginFileBytes, true)
 }
 
 func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -338,20 +365,17 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 	}, nil
 }
 
-func installFromUrl(c *Context, w http.ResponseWriter, downloadUrl string, force bool) {
+func downloadFromUrl(c *Context, downloadUrl string) ([]byte, *model.AppError) {
 	if !model.IsValidHttpUrl(downloadUrl) {
-		c.Err = model.NewAppError("installFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-		return
+		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	u, err := url.ParseRequestURI(downloadUrl)
 	if err != nil {
-		c.Err = model.NewAppError("installFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-		return
+		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
 	}
 	if !*c.App.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
-		c.Err = model.NewAppError("installFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
-		return
+		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	client := c.App.HTTPService.MakeClient(true)
@@ -359,18 +383,42 @@ func installFromUrl(c *Context, w http.ResponseWriter, downloadUrl string, force
 
 	resp, err := client.Get(downloadUrl)
 	if err != nil {
-		c.Err = model.NewAppError("installFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
-		return
+		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer resp.Body.Close()
 
 	fileBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		c.Err = model.NewAppError("installFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
-		return
+		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	manifest, appErr := c.App.InstallPlugin(bytes.NewReader(fileBytes), force)
+	return fileBytes, nil
+}
+
+func verifyPlugin(c *Context, plugin *model.BaseMarketplacePlugin, pluginFileBytes []byte) ([]byte, *model.AppError) {
+	verified := false
+	verifiedSignature := []byte{}
+	for _, signature := range plugin.Signatures {
+		signatureBytes, err := base64.StdEncoding.DecodeString(signature.Signature)
+		if err != nil {
+			mlog.Error("Can't decode signature", mlog.String("public key hash", signature.PublicKeyHash), mlog.Err(err))
+		}
+		appErr := c.App.VerifyPlugin(bytes.NewReader(pluginFileBytes), bytes.NewReader(signatureBytes))
+		if appErr == nil {
+			verified = true
+			verifiedSignature = signatureBytes
+			break
+		}
+		mlog.Debug("Plugin signature not verified", mlog.String("public key hash", signature.PublicKeyHash), mlog.Err(appErr))
+	}
+	if !verified {
+		return nil, model.NewAppError("verifyPlugin", "api.plugin.install.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return verifiedSignature, nil
+}
+
+func installPlugin(c *Context, w http.ResponseWriter, pluginFileBytes []byte, force bool) {
+	manifest, appErr := c.App.InstallPlugin(bytes.NewReader(pluginFileBytes), force)
 	if appErr != nil {
 		c.Err = appErr
 		return
