@@ -47,7 +47,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	postList, err := ss.Post().Get(reaction1.PostId, false)
 	require.Nil(t, err)
 
-	assert.Equal(t, postList.Posts[post.Id].HasReactions, true, "should've set HasReactions = true on post")
+	assert.True(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = true on post")
 	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should've marked post as updated when HasReactions changed")
 
 	if postList.Posts[post.Id].HasReactions && postList.Posts[post.Id].UpdateAt != firstUpdateAt {
@@ -55,7 +55,6 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	}
 
 	_, err = ss.Reaction().Save(reaction1)
-	t.Log(err)
 	assert.Nil(t, err, "should've allowed saving a duplicate reaction")
 
 	// different user
@@ -128,12 +127,12 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 	reactions, rErr := ss.Reaction().GetForPost(post.Id, false)
 	require.Nil(t, rErr)
 
-	assert.Equal(t, len(reactions), 0, "should've deleted reaction")
+	assert.Len(t, reactions, 0, "should've deleted reaction")
 
 	postList, err := ss.Post().Get(post.Id, false)
 	require.Nil(t, err)
 
-	assert.Equal(t, postList.Posts[post.Id].HasReactions, false, "should've set HasReactions = false on post")
+	assert.False(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = false on post")
 	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should mark post as updated after deleting reactions")
 }
 
@@ -173,7 +172,7 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 
 	returned, err := ss.Reaction().GetForPost(postId, false)
 	require.Nil(t, err)
-	require.Equal(t, len(returned), 3, "should've returned 3 reactions")
+	require.Len(t, returned, 3, "should've returned 3 reactions")
 
 	for _, reaction := range reactions {
 		found := false
@@ -196,7 +195,7 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 	// Should return cached item
 	returned, err = ss.Reaction().GetForPost(postId, true)
 	require.Nil(t, err)
-	require.Equal(t, len(returned), 3, "should've returned 3 reactions")
+	require.Len(t, returned, 3, "should've returned 3 reactions")
 
 	for _, reaction := range reactions {
 		found := false
@@ -278,7 +277,7 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	// check that the reactions were deleted
 	returned, err := ss.Reaction().GetForPost(post.Id, false)
 	require.Nil(t, err)
-	require.Equal(t, len(returned), 1, "should've only removed reactions with emoji name")
+	require.Len(t, returned, 1, "should've only removed reactions with emoji name")
 
 	for _, reaction := range returned {
 		assert.NotEqual(t, reaction.EmojiName, "smile", "should've removed reaction with emoji name")
@@ -286,11 +285,11 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 
 	returned, err = ss.Reaction().GetForPost(post2.Id, false)
 	require.Nil(t, err)
-	assert.Equal(t, len(returned), 1, "should've only removed reactions with emoji name")
+	assert.Len(t, returned, 1, "should've only removed reactions with emoji name")
 
 	returned, err = ss.Reaction().GetForPost(post3.Id, false)
 	require.Nil(t, err)
-	assert.Equal(t, len(returned), 0, "should've only removed reactions with emoji name")
+	assert.Len(t, returned, 0, "should've only removed reactions with emoji name")
 
 	// check that the posts are updated
 	postList, err := ss.Post().Get(post.Id, false)
@@ -351,7 +350,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 	returned, err := ss.Reaction().GetForPost(post.Id, false)
 	require.Nil(t, err)
-	require.Equal(t, len(returned), 4, "expected 4 reactions")
+	require.Len(t, returned, 4, "expected 4 reactions")
 
 	_, err = ss.Reaction().PermanentDeleteBatch(1800, 1000)
 	require.Nil(t, err)
@@ -362,7 +361,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 	returned, err = ss.Reaction().GetForPost(post.Id, false)
 	require.Nil(t, err)
-	require.Equal(t, len(returned), 1, "expected 1 reaction. Got: %v", len(returned))
+	require.Len(t, returned, 1, "expected 1 reaction. Got: %v", len(returned))
 
 }
 
@@ -415,7 +414,7 @@ func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
 	postIds := []string{postId, post2Id, post3Id}
 	returned, err := ss.Reaction().BulkGetForPosts(postIds)
 	require.Nil(t, err)
-	require.Equal(t, len(returned), 5, "should've returned 5 reactions")
+	require.Len(t, returned, 5, "should've returned 5 reactions")
 
 	post4IdFound := false
 	for _, reaction := range returned {
