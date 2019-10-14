@@ -60,5 +60,5 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 
 	err = cws.TryUse(h1.Id, 1)
 	assert.NotNil(t, err, "Should be able to use webhook once")
-	assert.Equal(t, err.StatusCode, http.StatusNotFound, "Should be able to use webhook once")
+	assert.Equal(t, err.StatusCode, http.StatusBadRequest, "Should be able to use webhook once")
 }
