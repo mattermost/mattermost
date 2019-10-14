@@ -11,10 +11,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/benburkert/openpgp"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 )
 
