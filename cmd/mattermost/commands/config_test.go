@@ -453,9 +453,7 @@ func TestUpdateMap(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			err := UpdateMap(configMap, test.configSettings, test.newVal)
 
-			if err != nil {
-				t.Fatal("Wasn't expecting an error: ", err)
-			}
+			require.Nil(t, err, "Wasn't expecting an error")
 
 			if !contains(configMap, test.expected, test.configSettings) {
 				t.Error("update didn't happen")

@@ -22,9 +22,7 @@ func TestOAuthAppJson(t *testing.T) {
 	json := a1.ToJson()
 	ra1 := OAuthAppFromJson(strings.NewReader(json))
 
-	if a1.Id != ra1.Id {
-		t.Fatal("ids did not match")
-	}
+	require.Equal(t, a1.Id, ra1.Id, "ids did not match")
 }
 
 func TestOAuthAppPreSave(t *testing.T) {
