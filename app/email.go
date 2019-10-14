@@ -444,10 +444,6 @@ func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", bodyPage.Props["Link"].(string)))
 			}
 
-			if err := a.SendMail(invite, subject, bodyPage.Render()); err != nil {
-				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
-			}
-
 			embeddedFiles := make(map[string]io.Reader)
 			if senderProfileImage != nil {
 				embeddedFiles = map[string]io.Reader{
