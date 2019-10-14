@@ -22,7 +22,6 @@ func TestReactionStore(t *testing.T, ss store.Store) {
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
-
 	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
@@ -100,7 +99,6 @@ func testReactionSave(t *testing.T, ss store.Store) {
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
-
 	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
@@ -137,7 +135,6 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 }
 
 func testReactionGetForPost(t *testing.T, ss store.Store) {
-
 	postId := model.NewId()
 
 	userId := model.NewId()
@@ -217,7 +214,6 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 }
 
 func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
-
 	emojiToDelete := model.NewId()
 
 	post, err1 := ss.Post().Save(&model.Post{
@@ -362,7 +358,6 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	returned, err = ss.Reaction().GetForPost(post.Id, false)
 	require.Nil(t, err)
 	require.Len(t, returned, 1, "expected 1 reaction. Got: %v", len(returned))
-
 }
 
 func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
