@@ -32,7 +32,7 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	assert.Equal(t, *r1, *h1, "invalid returned webhook")
 
-	_, err = cws.Get("123");
+	_, err = cws.Get("123")
 	assert.Equal(t, err.StatusCode, http.StatusNotFound, "Should have set the status as not found for missing id")
 
 	h2 := &model.CommandWebhook{}
