@@ -250,9 +250,7 @@ func TestCommandWebhooks(t *testing.T) {
 	}
 
 	hook, appErr := th.App.CreateCommandWebhook(cmd.Id, args)
-	if appErr != nil {
-		t.Fatal(appErr)
-	}
+	assert.Error(t, appErr, "error creating command web hook")
 
 	resp, err := http.Post(ApiClient.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
 	require.NoError(t, err)
@@ -263,12 +261,11 @@ func TestCommandWebhooks(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	for i := 0; i < 5; i++ {
-		if resp, appErr := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); err != nil || resp.StatusCode != http.StatusOK {
-			t.Fatal(appErr)
-		}
+		resp, appErr := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+		assert.NoErrorf(t, appErr, "hook #%d failed", i)
+		assert.Equalf(t, http.StatusOK, resp.StatusCode, "hook #%d failed", i)
 	}
 
-	if resp, _ := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("expected error for sixth usage")
-	}
+	resp, _ = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+	assert.Equalf(t, http.StatusBadRequest, resp.StatusCode, "expected error for sixth usage")
 }
