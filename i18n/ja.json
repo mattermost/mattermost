@@ -1875,6 +1875,10 @@
     "translation": "チームにユーザーを追加するにはパラメーターが必要です。"
   },
   {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "ゲストアカウントは無効化されています。"
   },
@@ -6756,6 +6760,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "既存のチームが見付かりませんでした"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "既存のチームが見付かりませんでした"
   },
   {

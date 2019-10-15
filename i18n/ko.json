@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
-    "translation": "%v joined the channel as guest."
+    "translation": "%v님이 게스트로 채널에 참여하였습니다."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "The default channel cannot be made private."
+    "translation": "첫번째 채널은 비공개로 생성할 수 없습니다."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -1873,6 +1873,10 @@
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "사용자를 팀에 추가하기 위해서는 매개변수가 필요합니다."
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -6756,6 +6760,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
   {
