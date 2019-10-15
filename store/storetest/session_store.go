@@ -224,7 +224,7 @@ func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
 
 	session, err := ss.Session().Get(s1.Id)
 	require.Nil(t, err)
-	require.Equal(t, session.LastActivityAt, 1234567890, "LastActivityAt not updated correctly")
+	require.EqualValues(t, session.LastActivityAt, 1234567890, "LastActivityAt not updated correctly")
 }
 
 func testSessionCount(t *testing.T, ss store.Store) {
