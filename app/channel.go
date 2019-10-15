@@ -868,14 +868,14 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	now := model.GetMillis()
 	for _, hook := range incomingHooks {
 		if err := a.Srv.Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
-			mlog.Error("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id))
+			mlog.Error("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 		a.InvalidateCacheForWebhook(hook.Id)
 	}
 
 	for _, hook := range outgoingHooks {
 		if err := a.Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); err != nil {
-			mlog.Error("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id))
+			mlog.Error("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 	}
 
