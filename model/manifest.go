@@ -130,7 +130,7 @@ type Manifest struct {
 	// A description of what your plugin is and does.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 
-	// A relative file path in the bundle that points to the plugins svg icon.
+	// A relative file path in the bundle that points to the plugins svg icon for use with the Plugin Marketplace.
 	// This should be relative to the root of your bundle and the location of the manifest file.
 	IconPath string `json:"icon_path,omitempty" yaml:"icon_path,omitempty"`
 
