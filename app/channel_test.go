@@ -1001,21 +1001,6 @@ func TestSearchChannelsForUser(t *testing.T) {
 	})
 }
 
-func TestGetNumberOfChannelsOnTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.App.DeleteChannel(th.BasicChannel, th.BasicUser.Id)
-
-	count, err := th.App.GetNumberOfChannelsOnTeam(th.BasicTeam.Id, true)
-	require.Nil(t, err)
-	assert.Equal(t, 3, count)
-
-	count, err = th.App.GetNumberOfChannelsOnTeam(th.BasicTeam.Id, false)
-	require.Nil(t, err)
-	assert.Equal(t, 2, count)
-}
-
 func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
