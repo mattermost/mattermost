@@ -29,7 +29,7 @@ func TestMailConnectionFromConfig(t *testing.T) {
 
 	cfg := fs.Get()
 	conn, err := ConnectToSMTPServer(cfg)
-	require.Nil(t, err, "Should connect to the SMTP Server")
+	require.Nil(t, err, "Should connect to the SMTP Server %v", err)
 
 	_, err = NewSMTPClient(conn, cfg)
 
@@ -61,7 +61,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 
 	require.Nil(t, err, "Should connect to the SMTP Server")
 
-	_, err = NewSMTPClientAdvanced(
+	_, err2 := NewSMTPClientAdvanced(
 		conn,
 		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
 		&SmtpConnectionInfo{
@@ -76,9 +76,9 @@ func TestMailConnectionAdvanced(t *testing.T) {
 		},
 	)
 
-	require.Nil(t, err, "Should get new SMTP client")
+	require.Nil(t, err2, "Should get new SMTP client")
 
-	_, err = ConnectToSMTPServerAdvanced(
+	_, err3 := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
@@ -87,7 +87,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpPort:             "553",
 		},
 	)
-	require.NotNil(t, err, "Should not connect to the SMTP Server")
+	require.NotNil(t, err3, "Should not connect to the SMTP Server")
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
@@ -105,18 +105,18 @@ func TestSendMailUsingConfig(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
-	err = SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true)
-	require.Nil(t, err, "Should connect to the SMTP Server")
+	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true)
+	require.Nil(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
 	var resultsMailbox JSONMessageHeaderInbucket
-	err = RetryInbucket(5, func() error {
+	err3 := RetryInbucket(5, func() error {
 		var err error
 		resultsMailbox, err = GetMailBox(emailTo)
 		return err
 	})
-	if err != nil {
-		t.Log(err)
+	if err3 != nil {
+		t.Log(err3)
 		t.Log("No email was received, maybe due load on the server. Skipping this verification")
 	} else {
 		if len(resultsMailbox) > 0 {
