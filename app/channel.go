@@ -95,7 +95,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 
 		_, err = a.Srv.Store.Channel().SaveMember(cm)
 		if histErr := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", histErr))
+			mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(histErr))
 		}
 
 		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
@@ -126,21 +126,21 @@ func (a *App) postJoinMessageForDefaultChannel(user *model.User, requestor *mode
 	if channel.Name == model.DEFAULT_CHANNEL {
 		if requestor == nil {
 			if err := a.postJoinTeamMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		} else {
 			if err := a.postAddToTeamMessage(requestor, user, channel, ""); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		}
 	} else {
 		if requestor == nil {
 			if err := a.postJoinChannelMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		} else {
 			if err := a.PostAddToChannelMessage(requestor, user, channel, ""); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		}
 	}
@@ -247,7 +247,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			return nil, err
 		}
 		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
+			mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(err))
 		}
 
 		a.InvalidateCacheForUser(channel.CreatorId)
@@ -366,10 +366,10 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 	}
 
 	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
+		mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(err))
 	}
 	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
+		mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(err))
 	}
 
 	return channel, nil
@@ -399,7 +399,7 @@ func (a *App) WaitForChannelMembership(channelId string, userId string) {
 		}
 	}
 
-	mlog.Error(fmt.Sprintf("WaitForChannelMembership giving up channelId=%v userId=%v", channelId, userId), mlog.String("user_id", userId))
+	mlog.Error("WaitForChannelMembership giving up", mlog.String("channel_id", channelId), mlog.String("user_id", userId))
 }
 
 func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
@@ -477,7 +477,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 			return nil, err
 		}
 		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
+			mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(err))
 		}
 	}
 
@@ -861,21 +861,21 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 		}
 
 		if _, err := a.CreatePost(post, channel, false); err != nil {
-			mlog.Error(fmt.Sprintf("Failed to post archive message %v", err))
+			mlog.Error("Failed to post archive message", mlog.Err(err))
 		}
 	}
 
 	now := model.GetMillis()
 	for _, hook := range incomingHooks {
 		if err := a.Srv.Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
-			mlog.Error(fmt.Sprintf("Encountered error deleting incoming webhook, id=%v", hook.Id))
+			mlog.Error("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 		a.InvalidateCacheForWebhook(hook.Id)
 	}
 
 	for _, hook := range outgoingHooks {
 		if err := a.Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); err != nil {
-			mlog.Error(fmt.Sprintf("Encountered error deleting outgoing webhook, id=%v", hook.Id))
+			mlog.Error("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 	}
 
@@ -926,13 +926,13 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		SchemeUser:  !user.IsGuest(),
 	}
 	if _, err = a.Srv.Store.Channel().SaveMember(newMember); err != nil {
-		mlog.Error(fmt.Sprintf("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, err), mlog.String("user_id", user.Id))
+		mlog.Error("Failed to add member", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusInternalServerError)
 	}
 	a.WaitForChannelMembership(channel.Id, user.Id)
 
 	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
+		mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(err))
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1918,13 +1918,13 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 		for _, channelId := range channelIds {
 			channel, errCh := a.Srv.Store.Channel().Get(channelId, true)
 			if errCh != nil {
-				mlog.Warn(fmt.Sprintf("Failed to get channel %v", errCh))
+				mlog.Warn("Failed to get channel", mlog.Err(errCh))
 				continue
 			}
 
 			member, err := a.Srv.Store.Channel().GetMember(channelId, userId)
 			if err != nil {
-				mlog.Warn(fmt.Sprintf("Failed to get membership %v", err))
+				mlog.Warn("Failed to get membership", mlog.Err(err))
 				continue
 			}
 
