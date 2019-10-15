@@ -5,6 +5,7 @@ package api4
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -671,6 +672,10 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 		t.Log("expected: " + errorId)
 		t.Fatal("incorrect error message")
 	}
+}
+
+func CheckStartsWith(t *testing.T, value, prefix, message string) {
+	require.True(t, strings.HasPrefix(value, prefix), message, value)
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
