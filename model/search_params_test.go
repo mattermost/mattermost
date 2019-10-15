@@ -12,77 +12,103 @@ import (
 )
 
 func TestSplitWords(t *testing.T) {
-	if words := splitWords(""); len(words) != 0 {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words := splitWords("")
+	require.Equal(t, 0, len(words))
 
-	if words := splitWords("   "); len(words) != 0 {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("   ")
+	require.Equal(t, 0, len(words))
 
-	if words := splitWords("word"); len(words) != 1 || words[0] != "word" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("word")
+	require.Equal(t, 1, len(words))
+	require.Equal(t, "word", words[0])
 
-	if words := splitWords("wo\"rd"); len(words) != 2 || words[0] != "wo" || words[1] != "\"rd" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("wo\"rd")
+	require.Equal(t, 2, len(words))
+	require.Equal(t, "wo", words[0])
+	require.Equal(t, "\"rd", words[1])
 
-	if words := splitWords("wo\"rd\""); len(words) != 2 || words[0] != "wo" || words[1] != "\"rd\"" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("wo\"rd\"")
+	require.Equal(t, 2, len(words))
+	require.Equal(t, "wo", words[0])
+	require.Equal(t, "\"rd\"", words[1])
 
-	if words := splitWords("wo-\"rd\""); len(words) != 2 || words[0] != "wo" || words[1] != "-\"rd\"" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("wo-\"rd\"")
+	require.Equal(t, 2, len(words))
+	require.Equal(t, "wo", words[0])
+	require.Equal(t, "-\"rd\"", words[1])
 
-	if words := splitWords("word1 word2 word3"); len(words) != 3 || words[0] != "word1" || words[1] != "word2" || words[2] != "word3" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("word1 word2 word3")
+	require.Equal(t, 3, len(words))
+	require.Equal(t, "word1", words[0])
+	require.Equal(t, "word2", words[1])
+	require.Equal(t, "word3", words[2])
 
-	if words := splitWords("word1 \"word2 word3"); len(words) != 3 || words[0] != "word1" || words[1] != "\"word2" || words[2] != "word3" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("word1 \"word2 word3")
+	require.Equal(t, 3, len(words))
+	require.Equal(t, "word1", words[0])
+	require.Equal(t, "\"word2", words[1])
+	require.Equal(t, "word3", words[2])
 
-	if words := splitWords("\"word1 word2 word3"); len(words) != 3 || words[0] != "\"word1" || words[1] != "word2" || words[2] != "word3" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("\"word1 word2 word3")
+	require.Equal(t, 3, len(words))
+	require.Equal(t, "\"word1", words[0])
+	require.Equal(t, "word2", words[1])
+	require.Equal(t, "word3", words[2])
 
-	if words := splitWords("word1 word2 word3\""); len(words) != 4 || words[0] != "word1" || words[1] != "word2" || words[2] != "word3" || words[3] != "\"" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("word1 word2 word3\"")
+	require.Equal(t, 4, len(words))
+	require.Equal(t, "word1", words[0])
+	require.Equal(t, "word2", words[1])
+	require.Equal(t, "word3", words[2])
+	require.Equal(t, "\"", words[3])
 
-	if words := splitWords("word1 #word2 ##word3"); len(words) != 3 || words[0] != "word1" || words[1] != "#word2" || words[2] != "##word3" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("word1 #word2 ##word3")
+	require.Equal(t, 3, len(words))
+	require.Equal(t, "word1", words[0])
+	require.Equal(t, "#word2", words[1])
+	require.Equal(t, "##word3", words[2])
 
-	if words := splitWords("    word1 word2     word3  "); len(words) != 3 || words[0] != "word1" || words[1] != "word2" || words[2] != "word3" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("    word1 word2     word3  ")
+	require.Equal(t, 3, len(words))
+	require.Equal(t, "word1", words[0])
+	require.Equal(t, "word2", words[1])
+	require.Equal(t, "word3", words[2])
 
-	if words := splitWords("\"quoted\""); len(words) != 1 || words[0] != "\"quoted\"" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("\"quoted\"")
+	require.Equal(t, 1, len(words))
+	require.Equal(t, "\"quoted\"", words[0])
 
-	if words := splitWords("-\"quoted\""); len(words) != 1 || words[0] != "-\"quoted\"" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("-\"quoted\"")
+	require.Equal(t, 1, len(words))
+	require.Equal(t, "-\"quoted\"", words[0])
 
-	if words := splitWords("\"quoted multiple words\""); len(words) != 1 || words[0] != "\"quoted multiple words\"" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("\"quoted multiple words\"")
+	require.Equal(t, 1, len(words))
+	require.Equal(t, "\"quoted multiple words\"", words[0])
 
-	if words := splitWords("some stuff \"quoted multiple words\" more stuff"); len(words) != 5 || words[0] != "some" || words[1] != "stuff" || words[2] != "\"quoted multiple words\"" || words[3] != "more" || words[4] != "stuff" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("some stuff \"quoted multiple words\" more stuff")
+	require.Equal(t, 5, len(words))
+	require.Equal(t, "some", words[0])
+	require.Equal(t, "stuff", words[1])
+	require.Equal(t, "\"quoted multiple words\"", words[2])
+	require.Equal(t, "more", words[3])
+	require.Equal(t, "stuff", words[4])
 
-	if words := splitWords("some stuff -\"quoted multiple words\" more stuff"); len(words) != 5 || words[0] != "some" || words[1] != "stuff" || words[2] != "-\"quoted multiple words\"" || words[3] != "more" || words[4] != "stuff" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("some stuff -\"quoted multiple words\" more stuff")
+	require.Equal(t, 5, len(words))
+	require.Equal(t, "some", words[0])
+	require.Equal(t, "stuff", words[1])
+	require.Equal(t, "-\"quoted multiple words\"", words[2])
+	require.Equal(t, "more", words[3])
+	require.Equal(t, "stuff", words[4])
 
-	if words := splitWords("some \"stuff\" \"quoted multiple words\" #some \"more stuff\""); len(words) != 5 || words[0] != "some" || words[1] != "\"stuff\"" || words[2] != "\"quoted multiple words\"" || words[3] != "#some" || words[4] != "\"more stuff\"" {
-		t.Fatalf("Incorrect output splitWords: %v", words)
-	}
+	words = splitWords("some \"stuff\" \"quoted multiple words\" #some \"more stuff\"")
+	require.Equal(t, 5, len(words))
+	require.Equal(t, "some", words[0])
+	require.Equal(t, "\"stuff\"", words[1])
+	require.Equal(t, "\"quoted multiple words\"", words[2])
+	require.Equal(t, "#some", words[3])
+	require.Equal(t, "\"more stuff\"", words[4])
 }
 
 func TestParseSearchFlags(t *testing.T) {

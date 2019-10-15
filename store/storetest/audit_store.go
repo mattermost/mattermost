@@ -45,9 +45,7 @@ func testAuditStore(t *testing.T, ss store.Store) {
 
 	audits, err = ss.Audit().Get("", 0, 100)
 	require.Nil(t, err)
-	if len(audits) < 4 {
-		t.Fatal("Failed to save and retrieve 4 audit logs")
-	}
+	require.Len(t, audits, 4, "Failed to save and retrieve 4 audit logs")
 
 	require.Nil(t, ss.Audit().PermanentDeleteByUser(audit.UserId))
 }
