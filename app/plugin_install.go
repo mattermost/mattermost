@@ -251,6 +251,10 @@ func (a *App) removePlugin(id string) *model.AppError {
 		},
 	)
 
+	if err := a.notifyPluginStatusesChanged(); err != nil {
+		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
+	}
+
 	return nil
 }
 

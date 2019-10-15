@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -20,7 +19,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_15_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_16_0
 	VERSION_5_16_0           = "5.16.0"
 	VERSION_5_15_0           = "5.15.0"
 	VERSION_5_14_0           = "5.14.0"
@@ -106,7 +105,7 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 		}
 
 		currentSchemaVersion = &currentModelVersion
-		mlog.Info(fmt.Sprintf("The database schema has been set to version %s", *currentSchemaVersion))
+		mlog.Info("The database schema version has been set", mlog.String("version", currentSchemaVersion.String()))
 		return nil
 	}
 
@@ -119,7 +118,7 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	if currentSchemaVersion.GTE(nextUnsupportedMajorVersion) {
 		return errors.Errorf("Database schema version %s is not supported. This Mattermost server supports only >=%s, <%s. Please upgrade to at least version %s before continuing.", *currentSchemaVersion, currentModelVersion, nextUnsupportedMajorVersion, nextUnsupportedMajorVersion)
 	} else if currentSchemaVersion.GT(currentModelVersion) {
-		mlog.Warn(fmt.Sprintf("The database schema with version %s is newer than Mattermost version %s.", currentSchemaVersion, currentModelVersion))
+		mlog.Warn("The database schema version and model versions do not match", mlog.String("schema_version", currentSchemaVersion.String()), mlog.String("model_version", currentModelVersion.String()))
 	}
 
 	// Otherwise, apply any necessary migrations. Note that these methods currently invoke
@@ -176,12 +175,12 @@ func saveSchemaVersion(sqlStore SqlStore, version string) {
 		os.Exit(EXIT_VERSION_SAVE)
 	}
 
-	mlog.Warn(fmt.Sprintf("The database schema has been upgraded to version %v", version))
+	mlog.Warn("The database schema version has been upgraded", mlog.String("version", version))
 }
 
 func shouldPerformUpgrade(sqlStore SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
 	if sqlStore.GetCurrentSchemaVersion() == currentSchemaVersion {
-		mlog.Warn(fmt.Sprintf("Attempting to upgrade the database schema version from %s to %v", currentSchemaVersion, expectedSchemaVersion))
+		mlog.Warn("Attempting to upgrade the database schema version", mlog.String("current_version", currentSchemaVersion), mlog.String("new_version", expectedSchemaVersion))
 
 		return true
 	}
@@ -205,7 +204,7 @@ func UpgradeDatabaseToVersion32(sqlStore SqlStore) {
 }
 
 func themeMigrationFailed(err error) {
-	mlog.Critical(fmt.Sprintf("Failed to migrate User.ThemeProps to Preferences table %v", err))
+	mlog.Critical("Failed to migrate User.ThemeProps to Preferences table", mlog.Err(err))
 	time.Sleep(time.Second)
 	os.Exit(EXIT_THEME_MIGRATION)
 }
@@ -479,7 +478,7 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 		defaultTimezone := timezones.DefaultUserTimezone()
 		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
 		if err != nil {
-			mlog.Critical(fmt.Sprint(err))
+			mlog.Critical(err.Error())
 		}
 		sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
 		sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
@@ -673,12 +672,12 @@ func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
 		// Enforce all teams have an InviteID set
 		var teams []*model.Team
 		if _, err := sqlStore.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''"); err != nil {
-			mlog.Error("Error fetching Teams without InviteID: " + err.Error())
+			mlog.Error("Error fetching Teams without InviteID", mlog.Err(err))
 		} else {
 			for _, team := range teams {
 				team.InviteId = model.NewId()
 				if _, err := sqlStore.Team().Update(team); err != nil {
-					mlog.Error("Error updating Team InviteIDs: " + err.Error())
+					mlog.Error("Error updating Team InviteIDs", mlog.String("team_id", team.Id), mlog.Err(err))
 				}
 			}
 		}
@@ -714,17 +713,6 @@ func UpgradeDatabaseToVersion513(sqlStore SqlStore) {
 
 func UpgradeDatabaseToVersion514(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_13_0, VERSION_5_14_0) {
-		sqlStore.AlterColumnTypeIfExists("TeamMembers", "SchemeGuest", "tinyint(4)", "boolean")
-		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "SchemeGuest", "tinyint(4)", "boolean")
-		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultTeamGuestRole", "varchar(64)", "VARCHAR(64)")
-		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultChannelGuestRole", "varchar(64)", "VARCHAR(64)")
-		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
-		sqlStore.AlterColumnTypeIfExists("Channels", "GroupConstrained", "tinyint(1)", "boolean")
-		sqlStore.AlterColumnTypeIfExists("Teams", "GroupConstrained", "tinyint(1)", "boolean")
-
-		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
-		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
-
 		saveSchemaVersion(sqlStore, VERSION_5_14_0)
 	}
 }
@@ -736,15 +724,28 @@ func UpgradeDatabaseToVersion515(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion516(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.16.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_15_0, VERSION_5_16_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_15_0, VERSION_5_16_0) {
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			sqlStore.GetMaster().Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
+		} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
+		}
+		saveSchemaVersion(sqlStore, VERSION_5_16_0)
 
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		sqlStore.GetMaster().Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
-	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
+		// Fix mismatches between the canonical and migrated schemas.
+		sqlStore.AlterColumnTypeIfExists("TeamMembers", "SchemeGuest", "tinyint(4)", "boolean")
+		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultTeamGuestRole", "varchar(64)", "VARCHAR(64)")
+		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultChannelGuestRole", "varchar(64)", "VARCHAR(64)")
+		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
+		sqlStore.AlterColumnTypeIfExists("Channels", "GroupConstrained", "tinyint(1)", "boolean")
+		sqlStore.AlterColumnTypeIfExists("Teams", "GroupConstrained", "tinyint(1)", "boolean")
+
+		// One known mismatch remains: ChannelMembers.SchemeGuest. The requisite migration
+		// is left here for posterity, but we're avoiding fix this given the corresponding
+		// table rewrite in most MySQL and Postgres instances.
+		// sqlStore.AlterColumnTypeIfExists("ChannelMembers", "SchemeGuest", "tinyint(4)", "boolean")
+
+		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
+		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
 	}
-
-	// 	saveSchemaVersion(sqlStore, VERSION_5_16_0)
-	// }
 }
