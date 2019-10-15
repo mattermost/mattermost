@@ -89,9 +89,6 @@ var ConfigResetCmd = &cobra.Command{
 
 func init() {
 	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
-	MigrateConfigCmd.Flags().String("from", "", "Config from which to migrate")
-	MigrateConfigCmd.Flags().String("to", "", "Config to which to migrate")
-	MigrateConfigCmd.MarkFlagRequired("to")
 	ConfigResetCmd.Flags().Bool("confirm", false, "Confirm you really want to reset all configuration settings to its default value")
 	ConfigShowCmd.Flags().Bool("json", false, "Output the configuration as JSON.")
 
