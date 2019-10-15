@@ -1209,7 +1209,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
 	mentionedByThread := make(map[string]bool)
 
-	thread, err := a.GetPostThread(post.Id)
+	thread, err := a.GetPostThread(post.Id, false)
 	if err != nil {
 		return 0, err
 	}
