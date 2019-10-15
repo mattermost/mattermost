@@ -205,7 +205,7 @@ jobs:
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
             echo "Generating diff"
-            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (cat diff.txt && exit 1)
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
           no_output_timeout: 1h
       - run:
           name: MySQL schema migration validation
@@ -247,7 +247,7 @@ jobs:
             docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
 
             echo "Generating diff"
-            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (cat diff.txt && exit 1)
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
           no_output_timeout: 1h
   upload-s3-sha:
     docker:
