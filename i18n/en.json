@@ -388,6 +388,10 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
   },
   {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "The default channel cannot be made private."
+  },
+  {
     "id": "api.channel.update_channel_scheme.license.error",
     "translation": "Your license does not support updating a channel's scheme"
   },
@@ -1869,6 +1873,10 @@
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parameter required to add user to team."
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -3503,6 +3511,22 @@
     "translation": "Unable to find manifest for extracted plugin"
   },
   {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": "Failed to create marketplace client."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Marketplace has been disabled. Please check your logs for details."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.app_error",
+    "translation": "Failed to get plugins from the marketplace server."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "Failed to marshal marketplace plugins."
+  },
+  {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
   },
@@ -3931,6 +3955,10 @@
     "translation": "Invalid AD/LDAP Filter"
   },
   {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Invalid AD/LDAP Guest Filter"
+  },
+  {
     "id": "ent.ldap_groups.group_search_error",
     "translation": "error retrieving ldap group"
   },
@@ -4172,7 +4200,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Error trying to authenticate MFA token"
+    "translation": "Invalid MFA token."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4687,8 +4715,20 @@
     "translation": "Service Provider Login URL must be a valid URL and start with http:// or https://."
   },
   {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "Invalid Canonical Algorithm."
+  },
+  {
+    "id": "model.config.is_valid.saml_digest_algorithm.app_error",
+    "translation": "Invalid Digest Algorithm."
+  },
+  {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Invalid Email attribute. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4709,6 +4749,10 @@
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
     "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Invalid Signature Algorithm."
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -6736,6 +6780,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Unable to find the existing team"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Unable to find the existing team"
   },
   {

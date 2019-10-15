@@ -47,7 +47,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	}
 	configStore, err := config.NewStore(configDSN, !disableConfigWatch)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to load configuration")
 	}
 
 	return runServer(configStore, disableConfigWatch, usedPlatform, interruptChan)
@@ -91,7 +91,7 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
-	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGPIPE)
+	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan
 
 	return nil
