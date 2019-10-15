@@ -165,7 +165,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	func main() {
 		plugin.ClientMain(&MyPlugin{})
 	}
-	
+
 	`
 	// Compile and write the plugin
 	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
@@ -220,11 +220,8 @@ func TestStatic(t *testing.T) {
 
 	resp, err := http.Get(URL + "/static/root.html")
 
-	if err != nil {
-		t.Fatalf("got error while trying to get static files %v", err)
-	} else if resp.StatusCode != http.StatusOK {
-		t.Fatalf("couldn't get static files %v", resp.StatusCode)
-	}
+	assert.NoErrorf(t, err, "got error while trying to get static files %v", err)
+	assert.Equalf(t, resp.StatusCode, http.StatusOK, "couldn't get static files %v", resp.StatusCode)
 }
 */
 
@@ -253,10 +250,7 @@ func TestCheckClientCompatability(t *testing.T) {
 		{"Safari Mobile", "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B137 Safari/601.1", true},
 	}
 	for _, browser := range uaTestParameters {
-		t.Run(browser.Name, func(t *testing.T) {
-			if result := CheckClientCompatability(browser.UserAgent); result != browser.Result {
-				t.Fatalf("%s User Agent Test failed!", browser.Name)
-			}
-		})
+		result := CheckClientCompatability(browser.UserAgent)
+		require.Equalf(t, result, browser.Result, "user agent test failed for %s", browser.Name)
 	}
 }
