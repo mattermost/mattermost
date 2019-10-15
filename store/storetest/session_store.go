@@ -34,8 +34,9 @@ func testSessionStoreSave(t *testing.T, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	 _, err := ss.Session().Save(s1); 
+	_, err := ss.Session().Save(s1)
 	require.Nil(t, err)
+}
 
 func testSessionGet(t *testing.T, ss store.Store) {
 	s1 := &model.Session{}
@@ -61,9 +62,9 @@ func testSessionGet(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
-	session, err := ss.Session().GetSessions(s1.UserId)
+	data, err := ss.Session().GetSessions(s1.UserId)
 	require.Nil(t, err)
-	require.Equal(t, len(session), 3, "should match len")
+	require.Len(t, data, 3, "should match len")
 }
 
 func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
@@ -92,7 +93,7 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 
 	data, err := ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)
 	require.Nil(t, err)
-	require.Equal(t, len(data), 1, "should match len")
+	require.Len(t, data, 1, "should match len")
 }
 
 func testSessionRemove(t *testing.T, ss store.Store) {
@@ -109,7 +110,7 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 	removeErr := ss.Session().Remove(s1.Id)
 	require.Nil(t, removeErr)
 
-	_, err := ss.Session().Get(s1.Id)
+	_, err = ss.Session().Get(s1.Id)
 	require.Nil(t, err, "should have been removed")
 }
 
@@ -127,7 +128,7 @@ func testSessionRemoveAll(t *testing.T, ss store.Store) {
 	removeErr := ss.Session().RemoveAllSessions()
 	require.Nil(t, removeErr)
 
-	_, err := ss.Session().Get(s1.Id)
+	_, err = ss.Session().Get(s1.Id)
 	require.Nil(t, err, "should have been removed")
 }
 
@@ -145,7 +146,7 @@ func testSessionRemoveByUser(t *testing.T, ss store.Store) {
 	deleteErr := ss.Session().PermanentDeleteSessionsByUser(s1.UserId)
 	require.Nil(t, deleteErr)
 
-	_, err := ss.Session().Get(s1.Id)
+	_, err = ss.Session().Get(s1.Id)
 	require.Nil(t, err, "should have been removed")
 }
 
@@ -163,12 +164,12 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 	removeErr := ss.Session().Remove(s1.Token)
 	require.Nil(t, removeErr)
 
-	_, err := ss.Session().Get(s1.Id)
+	_, err = ss.Session().Get(s1.Id)
 	require.Nil(t, err, "should have been removed")
 
-	session, err := ss.Session().GetSessions(s1.UserId)
+	data, err := ss.Session().GetSessions(s1.UserId)
 	require.Nil(t, err)
-	require.Equal(t, len(session), 0, "should match len")
+	require.Zero(t, len(data), 0, "should match len")
 }
 
 func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
@@ -187,7 +188,7 @@ func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
-	_, err := ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)
+	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)
 	require.Nil(t, err)
 }
 
@@ -207,7 +208,7 @@ func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
-	_, err := ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)
+	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)
 	require.Nil(t, err)
 }
 
@@ -236,7 +237,7 @@ func testSessionCount(t *testing.T, ss store.Store) {
 
 	count, err := ss.Session().AnalyticsSessionCount()
 	require.Nil(t, err)
-	require.NotEqual(t, count, 0, "should have at least 1 session")
+	require.NotZero(t, count, "should have at least 1 session")
 }
 
 func testSessionCleanup(t *testing.T, ss store.Store) {
