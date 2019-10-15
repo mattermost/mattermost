@@ -502,6 +502,11 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	if len(tokenId) > 0 {
 		member, err = c.App.AddTeamMemberByToken(c.App.Session.UserId, tokenId)
 	} else if len(inviteId) > 0 {
+		if c.App.Session.Props[model.SESSION_PROP_IS_GUEST] == "true" {
+			c.Err = model.NewAppError("addUserToTeamFromInvite", "api.team.add_user_to_team_from_invite.guest.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
 		member, err = c.App.AddTeamMemberByInviteId(inviteId, c.App.Session.UserId)
 	} else {
 		err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)

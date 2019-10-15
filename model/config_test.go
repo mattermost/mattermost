@@ -195,6 +195,21 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 	require.Equal(t, "model.config.is_valid.saml_signature_algorithm.app_error", err.Message)
 }
 
+func TestConfigOverwriteGuestSettings(t *testing.T) {
+	const attribute = "FakeAttributeName"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			GuestAttribute: NewString(attribute),
+		},
+	}
+
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.GuestAttribute != attribute {
+		t.Fatal("SamlSettings.GuestAttribute should be overwritten")
+	}
+}
+
 func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -1000,6 +1015,105 @@ func TestLdapSettingsIsValid(t *testing.T) {
 				IdAttribute:       NewString("id"),
 				LoginIdAttribute:  NewString("loginid"),
 				UserFilter:        NewString("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: true,
+		},
+
+		{
+			Name: "valid guest filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(property=value)"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid guest filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("("),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid guest filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("()"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "valid guest filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(otherthing=othervalue))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "valid guest filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid guest filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid guest filter #4",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)((otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: true,
 		},

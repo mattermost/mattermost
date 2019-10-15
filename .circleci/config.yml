@@ -27,7 +27,11 @@ jobs:
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
-          curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
+          curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || echo "curl failed" && export CURL_FAILED=1
+          if [ $CURL_FAILED -eq 1 ]
+          then
+            npm ci && cd node_modules/mattermost-redux && npm install && npm run build && cd ../.. && make build
+          fi
       - persist_to_workspace:
           root: /go/src/github.com/mattermost
           paths:
@@ -62,8 +66,8 @@ jobs:
             cd mattermost-server
             make config-reset
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
-            GOFLAGS=-p=8 make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
-            GOFLAGS=-p=8 make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
       - store_artifacts:
           path: /go/src/github.com/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -298,15 +302,9 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
-      - test:
-          requires:
-            - setup
-      - test-schema:
-          requires:
-            - setup
       - build:
           requires:
-            - test
+            - setup
       - upload-s3-sha:
           context: mattermost-ci-s3
           requires:
@@ -319,3 +317,9 @@ workflows:
           context: matterbuild-docker
           requires:
             - upload-s3-sha
+      - test:
+          requires:
+            - setup
+      - test-schema:
+          requires:
+            - setup
