@@ -234,6 +234,11 @@ jobs:
               -w /go/src/github.com/mattermost/mattermost-server \
               mattermost/mattermost-build-server:feb-28-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
+
+            echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
+            docker exec mattermost-mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+            docker exec mattermost-mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+
             echo "Generating dump"
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
