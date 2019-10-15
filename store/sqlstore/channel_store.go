@@ -2183,17 +2183,38 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 	})
 }
 
-func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearchOpts, countQuery bool) sq.SelectBuilder {
+	limit := 100
+	if opts.Paginate {
+		limit = opts.PerPage
+	}
+
+	var selectStr string
+
+	if countQuery {
+		selectStr = "count(*)"
+	} else {
+		selectStr = "c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt"
+	}
+
 	query := s.getQueryBuilder().
-		Select("c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt").
+		Select(selectStr).
 		From("Channels AS c").
 		Join("Teams AS t ON t.Id = c.TeamId").
-		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
-		OrderBy("c.DisplayName, t.DisplayName").
-		Limit(uint64(100))
+		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}})
+
+	if !countQuery {
+		query = query.
+			OrderBy("c.DisplayName, t.DisplayName").
+			Limit(uint64(limit))
+	}
 
 	if !opts.IncludeDeleted {
 		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
+	}
+
+	if opts.Paginate && !countQuery {
+		query = query.Offset(uint64(opts.Page * opts.PerPage))
 	}
 
 	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
@@ -2212,18 +2233,31 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
 	}
 
-	queryString, args, err := query.ToSql()
+	return query
+}
+
+func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError) {
+	queryString, args, err := s.channelSearchQuery(term, opts, false).ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, 0, model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
 	var channels model.ChannelListWithTeamData
-
 	if _, err := s.GetReplica().Select(&channels, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+		return nil, 0, model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	return &channels, nil
+	var totalCount int64
+	if opts.Paginate {
+		queryString, args, err = s.channelSearchQuery(term, opts, true).ToSql()
+		if err != nil {
+			return nil, 0, model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if totalCount, err = s.GetReplica().SelectInt(queryString, args...); err != nil {
+			return nil, 0, model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+		}
+	}
+	fmt.Printf("&channels: %+v\n", &channels)
+	return &channels, totalCount, nil
 }
 
 func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError) {

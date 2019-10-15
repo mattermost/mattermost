@@ -876,9 +876,12 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		NotAssociatedToGroup:   props.NotAssociatedToGroup,
 		ExcludeDefaultChannels: props.ExcludeDefaultChannels,
 		IncludeDeleted:         r.URL.Query().Get("include_deleted") == "true",
+		Paginate:               props.Paginate,
+		Page:                   props.Page,
+		PerPage:                props.PerPage,
 	}
 
-	channels, err := c.App.SearchAllChannels(props.Term, opts)
+	channels, totalCount, err := c.App.SearchAllChannels(props.Term, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -886,7 +889,12 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
 
-	w.Write([]byte(channels.ToJson()))
+	if props.Paginate {
+		data := model.ChannelsWithCount{Channels: channels, TotalCount: totalCount}
+		w.Write([]byte(data.ToJson()))
+	} else {
+		w.Write([]byte(channels.ToJson()))
+	}
 }
 
 func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {

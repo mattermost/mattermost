@@ -2245,6 +2245,16 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeam
 	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
 }
 
+// SearchAllChannelsPaged search in all the channels. Must be a system administrator.
+func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCount, *Response) {
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelsWithCountFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
 func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsRoute()+"/group/search", search.ToJson())

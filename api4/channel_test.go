@@ -1090,6 +1090,24 @@ func TestSearchAllChannels(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestSearchAllChannelsPaged(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
+	search.Term = ""
+	search.Paginate = true
+	search.PerPage = 2
+	channelsWithCount, resp := th.SystemAdminClient.SearchAllChannelsPaged(search)
+	CheckNoError(t, resp)
+	require.Len(t, *channelsWithCount.Channels, 2)
+
+	search.Term = th.BasicChannel.Name
+	_, resp = Client.SearchAllChannels(search)
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestSearchGroupChannels(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
