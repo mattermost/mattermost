@@ -120,7 +120,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 		t.Log("No email was received, maybe due load on the server. Skipping this verification")
 	} else {
 		if len(resultsMailbox) > 0 {
-			require.Contains(t, emailTo, resultsMailbox[0].To[0], "Wrong To: recipient")
+			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
 			resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
 			require.Nil(t, err, "Could not get message from mailbox")
 			require.Contains(t, emailBody, resultsEmail.Body.Text, "Wrong received message %s", resultsEmail.Body.Text)
