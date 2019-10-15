@@ -390,7 +390,7 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if confirmFlag {
-		if _, err := configStore.Set(defaultConfig); err != nil {
+		if _, err = configStore.Set(defaultConfig); err != nil {
 			return errors.Wrap(err, "failed to set config")
 		}
 		configStore.Set(defaultConfig)
@@ -401,7 +401,7 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		CommandPrettyPrintln("Are you sure you want to reset all the configuration settings?(YES/NO): ")
 		fmt.Scanln(&confirmResetAll)
 		if confirmResetAll == "YES" {
-			if _, err := configStore.Set(defaultConfig); err != nil {
+			if _, err = configStore.Set(defaultConfig); err != nil {
 				return errors.Wrap(err, "failed to set config")
 			}
 		}
