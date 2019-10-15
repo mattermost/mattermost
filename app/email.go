@@ -445,9 +445,11 @@ func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 			}
 
 			embeddedFiles := make(map[string]io.Reader)
-			if senderProfileImage != nil {
-				embeddedFiles = map[string]io.Reader{
-					"user-avatar.png": bytes.NewReader(senderProfileImage),
+			if message != "" {
+				if senderProfileImage != nil {
+					embeddedFiles = map[string]io.Reader{
+						"user-avatar.png": bytes.NewReader(senderProfileImage),
+					}
 				}
 			}
 
