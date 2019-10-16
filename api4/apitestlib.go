@@ -10,10 +10,12 @@ import (
 	"net/http"
 	"os"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
@@ -560,57 +562,35 @@ func GenerateTestId() string {
 func CheckUserSanitization(t *testing.T, user *model.User) {
 	t.Helper()
 
-	if user.Password != "" {
-		t.Fatal("password wasn't blank")
-	}
-
-	if user.AuthData != nil && *user.AuthData != "" {
-		t.Fatal("auth data wasn't blank")
-	}
-
-	if user.MfaSecret != "" {
-		t.Fatal("mfa secret wasn't blank")
-	}
+	require.Equal(t, "", user.Password, "password wasn't blank")
+	require.Nil(t, user.AuthData)
+	require.Equal(t, "", *user.AuthData, "auth data wasn't blank")
+	require.Equal(t, "", user.MfaSecret, "mfa secret wasn't blank")
 }
 
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	t.Helper()
 
-	if !reflect.ValueOf(data).IsNil() {
-		t.Fatal("etag data was not nil")
-	}
-
-	if resp.StatusCode != http.StatusNotModified {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusNotModified))
-		t.Fatal("wrong status code for etag")
-	}
+	assert.True(t, reflect.ValueOf(data).IsNil())
+	assert.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
 }
 
 func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
-	if resp.Error != nil {
-		t.Fatalf("Expected no error, got %q", resp.Error.Error())
-	}
+	assert.Nil(t, resp.Error)
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
 	t.Helper()
 
-	switch {
-	case resp == nil:
-		t.Fatalf("Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, expectError)
-
-	case expectError && resp.Error == nil:
-		t.Fatalf("Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
-
-	case !expectError && resp.Error != nil:
-		t.Fatalf("Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
-
-	case resp.StatusCode != expectedStatus:
-		t.Fatalf("Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
+	assert.NotNilf(t, resp, "Unexpected nil response, expected http:%v, expectError:%v", expectedStatus, expectError)
+	if expectError {
+		assert.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
+	} else {
+		assert.Nil(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
 	}
+	assert.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
 }
 
 func CheckOKStatus(t *testing.T, resp *model.Response) {
@@ -661,16 +641,8 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
-	if resp.Error == nil {
-		t.Fatal("should have errored with message:" + errorId)
-		return
-	}
-
-	if resp.Error.Id != errorId {
-		t.Log("actual: " + resp.Error.Id)
-		t.Log("expected: " + errorId)
-		t.Fatal("incorrect error message")
-	}
+	assert.NotNil(t, resp.Error)
+	assert.Equal(t, resep.Error.Id, errorId, "incorrect error message")
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
