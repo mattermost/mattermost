@@ -563,8 +563,7 @@ func CheckUserSanitization(t *testing.T, user *model.User) {
 	t.Helper()
 
 	require.Equal(t, "", user.Password, "password wasn't blank")
-	require.Nil(t, user.AuthData)
-	require.Equal(t, "", *user.AuthData, "auth data wasn't blank")
+	require.Empty(t, user.AuthData, "auth data wasn't blank")
 	require.Equal(t, "", user.MfaSecret, "mfa secret wasn't blank")
 }
 
