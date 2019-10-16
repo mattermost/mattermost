@@ -213,10 +213,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Log(resp.StatusCode)
-		t.Fatal("should have failed - oauth providing turned off")
-	}
+	_, resp := ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "should have failed - oauth providing turned off - response status code: %v", resp.StatusCode)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	authRequest := &model.AuthorizeRequest{
@@ -235,47 +233,40 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("should have failed - bad grant type")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "should have failed - bad grant type")
 
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	data.Set("client_id", "")
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("should have failed - missing client id")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "should have failed - missing client id")
+
 	data.Set("client_id", "junk")
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("should have failed - bad client id")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "should have failed - bad client id")
 
 	data.Set("client_id", oauthApp.Id)
 	data.Set("client_secret", "")
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("should have failed - missing client secret")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "should have failed - missing client secret")
 
 	data.Set("client_secret", "junk")
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("should have failed - bad client secret")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "should have failed - bad client secret")
 
 	data.Set("client_secret", oauthApp.ClientSecret)
 	data.Set("code", "")
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("should have failed - missing code")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "should have failed - missing code")
 
 	data.Set("code", "junk")
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("should have failed - bad code")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "should have failed - bad code")
 
 	data.Set("code", rurl.Query().Get("code"))
 	data.Set("redirect_uri", "junk")
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("should have failed - non-matching redirect uri")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "should have failed - non-matching redirect uri")
 
 	// reset data for successful request
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
@@ -286,44 +277,31 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	token := ""
 	refreshToken := ""
-	if rsp, resp := ApiClient.GetOAuthAccessToken(data); resp.Error != nil {
-		t.Fatal(resp.Error)
-	} else {
-		if len(rsp.AccessToken) == 0 {
-			t.Fatal("access token not returned")
-		} else if len(rsp.RefreshToken) == 0 {
-			t.Fatal("refresh token not returned")
-		} else {
-			token = rsp.AccessToken
-			refreshToken = rsp.RefreshToken
-		}
-		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
-			t.Fatal("access token type incorrect")
-		}
-	}
+	rsp, resp := ApiClient.GetOAuthAccessToken(data)
+	require.Nil(t, resp.Error)
+	require.NotZero(t, len(rsp.AccessToken), "access token not returned")
+	require.NotZero(t, len(rsp.RefreshToken), "refresh token not returned")
+	token = rsp.AccessToken
+	refreshToken = rsp.RefreshToken
+	require.Equal(t, rsp.TokenType, model.ACCESS_TOKEN_TYPE, "access token type incorrect")
 
-	if _, err := ApiClient.DoApiGet("/oauth_test", ""); err != nil {
-		t.Fatal(err)
-	}
+	_, err := ApiClient.DoApiGet("/oauth_test", "")
+	require.Nil(t, err)
 
 	ApiClient.SetOAuthToken("")
-	if _, err := ApiClient.DoApiGet("/oauth_test", ""); err == nil {
-		t.Fatal("should have failed - no access token provided")
-	}
+	_, err = ApiClient.DoApiGet("/oauth_test", "")
+	require.NotNil(t, err, "should have failed - no access token provided")
 
 	ApiClient.SetOAuthToken("badtoken")
-	if _, err := ApiClient.DoApiGet("/oauth_test", ""); err == nil {
-		t.Fatal("should have failed - bad token provided")
-	}
+	_, err = ApiClient.DoApiGet("/oauth_test", "")
+	require.NotNil(t, err, "should have failed - bad token provided")
 
 	ApiClient.SetOAuthToken(token)
-	if _, err := ApiClient.DoApiGet("/oauth_test", ""); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ApiClient.DoApiGet("/oauth_test", "")
+	require.Nil(t, err)
 
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("should have failed - tried to reuse auth code")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "should have failed - tried to reuse auth code")
 
 	data.Set("grant_type", model.REFRESH_TOKEN_GRANT_TYPE)
 	data.Set("client_id", oauthApp.Id)
@@ -331,56 +309,35 @@ func TestOAuthAccessToken(t *testing.T) {
 	data.Set("refresh_token", "")
 	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
 	data.Del("code")
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("Should have failed - refresh token empty")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "Should have failed - refresh token empty")
 
 	data.Set("refresh_token", refreshToken)
-	if rsp, resp := ApiClient.GetOAuthAccessToken(data); resp.Error != nil {
-		t.Fatal(resp.Error)
-	} else {
-		if len(rsp.AccessToken) == 0 {
-			t.Fatal("access token not returned")
-		} else if len(rsp.RefreshToken) == 0 {
-			t.Fatal("refresh token not returned")
-		} else if rsp.RefreshToken == refreshToken {
-			t.Fatal("refresh token did not update")
-		}
+	rsp, resp = ApiClient.GetOAuthAccessToken(data)
+	require.Nil(t, resp.Error)
+	require.NotZero(t, len(rsp.AccessToken), "access token not returned")
+	require.NotZero(t, len(rsp.RefreshToken), "refresh token not returned")
+	require.NotEqual(t, rsp.RefreshToken, refreshToken, "refresh token did not update")
+	require.Equal(t, rsp.TokenType, model.ACCESS_TOKEN_TYPE, "access token type incorrect")
 
-		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
-			t.Fatal("access token type incorrect")
-		}
-		ApiClient.SetOAuthToken(rsp.AccessToken)
-		if _, err := ApiClient.DoApiGet("/oauth_test", ""); err != nil {
-			t.Fatal(err)
-		}
+	ApiClient.SetOAuthToken(rsp.AccessToken)
+	_, err = ApiClient.DoApiGet("/oauth_test", "")
+	require.Nil(t, err)
 
-		data.Set("refresh_token", rsp.RefreshToken)
-	}
+	data.Set("refresh_token", rsp.RefreshToken)
+	rsp, resp = ApiClient.GetOAuthAccessToken(data)
+	require.Nil(t, resp.Error)
+	require.NotZero(t, len(rsp.AccessToken), "access token not returned")
+	require.NotZero(t, len(rsp.RefreshToken), "refresh token not returned")
+	require.NotEqual(t, rsp.RefreshToken, refreshToken, "refresh token did not update")
+	require.Equal(t, rsp.TokenType, model.ACCESS_TOKEN_TYPE, "access token type incorrect")
 
-	if rsp, resp := ApiClient.GetOAuthAccessToken(data); resp.Error != nil {
-		t.Fatal(resp.Error)
-	} else {
-		if len(rsp.AccessToken) == 0 {
-			t.Fatal("access token not returned")
-		} else if len(rsp.RefreshToken) == 0 {
-			t.Fatal("refresh token not returned")
-		} else if rsp.RefreshToken == refreshToken {
-			t.Fatal("refresh token did not update")
-		}
-
-		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
-			t.Fatal("access token type incorrect")
-		}
-		ApiClient.SetOAuthToken(rsp.AccessToken)
-		if _, err := ApiClient.DoApiGet("/oauth_test", ""); err != nil {
-			t.Fatal(err)
-		}
-
-	}
+	ApiClient.SetOAuthToken(rsp.AccessToken)
+	_, err = ApiClient.DoApiGet("/oauth_test", "")
+	require.Nil(t, err)
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
-	_, err := th.App.Srv.Store.OAuth().SaveAuthData(authData)
+	_, err = th.App.Srv.Store.OAuth().SaveAuthData(authData)
 	require.Nil(t, err)
 
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
@@ -389,9 +346,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
 	data.Set("code", authData.Code)
 	data.Del("refresh_token")
-	if _, resp := ApiClient.GetOAuthAccessToken(data); resp.Error == nil {
-		t.Fatal("Should have failed - code is expired")
-	}
+	_, resp = ApiClient.GetOAuthAccessToken(data)
+	require.NotNil(t, resp.Error, "Should have failed - code is expired")
 
 	ApiClient.ClearOAuthToken()
 }
