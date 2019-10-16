@@ -165,9 +165,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	pass, resp := ApiClient.DeauthorizeOAuthApp(rapp.Id)
 	CheckNoError(t, resp)
 
-	if !pass {
-		t.Fatal("should have passed")
-	}
+	require.True(t, pass, "should have passed")
 
 	_, resp = ApiClient.DeauthorizeOAuthApp("junk")
 	CheckBadRequestStatus(t, resp)
