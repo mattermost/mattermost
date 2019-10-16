@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
@@ -642,7 +642,7 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
 	assert.NotNil(t, resp.Error)
-	assert.Equal(t, resep.Error.Id, errorId, "incorrect error message")
+	assert.Equal(t, resp.Error.Id, errorId, "incorrect error message")
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
