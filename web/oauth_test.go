@@ -457,7 +457,8 @@ func TestOAuthComplete(t *testing.T) {
 	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	stateProps["redirect_to"] = "/oauth/authorize"
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
-	if r, err := HttpGet(ApiClient.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false); err == nil {
+	r, err = HttpGet(ApiClient.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false)
+	if err == nil {
 		closeBody(r)
 	}
 
@@ -468,7 +469,8 @@ func TestOAuthComplete(t *testing.T) {
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
-	if r, err := HttpGet(ApiClient.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false); err == nil {
+	r, err = HttpGet(ApiClient.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false)
+	if err == nil {
 		closeBody(r)
 	}
 
