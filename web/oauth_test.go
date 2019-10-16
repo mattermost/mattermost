@@ -561,9 +561,7 @@ func GenerateTestAppName() string {
 func CheckNoAppError(t *testing.T, err *model.AppError) {
 	t.Helper()
 
-	if err != nil {
-		t.Fatalf("Expected no error, got %q", err.Error())
-	}
+	require.Nil(t, err, "Expected no error, got %q", err.Error())
 }
 
 func CheckNoError(t *testing.T, resp *model.Response) {
