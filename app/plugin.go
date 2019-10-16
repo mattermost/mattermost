@@ -130,10 +130,6 @@ func (a *App) NewPluginAPI(manifest *model.Manifest) plugin.API {
 }
 
 func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
-	if err := a.initPluginPublicKeys(); err != nil {
-		mlog.Error("Can't init plugin public keys", mlog.Err(err))
-	}
-
 	a.Srv.PluginsLock.RLock()
 	pluginsEnvironment := a.Srv.PluginsEnvironment
 	a.Srv.PluginsLock.RUnlock()
@@ -160,6 +156,9 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		return
 	}
 	a.SetPluginsEnvironment(env)
+	if err := a.initPluginPublicKeys(); err != nil {
+		mlog.Error("Can't init plugin public keys", mlog.Err(err))
+	}
 
 	if err := a.SyncPlugins(); err != nil {
 		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
