@@ -47,6 +47,7 @@ const (
 	TRACK_CONFIG_DATA_RETENTION     = "config_data_retention"
 	TRACK_CONFIG_MESSAGE_EXPORT     = "config_message_export"
 	TRACK_CONFIG_DISPLAY            = "config_display"
+	TRACK_CONFIG_GUEST_ACCOUNTS     = "config_guest_accounts"
 	TRACK_CONFIG_IMAGE_PROXY        = "config_image_proxy"
 	TRACK_PERMISSIONS_GENERAL       = "permissions_general"
 	TRACK_PERMISSIONS_SYSTEM_SCHEME = "permissions_system_scheme"
@@ -486,6 +487,7 @@ func (a *App) trackConfig() {
 		"isempty_group_filter":                   isDefault(*cfg.LdapSettings.GroupFilter, ""),
 		"isdefault_group_display_name_attribute": isDefault(*cfg.LdapSettings.GroupDisplayNameAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE),
 		"isdefault_group_id_attribute":           isDefault(*cfg.LdapSettings.GroupIdAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE),
+		"isempty_guest_filter":                   isDefault(*cfg.LdapSettings.GuestFilter, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
@@ -629,6 +631,13 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomUrlSchemes) != 0,
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_GUEST_ACCOUNTS, map[string]interface{}{
+		"enable":                                 *cfg.GuestAccountsSettings.Enable,
+		"allow_email_accounts":                   *cfg.GuestAccountsSettings.AllowEmailAccounts,
+		"enforce_multifactor_authentication":     *cfg.GuestAccountsSettings.EnforceMultifactorAuthentication,
+		"isdefault_restrict_creation_to_domains": isDefault(*cfg.GuestAccountsSettings.RestrictCreationToDomains, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_IMAGE_PROXY, map[string]interface{}{

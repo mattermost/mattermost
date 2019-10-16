@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestChannelSearchJson(t *testing.T) {
@@ -13,7 +15,5 @@ func TestChannelSearchJson(t *testing.T) {
 	json := channelSearch.ToJson()
 	rchannelSearch := ChannelSearchFromJson(strings.NewReader(json))
 
-	if channelSearch.Term != rchannelSearch.Term {
-		t.Fatal("Terms do not match")
-	}
+	assert.Equal(t, channelSearch.Term, rchannelSearch.Term)
 }
