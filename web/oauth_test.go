@@ -567,9 +567,7 @@ func CheckNoAppError(t *testing.T, err *model.AppError) {
 func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
-	if resp.Error != nil {
-		t.Fatalf("Expected no error, got %q", resp.Error.Error())
-	}
+	require.Nil(t, resp.Error, "Expected no error, got %q", resp.Error.Error())
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
