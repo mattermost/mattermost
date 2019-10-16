@@ -372,7 +372,7 @@ func TestRegenToken(t *testing.T) {
 
 	token, resp := th.SystemAdminClient.RegenCommandToken(createdCmd.Id)
 	CheckNoError(t, resp)
-	require.NotEqual(t, token, createdCmd.Token, "should update the token")
+	require.NotEqual(t, createdCmd.Token, token, "should update the token")
 
 	token, resp = Client.RegenCommandToken(createdCmd.Id)
 	CheckForbiddenStatus(t, resp)
