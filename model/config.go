@@ -312,6 +312,7 @@ type ServiceSettings struct {
 	LoginWithCertificate							  *bool
 	CustomCertHeader								  *string `restricted:"true"`
 	DefaultTeamName								      *string `restricted:"true"`
+	GetUserFromExternalURL							  *string `restricted:"true"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -696,6 +697,9 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.DefaultTeamName == nil {
     		s.DefaultTeamName = NewString("")
     	}
+    if s.GetUserFromExternalURL == nil {
+        		s.GetUserFromExternalURL = NewString("")
+        	}
 }
 
 type ClusterSettings struct {
