@@ -79,21 +79,12 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	ruri, resp := ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckNoError(t, resp)
 
-	if len(ruri) == 0 {
-		t.Fatal("redirect url should be set")
-	}
+	require.NotZero(t, len(ruri), "redirect url should be set")
 
 	ru, _ := url.Parse(ruri)
-	if ru == nil {
-		t.Fatal("redirect url unparseable")
-	} else {
-		if len(ru.Query().Get("code")) == 0 {
-			t.Fatal("authorization code not returned")
-		}
-		if ru.Query().Get("state") != authRequest.State {
-			t.Fatal("returned state doesn't match")
-		}
-	}
+	require.Nil(t, ru, "redirect url unparseable")
+	require.NotZero(t, len(ru.Query().Get("code")), "authorization code not returned")
+	require.Equal(t, ru.Query().Get("state"), authRequest.State, "returned state doesn't match")
 
 	// Test implicit flow
 	authRequest.ResponseType = model.IMPLICIT_RESPONSE_TYPE
