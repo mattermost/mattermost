@@ -10,7 +10,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost-server/utils/stringutils"
 	"io"
 	"io/ioutil"
 	"log"
@@ -542,7 +541,7 @@ type Z_LogDebugReturns struct {
 }
 
 func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...interface{}) {
-	stringifiedPairs := stringutils.StringifyToObjects(keyValuePairs)
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_LogDebugArgs{msg, stringifiedPairs}
 	_returns := &Z_LogDebugReturns{}
 	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
@@ -571,7 +570,7 @@ type Z_LogInfoReturns struct {
 }
 
 func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...interface{}) {
-	stringifiedPairs := stringutils.StringifyToObjects(keyValuePairs)
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_LogInfoArgs{msg, stringifiedPairs}
 	_returns := &Z_LogInfoReturns{}
 	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
@@ -600,7 +599,7 @@ type Z_LogWarnReturns struct {
 }
 
 func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...interface{}) {
-	stringifiedPairs := stringutils.StringifyToObjects(keyValuePairs)
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_LogWarnArgs{msg, stringifiedPairs}
 	_returns := &Z_LogWarnReturns{}
 	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
@@ -629,7 +628,7 @@ type Z_LogErrorReturns struct {
 }
 
 func (g *apiRPCClient) LogError(msg string, keyValuePairs ...interface{}) {
-	stringifiedPairs := stringutils.StringifyToObjects(keyValuePairs)
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_LogErrorArgs{msg, stringifiedPairs}
 	_returns := &Z_LogErrorReturns{}
 	if err := g.client.Call("Plugin.LogError", _args, _returns); err != nil {

@@ -1,13 +1,13 @@
 // Copyright (c) 2019-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package stringutils
+package plugin
 
 import (
 	"fmt"
 )
 
-func Stringify(objects []interface{}) []string {
+func stringify(objects []interface{}) []string {
 	stringified := make([]string, len(objects), len(objects))
 	for i, object := range objects {
 		if object == nil {
@@ -31,7 +31,7 @@ func Stringify(objects []interface{}) []string {
 	return stringified
 }
 
-func ToObjects(strings []string) []interface{} {
+func toObjects(strings []string) []interface{} {
 	if strings == nil {
 		return nil
 	}
@@ -42,6 +42,6 @@ func ToObjects(strings []string) []interface{} {
 	return objects
 }
 
-func StringifyToObjects(objects []interface{}) []interface{} {
-	return ToObjects(Stringify(objects))
+func stringifyToObjects(objects []interface{}) []interface{} {
+	return toObjects(stringify(objects))
 }
