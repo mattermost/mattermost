@@ -24,7 +24,7 @@ jobs:
           echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
           git clone git@github.com:mattermost/mattermost-webapp.git
           cd mattermost-webapp
-          git checkout $CIRCLE_BRANCH || git checkout release-5.16
+          git checkout $CIRCLE_BRANCH || git checkout release-5.17
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
           curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || echo "curl failed" && export CURL_FAILED=1
