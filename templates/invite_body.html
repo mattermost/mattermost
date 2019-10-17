@@ -26,11 +26,11 @@
                                                     <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px; margin: 35px auto 0 auto; border-radius: 5px; background: #f2f2f2; min-width: 550px">
                                                         <tr>
                                                             <td style="border: 0; padding: 0; width: 36px; vertical-align: top">
-                                                                <img src="{{.Props.SiteURL}}/api/v4/users/{{.Props.SenderId}}/image" style="height: 36px; width=36px; border-radius: 18px;">
+                                                                <img width="36" height="36" style="border-radius: 18px;" src="cid:user-avatar.png">
                                                             </td>
-                                                            <td style="border: 0; padding: 0 0 0 20px;">
+                                                            <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
                                                                 <p style="font-weight: bold; margin-top: 0;">{{.Props.SenderName}}</p>
-                                                                <p>{{.Props.Message}}</p>
+                                                                <p style="white-space: break-spaces">{{.Props.Message}}</p>
                                                             </td>
                                                         </tr>
                                                     </table>

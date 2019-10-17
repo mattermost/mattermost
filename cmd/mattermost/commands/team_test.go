@@ -4,10 +4,10 @@
 package commands
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,9 +23,7 @@ func TestCreateTeam(t *testing.T) {
 
 	found := th.SystemAdminClient.Must(th.SystemAdminClient.TeamExists(name, "")).(bool)
 
-	if !found {
-		t.Fatal("Failed to create Team")
-	}
+	require.True(t, found, "Failed to create Team")
 }
 
 func TestJoinTeam(t *testing.T) {
@@ -45,9 +43,7 @@ func TestJoinTeam(t *testing.T) {
 
 	}
 
-	if !found {
-		t.Fatal("Failed to create User")
-	}
+	require.True(t, found, "Failed to create User")
 }
 
 func TestLeaveTeam(t *testing.T) {
@@ -67,15 +63,11 @@ func TestLeaveTeam(t *testing.T) {
 
 	}
 
-	if found {
-		t.Fatal("profile should not be on team")
-	}
+	require.False(t, found, "profile should not be on team")
 
-	if teams, err := th.App.Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id); err != nil {
-		if len(teams) > 0 {
-			t.Fatal("Shouldn't be in team")
-		}
-	}
+	teams, err := th.App.Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.Equal(t, 0, len(teams), "Shouldn't be in team")
 }
 
 func TestListTeams(t *testing.T) {
@@ -90,9 +82,7 @@ func TestListTeams(t *testing.T) {
 
 	output := th.CheckCommand(t, "team", "list", th.BasicTeam.Name, th.BasicUser.Email)
 
-	if !strings.Contains(string(output), name) {
-		t.Fatal("should have the created team")
-	}
+	assert.Contains(t, output, name, "should have the created team")
 }
 
 func TestListArchivedTeams(t *testing.T) {
@@ -109,9 +99,7 @@ func TestListArchivedTeams(t *testing.T) {
 
 	output := th.CheckCommand(t, "team", "list", th.BasicTeam.Name, th.BasicUser.Email)
 
-	if !strings.Contains(string(output), name+" (archived)") {
-		t.Fatal("should have archived team")
-	}
+	assert.Contains(t, output, name+" (archived)", "should have archived team")
 }
 
 func TestSearchTeamsByName(t *testing.T) {
@@ -126,9 +114,7 @@ func TestSearchTeamsByName(t *testing.T) {
 
 	output := th.CheckCommand(t, "team", "search", name)
 
-	if !strings.Contains(string(output), name) {
-		t.Fatal("should have the created team")
-	}
+	assert.Contains(t, output, name, "should have the created team")
 }
 
 func TestSearchTeamsByDisplayName(t *testing.T) {
@@ -143,9 +129,7 @@ func TestSearchTeamsByDisplayName(t *testing.T) {
 
 	output := th.CheckCommand(t, "team", "search", displayName)
 
-	if !strings.Contains(string(output), name) {
-		t.Fatal("should have the created team")
-	}
+	assert.Contains(t, output, name, "should have the created team")
 }
 
 func TestSearchArchivedTeamsByName(t *testing.T) {
@@ -162,9 +146,7 @@ func TestSearchArchivedTeamsByName(t *testing.T) {
 
 	output := th.CheckCommand(t, "team", "search", name)
 
-	if !strings.Contains(string(output), "(archived)") {
-		t.Fatal("should have archived team")
-	}
+	assert.Contains(t, output, "(archived)", "should have archived team")
 }
 
 func TestArchiveTeams(t *testing.T) {
@@ -181,9 +163,7 @@ func TestArchiveTeams(t *testing.T) {
 
 	output := th.CheckCommand(t, "team", "list")
 
-	if !strings.Contains(string(output), name+" (archived)") {
-		t.Fatal("should have archived team")
-	}
+	assert.Contains(t, output, name+" (archived)", "should have archived team")
 }
 
 func TestRestoreTeams(t *testing.T) {
@@ -219,13 +199,8 @@ func TestRenameTeam(t *testing.T) {
 	// Get the team from the DB
 	updatedTeam, _ := th.App.GetTeam(team.Id)
 
-	if updatedTeam.Name != newTeamName {
-		t.Fatal("failed renaming team")
-	}
-
-	if updatedTeam.DisplayName != newDisplayName {
-		t.Fatal("failed updating team display name")
-	}
+	require.Equal(t, updatedTeam.Name, newTeamName, "failed renaming team")
+	require.Equal(t, updatedTeam.DisplayName, newDisplayName, "failed updating team display name")
 
 	// Try to rename to occupied name
 	team2 := th.CreateTeam()
@@ -235,13 +210,8 @@ func TestRenameTeam(t *testing.T) {
 	th.CheckCommand(t, "team", "rename", team2.Name, newTeamName, "--display_name", newDisplayName)
 
 	// No renaming should have occured
-	if team2.Name != n {
-		t.Fatal("team was renamed when it should have not been")
-	}
-
-	if team2.DisplayName != dn {
-		t.Fatal("team display name was changed when it should have not been")
-	}
+	require.Equal(t, team2.Name, n, "team was renamed when it should have not been")
+	require.Equal(t, team2.DisplayName, dn, "team display name was changed when it should have not been")
 
 	// Try to change only Display Name
 	team3 := th.CreateTeam()
@@ -252,13 +222,8 @@ func TestRenameTeam(t *testing.T) {
 	// Get the team from the DB
 	updatedTeam, _ = th.App.GetTeam(team3.Id)
 
-	if updatedTeam.Name == "-" {
-		t.Fatal("team was renamed to `-` but only display name should have been changed")
-	}
-
-	if updatedTeam.DisplayName != newDisplayName {
-		t.Fatal("team Display Name was not properly updated")
-	}
+	require.NotEqual(t, updatedTeam.Name, "-", "team was renamed to `-` but only display name should have been changed")
+	require.Equal(t, updatedTeam.DisplayName, newDisplayName, "team Display Name was not properly updated")
 
 	// now try to change Display Name using old team name
 	th.CheckCommand(t, "team", "rename", team3.Name, team3.Name, "--display_name", "Brand New DName")
@@ -266,10 +231,7 @@ func TestRenameTeam(t *testing.T) {
 	// Get the team from the DB
 	updatedTeam, _ = th.App.GetTeam(team3.Id)
 
-	if updatedTeam.DisplayName != "Brand New DName" {
-		t.Fatal("team Display Name was not properly updated")
-	}
-
+	require.Equal(t, updatedTeam.DisplayName, "Brand New DName", "team Display Name was not properly updated")
 }
 
 func TestModifyTeam(t *testing.T) {
@@ -282,14 +244,9 @@ func TestModifyTeam(t *testing.T) {
 
 	updatedTeam, _ := th.App.GetTeam(team.Id)
 
-	if !updatedTeam.AllowOpenInvite && team.Type == model.TEAM_INVITE {
-		t.Fatal("Failed modifying team's privacy to private")
-	}
+	require.False(t, !updatedTeam.AllowOpenInvite && team.Type == model.TEAM_INVITE, "Failed modifying team's privacy to private")
 
 	th.CheckCommand(t, "team", "modify", team.Name, "--public")
 
-	if updatedTeam.AllowOpenInvite && team.Type == model.TEAM_OPEN {
-		t.Fatal("Failed modifying team's privacy to private")
-	}
-
+	require.False(t, updatedTeam.AllowOpenInvite && team.Type == model.TEAM_OPEN, "Failed modifying team's privacy to private")
 }
