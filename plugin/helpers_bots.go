@@ -123,6 +123,7 @@ func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotId string, retErr error) 
 	if kvSetErr := p.API.KVSet(BOT_USER_KEY, []byte(createdBot.UserId)); kvSetErr != nil {
 		p.API.LogWarn("Failed to set created bot user id.", "userid", createdBot.UserId, "err", kvSetErr)
 	}
+
 	return createdBot.UserId, nil
 }
 
