@@ -47,7 +47,7 @@ func truncateTable(t *testing.T, table string) {
 		require.NoError(t, err)
 
 	default:
-		t.Fatalf("unsupported driver name: %s", *sqlSetting.DriverName)
+		require.Failf(t, "failed", "unsupported driver name: %s", *sqlSetting.DriverName)
 	}
 }
 

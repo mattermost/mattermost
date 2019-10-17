@@ -198,6 +198,7 @@ func TestFileStoreGet(t *testing.T) {
 
 	newCfg := &model.Config{}
 	oldCfg, err := fs.Set(newCfg)
+	require.NoError(t, err)
 
 	assert.True(t, oldCfg == cfg, "returned config after set() changed original")
 	assert.False(t, newCfg == cfg, "returned config should have been different from original")
