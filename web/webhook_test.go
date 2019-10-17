@@ -261,9 +261,11 @@ func TestCommandWebhooks(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	for i := 0; i < 5; i++ {
-		resp, err = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
-		assert.NoErrorf(t, err, "hook #%d failed", i)
-		assert.Equalf(t, http.StatusOK, resp.StatusCode, "hook #%d failed", i)
+		t.Run(fmt.Sprintf("hook #%d", i), func(t *testing.T) {
+			resp, err = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+			assert.NoErrorf(t, err, "hook #%d failed", i)
+			assert.Equalf(t, http.StatusOK, resp.StatusCode, "hook #%d failed", i)
+		})
 	}
 
 	resp, _ = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
