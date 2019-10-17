@@ -336,10 +336,17 @@ type API interface {
 	// Minimum server version: 5.10
 	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
 
-	// AddChannelMember creates a channel membership for a user.
+	// AddChannelMember joins a user to a channel (as if they joined themselves)
+	// This means the user will not receive notifications for joining the channel.
 	//
 	// Minimum server version: 5.2
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
+
+	// AddUserToChannel adds a user to a channel as if the specified user had invited them.
+	// This means the user will receive the regular notifications for being added to the channel.
+	//
+	// Minimum server version: 5.18
+	AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError)
 
 	// GetChannelMember gets a channel membership for a user.
 	//
