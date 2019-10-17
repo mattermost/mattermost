@@ -276,7 +276,7 @@ func TestModifyCommand(t *testing.T) {
 		assert.Equal(t, cmd.IconURL, command.IconURL)
 	})
 
-	t.Run("mispelled flag", func(t *testing.T) {
+	t.Run("misspelled flag", func(t *testing.T) {
 		args := []string{"command", "", command.Id, "--trigger-wor", "sometrigger"}
 		output, _ := th.RunCommandWithOutput(t, args...)
 		assert.Contains(t, string(output), "Error: unknown flag:")
