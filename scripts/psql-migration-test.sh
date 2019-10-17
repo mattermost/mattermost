@@ -33,7 +33,12 @@ echo "Generating diff"
 diff $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
 diffErrorCode=$?
 
-if [ $diffErrorCode -eq 0 ]; then echo "Both schemas are same";else cat $DUMPDIR/diff.txt; fi
+if [ $diffErrorCode -eq 0 ]; then
+    echo "Both schemas are same"
+else
+    echo "Schema mismatch"
+    cat $DUMPDIR/diff.txt
+fi
 rm -rf $TMPDIR $DUMPDIR
 
 exit $diffErrorCode
