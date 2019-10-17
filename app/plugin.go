@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/services/marketplace"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/pkg/errors"
 )
@@ -410,11 +411,17 @@ func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
 
 // AddPublicKey will add plugin public key to the config.
 func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
-	if err := a.writeFile(name+pluginSignaturePublicKeyFileExtention, key); err != nil {
-		return err
+	data, err := ioutil.ReadAll(key)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	err = a.Srv.configStore.SetFile(name+pluginSignaturePublicKeyFileExtention, data)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "app.plugin.write_file.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	a.UpdateConfig(func(cfg *model.Config) {
-		if !containsPK(cfg.PluginSettings.SignaturePublicKeyFiles, name) {
+		if !utils.StringInSlice(name, cfg.PluginSettings.SignaturePublicKeyFiles) {
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, name)
 		}
 	})
@@ -432,7 +439,7 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
-		cfg.PluginSettings.SignaturePublicKeyFiles = removePK(cfg.PluginSettings.SignaturePublicKeyFiles, filename)
+		cfg.PluginSettings.SignaturePublicKeyFiles = utils.RemoveStringFromSlice(filename, cfg.PluginSettings.SignaturePublicKeyFiles)
 	})
 
 	return nil
@@ -602,36 +609,6 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	a.Publish(message)
 
 	return nil
-}
-
-func (a *App) writeFile(filename string, key io.Reader) *model.AppError {
-	data, err := ioutil.ReadAll(key)
-	if err != nil {
-		return model.NewAppError("writeFile", "app.plugin.write_file.read.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	err = a.Srv.configStore.SetFile(filename, data)
-	if err != nil {
-		return model.NewAppError("writeFile", "app.plugin.write_file.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return nil
-}
-
-func containsPK(publicKeys []string, filename string) bool {
-	for _, pk := range publicKeys {
-		if pk == filename {
-			return true
-		}
-	}
-	return false
-}
-
-func removePK(publicKeys []string, filename string) []string {
-	for i, pk := range publicKeys {
-		if pk == filename {
-			return append(publicKeys[:i], publicKeys[i+1:]...)
-		}
-	}
-	return publicKeys
 }
 
 type pluginHelper struct {
