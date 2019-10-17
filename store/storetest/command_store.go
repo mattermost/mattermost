@@ -71,11 +71,12 @@ func testCommandStoreGetByTeam(t *testing.T, ss store.Store) {
 
 	r1, err := ss.Command().GetByTeam(o1.TeamId)
 	require.Nil(t, err)
+	require.NotEmpty(t, r1, "no command returned")
 	require.Equal(t, r1[0].CreateAt, o1.CreateAt, "invalid returned command")
 
 	result, err := ss.Command().GetByTeam("123")
 	require.Nil(t, err)
-	require.Len(t, result, 0, "no commands should have returned")
+	require.Empty(t, result, "no commands should have returned")
 }
 
 func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
@@ -108,7 +109,7 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	_, err = ss.Command().GetByTrigger(o1.TeamId, o1.Trigger)
-	require.NotNil(t, err, "no commnds should have returned")
+	require.NotNil(t, err, "no commands should have returned")
 }
 
 func testCommandStoreDelete(t *testing.T, ss store.Store) {
@@ -212,9 +213,9 @@ func testCommandCount(t *testing.T, ss store.Store) {
 
 	r1, err := ss.Command().AnalyticsCommandCount("")
 	require.Nil(t, err)
-	require.NotEqual(t, r1, 0, "should be at least 1 command")
+	require.NotZero(t, r1, "should be at least 1 command")
 
 	r2, err := ss.Command().AnalyticsCommandCount(o1.TeamId)
 	require.Nil(t, err)
-	require.Equal(t, r2, 1, "should be 1 command")
+	require.Equal(t, r2, int64(1), "should be 1 command")
 }
