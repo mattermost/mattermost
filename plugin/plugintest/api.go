@@ -66,6 +66,31 @@ func (_m *API) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.Ap
 	return r0, r1
 }
 
+// AddUserToChannel provides a mock function with given fields: channelId, userId, asUserId
+func (_m *API) AddUserToChannel(channelId string, userId string, asUserId string) (*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(channelId, userId, asUserId)
+
+	var r0 *model.ChannelMember
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.ChannelMember); ok {
+		r0 = rf(channelId, userId, asUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMember)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+		r1 = rf(channelId, userId, asUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CopyFileInfos provides a mock function with given fields: userId, fileIds
 func (_m *API) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
 	ret := _m.Called(userId, fileIds)

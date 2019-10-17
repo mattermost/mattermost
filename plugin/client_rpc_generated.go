@@ -2282,6 +2282,37 @@ func (s *apiRPCServer) AddChannelMember(args *Z_AddChannelMemberArgs, returns *Z
 	return nil
 }
 
+type Z_AddUserToChannelArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_AddUserToChannelReturns struct {
+	A *model.ChannelMember
+	B *model.AppError
+}
+
+func (g *apiRPCClient) AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError) {
+	_args := &Z_AddUserToChannelArgs{channelId, userId, asUserId}
+	_returns := &Z_AddUserToChannelReturns{}
+	if err := g.client.Call("Plugin.AddUserToChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to AddUserToChannel API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) AddUserToChannel(args *Z_AddUserToChannelArgs, returns *Z_AddUserToChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.AddUserToChannel(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API AddUserToChannel called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetChannelMemberArgs struct {
 	A string
 	B string
