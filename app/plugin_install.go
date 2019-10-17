@@ -240,7 +240,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 	if !bundleExist {
 		return nil
 	}
-	if err := a.RemoveFile(storePluginFileName); err != nil {
+	if err = a.RemoveFile(storePluginFileName); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if err = a.removeSignatures(id); err != nil {
