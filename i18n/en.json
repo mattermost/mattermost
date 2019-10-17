@@ -1533,6 +1533,10 @@
     "translation": "Unable to verify plugin signature."
   },
   {
+    "id": "api.plugin.signature_decode.app_error",
+    "translation": "Unable to decode signature."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request"
   },
@@ -3589,6 +3593,10 @@
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
     "translation": "Error reading local plugins folder."
+  },
+  {
+    "id": "app.plugin.sync_plugins.verify_signature.app_error",
+    "translation": "Unable to verify plugin on synchronization."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
