@@ -52,7 +52,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("ChannelMemberStore", func(t *testing.T) { testChannelMemberStore(t, ss) })
 	t.Run("ChannelDeleteMemberStore", func(t *testing.T) { testChannelDeleteMemberStore(t, ss) })
 	t.Run("GetChannels", func(t *testing.T) { testChannelStoreGetChannels(t, ss) })
-	t.Run("GetChannelsOpt", func(t *testing.T) { testChannelStoreGetChannelsOpt(t, ss) })
+	t.Run("GetChannelsWithOptions", func(t *testing.T) { testChannelStoreGetChannelsWithOptions(t, ss) })
 	t.Run("GetAllChannels", func(t *testing.T) { testChannelStoreGetAllChannels(t, ss, s) })
 	t.Run("GetMoreChannels", func(t *testing.T) { testChannelStoreGetMoreChannels(t, ss) })
 	t.Run("GetPublicChannelsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsForTeam(t, ss) })
@@ -1116,7 +1116,7 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	ss.Channel().InvalidateAllChannelMembersForUser(m1.UserId)
 }
 
-func testChannelStoreGetChannelsOpt(t *testing.T, ss store.Store) {
+func testChannelStoreGetChannelsWithOptions(t *testing.T, ss store.Store) {
 	cleanupChannels(t, ss)
 	defer cleanupChannels(t, ss)
 
@@ -1124,7 +1124,7 @@ func testChannelStoreGetChannelsOpt(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_PRIVATE
+	o1.Type = model.CHANNEL_OPEN
 	_, err := ss.Channel().Save(&o1, -1)
 	require.Nil(t, err)
 
@@ -1162,16 +1162,29 @@ func testChannelStoreGetChannelsOpt(t *testing.T, ss store.Store) {
 		expectedLength   int
 	}{
 		{
-			name:           "success with UserIDs filter",
+			name:           "with userIDs filter",
 			inputUserID:    []string{user1},
 			expectedLength: 1,
+		},
+		{
+			name:             "with channel type filter",
+			inputChannelType: []string{model.CHANNEL_PRIVATE},
+			expectedLength:   1,
+		},
+		{
+			name:             "with userIDs and channel type filter",
+			inputUserID:      []string{user1},
+			inputChannelType: []string{model.CHANNEL_PRIVATE},
+			expectedLength:   0,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			channels, err := ss.Channel().GetChannelsOpt(&model.GetChannelsOptions{
-				UserIds: tt.inputUserID,
+			channels, err := ss.Channel().GetChannelsWithOptions(&model.GetChannelsOptions{
+				UserIds:      tt.inputUserID,
+				ChannelTypes: tt.inputChannelType,
+				Page:         10,
 			})
 			require.Nil(t, err)
 			assert.Equal(t, tt.expectedLength, len(*channels))
