@@ -254,6 +254,14 @@ func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
 	assert.Equal(t, privateChannel.Id, histories[0].ChannelId)
 }
+func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel, err := th.App.CreateChannel(&model.Channel{DisplayName: "  Public 1  ", Name: "public1", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+	require.Equal(t, channel.DisplayName, "Public 1")
+}
 
 func TestUpdateChannelPrivacy(t *testing.T) {
 	th := Setup(t).InitBasic()
