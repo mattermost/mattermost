@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -797,4 +798,68 @@ func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
 	}
 
 	return api.app.DeleteBotIconImage(userId)
+}
+
+type ResponseTransfer struct {
+	bytes.Buffer
+	headers    http.Header
+	statusCode int
+}
+
+func (rt *ResponseTransfer) Header() http.Header {
+	if rt.headers == nil {
+		rt.headers = make(http.Header)
+	}
+	return rt.headers
+}
+
+func (rt *ResponseTransfer) WriteHeader(statusCode int) {
+	rt.statusCode = statusCode
+}
+
+// From net/http/httptest/recorder.go
+func parseContentLength(cl string) int64 {
+	cl = strings.TrimSpace(cl)
+	if cl == "" {
+		return -1
+	}
+	n, err := strconv.ParseInt(cl, 10, 64)
+	if err != nil {
+		return -1
+	}
+	return n
+
+}
+
+func (rt *ResponseTransfer) GenerateResponse() *http.Response {
+	res := &http.Response{
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		StatusCode: rt.statusCode,
+		Header:     rt.headers.Clone(),
+	}
+
+	if res.StatusCode == 0 {
+		res.StatusCode = http.StatusOK
+	}
+
+	res.Status = fmt.Sprintf("%03d %s", res.StatusCode, http.StatusText(res.StatusCode))
+
+	if rt.Len() > 0 {
+		res.Body = ioutil.NopCloser(rt)
+	} else {
+		res.Body = http.NoBody
+	}
+
+	res.ContentLength = parseContentLength(rt.headers.Get("Content-Length"))
+
+	return res
+}
+
+func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
+	toPluginId := request.Header.Get("Mattermost-To-Plugin-Id")
+	responseTransfer := &ResponseTransfer{}
+	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, toPluginId)
+	return responseTransfer.GenerateResponse()
 }

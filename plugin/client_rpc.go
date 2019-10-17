@@ -56,11 +56,13 @@ func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (interface
 }
 
 type apiRPCClient struct {
-	client *rpc.Client
+	client    *rpc.Client
+	muxBroker *plugin.MuxBroker
 }
 
 type apiRPCServer struct {
-	impl API
+	impl      API
+	muxBroker *plugin.MuxBroker
 }
 
 // ErrorString is a fallback for sending unregistered implementations of the error interface across
@@ -171,7 +173,8 @@ type Z_OnActivateReturns struct {
 func (g *hooksRPCClient) OnActivate() error {
 	muxId := g.muxBroker.NextId()
 	go g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
-		impl: g.apiImpl,
+		impl:      g.apiImpl,
+		muxBroker: g.muxBroker,
 	})
 
 	_args := &Z_OnActivateArgs{
@@ -192,7 +195,8 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 	}
 
 	s.apiRPCClient = &apiRPCClient{
-		client: rpc.NewClient(connection),
+		client:    rpc.NewClient(connection),
+		muxBroker: s.muxBroker,
 	}
 
 	if mmplugin, ok := s.impl.(interface {
@@ -360,6 +364,108 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 		http.NotFound(w, r)
 	}
 
+	return nil
+}
+
+type Z_PluginHTTPArgs struct {
+	Request           *http.Request
+	RequestBodyStream uint32
+}
+
+type Z_PluginHTTPReturns struct {
+	Response           *http.Response
+	ResponseBodyStream uint32
+}
+
+func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
+	requestBodyStreamId := uint32(0)
+	if request.Body != nil {
+		requestBodyStreamId = g.muxBroker.NextId()
+		go func() {
+			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
+			if err != nil {
+				log.Printf("PluginHTTP failed, muxBroker couldn't Accept request body connection. Err: " + err.Error())
+				return
+			}
+			defer bodyConnection.Close()
+			serveIOReader(request.Body, bodyConnection)
+		}()
+	}
+
+	forwardedRequest := &http.Request{
+		Method:     request.Method,
+		URL:        request.URL,
+		Proto:      request.Proto,
+		ProtoMajor: request.ProtoMajor,
+		ProtoMinor: request.ProtoMinor,
+		Header:     request.Header,
+		Host:       request.Host,
+		RemoteAddr: request.RemoteAddr,
+		RequestURI: request.RequestURI,
+	}
+
+	_args := &Z_PluginHTTPArgs{
+		Request:           forwardedRequest,
+		RequestBodyStream: requestBodyStreamId,
+	}
+
+	_returns := &Z_PluginHTTPReturns{}
+	if err := g.client.Call("Plugin.PluginHTTP", _args, _returns); err != nil {
+		log.Printf("RPC call to PluginHTTP API failed: %s", err.Error())
+		return _returns.Response
+	}
+
+	if _returns.ResponseBodyStream != 0 {
+		connection, err := g.muxBroker.Dial(_returns.ResponseBodyStream)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
+			_returns.Response.Body = ioutil.NopCloser(&bytes.Buffer{})
+			return _returns.Response
+		}
+		_returns.Response.Body = connectIOReader(connection)
+	} else if _returns.Response != nil {
+		_returns.Response.Body = ioutil.NopCloser(&bytes.Buffer{})
+	}
+
+	return _returns.Response
+}
+
+func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPReturns) error {
+	if args.RequestBodyStream != 0 {
+		connection, err := s.muxBroker.Dial(args.RequestBodyStream)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
+			return err
+		}
+		args.Request.Body = connectIOReader(connection)
+	} else {
+		args.Request.Body = ioutil.NopCloser(&bytes.Buffer{})
+	}
+
+	if hook, ok := s.impl.(interface {
+		PluginHTTP(request *http.Request) *http.Response
+	}); ok {
+		response := hook.PluginHTTP(args.Request)
+		responseBodyStreamId := uint32(0)
+		if response.Body != nil {
+			responseBodyStreamId = s.muxBroker.NextId()
+			responseBody := response.Body
+			response.Body = nil
+			go func() {
+				bodyConnection, err := s.muxBroker.Accept(responseBodyStreamId)
+				if err != nil {
+					log.Printf("PluginHTTP failed, muxBroker couldn't Accept request body connection. Err: " + err.Error())
+					return
+				}
+				defer bodyConnection.Close()
+				serveIOReader(responseBody, bodyConnection)
+			}()
+		}
+		returns.Response = response
+		returns.ResponseBodyStream = responseBodyStreamId
+	} else {
+		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented."))
+	}
 	return nil
 }
 
