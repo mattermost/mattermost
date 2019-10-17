@@ -167,7 +167,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	if len(post.RootId) > 0 {
 		pchan = make(chan store.StoreResult, 1)
 		go func() {
-			r, pErr := a.Srv.Store.Post().Get(post.RootId, true)
+			r, pErr := a.Srv.Store.Post().Get(post.RootId, false)
 			pchan <- store.StoreResult{Data: r, Err: pErr}
 			close(pchan)
 		}()
@@ -475,7 +475,7 @@ func (a *App) DeleteEphemeralPost(userId, postId string) {
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
-	postLists, err := a.Srv.Store.Post().Get(post.Id, true)
+	postLists, err := a.Srv.Store.Post().Get(post.Id, false)
 	if err != nil {
 		return nil, err
 	}
@@ -634,8 +634,8 @@ func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
 	return a.Srv.Store.Post().GetSingle(postId)
 }
 
-func (a *App) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	return a.Srv.Store.Post().Get(postId, false)
+func (a *App) GetPostThread(postId string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+	return a.Srv.Store.Post().Get(postId, skipFetchThreads)
 }
 
 func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
@@ -789,7 +789,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 		return model.NewPostList(), nil
 	}
 
-	postList, err := a.GetPostThread(lastUnreadPostId)
+	postList, err := a.GetPostThread(lastUnreadPostId, skipFetchThreads)
 	if err != nil {
 		return nil, err
 	}
