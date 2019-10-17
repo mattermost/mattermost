@@ -3414,6 +3414,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		Message:   "test",
 		IsPinned:  true,
 	})
+	require.Nil(t, err)
 
 	if pl, errGet := ss.Channel().GetPinnedPosts(o1.Id); errGet != nil {
 		t.Fatal(errGet)
