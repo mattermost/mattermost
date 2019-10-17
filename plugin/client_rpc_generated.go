@@ -3489,32 +3489,32 @@ func (s *apiRPCServer) GetPluginStatus(args *Z_GetPluginStatusArgs, returns *Z_G
 	return nil
 }
 
-type Z_UploadPluginArgs struct {
+type Z_InstallPluginArgs struct {
 	A io.Reader
 	B bool
 }
 
-type Z_UploadPluginReturns struct {
+type Z_InstallPluginReturns struct {
 	A *model.Manifest
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UploadPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
-	_args := &Z_UploadPluginArgs{file, replace}
-	_returns := &Z_UploadPluginReturns{}
-	if err := g.client.Call("Plugin.UploadPlugin", _args, _returns); err != nil {
-		log.Printf("RPC call to UploadPlugin API failed: %s", err.Error())
+func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	_args := &Z_InstallPluginArgs{file, replace}
+	_returns := &Z_InstallPluginReturns{}
+	if err := g.client.Call("Plugin.InstallPlugin", _args, _returns); err != nil {
+		log.Printf("RPC call to InstallPlugin API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) UploadPlugin(args *Z_UploadPluginArgs, returns *Z_UploadPluginReturns) error {
+func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_InstallPluginReturns) error {
 	if hook, ok := s.impl.(interface {
-		UploadPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
+		InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.UploadPlugin(args.A, args.B)
+		returns.A, returns.B = hook.InstallPlugin(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API UploadPlugin called but not implemented."))
+		return encodableError(fmt.Errorf("API InstallPlugin called but not implemented."))
 	}
 	return nil
 }

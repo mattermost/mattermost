@@ -685,7 +685,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	assert.Equal(t, pluginManifests, plugins)
 }
 
-func TestPluginAPIUploadPlugin(t *testing.T) {
+func TestPluginAPIInstallPlugin(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -694,16 +694,16 @@ func TestPluginAPIUploadPlugin(t *testing.T) {
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	require.NoError(t, err)
 
-	_, err = api.UploadPlugin(bytes.NewReader(tarData), true)
+	_, err = api.InstallPlugin(bytes.NewReader(tarData), true)
 	assert.NotNil(t, err, "should not allow upload if upload disabled")
-	assert.Equal(t, err.Error(), "uploadPlugin: Plugins and/or plugin uploads have been disabled., ")
+	assert.Equal(t, err.Error(), "installPlugin: Plugins and/or plugin uploads have been disabled., ")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
 	})
 
-	manifest, err := api.UploadPlugin(bytes.NewReader(tarData), true)
+	manifest, err := api.InstallPlugin(bytes.NewReader(tarData), true)
 	defer os.RemoveAll("plugins/testplugin")
 	require.Nil(t, err)
 	assert.Equal(t, "testplugin", manifest.Id)

@@ -2786,8 +2786,8 @@ func (_m *API) UploadFile(data []byte, channelId string, filename string) (*mode
 	return r0, r1
 }
 
-// UploadPlugin provides a mock function with given fields: file, replace
-func (_m *API) UploadPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+// InstallPlugin provides a mock function with given fields: file, replace
+func (_m *API) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
 	ret := _m.Called(file, replace)
 
 	var r0 *model.Manifest
