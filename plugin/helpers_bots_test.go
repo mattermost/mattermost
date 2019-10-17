@@ -136,7 +136,7 @@ func TestEnsureBot(t *testing.T) {
 			assert.Nil(t, err)
 		})
 
-		t.Run("shoudl fail if create bot fails", func(t *testing.T) {
+		t.Run("should fail if create bot fails", func(t *testing.T) {
 			api := setupAPI()
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
