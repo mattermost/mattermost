@@ -169,7 +169,7 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 
 	data, err := ss.Session().GetSessions(s1.UserId)
 	require.Nil(t, err)
-	require.Zero(t, len(data), 0, "should match len")
+	require.Len(t, data, 0, "should match len")
 }
 
 func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
