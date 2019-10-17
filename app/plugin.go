@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -242,39 +241,8 @@ func (a *App) SyncPlugins() *model.AppError {
 		return nil
 	}
 
-	for _, path := range fileStorePaths {
-		if !strings.HasSuffix(path, ".tar.gz") {
-			mlog.Warn("Ignoring non-plugin in file store", mlog.String("bundle", path))
-			continue
-		}
-
-		var reader filesstore.ReadCloseSeeker
-		reader, appErr = a.FileReader(path)
-		if appErr != nil {
-			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", path), mlog.Err(appErr))
-			continue
-		}
-		defer reader.Close()
-		var sigReader filesstore.ReadCloseSeeker
-		sigReader, appErr = a.FileReader(fmt.Sprintf("%s.sig", path))
-		if appErr != nil {
-			if *a.Config().PluginSettings.RequirePluginSignature {
-				mlog.Error("Failed to detect plugin signature in the file store.", mlog.String("bundle", path), mlog.Err(appErr))
-				continue
-			}
-		} else {
-			if err := a.VerifyPlugin(reader, sigReader); err != nil {
-				mlog.Error("Failed to verify plugin signature in the file store.", mlog.String("bundle", path), mlog.Err(err))
-				continue
-			}
-		}
-		reader.Seek(0, 0)
-		mlog.Info("Syncing plugin from file store", mlog.String("bundle", path))
-		if _, err := a.installPluginLocally(reader, true); err != nil {
-			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", path), mlog.Err(err))
-		}
-	}
-
+	plugins := a.getPluginsFromDir(fileStorePaths)
+	a.installPlugins(plugins)
 	return nil
 }
 
@@ -664,4 +632,79 @@ func removePK(publicKeys []string, filename string) []string {
 		}
 	}
 	return publicKeys
+}
+
+type pluginHelper struct {
+	path       string
+	signatures []string
+}
+
+func (a *App) getPluginsFromDir(fileStorePaths []string) map[string]*pluginHelper {
+	plugins := make(map[string]*pluginHelper)
+	for _, path := range fileStorePaths {
+		if strings.HasSuffix(path, ".tar.gz") {
+			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
+			helper := &pluginHelper{
+				path:       path,
+				signatures: []string{},
+			}
+			plugins[id] = helper
+		}
+	}
+	for _, path := range fileStorePaths {
+		if strings.HasSuffix(path, ".sig") {
+			id := strings.TrimSuffix(filepath.Base(path), ".sig")
+			index := strings.LastIndex(id, ".")
+			id = id[:index]
+			if val, ok := plugins[id]; !ok {
+				mlog.Error("Unknown signature in the filestore.", mlog.String("path", path))
+			} else {
+				val.signatures = append(val.signatures, path)
+			}
+		}
+	}
+	return plugins
+}
+
+func (a *App) verifySignature(plugin filesstore.ReadCloseSeeker, signaturePaths []string) *model.AppError {
+	for _, signaturePath := range signaturePaths {
+		var sigReader filesstore.ReadCloseSeeker
+		sigReader, appErr := a.FileReader(signaturePath)
+		if appErr != nil {
+			mlog.Debug("Can't read signature file.", mlog.String("path", signaturePath), mlog.Err(appErr))
+			continue
+		}
+		plugin.Seek(0, 0)
+		if err := a.VerifyPlugin(plugin, sigReader); err != nil {
+			mlog.Debug("Failed to verify plugin signature in the file store.", mlog.String("signature", signaturePath), mlog.Err(err))
+			continue
+		}
+		return nil
+	}
+	return model.NewAppError("SyncPlugins", "app.plugin.sync_plugins.verify_signature.app_error", nil, "", http.StatusInternalServerError)
+
+}
+
+func (a *App) installPlugins(plugins map[string]*pluginHelper) {
+	for _, plugin := range plugins {
+		var reader filesstore.ReadCloseSeeker
+		reader, appErr := a.FileReader(plugin.path)
+		if appErr != nil {
+			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+			continue
+		}
+		defer reader.Close()
+		if *a.Config().PluginSettings.RequirePluginSignature {
+			appErr = a.verifySignature(reader, plugin.signatures)
+			if appErr != nil {
+				mlog.Error("Failed to verify plugin signature in the file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+				continue
+			}
+		}
+		reader.Seek(0, 0)
+		mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
+		if _, err := a.installPluginLocally(reader, true); err != nil {
+			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
+		}
+	}
 }

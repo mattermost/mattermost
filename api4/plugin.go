@@ -46,7 +46,7 @@ func (api *API) InitPlugin() {
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable || !*c.App.Config().PluginSettings.EnableUploads {
+	if !*c.App.Config().PluginSettings.Enable || !*c.App.Config().PluginSettings.EnableUploads || *c.App.Config().PluginSettings.RequirePluginSignature {
 		c.Err = model.NewAppError("uploadPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -97,7 +97,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
+	if !*c.App.Config().PluginSettings.Enable || *c.App.Config().PluginSettings.RequirePluginSignature {
 		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -151,16 +151,16 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = appErr
 		return
 	}
-	signature, appErr := verifyPlugin(c, plugin, pluginFileBytes)
+	appErr = verifyPlugin(c, plugin, pluginFileBytes)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	// save the plugin signature to the store
-	filePath := filepath.Join(*c.App.Config().PluginSettings.Directory, fmt.Sprintf("%s.tar.gz.sig", plugin.Manifest.Id))
-	if _, appErr := c.App.WriteFile(bytes.NewReader(signature), filePath); appErr != nil {
-		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	// save the plugin signatures to the store
+	appErr = saveSignatures(c, plugin)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -395,26 +395,34 @@ func downloadFromUrl(c *Context, downloadUrl string) ([]byte, *model.AppError) {
 	return fileBytes, nil
 }
 
-func verifyPlugin(c *Context, plugin *model.BaseMarketplacePlugin, pluginFileBytes []byte) ([]byte, *model.AppError) {
-	verified := false
-	verifiedSignature := []byte{}
+func verifyPlugin(c *Context, plugin *model.BaseMarketplacePlugin, pluginFileBytes []byte) *model.AppError {
 	for _, signature := range plugin.Signatures {
 		signatureBytes, err := base64.StdEncoding.DecodeString(signature.Signature)
 		if err != nil {
-			mlog.Error("Can't decode signature", mlog.String("public key hash", signature.PublicKeyHash), mlog.Err(err))
+			return model.NewAppError("verifyPlugin", "api.plugin.signature_decode.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		appErr := c.App.VerifyPlugin(bytes.NewReader(pluginFileBytes), bytes.NewReader(signatureBytes))
 		if appErr == nil {
-			verified = true
-			verifiedSignature = signatureBytes
-			break
+			return nil
 		}
 		mlog.Debug("Plugin signature not verified", mlog.String("public key hash", signature.PublicKeyHash), mlog.Err(appErr))
 	}
-	if !verified {
-		return nil, model.NewAppError("verifyPlugin", "api.plugin.install.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
+	return model.NewAppError("verifyPlugin", "api.plugin.install.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
+}
+
+func saveSignatures(c *Context, plugin *model.BaseMarketplacePlugin) *model.AppError {
+	for count, signature := range plugin.Signatures {
+		signatureBytes, err := base64.StdEncoding.DecodeString(signature.Signature)
+		if err != nil {
+			return model.NewAppError("saveSignatures", "api.plugin.signature_decode.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		filePath := filepath.Join(*c.App.Config().PluginSettings.Directory, fmt.Sprintf("%s.%d.sig", plugin.Manifest.Id, count+1))
+		if _, appErr := c.App.WriteFile(bytes.NewReader(signatureBytes), filePath); appErr != nil {
+			return model.NewAppError("saveSignatures", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		}
 	}
-	return verifiedSignature, nil
+	return nil
 }
 
 func installPlugin(c *Context, w http.ResponseWriter, pluginFileBytes []byte, force bool) {

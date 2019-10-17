@@ -764,10 +764,6 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 	require.Nil(t, err)
 	demoPluginSignature := base64.StdEncoding.EncodeToString(sigFile)
 
-	publicKeyFilename := "development-public-key.asc"
-	publicKeyFileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
-	require.Nil(t, err)
-
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -881,9 +877,6 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		}))
 		defer testServer.Close()
 
-		err := th.App.AddPublicKey("pub_key", publicKeyFileReader)
-		require.Nil(t, err)
-
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableMarketplace = true
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
@@ -895,7 +888,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Equal(t, "com.mattermost.demo-plugin", plugin.Id)
 		require.Equal(t, "0.3.0", plugin.Version)
 
-		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "com.mattermost.demo-plugin.tar.gz.sig")
+		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "com.mattermost.demo-plugin.1.sig")
 		savedSigFile, err := th.App.ReadFile(filePath)
 		require.Nil(t, err)
 		require.EqualValues(t, sigFile, savedSigFile)

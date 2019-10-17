@@ -243,7 +243,10 @@ func (a *App) removePlugin(id string) *model.AppError {
 	if err := a.RemoveFile(storePluginFileName); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	a.RemoveFile(fmt.Sprintf("%s.sig", storePluginFileName))
+	if err = a.removeSignatures(id); err != nil {
+		mlog.Error("Can't remove signatures", mlog.Err(err))
+	}
+
 	a.notifyClusterPluginEvent(
 		model.CLUSTER_EVENT_REMOVE_PLUGIN,
 		model.PluginEventData{
@@ -252,6 +255,25 @@ func (a *App) removePlugin(id string) *model.AppError {
 	)
 
 	return nil
+}
+
+func (a *App) removeSignatures(pluginId string) *model.AppError {
+	counter := 1
+	for {
+		filePath := filepath.Join(*a.Config().PluginSettings.Directory, fmt.Sprintf("%s.%d.sig", pluginId, counter))
+		exists, err := a.FileExists(filePath)
+		if err != nil {
+			return model.NewAppError("removeSignatures", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if !exists {
+			return nil
+		}
+		err = a.RemoveFile(filePath)
+		if err != nil {
+			return model.NewAppError("removeSignatures", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		counter++
+	}
 }
 
 func (a *App) removePluginLocally(id string) *model.AppError {

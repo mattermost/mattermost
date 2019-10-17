@@ -403,43 +403,52 @@ func TestPluginSync(t *testing.T) {
 			require.Nil(t, err)
 			require.Len(t, pluginStatus, 0)
 
-			// New bundle in the file store with signature case
-			pluginFileReader, err := os.Open(filepath.Join(path, "com.mattermost.demo-plugin-0.3.0.tar.gz"))
+			// RequirePluginSignature = true case
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.RequirePluginSignature = true
+			})
+			pluginFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
 			require.NoError(t, err)
 			defer pluginFileReader.Close()
-			_, appErr = th.App.WriteFile(pluginFileReader, th.App.getBundleStorePath("com.mattermost.demo-plugin"))
+			_, appErr = th.App.WriteFile(pluginFileReader, th.App.getBundleStorePath("testplugin.tar.gz"))
 			checkNoError(t, appErr)
+			// no signature
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+			pluginStatus, err = env.Statuses()
+			require.Nil(t, err)
+			require.Len(t, pluginStatus, 0)
 
+			// Wrong signature
 			signatureFileReader, err := os.Open(filepath.Join(path, "com.mattermost.demo-plugin-0.3.0.tar.gz.sig"))
 			require.NoError(t, err)
 			defer signatureFileReader.Close()
-			filePath := fmt.Sprintf("%s.sig", th.App.getBundleStorePath("com.mattermost.demo-plugin"))
+			filePath := fmt.Sprintf("%s.1.sig", th.App.getBundleStorePath("testplugin"))
 			_, appErr = th.App.WriteFile(signatureFileReader, filePath)
 			checkNoError(t, appErr)
 
 			appErr = th.App.SyncPlugins()
 			checkNoError(t, appErr)
 
-			// Check that not installed(no public key to verify)
 			pluginStatus, err = env.Statuses()
 			require.Nil(t, err)
 			require.Len(t, pluginStatus, 0)
 
-			// Add public key
-			publicKeyFileReader, err := os.Open(filepath.Join(path, "development-public-key.gpg"))
+			// Correct signature
+			signatureFileReader, err = os.Open(filepath.Join(path, "testplugin.tar.gz.sig"))
 			require.NoError(t, err)
-			defer publicKeyFileReader.Close()
-			appErr = th.App.AddPublicKey("development-public-key.gpg", publicKeyFileReader)
+			defer signatureFileReader.Close()
+			filePath = fmt.Sprintf("%s.1.sig", th.App.getBundleStorePath("testplugin"))
+			_, appErr = th.App.WriteFile(signatureFileReader, filePath)
 			checkNoError(t, appErr)
 
 			appErr = th.App.SyncPlugins()
 			checkNoError(t, appErr)
 
-			// Check that installed
 			pluginStatus, err = env.Statuses()
 			require.Nil(t, err)
 			require.Len(t, pluginStatus, 1)
-			require.Equal(t, pluginStatus[0].PluginId, "com.mattermost.demo-plugin")
+			require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 		})
 	}
 }
