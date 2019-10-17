@@ -44,13 +44,10 @@ func testJobSaveGet(t *testing.T, ss store.Store) {
 
 	defer ss.Job().Delete(job.Id)
 
-	if received, err := ss.Job().Get(job.Id); err != nil {
-		t.Fatal(err)
-	} else if received.Id != job.Id {
-		t.Fatal("received incorrect job after save")
-	} else if received.Data["Total"] != "12345" {
-		t.Fatal("data field was not retrieved successfully:", received.Data)
-	}
+	received, err := ss.Job().Get(job.Id)
+	require.Nil(t, err)
+	require.Equal(t, received.Id, job.Id, "received incorrect job after save")
+	require.Equal(t, "12345", received.Data["Total"], "data field was not retrieved successfully:", received.Data)
 }
 
 func testJobGetAllByType(t *testing.T, ss store.Store) {
@@ -77,15 +74,11 @@ func testJobGetAllByType(t *testing.T, ss store.Store) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	if received, err := ss.Job().GetAllByType(jobType); err != nil {
-		t.Fatal(err)
-	} else if len(received) != 2 {
-		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[0].Id && received[1].Id != jobs[0].Id {
-		t.Fatal("should've received first jobs")
-	} else if received[0].Id != jobs[1].Id && received[1].Id != jobs[1].Id {
-		t.Fatal("should've received second jobs")
-	}
+	received, err := ss.Job().GetAllByType(jobType)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(received), "received wrong number of jobs")
+	require.False(t, received[0].Id != jobs[0].Id && received[1].Id != jobs[0].Id, "should've received first jobs")
+	require.False(t, received[0].Id != jobs[1].Id && received[1].Id != jobs[1].Id, "should've received second jobs")
 }
 
 func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
@@ -120,23 +113,16 @@ func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	if received, err := ss.Job().GetAllByTypePage(jobType, 0, 2); err != nil {
-		t.Fatal(err)
-	} else if len(received) != 2 {
-		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[2].Id {
-		t.Fatal("should've received newest job first")
-	} else if received[1].Id != jobs[0].Id {
-		t.Fatal("should've received second newest job second")
-	}
+	received, err := ss.Job().GetAllByTypePage(jobType, 0, 2)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(received), "received wrong number of jobs")
+	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
+	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
 
-	if received, err := ss.Job().GetAllByTypePage(jobType, 2, 2); err != nil {
-		t.Fatal(err)
-	} else if len(received) != 1 {
-		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[1].Id {
-		t.Fatal("should've received oldest job last")
-	}
+	received2, err := ss.Job().GetAllByTypePage(jobType, 2, 2)
+	require.Nil(t, err)
+	require.Equal(t, 1, len(received2), "received wrong number of jobs")
+	require.Equal(t, received2[0].Id, jobs[1].Id, "should've received oldest job last")
 }
 
 func testJobGetAllPage(t *testing.T, ss store.Store) {
@@ -167,23 +153,16 @@ func testJobGetAllPage(t *testing.T, ss store.Store) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	if received, err := ss.Job().GetAllPage(0, 2); err != nil {
-		t.Fatal(err)
-	} else if len(received) != 2 {
-		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[2].Id {
-		t.Fatal("should've received newest job first")
-	} else if received[1].Id != jobs[0].Id {
-		t.Fatal("should've received second newest job second")
-	}
+	received, err := ss.Job().GetAllPage(0, 2)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(received), "received wrong number of jobs")
+	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
+	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
 
-	if received, err := ss.Job().GetAllPage(2, 2); err != nil {
-		t.Fatal(err)
-	} else if len(received) < 1 {
-		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[1].Id {
-		t.Fatal("should've received oldest job last")
-	}
+	received2, err := ss.Job().GetAllPage(2, 2)
+	require.Nil(t, err)
+	require.LessOrEqual(t, 1, len(received2), "received wrong number of jobs")
+	require.Equal(t, received2[0].Id, jobs[1].Id, "should've received oldest job last")
 }
 
 func testJobGetAllByStatus(t *testing.T, ss store.Store) {
@@ -226,15 +205,11 @@ func testJobGetAllByStatus(t *testing.T, ss store.Store) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	if received, err := ss.Job().GetAllByStatus(status); err != nil {
-		t.Fatal(err)
-	} else if len(received) != 3 {
-		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[1].Id || received[1].Id != jobs[0].Id || received[2].Id != jobs[2].Id {
-		t.Fatal("should've received jobs ordered by CreateAt time")
-	} else if received[1].Data["test"] != "data" {
-		t.Fatal("should've received job data field back as saved")
-	}
+	received, err := ss.Job().GetAllByStatus(status)
+	require.Nil(t, err)
+	require.Equal(t, 3, len(received), "received wrong number of jobs")
+	require.False(t, received[0].Id != jobs[1].Id || received[1].Id != jobs[0].Id || received[2].Id != jobs[2].Id, "should've received jobs ordered by CreateAt time")
+	require.Equal(t, "data", received[1].Data["test"], "should've received job data field back as saved")
 }
 
 func testJobStoreGetNewestJobByStatusAndType(t *testing.T, ss store.Store) {
@@ -360,24 +335,21 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 		"Foo": "Bar",
 	}
 
-	if updated, err2 := ss.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS); err2 != nil {
-		if updated {
-			t.Fatal("should have failed due to incorrect old status")
-		}
+	updated, err2 := ss.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS)
+	if updated {
+		require.Nil(t, err2,"should have failed due to incorrect old status")
 	}
 
 	time.Sleep(2 * time.Millisecond)
 
-	updated, err := ss.Job().UpdateOptimistically(job, model.JOB_STATUS_PENDING)
+	updated2, err := ss.Job().UpdateOptimistically(job, model.JOB_STATUS_PENDING)
 	require.Nil(t, err)
-	require.True(t, updated)
+	require.True(t, updated2)
 
 	updatedJob, err := ss.Job().Get(job.Id)
 	require.Nil(t, err)
 
-	if updatedJob.Type != job.Type || updatedJob.CreateAt != job.CreateAt || updatedJob.Status != job.Status || updatedJob.LastActivityAt <= job.LastActivityAt || updatedJob.Progress != job.Progress || updatedJob.Data["Foo"] != job.Data["Foo"] {
-		t.Fatal("Some update property was not as expected")
-	}
+	require.False(t, updatedJob.Type != job.Type || updatedJob.CreateAt != job.CreateAt || updatedJob.Status != job.Status || updatedJob.LastActivityAt <= job.LastActivityAt || updatedJob.Progress != job.Progress || updatedJob.Data["Foo"] != job.Data["Foo"], "Some update property was not as expected")
 }
 
 func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store) {
@@ -400,12 +372,9 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 	received, err = ss.Job().UpdateStatus(job.Id, model.JOB_STATUS_PENDING)
 	require.Nil(t, err)
 
-	if received.Status != model.JOB_STATUS_PENDING {
-		t.Fatal("status wasn't updated")
-	}
-	if received.LastActivityAt <= lastUpdateAt {
-		t.Fatal("lastActivityAt wasn't updated")
-	}
+	require.Equal(t, received.Status, model.JOB_STATUS_PENDING, "status wasn't updated")
+	require.Greater(t, received.LastActivityAt, lastUpdateAt, "lastActivityAt wasn't updated")
+
 	lastUpdateAt = received.LastActivityAt
 
 	time.Sleep(2 * time.Millisecond)
@@ -417,12 +386,9 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 	received, err = ss.Job().Get(job.Id)
 	require.Nil(t, err)
 
-	if received.Status != model.JOB_STATUS_PENDING {
-		t.Fatal("should still be pending")
-	}
-	if received.LastActivityAt != lastUpdateAt {
-		t.Fatal("last activity at shouldn't have changed")
-	}
+	require.Equal(t, received.Status, model.JOB_STATUS_PENDING, "should still be pending")
+	require.Equal(t, received.LastActivityAt, lastUpdateAt, "last activity at shouldn't have changed")
+
 
 	time.Sleep(2 * time.Millisecond)
 
@@ -433,15 +399,9 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 	var startAtSet int64
 	received, err = ss.Job().Get(job.Id)
 	require.Nil(t, err)
-	if received.Status != model.JOB_STATUS_IN_PROGRESS {
-		t.Fatal("should be in progress")
-	}
-	if received.StartAt == 0 {
-		t.Fatal("received should have start at set")
-	}
-	if received.LastActivityAt <= lastUpdateAt {
-		t.Fatal("lastActivityAt wasn't updated")
-	}
+	require.Equal(t, received.Status, model.JOB_STATUS_IN_PROGRESS, "should be in progress")
+	require.NotEqual(t, 0, received.StartAt, "received should have start at set")
+	require.Greater(t, received.LastActivityAt, lastUpdateAt, "lastActivityAt wasn't updated")
 	lastUpdateAt = received.LastActivityAt
 	startAtSet = received.StartAt
 
@@ -453,15 +413,9 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 
 	received, err = ss.Job().Get(job.Id)
 	require.Nil(t, err)
-	if received.Status != model.JOB_STATUS_SUCCESS {
-		t.Fatal("should be success status")
-	}
-	if received.StartAt != startAtSet {
-		t.Fatal("startAt should not have changed")
-	}
-	if received.LastActivityAt <= lastUpdateAt {
-		t.Fatal("lastActivityAt wasn't updated")
-	}
+	require.Equal(t, received.Status, model.JOB_STATUS_SUCCESS, "should be success status")
+	require.Equal(t, received.StartAt, startAtSet, "startAt should not have changed")
+	require.Greater(t, received.LastActivityAt, lastUpdateAt, "lastActivityAt wasn't updated")
 }
 
 func testJobDelete(t *testing.T, ss store.Store) {
