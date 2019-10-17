@@ -1,3 +1,13 @@
+
+v3.1.0 / 2019-09-20
+===================
+
+  * add consistent panic error message
+  * Expose the Message interface Validate method
+  * return error if a custom type is enqueued
+  * Handle pointer types in Enqueue()
+  * message: update maxMessageBytes to 32KB
+
 v3.0.1 / 2018-10-02
 ===================
 

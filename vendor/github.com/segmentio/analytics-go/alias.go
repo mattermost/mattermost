@@ -2,6 +2,8 @@ package analytics
 
 import "time"
 
+var _ Message = (*Alias)(nil)
+
 // This type represents object sent in a alias call as described in
 // https://segment.com/docs/libraries/http/#alias
 type Alias struct {
@@ -17,7 +19,11 @@ type Alias struct {
 	Integrations Integrations `json:"integrations,omitempty"`
 }
 
-func (msg Alias) validate() error {
+func (msg Alias) internal() {
+	panic(unimplementedError)
+}
+
+func (msg Alias) Validate() error {
 	if len(msg.UserId) == 0 {
 		return FieldError{
 			Type:  "analytics.Alias",
