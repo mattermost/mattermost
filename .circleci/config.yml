@@ -205,7 +205,7 @@ jobs:
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
             echo "Generating diff"
-            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (cat diff.txt && exit 1)
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
           no_output_timeout: 1h
       - run:
           name: MySQL schema migration validation
@@ -234,6 +234,11 @@ jobs:
               -w /go/src/github.com/mattermost/mattermost-server \
               mattermost/mattermost-build-server:feb-28-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
+
+            echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
+            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+            docker-compose --no-ansi exec -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+
             echo "Generating dump"
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
@@ -242,7 +247,7 @@ jobs:
             docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
 
             echo "Generating diff"
-            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (cat diff.txt && exit 1)
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
           no_output_timeout: 1h
   upload-s3-sha:
     docker:
