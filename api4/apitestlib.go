@@ -9,13 +9,9 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
@@ -28,6 +24,9 @@ import (
 
 	s3 "github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/credentials"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -570,7 +569,7 @@ func CheckUserSanitization(t *testing.T, user *model.User) {
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	t.Helper()
 
-	assert.True(t, reflect.ValueOf(data).IsNil())
+	assert.Empty(t, data)
 	assert.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
 }
 
