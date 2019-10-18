@@ -60,13 +60,11 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "b"
 
-	if _, err := ss.Post().Save(&o1); err != nil {
-		t.Fatal("couldn't save item", err)
-	}
+	_, err := ss.Post().Save(&o1)
+	require.Nil(t, err,"couldn't save item")
 
-	if _, err := ss.Post().Save(&o1); err == nil {
-		t.Fatal("shouldn't be able to update from save")
-	}
+	_, err2 := ss.Post().Save(&o1)
+	require.NotNil(t, err2, "shouldn't be able to update from save")
 }
 
 func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
@@ -122,17 +120,13 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 	o1.Message = "zz" + model.NewId() + "b"
 
 	etag1 := ss.Post().GetEtag(o1.ChannelId, false)
-	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
-		t.Fatal("Invalid Etag")
-	}
+	require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
 	o1, err := ss.Post().Save(o1)
 	require.Nil(t, err)
 
 	etag2 := ss.Post().GetEtag(o1.ChannelId, false)
-	if strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)) != 0 {
-		t.Fatal("Invalid Etag")
-	}
+	require.Equal(t,0, strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)), "Invalid Etag")
 
 	r1, err := ss.Post().Get(o1.Id, false)
 	if err != nil {
