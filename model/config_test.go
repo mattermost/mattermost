@@ -1155,3 +1155,37 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceReplicas[0])
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceSearchReplicas[0])
 }
+
+func TestConfigMarketplaceDefaults(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL, *c.PluginSettings.MarketplaceUrl)
+	})
+
+	t.Run("old marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		*c.PluginSettings.MarketplaceUrl = PLUGIN_SETTINGS_OLD_MARKETPLACE_URL
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL, *c.PluginSettings.MarketplaceUrl)
+	})
+
+	t.Run("custom marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		*c.PluginSettings.MarketplaceUrl = "https://marketplace.example.com"
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, "https://marketplace.example.com", *c.PluginSettings.MarketplaceUrl)
+	})
+}
