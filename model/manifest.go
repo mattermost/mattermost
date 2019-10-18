@@ -133,7 +133,7 @@ type Manifest struct {
 	// HomepageURL is an optional link to learn more about the plugin.
 	HomepageURL string `json:"homepage_url,omitempty" yaml:"homepage_url,omitempty"`
 
-	// SupportURL is an optional URL where plugin issue can be reported.
+	// SupportURL is an optional URL where plugin issues can be reported.
 	SupportURL string `json:"support_url,omitempty" yaml:"support_url,omitempty"`
 
 	// A relative file path in the bundle that points to the plugins svg icon for use with the Plugin Marketplace.
