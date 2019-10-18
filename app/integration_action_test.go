@@ -84,7 +84,7 @@ func TestPostAction(t *testing.T) {
 		assert.Equal(t, request.ChannelId, th.BasicChannel.Id)
 		assert.Equal(t, request.ChannelName, th.BasicChannel.Name)
 		assert.Equal(t, request.TeamId, th.BasicTeam.Id)
-		assert.Equal(t, request.TeamDomain, th.BasicTeam.Name)
+		assert.Equal(t, request.TeamName, th.BasicTeam.Name)
 		assert.True(t, len(request.TriggerId) > 0)
 		if request.Type == model.POST_ACTION_TYPE_SELECT {
 			assert.Equal(t, request.DataSource, "some_source")

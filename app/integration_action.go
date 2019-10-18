@@ -150,13 +150,6 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	upstreamRequest.ChannelName = channel.Name
 	upstreamRequest.TeamId = channel.TeamId
 
-	ur := <-userChan
-	if ur.Err != nil {
-		return "", ur.Err
-	}
-	user := ur.Data.(*model.User)
-	upstreamRequest.UserName = user.Username
-
 	teamChan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv.Store.Team().Get(channel.TeamId)
@@ -164,12 +157,19 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		close(teamChan)
 	}()
 
+	ur := <-userChan
+	if ur.Err != nil {
+		return "", ur.Err
+	}
+	user := ur.Data.(*model.User)
+	upstreamRequest.UserName = user.Username
+
 	tr := <-teamChan
 	if tr.Err != nil {
 		return "", tr.Err
 	}
 	team := tr.Data.(*model.Team)
-	upstreamRequest.TeamDomain = team.Name
+	upstreamRequest.TeamName = team.Name
 
 	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
 		if selectedOption != "" {

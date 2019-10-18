@@ -31,7 +31,7 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assert.NotEmpty(th.t, poir.ChannelId)
 	assert.NotEmpty(th.t, poir.ChannelName)
 	assert.NotEmpty(th.t, poir.TeamId)
-	assert.NotEmpty(th.t, poir.TeamDomain)
+	assert.NotEmpty(th.t, poir.TeamName)
 	assert.NotEmpty(th.t, poir.PostId)
 	assert.NotEmpty(th.t, poir.TriggerId)
 	assert.Equal(th.t, "button", poir.Type)

@@ -162,7 +162,7 @@ type PostActionIntegrationRequest struct {
 	ChannelId   string                 `json:"channel_id"`
 	ChannelName string                 `json:"channel_name"`
 	TeamId      string                 `json:"team_id"`
-	TeamDomain  string                 `json:"team_domain"`
+	TeamName    string                 `json:"team_domain"`
 	PostId      string                 `json:"post_id"`
 	TriggerId   string                 `json:"trigger_id"`
 	Type        string                 `json:"type"`
