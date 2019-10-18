@@ -39,8 +39,13 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse) (*model.Post, *model.AppError) {
-	post.Message = model.ParseSlackLinksToMarkdown(response.Text)
+func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, isCodeBlock bool) (*model.Post, *model.AppError) {
+	if isCodeBlock {
+		post.Message = response.Text
+	} else {
+		post.Message = model.ParseSlackLinksToMarkdown(response.Text)
+	}
+
 	post.CreateAt = model.GetMillis()
 
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
@@ -430,11 +435,16 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		post.AddProp("from_webhook", "true")
 	}
 
-	// Process Slack text replacements
-	response.Text = a.ProcessSlackText(response.Text)
-	response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+	// Do not process text if this is a code block
+	isCodeBlock := command.Trigger == "code"
 
-	if _, err := a.CreateCommandPost(post, args.TeamId, response); err != nil {
+	// Process Slack text replacements
+	if !isCodeBlock {
+		response.Text = a.ProcessSlackText(response.Text)
+		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+	}
+
+	if _, err := a.CreateCommandPost(post, args.TeamId, response, isCodeBlock); err != nil {
 		return post, err
 	}
 
