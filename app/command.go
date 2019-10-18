@@ -39,8 +39,8 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, isCodeBlock bool) (*model.Post, *model.AppError) {
-	if isCodeBlock {
+func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+	if skipSlackParsing {
 		post.Message = response.Text
 	} else {
 		post.Message = model.ParseSlackLinksToMarkdown(response.Text)
@@ -436,15 +436,15 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	}
 
 	// Do not process text if this is a code block
-	isCodeBlock := command.Trigger == "code"
+	skipSlackParsing := command.Trigger == "code"
 
 	// Process Slack text replacements
-	if !isCodeBlock {
+	if !skipSlackParsing {
 		response.Text = a.ProcessSlackText(response.Text)
 		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
 	}
 
-	if _, err := a.CreateCommandPost(post, args.TeamId, response, isCodeBlock); err != nil {
+	if _, err := a.CreateCommandPost(post, args.TeamId, response, skipSlackParsing); err != nil {
 		return post, err
 	}
 

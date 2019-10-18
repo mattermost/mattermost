@@ -68,8 +68,8 @@ func TestCreateCommandPost(t *testing.T) {
 		Text: "some message",
 	}
 
-	isCodeBlock := false
-	_, err := th.App.CreateCommandPost(post, th.BasicTeam.Id, resp, isCodeBlock)
+	skipSlackParsing := false
+	_, err := th.App.CreateCommandPost(post, th.BasicTeam.Id, resp, skipSlackParsing)
 	if err == nil || err.Id != "api.context.invalid_param.app_error" {
 		t.Fatal("should have failed - bad post type")
 	}
