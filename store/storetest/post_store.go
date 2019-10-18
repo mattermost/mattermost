@@ -129,20 +129,14 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 	require.Equal(t,0, strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)), "Invalid Etag")
 
 	r1, err := ss.Post().Get(o1.Id, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if r1.Posts[o1.Id].CreateAt != o1.CreateAt {
-		t.Fatal("invalid returned post")
-	}
+	require.Nil(t, err)
+	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 
-	if _, err = ss.Post().Get("123", false); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err = ss.Post().Get("123", false)
+	require.NotNil(t, err, "Missing id should have failed")
 
-	if _, err = ss.Post().Get("", false); err == nil {
-		t.Fatal("should fail for blank post ids")
-	}
+	_, err = ss.Post().Get("", false)
+	require.NotNil(t, err, "should fail for blank post ids")
 }
 
 func testPostStoreGetSingle(t *testing.T, ss store.Store) {
@@ -154,17 +148,12 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 	o1, err := ss.Post().Save(o1)
 	require.Nil(t, err)
 
-	if post, err := ss.Post().GetSingle(o1.Id); err != nil {
-		t.Fatal(err)
-	} else {
-		if post.CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned post")
-		}
-	}
+	post, err := ss.Post().GetSingle(o1.Id)
+	require.Nil(t, err)
+	require.Equal(t, post.CreateAt, o1.CreateAt, "invalid returned post")
 
-	if _, err := ss.Post().GetSingle("123"); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err2 := ss.Post().GetSingle("123")
+	require.NotNil(t, err2, "Missing id should have failed")
 }
 
 func testGetEtagCache(t *testing.T, ss store.Store) {
@@ -174,32 +163,24 @@ func testGetEtagCache(t *testing.T, ss store.Store) {
 	o1.Message = "zz" + model.NewId() + "b"
 
 	etag1 := ss.Post().GetEtag(o1.ChannelId, true)
-	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
-		t.Fatal("Invalid Etag")
-	}
+	require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
 	// This one should come from the cache
 	etag2 := ss.Post().GetEtag(o1.ChannelId, true)
-	if strings.Index(etag2, model.CurrentVersion+".") != 0 {
-		t.Fatal("Invalid Etag")
-	}
+	require.Equal(t, 0, strings.Index(etag2, model.CurrentVersion+"."), "Invalid Etag")
 
 	o1, err := ss.Post().Save(o1)
 	require.Nil(t, err)
 
 	// We have not invalidated the cache so this should be the same as above
 	etag3 := ss.Post().GetEtag(o1.ChannelId, true)
-	if strings.Index(etag3, etag2) != 0 {
-		t.Fatal("Invalid Etag")
-	}
+	require.Equal(t, 0, strings.Index(etag3, etag2), "Invalid Etag")
 
 	ss.Post().InvalidateLastPostTimeCache(o1.ChannelId)
 
 	// Invalidated cache so we should get a good result
 	etag4 := ss.Post().GetEtag(o1.ChannelId, true)
-	if strings.Index(etag4, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)) != 0 {
-		t.Fatal("Invalid Etag")
-	}
+	require.Equal(t, 0, strings.Index(etag4, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)), "Invalid Etag")
 }
 
 func testPostStoreUpdate(t *testing.T, ss store.Store) {
@@ -227,36 +208,25 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	r1, err := ss.Post().Get(o1.Id, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	ro1 := r1.Posts[o1.Id]
 	r2, err := ss.Post().Get(o1.Id, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	ro2 := r2.Posts[o2.Id]
 	r3, err := ss.Post().Get(o3.Id, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	ro3 := r3.Posts[o3.Id]
 
-	if ro1.Message != o1.Message {
-		t.Fatal("Failed to save/get")
-	}
+	require.Equal(t, ro1.Message, o1.Message, "Failed to save/get")
 
 	o1a := &model.Post{}
 	*o1a = *ro1
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	if _, err = ss.Post().Update(o1a, ro1); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.Post().Update(o1a, ro1)
+	require.Nil(t, err)
 
 	r1, err = ss.Post().Get(o1.Id, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	ro1a := r1.Posts[o1.Id]
 	if ro1a.Message != o1a.Message {
