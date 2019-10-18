@@ -65,7 +65,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	}
 
 	rapp, appErr := th.App.CreateOAuthApp(oapp)
-	require.Nil(t, appErr, "Expected no error, got %q", appErr.Error())
+	require.Nil(t, appErr)
 
 	authRequest := &model.AuthorizeRequest{
 		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
@@ -149,7 +149,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	}
 
 	rapp, appErr := th.App.CreateOAuthApp(oapp)
-	require.Nil(t, appErr, "Expected no error, got %q", appErr.Error())
+	require.Nil(t, appErr)
 
 	authRequest := &model.AuthorizeRequest{
 		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
@@ -208,7 +208,7 @@ func TestOAuthAccessToken(t *testing.T) {
 		CreatorId:    th.SystemAdminUser.Id,
 	}
 	oauthApp, appErr := th.App.CreateOAuthApp(oauthApp)
-	require.Nil(t, appErr, "Expected no error, got %q", appErr.Error())
+	require.Nil(t, appErr)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
@@ -428,7 +428,7 @@ func TestOAuthComplete(t *testing.T) {
 		IsTrusted: true,
 	}
 	oauthApp, appErr := th.App.CreateOAuthApp(oauthApp)
-	require.Nil(t, appErr, "Expected no error, got %q", appErr.Error())
+	require.Nil(t, appErr)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Id = oauthApp.Id })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Secret = oauthApp.ClientSecret })
