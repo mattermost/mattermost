@@ -2184,13 +2184,14 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 }
 
 func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearchOpts, countQuery bool) sq.SelectBuilder {
-	limit := 100
+	var limit int
 	if opts.Paginate {
 		limit = opts.PerPage
+	} else {
+		limit = 100
 	}
 
 	var selectStr string
-
 	if countQuery {
 		selectStr = "count(*)"
 	} else {
@@ -2203,6 +2204,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		Join("Teams AS t ON t.Id = c.TeamId").
 		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}})
 
+	// don't bother ordering or limiting if we're just getting the count
 	if !countQuery {
 		query = query.
 			OrderBy("c.DisplayName, t.DisplayName").
@@ -2247,6 +2249,8 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 	}
 
 	var totalCount int64
+
+	// only query a 2nd time for the count if the results are being requested paginated.
 	if opts.Paginate {
 		queryString, args, err = s.channelSearchQuery(term, opts, true).ToSql()
 		if err != nil {
@@ -2255,8 +2259,10 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 		if totalCount, err = s.GetReplica().SelectInt(queryString, args...); err != nil {
 			return nil, 0, model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 		}
+	} else {
+		totalCount = int64(len(channels))
 	}
-	fmt.Printf("&channels: %+v\n", &channels)
+
 	return &channels, totalCount, nil
 }
 
