@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"image"
 	"image/color"
 	"image/png"
