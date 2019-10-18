@@ -889,12 +889,16 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
 
+	var payload []byte
+
 	if props.Paginate {
 		data := model.ChannelsWithCount{Channels: channels, TotalCount: totalCount}
-		w.Write([]byte(data.ToJson()))
+		payload = data.ToJson()
 	} else {
-		w.Write([]byte(channels.ToJson()))
+		payload = []byte(channels.ToJson())
 	}
+
+	w.Write(payload)
 }
 
 func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
