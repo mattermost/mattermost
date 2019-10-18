@@ -77,7 +77,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 
 	// Test auth code flow
 	ruri, resp := ApiClient.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
 	require.NotZero(t, len(ruri), "redirect url should be set")
 
@@ -89,7 +89,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	// Test implicit flow
 	authRequest.ResponseType = model.IMPLICIT_RESPONSE_TYPE
 	ruri, resp = ApiClient.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 	require.False(t, len(ruri) == 0, "redirect url should be set")
 
 	ru, _ = url.Parse(ruri)
@@ -160,10 +160,10 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	}
 
 	_, resp := ApiClient.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
 	pass, resp := ApiClient.DeauthorizeOAuthApp(rapp.Id)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
 	require.True(t, pass, "should have passed")
 
@@ -171,7 +171,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = ApiClient.DeauthorizeOAuthApp(model.NewId())
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
 	th.Logout(ApiClient)
 	_, resp = ApiClient.DeauthorizeOAuthApp(rapp.Id)
@@ -226,7 +226,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	}
 
 	redirect, resp := ApiClient.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 	rurl, _ := url.Parse(redirect)
 
 	ApiClient.Logout()
@@ -447,7 +447,7 @@ func TestOAuthComplete(t *testing.T) {
 	}
 
 	redirect, resp := ApiClient.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 	rurl, _ := url.Parse(redirect)
 
 	code := rurl.Query().Get("code")
@@ -465,7 +465,7 @@ func TestOAuthComplete(t *testing.T) {
 	einterfaces.RegisterOauthProvider(model.SERVICE_GITLAB, provider)
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
@@ -479,7 +479,7 @@ func TestOAuthComplete(t *testing.T) {
 	require.Nil(t, err)
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
@@ -490,7 +490,7 @@ func TestOAuthComplete(t *testing.T) {
 	}
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
@@ -501,7 +501,7 @@ func TestOAuthComplete(t *testing.T) {
 	}
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 	rurl, _ = url.Parse(redirect)
 
 	code = rurl.Query().Get("code")
@@ -558,12 +558,6 @@ func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) *model.User {
 
 func GenerateTestAppName() string {
 	return "fakeoauthapp" + model.NewRandomString(10)
-}
-
-func CheckNoError(t *testing.T, resp *model.Response) {
-	t.Helper()
-
-	require.Nil(t, resp.Error, "Expected no error, got %q", resp.Error.Error())
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
