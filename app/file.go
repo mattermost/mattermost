@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -135,33 +136,8 @@ func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 	return *paths, nil
 }
 
-func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename string) *model.FileInfo {
-	// Find the path from the Filename of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
-	split := strings.SplitN(filename, "/", 5)
-	if len(split) < 5 {
-		mlog.Error(
-			"Unable to decipher filename when migrating post to use FileInfos",
-			mlog.String("post_id", post.Id),
-			mlog.String("filename", filename),
-		)
-		return nil
-	}
-
-	channelId := split[1]
-	userId := split[2]
-	oldId := split[3]
-	name, _ := url.QueryUnescape(split[4])
-
-	if split[0] != "" || split[1] != post.ChannelId || split[2] != post.UserId || strings.Contains(split[4], "/") {
-		mlog.Warn(
-			"Found an unusual filename when migrating post to use FileInfos",
-			mlog.String("post_id", post.Id),
-			mlog.String("channel_id", post.ChannelId),
-			mlog.String("user_id", post.UserId),
-			mlog.String("filename", filename),
-		)
-	}
-
+func (a *App) getInfoForFilename(post *model.Post, teamId, channelId, userId, oldId, filename string) *model.FileInfo {
+	name, _ := url.QueryUnescape(filename)
 	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamId, channelId, userId, oldId)
 	path := pathPrefix + name
 
@@ -204,10 +180,8 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	return info
 }
 
-func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
-	split := strings.SplitN(filename, "/", 5)
-	id := split[3]
-	name, _ := url.QueryUnescape(split[4])
+func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) string {
+	name, _ := url.QueryUnescape(filename)
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
 	teams, err := a.Srv.Store.Team().GetTeamsByUserId(post.UserId)
@@ -223,7 +197,7 @@ func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
 
 	for _, team := range teams {
 		path := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/%s", team.Id, post.ChannelId, post.UserId, id, name)
-		if _, err := a.ReadFile(path); err == nil {
+		if ok, err := a.FileExists(path); ok && err == nil {
 			// Found the team that this file was posted from
 			return team.Id
 		}
@@ -233,6 +207,27 @@ func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
 }
 
 var fileMigrationLock sync.Mutex
+var oldFilenameMatchExp *regexp.Regexp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+
+// Parse the path from the Filename of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
+func parseOldFilenames(filenames []string, channelId, userId string) [][]string {
+	parsed := [][]string{}
+	for _, filename := range filenames {
+		matches := oldFilenameMatchExp.FindStringSubmatch(filename)
+		if len(matches) != 5 {
+			mlog.Error("Failed to parse old Filename", mlog.String("filename", filename))
+			continue
+		}
+		if matches[1] != channelId {
+			mlog.Error("ChannelId in Filename does not match", mlog.String("channel_id", channelId), mlog.String("matched", matches[1]))
+		} else if matches[2] != userId {
+			mlog.Error("UserId in Filename does not match", mlog.String("user_id", userId), mlog.String("matched", matches[2]))
+		} else {
+			parsed = append(parsed, matches[1:])
+		}
+	}
+	return parsed
+}
 
 // Creates and stores FileInfos for a post created before the FileInfos table existed.
 func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
@@ -254,11 +249,19 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	}
 
+	// Parse and validate filenames before further processing
+	parsedFilenames := parseOldFilenames(filenames, post.ChannelId, post.UserId)
+
+	if len(parsedFilenames) == 0 {
+		mlog.Error("Unable to parse filenames")
+		return []*model.FileInfo{}
+	}
+
 	// Find the team that was used to make this post since its part of the file path that isn't saved in the Filename
 	var teamId string
 	if channel.TeamId == "" {
 		// This post was made in a cross-team DM channel, so we need to find where its files were saved
-		teamId = a.FindTeamIdForFilename(post, filenames[0])
+		teamId = a.findTeamIdForFilename(post, parsedFilenames[0][2], parsedFilenames[0][3])
 	} else {
 		teamId = channel.TeamId
 	}
@@ -272,8 +275,8 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 			mlog.String("post_id", post.Id),
 		)
 	} else {
-		for _, filename := range filenames {
-			info := a.GetInfoForFilename(post, teamId, filename)
+		for _, parsed := range parsedFilenames {
+			info := a.getInfoForFilename(post, teamId, parsed[0], parsed[1], parsed[2], parsed[3])
 			if info == nil {
 				continue
 			}
