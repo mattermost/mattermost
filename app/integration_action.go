@@ -252,11 +252,15 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 
 type LocalResponseWriter struct {
 	data   []byte
+	headers    http.Header
 	status int
 }
 
 func (w *LocalResponseWriter) Header() http.Header {
-	return make(http.Header)
+	if w.headers == nil {
+		w.headers = make(http.Header)
+	}
+	return w.headers
 }
 
 func (w *LocalResponseWriter) Write(bytes []byte) (int, error) {
@@ -291,7 +295,7 @@ func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
-	r.Header.Set("Mattermost-User-ID", a.Session.UserId)
+	r.Header.Set("Mattermost-User-Id", a.Session.UserId)
 	r.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
 	params := make(map[string]string)
 	params["plugin_id"] = pluginId
@@ -300,20 +304,15 @@ func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model
 	a.ServePluginRequest(w, r)
 
 	resp := &http.Response{
-		Status:           "",
 		StatusCode:       w.status,
 		Proto:            "HTTP/1.1",
 		ProtoMajor:       1,
 		ProtoMinor:       1,
-		Header:           make(http.Header),
+		Header:           w.headers,
 		Body:             ioutil.NopCloser(bytes.NewReader(w.data)),
-		ContentLength:    0,
-		TransferEncoding: nil,
-		Close:            true,
-		Uncompressed:     true,
-		Trailer:          make(http.Header),
-		Request:          nil,
-		TLS:              nil,
+	}
+	if resp.StatusCode == 0 {
+		resp.StatusCode = http.StatusOK
 	}
 
 	return resp, nil
