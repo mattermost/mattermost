@@ -220,7 +220,7 @@ func TestStatic(t *testing.T) {
 
 	resp, err := http.Get(URL + "/static/root.html")
 
-	assert.NoErrorf(t, err, "got error while trying to get static files %v", err)
+	require.NoErrorf(t, err, "got error while trying to get static files %v", err)
 	assert.Equalf(t, resp.StatusCode, http.StatusOK, "couldn't get static files %v", resp.StatusCode)
 }
 */
