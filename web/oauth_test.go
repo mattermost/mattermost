@@ -82,7 +82,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	require.NotZero(t, len(ruri), "redirect url should be set")
 
 	ru, _ := url.Parse(ruri)
-	require.Nil(t, ru, "redirect url unparseable")
+	require.NotNil(t, ru, "redirect url unparseable")
 	require.NotZero(t, len(ru.Query().Get("code")), "authorization code not returned")
 	require.Equal(t, ru.Query().Get("state"), authRequest.State, "returned state doesn't match")
 
