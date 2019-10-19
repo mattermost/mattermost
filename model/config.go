@@ -190,6 +190,7 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
 	PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE = true
 	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://api.integrations.mattermost.com"
+	PLUGIN_SETTINGS_OLD_MARKETPLACE_URL        = "https://marketplace.integrations.mattermost.com"
 
 	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
@@ -1687,6 +1688,7 @@ type LdapSettings struct {
 	// Filtering
 	UserFilter  *string
 	GroupFilter *string
+	GuestFilter *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string
@@ -1756,6 +1758,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.UserFilter == nil {
 		s.UserFilter = NewString("")
+	}
+
+	if s.GuestFilter == nil {
+		s.GuestFilter = NewString("")
 	}
 
 	if s.GroupFilter == nil {
@@ -2279,7 +2285,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.EnableMarketplace = NewBool(PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE)
 	}
 
-	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" {
+	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" || *s.MarketplaceUrl == PLUGIN_SETTINGS_OLD_MARKETPLACE_URL {
 		s.MarketplaceUrl = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 	}
 }
@@ -2782,6 +2788,12 @@ func (ls *LdapSettings) isValid() *AppError {
 		if *ls.UserFilter != "" {
 			if _, err := ldap.CompileFilter(*ls.UserFilter); err != nil {
 				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+		}
+
+		if *ls.GuestFilter != "" {
+			if _, err := ldap.CompileFilter(*ls.GuestFilter); err != nil {
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
 	}
