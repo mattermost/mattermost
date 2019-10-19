@@ -24,26 +24,24 @@ func TestEnsureBot(t *testing.T) {
 		Description: "testbotdescription",
 	}
 
-	t.Run("server version compatibility", func(t *testing.T) {
-		t.Run("server version incompatible", func(t *testing.T) {
-			api := setupAPI()
-			api.On("GetServerVersion").Return("5.0")
-			defer api.AssertExpectations(t)
+	t.Run("server version incompatible", func(t *testing.T) {
+		api := setupAPI()
+		api.On("GetServerVersion").Return("5.9.0")
+		defer api.AssertExpectations(t)
 
-			p := &plugin.HelpersImpl{}
-			p.API = api
+		p := &plugin.HelpersImpl{}
+		p.API = api
 
-			_, retErr := p.EnsureBot(nil)
+		_, retErr := p.EnsureBot(nil)
 
-			assert.NotNil(t, retErr)
-			assert.Equal(t, "incompatible server version for plugin", retErr.Error())
-		})
+		assert.NotNil(t, retErr)
+		assert.Equal(t, "incompatible server version for plugin, minimum required version: 5.10.0, current version: 5.9.0", retErr.Error())
 	})
 
 	t.Run("bad parameters", func(t *testing.T) {
 		t.Run("no bot", func(t *testing.T) {
 			api := setupAPI()
-			api.On("GetServerVersion").Return("5.12")
+			api.On("GetServerVersion").Return("5.10.0")
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
@@ -53,7 +51,7 @@ func TestEnsureBot(t *testing.T) {
 		})
 		t.Run("bad username", func(t *testing.T) {
 			api := setupAPI()
-			api.On("GetServerVersion").Return("5.12")
+			api.On("GetServerVersion").Return("5.10.0")
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
@@ -70,7 +68,7 @@ func TestEnsureBot(t *testing.T) {
 			expectedBotId := model.NewId()
 
 			api := setupAPI()
-			api.On("GetServerVersion").Return("5.12")
+			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
 			defer api.AssertExpectations(t)
 
@@ -85,7 +83,7 @@ func TestEnsureBot(t *testing.T) {
 
 		t.Run("should return an error if unable to get bot", func(t *testing.T) {
 			api := setupAPI()
-			api.On("GetServerVersion").Return("5.12")
+			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, &model.AppError{})
 			defer api.AssertExpectations(t)
 
@@ -104,7 +102,7 @@ func TestEnsureBot(t *testing.T) {
 			expectedBotId := model.NewId()
 
 			api := setupAPI()
-			api.On("GetServerVersion").Return("5.12")
+			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(&model.Bot{
@@ -126,7 +124,7 @@ func TestEnsureBot(t *testing.T) {
 			expectedBotId := model.NewId()
 
 			api := setupAPI()
-			api.On("GetServerVersion").Return("5.12")
+			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(&model.User{
 				Id:    expectedBotId,
@@ -147,7 +145,7 @@ func TestEnsureBot(t *testing.T) {
 		t.Run("should return the non-bot account but log a message if user exists with the same name and is not a bot", func(t *testing.T) {
 			expectedBotId := model.NewId()
 			api := setupAPI()
-			api.On("GetServerVersion").Return("5.12")
+			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(&model.User{
 				Id:    expectedBotId,
@@ -167,7 +165,7 @@ func TestEnsureBot(t *testing.T) {
 
 		t.Run("shoudl fail if create bot fails", func(t *testing.T) {
 			api := setupAPI()
-			api.On("GetServerVersion").Return("5.12")
+			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(nil, &model.AppError{})

@@ -3,7 +3,12 @@
 
 package plugin
 
-import "github.com/mattermost/mattermost-server/model"
+import (
+	"fmt"
+	"github.com/blang/semver"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
+)
 
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
@@ -41,4 +46,14 @@ type Helpers interface {
 
 type HelpersImpl struct {
 	API API
+}
+
+func ensureServerVersion(required string, actual string) error {
+	requiredVersion, _ := semver.Make(required)
+	currentVersion, _ := semver.Make(actual)
+
+	if currentVersion.LT(requiredVersion) {
+		return errors.New(fmt.Sprintf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, actual))
+	}
+	return nil
 }
