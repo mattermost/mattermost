@@ -408,6 +408,10 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
   },
   {
+    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
+    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "Integrations have been limited to admins only."
   },
@@ -7521,9 +7525,5 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user"
-  },
-  {
-    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
   }
 ]

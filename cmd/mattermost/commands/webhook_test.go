@@ -6,9 +6,9 @@ package commands
 import (
 	"github.com/stretchr/testify/assert"
 	"strconv"
+	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/api4"
