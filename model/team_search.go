@@ -9,7 +9,10 @@ import (
 )
 
 type TeamSearch struct {
-	Term string `json:"term"`
+	Term     string `json:"term"`
+	Paginate bool   `json:"paginate"`
+	Page     int    `json:"page"`
+	PerPage  int    `json:"per_page"`
 }
 
 // ToJson convert a TeamSearch to json string

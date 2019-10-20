@@ -789,10 +789,11 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var teams []*model.Team
+	var totalCount int64
 	var err *model.AppError
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		teams, err = c.App.SearchAllTeams(props.Term)
+		teams, totalCount, err = c.App.SearchAllTeams(props.Term, props)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
 		teams, err = c.App.SearchPrivateTeams(props.Term)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
@@ -808,7 +809,15 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeams(c.App.Session, teams)
 
-	w.Write([]byte(model.TeamListToJson(teams)))
+	var payload []byte
+	if props.Paginate {
+		twc := &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}
+		payload = model.TeamsWithCountToJson(twc)
+	} else {
+		payload = []byte(model.TeamListToJson(teams))
+	}
+
+	w.Write(payload)
 }
 
 func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
