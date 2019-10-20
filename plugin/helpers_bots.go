@@ -24,15 +24,15 @@ func AllowSystemMessages() ShouldProcessMessageOption {
 	}
 }
 
-func FilterChannelIDs(filterChannelIDs []string) ShouldProcessMessageOption {
-	return func(options *shouldProcessMessageOptions) {
-		options.FilterChannelIDs = filterChannelIDs
-	}
-}
-
 func AllowBots() ShouldProcessMessageOption {
 	return func(options *shouldProcessMessageOptions) {
 		options.AllowBots = true
+	}
+}
+
+func FilterChannelIDs(filterChannelIDs []string) ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.FilterChannelIDs = filterChannelIDs
 	}
 }
 
@@ -118,7 +118,7 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, botUserId string, o
 		}
 	}
 
-	if !utils.StringInSlice(post.ChannelId, messageProcessOptions.FilterChannelIDs) {
+	if len(messageProcessOptions.FilterChannelIDs) != 0 && !utils.StringInSlice(post.ChannelId, messageProcessOptions.FilterChannelIDs) {
 		channel, appErr := p.API.GetChannel(post.ChannelId)
 
 		if appErr != nil {
@@ -130,7 +130,7 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, botUserId string, o
 		}
 	}
 
-	if !utils.StringInSlice(post.UserId, messageProcessOptions.FilterUserIDs) {
+	if len(messageProcessOptions.FilterUserIDs) != 0 && !utils.StringInSlice(post.UserId, messageProcessOptions.FilterUserIDs) {
 		user, appErr := p.API.GetUser(post.UserId)
 
 		if appErr != nil {
