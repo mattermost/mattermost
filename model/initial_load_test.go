@@ -4,6 +4,7 @@
 package model
 
 import (
+	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 )
@@ -14,7 +15,5 @@ func TestInitialLoadJson(t *testing.T) {
 	json := o.ToJson()
 	ro := InitialLoadFromJson(strings.NewReader(json))
 
-	if o.User.Id != ro.User.Id {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, o.User.Id, ro.User.Id, "Ids do not match")
 }
