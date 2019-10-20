@@ -1,0 +1,31 @@
+sudo: required
+
+services:
+  - docker
+
+language: go
+go_import_path: github.com/uber/jaeger-lib
+
+matrix:
+  include:
+  - go: 1.12.7
+    env:
+    - TEST=true
+    - COVERAGE=true
+    - USE_DEP=true
+  - go: 1.12.7
+    env:
+    - USE_GLIDE=true
+    - USE_DEP=false
+    - TEST=true
+
+install:
+  - make install-ci USE_DEP=$USE_DEP
+
+script:
+  - if [ "$COVERAGE" == true ]; then make test-ci ; else echo 'skipping tests'; fi
+  - if [ "$TEST" == true ]; then make test-only-ci ; else echo 'skipping tests'; fi
+
+after_success:
+  - if [ "$COVERAGE" == true ]; then mv cover.out coverage.txt ; else echo 'skipping coverage'; fi
+  - if [ "$COVERAGE" == true ]; then bash <(curl -s https://codecov.io/bash) ; else echo 'skipping coverage'; fi

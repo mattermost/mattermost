@@ -1,0 +1,23 @@
+[[constraint]]
+  name = "github.com/go-kit/kit"
+  version = "0.5.0"
+
+[[constraint]]
+  name = "github.com/codahale/hdrhistogram"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/uber-go/tally"
+  version = ">=2.1.0, <4.0.0"
+
+[[constraint]]
+  name = "github.com/prometheus/client_golang"
+  version = "0.8.0"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.1"
+
+[prune]
+  go-tests = true
+  unused-packages = true

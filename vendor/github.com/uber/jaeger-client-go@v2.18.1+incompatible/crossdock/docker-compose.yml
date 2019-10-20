@@ -1,0 +1,88 @@
+version: '2'
+
+services:
+    crossdock:
+        image: crossdock/crossdock
+        links:
+            - test_driver
+            - go
+            - java
+            - python
+
+        environment:
+            - WAIT_FOR=test_driver,go,java,python
+            - WAIT_FOR_TIMEOUT=60s
+
+            - CALL_TIMEOUT=60s
+
+            - AXIS_CLIENT=go
+            - AXIS_S1NAME=go,java,python
+            - AXIS_SAMPLED=true,false
+            - AXIS_S2NAME=go,java,python
+            - AXIS_S2TRANSPORT=http
+            - AXIS_S3NAME=go,java,python
+            - AXIS_S3TRANSPORT=http
+
+            - BEHAVIOR_TRACE=client,s1name,sampled,s2name,s2transport,s3name,s3transport
+
+            - AXIS_TESTDRIVER=test_driver
+            - AXIS_SERVICES=go
+
+            - BEHAVIOR_ENDTOEND=testdriver,services
+
+            - REPORT=compact
+    go:
+        build: .
+        links:
+            - "jaeger:jaeger-agent"
+        ports:
+            - "8080-8082"
+
+    java:
+        image: jaegertracing/xdock-java
+        ports:
+            - "8080-8082"
+        links:
+            - "jaeger:jaeger-agent"
+        depends_on:
+            # Udp sender needs to know agent's address
+            - jaeger
+
+    python:
+        image: jaegertracing/xdock-py
+        links:
+            - "jaeger:jaeger-agent"
+        ports:
+            - "8080:8082"
+
+    test_driver:
+        image: jaegertracing/test-driver
+        links:
+            - "jaeger:jaeger-agent"
+            - "jaeger:jaeger-collector"
+            - "jaeger:jaeger-query"
+        depends_on:
+            - jaeger
+        ports:
+            - "8080"
+        environment:
+            - JAEGER_QUERY_HC_HOST_PORT=jaeger-query:14269
+
+    jaeger:
+        image: jaegertracing/all-in-one
+        ports:
+            - "14269"
+            - "14268:14268"
+            - "14267"
+            - "14250"
+            - "9411:9411"
+            - "16686:16686"
+            - "16687"
+            - "5775:5775/udp"
+            - "6831:6831/udp"
+            - "6832:6832/udp"
+            - "5778:5778"
+        environment:
+            - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+            - LOG_LEVEL=debug
+        restart: on-failure

@@ -85,8 +85,8 @@ require (
 	github.com/throttled/throttled v2.2.4+incompatible
 	github.com/tylerb/graceful v1.2.15
 	github.com/uber-go/atomic v1.4.0 // indirect
-	github.com/uber/jaeger-client-go v2.18.1+incompatible
-	github.com/uber/jaeger-lib v2.1.1+incompatible
+	github.com/uber/jaeger-client-go v2.19.0+incompatible
+	github.com/uber/jaeger-lib v2.2.0+incompatible
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
@@ -97,7 +97,7 @@ require (
 	golang.org/x/net v0.0.0-20191002035440-2ec189313ef0
 	golang.org/x/sys v0.0.0-20191002091554-b397fe3ad8ed // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20191002161851-3769738f410b
+	golang.org/x/tools v0.0.0-20191017151554-a3bc800455d5
 	google.golang.org/appengine v1.6.4 // indirect
 	google.golang.org/genproto v0.0.0-20190927181202-20e1ac93f88c // indirect
 	google.golang.org/grpc v1.24.0 // indirect

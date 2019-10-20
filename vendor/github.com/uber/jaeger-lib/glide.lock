@@ -1,0 +1,81 @@
+hash: d6b884cd5ad2c1622d157697251fbf2a0b5c5cd9e03af2258caf8f35cb03d8ba
+updated: 2019-09-22T21:03:42.412209-04:00
+imports:
+- name: github.com/beorn7/perks
+  version: 37c8de3658fcb183f997c4e13e8337516ab753e6
+  subpackages:
+  - quantile
+- name: github.com/codahale/hdrhistogram
+  version: 3a0bb77429bd3a61596f5e8a3172445844342120
+- name: github.com/davecgh/go-spew
+  version: d8f796af33cc11cb798c1aaeb27a4ebc5099927d
+  subpackages:
+  - spew
+- name: github.com/go-kit/kit
+  version: 150a65a7ec6156b4b640c1fd55f26fd3d475d656
+  subpackages:
+  - log
+  - log/level
+  - metrics
+  - metrics/expvar
+  - metrics/generic
+  - metrics/influx
+  - metrics/internal/lv
+- name: github.com/go-logfmt/logfmt
+  version: 432dd90af23366a89a611c020003fc8ba281ae5d
+- name: github.com/golang/protobuf
+  version: 1680a479a2cfb3fa22b972af7e36d0a0fde47bf8
+  subpackages:
+  - proto
+- name: github.com/influxdata/influxdb1-client
+  version: fc22c7df067eefd070157f157893fbce961d6359
+  subpackages:
+  - models
+  - pkg/escape
+  - v2
+- name: github.com/kr/logfmt
+  version: b84e30acd515aadc4b783ad4ff83aff3299bdfe0
+- name: github.com/matttproud/golang_protobuf_extensions
+  version: c182affec369e30f25d3eb8cd8a478dee585ae7d
+  subpackages:
+  - pbutil
+- name: github.com/pmezard/go-difflib
+  version: 5d4384ee4fb2527b0a1256a821ebfc92f91efefc
+  subpackages:
+  - difflib
+- name: github.com/prometheus/client_golang
+  version: 170205fb58decfd011f1550d4cfb737230d7ae4f
+  subpackages:
+  - prometheus
+  - prometheus/internal
+- name: github.com/prometheus/client_model
+  version: 14fe0d1b01d4d5fc031dd4bec1823bd3ebbe8016
+  subpackages:
+  - go
+- name: github.com/prometheus/common
+  version: 287d3e634a1e550c9e463dd7e5a75a422c614505
+  subpackages:
+  - expfmt
+  - internal/bitbucket.org/ww/goautoneg
+  - model
+- name: github.com/prometheus/procfs
+  version: de25ac347ef9305868b04dc42425c973b863b18c
+  subpackages:
+  - internal/fs
+  - internal/util
+- name: github.com/stretchr/testify
+  version: 85f2b59c4459e5bf57488796be8c3667cb8246d6
+  subpackages:
+  - assert
+  - require
+- name: github.com/uber-go/tally
+  version: 3332297784e46cd346ab6d9894fd4ea027dc9368
+- name: github.com/VividCortex/gohistogram
+  version: 51564d9861991fb0ad0f531c99ef602d0f9866e6
+- name: golang.org/x/sys
+  version: 0a153f010e6963173baba2306531d173aa843137
+  subpackages:
+  - windows
+- name: gopkg.in/yaml.v2
+  version: 51d6538a90f86fe93ac480b35f37b2be17fef232
+testImports: []
