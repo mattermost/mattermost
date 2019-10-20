@@ -2244,7 +2244,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 		return nil, 0, model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	var channels model.ChannelListWithTeamData
-	if _, err := s.GetReplica().Select(&channels, queryString, args...); err != nil {
+	if _, err = s.GetReplica().Select(&channels, queryString, args...); err != nil {
 		return nil, 0, model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 	}
 
