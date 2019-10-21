@@ -191,7 +191,7 @@ func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*m
 	pl := model.NewPostList()
 
 	var posts []*model.Post
-	if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
+	if _, err := s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -210,7 +210,7 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
 
 	query := `
             SELECT
-                A.*
+                A.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = A.Id AND Posts.DeleteAt = 0) as ReplyCount 
             FROM
                 (SELECT
                     *
@@ -252,8 +252,8 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	var posts []*model.Post
 	query := `
 		SELECT
-			*
-		FROM Posts
+			*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount 
+		FROM Posts p
 		WHERE
 			Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
 			AND ChannelId = :ChannelId
@@ -280,12 +280,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *
 	}
 
 	var post model.Post
-	var postFetchQuery string
-	if skipFetchThreads {
-		postFetchQuery = "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.RootId)  FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
-	} else {
-		postFetchQuery = "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0"
-	}
+	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
 	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
@@ -304,7 +299,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *
 		}
 
 		var posts []*model.Post
-		_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
+		_, err = s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Id) FROM Posts WHERE RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
 		if err != nil {
 			return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error(), http.StatusInternalServerError)
 		}
@@ -541,20 +536,28 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	}
 
 	var posts []*model.Post
+
+	replyCountQuery1 := ""
+	replyCountQuery2 := ""
+	if options.SkipFetchThreads {
+		replyCountQuery1 = ` ,(SELECT COUNT(Posts.Id) FROM Posts WHERE p1.RootId = '' AND Posts.RootId = p1.Id AND Posts.DeleteAt = 0) as ReplyCount`
+		replyCountQuery2 = ` ,(SELECT COUNT(Posts.Id) FROM Posts WHERE p2.RootId = '' AND Posts.RootId = p2.Id AND Posts.DeleteAt = 0) as ReplyCount`
+	}
+
 	_, err := s.GetReplica().Select(&posts,
 		`(SELECT
-			*
+			*`+replyCountQuery1+`
 		FROM
-			Posts
+			Posts p1
 		WHERE
 			(UpdateAt > :Time
 				AND ChannelId = :ChannelId)
 			LIMIT 1000)
 		UNION
 			(SELECT
-			    *
+			    *`+replyCountQuery2+`
 			FROM
-			    Posts
+			    Posts p2
 			WHERE
 			    Id
 			IN
@@ -613,7 +616,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		direction = ">"
 		sort = "ASC"
 	}
-	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("p.RootId = '' AND RootId = p.Id"))
+	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("p.RootId = '' AND RootId = p.Id AND DeleteAt = 0"))
 	query := s.getQueryBuilder().Select("p.*")
 	if options.SkipFetchThreads {
 		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
@@ -647,15 +650,18 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 			}
 		}
 		rootQuery := s.getQueryBuilder().Select("p.*")
+		idQuery := sq.Or{
+			sq.Eq{"Id": rootIds},
+		}
 		if options.SkipFetchThreads {
 			rootQuery = rootQuery.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
+		} else {
+			idQuery = append(idQuery, sq.Eq{"RootId": rootIds}) // preserve original behaviour
 		}
+
 		rootQuery = rootQuery.From("Posts p").
 			Where(sq.And{
-				sq.Or{
-					sq.Eq{"RootId": rootIds},
-					sq.Eq{"Id": rootIds},
-				},
+				idQuery,
 				sq.Eq{"ChannelId": options.ChannelId},
 				sq.Eq{"DeleteAt": 0},
 			}).
@@ -771,7 +777,7 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	var posts []*model.Post
 	var fetchQuery string
 	if skipFetchThreads {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(Posts.Id) FROM Posts WHERE p.RootId = '' AND Posts.RootId = p.Id) as ReplyCount FROM Posts p WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
+		fetchQuery = "SELECT p.*, (SELECT COUNT(Posts.Id) FROM Posts WHERE p.RootId = '' AND Posts.RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 	} else {
 		fetchQuery = "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 	}
@@ -785,8 +791,11 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, *model.AppError) {
 	var posts []*model.Post
 	replyCountQuery := ""
+	onStatement := "q1.RootId = q2.Id"
 	if skipFetchThreads {
-		replyCountQuery = ` ,(SELECT COUNT(Posts.Id) FROM Posts WHERE q2.RootId = '' AND Posts.RootId = q2.Id) as ReplyCount`
+		replyCountQuery = ` ,(SELECT COUNT(Posts.Id) FROM Posts WHERE q2.RootId = '' AND Posts.RootId = q2.Id AND Posts.DeleteAt = 0) as ReplyCount`
+	} else {
+		onStatement += " OR q1.RootId = q2.RootId"
 	}
 	_, err := s.GetReplica().Select(&posts,
 		`SELECT q2.*`+replyCountQuery+`
@@ -806,7 +815,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 				ORDER BY CreateAt DESC
 				LIMIT :Limit OFFSET :Offset) q3
 			WHERE q3.RootId != '') q1
-			ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
+			ON `+onStatement+`
 		WHERE
 			ChannelId = :ChannelId2
 				AND DeleteAt = 0
@@ -974,9 +983,9 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 
 	searchQuery := `
 			SELECT
-				*
+				* ,(SELECT COUNT(Posts.Id) FROM Posts WHERE q2.RootId = '' AND Posts.RootId = q2.Id AND Posts.DeleteAt = 0) as ReplyCount
 			FROM
-				Posts
+				Posts q2
 			WHERE
 				DeleteAt = 0
 				AND Type NOT LIKE '` + model.POST_SYSTEM_MESSAGE_PREFIX + `%'
