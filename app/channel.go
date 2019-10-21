@@ -223,8 +223,6 @@ func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDi
 }
 
 func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
-
 	sc, err := a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if err != nil {
 		return nil, err
