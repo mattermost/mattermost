@@ -251,9 +251,9 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 }
 
 type LocalResponseWriter struct {
-	data   []byte
-	headers    http.Header
-	status int
+	data    []byte
+	headers http.Header
+	status  int
 }
 
 func (w *LocalResponseWriter) Header() http.Header {
@@ -304,12 +304,12 @@ func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model
 	a.ServePluginRequest(w, r)
 
 	resp := &http.Response{
-		StatusCode:       w.status,
-		Proto:            "HTTP/1.1",
-		ProtoMajor:       1,
-		ProtoMinor:       1,
-		Header:           w.headers,
-		Body:             ioutil.NopCloser(bytes.NewReader(w.data)),
+		StatusCode: w.status,
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header:     w.headers,
+		Body:       ioutil.NopCloser(bytes.NewReader(w.data)),
 	}
 	if resp.StatusCode == 0 {
 		resp.StatusCode = http.StatusOK
