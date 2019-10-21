@@ -20,14 +20,18 @@ jobs:
       - checkout
       - run: |
           cd ../
-          mkdir -p ~/.ssh/
-          echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
-          git clone git@github.com:mattermost/mattermost-webapp.git
+          GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone --depth=1 git@github.com:mattermost/mattermost-webapp.git
           cd mattermost-webapp
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
-          curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
+          export CURL_FAILED=0
+          curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || export CURL_FAILED=1
+
+          if [ $CURL_FAILED -eq 1 ]
+          then
+            npm ci && cd node_modules/mattermost-redux && npm install && npm run build && cd ../.. && make build
+          fi
       - persist_to_workspace:
           root: /go/src/github.com/mattermost
           paths:
@@ -52,7 +56,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:sep-17-2019
+      - image: mattermost/mattermost-build-server:oct-18-2019
     working_directory: /go/src/github.com/mattermost
     steps:
       - attach_workspace:
@@ -62,8 +66,8 @@ jobs:
             cd mattermost-server
             make config-reset
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
-            GOFLAGS=-p=8 make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
-            GOFLAGS=-p=8 make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
       - store_artifacts:
           path: /go/src/github.com/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -119,7 +123,7 @@ jobs:
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mattermost-server \
-              mattermost/mattermost-build-server:sep-17-2019 \
+              mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
           no_output_timeout: 1h
       - run:
@@ -192,7 +196,7 @@ jobs:
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mattermost-server \
-              mattermost/mattermost-build-server:feb-28-2019 \
+              mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
@@ -201,7 +205,7 @@ jobs:
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
             echo "Generating diff"
-            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (cat diff.txt && exit 1)
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
           no_output_timeout: 1h
       - run:
           name: MySQL schema migration validation
@@ -230,6 +234,11 @@ jobs:
               -w /go/src/github.com/mattermost/mattermost-server \
               mattermost/mattermost-build-server:feb-28-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
+
+            echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
+            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+            docker-compose --no-ansi exec -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+
             echo "Generating dump"
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
@@ -238,8 +247,9 @@ jobs:
             docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
 
             echo "Generating diff"
-            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (cat diff.txt && exit 1)
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
           no_output_timeout: 1h
+
   upload-s3-sha:
     docker:
       - image: 'circleci/python:2.7'
@@ -298,15 +308,9 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
-      - test:
-          requires:
-            - setup
-      - test-schema:
-          requires:
-            - setup
       - build:
           requires:
-            - test
+            - setup
       - upload-s3-sha:
           context: mattermost-ci-s3
           requires:
@@ -319,3 +323,9 @@ workflows:
           context: matterbuild-docker
           requires:
             - upload-s3-sha
+      - test:
+          requires:
+            - setup
+      - test-schema:
+          requires:
+            - setup

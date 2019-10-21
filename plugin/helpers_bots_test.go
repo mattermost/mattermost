@@ -163,7 +163,7 @@ func TestEnsureBot(t *testing.T) {
 			assert.Nil(t, err)
 		})
 
-		t.Run("shoudl fail if create bot fails", func(t *testing.T) {
+		t.Run("should fail if create bot fails", func(t *testing.T) {
 			api := setupAPI()
 			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
