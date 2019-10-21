@@ -727,6 +727,11 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 		if err := a.PermanentDeleteUser(user); err != nil {
 			return err
 		}
+
+		if _, err := a.Srv.Store.Group().DeleteMemberFromAllAssociatedGroups(user.Id); err != nil {
+			return err
+		}
+
 	}
 
 	return nil
