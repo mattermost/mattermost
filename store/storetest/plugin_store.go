@@ -29,36 +29,30 @@ func testPluginSaveGet(t *testing.T, ss store.Store) {
 		ExpireAt: 0,
 	}
 
-	if _, err := ss.Plugin().SaveOrUpdate(kv); err != nil {
-		t.Fatal(err)
-	}
+	_, err := ss.Plugin().SaveOrUpdate(kv)
+	require.Nil(t, err)
 
 	defer func() {
 		_ = ss.Plugin().Delete(kv.PluginId, kv.Key)
 	}()
 
-	if received, err := ss.Plugin().Get(kv.PluginId, kv.Key); err != nil {
-		t.Fatal(err)
-	} else {
-		assert.Equal(t, kv.PluginId, received.PluginId)
-		assert.Equal(t, kv.Key, received.Key)
-		assert.Equal(t, kv.Value, received.Value)
-		assert.Equal(t, kv.ExpireAt, received.ExpireAt)
-	}
+	received, err := ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.Nil(t, err)
+	assert.Equal(t, kv.PluginId, received.PluginId)
+	assert.Equal(t, kv.Key, received.Key)
+	assert.Equal(t, kv.Value, received.Value)
+	assert.Equal(t, kv.ExpireAt, received.ExpireAt)
 
 	// Try inserting when already exists
 	kv.Value = []byte(model.NewId())
-	if _, err := ss.Plugin().SaveOrUpdate(kv); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.Plugin().SaveOrUpdate(kv)
+	require.Nil(t, err)
 
-	if received, err := ss.Plugin().Get(kv.PluginId, kv.Key); err != nil {
-		t.Fatal(err)
-	} else {
-		assert.Equal(t, kv.PluginId, received.PluginId)
-		assert.Equal(t, kv.Key, received.Key)
-		assert.Equal(t, kv.Value, received.Value)
-	}
+	received, err = ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.Nil(t, err)
+	assert.Equal(t, kv.PluginId, received.PluginId)
+	assert.Equal(t, kv.Key, received.Key)
+	assert.Equal(t, kv.Value, received.Value)
 }
 
 func testPluginSaveGetExpiry(t *testing.T, ss store.Store) {
@@ -69,22 +63,19 @@ func testPluginSaveGetExpiry(t *testing.T, ss store.Store) {
 		ExpireAt: model.GetMillis() + 30000,
 	}
 
-	if _, err := ss.Plugin().SaveOrUpdate(kv); err != nil {
-		t.Fatal(err)
-	}
+	_, err := ss.Plugin().SaveOrUpdate(kv)
+	require.Nil(t, err)
 
 	defer func() {
 		_ = ss.Plugin().Delete(kv.PluginId, kv.Key)
 	}()
 
-	if received, err := ss.Plugin().Get(kv.PluginId, kv.Key); err != nil {
-		t.Fatal(err)
-	} else {
-		assert.Equal(t, kv.PluginId, received.PluginId)
-		assert.Equal(t, kv.Key, received.Key)
-		assert.Equal(t, kv.Value, received.Value)
-		assert.Equal(t, kv.ExpireAt, received.ExpireAt)
-	}
+	received, err := ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.Nil(t, err)
+	assert.Equal(t, kv.PluginId, received.PluginId)
+	assert.Equal(t, kv.Key, received.Key)
+	assert.Equal(t, kv.Value, received.Value)
+	assert.Equal(t, kv.ExpireAt, received.ExpireAt)
 
 	kv = &model.PluginKeyValue{
 		PluginId: model.NewId(),
@@ -93,17 +84,15 @@ func testPluginSaveGetExpiry(t *testing.T, ss store.Store) {
 		ExpireAt: model.GetMillis() - 5000,
 	}
 
-	if _, err := ss.Plugin().SaveOrUpdate(kv); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.Plugin().SaveOrUpdate(kv)
+	require.Nil(t, err)
 
 	defer func() {
 		_ = ss.Plugin().Delete(kv.PluginId, kv.Key)
 	}()
 
-	if _, err := ss.Plugin().Get(kv.PluginId, kv.Key); err == nil {
-		t.Fatal("result.Err should not be nil")
-	}
+	_, err = ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.NotNil(t, err)
 }
 
 func testPluginDelete(t *testing.T, ss store.Store) {
@@ -114,9 +103,8 @@ func testPluginDelete(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if err := ss.Plugin().Delete(kv.PluginId, kv.Key); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Plugin().Delete(kv.PluginId, kv.Key)
+	require.Nil(t, err)
 }
 
 func testPluginDeleteAll(t *testing.T, ss store.Store) {
@@ -136,17 +124,14 @@ func testPluginDeleteAll(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if err := ss.Plugin().DeleteAllForPlugin(pluginId); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Plugin().DeleteAllForPlugin(pluginId)
+	require.Nil(t, err)
 
-	if _, err := ss.Plugin().Get(pluginId, kv.Key); err == nil {
-		t.Fatal("result.Err should not be nil")
-	}
+	_, err = ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.NotNil(t, err)
 
-	if _, err := ss.Plugin().Get(pluginId, kv2.Key); err == nil {
-		t.Fatal("result.Err should not be nil")
-	}
+	_, err = ss.Plugin().Get(kv.PluginId, kv2.Key)
+	require.NotNil(t, err)
 }
 
 func testPluginDeleteExpired(t *testing.T, ss store.Store) {
@@ -168,20 +153,16 @@ func testPluginDeleteExpired(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if err := ss.Plugin().DeleteAllExpired(); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Plugin().DeleteAllExpired()
+	require.Nil(t, err)
 
-	if _, err := ss.Plugin().Get(pluginId, kv.Key); err == nil {
-		t.Fatal("result.Err should not be nil")
-	}
+	_, err = ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.NotNil(t, err)
 
-	if received, err := ss.Plugin().Get(kv2.PluginId, kv2.Key); err != nil {
-		t.Fatal(err)
-	} else {
-		assert.Equal(t, kv2.PluginId, received.PluginId)
-		assert.Equal(t, kv2.Key, received.Key)
-		assert.Equal(t, kv2.Value, received.Value)
-		assert.Equal(t, kv2.ExpireAt, received.ExpireAt)
-	}
+	received, err := ss.Plugin().Get(kv2.PluginId, kv2.Key)
+	require.Nil(t, err)
+	assert.Equal(t, kv2.PluginId, received.PluginId)
+	assert.Equal(t, kv2.Key, received.Key)
+	assert.Equal(t, kv2.Value, received.Value)
+	assert.Equal(t, kv2.ExpireAt, received.ExpireAt)
 }
