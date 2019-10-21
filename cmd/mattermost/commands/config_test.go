@@ -141,6 +141,12 @@ func TestConfigSet(t *testing.T) {
 		assert.NotContains(t, string(output), "invalid-key")
 	})
 
+	t.Run("Error when the parameter of an unknown plugin is set", func(t *testing.T) {
+		output, err := th.RunCommandWithOutput(t, "config", "set", "PluginSettings.Plugins.someplugin", "true")
+		assert.Error(t, err)
+		assert.NotContains(t, string(output), "panic")
+	})
+
 	t.Run("Error when the wrong locale is set", func(t *testing.T) {
 		th.CheckCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es")
 		assert.Error(t, th.RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "invalid-key"))
@@ -447,9 +453,7 @@ func TestUpdateMap(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			err := UpdateMap(configMap, test.configSettings, test.newVal)
 
-			if err != nil {
-				t.Fatal("Wasn't expecting an error: ", err)
-			}
+			require.Nil(t, err, "Wasn't expecting an error")
 
 			if !contains(configMap, test.expected, test.configSettings) {
 				t.Error("update didn't happen")

@@ -735,6 +735,7 @@ func TestSetBotIconImage(t *testing.T) {
 			Username: "username",
 			Id:       th.BasicUser.Id,
 		})
+		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
 
 		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
@@ -786,6 +787,7 @@ func TestGetBotIconImage(t *testing.T) {
 			Username: "username",
 			Id:       th.BasicUser.Id,
 		})
+		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
 
 		svgFile.Seek(0, 0)
@@ -832,6 +834,7 @@ func TestDeleteBotIconImage(t *testing.T) {
 			Username: "username",
 			Id:       th.BasicUser.Id,
 		})
+		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
 
 		// Set icon

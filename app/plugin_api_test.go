@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -340,13 +341,11 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
 
 	var pluginConfig map[string]interface{}
-	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {
-		t.Fatal(err)
-	}
+	err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig)
+	require.NoError(t, err)
 
-	if err := api.SavePluginConfig(pluginConfig); err != nil {
-		t.Fatal(err)
-	}
+	appErr := api.SavePluginConfig(pluginConfig)
+	require.Nil(t, appErr)
 
 	type Configuration struct {
 		MyStringSetting string
@@ -355,14 +354,12 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 	}
 
 	savedConfiguration := new(Configuration)
-	if err := api.LoadPluginConfiguration(savedConfiguration); err != nil {
-		t.Fatal(err)
-	}
+	err = api.LoadPluginConfiguration(savedConfiguration)
+	require.NoError(t, err)
 
 	expectedConfiguration := new(Configuration)
-	if err := json.Unmarshal([]byte(pluginConfigJsonString), &expectedConfiguration); err != nil {
-		t.Fatal(err)
-	}
+	err = json.Unmarshal([]byte(pluginConfigJsonString), &expectedConfiguration)
+	require.NoError(t, err)
 
 	assert.Equal(t, expectedConfiguration, savedConfiguration)
 }
@@ -387,9 +384,9 @@ func TestPluginAPIGetPluginConfig(t *testing.T) {
 	pluginConfigJsonString := `{"mystringsetting": "str", "myintsetting": 32, "myboolsetting": true}`
 	var pluginConfig map[string]interface{}
 
-	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {
-		t.Fatal(err)
-	}
+	err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig)
+	require.NoError(t, err)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["pluginid"] = pluginConfig
 	})
@@ -403,9 +400,9 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	defer th.TearDown()
 
 	var pluginJson map[string]interface{}
-	if err := json.Unmarshal([]byte(`{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`), &pluginJson); err != nil {
-		t.Fatal(err)
-	}
+	err := json.Unmarshal([]byte(`{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`), &pluginJson)
+	require.NoError(t, err)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
@@ -474,9 +471,9 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	defer th.TearDown()
 
 	var pluginJson map[string]interface{}
-	if err := json.Unmarshal([]byte(`{"mystringsetting": "override"}`), &pluginJson); err != nil {
-		t.Fatal(err)
-	}
+	err := json.Unmarshal([]byte(`{"mystringsetting": "override"}`), &pluginJson)
+	require.NoError(t, err)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
@@ -686,6 +683,43 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotEmpty(t, plugins)
 	assert.Equal(t, pluginManifests, plugins)
+}
+
+func TestPluginAPIInstallPlugin(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	_, err = api.InstallPlugin(bytes.NewReader(tarData), true)
+	assert.NotNil(t, err, "should not allow upload if upload disabled")
+	assert.Equal(t, err.Error(), "installPlugin: Plugins and/or plugin uploads have been disabled., ")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	manifest, err := api.InstallPlugin(bytes.NewReader(tarData), true)
+	defer os.RemoveAll("plugins/testplugin")
+	require.Nil(t, err)
+	assert.Equal(t, "testplugin", manifest.Id)
+
+	// Successfully installed
+	pluginsResp, err := api.GetPlugins()
+	require.Nil(t, err)
+
+	found := false
+	for _, m := range pluginsResp {
+		if m.Id == manifest.Id {
+			found = true
+		}
+	}
+
+	assert.True(t, found)
 }
 
 func TestPluginAPIGetTeamIcon(t *testing.T) {
@@ -1404,4 +1438,16 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 	for i := range config.SqlSettings.DataSourceSearchReplicas {
 		assert.NotEqual(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
 	}
+}
+
+func TestPluginAddUserToChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	member, err := api.AddUserToChannel(th.BasicChannel.Id, th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, err)
+	require.NotNil(t, member)
+	require.Equal(t, th.BasicChannel.Id, member.ChannelId)
+	require.Equal(t, th.BasicUser.Id, member.UserId)
 }

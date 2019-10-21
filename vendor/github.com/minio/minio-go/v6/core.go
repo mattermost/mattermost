@@ -20,6 +20,7 @@ package minio
 import (
 	"context"
 	"io"
+	"net/http"
 	"strings"
 
 	"github.com/minio/minio-go/v6/pkg/encrypt"
@@ -176,14 +177,14 @@ func (c Core) PutBucketPolicy(bucket, bucketPolicy string) error {
 // GetObjectWithContext is a lower level API implemented to support reading
 // partial objects and also downloading objects with special conditions
 // matching etag, modtime etc.
-func (c Core) GetObjectWithContext(ctx context.Context, bucketName, objectName string, opts GetObjectOptions) (io.ReadCloser, ObjectInfo, error) {
+func (c Core) GetObjectWithContext(ctx context.Context, bucketName, objectName string, opts GetObjectOptions) (io.ReadCloser, ObjectInfo, http.Header, error) {
 	return c.getObject(ctx, bucketName, objectName, opts)
 }
 
 // GetObject is a lower level API implemented to support reading
 // partial objects and also downloading objects with special conditions
 // matching etag, modtime etc.
-func (c Core) GetObject(bucketName, objectName string, opts GetObjectOptions) (io.ReadCloser, ObjectInfo, error) {
+func (c Core) GetObject(bucketName, objectName string, opts GetObjectOptions) (io.ReadCloser, ObjectInfo, http.Header, error) {
 	return c.GetObjectWithContext(context.Background(), bucketName, objectName, opts)
 }
 
