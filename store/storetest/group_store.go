@@ -1761,6 +1761,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			if tc.TotalCount != nil {
 				var count int64
 				count, err = ss.Group().CountGroupsByChannel(tc.ChannelId, tc.Opts)
+				require.Nil(t, err)
 				require.Equal(t, *tc.TotalCount, count)
 			}
 		})
@@ -1975,6 +1976,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			if tc.TotalCount != nil {
 				var count int64
 				count, err = ss.Group().CountGroupsByTeam(tc.TeamId, tc.Opts)
+				require.Nil(t, err)
 				require.Equal(t, *tc.TotalCount, count)
 			}
 		})
@@ -2016,7 +2018,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	group2, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewId() + "-group-2",
 		DisplayName: "group-2",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -2060,7 +2062,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 
 	// Create Group3
 	group3, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewId() + "-group-3",
 		DisplayName: "group-3",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -2120,7 +2122,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	user2.DeleteAt = 1
 	ss.User().Update(user2, true)
 
-	group2NameSubstring := string([]rune(group2.Name)[2:5])
+	group2NameSubstring := "group-2"
 
 	testCases := []struct {
 		Name    string
