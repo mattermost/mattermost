@@ -174,7 +174,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
 		p.API = api
 
-		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{ChannelId: channelID}, botUserId, plugin.AllowSystemMessages())
+		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{ChannelId: channelID}, botUserId, plugin.AllowSystemMessages(), plugin.FilterChannelIDs([]string{"another-channel-id"}))
 		assert.False(t, shouldProcessMessage)
 	})
 
@@ -186,7 +186,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api.On("GetUser", userID).Return(&model.User{IsBot: true}, nil)
 
 		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{UserId: userID, ChannelId: channelID},
-			botUserId, plugin.AllowSystemMessages(), plugin.FilterChannelIDs([]string{channelID}))
+			botUserId, plugin.AllowSystemMessages(), plugin.FilterUserIDs([]string{"another-user-id"}))
 		assert.False(t, shouldProcessMessage)
 	})
 
@@ -197,7 +197,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		assert.True(t, shouldProcessMessage)
 	})
 
-	t.Run("should process the message when filter channel anf filter users list is empty", func(t *testing.T) {
+	t.Run("should process the message when filter channel and filter users list is empty", func(t *testing.T) {
 		channelID := "1"
 		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{UserId: "1", Type: model.POST_HEADER_CHANGE, ChannelId: channelID}, botUserId,
 			plugin.AllowSystemMessages(), plugin.AllowBots())
