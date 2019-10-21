@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"net/http"
 )
 
@@ -12,6 +13,9 @@ func (api *API) InitImage() {
 }
 
 func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:image:getImage")
+	c.App.Context = ctx
+	defer span.Finish()
 	url := r.URL.Query().Get("url")
 
 	if *c.App.Config().ImageProxySettings.Enable {

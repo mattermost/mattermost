@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitStatus() {
@@ -16,12 +17,16 @@ func (api *API) InitStatus() {
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context,
+
+		// No permission check required
+		"api4:status:getUserStatus")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
 	}
-
-	// No permission check required
 
 	statusMap, err := c.App.GetUserStatusesByIds([]string{c.Params.UserId})
 	if err != nil {
@@ -38,14 +43,17 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:status:getUserStatusesByIds")
+	c.App.Context = ctx
+
+	// No permission check required
+	defer span.Finish()
 	userIds := model.ArrayFromJson(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
-
-	// No permission check required
 
 	statusMap, err := c.App.GetUserStatusesByIds(userIds)
 	if err != nil {
@@ -57,6 +65,9 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:status:updateUserStatus")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return

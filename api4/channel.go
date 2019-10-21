@@ -60,6 +60,9 @@ func (api *API) InitChannel() {
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:createChannel")
+	c.App.Context = ctx
+	defer span.Finish()
 	channel := model.ChannelFromJson(r.Body)
 	if channel == nil {
 		c.SetInvalidParam("channel")
@@ -88,6 +91,9 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannel")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -187,6 +193,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:convertChannelToPrivate")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -232,6 +241,9 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannelPrivacy")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -280,6 +292,9 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:patchChannel")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -340,6 +355,9 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:restoreChannel")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -369,6 +387,9 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:createDirectChannel")
+	c.App.Context = ctx
+	defer span.Finish()
 	userIds := model.ArrayFromJson(r.Body)
 	allowed := false
 
@@ -424,6 +445,9 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:searchGroupChannels")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.ChannelSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("channel_search")
@@ -440,6 +464,9 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:createGroupChannel")
+	c.App.Context = ctx
+	defer span.Finish()
 	userIds := model.ArrayFromJson(r.Body)
 
 	if len(userIds) == 0 {
@@ -536,6 +563,9 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelUnread")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -561,6 +591,9 @@ func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelStats")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -594,6 +627,9 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getPinnedPosts")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -621,6 +657,9 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getAllChannels")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -657,6 +696,9 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getPublicChannelsForTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -683,6 +725,9 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getDeletedChannelsForTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -709,6 +754,9 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getPublicChannelsByIdsForTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -748,6 +796,9 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelsForTeamForUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId().RequireTeamId()
 	if c.Err != nil {
 		return
@@ -784,6 +835,9 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:autocompleteChannelsForTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -808,6 +862,9 @@ func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:autocompleteChannelsForTeamForSearch")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -832,6 +889,9 @@ func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *
 }
 
 func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:searchChannelsForTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -868,6 +928,9 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:searchAllChannels")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.ChannelSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("channel_search")
@@ -897,6 +960,9 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:deleteChannel")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -935,6 +1001,9 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelByName")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId().RequireChannelName()
 	if c.Err != nil {
 		return
@@ -970,6 +1039,9 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelByNameForTeamName")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamName().RequireChannelName()
 	if c.Err != nil {
 		return
@@ -998,6 +1070,9 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelMembers")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -1018,6 +1093,9 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelMembersTimezones")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -1038,6 +1116,9 @@ func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelMembersByIds")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -1064,6 +1145,9 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelMember")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -1084,6 +1168,9 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelMembersForUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId().RequireTeamId()
 	if c.Err != nil {
 		return
@@ -1109,6 +1196,9 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:viewChannel")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1154,6 +1244,9 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannelMemberRoles")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -1181,6 +1274,9 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannelMemberSchemeRoles")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -1206,6 +1302,9 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 }
 
 func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannelMemberNotifyProps")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -1232,6 +1331,9 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 }
 
 func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:addChannelMember")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -1350,6 +1452,9 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:removeChannelMember")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -1394,6 +1499,9 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannelScheme")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -1444,6 +1552,9 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:channelMembersMinusGroupMembers")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return

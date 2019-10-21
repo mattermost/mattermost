@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -80,6 +81,9 @@ func (api *API) InitUser() {
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:createUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	user := model.UserFromJson(r.Body)
 	if user == nil {
 		c.SetInvalidParam("user")
@@ -132,6 +136,9 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -184,6 +191,9 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserByUsername")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUsername()
 	if c.Err != nil {
 		return
@@ -244,6 +254,9 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserByEmail")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireEmail()
 	if c.Err != nil {
 		return
@@ -293,6 +306,9 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getDefaultProfileImage")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -327,6 +343,9 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getProfileImage")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -372,6 +391,9 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:setProfileImage")
+	c.App.Context = ctx
+	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
 
 	c.RequireUserId()
@@ -422,6 +444,9 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:setDefaultProfileImage")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -453,6 +478,9 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getTotalUsersStats")
+	c.App.Context = ctx
+	defer span.Finish()
 	if c.Err != nil {
 		return
 	}
@@ -473,6 +501,9 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUsersByGroupChannelIds")
+	c.App.Context = ctx
+	defer span.Finish()
 	channelIds := model.ArrayFromJson(r.Body)
 
 	if len(channelIds) == 0 {
@@ -491,6 +522,9 @@ func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUsers")
+	c.App.Context = ctx
+	defer span.Finish()
 	inTeamId := r.URL.Query().Get("in_team")
 	notInTeamId := r.URL.Query().Get("not_in_team")
 	inChannelId := r.URL.Query().Get("in_channel")
@@ -631,6 +665,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUsersByIds")
+	c.App.Context = ctx
+	defer span.Finish()
 	userIds := model.ArrayFromJson(r.Body)
 
 	if len(userIds) == 0 {
@@ -670,6 +707,9 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUsersByNames")
+	c.App.Context = ctx
+	defer span.Finish()
 	usernames := model.ArrayFromJson(r.Body)
 
 	if len(usernames) == 0 {
@@ -693,6 +733,9 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:searchUsers")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.UserSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("")
@@ -766,6 +809,9 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:autocompleteUsers")
+	c.App.Context = ctx
+	defer span.Finish()
 	channelId := r.URL.Query().Get("in_channel")
 	teamId := r.URL.Query().Get("in_team")
 	name := r.URL.Query().Get("name")
@@ -846,6 +892,9 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updateUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -902,6 +951,9 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:patchUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -962,6 +1014,9 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:deleteUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -995,6 +1050,9 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updateUserRoles")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1023,6 +1081,9 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updateUserActive")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1072,6 +1133,9 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updateUserAuth")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
@@ -1101,6 +1165,9 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 // Deprecated: checkUserMfa is deprecated and should not be used anymore, starting with version 6.0 it will be disabled.
 //			   Clients should attempt a login without MFA and will receive a MFA error when it's required.
 func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:checkUserMfa")
+	c.App.Context = ctx
+	defer span.Finish()
 
 	if *c.App.Config().ServiceSettings.DisableLegacyMFA {
 		http.NotFound(w, r)
@@ -1133,6 +1200,9 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updateUserMfa")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1177,6 +1247,9 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:generateMfaSecret")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1206,6 +1279,9 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updatePassword")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1242,6 +1318,9 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:resetPassword")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
 	token := props["token"]
@@ -1266,6 +1345,9 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:sendPasswordReset")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
 	email := props["email"]
@@ -1292,7 +1374,12 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Mask all sensitive errors, with the exception of the following
+	span,
+		// Mask all sensitive errors, with the exception of the following
+		ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:login")
+	c.App.Context = ctx
+	defer span.Finish()
+
 	defer func() {
 		if c.Err == nil {
 			return
@@ -1430,10 +1517,16 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:logout")
+	c.App.Context = ctx
+	defer span.Finish()
 	Logout(c, w, r)
 }
 
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:Logout")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.LogAudit("")
 	c.RemoveSessionCookie(w, r)
 	if c.App.Session.Id != "" {
@@ -1447,6 +1540,9 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getSessions")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1471,6 +1567,9 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:revokeSession")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1508,6 +1607,9 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:revokeAllSessionsForUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1527,6 +1629,9 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:revokeAllSessionsAllUsers")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -1541,6 +1646,9 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:attachDeviceId")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
 	deviceId := props["device_id"]
@@ -1591,6 +1699,9 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserAudits")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1611,6 +1722,9 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:verifyUserEmail")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
 	token := props["token"]
@@ -1629,6 +1743,9 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:sendVerificationEmail")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
 	email := props["email"]
@@ -1655,6 +1772,9 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:switchAccountType")
+	c.App.Context = ctx
+	defer span.Finish()
 	switchRequest := model.SwitchRequestFromJson(r.Body)
 	if switchRequest == nil {
 		c.SetInvalidParam("switch_request")
@@ -1692,6 +1812,9 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:createUserAccessToken")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1740,6 +1863,9 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:searchUserAccessTokens")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -1765,6 +1891,9 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserAccessTokens")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -1780,6 +1909,9 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserAccessTokensForUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -1805,6 +1937,9 @@ func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserAccessToken")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTokenId()
 	if c.Err != nil {
 		return
@@ -1830,6 +1965,9 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:revokeUserAccessToken")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
 	tokenId := props["token_id"]
@@ -1865,6 +2003,9 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:disableUserAccessToken")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 	tokenId := props["token_id"]
 
@@ -1901,6 +2042,9 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:enableUserAccessToken")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
 	tokenId := props["token_id"]
@@ -1937,6 +2081,9 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:saveUserTermsOfService")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.StringInterfaceFromJson(r.Body)
 
 	userId := c.App.Session.UserId
@@ -1958,6 +2105,9 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserTermsOfService")
+	c.App.Context = ctx
+	defer span.Finish()
 	userId := c.App.Session.UserId
 	result, err := c.App.GetUserTermsOfService(userId)
 	if err != nil {
@@ -1968,6 +2118,9 @@ func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:promoteGuestToUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -2008,6 +2161,9 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:demoteUserToGuest")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return

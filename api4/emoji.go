@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"github.com/mattermost/mattermost-server/web"
 )
 
@@ -30,6 +31,9 @@ func (api *API) InitEmoji() {
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:createEmoji")
+	c.App.Context = ctx
+	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
 
 	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
@@ -93,6 +97,9 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:getEmojiList")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("getEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -114,6 +121,9 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:deleteEmoji")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireEmojiId()
 	if c.Err != nil {
 		return
@@ -174,6 +184,9 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:getEmoji")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireEmojiId()
 	if c.Err != nil {
 		return
@@ -194,6 +207,9 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:getEmojiByName")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireEmojiName()
 	if c.Err != nil {
 		return
@@ -209,6 +225,9 @@ func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:getEmojiImage")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireEmojiId()
 	if c.Err != nil {
 		return
@@ -231,6 +250,9 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:searchEmojis")
+	c.App.Context = ctx
+	defer span.Finish()
 	emojiSearch := model.EmojiSearchFromJson(r.Body)
 	if emojiSearch == nil {
 		c.SetInvalidParam("term")
@@ -252,6 +274,9 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:autocompleteEmojis")
+	c.App.Context = ctx
+	defer span.Finish()
 	name := r.URL.Query().Get("name")
 
 	if name == "" {

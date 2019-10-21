@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -43,6 +44,9 @@ func (api *API) InitSystem() {
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:getSystemPing")
+	c.App.Context = ctx
+	defer span.Finish()
 	reqs := c.App.Config().ClientRequirements
 
 	s := make(map[string]string)
@@ -122,6 +126,9 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:testEmail")
+	c.App.Context = ctx
+	defer span.Finish()
 	cfg := model.ConfigFromJson(r.Body)
 	if cfg == nil {
 		cfg = c.App.Config()
@@ -147,6 +154,9 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:testSiteURL")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -173,6 +183,9 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:getAudits")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -189,6 +202,9 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:databaseRecycle")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -205,6 +221,9 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:invalidateCaches")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -226,6 +245,9 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:getLogs")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -241,6 +263,9 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:postLog")
+	c.App.Context = ctx
+	defer span.Finish()
 	forceToDebug := false
 
 	if !*c.App.Config().ServiceSettings.EnableDeveloper {
@@ -277,6 +302,9 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:getAnalytics")
+	c.App.Context = ctx
+	defer span.Finish()
 	name := r.URL.Query().Get("name")
 	teamId := r.URL.Query().Get("team_id")
 
@@ -304,6 +332,9 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:getSupportedTimezones")
+	c.App.Context = ctx
+	defer span.Finish()
 	supportedTimezones := c.App.Timezones.GetSupported()
 	if supportedTimezones == nil {
 		supportedTimezones = make([]string, 0)
@@ -319,6 +350,9 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:testS3")
+	c.App.Context = ctx
+	defer span.Finish()
 	cfg := model.ConfigFromJson(r.Body)
 	if cfg == nil {
 		cfg = c.App.Config()
@@ -358,6 +392,9 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:getRedirectLocation")
+	c.App.Context = ctx
+	defer span.Finish()
 	m := make(map[string]string)
 	m["location"] = ""
 
@@ -401,6 +438,9 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:pushNotificationAck")
+	c.App.Context = ctx
+	defer span.Finish()
 	ack := model.PushNotificationAckFromJson(r.Body)
 
 	if !*c.App.Config().EmailSettings.SendPushNotifications {

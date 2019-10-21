@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 type mixedUnlinkedGroup struct {
@@ -33,6 +34,9 @@ func (api *API) InitLdap() {
 }
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:syncLdap")
+	c.App.Context = ctx
+	defer span.Finish()
 	if c.App.License() == nil || !*c.App.License().Features.LDAP {
 		c.Err = model.NewAppError("Api4.syncLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
@@ -49,6 +53,9 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:testLdap")
+	c.App.Context = ctx
+	defer span.Finish()
 	if c.App.License() == nil || !*c.App.License().Features.LDAP {
 		c.Err = model.NewAppError("Api4.testLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
@@ -68,6 +75,9 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:getLdapGroups")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -120,6 +130,9 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:linkLdapGroup")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireRemoteId()
 	if c.Err != nil {
 		return
@@ -209,6 +222,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:unlinkLdapGroup")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireRemoteId()
 	if c.Err != nil {
 		return

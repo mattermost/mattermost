@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitWebSocket() {
@@ -16,6 +17,9 @@ func (api *API) InitWebSocket() {
 }
 
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:websocket:connectWebSocket")
+	c.App.Context = ctx
+	defer span.Finish()
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  model.SOCKET_MAX_MESSAGE_SIZE_KB,
 		WriteBufferSize: model.SOCKET_MAX_MESSAGE_SIZE_KB,

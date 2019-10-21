@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 const (
@@ -42,6 +43,9 @@ func (api *API) InitPlugin() {
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:uploadPlugin")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !*c.App.Config().PluginSettings.Enable || !*c.App.Config().PluginSettings.EnableUploads {
 		c.Err = model.NewAppError("uploadPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -93,6 +97,9 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:installPluginFromUrl")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -152,6 +159,9 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:getPlugins")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("getPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -172,6 +182,9 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:getPluginStatuses")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("getPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -192,6 +205,9 @@ func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:removePlugin")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePluginId()
 	if c.Err != nil {
 		return
@@ -217,6 +233,9 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:getWebappPlugins")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("getWebappPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -243,6 +262,9 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:getMarketplacePlugins")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -280,6 +302,9 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:enablePlugin")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePluginId()
 	if c.Err != nil {
 		return
@@ -304,6 +329,9 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:disablePlugin")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePluginId()
 	if c.Err != nil {
 		return

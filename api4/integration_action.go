@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitAction() {
@@ -18,6 +19,9 @@ func (api *API) InitAction() {
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:integration_action:doPostAction")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePostId().RequireActionId()
 	if c.Err != nil {
 		return
@@ -67,6 +71,9 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:integration_action:openDialog")
+	c.App.Context = ctx
+	defer span.Finish()
 	var dialog model.OpenDialogRequest
 	err := json.NewDecoder(r.Body).Decode(&dialog)
 	if err != nil {
@@ -88,6 +95,9 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:integration_action:submitDialog")
+	c.App.Context = ctx
+	defer span.Finish()
 	var submit model.SubmitDialogRequest
 
 	jsonErr := json.NewDecoder(r.Body).Decode(&submit)

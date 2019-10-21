@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitElasticsearch() {
@@ -15,6 +16,9 @@ func (api *API) InitElasticsearch() {
 }
 
 func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:elasticsearch:testElasticsearch")
+	c.App.Context = ctx
+	defer span.Finish()
 	cfg := model.ConfigFromJson(r.Body)
 	if cfg == nil {
 		cfg = c.App.Config()
@@ -39,6 +43,9 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:elasticsearch:purgeElasticsearchIndexes")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return

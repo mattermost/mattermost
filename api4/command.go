@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitCommand() {
@@ -24,6 +25,9 @@ func (api *API) InitCommand() {
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:createCommand")
+	c.App.Context = ctx
+	defer span.Finish()
 	cmd := model.CommandFromJson(r.Body)
 	if cmd == nil {
 		c.SetInvalidParam("command")
@@ -51,6 +55,9 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:updateCommand")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireCommandId()
 	if c.Err != nil {
 		return
@@ -99,6 +106,9 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:deleteCommand")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireCommandId()
 	if c.Err != nil {
 		return
@@ -136,6 +146,9 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:listCommands")
+	c.App.Context = ctx
+	defer span.Finish()
 	customOnly, failConv := strconv.ParseBool(r.URL.Query().Get("custom_only"))
 	if failConv != nil {
 		customOnly = false
@@ -186,6 +199,9 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:executeCommand")
+	c.App.Context = ctx
+	defer span.Finish()
 	commandArgs := model.CommandArgsFromJson(r.Body)
 	if commandArgs == nil {
 		c.SetInvalidParam("command_args")
@@ -239,6 +255,9 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:listAutocompleteCommands")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -259,6 +278,9 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:regenCommandToken")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireCommandId()
 	if c.Err != nil {
 		return

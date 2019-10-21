@@ -18,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -66,6 +67,9 @@ func (api *API) InitFile() {
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:uploadFile")
+	c.App.Context = ctx
+	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
 
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
@@ -182,7 +186,12 @@ func multipartReader(req *http.Request, stream io.Reader) (*multipart.Reader, er
 }
 
 func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Drain any remaining bytes in the request body, up to a limit
+	span,
+		// Drain any remaining bytes in the request body, up to a limit
+		ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:uploadFileStream")
+	c.App.Context = ctx
+	defer span.Finish()
+
 	defer io.CopyN(ioutil.Discard, r.Body, maxUploadDrainBytes)
 
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
@@ -517,6 +526,9 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 }
 
 func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFile")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
 		return
@@ -554,6 +566,9 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFileThumbnail")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
 		return
@@ -596,6 +611,9 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFileLink")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
 		return
@@ -629,6 +647,9 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFilePreview")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
 		return
@@ -671,6 +692,9 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFileInfo")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
 		return
@@ -692,6 +716,9 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getPublicFile")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
 		return

@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitLicense() {
@@ -18,6 +19,9 @@ func (api *API) InitLicense() {
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:license:getClientLicense")
+	c.App.Context = ctx
+	defer span.Finish()
 	format := r.URL.Query().Get("format")
 
 	if format == "" {
@@ -48,6 +52,9 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:license:addLicense")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
@@ -109,6 +116,9 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:license:removeLicense")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {

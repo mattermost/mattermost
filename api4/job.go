@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitJob() {
@@ -18,6 +19,9 @@ func (api *API) InitJob() {
 }
 
 func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:job:getJob")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireJobId()
 	if c.Err != nil {
 		return
@@ -38,6 +42,9 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:job:createJob")
+	c.App.Context = ctx
+	defer span.Finish()
 	job := model.JobFromJson(r.Body)
 	if job == nil {
 		c.SetInvalidParam("job")
@@ -60,6 +67,9 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:job:getJobs")
+	c.App.Context = ctx
+	defer span.Finish()
 	if c.Err != nil {
 		return
 	}
@@ -79,6 +89,9 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:job:getJobsByType")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireJobType()
 	if c.Err != nil {
 		return
@@ -99,6 +112,9 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:job:cancelJob")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireJobId()
 	if c.Err != nil {
 		return

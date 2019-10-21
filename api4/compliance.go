@@ -9,6 +9,7 @@ import (
 
 	"github.com/avct/uasurfer"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitCompliance() {
@@ -19,6 +20,9 @@ func (api *API) InitCompliance() {
 }
 
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:createComplianceReport")
+	c.App.Context = ctx
+	defer span.Finish()
 	job := model.ComplianceFromJson(r.Body)
 	if job == nil {
 		c.SetInvalidParam("compliance")
@@ -44,6 +48,9 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:getComplianceReports")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -59,6 +66,9 @@ func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:getComplianceReport")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireReportId()
 	if c.Err != nil {
 		return
@@ -79,6 +89,9 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:downloadComplianceReport")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireReportId()
 	if c.Err != nil {
 		return

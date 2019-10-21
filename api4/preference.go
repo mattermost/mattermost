@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitPreference() {
@@ -18,6 +19,9 @@ func (api *API) InitPreference() {
 }
 
 func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:preference:getPreferences")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -38,6 +42,9 @@ func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:preference:getPreferencesByCategory")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId().RequireCategory()
 	if c.Err != nil {
 		return
@@ -58,6 +65,9 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:preference:getPreferenceByCategoryAndName")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId().RequireCategory().RequirePreferenceName()
 	if c.Err != nil {
 		return
@@ -78,6 +88,9 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 }
 
 func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:preference:updatePreferences")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -122,6 +135,9 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:preference:deletePreferences")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return

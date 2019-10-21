@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitPost() {
@@ -33,6 +34,9 @@ func (api *API) InitPost() {
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:createPost")
+	c.App.Context = ctx
+	defer span.Finish()
 	span, prevCtx := c.App.TraceStart("api4:post:CreatePost")
 	defer c.App.TraceFinish(span, prevCtx)
 
@@ -81,6 +85,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:createEphemeralPost")
+	c.App.Context = ctx
+	defer span.Finish()
 	ephRequest := model.PostEphemeral{}
 
 	json.NewDecoder(r.Body).Decode(&ephRequest)
@@ -111,6 +118,9 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getPostsForChannel")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -200,6 +210,9 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getPostsForChannelAroundLastUnread")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId().RequireChannelId()
 	if c.Err != nil {
 		return
@@ -254,6 +267,9 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getFlaggedPostsForUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -313,6 +329,9 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getPost")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
 		return
@@ -353,6 +372,9 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:deletePost")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
 		return
@@ -385,6 +407,9 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getPostThread")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
 		return
@@ -435,6 +460,9 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:searchPosts")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -503,6 +531,9 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:updatePost")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
 		return
@@ -554,6 +585,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:patchPost")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
 		return
@@ -647,14 +681,23 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 }
 
 func pinPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:pinPost")
+	c.App.Context = ctx
+	defer span.Finish()
 	saveIsPinnedPost(c, w, r, true)
 }
 
 func unpinPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:unpinPost")
+	c.App.Context = ctx
+	defer span.Finish()
 	saveIsPinnedPost(c, w, r, false)
 }
 
 func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getFileInfosForPost")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
 		return

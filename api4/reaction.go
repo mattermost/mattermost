@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitReaction() {
@@ -17,6 +18,9 @@ func (api *API) InitReaction() {
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:reaction:saveReaction")
+	c.App.Context = ctx
+	defer span.Finish()
 	reaction := model.ReactionFromJson(r.Body)
 	if reaction == nil {
 		c.SetInvalidParam("reaction")
@@ -48,6 +52,9 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:reaction:getReactions")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
 		return
@@ -68,6 +75,9 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:reaction:deleteReaction")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -109,6 +119,9 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:reaction:getBulkReactions")
+	c.App.Context = ctx
+	defer span.Finish()
 	postIds := model.ArrayFromJson(r.Body)
 	for _, postId := range postIds {
 		if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, postId, model.PERMISSION_READ_CHANNEL) {

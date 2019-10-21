@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -21,6 +22,9 @@ func (api *API) InitConfig() {
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:config:getConfig")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -33,6 +37,9 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:config:configReload")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -50,6 +57,9 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:config:updateConfig")
+	c.App.Context = ctx
+	defer span.Finish()
 	cfg := model.ConfigFromJson(r.Body)
 	if cfg == nil {
 		c.SetInvalidParam("config")
@@ -116,6 +126,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:config:getClientConfig")
+	c.App.Context = ctx
+	defer span.Finish()
 	format := r.URL.Query().Get("format")
 
 	if format == "" {
@@ -139,6 +152,9 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:config:getEnvironmentConfig")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return

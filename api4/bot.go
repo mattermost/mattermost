@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitBot() {
@@ -28,6 +29,9 @@ func (api *API) InitBot() {
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:createBot")
+	c.App.Context = ctx
+	defer span.Finish()
 	botPatch := model.BotPatchFromJson(r.Body)
 	if botPatch == nil {
 		c.SetInvalidParam("bot")
@@ -67,6 +71,9 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:patchBot")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireBotUserId()
 	if c.Err != nil {
 		return
@@ -94,6 +101,9 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:getBot")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireBotUserId()
 	if c.Err != nil {
 		return
@@ -133,6 +143,9 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:getBots")
+	c.App.Context = ctx
+	defer span.Finish()
 	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
 	onlyOrphaned := r.URL.Query().Get("only_orphaned") == "true"
 
@@ -168,10 +181,16 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:disableBot")
+	c.App.Context = ctx
+	defer span.Finish()
 	updateBotActive(c, w, r, false)
 }
 
 func enableBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:enableBot")
+	c.App.Context = ctx
+	defer span.Finish()
 	updateBotActive(c, w, r, true)
 }
 
@@ -197,6 +216,9 @@ func updateBotActive(c *Context, w http.ResponseWriter, r *http.Request, active 
 }
 
 func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:assignBot")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	c.RequireBotUserId()
 	if c.Err != nil {
@@ -227,6 +249,9 @@ func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:getBotIconImage")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireBotUserId()
 	if c.Err != nil {
 		return
@@ -268,6 +293,9 @@ func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:setBotIconImage")
+	c.App.Context = ctx
+	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
 
 	c.RequireBotUserId()
@@ -314,6 +342,9 @@ func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:deleteBotIconImage")
+	c.App.Context = ctx
+	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
 
 	c.RequireBotUserId()

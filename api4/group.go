@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 const (
@@ -69,6 +70,9 @@ func (api *API) InitGroup() {
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroup")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -100,6 +104,9 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:patchGroup")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -145,6 +152,9 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:linkGroupSyncable")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -226,6 +236,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroupSyncable")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -269,6 +282,9 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroupSyncables")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -306,6 +322,9 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:patchGroupSyncable")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -371,6 +390,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:unlinkGroupSyncable")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -436,6 +458,9 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 }
 
 func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroupMembers")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -473,6 +498,9 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroupsByChannel")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -530,6 +558,9 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroupsByTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -576,6 +607,9 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroups")
+	c.App.Context = ctx
+	defer span.Finish()
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return

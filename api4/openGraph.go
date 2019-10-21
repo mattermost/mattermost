@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -29,6 +30,9 @@ func (api *API) InitOpenGraph() {
 }
 
 func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:openGraph:getOpenGraphMetadata")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !*c.App.Config().ServiceSettings.EnableLinkPreviews {
 		c.Err = model.NewAppError("getOpenGraphMetadata", "api.post.link_preview_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return

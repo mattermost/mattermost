@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitScheme() {
@@ -20,6 +21,9 @@ func (api *API) InitScheme() {
 }
 
 func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:createScheme")
+	c.App.Context = ctx
+	defer span.Finish()
 	scheme := model.SchemeFromJson(r.Body)
 	if scheme == nil {
 		c.SetInvalidParam("scheme")
@@ -47,6 +51,9 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:getScheme")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireSchemeId()
 	if c.Err != nil {
 		return
@@ -67,6 +74,9 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:getSchemes")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -88,6 +98,9 @@ func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:getTeamsForScheme")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireSchemeId()
 	if c.Err != nil {
 		return
@@ -119,6 +132,9 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:getChannelsForScheme")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireSchemeId()
 	if c.Err != nil {
 		return
@@ -150,6 +166,9 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:patchScheme")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireSchemeId()
 	if c.Err != nil {
 		return
@@ -188,6 +207,9 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:deleteScheme")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireSchemeId()
 	if c.Err != nil {
 		return

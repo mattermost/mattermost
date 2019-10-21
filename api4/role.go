@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 func (api *API) InitRole() {
@@ -18,6 +19,9 @@ func (api *API) InitRole() {
 }
 
 func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:getRole")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireRoleId()
 	if c.Err != nil {
 		return
@@ -33,6 +37,9 @@ func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:getRoleByName")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireRoleName()
 	if c.Err != nil {
 		return
@@ -48,6 +55,9 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:getRolesByNames")
+	c.App.Context = ctx
+	defer span.Finish()
 	rolenames := model.ArrayFromJson(r.Body)
 
 	if len(rolenames) == 0 {
@@ -79,6 +89,9 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:patchRole")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireRoleId()
 	if c.Err != nil {
 		return

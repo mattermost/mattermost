@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
 const (
@@ -74,6 +75,9 @@ func (api *API) InitTeam() {
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:createTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	team := model.TeamFromJson(r.Body)
 	if team == nil {
 		c.SetInvalidParam("team")
@@ -98,6 +102,9 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -119,6 +126,9 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeamByName")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamName()
 	if c.Err != nil {
 		return
@@ -140,6 +150,9 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:updateTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -174,6 +187,9 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:patchTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -205,6 +221,9 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:regenerateTeamInviteId")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -228,6 +247,9 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:deleteTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -254,6 +276,9 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeamsForUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -275,6 +300,9 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeamsUnreadForUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -298,6 +326,9 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeamMember")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -329,6 +360,9 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeamMembers")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -355,6 +389,9 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeamMembersForUser")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -386,6 +423,9 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeamMembersByIds")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -419,6 +459,9 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:addTeamMember")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -493,6 +536,9 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:addUserToTeamFromInvite")
+	c.App.Context = ctx
+	defer span.Finish()
 	tokenId := r.URL.Query().Get("token")
 	inviteId := r.URL.Query().Get("invite_id")
 
@@ -522,6 +568,9 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:addTeamMembers")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -599,6 +648,9 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:removeTeamMember")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -631,6 +683,9 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeamUnread")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -656,6 +711,9 @@ func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeamStats")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -682,6 +740,9 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:updateTeamMemberRoles")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -709,6 +770,9 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:updateTeamMemberSchemeRoles")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -734,6 +798,9 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getAllTeams")
+	c.App.Context = ctx
+	defer span.Finish()
 	teams := []*model.Team{}
 	var err *model.AppError
 	var teamsWithCount *model.TeamsWithCount
@@ -777,6 +844,9 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:searchTeams")
+	c.App.Context = ctx
+	defer span.Finish()
 	props := model.TeamSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("team_search")
@@ -812,6 +882,9 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:teamExists")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamName()
 	if c.Err != nil {
 		return
@@ -846,6 +919,9 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:importTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -919,6 +995,9 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:inviteUsersToTeam")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -951,6 +1030,9 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:inviteGuestsToChannels")
+	c.App.Context = ctx
+	defer span.Finish()
 	if c.App.License() == nil {
 		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invate_guests_to_channels.license.error", nil, "", http.StatusNotImplemented)
 		return
@@ -987,6 +1069,9 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getInviteInfo")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireInviteId()
 	if c.Err != nil {
 		return
@@ -1012,6 +1097,9 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:invalidateAllEmailInvites")
+	c.App.Context = ctx
+	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -1026,6 +1114,9 @@ func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:getTeamIcon")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -1063,6 +1154,9 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:setTeamIcon")
+	c.App.Context = ctx
+	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
 
 	c.RequireTeamId()
@@ -1110,6 +1204,9 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:removeTeamIcon")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -1130,6 +1227,9 @@ func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:updateTeamScheme")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -1182,6 +1282,9 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:team:teamMembersMinusGroupMembers")
+	c.App.Context = ctx
+	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
