@@ -8,32 +8,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// KVGetJSON is a wrapper around KVGet to simplify reading a JSON object from the key value store.
-func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
-	const minimumSupportedVersion = "5.2.0"
-	serverVersion := p.API.GetServerVersion()
-
-	err := ensureServerVersion(minimumSupportedVersion, serverVersion)
-	if err != nil {
-		return false, err
-	}
-
-	data, appErr := p.API.KVGet(key)
-	if appErr != nil {
-		return false, appErr
-	}
-	if data == nil {
-		return false, nil
-	}
-
-	err = json.Unmarshal(data, value)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
 // KVSetJSON is a wrapper around KVSet to simplify writing a JSON object to the key value store.
 func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 	const minimumSupportedVersion = "5.2.0"
@@ -117,6 +91,32 @@ func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (
 	}
 
 	return deleted, nil
+}
+
+// KVGetJSON is a wrapper around KVGet to simplify reading a JSON object from the key value store.
+func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
+	const minimumSupportedVersion = "5.2.0"
+	serverVersion := p.API.GetServerVersion()
+
+	err := ensureServerVersion(minimumSupportedVersion, serverVersion)
+	if err != nil {
+		return false, err
+	}
+
+	data, appErr := p.API.KVGet(key)
+	if appErr != nil {
+		return false, appErr
+	}
+	if data == nil {
+		return false, nil
+	}
+
+	err = json.Unmarshal(data, value)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // KVSetWithExpiryJSON is a wrapper around KVSetWithExpiry to simplify atomically writing a JSON object with expiry to the key value store.
