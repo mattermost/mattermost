@@ -5,6 +5,8 @@
 package plugintest
 
 import (
+	io "io"
+
 	model "github.com/mattermost/mattermost-server/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -55,6 +57,31 @@ func (_m *API) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.Ap
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(*model.Reaction) *model.AppError); ok {
 		r1 = rf(reaction)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// AddUserToChannel provides a mock function with given fields: channelId, userId, asUserId
+func (_m *API) AddUserToChannel(channelId string, userId string, asUserId string) (*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(channelId, userId, asUserId)
+
+	var r0 *model.ChannelMember
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.ChannelMember); ok {
+		r0 = rf(channelId, userId, asUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMember)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+		r1 = rf(channelId, userId, asUserId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -2775,6 +2802,31 @@ func (_m *API) UploadFile(data []byte, channelId string, filename string) (*mode
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func([]byte, string, string) *model.AppError); ok {
 		r1 = rf(data, channelId, filename)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// InstallPlugin provides a mock function with given fields: file, replace
+func (_m *API) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	ret := _m.Called(file, replace)
+
+	var r0 *model.Manifest
+	if rf, ok := ret.Get(0).(func(io.Reader, bool) *model.Manifest); ok {
+		r0 = rf(file, replace)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Manifest)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(io.Reader, bool) *model.AppError); ok {
+		r1 = rf(file, replace)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
