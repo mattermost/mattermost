@@ -306,6 +306,31 @@ func (_m *GroupStore) DeleteMember(groupID string, userID string) (*model.GroupM
 	return r0, r1
 }
 
+func (_m *GroupStore) DeleteMemberFromAllAssociatedGroups(userID string) ([]*model.GroupMember, *model.AppError) {
+	// ret := _m.Called(groupID, userID)
+
+	// var r0 *model.GroupMember
+	// if rf, ok := ret.Get(0).(func(string, string) *model.GroupMember); ok {
+	// 	r0 = rf(groupID, userID)
+	// } else {
+	// 	if ret.Get(0) != nil {
+	// 		r0 = ret.Get(0).(*model.GroupMember)
+	// 	}
+	// }
+
+	// var r1 *model.AppError
+	// if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	// 	r1 = rf(groupID, userID)
+	// } else {
+	// 	if ret.Get(1) != nil {
+	// 		r1 = ret.Get(1).(*model.AppError)
+	// 	}
+	// }
+
+	// return r0, r1
+	return nil, nil
+}
+
 // Get provides a mock function with given fields: groupID
 func (_m *GroupStore) Get(groupID string) (*model.Group, *model.AppError) {
 	ret := _m.Called(groupID)
