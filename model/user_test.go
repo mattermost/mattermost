@@ -16,13 +16,8 @@ import (
 func TestPasswordHash(t *testing.T) {
 	hash := HashPassword("Test")
 
-	if !ComparePassword(hash, "Test") {
-		t.Fatal("Passwords don't match")
-	}
-
-	if ComparePassword(hash, "Test2") {
-		t.Fatal("Passwords should not have matched")
-	}
+	assert.True(t, ComparePassword(hash, "Test"), "Passwords don't match")
+	assert.False(t, ComparePassword(hash, "Test2"), "Passwords should not have matched")
 }
 
 func TestUserDeepCopy(t *testing.T) {
@@ -60,22 +55,15 @@ func TestUserJson(t *testing.T) {
 	json := user.ToJson()
 	ruser := UserFromJson(strings.NewReader(json))
 
-	if user.Id != ruser.Id {
-		t.Fatal("Ids do not match")
-	}
+	assert.Equal(t, user.Id, ruser.Id, "Ids do not match")
 }
 
 func TestUserPreSave(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreSave()
 	user.Etag(true, true)
-	if user.Timezone == nil {
-		t.Fatal("Timezone is nil")
-	}
-
-	if user.Timezone["useAutomaticTimezone"] != "true" {
-		t.Fatal("Timezone is not set to default")
-	}
+	assert.NotNil(t, user.Timezone, "Timezone is nil")
+	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default");
 }
 
 func TestUserPreUpdate(t *testing.T) {
@@ -86,39 +74,28 @@ func TestUserPreUpdate(t *testing.T) {
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
 	user := User{Username: "user"}
 	user.SetDefaultNotifications()
-
-	if user.NotifyProps["mention_keys"] != "user,@user" {
-		t.Fatalf("default mention keys are invalid: %v", user.NotifyProps["mention_keys"])
-	}
+	assert.Equalf(t, user.NotifyProps["mention_keys"], "user,@user", "default mention keys are invalid: %v", user.NotifyProps["mention_keys"])
 
 	user.Username = "person"
 	user.UpdateMentionKeysFromUsername("user")
-	if user.NotifyProps["mention_keys"] != "person,@person" {
-		t.Fatalf("mention keys are invalid after changing username: %v", user.NotifyProps["mention_keys"])
-	}
+	assert.Equalf(t, user.NotifyProps["mention_keys"], "person,@person", "mention keys are invalid after changing username: %v", user.NotifyProps["mention_keys"])
 
 	user.NotifyProps["mention_keys"] += ",mention"
 	user.UpdateMentionKeysFromUsername("person")
-	if user.NotifyProps["mention_keys"] != "person,@person,mention" {
-		t.Fatalf("mention keys are invalid after adding extra mention keyword: %v", user.NotifyProps["mention_keys"])
-	}
+	assert.Equalf(t, user.NotifyProps["mention_keys"], "person,@person,mention", "mention keys are invalid after adding extra mention keyword: %v", user.NotifyProps["mention_keys"])
 
 	user.Username = "user"
 	user.UpdateMentionKeysFromUsername("person")
-	if user.NotifyProps["mention_keys"] != "user,@user,mention" {
-		t.Fatalf("mention keys are invalid after changing username with extra mention keyword: %v", user.NotifyProps["mention_keys"])
-	}
+	assert.Equalf(t, user.NotifyProps["mention_keys"], "user,@user,mention", "mention keys are invalid after changing username with extra mention keyword: %v", user.NotifyProps["mention_keys"])
 }
 
 func TestUserIsValid(t *testing.T) {
 	user := User{}
-
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "id", "") {
-		t.Fatal(err)
-	}
+	err := user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "id", ""), "expected user is valid error: %s", err.Error())
 
 	user.Id = NewId()
-	err := user.IsValid()
+	err = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(err, "create_at", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.CreateAt = GetMillis()
@@ -148,37 +125,28 @@ func TestUserIsValid(t *testing.T) {
 	require.True(t, HasExpectedUserIsValidError(err, "nickname", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.Nickname = strings.Repeat("a", 64)
-	if err := user.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Error(t, user.IsValid())
 
 	user.FirstName = ""
 	user.LastName = ""
-	if err := user.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Error(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "first_name", user.Id) {
-		t.Fatal(err)
-	}
+	err = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "first_name", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.FirstName = strings.Repeat("a", 64)
 	user.LastName = strings.Repeat("a", 65)
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "last_name", user.Id) {
-		t.Fatal(err)
-	}
+	err = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "last_name", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.LastName = strings.Repeat("a", 64)
 	user.Position = strings.Repeat("a", 128)
-	if err := user.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Error(t, user.IsValid())
 
 	user.Position = strings.Repeat("a", 129)
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "position", user.Id) {
-		t.Fatal(err)
-	}
+	err = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "position", user.Id), "expected user is valid error: %s", err.Error())
 }
 
 func HasExpectedUserIsValidError(err *AppError, fieldName string, userId string) bool {
@@ -194,98 +162,53 @@ func HasExpectedUserIsValidError(err *AppError, fieldName string, userId string)
 
 func TestUserGetFullName(t *testing.T) {
 	user := User{}
-
-	if fullName := user.GetFullName(); fullName != "" {
-		t.Fatal("Full name should be blank")
-	}
+	assert.Equal(t, user.GetFullName(), "", "Full name should be blank")
 
 	user.FirstName = "first"
-	if fullName := user.GetFullName(); fullName != "first" {
-		t.Fatal("Full name should be first name")
-	}
+	assert.Equal(t, user.GetFullName(), "first", "Full name should be first name")
 
 	user.FirstName = ""
 	user.LastName = "last"
-	if fullName := user.GetFullName(); fullName != "last" {
-		t.Fatal("Full name should be last name")
-	}
+	assert.Equal(t, user.GetFullName(), "last", "Full name should be last name")
 
 	user.FirstName = "first"
-	if fullName := user.GetFullName(); fullName != "first last" {
-		t.Fatal("Full name should be first name and last name")
-	}
+	assert.Equal(t, user.GetFullName(), "first last", "Full name should be first name and last name")
 }
 
 func TestUserGetDisplayName(t *testing.T) {
 	user := User{Username: "username"}
 
-	if displayName := user.GetDisplayName(SHOW_FULLNAME); displayName != "username" {
-		t.Fatal("Display name should be username")
-	}
-
-	if displayName := user.GetDisplayName(SHOW_NICKNAME_FULLNAME); displayName != "username" {
-		t.Fatal("Display name should be username")
-	}
-
-	if displayName := user.GetDisplayName(SHOW_USERNAME); displayName != "username" {
-		t.Fatal("Display name should be username")
-	}
+	assert.Equal(t, user.GetDisplayName(SHOW_FULLNAME), "username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayName(SHOW_NICKNAME_FULLNAME), "username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayName(SHOW_USERNAME), "username", "Display name should be username")
 
 	user.FirstName = "first"
 	user.LastName = "last"
 
-	if displayName := user.GetDisplayName(SHOW_FULLNAME); displayName != "first last" {
-		t.Fatal("Display name should be full name")
-	}
-
-	if displayName := user.GetDisplayName(SHOW_NICKNAME_FULLNAME); displayName != "first last" {
-		t.Fatal("Display name should be full name since there is no nickname")
-	}
-
-	if displayName := user.GetDisplayName(SHOW_USERNAME); displayName != "username" {
-		t.Fatal("Display name should be username")
-	}
+	assert.Equal(t, user.GetDisplayName(SHOW_FULLNAME), "first last", "Display name should be full name")
+	assert.Equal(t, user.GetDisplayName(SHOW_NICKNAME_FULLNAME), "first last", "Display name should be full name since there is no nickname")
+	assert.Equal(t, user.GetDisplayName(SHOW_USERNAME), "username", "Display name should be username")
 
 	user.Nickname = "nickname"
-	if displayName := user.GetDisplayName(SHOW_NICKNAME_FULLNAME); displayName != "nickname" {
-		t.Fatal("Display name should be nickname")
-	}
+	assert.Equal(t, user.GetDisplayName(SHOW_NICKNAME_FULLNAME), "nickname", "Display name should be nickname")
 }
 
 func TestUserGetDisplayNameWithPrefix(t *testing.T) {
 	user := User{Username: "username"}
 
-	if displayName := user.GetDisplayNameWithPrefix(SHOW_FULLNAME, "@"); displayName != "@username" {
-		t.Fatal("Display name should be username")
-	}
-
-	if displayName := user.GetDisplayNameWithPrefix(SHOW_NICKNAME_FULLNAME, "@"); displayName != "@username" {
-		t.Fatal("Display name should be username")
-	}
-
-	if displayName := user.GetDisplayNameWithPrefix(SHOW_USERNAME, "@"); displayName != "@username" {
-		t.Fatal("Display name should be username")
-	}
+	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_FULLNAME, "@"), "@username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_NICKNAME_FULLNAME, "@"), "@username", "Display name should be username")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_USERNAME, "@"), "@username", "Display name should be username")
 
 	user.FirstName = "first"
 	user.LastName = "last"
 
-	if displayName := user.GetDisplayNameWithPrefix(SHOW_FULLNAME, "@"); displayName != "first last" {
-		t.Fatal("Display name should be full name")
-	}
-
-	if displayName := user.GetDisplayNameWithPrefix(SHOW_NICKNAME_FULLNAME, "@"); displayName != "first last" {
-		t.Fatal("Display name should be full name since there is no nickname")
-	}
-
-	if displayName := user.GetDisplayNameWithPrefix(SHOW_USERNAME, "@"); displayName != "@username" {
-		t.Fatal("Display name should be username")
-	}
+	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_FULLNAME, "@"), "first last", "Display name should be full name")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_NICKNAME_FULLNAME, "@"), "first last", "Display name should be full name since there is no nickname")
+	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_USERNAME, "@"), "@username", "Display name should be username")
 
 	user.Nickname = "nickname"
-	if displayName := user.GetDisplayNameWithPrefix(SHOW_NICKNAME_FULLNAME, "@"); displayName != "nickname" {
-		t.Fatal("Display name should be nickname")
-	}
+	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_NICKNAME_FULLNAME, "@"), "nickname", "Display name should be nickname")
 }
 
 var usernames = []struct {
@@ -319,45 +242,23 @@ func TestValidUsername(t *testing.T) {
 }
 
 func TestNormalizeUsername(t *testing.T) {
-	if NormalizeUsername("Spin-punch") != "spin-punch" {
-		t.Fatal("didn't normalize username properly")
-	}
-	if NormalizeUsername("PUNCH") != "punch" {
-		t.Fatal("didn't normalize username properly")
-	}
-	if NormalizeUsername("spin") != "spin" {
-		t.Fatal("didn't normalize username properly")
-	}
+	assert.Equal(t, NormalizeUsername("Spin-punch"), "spin-punch", "didn't normalize username properly")
+	assert.Equal(t, NormalizeUsername("PUNCH"), "punch", "didn't normalize username properly")
+	assert.Equal(t, NormalizeUsername("spin"), "spin", "didn't normalize username properly")
 }
 
 func TestNormalizeEmail(t *testing.T) {
-	if NormalizeEmail("TEST@EXAMPLE.COM") != "test@example.com" {
-		t.Fatal("didn't normalize email properly")
-	}
-	if NormalizeEmail("TEST2@example.com") != "test2@example.com" {
-		t.Fatal("didn't normalize email properly")
-	}
-	if NormalizeEmail("test3@example.com") != "test3@example.com" {
-		t.Fatal("didn't normalize email properly")
-	}
+	assert.Equal(t, NormalizeEmail("TEST@EXAMPLE.COM"), "test@example.com", "didn't normalize email properly")
+	assert.Equal(t, NormalizeEmail("TEST2@example.com"), "test2@example.com", "didn't normalize email properly")
+	assert.Equal(t, NormalizeEmail("test3@example.com"), "test3@example.com", "didn't normalize email properly")
 }
 
 func TestCleanUsername(t *testing.T) {
-	if CleanUsername("Spin-punch") != "spin-punch" {
-		t.Fatal("didn't clean name properly")
-	}
-	if CleanUsername("PUNCH") != "punch" {
-		t.Fatal("didn't clean name properly")
-	}
-	if CleanUsername("spin'punch") != "spin-punch" {
-		t.Fatal("didn't clean name properly")
-	}
-	if CleanUsername("spin") != "spin" {
-		t.Fatal("didn't clean name properly")
-	}
-	if len(CleanUsername("all")) != 27 {
-		t.Fatal("didn't clean name properly")
-	}
+	assert.Equal(t, CleanUsername("Spin-punch"), "spin-punch", "didn't clean name properly")
+	assert.Equal(t, CleanUsername("PUNCH"), "punch", "didn't clean name properly")
+	assert.Equal(t, CleanUsername("spin'punch"), "spin-punch", "didn't clean name properly")
+	assert.Equal(t, CleanUsername("spin"), "spin", "didn't clean name properly")
+	assert.Equal(t, len(CleanUsername("all")), 27, "didn't clean name properly")
 }
 
 func TestRoles(t *testing.T) {
