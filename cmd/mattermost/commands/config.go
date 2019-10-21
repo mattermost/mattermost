@@ -390,7 +390,6 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		if _, err = configStore.Set(defaultConfig); err != nil {
 			return errors.Wrap(err, "failed to set config")
 		}
-		configStore.Set(defaultConfig)
 	}
 
 	if !confirmFlag && len(args) == 0 {
