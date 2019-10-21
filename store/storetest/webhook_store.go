@@ -106,23 +106,20 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 	o1, err = ss.Webhook().SaveIncoming(o1)
 	require.Nil(t, err, "unable to save webhook")
 
-	if hooks, err := ss.Webhook().GetIncomingList(0, 1000); err != nil {
-		require.Nil(t, err)
-	} else {
-		found := false
-		for _, hook := range hooks {
-			if hook.Id == o1.Id {
-				found = true
-			}
-		}
-		require.True(t, found, "missing webhook")
-	}
+	hooks, err := ss.Webhook().GetIncomingList(0, 1000)
+	require.Nil(t, err)
 
-	if hooks, err := ss.Webhook().GetIncomingList(0, 1); err != nil {
-		require.Nil(t, err)
-	} else {
-		require.Equal(t, 1, len(hooks), "only 1 should be returned")
+	found := false
+	for _, hook := range hooks {
+		if hook.Id == o1.Id {
+			found = true
+		}
 	}
+	require.True(t, found, "missing webhook")
+
+	hooks, err = ss.Webhook().GetIncomingList(0, 1)
+	require.Nil(t, err)
+	require.Len(t, hooks, 1, "only 1 should be returned")
 }
 
 func testWebhookStoreGetIncomingListByUser(t *testing.T, ss store.Store) {
@@ -155,17 +152,12 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 	o1, err = ss.Webhook().SaveIncoming(o1)
 	require.Nil(t, err)
 
-	if hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); err != nil {
-		require.Nil(t, err)
-	} else {
-		require.Equal(t, hooks[0].CreateAt, o1.CreateAt, "invalid returned webhook")
-	}
+	hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100)
+	require.Equal(t, hooks[0].CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if hooks, err := ss.Webhook().GetIncomingByTeam("123", 0, 100); err != nil {
-		require.Nil(t, err)
-	} else {
-		require.Equal(t, 0, len(hooks), "no webhooks should have returned")
-	}
+	hooks, err = ss.Webhook().GetIncomingByTeam("123", 0, 100)
+	require.Nil(t, err)
+	require.Len(t, hooks, 0, "no webhooks should have returned")
 }
 
 func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, ss store.Store) {
@@ -210,11 +202,9 @@ func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Equal(t, webhooks[0].CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if webhooks, err = ss.Webhook().GetIncomingByChannel("123"); err != nil {
-		require.Nil(t, err)
-	} else {
-		require.Equal(t, 0, len(webhooks), "no webhooks should have returned")
-	}
+	webhooks, err = ss.Webhook().GetIncomingByChannel("123")
+	require.Nil(t, err)
+	require.Len(t, webhooks, 0, "no webhooks should have returned")
 }
 
 func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
@@ -356,32 +346,28 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 
 	o2, _ = ss.Webhook().SaveOutgoing(o2)
 
-	if r1, err := ss.Webhook().GetOutgoingList(0, 1000); err != nil {
-		require.Nil(t, err)
-	} else {
-		hooks := r1
-		found1 := false
-		found2 := false
+	r1, err := ss.Webhook().GetOutgoingList(0, 1000)
+	require.Nil(t, err)
+	hooks := r1
+	found1 := false
+	found2 := false
 
-		for _, hook := range hooks {
-			if hook.CreateAt != o1.CreateAt {
-				found1 = true
-			}
-
-			if hook.CreateAt != o2.CreateAt {
-				found2 = true
-			}
+	for _, hook := range hooks {
+		if hook.CreateAt != o1.CreateAt {
+			found1 = true
 		}
 
-		require.True(t, found1, "missing hook1")
-		require.True(t, found2, "missing hook2")
+		if hook.CreateAt != o2.CreateAt {
+			found2 = true
+		}
 	}
 
-	if result, err := ss.Webhook().GetOutgoingList(0, 2); err != nil {
-		require.Nil(t, err)
-	} else {
-		require.Equal(t, 2, len(result), "wrong number of hooks returned")
-	}
+	require.True(t, found1, "missing hook1")
+	require.True(t, found2, "missing hook2")
+
+	result, err := ss.Webhook().GetOutgoingList(0, 2)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(result), "wrong number of hooks returned")
 }
 
 func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
@@ -393,17 +379,13 @@ func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
 
 	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
-	if r1, err := ss.Webhook().GetOutgoingByChannel(o1.ChannelId, 0, 100); err != nil {
-		require.Nil(t, err)
-	} else {
-		require.Equal(t, r1[0].CreateAt, o1.CreateAt, "invalid returned webhook")
-	}
+	r1, err := ss.Webhook().GetOutgoingByChannel(o1.ChannelId, 0, 100)
+	require.Nil(t, err)
+	require.Equal(t, r1[0].CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if result, err := ss.Webhook().GetOutgoingByChannel("123", -1, -1); err != nil {
-		require.Nil(t, err)
-	} else {
-		require.Equal(t, 0, len(result), "no webhooks should have returned")
-	}
+	result, err := ss.Webhook().GetOutgoingByChannel("123", -1, -1)
+	require.Nil(t, err)
+	require.Equal(t, 0, len(result), "no webhooks should have returned")
 }
 
 func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, ss store.Store) {
@@ -454,17 +436,13 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
 
 	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
-	if r1, err := ss.Webhook().GetOutgoingByTeam(o1.TeamId, 0, 100); err != nil {
-		require.Nil(t, err)
-	} else {
-		require.Equal(t, r1[0].CreateAt, o1.CreateAt, "invalid returned webhook")
-	}
+	r1, err := ss.Webhook().GetOutgoingByTeam(o1.TeamId, 0, 100)
+	require.Nil(t, err)
+	require.Equal(t, r1[0].CreateAt, o1.CreateAt, "invalid returned webhook")
 
-	if result, err := ss.Webhook().GetOutgoingByTeam("123", -1, -1); err != nil {
-		require.Nil(t, err)
-	} else {
-		require.Equal(t, 0, len(result), "no webhooks should have returned")
-	}
+	result, err := ss.Webhook().GetOutgoingByTeam("123", -1, -1)
+	require.Nil(t, err)
+	require.Equal(t, 0, len(result), "no webhooks should have returned")
 }
 
 func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, ss store.Store) {
@@ -609,9 +587,7 @@ func testWebhookStoreCountOutgoing(t *testing.T, ss store.Store) {
 
 	ss.Webhook().SaveOutgoing(o1)
 
-	if r, err := ss.Webhook().AnalyticsOutgoingCount(""); err != nil {
-		require.Nil(t, err)
-	} else {
-		require.NotEqual(t, 0, r, "should have at least 1 outgoing hook")
-	}
+	r, err := ss.Webhook().AnalyticsOutgoingCount("")
+	require.Nil(t, err)
+	require.NotEqual(t, 0, r, "should have at least 1 outgoing hook")
 }
