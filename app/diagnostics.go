@@ -51,7 +51,7 @@ const (
 	TRACK_PERMISSIONS_GENERAL       = "permissions_general"
 	TRACK_PERMISSIONS_SYSTEM_SCHEME = "permissions_system_scheme"
 	TRACK_PERMISSIONS_TEAM_SCHEMES  = "permissions_team_schemes"
-	TRACK_EXTERNAL_SERVICES         = "external_services"
+	TRACK_ELASTICSEARCH             = "elasticsearch"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -72,7 +72,7 @@ func (a *App) sendDailyDiagnostics(override bool) {
 		a.trackPlugins()
 		a.trackServer()
 		a.trackPermissions()
-		a.trackExternalServices()
+		a.trackElasticsearch()
 	}
 }
 
@@ -854,12 +854,12 @@ func (a *App) trackPermissions() {
 	}
 }
 
-func (a *App) trackExternalServices() {
+func (a *App) trackElasticsearch() {
 	data := map[string]interface{}{}
 
 	if a.Elasticsearch != nil && a.Elasticsearch.GetVersion() != 0 {
-		data["elasticsearch_version"] = a.Elasticsearch.GetVersion()
+		data["server_version"] = a.Elasticsearch.GetVersion()
 	}
 
-	a.SendDiagnostic(TRACK_EXTERNAL_SERVICES, data)
+	a.SendDiagnostic(TRACK_ELASTICSEARCH, data)
 }
