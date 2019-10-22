@@ -22,9 +22,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// pluginSignaturePublicKeyFileExtention is the extention of the public key file.
-const pluginSignaturePublicKeyFileExtention = ".plugin.gpg"
-
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.
 //
@@ -156,9 +153,6 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		return
 	}
 	a.SetPluginsEnvironment(env)
-	if err := a.initPluginPublicKeys(); err != nil {
-		mlog.Error("Can't init plugin public keys", mlog.Err(err))
-	}
 
 	if err := a.SyncPlugins(); err != nil {
 		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
@@ -400,8 +394,6 @@ func (a *App) GetPluginPublicKeys() ([]string, *model.AppError) {
 
 // GetPublicKey will return the actual public key saved in the `name` file.
 func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
-	name += pluginSignaturePublicKeyFileExtention
-
 	data, err := a.Srv.configStore.GetFile(name)
 	if err != nil {
 		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -409,13 +401,16 @@ func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-// AddPublicKey will add plugin public key to the config.
+// AddPublicKey will add plugin public key to the config. Overwrites the previous file
 func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
+	if model.IsSamlFile(&a.Config().SamlSettings, name) {
+		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
+	}
 	data, err := ioutil.ReadAll(key)
 	if err != nil {
 		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	err = a.Srv.configStore.SetFile(name+pluginSignaturePublicKeyFileExtention, data)
+	err = a.Srv.configStore.SetFile(name, data)
 	if err != nil {
 		return model.NewAppError("AddPublicKey", "app.plugin.write_file.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -431,8 +426,9 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 
 // DeletePublicKey will delete plugin public key from the config.
 func (a *App) DeletePublicKey(name string) *model.AppError {
-	name += pluginSignaturePublicKeyFileExtention
-
+	if model.IsSamlFile(&a.Config().SamlSettings, name) {
+		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
+	}
 	filename := filepath.Base(name)
 	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
 		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
