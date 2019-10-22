@@ -106,7 +106,7 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) 
 	return createdBot.UserId, nil
 }
 
-func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, botUserId string, options ...ShouldProcessMessageOption) (bool, error) {
+func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error) {
 	messageProcessOptions := &shouldProcessMessageOptions{}
 	for _, option := range options {
 		option(messageProcessOptions)
@@ -125,7 +125,13 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, botUserId string, o
 			return false, errors.Wrap(appErr, "unable to get channel")
 		}
 
-		if !model.IsBotDMChannel(channel, botUserId) {
+		botIdBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
+		if kvGetErr != nil || botIdBytes == nil {
+			return false, errors.Wrap(kvGetErr, "failed to get bot")
+		}
+
+		botId := string(botIdBytes)
+		if !model.IsBotDMChannel(channel, botId) {
 			return false, nil
 		}
 	}
