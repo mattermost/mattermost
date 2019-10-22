@@ -3,13 +3,6 @@
 
 package app
 
-import (
-	"bytes"
-	"net/http"
-
-	"github.com/mattermost/mattermost-server/model"
-)
-
 var publicKey []byte = []byte(`-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQGNBF2gen8BDADKQObdPa6PagvYYMHNGIswCU9mVjOxr5g6niGQ/AxMW7AaHpkk
@@ -51,12 +44,3 @@ dZmqpBXcl6VFSDpCJXANUS4IUqjVqnK4nAGONR4JFaoejtAnmlz61EtjWuzPYjQS
 IfS6J8Zp6Bs1baubHXFifXU6SV805b6i46/1m99OPsVH85zCUHvu4asaiLcR
 =qIjw
 -----END PGP PUBLIC KEY BLOCK-----`)
-var publicKeyName = "development-public-key.asc"
-
-func (a *App) initPluginPublicKeys() *model.AppError {
-	reader := bytes.NewReader(publicKey)
-	if err := a.AddPublicKey(publicKeyName, reader); err != nil {
-		return model.NewAppError("initPluginPublicKeys", "app.plugin.init_public_keys.add_key.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return nil
-}
