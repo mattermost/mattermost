@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -404,6 +406,17 @@ func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.Channel
 	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
 }
 
+func (api *PluginAPI) AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError) {
+	postRootId := ""
+
+	channel, err := api.GetChannel(channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.app.AddChannelMember(userId, channel, asUserId, postRootId)
+}
+
 func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	return api.app.GetChannelMember(channelId, userId)
 }
@@ -653,6 +666,19 @@ func (api *PluginAPI) RemovePlugin(id string) *model.AppError {
 
 func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
 	return api.app.GetPluginStatus(id)
+}
+
+func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	if !*api.app.Config().PluginSettings.Enable || !*api.app.Config().PluginSettings.EnableUploads {
+		return nil, model.NewAppError("installPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	fileBuffer, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, model.NewAppError("InstallPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return api.app.InstallPlugin(bytes.NewReader(fileBuffer), replace)
 }
 
 // KV Store Section
