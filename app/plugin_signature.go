@@ -28,6 +28,9 @@ var armoredSignatureHeaders = [...]string{
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 func (a *App) VerifyPlugin(plugin, signature io.Reader) *model.AppError {
+	if verifySignature(bytes.NewReader(mattermostPublicKey), plugin, signature) == nil {
+		return nil
+	}
 	publicKeys, appErr := a.GetPluginPublicKeys()
 	if appErr != nil {
 		return appErr
