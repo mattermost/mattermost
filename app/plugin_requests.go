@@ -42,7 +42,7 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	a.servePluginRequest(w, r, hooks.ServeHTTP)
 }
 
-func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, fromPluginId, toPluginId string) {
+func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin enviroment not found.", http.StatusNotImplemented)
@@ -53,17 +53,21 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, fr
 		return
 	}
 
-	hooks, err := pluginsEnvironment.HooksForPlugin(toPluginId)
+	hooks, err := pluginsEnvironment.HooksForPlugin(destinationPluginId)
 	if err != nil {
-		a.Log.Error("Access to route for non-existent plugin in inter plugin request", mlog.String("from_plugin_id", fromPluginId), mlog.String("to_plugin_id", toPluginId), mlog.Err(err))
+		a.Log.Error("Access to route for non-existent plugin in inter plugin request",
+			mlog.String("sourse_plugin_id", sourcePluginId),
+			mlog.String("destination_plugin_id", destinationPluginId),
+			mlog.Err(err),
+		)
 		http.NotFound(w, r)
 		return
 	}
 
 	context := &plugin.Context{
-		RequestId:    model.NewId(),
-		UserAgent:    r.UserAgent(),
-		FromPluginId: fromPluginId,
+		RequestId:      model.NewId(),
+		UserAgent:      r.UserAgent(),
+		SourcePluginId: sourcePluginId,
 	}
 
 	hooks.ServeHTTP(context, w, r)
@@ -120,6 +124,7 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	}
 
 	r.Header.Del("Mattermost-User-Id")
+	r.Header.Del("Mattermost-Destination-Plugin-Id")
 	if token != "" {
 		session, err := a.GetSession(token)
 		csrfCheckPassed := false
