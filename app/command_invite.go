@@ -145,7 +145,7 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 			text = args.T("api.command_invite.group_constrained_user_denied")
 		} else if err.Id == "store.sql_team.get_member.missing.app_error" {
 			text = args.T("api.command_invite.user_not_in_team.app_error", map[string]interface{}{
-				"User": userProfile.Username,
+				"Username": userProfile.Username,
 			})
 		} else {
 			text = args.T("api.command_invite.fail.app_error")
