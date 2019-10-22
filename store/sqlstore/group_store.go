@@ -341,36 +341,11 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.Grou
 	return retrievedMember, nil
 }
 
-func (s *SqlGroupStore) DeleteMemberFromAllAssociatedGroups(userID string) ([]*model.GroupMember, *model.AppError) {
-	args := map[string]interface{}{"UserId": userID}
-	sqlQuery := `
-	SELECT
-		*
-	FROM
-		GroupMembers
-	WHERE
-		UserId = :UserId AND DeleteAt = 0`
-
-	results := []*model.GroupMember{}
-	_, err := s.GetMaster().Select(&results, sqlQuery, args)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlGroupStore.GroupDeleteMember", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
-		}
-		return nil, model.NewAppError("SqlGroupStore.GroupDeleteMember", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+func (s *SqlGroupStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
+	if _, err := s.GetMaster().Exec("DELETE FROM GroupMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		return model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.permanent_delete_members_by_user.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 	}
-
-	now := model.GetMillis()
-	for _, retrievedMember := range results {
-		retrievedMember.DeleteAt = now
-
-		if _, err := s.GetMaster().Update(retrievedMember); err != nil {
-			return nil, model.NewAppError("SqlGroupStore.GroupDeleteMember", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	return results, nil
+	return nil
 }
 
 func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
