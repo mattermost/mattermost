@@ -179,12 +179,15 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, resp.IconURL, post.Props["override_icon_url"])
 	assert.Equal(t, "true", post.Props["from_webhook"])
 
+	// Not a built In command
+	builtIn = false
 	// Test Slack text conversion.
 	resp.Text = "<!channel>"
 
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, "@channel", post.Message)
+	assert.Equal(t, "true", post.Props["from_webhook"])
 
 	// Test Slack attachments text conversion.
 	resp.Attachments = []*model.SlackAttachment{
@@ -195,7 +198,12 @@ func TestHandleCommandResponsePost(t *testing.T) {
 
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, "@here", resp.Attachments[0].Text)
+	assert.Equal(t, "@channel", post.Message)
+	assert.Equal(t, 1, len(post.Attachments()))
+	for _, attachment := range post.Attachments() {
+		assert.Equal(t, "@here", attachment.Text)
+	}
+	assert.Equal(t, "true", post.Props["from_webhook"])
 
 	channel = th.CreatePrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
