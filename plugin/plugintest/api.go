@@ -996,6 +996,56 @@ func (_m *API) GetFileLink(fileId string) (string, *model.AppError) {
 	return r0, r1
 }
 
+// GetGroup provides a mock function with given fields: groupId
+func (_m *API) GetGroup(groupId string) (*model.Group, *model.AppError) {
+	ret := _m.Called(groupId)
+
+	var r0 *model.Group
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(groupId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(groupId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetGroupByName provides a mock function with given fields: name
+func (_m *API) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	ret := _m.Called(name)
+
+	var r0 *model.Group
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetGroupChannel provides a mock function with given fields: userIds
 func (_m *API) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userIds)
@@ -1012,6 +1062,31 @@ func (_m *API) GetGroupChannel(userIds []string) (*model.Channel, *model.AppErro
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
 		r1 = rf(userIds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetGroupsForUser provides a mock function with given fields: userId
+func (_m *API) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
+	ret := _m.Called(userId)
+
+	var r0 []*model.Group
+	if rf, ok := ret.Get(0).(func(string) []*model.Group); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Group)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
