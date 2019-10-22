@@ -3559,6 +3559,10 @@
     "translation": "Failed to marshal marketplace plugins."
   },
   {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
+  },
+  {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
   },
