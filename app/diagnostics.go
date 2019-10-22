@@ -306,6 +306,7 @@ func (a *App) trackConfig() {
 		"login_with_certificate":								   *cfg.ServiceSettings.LoginWithCertificate,
 		"custom_cert_header":							  		   isDefault(*cfg.ServiceSettings.CustomCertHeader, ""),
 		"default_team_name":							  		   isDefault(*cfg.ServiceSettings.DefaultTeamName, ""),
+		"get_user_from_external":							  	   isDefault(*cfg.ServiceSettings.GetUserFromExternalURL, ""),
 
 	})
 

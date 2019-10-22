@@ -698,8 +698,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
     		s.DefaultTeamName = NewString("")
     	}
     if s.GetUserFromExternalURL == nil {
-        		s.GetUserFromExternalURL = NewString("")
-        	}
+        	s.GetUserFromExternalURL = NewString("")
+        }
 }
 
 type ClusterSettings struct {

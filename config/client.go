@@ -49,6 +49,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["LoginWithCertificate"] = strconv.FormatBool(*c.ServiceSettings.LoginWithCertificate)
 	props["CustomCertHeader"] = *c.ServiceSettings.CustomCertHeader
 	props["DefaultTeamName"] = *c.ServiceSettings.DefaultTeamName
+	props["GetUserFromExternalURL"] = *c.ServiceSettings.GetUserFromExternalURL
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
 	props["ExperimentalEnableClickToReply"] = strconv.FormatBool(*c.ExperimentalSettings.EnableClickToReply)
@@ -219,6 +220,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["LoginWithCertificate"] = strconv.FormatBool(*c.ServiceSettings.LoginWithCertificate)
 	props["CustomCertHeader"] = *c.ServiceSettings.CustomCertHeader
 	props["DefaultTeamName"] = *c.ServiceSettings.DefaultTeamName
+	props["GetUserFromExternalURL"] = *c.ServiceSettings.GetUserFromExternalURL
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
 	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
