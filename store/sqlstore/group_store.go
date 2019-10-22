@@ -343,7 +343,7 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.Grou
 
 func (s *SqlGroupStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
 	if _, err := s.GetMaster().Exec("DELETE FROM GroupMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-		return model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.permanent_delete_members_by_user.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlGroupStore.RemoveMember", "store.sql_group.permanent_delete_members_by_user.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
