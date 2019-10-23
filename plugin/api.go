@@ -612,10 +612,10 @@ type API interface {
 	// Minimum server version: 5.16
 	KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError)
 
-	// KVSetWithOptions updates a key-value pair, unique per plugin, according to the given options.
+	// KVSetWithOptions stores a key-value pair, unique per plugin, according to the given options.
 	// Returns (false, err) if DB error occurred
 	// Returns (false, nil) if the value was not set
-	// Returns (true, nil) if it was set
+	// Returns (true, nil) if he value was set
 	//
 	// Minimum server version: 5.18
 	KVSetWithOptions(key string, newValue interface{}, options *model.PluginKVSetOptions) (bool, *model.AppError)

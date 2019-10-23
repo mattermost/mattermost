@@ -159,15 +159,20 @@ func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value inter
 	}
 
 	if options.Atomic {
-		serializedOldValue, err := options.GetOldValueSerialized()
+		var serializedOldValue []byte
+		serializedOldValue, err = options.GetOldValueSerialized()
 		if err != nil {
 			return false, err
 		}
 
 		return ps.CompareAndSet(kv, serializedOldValue)
-	} else {
-		savedKv, err := ps.SaveOrUpdate(kv)
-		return savedKv != nil, err
+	}
+
+	savedKv, err := ps.SaveOrUpdate(kv)
+	if err != nil {
+		return false, err
+	}
+	return savedKv != nil, nil
 }
 
 func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError) {

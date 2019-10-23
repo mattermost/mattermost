@@ -8,13 +8,15 @@ import (
 	"net/http"
 )
 
+// PluginKVSetOptions contains information on how to store a value in the plugin KV store.
 type PluginKVSetOptions struct {
-	EncodeJSON      bool
-	Atomic          bool
-	OldValue        interface{}
-	ExpireInSeconds int64
+	EncodeJSON      bool        // If true store the information encoded as JSON
+	Atomic          bool        // Only store the value if the current value matches the oldValue
+	OldValue        interface{} // The value to compare with the current value
+	ExpireInSeconds int64       // Set an expire counter
 }
 
+// IsValid return if the chosen options are valid.
 func (opt *PluginKVSetOptions) IsValid() *AppError {
 	if !opt.Atomic && opt.OldValue != nil {
 		return NewAppError("PluginKVSetOptions.IsValid", "model.plugin_kvset_options.is_valid.old_value.app_error", map[string]interface{}{}, "OldValue should not be defined on non atomic sets", http.StatusBadRequest)
@@ -23,7 +25,8 @@ func (opt *PluginKVSetOptions) IsValid() *AppError {
 	return nil
 }
 
-func (opt *PluginKVSetOptions) GetPluginKeyValue(pluginId string, key string, value interface{}) (*PluginKeyValue, *AppError) {
+// GetPluginKeyValue return a PluginKeyValue given a pluginID and a KV pair.
+func (opt *PluginKVSetOptions) GetPluginKeyValue(pluginId, key string, value interface{}) (*PluginKeyValue, *AppError) {
 	serializedValue, err := opt.serializeValue(value)
 	if err != nil {
 		return nil, err
@@ -44,6 +47,8 @@ func (opt *PluginKVSetOptions) GetPluginKeyValue(pluginId string, key string, va
 	return kv, nil
 }
 
+// GetOldValueSerialized returns the serialized old value either as directly
+// or encoded as JSON depending on the chosen options.
 func (opt *PluginKVSetOptions) GetOldValueSerialized() ([]byte, *AppError) {
 	return opt.serializeValue(opt.OldValue)
 }
@@ -58,9 +63,9 @@ func (opt *PluginKVSetOptions) serializeValue(value interface{}) ([]byte, *AppEr
 	}
 
 	castResult, ok := value.([]byte)
-	if ok {
-		return castResult, nil
+	if !ok {
+		return nil, NewAppError("PluginKVSetOptions.SerializeValue", "model.plugin_kvset_options.serialize_value.app_error", map[string]interface{}{"EncodeJSON": opt.EncodeJSON}, "Could not cast value to []byte", http.StatusBadRequest)
 	}
 
-	return nil, NewAppError("PluginKVSetOptions.SerializeValue", "model.plugin_kvset_options.serialize_value.app_error", map[string]interface{}{"EncodeJSON": opt.EncodeJSON}, "Could not cast value to []byte", http.StatusBadRequest)
+	return castResult, nil
 }
