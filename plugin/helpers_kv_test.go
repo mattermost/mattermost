@@ -78,40 +78,27 @@ func TestKVGetJSON(t *testing.T) {
 }
 
 func TestKVSetJSON(t *testing.T) {
-	t.Run("JSON marshal error", func(t *testing.T) {
+	t.Run("KVSetWithOptions error", func(t *testing.T) {
 		api := &plugintest.API{}
-		api.AssertNotCalled(t, "KVSet")
-
+		api.On("KVSetWithOptions", "test-key", "abc", &model.PluginKVSetOptions{
+			EncodeJSON: true,
+		}).Return(false, &model.AppError{})
 		p := &plugin.HelpersImpl{API: api}
 
-		err := p.KVSetJSON("test-key", func() { return })
-		api.AssertExpectations(t)
-		assert.Error(t, err)
-	})
-
-	t.Run("KVSet error", func(t *testing.T) {
-		api := &plugintest.API{}
-		api.On("KVSet", "test-key", []byte(`{"val-a":10}`)).Return(&model.AppError{})
-
-		p := &plugin.HelpersImpl{API: api}
-
-		err := p.KVSetJSON("test-key", map[string]interface{}{
-			"val-a": float64(10),
-		})
+		err := p.KVSetJSON("test-key", "abc")
 
 		api.AssertExpectations(t)
 		assert.Error(t, err)
 	})
 
-	t.Run("marshallable struct", func(t *testing.T) {
+	t.Run("not error", func(t *testing.T) {
 		api := &plugintest.API{}
-		api.On("KVSet", "test-key", []byte(`{"val-a":10}`)).Return(nil)
-
+		api.On("KVSetWithOptions", "test-key", "abc", &model.PluginKVSetOptions{
+			EncodeJSON: true,
+		}).Return(true, nil)
 		p := &plugin.HelpersImpl{API: api}
 
-		err := p.KVSetJSON("test-key", map[string]interface{}{
-			"val-a": float64(10),
-		})
+		err := p.KVSetJSON("test-key", "abc")
 
 		api.AssertExpectations(t)
 		assert.NoError(t, err)

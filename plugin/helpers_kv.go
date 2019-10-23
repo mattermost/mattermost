@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-// KVGetJSON is a wrapper around KVGet to simplify reading a JSON object from the key value store.
+// KVGetJSON reads a JSON object from the key value store.
 func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
 	data, appErr := p.API.KVGet(key)
 	if appErr != nil {
@@ -29,37 +29,47 @@ func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
 	return true, nil
 }
 
-// KVSetJSON is a wrapper around KVSet to simplify writing a JSON object to the key value store.
+// KVSetJSON writes a JSON object to the key value store.
+//
+// Deprecated: Use p.API.KVSetWithOptions instead.
 func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
-	data, err := json.Marshal(value)
-	if err != nil {
-		return err
+	options := &model.PluginKVSetOptions{
+		EncodeJSON: true,
 	}
 
-	appErr := p.API.KVSet(key, data)
-	if appErr != nil {
-		return appErr
+	if _, err := p.API.KVSetWithOptions(key, value, options); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-// KVCompareAndSetJSON is a wrapper around KVCompareAndSet to simplify atomically writing a JSON object to the key value store.
+// KVCompareAndSetJSON atomically writes a JSON object to the key value store.
+//
+// Deprecated: Use p.API.KVSetWithOptions instead.
 func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error) {
 	options := &model.PluginKVSetOptions{
 		EncodeJSON: true,
 		Atomic:     true,
 		OldValue:   oldValue,
 	}
-	return p.API.KVSetWithOptions(key, newValue, options)
+
+	set, err := p.API.KVSetWithOptions(key, newValue, options)
+	if err != nil {
+		return false, err
+	}
+
+	return set, nil
 }
 
-// KVCompareAndDeleteJSON is a wrapper around KVCompareAndDelete to simplify atomically deleting a JSON object from the key value store.
+// KVCompareAndDeleteJSON atomically deletes a JSON object from the key value store.
+//
+// Deprecated: Use p.API.KVSetWithOptions instead.
 func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error) {
 	var oldData []byte
-	var err error
 
 	if oldValue != nil {
+		var err error
 		oldData, err = json.Marshal(oldValue)
 		if err != nil {
 			return false, errors.Wrap(err, "unable to marshal old value")
@@ -74,13 +84,18 @@ func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (
 	return deleted, nil
 }
 
-// KVSetWithExpiryJSON is a wrapper around KVSetWithExpiry to simplify atomically writing a JSON object with expiry to the key value store.
+// KVSetWithExpiryJSON atomically writes a JSON object with expiry to the key value store.
+//
+// Deprecated: Use p.API.KVSetWithOptions instead.
 func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error {
 	options := &model.PluginKVSetOptions{
 		EncodeJSON:      true,
 		ExpireInSeconds: expireInSeconds,
 	}
 
-	_, err := p.API.KVSetWithOptions(key, value, options)
-	return err
+	if _, err := p.API.KVSetWithOptions(key, value, options); err != nil {
+		return err
+	}
+
+	return nil
 }
