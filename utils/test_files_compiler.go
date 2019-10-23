@@ -20,9 +20,7 @@ func goMod(t *testing.T, dir string, args ...string) {
 	cmd := exec.Command("go", append([]string{"mod"}, args...)...)
 	cmd.Dir = dir
 	output, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Failed to %s: %s", strings.Join(args, " "), string(output))
-	}
+	require.NoErrorf(t, err, "Failed to %s: %s", strings.Join(args, " "), string(output))
 }
 
 func CompileGo(t *testing.T, sourceCode, outputPath string) {

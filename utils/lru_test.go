@@ -36,17 +36,11 @@ func TestLRU(t *testing.T) {
 	for i := 128; i < 256; i++ {
 		_, ok := l.Get(i)
 		require.NotEqualf(t, false, ok, "should not be evicted")
-		// if !ok {
-		// 	t.Fatalf("should not be evicted")
-		// }
 	}
 	for i := 128; i < 192; i++ {
 		l.Remove(i)
 		_, ok := l.Get(i)
 		require.NotEqual(t, true, ok, "should be deleted")
-		// if ok {
-		// 	t.Fatalf("should be deleted")
-		// }
 	}
 
 	l.Get(192) // expect 192 to be last key in l.Keys()
@@ -77,7 +71,6 @@ func TestLRUExpire(t *testing.T) {
 
 	if r1, ok := l.Get(1); ok {
 		t.Fatal(r1)
-
 	}
 
 	if _, ok2 := l.Get(3); !ok2 {
