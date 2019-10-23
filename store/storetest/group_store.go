@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -20,9 +21,11 @@ import (
 func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("Create", func(t *testing.T) { testGroupStoreCreate(t, ss) })
 	t.Run("Get", func(t *testing.T) { testGroupStoreGet(t, ss) })
+	t.Run("GetByName", func(t *testing.T) { testGroupStoreGetByName(t, ss) })
 	t.Run("GetByIDs", func(t *testing.T) { testGroupStoreGetByIDs(t, ss) })
 	t.Run("GetByRemoteID", func(t *testing.T) { testGroupStoreGetByRemoteID(t, ss) })
 	t.Run("GetAllBySource", func(t *testing.T) { testGroupStoreGetAllByType(t, ss) })
+	t.Run("GetByUser", func(t *testing.T) { testGroupStoreGetByUser(t, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
 
@@ -181,6 +184,37 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 	require.Equal(t, err.Id, "store.sql_group.no_rows")
 }
 
+func testGroupStoreGetByName(t *testing.T, ss store.Store) {
+	// Create a group
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	d1, err := ss.Group().Create(g1)
+	require.Nil(t, err)
+	require.Len(t, d1.Id, 26)
+
+	// Get the group
+	d2, err := ss.Group().GetByName(d1.Name)
+	require.Nil(t, err)
+	require.Equal(t, d1.Id, d2.Id)
+	require.Equal(t, d1.Name, d2.Name)
+	require.Equal(t, d1.DisplayName, d2.DisplayName)
+	require.Equal(t, d1.Description, d2.Description)
+	require.Equal(t, d1.RemoteId, d2.RemoteId)
+	require.Equal(t, d1.CreateAt, d2.CreateAt)
+	require.Equal(t, d1.UpdateAt, d2.UpdateAt)
+	require.Equal(t, d1.DeleteAt, d2.DeleteAt)
+
+	// Get an invalid group
+	_, err = ss.Group().GetByName(model.NewId())
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "store.sql_group.no_rows")
+}
+
 func testGroupStoreGetByIDs(t *testing.T, ss store.Store) {
 	var group1 *model.Group
 	var group2 *model.Group
@@ -278,6 +312,76 @@ func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
 		}
 		require.True(t, present)
 	}
+}
+
+func testGroupStoreGetByUser(t *testing.T, ss store.Store) {
+	// Save a group
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	g1, err := ss.Group().Create(g1)
+	require.Nil(t, err)
+
+	g2 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	g2, err = ss.Group().Create(g2)
+	require.Nil(t, err)
+
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	u1, err = ss.User().Save(u1)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(g1.Id, u1.Id)
+	require.Nil(t, err)
+	_, err = ss.Group().UpsertMember(g2.Id, u1.Id)
+	require.Nil(t, err)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	u2, err = ss.User().Save(u2)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(g2.Id, u2.Id)
+	require.Nil(t, err)
+
+	groups, err := ss.Group().GetByUser(u1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 2, len(groups))
+	found1 := false
+	found2 := false
+	for _, g := range groups {
+		if g.Id == g1.Id {
+			found1 = true
+		}
+		if g.Id == g2.Id {
+			found2 = true
+		}
+	}
+	assert.True(t, found1)
+	assert.True(t, found2)
+
+	groups, err = ss.Group().GetByUser(u2.Id)
+	require.Nil(t, err)
+	require.Equal(t, 1, len(groups))
+	assert.Equal(t, g2.Id, groups[0].Id)
+
+	groups, err = ss.Group().GetByUser(model.NewId())
+	require.Nil(t, err)
+	assert.Equal(t, 0, len(groups))
 }
 
 func testGroupStoreUpdate(t *testing.T, ss store.Store) {
@@ -2018,7 +2122,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	group2, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewId() + "-group-2",
 		DisplayName: "group-2",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -2062,7 +2166,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 
 	// Create Group3
 	group3, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewId() + "-group-3",
 		DisplayName: "group-3",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -2122,7 +2226,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	user2.DeleteAt = 1
 	ss.User().Update(user2, true)
 
-	group2NameSubstring := string([]rune(group2.Name)[2:5])
+	group2NameSubstring := "group-2"
 
 	testCases := []struct {
 		Name    string
