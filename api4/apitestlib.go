@@ -591,7 +591,7 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
-	require.Nilf(t, resp.Error, "Expected no error, got %q", resp.Error.Error())
+	require.Nilf(t, resp.Error, "Expected no error")
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {

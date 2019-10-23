@@ -272,7 +272,7 @@ func TestUpdateTeam(t *testing.T) {
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	require.Equal(t, uteam.InviteId, "inviteid1", "InviteID should not be updated")
+	require.NotEqual(t, uteam.InviteId, "inviteid1", "InviteID should not be updated")
 
 	team.AllowedDomains = "domain"
 	uteam, resp = Client.UpdateTeam(team)
@@ -1178,7 +1178,7 @@ func TestGetTeamMembersByIds(t *testing.T) {
 
 	tm1, resp := Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{"junk"})
 	CheckNoError(t, resp)
-	require.Greater(t, len(tm1), 0, "no users should be returned")
+	require.False(t, len(tm1) > 0, "no users should be returned")
 
 	tm1, resp = Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{"junk", th.BasicUser.Id})
 	CheckNoError(t, resp)
@@ -1216,7 +1216,7 @@ func TestAddTeamMember(t *testing.T) {
 	CheckNoError(t, resp)
 
 	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
-	require.Nilf(t, err, err.Error())
+	require.Nil(t, err)
 
 
 	// Regular user can't add a member to a team they don't belong to.
@@ -1509,7 +1509,7 @@ func TestAddTeamMembers(t *testing.T) {
 	}
 
 	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
-	require.Nilf(t, err, err.Error())
+	require.Nil(t, err)
 
 	// Regular user can't add a member to a team they don't belong to.
 	th.LoginBasic2()
@@ -1670,9 +1670,9 @@ func TestGetTeamStats(t *testing.T) {
 
 	require.Equal(t, rstats.TeamId, team.Id, "wrong team id")
 
-	require.Equal(t, rstats.TotalMemberCount, 3, "wrong count")
+	require.Equal(t, rstats.TotalMemberCount, int64(3), "wrong count")
 
-	require.Equal(t, rstats.ActiveMemberCount, 3, "wrong count")
+	require.Equal(t, rstats.ActiveMemberCount, int64(3), "wrong count")
 
 	_, resp = Client.GetTeamStats("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -1689,9 +1689,9 @@ func TestGetTeamStats(t *testing.T) {
 	rstats, resp = th.SystemAdminClient.GetTeamStats(team.Id, "")
 	CheckNoError(t, resp)
 
-	require.Equal(t, rstats.TotalMemberCount, 3, "wrong count")
+	require.Equal(t, rstats.TotalMemberCount, int64(3), "wrong count")
 
-	require.Equal(t, rstats.ActiveMemberCount, 3, "wrong count")
+	require.Equal(t, rstats.ActiveMemberCount, int64(2), "wrong count")
 
 	// login with different user and test if forbidden
 	user := th.CreateUser()
