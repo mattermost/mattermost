@@ -175,13 +175,13 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	if _, err := ss.User().Save(&deletedUser); err != nil {
-		t.Fatal("couldn't save user", err)
-	}
+	_, err1 := ss.User().Save(&deletedUser)
+	require.Nil(t, err1, "couldn't save user")
+
 	deletedUser.DeleteAt = model.GetMillis()
-	if _, err := ss.User().Update(&deletedUser, true); err != nil {
-		t.Fatal("couldn't delete user", err)
-	}
+	_, err2 := ss.User().Update(&deletedUser, true)
+	require.Nil(t, err2, "couldn't delete user")
+
 	defer func() { require.Nil(t, ss.User().PermanentDelete(deletedUser.Id)) }()
 	ob5, _ := makeBotWithUser(t, ss, &model.Bot{
 		Username:    "ob5",
