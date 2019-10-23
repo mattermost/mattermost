@@ -320,9 +320,9 @@ func TestWebSocketStatuses(t *testing.T) {
 	require.Equal(t, len(resp.Data), 2, "2 statuses should be returned")
 
 	WebSocketClient.GetStatusesByIds([]string{})
-	if resp := <-WebSocketClient.ResponseChannel; resp.Error == nil {
-		require.Equal(t, resp.SeqReply, WebSocketClient.Sequence-1, "bad sequence number")
-		require.NotNil(t, resp.Error, "should have errored - empty user ids")
+	if resp2 := <-WebSocketClient.ResponseChannel; resp2.Error == nil {
+		require.Equal(t, resp2.SeqReply, WebSocketClient.Sequence-1, "bad sequence number")
+		require.NotNil(t, resp2.Error, "should have errored - empty user ids")
 	}
 
 	WebSocketClient2.Close()
@@ -378,7 +378,7 @@ func TestWebSocketStatuses(t *testing.T) {
 
 	require.True(t, onlineHit, "didn't get online event")
 	require.True(t, awayHit, "didn't get away event")
-	
+
 	time.Sleep(500 * time.Millisecond)
 
 	WebSocketClient.Close()
