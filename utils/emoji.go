@@ -37,7 +37,7 @@ func CreateTestAnimatedGif(t *testing.T, width int, height int, frames int) []by
 		img.Delay[i] = 0
 	}
 	if err := gif.EncodeAll(&buffer, &img); err != nil {
-		t.Fatalf("failed to create animated gif: %v", err.Error())
+		require.Errorf(t, err, "failed to create animated gif: %v", err.Error())
 	}
 
 	return buffer.Bytes()
@@ -47,7 +47,7 @@ func CreateTestJpeg(t *testing.T, width int, height int) []byte {
 	var buffer bytes.Buffer
 
 	if err := jpeg.Encode(&buffer, image.NewRGBA(image.Rect(0, 0, width, height)), nil); err != nil {
-		t.Fatalf("failed to create jpeg: %v", err.Error())
+		require.Errorf(t, err, "failed to create jpeg: %v", err.Error())
 	}
 
 	return buffer.Bytes()
@@ -57,7 +57,7 @@ func CreateTestPng(t *testing.T, width int, height int) []byte {
 	var buffer bytes.Buffer
 
 	if err := png.Encode(&buffer, image.NewRGBA(image.Rect(0, 0, width, height))); err != nil {
-		t.Fatalf("failed to create png: %v", err.Error())
+		require.Errorf(t, err, "failed to create png: %v", err.Error())
 	}
 
 	return buffer.Bytes()
