@@ -40,13 +40,13 @@ func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newV
 
 func (a *App) SetPluginKeyWithOptions(pluginId string, key string, value interface{}, options *model.PluginKVSetOptions) (bool, *model.AppError) {
 	if err := options.IsValid(); err != nil {
-		mlog.Error("Failed to set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		mlog.Error("Failed to set plugin key value with options", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 		return false, err
 	}
 
 	updated, err := a.Srv.Store.Plugin().SetWithOptions(pluginId, key, value, options)
 	if err != nil {
-		mlog.Error("Failed to set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		mlog.Error("Failed to set plugin key value with options", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 		return updated, err
 	}
 
