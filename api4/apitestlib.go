@@ -569,8 +569,8 @@ func CheckUserSanitization(t *testing.T, user *model.User) {
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	t.Helper()
 
-	assert.Empty(t, data)
-	assert.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
+	require.Empty(t, data)
+	require.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
 }
 
 func CheckNoError(t *testing.T, resp *model.Response) {
