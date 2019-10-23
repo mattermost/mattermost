@@ -198,7 +198,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	}()
 
 	t.Run("fails with a non-serializable object as the new value", func(t *testing.T) {
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", func() {}, &model.PluginKVSetOptions{
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", func() {}, model.PluginKVSetOptions{
 			EncodeJSON: true,
 		})
 		assert.False(t, result)
@@ -213,7 +213,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	t.Run("fails with a non-serializable object as the old value", func(t *testing.T) {
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
 			"val-a": 10,
-		}, &model.PluginKVSetOptions{
+		}, model.PluginKVSetOptions{
 			EncodeJSON: true,
 			Atomic:     true,
 			OldValue:   func() {},
@@ -230,7 +230,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	t.Run("storing a value json encoded works", func(t *testing.T) {
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
 			"val-a": 10,
-		}, &model.PluginKVSetOptions{
+		}, model.PluginKVSetOptions{
 			EncodeJSON: true,
 		})
 		assert.True(t, result)
@@ -245,7 +245,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	t.Run("test that setting it atomic when it doesn't match doesn't change anything", func(t *testing.T) {
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
 			"val-a": 30,
-		}, &model.PluginKVSetOptions{
+		}, model.PluginKVSetOptions{
 			EncodeJSON: true,
 			Atomic:     true,
 			OldValue: map[string]interface{}{
@@ -264,7 +264,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	t.Run("test the atomic change with the proper old value", func(t *testing.T) {
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
 			"val-a": 30,
-		}, &model.PluginKVSetOptions{
+		}, model.PluginKVSetOptions{
 			EncodeJSON: true,
 			Atomic:     true,
 			OldValue: map[string]interface{}{
@@ -292,7 +292,7 @@ func TestPluginKeyValueStoreSetWithOptionsByteArray(t *testing.T) {
 	}()
 
 	// storing a value works
-	result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`myvalue`), &model.PluginKVSetOptions{})
+	result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`myvalue`), model.PluginKVSetOptions{})
 	assert.True(t, result)
 	assert.Nil(t, err)
 
@@ -302,7 +302,7 @@ func TestPluginKeyValueStoreSetWithOptionsByteArray(t *testing.T) {
 	assert.Equal(t, []byte(`myvalue`), ret)
 
 	// test that setting it atomic when it doesn't match doesn't change anything
-	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`newvalue`), &model.PluginKVSetOptions{
+	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`newvalue`), model.PluginKVSetOptions{
 		Atomic:   true,
 		OldValue: []byte(`differentvalue`),
 	})
@@ -315,7 +315,7 @@ func TestPluginKeyValueStoreSetWithOptionsByteArray(t *testing.T) {
 	assert.Equal(t, []byte(`myvalue`), ret)
 
 	// now do the atomic change with the proper old value
-	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`newvalue`), &model.PluginKVSetOptions{
+	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`newvalue`), model.PluginKVSetOptions{
 		Atomic:   true,
 		OldValue: []byte(`myvalue`),
 	})

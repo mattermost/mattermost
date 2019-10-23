@@ -80,7 +80,7 @@ func TestKVGetJSON(t *testing.T) {
 func TestKVSetJSON(t *testing.T) {
 	t.Run("KVSetWithOptions error", func(t *testing.T) {
 		api := &plugintest.API{}
-		api.On("KVSetWithOptions", "test-key", "abc", &model.PluginKVSetOptions{
+		api.On("KVSetWithOptions", "test-key", "abc", model.PluginKVSetOptions{
 			EncodeJSON: true,
 		}).Return(false, &model.AppError{})
 		p := &plugin.HelpersImpl{API: api}
@@ -93,7 +93,7 @@ func TestKVSetJSON(t *testing.T) {
 
 	t.Run("not error", func(t *testing.T) {
 		api := &plugintest.API{}
-		api.On("KVSetWithOptions", "test-key", "abc", &model.PluginKVSetOptions{
+		api.On("KVSetWithOptions", "test-key", "abc", model.PluginKVSetOptions{
 			EncodeJSON: true,
 		}).Return(true, nil)
 		p := &plugin.HelpersImpl{API: api}
@@ -110,7 +110,7 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 		api := &plugintest.API{}
 		api.On("KVSetWithOptions", "test-key", map[string]interface{}{
 			"val-b": 20,
-		}, &model.PluginKVSetOptions{
+		}, model.PluginKVSetOptions{
 			EncodeJSON: true,
 			Atomic:     true,
 			OldValue:   nil,
@@ -130,7 +130,7 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 		api := &plugintest.API{}
 		api.On("KVSetWithOptions", "test-key", map[string]interface{}{
 			"val-b": 20,
-		}, &model.PluginKVSetOptions{
+		}, model.PluginKVSetOptions{
 			EncodeJSON: true,
 			Atomic:     true,
 			OldValue: map[string]interface{}{
@@ -152,7 +152,7 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 
 	t.Run("new value nil", func(t *testing.T) {
 		api := &plugintest.API{}
-		api.On("KVSetWithOptions", "test-key", nil, &model.PluginKVSetOptions{
+		api.On("KVSetWithOptions", "test-key", nil, model.PluginKVSetOptions{
 			EncodeJSON: true,
 			Atomic:     true,
 			OldValue: map[string]interface{}{
@@ -230,7 +230,7 @@ func TestKVSetWithExpiryJSON(t *testing.T) {
 		api := &plugintest.API{}
 		api.On("KVSetWithOptions", "test-key", map[string]interface{}{
 			"val-a": float64(10),
-		}, &model.PluginKVSetOptions{
+		}, model.PluginKVSetOptions{
 			EncodeJSON:      true,
 			ExpireInSeconds: 100,
 		}).Return(true, nil)

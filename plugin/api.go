@@ -618,7 +618,7 @@ type API interface {
 	// Returns (true, nil) if he value was set
 	//
 	// Minimum server version: 5.18
-	KVSetWithOptions(key string, newValue interface{}, options *model.PluginKVSetOptions) (bool, *model.AppError)
+	KVSetWithOptions(key string, newValue interface{}, options model.PluginKVSetOptions) (bool, *model.AppError)
 
 	// KVSet stores a key-value pair with an expiry time, unique per plugin.
 	//

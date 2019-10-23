@@ -23,7 +23,7 @@ func (a *App) SetPluginKey(pluginId string, key string, value []byte) *model.App
 }
 
 func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, expireInSeconds int64) *model.AppError {
-	options := &model.PluginKVSetOptions{
+	options := model.PluginKVSetOptions{
 		ExpireInSeconds: expireInSeconds,
 	}
 	_, err := a.SetPluginKeyWithOptions(pluginId, key, value, options)
@@ -31,14 +31,14 @@ func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, 
 }
 
 func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newValue []byte) (bool, *model.AppError) {
-	options := &model.PluginKVSetOptions{
+	options := model.PluginKVSetOptions{
 		Atomic:   true,
 		OldValue: oldValue,
 	}
 	return a.SetPluginKeyWithOptions(pluginId, key, newValue, options)
 }
 
-func (a *App) SetPluginKeyWithOptions(pluginId string, key string, value interface{}, options *model.PluginKVSetOptions) (bool, *model.AppError) {
+func (a *App) SetPluginKeyWithOptions(pluginId string, key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	if err := options.IsValid(); err != nil {
 		mlog.Error("Failed to set plugin key value with options", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 		return false, err

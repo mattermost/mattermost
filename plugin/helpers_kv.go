@@ -33,7 +33,7 @@ func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
 //
 // Deprecated: Use p.API.KVSetWithOptions instead.
 func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
-	options := &model.PluginKVSetOptions{
+	options := model.PluginKVSetOptions{
 		EncodeJSON: true,
 	}
 
@@ -48,7 +48,7 @@ func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 //
 // Deprecated: Use p.API.KVSetWithOptions instead.
 func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error) {
-	options := &model.PluginKVSetOptions{
+	options := model.PluginKVSetOptions{
 		EncodeJSON: true,
 		Atomic:     true,
 		OldValue:   oldValue,
@@ -88,7 +88,7 @@ func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (
 //
 // Deprecated: Use p.API.KVSetWithOptions instead.
 func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error {
-	options := &model.PluginKVSetOptions{
+	options := model.PluginKVSetOptions{
 		EncodeJSON:      true,
 		ExpireInSeconds: expireInSeconds,
 	}
