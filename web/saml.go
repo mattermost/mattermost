@@ -130,12 +130,15 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			})
 		}
 
-		c.LogAuditWithUserId(user.Id, "success")
+		c.LogAuditWithUserId(user.Id, "obtained user ")
+
 		session, err := c.App.DoLogin(w, r, user, "")
 		if err != nil {
 			c.Err = err
 			return
 		}
+
+		c.LogAuditWithUserId(user.Id, "success")
 
 		c.App.AttachSessionCookies(w, r, session)
 
