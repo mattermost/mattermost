@@ -117,29 +117,6 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 	return true, nil
 }
 
-<<<<<<< HEAD
-func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value interface{}, options *model.PluginKVSetOptions) (bool, *model.AppError) {
-	if err := options.IsValid(); err != nil {
-		return false, err
-	}
-
-	kv, err := options.GetPluginKeyValue(pluginId, key, value)
-	if err != nil {
-		return false, err
-	}
-
-	if options.Atomic {
-		serializedOldValue, err := options.GetOldValueSerialized()
-		if err != nil {
-			return false, err
-		}
-
-		return ps.CompareAndSet(kv, serializedOldValue)
-	} else {
-		savedKv, err := ps.SaveOrUpdate(kv)
-		return savedKv != nil, err
-	}
-=======
 func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
 	if err := kv.IsValid(); err != nil {
 		return false, err
@@ -169,7 +146,28 @@ func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []b
 	}
 
 	return true, nil
->>>>>>> master
+}
+
+func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value interface{}, options *model.PluginKVSetOptions) (bool, *model.AppError) {
+	if err := options.IsValid(); err != nil {
+		return false, err
+	}
+
+	kv, err := options.GetPluginKeyValue(pluginId, key, value)
+	if err != nil {
+		return false, err
+	}
+
+	if options.Atomic {
+		serializedOldValue, err := options.GetOldValueSerialized()
+		if err != nil {
+			return false, err
+		}
+
+		return ps.CompareAndSet(kv, serializedOldValue)
+	} else {
+		savedKv, err := ps.SaveOrUpdate(kv)
+		return savedKv != nil, err
 }
 
 func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError) {
