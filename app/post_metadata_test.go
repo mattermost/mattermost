@@ -477,6 +477,36 @@ func TestPreparePostForClient(t *testing.T) {
 			}, imageDimensions[server.URL+"/test-image1.png"])
 		})
 	})
+
+	t.Run("no metadata for deleted posts", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		fileInfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		require.Nil(t, err)
+
+		post, err := th.App.CreatePost(&model.Post{
+			Message:   "test",
+			FileIds:   []string{fileInfo.Id},
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+		}, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		th.AddReactionToPost(post, th.BasicUser, "taco")
+
+		post, err = th.App.DeletePost(post.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		// DeleteAt isn't set on the post returned by App.DeletePost
+		post.DeleteAt = model.GetMillis()
+
+		clientPost := th.App.PreparePostForClient(post, false, false)
+
+		assert.NotEqual(t, nil, clientPost.Metadata, "should've populated Metadata“")
+		assert.Nil(t, clientPost.Metadata.Reactions, "should not have populated Reactions")
+		assert.Nil(t, clientPost.Metadata.Files, "should not have populated Files")
+	})
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
