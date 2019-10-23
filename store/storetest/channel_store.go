@@ -250,7 +250,7 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 	require.Nil(t, err, err)
 
 	o1.DeleteAt = 100
-	_, err := ss.Channel().Update(&o1)
+	_, err = ss.Channel().Update(&o1)
 	require.NotNil(t, err, "update should have failed because channel is archived")
 
 	o1.DeleteAt = 0
@@ -479,7 +479,7 @@ func testChannelStoreRestore(t *testing.T, ss store.Store) {
 	_, err := ss.Channel().Save(&o1, -1)
 	require.Nil(t, err)
 
-	err := ss.Channel().Delete(o1.Id, model.GetMillis())
+	err = ss.Channel().Delete(o1.Id, model.GetMillis())
 	require.Nil(t, err, err)
 
 	c, _ := ss.Channel().Get(o1.Id, false)
