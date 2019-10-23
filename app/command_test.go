@@ -68,7 +68,8 @@ func TestCreateCommandPost(t *testing.T) {
 		Text: "some message",
 	}
 
-	_, err := th.App.CreateCommandPost(post, th.BasicTeam.Id, resp)
+	skipSlackParsing := false
+	_, err := th.App.CreateCommandPost(post, th.BasicTeam.Id, resp, skipSlackParsing)
 	if err == nil || err.Id != "api.context.invalid_param.app_error" {
 		t.Fatal("should have failed - bad post type")
 	}
@@ -205,7 +206,23 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	if err == nil || err.Id != "api.command.command_post.forbidden.app_error" {
 		t.Fatal("should have failed - forbidden channel post")
 	}
+
+	// Test that /code text is not converted with the Slack text conversion.
+	command.Trigger = "code"
+	resp.ChannelId = ""
+	resp.Text = "<test.com|test website>"
+	resp.Attachments = []*model.SlackAttachment{
+		&model.SlackAttachment{
+			Text: "<!here>",
+		},
+	}
+	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+
+	assert.Nil(t, err)
+	assert.Equal(t, resp.Text, post.Message, "/code text should not be converted to Slack links")
+	assert.Equal(t, "<!here>", resp.Attachments[0].Text)
 }
+
 func TestHandleCommandResponse(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
