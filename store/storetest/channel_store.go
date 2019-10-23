@@ -3074,7 +3074,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	d4, err := ss.Channel().CreateDirectChannel(u1, u2)
-	require.Nilf(t, err, err.Error())
+	require.Nil(t, err, err.Error())
 	defer func() {
 		ss.Channel().PermanentDeleteMembersByChannel(d4.Id)
 		ss.Channel().PermanentDelete(d4.Id)
