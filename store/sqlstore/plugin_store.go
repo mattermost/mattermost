@@ -172,6 +172,7 @@ func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value inter
 	if err != nil {
 		return false, err
 	}
+
 	return savedKv != nil, nil
 }
 

@@ -16,11 +16,12 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func getHashedKey(key string) string {
@@ -197,7 +198,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	}()
 
 	t.Run("fails with a non-serializable object as the new value", func(t *testing.T) {
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", func() { return }, &model.PluginKVSetOptions{
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", func() {}, &model.PluginKVSetOptions{
 			EncodeJSON: true,
 		})
 		assert.False(t, result)
@@ -215,7 +216,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		}, &model.PluginKVSetOptions{
 			EncodeJSON: true,
 			Atomic:     true,
-			OldValue:   func() { return },
+			OldValue:   func() {},
 		})
 		assert.False(t, result)
 		assert.NotNil(t, err)

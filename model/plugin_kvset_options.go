@@ -19,7 +19,13 @@ type PluginKVSetOptions struct {
 // IsValid return if the chosen options are valid.
 func (opt *PluginKVSetOptions) IsValid() *AppError {
 	if !opt.Atomic && opt.OldValue != nil {
-		return NewAppError("PluginKVSetOptions.IsValid", "model.plugin_kvset_options.is_valid.old_value.app_error", map[string]interface{}{}, "OldValue should not be defined on non atomic sets", http.StatusBadRequest)
+		return NewAppError(
+			"PluginKVSetOptions.IsValid",
+			"model.plugin_kvset_options.is_valid.old_value.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
 	}
 
 	return nil
