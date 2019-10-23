@@ -133,7 +133,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	stop <- true
 
-	require.True(t, eventHit, "got typing event for bad channel id")
+	require.False(t, eventHit, "got typing event for bad channel id")
 }
 
 func TestCreateDirectChannelWithSocket(t *testing.T) {
@@ -203,7 +203,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 		"Origin": []string{"http://www.evil.com"},
 	})
 
-	require.Nil(t, err, "Should have errored because Origin does not match host! SECURITY ISSUE!")
+	require.NotNil(t, err, "Should have errored because Origin does not match host! SECURITY ISSUE!")
 
 	// We are not a browser so we can spoof this just fine
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket", http.Header{
