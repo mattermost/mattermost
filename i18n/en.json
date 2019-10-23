@@ -5772,7 +5772,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the channel member with UserID \"{{.UserId}}\""
+    "translation": "Unable to remove the channel member"
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
@@ -6128,7 +6128,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the channel member"
+    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
