@@ -204,6 +204,7 @@ type API interface {
 	// The sortBy parameter can be: "username" or "status".
 	//
 	// @tag User
+	// @tag Channel
 	// Minimum server version: 5.6
 	GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError)
 
@@ -249,6 +250,7 @@ type API interface {
 	// GetTeamsUnreadForUser gets the unread message and mention counts for each team to which the given user belongs.
 	//
 	// @tag Team
+	// @tag User
 	// Minimum server version: 5.6
 	GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError)
 
@@ -274,30 +276,35 @@ type API interface {
 	// CreateTeamMember creates a team membership.
 	//
 	// @tag Team
+	// @tag User
 	// Minimum server version: 5.2
 	CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
 
-	// CreateTeamMember creates a team membership for all provided user ids.
+	// CreateTeamMembers creates a team membership for all provided user ids.
 	//
 	// @tag Team
+	// @tag User
 	// Minimum server version: 5.2
 	CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError)
 
 	// DeleteTeamMember deletes a team membership.
 	//
 	// @tag Team
+	// @tag User
 	// Minimum server version: 5.2
 	DeleteTeamMember(teamId, userId, requestorId string) *model.AppError
 
 	// GetTeamMembers returns the memberships of a specific team.
 	//
 	// @tag Team
+	// @tag User
 	// Minimum server version: 5.2
 	GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 
 	// GetTeamMember returns a specific membership.
 	//
 	// @tag Team
+	// @tag User
 	// Minimum server version: 5.2
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
 
@@ -311,6 +318,7 @@ type API interface {
 	// UpdateTeamMemberRoles updates the role for a team membership.
 	//
 	// @tag Team
+	// @tag User
 	// Minimum server version: 5.2
 	UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError)
 
@@ -370,6 +378,7 @@ type API interface {
 	// If the channel does not exist it will create it.
 	//
 	// @tag Channel
+	// @tag User
 	// Minimum server version: 5.2
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 
@@ -377,6 +386,7 @@ type API interface {
 	// If the channel does not exist it will create it.
 	//
 	// @tag Channel
+	// @tag User
 	// Minimum server version: 5.2
 	GetGroupChannel(userIds []string) (*model.Channel, *model.AppError)
 
@@ -401,6 +411,7 @@ type API interface {
 	// SearchPostsInTeam returns a list of posts in a specific team that match the given params.
 	//
 	// @tag Post
+	// @tag Team
 	// Minimum server version: 5.10
 	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
 
@@ -408,30 +419,36 @@ type API interface {
 	// This means the user will not receive notifications for joining the channel.
 	//
 	// @tag Channel
+	// @tag User
 	// Minimum server version: 5.2
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 
 	// AddUserToChannel adds a user to a channel as if the specified user had invited them.
 	// This means the user will receive the regular notifications for being added to the channel.
 	//
+	// @tag User
+	// @tag Channel
 	// Minimum server version: 5.18
 	AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError)
 
 	// GetChannelMember gets a channel membership for a user.
 	//
 	// @tag Channel
+	// @tag User
 	// Minimum server version: 5.2
 	GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 
 	// GetChannelMembers gets a channel membership for all users.
 	//
 	// @tag Channel
+	// @tag User
 	// Minimum server version: 5.6
 	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 
 	// GetChannelMembersByIds gets a channel membership for a particular User
 	//
 	// @tag Channel
+	// @tag User
 	// Minimum server version: 5.6
 	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
 
@@ -445,33 +462,40 @@ type API interface {
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	//
 	// @tag Channel
+	// @tag User
 	// Minimum server version: 5.2
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
 
 	// UpdateChannelMemberNotifications updates a user's notification properties for a channel.
 	//
 	// @tag Channel
+	// @tag User
 	// Minimum server version: 5.2
 	UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
 
 	// GetGroup gets a group by ID.
 	//
+	// @tag Group
 	// Minimum server version: 5.18
 	GetGroup(groupId string) (*model.Group, *model.AppError)
 
 	// GetGroupByName gets a group by name.
 	//
+	// @tag Group
 	// Minimum server version: 5.18
 	GetGroupByName(name string) (*model.Group, *model.AppError)
 
 	// GetGroupsForUser gets the groups a user is in.
 	//
+	// @tag Group
+	// @tag User
 	// Minimum server version: 5.18
 	GetGroupsForUser(userId string) ([]*model.Group, *model.AppError)
 
 	// DeleteChannelMember deletes a channel membership for a user.
 	//
 	// @tag Channel
+	// @tag User
 	// Minimum server version: 5.2
 	DeleteChannelMember(channelId, userId string) *model.AppError
 
@@ -540,18 +564,21 @@ type API interface {
 	// GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
 	//
 	// @tag Post
+	// @tag Channel
 	// Minimum server version: 5.6
 	GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
 
 	// GetPostsAfter gets a page of posts that were posted after the post provided.
 	//
 	// @tag Post
+	// @tag Channel
 	// Minimum server version: 5.6
 	GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
 
 	// GetPostsBefore gets a page of posts that were posted before the post provided.
 	//
 	// @tag Post
+	// @tag Channel
 	// Minimum server version: 5.6
 	GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
 
@@ -576,13 +603,13 @@ type API interface {
 
 	// GetProfileImage gets user's profile image.
 	//
-	// @tag Profile
+	// @tag User
 	// Minimum server version: 5.6
 	GetProfileImage(userId string) ([]byte, *model.AppError)
 
 	// SetProfileImage sets a user's profile image.
 	//
-	// @tag Profile
+	// @tag User
 	// Minimum server version: 5.6
 	SetProfileImage(userId string, data []byte) *model.AppError
 
@@ -614,6 +641,7 @@ type API interface {
 	// actually duplicating the uploaded files.
 	//
 	// @tag File
+	// @tag User
 	// Minimum server version: 5.2
 	CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError)
 
@@ -650,6 +678,7 @@ type API interface {
 	// UploadFile will upload a file to a channel using a multipart request, to be later attached to a post.
 	//
 	// @tag File
+	// @tag Channel
 	// Minimum server version: 5.6
 	UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
 
@@ -695,6 +724,7 @@ type API interface {
 	// InstallPlugin will upload another plugin with tar.gz file.
 	// Previous version will be replaced on replace true.
 	//
+	// @tag Plugin
 	// Minimum server version: 5.18
 	InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
 
