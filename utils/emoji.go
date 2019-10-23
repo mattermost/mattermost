@@ -11,13 +11,15 @@ import (
 	"image/jpeg"
 	"image/png"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func CreateTestGif(t *testing.T, width int, height int) []byte {
 	var buffer bytes.Buffer
 
 	if err := gif.Encode(&buffer, image.NewRGBA(image.Rect(0, 0, width, height)), nil); err != nil {
-		t.Fatalf("failed to create gif: %v", err.Error())
+		require.Errorf(t, err, "failed to create gif: %v", err.Error())
 	}
 
 	return buffer.Bytes()
