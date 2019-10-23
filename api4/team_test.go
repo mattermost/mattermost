@@ -32,17 +32,11 @@ func TestCreateTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	if rteam.Name != team.Name {
-		t.Fatal("names did not match")
-	}
+	require.Equal(t, rteam.Name, team.Name, "names did not match")
 
-	if rteam.DisplayName != team.DisplayName {
-		t.Fatal("display names did not match")
-	}
+	require.Equal(t, rteam.DisplayName, team.DisplayName, "display names did not match")
 
-	if rteam.Type != team.Type {
-		t.Fatal("types did not match")
-	}
+	require.Equal(t, rteam.Type, team.Type, "types did not match")
 
 	_, resp = Client.CreateTeam(rteam)
 	CheckBadRequestStatus(t, resp)
@@ -57,15 +51,10 @@ func TestCreateTeam(t *testing.T) {
 	CheckErrorMessage(t, resp, "model.team.is_valid.characters.app_error")
 	CheckBadRequestStatus(t, resp)
 
-	if r, err := Client.DoApiPost("/teams", "garbage"); err == nil {
-		t.Fatal("should have errored")
-	} else {
-		if r.StatusCode != http.StatusBadRequest {
-			t.Log("actual: " + strconv.Itoa(r.StatusCode))
-			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
-			t.Fatal("wrong status code")
-		}
-	}
+	r, err := Client.DoApiPost("/teams", "garbage")
+	require.NotNil(t, err, "should have errored")
+
+	require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 
 	Client.Logout()
 
@@ -80,9 +69,7 @@ func TestCreateTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	if *rteam.GroupConstrained != *groupConstrainedTeam.GroupConstrained {
-		t.Fatal("GroupConstrained flags do not match")
-	}
+	assert.Equal(t, *rteam.GroupConstrained, *groupConstrainedTeam.GroupConstrained, "GroupConstrained flags do not match")
 
 	// Check the appropriate permissions are enforced.
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
@@ -114,9 +101,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 
 		rteam, resp := th.Client.CreateTeam(team)
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
@@ -130,9 +115,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 
 		rteam, resp := th.SystemAdminClient.CreateTeam(team)
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
 	})
 }
 
@@ -145,9 +128,7 @@ func TestGetTeam(t *testing.T) {
 	rteam, resp := Client.GetTeam(team.Id, "")
 	CheckNoError(t, resp)
 
-	if rteam.Id != team.Id {
-		t.Fatal("wrong team")
-	}
+	require.Equal(t, rteam.Id, team.Id, "wrong team")
 
 	_, resp = Client.GetTeam("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -204,25 +185,20 @@ func TestGetTeamSanitization(t *testing.T) {
 
 		rteam, resp := client.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		if rteam.Email != "" {
-			t.Fatal("should've sanitized email")
-		}
+
+		require.Equal(t, rteam.Email, "", "should have sanitized email")
 	})
 
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
 	})
 }
 
@@ -233,9 +209,7 @@ func TestGetTeamUnread(t *testing.T) {
 
 	teamUnread, resp := Client.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
-	if teamUnread.TeamId != th.BasicTeam.Id {
-		t.Fatal("wrong team id returned for regular user call")
-	}
+	require.Equal(t, teamUnread.TeamId, th.BasicTeam.Id, "wrong team id returned for regular user call")
 
 	_, resp = Client.GetTeamUnread("junk", th.BasicUser.Id)
 	CheckBadRequestStatus(t, resp)
@@ -255,9 +229,7 @@ func TestGetTeamUnread(t *testing.T) {
 
 	teamUnread, resp = th.SystemAdminClient.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
-	if teamUnread.TeamId != th.BasicTeam.Id {
-		t.Fatal("wrong team id returned")
-	}
+	require.Equal(t, teamUnread.TeamId, th.BasicTeam.Id, "wrong team id returned")
 }
 
 func TestUpdateTeam(t *testing.T) {
@@ -272,17 +244,13 @@ func TestUpdateTeam(t *testing.T) {
 	uteam, resp := Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.Description != "updated description" {
-		t.Fatal("Update failed")
-	}
+	require.Equal(t, uteam.Description, "updated description", "Update failed")
 
 	team.DisplayName = "Updated Name"
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.DisplayName != "Updated Name" {
-		t.Fatal("Update failed")
-	}
+	require.Equal(t, uteam.DisplayName, "Updated Name", "Update failed")
 
 	// Test GroupConstrained flag
 	team.GroupConstrained = model.NewBool(true)
@@ -290,34 +258,27 @@ func TestUpdateTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
-	if *rteam.GroupConstrained != *team.GroupConstrained {
-		t.Fatal("GroupConstrained flags do not match")
-	}
+	require.Equal(t, *rteam.GroupConstrained, *team.GroupConstrained, "GroupConstrained flags do not match")
+
 	team.GroupConstrained = nil
 
 	team.AllowOpenInvite = true
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if !uteam.AllowOpenInvite {
-		t.Fatal("Update failed")
-	}
+	require.True(t, uteam.AllowOpenInvite, "Update failed")
 
 	team.InviteId = "inviteid1"
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.InviteId == "inviteid1" {
-		t.Fatal("InviteID should not be updated")
-	}
+	require.Equal(t, uteam.InviteId, "inviteid1", "InviteID should not be updated")
 
 	team.AllowedDomains = "domain"
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.AllowedDomains != "domain" {
-		t.Fatal("Update failed")
-	}
+	require.Equal(t, uteam.AllowedDomains, "domain", "Update failed")
 
 	team.Name = "Updated name"
 	uteam, resp = Client.UpdateTeam(team)

@@ -591,27 +591,21 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
-	if resp.Error != nil {
-		t.Fatalf("Expected no error, got %q", resp.Error.Error())
-	}
+	require.Nilf(t, resp.Error, "Expected no error, got %q", resp.Error.Error())
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
 	t.Helper()
 
-	switch {
-	case resp == nil:
-		t.Fatalf("Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, expectError)
+	require.NotNilf(t, resp, "Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, expectError)
 
-	case expectError && resp.Error == nil:
-		t.Fatalf("Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
-
-	case !expectError && resp.Error != nil:
-		t.Fatalf("Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
-
-	case resp.StatusCode != expectedStatus:
-		t.Fatalf("Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
+	if expectError {
+		require.NotNilf(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
+	} else {
+		require.Nilf(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
 	}
+
+	require.Equalf(t, resp.StatusCode, expectedStatus, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
 }
 
 func CheckOKStatus(t *testing.T, resp *model.Response) {
@@ -662,16 +656,9 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
-	if resp.Error == nil {
-		t.Fatal("should have errored with message:" + errorId)
-		return
-	}
+	require.NotNil(t, resp.Error, "should have errored with message:" + errorId)
 
-	if resp.Error.Id != errorId {
-		t.Log("actual: " + resp.Error.Id)
-		t.Log("expected: " + errorId)
-		t.Fatal("incorrect error message")
-	}
+	require.Equalf(t, resp.Error.Id, errorId, "incorrect error message actual: %s, expected: %s", resp.Error.Id, errorId)
 }
 
 func CheckStartsWith(t *testing.T, value, prefix, message string) {
