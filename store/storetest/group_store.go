@@ -686,7 +686,7 @@ func testGroupPermanentDeleteMembersByUser(t *testing.T, ss store.Store) {
 
 	// Create members
 	for _, group := range groups {
-		_, err := ss.Group().UpsertMember(group.Id, user.Id)
+		_, err = ss.Group().UpsertMember(group.Id, user.Id)
 		require.Nil(t, err)
 	}
 
