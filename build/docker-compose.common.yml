@@ -1,0 +1,58 @@
+version: '2.4'
+services:
+  mysql:
+    image: "mysql:5.7"
+    restart: always
+    networks:
+      - mm-test
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: mostest
+      MYSQL_PASSWORD: mostest
+      MYSQL_USER: mmuser
+      MYSQL_DATABASE: mattermost_test
+  postgres:
+    image: "postgres:9.4"
+    restart: always
+    networks:
+      - mm-test
+    environment:
+      POSTGRES_USER: mmuser
+      POSTGRES_PASSWORD: mostest
+      POSTGRES_DB: mattermost_test
+  minio:
+    image: "minio/minio:RELEASE.2019-08-14T20-37-41Z"
+    command: "server /data"
+    networks:
+      - mm-test
+    environment:
+      MINIO_ACCESS_KEY: minioaccesskey
+      MINIO_SECRET_KEY: miniosecretkey
+      MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+  inbucket:
+    image: "jhillyerd/inbucket:release-1.2.0"
+    restart: always
+    networks:
+      - mm-test
+  openldap:
+    image: "osixia/openldap:1.2.2"
+    restart: always
+    networks:
+      - mm-test
+    environment:
+      LDAP_TLS_VERIFY_CLIENT: "never"
+      LDAP_ORGANISATION: "Mattermost Test"
+      LDAP_DOMAIN: "mm.test.com"
+      LDAP_ADMIN_PASSWORD: "mostest"
+  elasticsearch:
+    image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
+    networks:
+      - mm-test
+    environment:
+      http.host: "0.0.0.0"
+      transport.host: "127.0.0.1"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+  redis:
+    image: redis
+    networks:
+      - mm-test

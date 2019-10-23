@@ -95,6 +95,121 @@ func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	}
 }
 
+func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.SignatureAlgorithm != SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM {
+		t.Fatal("SamlSettings.SignatureAlgorithm default not set")
+	}
+
+	if *c1.SamlSettings.DigestAlgorithm != SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM {
+		t.Fatal("SamlSettings.DigestAlgorithm default not set")
+	}
+	if *c1.SamlSettings.CanonicalAlgorithm != SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM {
+		t.Fatal("SamlSettings.CanonicalAlgorithm default not set")
+	}
+}
+
+func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
+	const testAlgorithm = "FakeAlgorithm"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			CanonicalAlgorithm: NewString(testAlgorithm),
+			SignatureAlgorithm: NewString(testAlgorithm),
+			DigestAlgorithm:    NewString(testAlgorithm),
+		},
+	}
+
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.SignatureAlgorithm != testAlgorithm {
+		t.Fatal("SamlSettings.SignatureAlgorithm should be overwritten")
+	}
+	if *c1.SamlSettings.DigestAlgorithm != testAlgorithm {
+		t.Fatal("SamlSettings.DigestAlgorithm should be overwritten")
+	}
+	if *c1.SamlSettings.CanonicalAlgorithm != testAlgorithm {
+		t.Fatal("SamlSettings.CanonicalAlgorithm should be overwritten")
+	}
+}
+
+func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	*c1.SamlSettings.Enable = true
+	*c1.SamlSettings.Verify = false
+	*c1.SamlSettings.Encrypt = false
+
+	*c1.SamlSettings.IdpUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.EmailAttribute = "Email"
+	*c1.SamlSettings.UsernameAttribute = "Username"
+
+	err := c1.SamlSettings.isValid()
+	if err != nil {
+		t.Fatal("SAMLSettings validation should pass with default settings")
+	}
+}
+
+func TestConfigIsValidFakeAlgorithm(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	*c1.SamlSettings.Enable = true
+	*c1.SamlSettings.Verify = false
+	*c1.SamlSettings.Encrypt = false
+
+	*c1.SamlSettings.IdpUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.EmailAttribute = "Email"
+	*c1.SamlSettings.UsernameAttribute = "Username"
+
+	temp := *c1.SamlSettings.CanonicalAlgorithm
+	*c1.SamlSettings.CanonicalAlgorithm = "Fake Algorithm"
+	err := c1.SamlSettings.isValid()
+	if err == nil {
+		t.Fatal("SAMLSettings validation should fail with fake Canonical Algorithm")
+	}
+	require.Equal(t, "model.config.is_valid.saml_canonical_algorithm.app_error", err.Message)
+	*c1.SamlSettings.CanonicalAlgorithm = temp
+
+	temp = *c1.SamlSettings.DigestAlgorithm
+	*c1.SamlSettings.DigestAlgorithm = "Fake Algorithm"
+	err = c1.SamlSettings.isValid()
+	if err == nil {
+		t.Fatal("SAMLSettings validation should pass fake digest Algorithm")
+	}
+	require.Equal(t, "model.config.is_valid.saml_digest_algorithm.app_error", err.Message)
+	*c1.SamlSettings.DigestAlgorithm = temp
+
+	temp = *c1.SamlSettings.SignatureAlgorithm
+	*c1.SamlSettings.SignatureAlgorithm = "Fake Algorithm"
+	err = c1.SamlSettings.isValid()
+	if err == nil {
+		t.Fatal("SAMLSettings validation should pass with fake signature settings")
+	}
+	require.Equal(t, "model.config.is_valid.saml_signature_algorithm.app_error", err.Message)
+}
+
+func TestConfigOverwriteGuestSettings(t *testing.T) {
+	const attribute = "FakeAttributeName"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			GuestAttribute: NewString(attribute),
+		},
+	}
+
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.GuestAttribute != attribute {
+		t.Fatal("SamlSettings.GuestAttribute should be overwritten")
+	}
+}
+
 func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -903,6 +1018,105 @@ func TestLdapSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: true,
 		},
+
+		{
+			Name: "valid guest filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(property=value)"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid guest filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("("),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid guest filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("()"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "valid guest filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(otherthing=othervalue))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "valid guest filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid guest filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid guest filter #4",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			test.LdapSettings.SetDefaults()
@@ -940,4 +1154,38 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FAKE_SETTING, *c.ElasticsearchSettings.Password)
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceReplicas[0])
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceSearchReplicas[0])
+}
+
+func TestConfigMarketplaceDefaults(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL, *c.PluginSettings.MarketplaceUrl)
+	})
+
+	t.Run("old marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		*c.PluginSettings.MarketplaceUrl = PLUGIN_SETTINGS_OLD_MARKETPLACE_URL
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL, *c.PluginSettings.MarketplaceUrl)
+	})
+
+	t.Run("custom marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		*c.PluginSettings.MarketplaceUrl = "https://marketplace.example.com"
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, "https://marketplace.example.com", *c.PluginSettings.MarketplaceUrl)
+	})
 }

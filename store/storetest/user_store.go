@@ -919,6 +919,8 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
 	u3, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u3" + model.NewId(),
+		DeleteAt: 1,
+		Roles:    "system_admin",
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
@@ -931,22 +933,34 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
 	u3.IsBot = true
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
-	t.Run("get, offset 0, limit 100", func(t *testing.T) {
-		users, err := ss.User().GetProfilesWithoutTeam(0, 100, nil)
+	t.Run("get, page 0, per_page 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesWithoutTeam(&model.UserGetOptions{Page: 0, PerPage: 100})
 		require.Nil(t, err)
 		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, users)
 	})
 
-	t.Run("get, offset 1, limit 1", func(t *testing.T) {
-		users, err := ss.User().GetProfilesWithoutTeam(1, 1, nil)
+	t.Run("get, page 1, per_page 1", func(t *testing.T) {
+		users, err := ss.User().GetProfilesWithoutTeam(&model.UserGetOptions{Page: 1, PerPage: 1})
 		require.Nil(t, err)
 		assert.Equal(t, []*model.User{sanitized(u3)}, users)
 	})
 
-	t.Run("get, offset 2, limit 1", func(t *testing.T) {
-		users, err := ss.User().GetProfilesWithoutTeam(2, 1, nil)
+	t.Run("get, page 2, per_page 1", func(t *testing.T) {
+		users, err := ss.User().GetProfilesWithoutTeam(&model.UserGetOptions{Page: 2, PerPage: 1})
 		require.Nil(t, err)
 		assert.Equal(t, []*model.User{}, users)
+	})
+
+	t.Run("get, page 0, per_page 100, inactive", func(t *testing.T) {
+		users, err := ss.User().GetProfilesWithoutTeam(&model.UserGetOptions{Page: 0, PerPage: 100, Inactive: true})
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u3)}, users)
+	})
+
+	t.Run("get, page 0, per_page 100, role", func(t *testing.T) {
+		users, err := ss.User().GetProfilesWithoutTeam(&model.UserGetOptions{Page: 0, PerPage: 100, Role: "system_admin"})
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u3)}, users)
 	})
 }
 
@@ -3475,18 +3489,22 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSuppli
 
 	// Daily counts (without bots)
 	count, err := ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+	require.Nil(t, err)
 	assert.Equal(t, int64(2), count)
 
 	// Daily counts (with bots)
 	count, err = ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true})
+	require.Nil(t, err)
 	assert.Equal(t, int64(3), count)
 
 	// Monthly counts (without bots)
 	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+	require.Nil(t, err)
 	assert.Equal(t, int64(3), count)
 
 	// Monthly counts - (with bots)
 	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true})
+	require.Nil(t, err)
 	assert.Equal(t, int64(4), count)
 }
 
@@ -4280,6 +4298,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		updatedUser, err := ss.User().Get(user.Id)
 		assert.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
+		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
 		require.Nil(t, err)
@@ -4586,6 +4605,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		updatedUser, err := ss.User().Get(user.Id)
 		assert.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
+		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
 		require.Nil(t, err)
@@ -4862,6 +4882,7 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.Nil(t, err)

@@ -21,12 +21,14 @@ const (
 	POST_SYSTEM_GENERIC         = "system_generic"
 	POST_JOIN_LEAVE             = "system_join_leave" // Deprecated, use POST_JOIN_CHANNEL or POST_LEAVE_CHANNEL instead
 	POST_JOIN_CHANNEL           = "system_join_channel"
+	POST_GUEST_JOIN_CHANNEL     = "system_guest_join_channel"
 	POST_LEAVE_CHANNEL          = "system_leave_channel"
 	POST_JOIN_TEAM              = "system_join_team"
 	POST_LEAVE_TEAM             = "system_leave_team"
 	POST_AUTO_RESPONDER         = "system_auto_responder"
 	POST_ADD_REMOVE             = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
 	POST_ADD_TO_CHANNEL         = "system_add_to_channel"
+	POST_ADD_GUEST_TO_CHANNEL   = "system_add_guest_to_chan"
 	POST_REMOVE_FROM_CHANNEL    = "system_remove_from_channel"
 	POST_MOVE_CHANNEL           = "system_move_channel"
 	POST_ADD_TO_TEAM            = "system_add_to_team"
@@ -71,7 +73,6 @@ type Post struct {
 	OriginalId string `json:"original_id"`
 
 	Message string `json:"message"`
-
 	// MessageSource will contain the message as submitted by the user if Message has been modified
 	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
 	// populate edit boxes if present.
@@ -86,7 +87,8 @@ type Post struct {
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	Metadata *PostMetadata `json:"metadata,omitempty" db:"-"`
+	ReplyCount int64         `json:"reply_count" db:"-"`
+	Metadata   *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
 type PostEphemeral struct {
@@ -168,6 +170,20 @@ func (o *Post) ToUnsanitizedJson() string {
 	return string(b)
 }
 
+type GetPostsSinceOptions struct {
+	ChannelId        string
+	Time             int64
+	SkipFetchThreads bool
+}
+
+type GetPostsOptions struct {
+	ChannelId        string
+	PostId           string
+	Page             int
+	PerPage          int
+	SkipFetchThreads bool
+}
+
 func PostFromJson(data io.Reader) *Post {
 	var o *Post
 	json.NewDecoder(data).Decode(&o)
@@ -231,10 +247,12 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_AUTO_RESPONDER,
 		POST_ADD_REMOVE,
 		POST_JOIN_CHANNEL,
+		POST_GUEST_JOIN_CHANNEL,
 		POST_LEAVE_CHANNEL,
 		POST_JOIN_TEAM,
 		POST_LEAVE_TEAM,
 		POST_ADD_TO_CHANNEL,
+		POST_ADD_GUEST_TO_CHANNEL,
 		POST_REMOVE_FROM_CHANNEL,
 		POST_MOVE_CHANNEL,
 		POST_ADD_TO_TEAM,

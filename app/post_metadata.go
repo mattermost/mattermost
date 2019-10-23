@@ -176,7 +176,10 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	return nil, nil
+	return &model.PostEmbed{
+		Type: model.POST_EMBED_LINK,
+		URL:  firstLink,
+	}, nil
 }
 
 func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost bool) map[string]*model.PostImage {
@@ -495,7 +498,13 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
-	if strings.HasPrefix(contentType, "image") {
+	if contentType == "image/svg+xml" {
+		image := &model.PostImage{
+			Format: "svg",
+		}
+
+		return nil, image, nil
+	} else if strings.HasPrefix(contentType, "image") {
 		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {

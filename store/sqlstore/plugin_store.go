@@ -71,6 +71,11 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 		return false, err
 	}
 
+	if kv.Value == nil {
+		// Setting a key to nil is the same as removing it
+		return ps.CompareAndDelete(kv, oldValue)
+	}
+
 	if oldValue == nil {
 		// Insert if oldValue is nil
 		if err := ps.GetMaster().Insert(kv); err != nil {
@@ -112,6 +117,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 	return true, nil
 }
 
+<<<<<<< HEAD
 func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value interface{}, options *model.PluginKVSetOptions) (bool, *model.AppError) {
 	if err := options.IsValid(); err != nil {
 		return false, err
@@ -133,6 +139,37 @@ func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value inter
 		savedKv, err := ps.SaveOrUpdate(kv)
 		return savedKv != nil, err
 	}
+=======
+func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+	if err := kv.IsValid(); err != nil {
+		return false, err
+	}
+
+	if oldValue == nil {
+		// nil can't be stored. Return showing that we didn't do anything
+		return false, nil
+	}
+
+	deleteResult, err := ps.GetMaster().Exec(
+		`DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`,
+		map[string]interface{}{
+			"PluginId": kv.PluginId,
+			"Key":      kv.Key,
+			"Old":      oldValue,
+		},
+	)
+	if err != nil {
+		return false, model.NewAppError("SqlPluginStore.CompareAndDelete", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if rowsAffected, err := deleteResult.RowsAffected(); err != nil {
+		return false, model.NewAppError("SqlPluginStore.CompareAndDelete", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else if rowsAffected == 0 {
+		return false, nil
+	}
+
+	return true, nil
+>>>>>>> master
 }
 
 func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError) {

@@ -4,7 +4,6 @@
 package web
 
 import (
-	"fmt"
 	"mime"
 	"net/http"
 	"path"
@@ -28,7 +27,7 @@ func (w *Web) InitStatic() {
 		}
 
 		staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
-		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))
+		mlog.Debug("Using client directory", mlog.String("clientDir", staticDir))
 
 		subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
 
@@ -45,6 +44,7 @@ func (w *Web) InitStatic() {
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
 		w.MainRouter.Handle("/robots.txt", http.HandlerFunc(robotsHandler))
+		w.MainRouter.Handle("/unsupported_browser.js", http.HandlerFunc(unsupportedBrowserScriptHandler))
 		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods("GET")
 
 		// When a subpath is defined, it's necessary to handle redirects without a
@@ -60,11 +60,7 @@ func (w *Web) InitStatic() {
 func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !CheckClientCompatability(r.UserAgent()) {
-		w.Header().Set("Cache-Control", "no-store")
-		page := utils.NewHTMLTemplate(c.App.HTMLTemplates(), "unsupported_browser")
-		page.Props["Title"] = c.App.T("web.error.unsupported_browser.title")
-		page.Props["Message"] = c.App.T("web.error.unsupported_browser.message")
-		page.RenderToWriter(w)
+		renderUnsuppportedBrowser(c.App, w, r)
 		return
 	}
 
@@ -96,4 +92,14 @@ func robotsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(robotsTxt)
+}
+
+func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
+	if strings.HasSuffix(r.URL.Path, "/") {
+		http.NotFound(w, r)
+		return
+	}
+
+	templatesDir, _ := fileutils.FindDir("templates")
+	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
 }

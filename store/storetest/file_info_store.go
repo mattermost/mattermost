@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -255,6 +256,12 @@ func testFileInfoGetForUser(t *testing.T, ss store.Store) {
 	assert.Len(t, userPosts, 1)
 }
 
+type byFileInfoId []*model.FileInfo
+
+func (a byFileInfoId) Len() int           { return len(a) }
+func (a byFileInfoId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byFileInfoId) Less(i, j int) bool { return a[i].Id < a[j].Id }
+
 func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 	t.Run("should attach files", func(t *testing.T) {
 		userId := model.NewId()
@@ -276,16 +283,19 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 
 		err = ss.FileInfo().AttachToPost(info1.Id, postId, userId)
 		assert.Nil(t, err)
+		info1.PostId = postId
 
 		err = ss.FileInfo().AttachToPost(info2.Id, postId, userId)
 		assert.Nil(t, err)
+		info2.PostId = postId
 
 		data, err := ss.FileInfo().GetForPost(postId, true, false, false)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 
-		assert.Len(t, data, 2)
-		assert.True(t, data[0].Id == info1.Id || data[0].Id == info2.Id)
-		assert.True(t, data[1].Id == info1.Id || data[1].Id == info2.Id)
+		expected := []*model.FileInfo{info1, info2}
+		sort.Sort(byFileInfoId(expected))
+		sort.Sort(byFileInfoId(data))
+		assert.Equal(t, expected, data)
 	})
 
 	t.Run("should not attach files to multiple posts", func(t *testing.T) {
@@ -301,10 +311,10 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 		require.Equal(t, "", info.PostId)
 
 		err = ss.FileInfo().AttachToPost(info.Id, model.NewId(), userId)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 
 		err = ss.FileInfo().AttachToPost(info.Id, postId, userId)
-		assert.NotNil(t, err)
+		require.NotNil(t, err)
 	})
 
 	t.Run("should not attach files owned from a different user", func(t *testing.T) {
@@ -321,6 +331,25 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 
 		err = ss.FileInfo().AttachToPost(info.Id, postId, userId)
 		assert.NotNil(t, err)
+	})
+
+	t.Run("should attach files uploaded by nouser", func(t *testing.T) {
+		postId := model.NewId()
+
+		info, err := ss.FileInfo().Save(&model.FileInfo{
+			CreatorId: "nouser",
+			Path:      "file.txt",
+		})
+		require.Nil(t, err)
+		assert.Equal(t, "", info.PostId)
+
+		err = ss.FileInfo().AttachToPost(info.Id, postId, model.NewId())
+		require.Nil(t, err)
+
+		data, err := ss.FileInfo().GetForPost(postId, true, false, false)
+		require.Nil(t, err)
+		info.PostId = postId
+		assert.Equal(t, []*model.FileInfo{info}, data)
 	})
 }
 

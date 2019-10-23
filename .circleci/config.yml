@@ -1,0 +1,331 @@
+version: 2.1
+
+orbs:
+  aws-s3: circleci/aws-s3@1.0.11
+
+executors:
+  ubuntu:
+    working_directory: ~/go/src/github.com/mattermost/
+    machine:
+      image: "ubuntu-1604:201903-01"
+    environment:
+      COMPOSE_PROJECT_NAME: "circleci"
+
+jobs:
+  setup:
+    working_directory: /go/src/github.com/mattermost/mattermost-server
+    docker:
+      - image: mattermost/mattermost-build-webapp:oct-2-2018
+    steps:
+      - checkout
+      - run: |
+          cd ../
+          GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone --depth=1 git@github.com:mattermost/mattermost-webapp.git
+          cd mattermost-webapp
+          git checkout $CIRCLE_BRANCH || git checkout master
+          export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
+          echo "$WEBAPP_GIT_COMMIT"
+          export CURL_FAILED=0
+          curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || export CURL_FAILED=1
+
+          if [ $CURL_FAILED -eq 1 ]
+          then
+            npm ci && cd node_modules/mattermost-redux && npm install && npm run build && cd ../.. && make build
+          fi
+      - persist_to_workspace:
+          root: /go/src/github.com/mattermost
+          paths:
+            - mattermost-webapp
+            - mattermost-server
+
+  # TODO: enable this step when the i18n-extract works with mattermost-server only
+  # and not depend on both mm-server/enterprise
+  # check-i18n:
+  #   docker:
+  #   - image: circleci/golang:1.12
+  #   working_directory: /go/src/github.com/mattermost/
+  #   steps:
+  #     - attach_workspace:
+  #         at: /go/src/github.com/mattermost/
+  #     - run:
+  #         command: |
+  #           cd mattermost-server
+  #           cp i18n/en.json /tmp/en.json
+  #           make i18n-extract
+  #           diff /tmp/en.json i18n/en.json
+
+  build:
+    docker:
+      - image: mattermost/mattermost-build-server:oct-18-2019
+    working_directory: /go/src/github.com/mattermost
+    steps:
+      - attach_workspace:
+          at: /go/src/github.com/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make config-reset
+            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+      - store_artifacts:
+          path: /go/src/github.com/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
+      - store_artifacts:
+          path: /go/src/github.com/mattermost/mattermost-server/dist/mattermost-team-osx-amd64.tar.gz
+      - store_artifacts:
+          path: /go/src/github.com/mattermost/mattermost-server/dist/mattermost-team-windows-amd64.zip
+      - persist_to_workspace:
+          root: /go/src/github.com/mattermost
+          paths:
+            - mattermost-server
+            - mattermost-webapp
+
+  test:
+    executor:
+      name: ubuntu
+    steps:
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost
+      - run:
+          name: Run Docker compose
+          command: |
+            cd mattermost-server/build
+            docker-compose --no-ansi run --rm start_dependencies
+            cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+            docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+            docker-compose --no-ansi ps
+          background: true
+      - run:
+          name: Wait for docker compose
+          command: |
+            sleep 5
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - run:
+          name: Run Tests
+          command: |
+            ulimit -n 8096
+            mkdir -p mattermost-server/client/plugins
+            docker run -it --net circleci_mm-test \
+              --env TEST_DATABASE_MYSQL_DSN="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s" \
+              --env TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
+              --env TEST_DATABASE_MYSQL_ROOT_PASSWD=mostest \
+              --env CI_INBUCKET_HOST=inbucket \
+              --env CI_MINIO_HOST=minio \
+              --env CI_INBUCKET_PORT=10080 \
+              --env CI_MINIO_PORT=9000 \
+              --env CI_INBUCKET_SMTP_PORT=10025 \
+              --env CI_LDAP_HOST=openldap \
+              --env IS_CI="true" \
+              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8" \
+              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
+              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
+              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              -v ~/go/src:/go/src \
+              -w /go/src/github.com/mattermost/mattermost-server \
+              mattermost/mattermost-build-server:oct-18-2019 \
+              bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
+          no_output_timeout: 1h
+      - run:
+          name: Capture docker logs
+          when: always
+          command: |
+            cd mattermost-server/build
+            # Capture docker logs
+            mkdir -p logs
+            docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs
+            docker ps -a --no-trunc > logs/docker_ps
+            docker stats -a --no-stream > logs/docker_stats
+            tar -czvf logs/docker_logs.tar.gz logs/docker-compose_logs logs/docker_ps logs/docker_stats
+      - store_artifacts:
+          path: ~/go/src/github.com/mattermost/mattermost-server/build/logs
+      - run:
+          when: always
+          command: |
+            cd mattermost-server
+            mkdir -p test-results
+            cp report.xml test-results
+      - store_test_results:
+          path: ~/go/src/github.com/mattermost/mattermost-server/test-results/
+      - store_artifacts:
+          path: ~/go/src/github.com/mattermost/mattermost-server/test-results/
+
+  test-schema:
+    executor:
+      name: ubuntu
+    steps:
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost
+      - run:
+          name: Run Docker compose
+          command: |
+            cd mattermost-server/build
+            docker-compose --no-ansi run --rm start_dependencies
+            cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+            docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+            docker-compose --no-ansi ps
+          background: true
+      - run:
+          name: Wait for docker compose
+          command: |
+            sleep 5
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - run:
+          name: Postgres schema migration validation
+          command: |
+            ulimit -n 8096
+            mkdir -p mattermost-server/client/plugins
+            cd mattermost-server/build
+            echo "Creating databases"
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
+            echo "Importing postgres dump from version 5.0"
+            docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
+            docker run -it --net circleci_mm-test \
+              --env CI_INBUCKET_HOST=inbucket \
+              --env CI_MINIO_HOST=minio \
+              --env CI_INBUCKET_PORT=10080 \
+              --env CI_MINIO_PORT=9000 \
+              --env CI_INBUCKET_SMTP_PORT=10025 \
+              --env CI_LDAP_HOST=openldap \
+              --env IS_CI="true" \
+              --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
+              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
+              --env MM_SQLSETTINGS_DRIVERNAME=postgres \
+              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
+              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              -v ~/go/src:/go/src \
+              -w /go/src/github.com/mattermost/mattermost-server \
+              mattermost/mattermost-build-server:oct-18-2019 \
+              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
+            echo "Generating dump"
+            docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
+            docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
+            echo "Removing databases created for db comparison"
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
+
+            echo "Generating diff"
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
+          no_output_timeout: 1h
+      - run:
+          name: MySQL schema migration validation
+          command: |
+            ulimit -n 8096
+            mkdir -p mattermost-server/client/plugins
+            cd mattermost-server/build
+            echo "Creating databases"
+            docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
+            echo "Importing mysql dump from version 5.0"
+            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-5.0.sql
+            docker run -it --net circleci_mm-test \
+              --env CI_INBUCKET_HOST=inbucket \
+              --env CI_MINIO_HOST=minio \
+              --env CI_INBUCKET_PORT=10080 \
+              --env CI_MINIO_PORT=9000 \
+              --env CI_INBUCKET_SMTP_PORT=10025 \
+              --env CI_LDAP_HOST=openldap \
+              --env IS_CI="true" \
+              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
+              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
+              --env MM_SQLSETTINGS_DRIVERNAME=mysql \
+              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
+              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              -v ~/go/src:/go/src \
+              -w /go/src/github.com/mattermost/mattermost-server \
+              mattermost/mattermost-build-server:feb-28-2019 \
+              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
+
+            echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
+            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+            docker-compose --no-ansi exec -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+
+            echo "Generating dump"
+            docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
+            docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
+
+            echo "Removing databases created for db comparison"
+            docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
+
+            echo "Generating diff"
+            diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
+          no_output_timeout: 1h
+
+  upload-s3-sha:
+    docker:
+      - image: 'circleci/python:2.7'
+    working_directory: ~/go/src/github.com/mattermost/enterprise
+    steps:
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost/
+      - run:
+          command: |
+            cd ~/go/src/github.com/mattermost/mattermost-server/dist/
+            rm -rf mattermost
+      - aws-s3/copy:
+          from: ~/go/src/github.com/mattermost/mattermost-server/dist/
+          to: "s3://releases.mattermost.com/mattermost-platform-pr/commit/${CIRCLE_SHA1}/"
+          arguments: --acl public-read --cache-control "no-cache" --recursive
+
+  upload-s3:
+    docker:
+    - image: 'circleci/python:2.7'
+    working_directory: ~/go/src/github.com/mattermost/enterprise
+    steps:
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost/
+      - run:
+          command: |
+            cd ~/go/src/github.com/mattermost/mattermost-server/dist/
+            rm -rf mattermost
+      - aws-s3/copy:
+          from: ~/go/src/github.com/mattermost/mattermost-server/dist/
+          to: s3://releases.mattermost.com/mattermost-platform-pr/$(echo "${CIRCLE_BRANCH}" | sed 's/pull\//PR-/g')/
+          arguments: --acl public-read --cache-control "no-cache" --recursive
+
+  build-docker:
+    working_directory: ~/
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - attach_workspace:
+          at: .
+      - setup_remote_docker
+      - run:
+          command: |
+            export TAG="${CIRCLE_SHA1:0:7}"
+            cd mattermost-server
+            export MM_PACKAGE=https://releases.mattermost.com/mattermost-platform-pr/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
+            docker build --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-team-edition:${TAG} build
+            echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
+            docker push mattermost/mattermost-team-edition:${TAG}
+
+
+workflows:
+  version: 2
+  untagged-build:
+    jobs:
+      - setup
+      # - check-i18n:
+      #     requires:
+      #       - setup
+      - build:
+          requires:
+            - setup
+      - upload-s3-sha:
+          context: mattermost-ci-s3
+          requires:
+            - build
+      - upload-s3:
+          context: mattermost-ci-s3
+          requires:
+            - build
+      - build-docker:
+          context: matterbuild-docker
+          requires:
+            - upload-s3-sha
+      - test:
+          requires:
+            - setup
+      - test-schema:
+          requires:
+            - setup
