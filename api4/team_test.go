@@ -387,7 +387,7 @@ func TestPatchTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	r, err := Client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
-	require.NotNil(t, err,"should have errored")
+	require.NotNil(t, err, "should have errored")
 
 	require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 
@@ -1217,7 +1217,6 @@ func TestAddTeamMember(t *testing.T) {
 
 	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
 	require.Nil(t, err)
-
 
 	// Regular user can't add a member to a team they don't belong to.
 	th.LoginBasic2()
