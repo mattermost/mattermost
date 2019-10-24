@@ -46,7 +46,7 @@ func TestStringSliceDiff(t *testing.T) {
 	b := []string{"two", "seven", "four", "six"}
 	expected := []string{"one", "three", "five"}
 
-	assert.Equal(t, StringSliceDiff(a, b), expected)
+	assert.Equal(t, expected, StringSliceDiff(a, b))
 }
 
 func TestGetIpAddress(t *testing.T) {

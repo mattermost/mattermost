@@ -17,16 +17,16 @@ func TestMillisFromTime(t *testing.T) {
 	actual := MillisFromTime(input)
 	expected := int64(1420115640000)
 
-	assert.Equal(t, actual, expected)
+	assert.Equal(t, expected, actual)
 }
 
 func TestYesterday(t *testing.T) {
 	actual := Yesterday()
 	expected := time.Now().AddDate(0, 0, -1)
 
-	assert.Equal(t, actual.Year(), expected.Year())
-	assert.Equal(t, actual.Day(), expected.Day())
-	assert.Equal(t, actual.Month(), expected.Month())
+	assert.Equal(t, expected.Year(), actual.Year())
+	assert.Equal(t, expected.Day(), actual.Day())
+	assert.Equal(t, expected.Month(), actual.Month())
 }
 
 func TestStartOfDay(t *testing.T) {
@@ -34,7 +34,7 @@ func TestStartOfDay(t *testing.T) {
 	actual := StartOfDay(input)
 	expected, _ := time.Parse(format, "2015-01-01 00:00:00.000000000")
 
-	assert.Equal(t, actual, expected)
+	assert.Equal(t, expected, actual)
 }
 
 func TestEndOfDay(t *testing.T) {
@@ -42,5 +42,5 @@ func TestEndOfDay(t *testing.T) {
 	actual := EndOfDay(input)
 	expected, _ := time.Parse(format, "2015-01-01 23:59:59.999999999")
 
-	assert.Equal(t, actual, expected)
+	assert.Equal(t, expected, actual)
 }
