@@ -45,6 +45,9 @@ func FilterChannelIDs(filterChannelIDs []string) ShouldProcessMessageOption {
 	}
 }
 
+// FilterUserIDs configures a call to ShouldProcessMessage to return true only for the given users.
+//
+// By default, posts from all non-bot users are allowed.
 func FilterUserIDs(filterUserIDs []string) ShouldProcessMessageOption {
 	return func(options *shouldProcessMessageOptions) {
 		options.FilterUserIDs = filterUserIDs
