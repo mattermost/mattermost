@@ -58,6 +58,15 @@ func MarketplacePluginsFromReader(reader io.Reader) ([]*MarketplacePlugin, error
 	return plugins, nil
 }
 
+// GetSignatures returns list of signatures
+func (plugin *BaseMarketplacePlugin) GetSignatures() []string {
+	signatures := make([]string, 0, len(plugin.Signatures))
+	for _, sig := range plugin.Signatures {
+		signatures = append(signatures, sig.Signature)
+	}
+	return signatures
+}
+
 // MarketplacePluginFilter describes the parameters to request a list of plugins.
 type MarketplacePluginFilter struct {
 	Page          int

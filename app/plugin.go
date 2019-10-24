@@ -227,16 +227,10 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	// Install plugins from the file store.
-	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
+	plugins, appErr := a.getPluginsFromFolder()
 	if appErr != nil {
-		return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return appErr
 	}
-	if len(fileStorePaths) == 0 {
-		mlog.Info("Found no files in plugins file store")
-		return nil
-	}
-
-	plugins := a.getPluginsFromDir(fileStorePaths)
 	a.installPlugins(plugins)
 	return nil
 }
@@ -607,21 +601,29 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	return nil
 }
 
-type pluginHelper struct {
-	path       string
-	signatures []string
+type pluginSignaturePaths struct {
+	path           string
+	signaturePaths []string
 }
 
-func (a *App) getPluginsFromDir(fileStorePaths []string) map[string]*pluginHelper {
-	plugins := make(map[string]*pluginHelper)
+func (a *App) getPluginsFromFolder() ([]*pluginSignaturePaths, *model.AppError) {
+	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
+	if appErr != nil {
+		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+	if len(fileStorePaths) == 0 {
+		mlog.Info("Found no files in plugins file store")
+		return nil, nil
+	}
+	pluginSignaturePathMap := make(map[string]*pluginSignaturePaths)
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
-			helper := &pluginHelper{
-				path:       path,
-				signatures: []string{},
+			helper := &pluginSignaturePaths{
+				path:           path,
+				signaturePaths: []string{},
 			}
-			plugins[id] = helper
+			pluginSignaturePathMap[id] = helper
 		}
 	}
 	for _, path := range fileStorePaths {
@@ -629,14 +631,18 @@ func (a *App) getPluginsFromDir(fileStorePaths []string) map[string]*pluginHelpe
 			id := strings.TrimSuffix(filepath.Base(path), ".sig")
 			index := strings.LastIndex(id, ".")
 			id = id[:index]
-			if val, ok := plugins[id]; !ok {
+			if val, ok := pluginSignaturePathMap[id]; !ok {
 				mlog.Error("Unknown signature in the filestore.", mlog.String("path", path))
 			} else {
-				val.signatures = append(val.signatures, path)
+				val.signaturePaths = append(val.signaturePaths, path)
 			}
 		}
 	}
-	return plugins
+	pluginSignaturePathList := make([]*pluginSignaturePaths, 0, len(pluginSignaturePathMap))
+	for _, path := range pluginSignaturePathMap {
+		pluginSignaturePathList = append(pluginSignaturePathList, path)
+	}
+	return pluginSignaturePathList, nil
 }
 
 func (a *App) verifySignature(plugin filesstore.ReadCloseSeeker, signaturePaths []string) *model.AppError {
@@ -658,7 +664,7 @@ func (a *App) verifySignature(plugin filesstore.ReadCloseSeeker, signaturePaths 
 
 }
 
-func (a *App) installPlugins(plugins map[string]*pluginHelper) {
+func (a *App) installPlugins(plugins []*pluginSignaturePaths) {
 	for _, plugin := range plugins {
 		var reader filesstore.ReadCloseSeeker
 		reader, appErr := a.FileReader(plugin.path)
@@ -668,8 +674,7 @@ func (a *App) installPlugins(plugins map[string]*pluginHelper) {
 		}
 		defer reader.Close()
 		if *a.Config().PluginSettings.RequirePluginSignature {
-			appErr = a.verifySignature(reader, plugin.signatures)
-			if appErr != nil {
+			if appErr = a.verifySignature(reader, plugin.signaturePaths); appErr != nil {
 				mlog.Error("Failed to verify plugin signature in the file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 				continue
 			}

@@ -157,14 +157,13 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// save the plugin signatures to the store
-	appErr = saveSignatures(c, plugin)
+	manifest, appErr := c.App.InstallPluginWithSignatures(bytes.NewReader(pluginFileBytes), plugin.GetSignatures())
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
-
-	installPlugin(c, w, pluginFileBytes, true)
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(manifest.ToJson()))
 }
 
 func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {

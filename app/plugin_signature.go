@@ -49,19 +49,19 @@ func (a *App) VerifyPlugin(plugin, signature io.Reader) *model.AppError {
 	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
 }
 
-func verifySignature(publicKey, message, sig io.Reader) error {
+func verifySignature(publicKey, message, signatrue io.Reader) error {
 	pk, err := decodeIfArmored(publicKey)
 	if err != nil {
 		return errors.Wrap(err, "can't decode public key")
 	}
-	s, err := decodeIfArmored(sig)
+	s, err := decodeIfArmored(signatrue)
 	if err != nil {
 		return errors.Wrap(err, "can't decode signature")
 	}
-	return verifyNotArmoredSignature(pk, message, s)
+	return verifyBinarySignature(pk, message, s)
 }
 
-func verifyNotArmoredSignature(publicKey, signedFile, signature io.Reader) error {
+func verifyBinarySignature(publicKey, signedFile, signature io.Reader) error {
 	keyring, err := openpgp.ReadKeyRing(publicKey)
 	if err != nil {
 		return errors.Wrap(err, "can't read public key")
