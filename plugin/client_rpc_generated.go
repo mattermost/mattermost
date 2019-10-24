@@ -2498,6 +2498,93 @@ func (s *apiRPCServer) UpdateChannelMemberNotifications(args *Z_UpdateChannelMem
 	return nil
 }
 
+type Z_GetGroupArgs struct {
+	A string
+}
+
+type Z_GetGroupReturns struct {
+	A *model.Group
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetGroup(groupId string) (*model.Group, *model.AppError) {
+	_args := &Z_GetGroupArgs{groupId}
+	_returns := &Z_GetGroupReturns{}
+	if err := g.client.Call("Plugin.GetGroup", _args, _returns); err != nil {
+		log.Printf("RPC call to GetGroup API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetGroup(args *Z_GetGroupArgs, returns *Z_GetGroupReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetGroup(groupId string) (*model.Group, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetGroup(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetGroup called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetGroupByNameArgs struct {
+	A string
+}
+
+type Z_GetGroupByNameReturns struct {
+	A *model.Group
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	_args := &Z_GetGroupByNameArgs{name}
+	_returns := &Z_GetGroupByNameReturns{}
+	if err := g.client.Call("Plugin.GetGroupByName", _args, _returns); err != nil {
+		log.Printf("RPC call to GetGroupByName API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetGroupByName(args *Z_GetGroupByNameArgs, returns *Z_GetGroupByNameReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetGroupByName(name string) (*model.Group, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetGroupByName(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetGroupByName called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetGroupsForUserArgs struct {
+	A string
+}
+
+type Z_GetGroupsForUserReturns struct {
+	A []*model.Group
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
+	_args := &Z_GetGroupsForUserArgs{userId}
+	_returns := &Z_GetGroupsForUserReturns{}
+	if err := g.client.Call("Plugin.GetGroupsForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to GetGroupsForUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetGroupsForUser(args *Z_GetGroupsForUserArgs, returns *Z_GetGroupsForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetGroupsForUser(userId string) ([]*model.Group, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetGroupsForUser(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetGroupsForUser called but not implemented."))
+	}
+	return nil
+}
+
 type Z_DeleteChannelMemberArgs struct {
 	A string
 	B string
