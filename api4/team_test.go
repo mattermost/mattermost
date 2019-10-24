@@ -2111,7 +2111,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 			t.Log("No email was received, maybe due load on the server. Disabling this verification")
 		}
 		if err == nil && len(resultsMailbox) > 0 {
-			require.True(t, !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email), "Wrong To recipient")
+			require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email), "Wrong To recipient")
 			resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
 			if err == nil {
 				require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, actual: %s, expected: %s", resultsEmail.Subject, expectedSubject)
