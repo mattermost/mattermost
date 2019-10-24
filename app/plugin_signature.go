@@ -16,16 +16,6 @@ import (
 	"golang.org/x/crypto/openpgp/armor"
 )
 
-var armoredSignatureHeaders = [...]string{
-	"BEGIN PGP MESSAGE",
-	"BEGIN PGP PUBLIC KEY BLOCK",
-	"BEGIN PGP SIGNATURE",
-	"BEGIN PGP SIGNED MESSAGE",
-	"BEGIN PGP ARMORED FILE", /* gnupg extension */
-	"BEGIN PGP PRIVATE KEY BLOCK",
-	"BEGIN PGP SECRET KEY BLOCK", /* only used by pgp2 */
-}
-
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 func (a *App) VerifyPlugin(plugin, signature io.Reader) *model.AppError {
 	if verifySignature(bytes.NewReader(mattermostPublicKey), plugin, signature) == nil {
