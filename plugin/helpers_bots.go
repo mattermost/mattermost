@@ -36,6 +36,9 @@ func AllowBots() ShouldProcessMessageOption {
 	}
 }
 
+// FilterChannelIDs configures a call to ShouldProcessMessage to return true only for the given channels.
+//
+// By default, posts from all channels are allowed to be processed.
 func FilterChannelIDs(filterChannelIDs []string) ShouldProcessMessageOption {
 	return func(options *shouldProcessMessageOptions) {
 		options.FilterChannelIDs = filterChannelIDs
