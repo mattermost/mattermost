@@ -311,6 +311,7 @@ type ServiceSettings struct {
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 	EnableBotAccountCreation                          *bool
 	EnableSVGs                                        *bool
+	EnableLatex                                       *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -677,6 +678,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 			s.EnableSVGs = NewBool(true)
 		} else {
 			s.EnableSVGs = NewBool(false)
+		}
+	}
+
+	if s.EnableLatex == nil {
+		if isUpdate {
+			s.EnableLatex = NewBool(true)
+		} else {
+			s.EnableLatex = NewBool(false)
 		}
 	}
 }
