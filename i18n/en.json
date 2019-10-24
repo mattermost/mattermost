@@ -3515,18 +3515,6 @@
     "translation": "Unable to install plugin."
   },
   {
-    "id": "app.plugin.install_plugin_with_sig.open.app_error",
-    "translation": "Failed to open plugin bundle from file store."
-  },
-  {
-    "id": "app.plugin.install_plugin_with_sig.sync.app_error",
-    "translation": "Failed to sync plugin from file store."
-  },
-  {
-    "id": "app.plugin.install_plugin_with_sig.verify.app_error",
-    "translation": "Failed to verify plugin signature in the file store."
-  },
-  {
     "id": "app.plugin.install_id.app_error",
     "translation": "Unable to install plugin. A plugin with the same ID is already installed."
   },
@@ -3537,6 +3525,18 @@
   {
     "id": "app.plugin.invalid_id.app_error",
     "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
+  },
+  {
+    "id": "app.plugin.install_plugin_with_sig.open.app_error",
+    "translation": "Failed to open plugin bundle from file store."
+  },
+  {
+    "id": "app.plugin.install_plugin_with_sig.sync.app_error",
+    "translation": "Failed to sync plugin from file store."
+  },
+  {
+    "id": "app.plugin.install_plugin_with_sig.verify.app_error",
+    "translation": "Failed to verify plugin signature in the file store."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3589,6 +3589,10 @@
   {
     "id": "app.plugin.restart.app_error",
     "translation": "Unable to restart plugin on upgrade."
+  },
+  {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
