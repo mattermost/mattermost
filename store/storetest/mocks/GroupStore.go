@@ -406,6 +406,31 @@ func (_m *GroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *model.AppErr
 	return r0, r1
 }
 
+// GetByName provides a mock function with given fields: name
+func (_m *GroupStore) GetByName(name string) (*model.Group, *model.AppError) {
+	ret := _m.Called(name)
+
+	var r0 *model.Group
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetByRemoteID provides a mock function with given fields: remoteID, groupSource
 func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
 	ret := _m.Called(remoteID, groupSource)
@@ -422,6 +447,31 @@ func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSour
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, model.GroupSource) *model.AppError); ok {
 		r1 = rf(remoteID, groupSource)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetByUser provides a mock function with given fields: userId
+func (_m *GroupStore) GetByUser(userId string) ([]*model.Group, *model.AppError) {
+	ret := _m.Called(userId)
+
+	var r0 []*model.Group
+	if rf, ok := ret.Get(0).(func(string) []*model.Group); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Group)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
