@@ -67,7 +67,7 @@ func TestLRUExpire(t *testing.T) {
 	time.Sleep(time.Millisecond * 2100)
 
 	if r1, ok := l.Get(1); ok {
-		require.False(t, ok)
+		require.False(t, ok, r1)
 	}
 
 	if _, ok2 := l.Get(3); !ok2 {
