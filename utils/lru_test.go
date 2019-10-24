@@ -21,7 +21,7 @@ func TestLRU(t *testing.T) {
 	for i := 0; i < 256; i++ {
 		l.Add(i, i)
 	}
-	require.Equalf(t, 128, l.Len(), "bad len: %v", l.Len())
+	require.Lenf(t, l, 128, "bad len: %v", l.Len())
 
 	for i, k := range l.Keys() {
 		v, ok := l.Get(k)
@@ -31,32 +31,29 @@ func TestLRU(t *testing.T) {
 	}
 	for i := 0; i < 128; i++ {
 		_, ok := l.Get(i)
-		require.NotEqual(t, true, ok, "should be evicted")
+		require.False(t, ok, "should be evicted")
 	}
 	for i := 128; i < 256; i++ {
 		_, ok := l.Get(i)
-		require.NotEqualf(t, false, ok, "should not be evicted")
+		require.True(t, ok, "should not be evicted")
 	}
 	for i := 128; i < 192; i++ {
 		l.Remove(i)
 		_, ok := l.Get(i)
-		require.NotEqual(t, true, ok, "should be deleted")
+		require.False(t, ok, "should be deleted")
 	}
 
 	l.Get(192) // expect 192 to be last key in l.Keys()
 
 	for i, k := range l.Keys() {
-		if (i < 63 && k != i+193) || (i == 63 && k != 192) {
-			require.Fail(t, "out of order key: %v", k)
-		}
+		require.Falsef(t, (i < 63 && k != i+193), "out of order key: %v", k)
+		require.Falsef(t, (i == 63 && k != 192), "out of order key: %v", k)
 	}
 
 	l.Purge()
-	if l.Len() != 0 {
-		require.Fail(t, "bad len: %v", l.Len())
-	}
+	require.Lenf(t, l, 0, "bad len: %v", l.Len())
 	if _, ok := l.Get(200); ok {
-		require.Fail(t, "should contain nothing")
+		require.False(t, ok, "should contain nothing")
 	}
 }
 
@@ -70,11 +67,11 @@ func TestLRUExpire(t *testing.T) {
 	time.Sleep(time.Millisecond * 2100)
 
 	if r1, ok := l.Get(1); ok {
-		t.Fatal(r1)
+		require.False(t, ok)
 	}
 
 	if _, ok2 := l.Get(3); !ok2 {
-		require.Fail(t, "should exist")
+		require.True(t, ok2, "should exist")
 	}
 }
 
