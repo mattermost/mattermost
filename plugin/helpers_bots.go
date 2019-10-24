@@ -124,42 +124,41 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		option(messageProcessOptions)
 	}
 
-	if !messageProcessOptions.AllowSystemMessages {
-		if post.IsSystemMessage() {
+	if post.IsSystemMessage() && !messageProcessOptions.AllowSystemMessages {
+		return false, nil
+	}
+
+	if !messageProcessOptions.AllowBots {
+		user, appErr := p.API.GetUser(post.UserId)
+		if appErr != nil {
+			return false, errors.Wrap(appErr, "unable to get user")
+		}
+
+		if user.IsBot {
 			return false, nil
 		}
 	}
 
 	if len(messageProcessOptions.FilterChannelIDs) != 0 && !utils.StringInSlice(post.ChannelId, messageProcessOptions.FilterChannelIDs) {
-		channel, appErr := p.API.GetChannel(post.ChannelId)
-
-		if appErr != nil {
-			return false, errors.Wrap(appErr, "unable to get channel")
-		}
-
-		botIdBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
-		if kvGetErr != nil || botIdBytes == nil {
-			return false, errors.Wrap(kvGetErr, "failed to get bot")
-		}
-
-		botId := string(botIdBytes)
-		if !model.IsBotDMChannel(channel, botId) {
-			return false, nil
-		}
+		return false, nil
 	}
 
 	if len(messageProcessOptions.FilterUserIDs) != 0 && !utils.StringInSlice(post.UserId, messageProcessOptions.FilterUserIDs) {
-		user, appErr := p.API.GetUser(post.UserId)
+		return false, nil
+	}
 
-		if appErr != nil {
-			return false, errors.Wrap(appErr, "unable to get user")
-		}
+	channel, appErr := p.API.GetChannel(post.ChannelId)
+	if appErr != nil {
+		return false, errors.Wrap(appErr, "unable to get channel")
+	}
 
-		if !messageProcessOptions.AllowBots {
-			if user.IsBot {
-				return false, nil
-			}
-		}
+	botIdBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
+	if kvGetErr != nil || botIdBytes == nil {
+		return false, errors.Wrap(kvGetErr, "failed to get bot")
+	}
+	botId := string(botIdBytes)
+	if !model.IsBotDMChannel(channel, botId) {
+		return false, nil
 	}
 
 	return true, nil

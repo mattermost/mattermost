@@ -175,7 +175,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		p.API = api
 		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
 
-		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{ChannelId: channelID}, plugin.AllowSystemMessages(), plugin.FilterChannelIDs([]string{"another-channel-id"}))
+		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{ChannelId: channelID}, plugin.AllowSystemMessages(), plugin.AllowBots(), plugin.FilterChannelIDs([]string{"another-channel-id"}))
 
 		assert.False(t, shouldProcessMessage)
 	})
@@ -196,6 +196,14 @@ func TestShouldProcessMessage(t *testing.T) {
 
 	t.Run("should process the message", func(t *testing.T) {
 		channelID := "1"
+		api := setupAPI()
+		channel := model.Channel{
+			Name: "user1__" + expectedBotId,
+			Type: model.CHANNEL_DIRECT,
+		}
+		api.On("GetChannel", channelID).Return(&channel, nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		p.API = api
 
 		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{UserId: "1", Type: model.POST_HEADER_CHANGE, ChannelId: channelID},
 			plugin.AllowSystemMessages(), plugin.FilterChannelIDs([]string{channelID}), plugin.AllowBots(), plugin.FilterUserIDs([]string{"1"}))
@@ -205,6 +213,14 @@ func TestShouldProcessMessage(t *testing.T) {
 
 	t.Run("should process the message when filter channel and filter users list is empty", func(t *testing.T) {
 		channelID := "1"
+		api := setupAPI()
+		channel := model.Channel{
+			Name: "user1__" + expectedBotId,
+			Type: model.CHANNEL_DIRECT,
+		}
+		api.On("GetChannel", channelID).Return(&channel, nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		p.API = api
 
 		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{UserId: "1", Type: model.POST_HEADER_CHANGE, ChannelId: channelID},
 			plugin.AllowSystemMessages(), plugin.AllowBots())
