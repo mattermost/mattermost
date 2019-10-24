@@ -2126,7 +2126,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		require.NotNil(t, err, "Adding users with non-restricted domains was allowed")
 
-		require.True(t, err.Where != "InviteNewUsersToTeam" || err.Id != "api.team.invite_members.invalid_email.app_error", "Got wrong error message!")
+		require.False(t, err.Where != "InviteNewUsersToTeam" || err.Id != "api.team.invite_members.invalid_email.app_error", "Got wrong error message!")
 	})
 
 	t.Run("override restricted domains", func(t *testing.T) {
@@ -2364,14 +2364,14 @@ func TestRemoveTeamIcon(t *testing.T) {
 	_, resp := Client.RemoveTeamIcon(team.Id)
 	CheckNoError(t, resp)
 	teamAfter, _ := th.App.GetTeam(team.Id)
-	require.Equal(t, teamAfter.LastTeamIconUpdate, 0, "should update LastTeamIconUpdate to 0")
+	require.Equal(t, teamAfter.LastTeamIconUpdate, int64(0), "should update LastTeamIconUpdate to 0")
 
 	Client.SetTeamIcon(team.Id, data)
 
 	_, resp = th.SystemAdminClient.RemoveTeamIcon(team.Id)
 	CheckNoError(t, resp)
 	teamAfter, _ = th.App.GetTeam(team.Id)
-	require.Equal(t, teamAfter.LastTeamIconUpdate, 0, "should update LastTeamIconUpdate to 0")
+	require.Equal(t, teamAfter.LastTeamIconUpdate, int64(0), "should update LastTeamIconUpdate to 0")
 
 	Client.SetTeamIcon(team.Id, data)
 	Client.Logout()
