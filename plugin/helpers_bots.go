@@ -18,6 +18,9 @@ type shouldProcessMessageOptions struct {
 
 type ShouldProcessMessageOption func(*shouldProcessMessageOptions)
 
+// AllowSystemMessages configures a call to ShouldProcessMessage to return true for system messages.
+//
+// As it is typically desirable only to consume messages from users of the system, ShouldProcessMessage ignores system messages by default.
 func AllowSystemMessages() ShouldProcessMessageOption {
 	return func(options *shouldProcessMessageOptions) {
 		options.AllowSystemMessages = true
