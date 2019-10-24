@@ -62,18 +62,21 @@ const fileStorePluginFolder = "plugins"
 func (a *App) InstallPluginFromData(data model.PluginEventData) {
 	mlog.Debug("Installing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
-	fileStorePath := a.getBundleStorePath(data.Id)
-	reader, appErr := a.FileReader(fileStorePath)
+	pluginSignaturePathMap, appErr := a.getPluginsFromFolder()
 	if appErr != nil {
-		mlog.Error("Failed to open plugin bundle from filestore.", mlog.String("path", fileStorePath), mlog.Err(appErr))
+		mlog.Error("Failed to get plugin signatures from filestore. Can't install plugin from data.", mlog.Err(appErr))
+		return
 	}
-	defer reader.Close()
-
-	manifest, appErr := a.installPluginLocally(reader, true)
+	signaturePath, ok := pluginSignaturePathMap[data.Id]
+	if !ok {
+		mlog.Error("Failed to get plugin signature from filestore. Can't install plugin from data.", mlog.String("plugin id", data.Id))
+		return
+	}
+	manifest, appErr := a.installPluginWithSignaturePath(signaturePath)
 	if appErr != nil {
-		mlog.Error("Failed to unpack plugin from filestore", mlog.Err(appErr), mlog.String("path", fileStorePath))
+		mlog.Error("Failed to install plugin.", mlog.String("plugin id", data.Id), mlog.Err(appErr))
+		return
 	}
-
 	if err := a.notifyPluginEnabled(manifest); err != nil {
 		mlog.Error("Failed notify plugin enabled", mlog.Err(err))
 	}
