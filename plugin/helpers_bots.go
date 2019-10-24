@@ -27,6 +27,9 @@ func AllowSystemMessages() ShouldProcessMessageOption {
 	}
 }
 
+// AllowBots configures a call to ShouldProcessMessage to return true for bot posts.
+//
+// As it is typically desirable only to consume messages from human users of the system, ShouldProcessMessage ignores bot messages by default. When allowing bots, take care to avoid a loop where two plugins respond to each others posts repeatedly.
 func AllowBots() ShouldProcessMessageOption {
 	return func(options *shouldProcessMessageOptions) {
 		options.AllowBots = true
