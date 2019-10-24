@@ -406,6 +406,17 @@ func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.Channel
 	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
 }
 
+func (api *PluginAPI) AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError) {
+	postRootId := ""
+
+	channel, err := api.GetChannel(channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.app.AddChannelMember(userId, channel, asUserId, postRootId)
+}
+
 func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	return api.app.GetChannelMember(channelId, userId)
 }
@@ -432,6 +443,18 @@ func (api *PluginAPI) UpdateChannelMemberNotifications(channelId, userId string,
 
 func (api *PluginAPI) DeleteChannelMember(channelId, userId string) *model.AppError {
 	return api.app.LeaveChannel(channelId, userId)
+}
+
+func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
+	return api.app.GetGroup(groupId)
+}
+
+func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	return api.app.GetGroupByName(name)
+}
+
+func (api *PluginAPI) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
+	return api.app.GetGroupsByUserId(userId)
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {

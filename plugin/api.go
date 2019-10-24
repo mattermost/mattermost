@@ -336,10 +336,17 @@ type API interface {
 	// Minimum server version: 5.10
 	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
 
-	// AddChannelMember creates a channel membership for a user.
+	// AddChannelMember joins a user to a channel (as if they joined themselves)
+	// This means the user will not receive notifications for joining the channel.
 	//
 	// Minimum server version: 5.2
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
+
+	// AddUserToChannel adds a user to a channel as if the specified user had invited them.
+	// This means the user will receive the regular notifications for being added to the channel.
+	//
+	// Minimum server version: 5.18
+	AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError)
 
 	// GetChannelMember gets a channel membership for a user.
 	//
@@ -370,6 +377,21 @@ type API interface {
 	//
 	// Minimum server version: 5.2
 	UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
+
+	// GetGroup gets a group by ID.
+	//
+	// Minimum server version: 5.18
+	GetGroup(groupId string) (*model.Group, *model.AppError)
+
+	// GetGroupByName gets a group by name.
+	//
+	// Minimum server version: 5.18
+	GetGroupByName(name string) (*model.Group, *model.AppError)
+
+	// GetGroupsForUser gets the groups a user is in.
+	//
+	// Minimum server version: 5.18
+	GetGroupsForUser(userId string) ([]*model.Group, *model.AppError)
 
 	// DeleteChannelMember deletes a channel membership for a user.
 	//
