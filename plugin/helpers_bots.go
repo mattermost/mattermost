@@ -11,9 +11,8 @@ import (
 
 func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) {
 	const minimumSupportedVersion = "5.10.0"
-	serverVersion := p.API.GetServerVersion()
 
-	err := ensureServerVersion(minimumSupportedVersion, serverVersion)
+	err := p.ensureServerVersion(minimumSupportedVersion)
 	if err != nil {
 		return "", err
 	}

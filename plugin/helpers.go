@@ -4,7 +4,6 @@
 package plugin
 
 import (
-	"fmt"
 	"github.com/blang/semver"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
@@ -48,12 +47,13 @@ type HelpersImpl struct {
 	API API
 }
 
-func ensureServerVersion(required string, actual string) error {
-	requiredVersion, _ := semver.Make(required)
-	currentVersion, _ := semver.Make(actual)
+func (p *HelpersImpl) ensureServerVersion(required string) error {
+	requiredVersion := semver.MustParse(required)
+	serverVersion := p.API.GetServerVersion()
+	currentVersion := semver.MustParse(serverVersion)
 
 	if currentVersion.LT(requiredVersion) {
-		return errors.New(fmt.Sprintf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, actual))
+		return errors.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
 	}
 	return nil
 }
