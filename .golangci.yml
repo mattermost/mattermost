@@ -1,0 +1,36 @@
+linters-settings:
+  govet:
+    check-shadowing: true
+
+linters:
+  disable-all: true
+  enable:
+    - unused
+    - gosimple
+    - structcheck
+    - varcheck
+    - ineffassign
+    - deadcode
+    - unconvert
+    # TODO: enable these later
+    # - govet
+    # - gofmt
+    # - errcheck
+    # - staticcheck
+    # - unparam
+
+issues:
+  exclude-rules:
+    - linters:
+      # ignore warnings to simplify v, _ := to v :=
+      - gosimple
+      text: "S1005:"
+
+    - linters:
+      # ignore unused warnings from enterprise code
+      # add more as required.
+      - unused
+      text: "RedisSupplier|LocalCacheSupplier|Enterprise"
+
+  # TODO: slowly remove all warnings from the codebase and remove this.
+  new-from-rev: HEAD~
