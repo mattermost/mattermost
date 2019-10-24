@@ -5,6 +5,7 @@ package main
 
 import (
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/pkg/errors"
 )
 
 type PluginUsingLogAPI struct {
@@ -23,6 +24,6 @@ func (p *PluginUsingLogAPI) OnActivate() error {
 	p.API.LogDebug("LogDebug", "one", 1, "two", "two", "foo", Foo{bar: 3.1416})
 	p.API.LogInfo("LogInfo", "one", 1, "two", "two", "foo", Foo{bar: 3.1416})
 	p.API.LogWarn("LogWarn", "one", 1, "two", "two", "foo", Foo{bar: 3.1416})
-	p.API.LogError("LogError", "one", 1, "two", "two", "foo", Foo{bar: 3.1416})
+	p.API.LogError("LogError", "error", errors.WithStack(errors.New("boom!")))
 	return nil
 }

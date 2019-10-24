@@ -4,41 +4,56 @@
 package plugin
 
 import (
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestStringify(t *testing.T) {
-	cases := []struct {
-		name     string
-		objects  []interface{}
-		strings  []string
-	}{
-		{
-			name:     "NilShouldReturnEmpty",
-			objects:  nil,
-			strings:  make([]string, 0, 0),
-		},
-		{
-			name:     "EmptyShouldReturnEmpty",
-			objects:  make([]interface{}, 0, 0),
-			strings:  make([]string, 0, 0),
-		},
-		{
-			name:     "ShouldReturnCorrectValues",
-			objects:  []interface{}{"foo", "bar", nil, map[string]int{"one": 1, "two": 2},
-				&WithString{}, &WithError{}, &WithStringAndError{}},
-			strings:  []string{"foo", "bar", "", "map[one:1 two:2]", "string", "error", "string"},
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			strings := stringify(c.objects)
-			assert.Equal(t, c.strings, strings)
+	t.Run("NilShouldReturnEmpty", func(t *testing.T) {
+		strings := stringify(nil)
+		assert.Empty(t, strings)
+	})
+	t.Run("EmptyShouldReturnEmpty", func(t *testing.T) {
+		strings := stringify(make([]interface{}, 0, 0))
+		assert.Empty(t, strings)
+	})
+	t.Run("PrimitivesAndCompositesShouldReturnCorrectValues", func(t *testing.T) {
+		strings := stringify([]interface{}{
+			1234,
+			3.14159265358979323846264338327950288419716939937510,
+			true,
+			"foo",
+			nil,
+			[]string{"foo", "bar"},
+			map[string]int{"one": 1, "two": 2},
+			&WithString{},
+			&WithoutString{},
+			&WithStringAndError{},
 		})
-	}
-
+		assert.Equal(t, []string{
+			"1234",
+			"3.141592653589793",
+			"true",
+			"foo",
+			"<nil>",
+			"[foo bar]",
+			"map[one:1 two:2]",
+			"string",
+			"&{}",
+			"error",
+		}, strings)
+	})
+	t.Run("ErrorShouldReturnFormattedStack", func(t *testing.T) {
+		strings := stringify([]interface{}{
+			errors.New("error"),
+			errors.WithStack(errors.New("error")),
+		})
+		stackRegexp := "error\n.*plugin.TestStringify.func\\d+\n\t.*plugin/stringifier_test.go:\\d+\ntesting.tRunner\n\t.*testing.go:\\d+.*"
+		assert.Len(t, strings, 2)
+		assert.Regexp(t, stackRegexp, strings[0])
+		assert.Regexp(t, stackRegexp, strings[1])
+	})
 }
 
 type WithString struct {
@@ -48,11 +63,7 @@ func (*WithString) String() string {
 	return "string"
 }
 
-type WithError struct {
-}
-
-func (*WithError) Error() string {
-	return "error"
+type WithoutString struct {
 }
 
 type WithStringAndError struct {
@@ -67,33 +78,16 @@ func (*WithStringAndError) Error() string {
 }
 
 func TestToObjects(t *testing.T) {
-	cases := []struct {
-		name     string
-		objects  []interface{}
-		strings  []string
-	}{
-		{
-			name:     "NilShouldReturnNil",
-			strings:  nil,
-			objects:  nil,
-		},
-		{
-			name:     "EmptyShouldReturnEmpty",
-			strings:  make([]string, 0, 0),
-			objects:  make([]interface{}, 0, 0),
-		},
-		{
-			name:     "ShouldReturnSliceOfObjects",
-			strings:  []string{"foo", "bar"},
-			objects:  []interface{}{"foo", "bar"},
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			objects := toObjects(c.strings)
-			assert.Equal(t, c.objects, objects)
-		})
-	}
-
+	t.Run("NilShouldReturnNil", func(t *testing.T) {
+		objects := toObjects(nil)
+		assert.Nil(t, objects)
+	})
+	t.Run("EmptyShouldReturnEmpty", func(t *testing.T) {
+		objects := toObjects(make([]string, 0, 0))
+		assert.Empty(t, objects)
+	})
+	t.Run("ShouldReturnSliceOfObjects", func(t *testing.T) {
+		objects := toObjects([]string{"foo", "bar"})
+		assert.Equal(t, []interface{}{"foo", "bar"}, objects)
+	})
 }
