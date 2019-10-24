@@ -24,11 +24,9 @@ func TestYesterday(t *testing.T) {
 	actual := Yesterday()
 	expected := time.Now().AddDate(0, 0, -1)
 
-	assert := assert.New(t)
-
-	assert.Equal(actual.Year(), expected.Year())
-	assert.Equal(actual.Day(), expected.Day())
-	assert.Equal(actual.Month(), expected.Month())
+	assert.Equal(t, actual.Year(), expected.Year())
+	assert.Equal(t, actual.Day(), expected.Day())
+	assert.Equal(t, actual.Month(), expected.Month())
 }
 
 func TestStartOfDay(t *testing.T) {
