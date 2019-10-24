@@ -368,30 +368,16 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 }
 
 type Z_PluginHTTPArgs struct {
-	Request           *http.Request
-	RequestBodyStream uint32
+	Request     *http.Request
+	RequestBody []byte
 }
 
 type Z_PluginHTTPReturns struct {
-	Response           *http.Response
-	ResponseBodyStream uint32
+	Response     *http.Response
+	ResponseBody []byte
 }
 
 func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
-	requestBodyStreamId := uint32(0)
-	if request.Body != nil {
-		requestBodyStreamId = g.muxBroker.NextId()
-		go func() {
-			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
-			if err != nil {
-				log.Printf("PluginHTTP failed, muxBroker couldn't Accept request body connection. Err: " + err.Error())
-				return
-			}
-			defer bodyConnection.Close()
-			serveIOReader(request.Body, bodyConnection)
-		}()
-	}
-
 	forwardedRequest := &http.Request{
 		Method:     request.Method,
 		URL:        request.URL,
@@ -404,65 +390,47 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 		RequestURI: request.RequestURI,
 	}
 
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		log.Printf("RPC call to PluginHTTP API failed: %s", err.Error())
+		return nil
+	}
+	request.Body.Close()
+	request.Body = nil
+
 	_args := &Z_PluginHTTPArgs{
-		Request:           forwardedRequest,
-		RequestBodyStream: requestBodyStreamId,
+		Request:     forwardedRequest,
+		RequestBody: requestBody,
 	}
 
 	_returns := &Z_PluginHTTPReturns{}
 	if err := g.client.Call("Plugin.PluginHTTP", _args, _returns); err != nil {
 		log.Printf("RPC call to PluginHTTP API failed: %s", err.Error())
-		return _returns.Response
+		return nil
 	}
 
-	if _returns.ResponseBodyStream != 0 {
-		connection, err := g.muxBroker.Dial(_returns.ResponseBodyStream)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
-			_returns.Response.Body = ioutil.NopCloser(&bytes.Buffer{})
-			return _returns.Response
-		}
-		_returns.Response.Body = connectIOReader(connection)
-	} else if _returns.Response != nil {
-		_returns.Response.Body = ioutil.NopCloser(&bytes.Buffer{})
-	}
+	_returns.Response.Body = ioutil.NopCloser(bytes.NewBuffer(_returns.ResponseBody))
 
 	return _returns.Response
 }
 
 func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPReturns) error {
-	if args.RequestBodyStream != 0 {
-		connection, err := s.muxBroker.Dial(args.RequestBodyStream)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
-			return err
-		}
-		args.Request.Body = connectIOReader(connection)
-	} else {
-		args.Request.Body = ioutil.NopCloser(&bytes.Buffer{})
-	}
+	args.Request.Body = ioutil.NopCloser(bytes.NewBuffer(args.RequestBody))
 
 	if hook, ok := s.impl.(interface {
 		PluginHTTP(request *http.Request) *http.Response
 	}); ok {
 		response := hook.PluginHTTP(args.Request)
-		responseBodyStreamId := uint32(0)
-		if response.Body != nil {
-			responseBodyStreamId = s.muxBroker.NextId()
-			responseBody := response.Body
-			response.Body = nil
-			go func() {
-				bodyConnection, err := s.muxBroker.Accept(responseBodyStreamId)
-				if err != nil {
-					log.Printf("PluginHTTP failed, muxBroker couldn't Accept request body connection. Err: " + err.Error())
-					return
-				}
-				defer bodyConnection.Close()
-				serveIOReader(responseBody, bodyConnection)
-			}()
+
+		responseBody, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return encodableError(fmt.Errorf("RPC call to PluginHTTP API failed: %s", err.Error()))
 		}
+		response.Body.Close()
+		response.Body = nil
+
 		returns.Response = response
-		returns.ResponseBodyStream = responseBodyStreamId
+		returns.ResponseBody = responseBody
 	} else {
 		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented."))
 	}

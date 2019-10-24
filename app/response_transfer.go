@@ -12,20 +12,20 @@ import (
 	"strings"
 )
 
-type ResponseTransfer struct {
+type PluginResponseWriter struct {
 	bytes.Buffer
 	headers    http.Header
 	statusCode int
 }
 
-func (rt *ResponseTransfer) Header() http.Header {
+func (rt *PluginResponseWriter) Header() http.Header {
 	if rt.headers == nil {
 		rt.headers = make(http.Header)
 	}
 	return rt.headers
 }
 
-func (rt *ResponseTransfer) WriteHeader(statusCode int) {
+func (rt *PluginResponseWriter) WriteHeader(statusCode int) {
 	rt.statusCode = statusCode
 }
 
@@ -43,7 +43,7 @@ func parseContentLength(cl string) int64 {
 
 }
 
-func (rt *ResponseTransfer) GenerateResponse() *http.Response {
+func (rt *PluginResponseWriter) GenerateResponse() *http.Response {
 	res := &http.Response{
 		Proto:      "HTTP/1.1",
 		ProtoMajor: 1,

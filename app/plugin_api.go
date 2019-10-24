@@ -812,7 +812,13 @@ func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
 
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	toPluginId := request.Header.Get("Mattermost-Destination-Plugin-Id")
-	responseTransfer := &ResponseTransfer{}
+	if toPluginId == "" {
+		return &http.Response{
+			StatusCode: http.StatusBadRequest,
+			Body:       ioutil.NopCloser(bytes.NewBufferString("No plugin specified. Specify with Mattermost-Destination-Plugin-Id")),
+		}
+	}
+	responseTransfer := &PluginResponseWriter{}
 	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, toPluginId)
 	return responseTransfer.GenerateResponse()
 }
