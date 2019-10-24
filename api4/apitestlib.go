@@ -25,7 +25,6 @@ import (
 	s3 "github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/credentials"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -576,19 +575,19 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
-	assert.Nil(t, resp.Error)
+	require.Nil(t, resp.Error)
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
 	t.Helper()
 
-	assert.NotNilf(t, resp, "Unexpected nil response, expected http:%v, expectError:%v", expectedStatus, expectError)
+	require.NotNilf(t, resp, "Unexpected nil response, expected http:%v, expectError:%v", expectedStatus, expectError)
 	if expectError {
-		assert.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
+		require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
 	} else {
-		assert.Nil(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
+		require.Nil(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
 	}
-	assert.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
+	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
 }
 
 func CheckOKStatus(t *testing.T, resp *model.Response) {
@@ -639,8 +638,8 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
-	assert.NotNil(t, resp.Error)
-	assert.Equal(t, resp.Error.Id, errorId, "incorrect error message")
+	require.NotNil(t, resp.Error)
+	require.Equal(t, resp.Error.Id, errorId, "incorrect error message")
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
