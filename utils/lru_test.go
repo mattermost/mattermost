@@ -21,7 +21,7 @@ func TestLRU(t *testing.T) {
 	for i := 0; i < 256; i++ {
 		l.Add(i, i)
 	}
-	require.Lenf(t, l, 128, "bad len: %v", l.Len())
+	require.NotEqualf(t, l.Len(), 128, "bad len: %v", l.Len())
 
 	for i, k := range l.Keys() {
 		v, ok := l.Get(k)
