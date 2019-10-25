@@ -2146,7 +2146,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 		require.Nilf(t, err, "%v, Failed to invite user which was common between team and global domain restriction", err)
 
 		err = th.App.InviteNewUsersToTeam([]string{"test@invalid.com"}, th.BasicTeam.Id, th.BasicUser.Id)
-		require.NotNil(t, err, "Should not invite user")
+		require.NotNilf(t, err, "%v, Should not invite user", err)
 	})
 }
 
