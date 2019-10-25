@@ -14,6 +14,7 @@ type shouldProcessMessageOptions struct {
 	AllowBots           bool
 	FilterChannelIDs    []string
 	FilterUserIDs       []string
+	OnlyBotDMs          bool
 }
 
 type ShouldProcessMessageOption func(*shouldProcessMessageOptions)
@@ -51,6 +52,15 @@ func FilterChannelIDs(filterChannelIDs []string) ShouldProcessMessageOption {
 func FilterUserIDs(filterUserIDs []string) ShouldProcessMessageOption {
 	return func(options *shouldProcessMessageOptions) {
 		options.FilterUserIDs = filterUserIDs
+	}
+}
+
+// OnlyBotDMs configures a call to ShouldProcessMessage to return true only for post in Bot DM channel.
+//
+// By default, posts from all channels are allowed.
+func OnlyBotDMs() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.OnlyBotDMs = true
 	}
 }
 
@@ -124,6 +134,16 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		option(messageProcessOptions)
 	}
 
+	botIdBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
+	if kvGetErr != nil || botIdBytes == nil {
+		return false, errors.Wrap(kvGetErr, "failed to get bot")
+	}
+	botId := string(botIdBytes)
+
+	if post.UserId == botId {
+		return false, nil
+	}
+
 	if post.IsSystemMessage() && !messageProcessOptions.AllowSystemMessages {
 		return false, nil
 	}
@@ -147,18 +167,15 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		return false, nil
 	}
 
-	channel, appErr := p.API.GetChannel(post.ChannelId)
-	if appErr != nil {
-		return false, errors.Wrap(appErr, "unable to get channel")
-	}
+	if messageProcessOptions.OnlyBotDMs {
+		channel, appErr := p.API.GetChannel(post.ChannelId)
+		if appErr != nil {
+			return false, errors.Wrap(appErr, "unable to get channel")
+		}
 
-	botIdBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
-	if kvGetErr != nil || botIdBytes == nil {
-		return false, errors.Wrap(kvGetErr, "failed to get bot")
-	}
-	botId := string(botIdBytes)
-	if !model.IsBotDMChannel(channel, botId) {
-		return false, nil
+		if !model.IsBotDMChannel(channel, botId) {
+			return false, nil
+		}
 	}
 
 	return true, nil

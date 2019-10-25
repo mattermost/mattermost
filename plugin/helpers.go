@@ -40,11 +40,11 @@ type Helpers interface {
 
 	// ShouldProcessMessage returns if the message should be processed by a message hook.
 	//
-	// Use this method to avoid processing unnecessary messages in a MessageHasBeenPosted 
-	// or MessageWillBePosted hook, and indeed in some cases avoid an infinite loop between 
+	// Use this method to avoid processing unnecessary messages in a MessageHasBeenPosted
+	// or MessageWillBePosted hook, and indeed in some cases avoid an infinite loop between
 	// two automated bots or plugins.
 	//
-	// The behaviour is customizable using the given options, since plugin needs may vary. 
+	// The behaviour is customizable using the given options, since plugin needs may vary.
 	// By default, system messages and messages from bots will be skipped.
 	ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error)
 }
