@@ -654,6 +654,22 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) 
 	return r0, r1
 }
 
+// PermanentDeleteMembersByUser provides a mock function with given fields: userId
+func (_m *GroupStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
+	ret := _m.Called(userId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // TeamMembersMinusGroupMembers provides a mock function with given fields: teamID, groupIDs, page, perPage
 func (_m *GroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	ret := _m.Called(teamID, groupIDs, page, perPage)

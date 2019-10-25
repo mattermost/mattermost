@@ -162,6 +162,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	}
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
+	a.Session = *session
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {

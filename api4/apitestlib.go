@@ -641,6 +641,10 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	require.Equal(t, resp.Error.Id, errorId, "incorrect error message")
 }
 
+func CheckStartsWith(t *testing.T, value, prefix, message string) {
+	require.True(t, strings.HasPrefix(value, prefix), message, value)
+}
+
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
 // If signV2 input is false, function always returns signature v4.
 //
