@@ -87,6 +87,11 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 
 	post.Metadata = &model.PostMetadata{}
 
+	if post.DeleteAt > 0 {
+		// Don't fill out metadata for deleted posts
+		return post
+	}
+
 	// Emojis and reaction counts
 	if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
 		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
@@ -176,7 +181,10 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	return nil, nil
+	return &model.PostEmbed{
+		Type: model.POST_EMBED_LINK,
+		URL:  firstLink,
+	}, nil
 }
 
 func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost bool) map[string]*model.PostImage {
@@ -379,7 +387,8 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
 		body, contentType, err = a.ImageProxy.GetImageDirect(a.ImageProxy.GetUnproxiedImageURL(request.URL.String()))
 	} else {
-		request.Header.Add("Accept", "image/*, text/html")
+		request.Header.Add("Accept", "image/*")
+		request.Header.Add("Accept", "text/html;q=0.8")
 
 		client := a.HTTPService.MakeClient(false)
 		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
@@ -494,7 +503,13 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
-	if strings.HasPrefix(contentType, "image") {
+	if contentType == "image/svg+xml" {
+		image := &model.PostImage{
+			Format: "svg",
+		}
+
+		return nil, image, nil
+	} else if strings.HasPrefix(contentType, "image") {
 		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {

@@ -64,6 +64,9 @@ func TestFindManifest(t *testing.T) {
 func TestManifestUnmarshal(t *testing.T) {
 	expected := Manifest{
 		Id:               "theid",
+		HomepageURL:      "https://example.com",
+		SupportURL:       "https://example.com/support",
+		IconPath:         "assets/icon.svg",
 		MinServerVersion: "5.6.0",
 		Server: &ManifestServer{
 			Executable: "theexecutable",
@@ -102,6 +105,9 @@ func TestManifestUnmarshal(t *testing.T) {
 	var yamlResult Manifest
 	require.NoError(t, yaml.Unmarshal([]byte(`
 id: theid
+homepage_url: https://example.com
+support_url: https://example.com/support
+icon_path: assets/icon.svg
 min_server_version: 5.6.0
 server:
     executable: theexecutable
@@ -131,7 +137,10 @@ settings_schema:
 	var jsonResult Manifest
 	require.NoError(t, json.Unmarshal([]byte(`{
 	"id": "theid",
-  "min_server_version": "5.6.0",
+	"homepage_url": "https://example.com",
+	"support_url": "https://example.com/support",
+	"icon_path": "assets/icon.svg",
+	"min_server_version": "5.6.0",
 	"server": {
 		"executable": "theexecutable",
 		"executables": {

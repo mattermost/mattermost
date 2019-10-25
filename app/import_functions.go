@@ -5,10 +5,11 @@ package app
 
 import (
 	"bytes"
-	"fmt"
+	"crypto/sha1"
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -916,18 +917,42 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 	if file != nil {
 		timestamp := utils.TimeFromMillis(post.CreateAt)
 		buf := bytes.NewBuffer(nil)
-		io.Copy(buf, file)
+		_, _ = io.Copy(buf, file)
+		// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
+		if post.Id != "" {
+			if oldFiles, err := a.GetFileInfosForPost(post.Id, true); err == nil {
+				for _, oldFile := range oldFiles {
+					if oldFile.Name != path.Base(file.Name()) || oldFile.Size != int64(buf.Len()) {
+						continue
+					}
+					// check md5
+					newHash := sha1.Sum(buf.Bytes())
+					oldFileData, err := a.GetFile(oldFile.Id)
+					if err != nil {
+						return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+					}
+					oldHash := sha1.Sum(oldFileData)
 
+					if bytes.Equal(oldHash[:], newHash[:]) {
+						mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
+						return nil, nil
+					}
+
+				}
+			} else {
+				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+			}
+		}
 		fileInfo, err := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
 
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Failed to upload file: %s", err.Error()))
+			mlog.Error("Failed to upload file:", mlog.Err(err))
 			return nil, err
 		}
 
 		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{buf.Bytes()})
 
-		mlog.Info(fmt.Sprintf("uploading file with name %s", file.Name()))
+		mlog.Info("Uploading file with name", mlog.String("file_name", file.Name()))
 		return fileInfo, nil
 	}
 	return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -1055,7 +1080,9 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 		if err != nil {
 			return nil, err
 		}
-		fileIds = append(fileIds, fileInfo.Id)
+		if fileInfo != nil { // nil is returned when the file was skipped due to duplication
+			fileIds = append(fileIds, fileInfo.Id)
+		}
 	}
 	return fileIds, nil
 }
@@ -1063,7 +1090,7 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 func (a *App) UpdateFileInfoWithPostId(post *model.Post) {
 	for _, fileId := range post.FileIds {
 		if err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
-			mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, err), mlog.String("post_id", post.Id))
+			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}
 }

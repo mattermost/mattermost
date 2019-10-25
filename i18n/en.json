@@ -172,6 +172,10 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v added to the channel as guest by %v."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v."
   },
@@ -258,6 +262,10 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Unable to delete direct or group message channels"
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v joined the channel as guest."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -378,6 +386,10 @@
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "The default channel cannot be made private."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -1863,6 +1875,10 @@
     "translation": "Parameter required to add user to team."
   },
   {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Guest accounts are disabled."
   },
@@ -1933,10 +1949,6 @@
   {
     "id": "api.team.invite_members.invalid_email.app_error",
     "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
-  },
-  {
-    "id": "api.team.invite_members.member",
-    "translation": "member"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -2140,7 +2152,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2148,7 +2160,7 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -2496,7 +2508,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+    "translation": "Enter a valid email or username and/or password, or sign in using another method."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
@@ -2651,6 +2663,14 @@
     "translation": "Update password failed because we couldn't find a valid account"
   },
   {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
+  },
+  {
     "id": "api.user.upload_profile_user.array.app_error",
     "translation": "Empty array under 'image' in request"
   },
@@ -2761,6 +2781,10 @@
   {
     "id": "app.admin.test_email.failure",
     "translation": "Connection unsuccessful: {{.Error}}"
+  },
+  {
+    "id": "app.admin.test_site_url.failure",
+    "translation": "This is not a valid live URL"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3360,7 +3384,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new Direct Message from @{{.SenderName}}"
+    "translation": "You have a new Direct Message from {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
@@ -3368,7 +3392,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "You have a new Group Message from @{{.SenderName}}"
+    "translation": "You have a new Group Message from {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3376,11 +3400,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from @{{.SenderName}}"
+    "translation": "You have a new notification from {{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3392,7 +3416,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3404,7 +3428,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3412,7 +3436,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] New Direct Message from @{{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] New Direct Message from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3487,6 +3511,22 @@
     "translation": "Unable to find manifest for extracted plugin"
   },
   {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": "Failed to create marketplace client."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Marketplace has been disabled. Please check your logs for details."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.app_error",
+    "translation": "Failed to get plugins from the marketplace server."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "Failed to marshal marketplace plugins."
+  },
+  {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
   },
@@ -3503,6 +3543,10 @@
     "translation": "Unable to remove plugin bundle from file store."
   },
   {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Unable to store the plugin to the configured file store."
   },
@@ -3517,6 +3561,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins and/or plugin uploads have been disabled."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3907,6 +3955,10 @@
     "translation": "Invalid AD/LDAP Filter"
   },
   {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Invalid AD/LDAP Guest Filter"
+  },
+  {
     "id": "ent.ldap_groups.group_search_error",
     "translation": "error retrieving ldap group"
   },
@@ -4148,7 +4200,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Error trying to authenticate MFA token"
+    "translation": "Invalid MFA token."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4460,7 +4512,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers and hyphen (-)."
+    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.) and hyphen (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -4472,15 +4524,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search AutocompleteEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elastic Search AutocompleteEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4663,8 +4715,20 @@
     "translation": "Service Provider Login URL must be a valid URL and start with http:// or https://."
   },
   {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "Invalid Canonical Algorithm."
+  },
+  {
+    "id": "model.config.is_valid.saml_digest_algorithm.app_error",
+    "translation": "Invalid Digest Algorithm."
+  },
+  {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Invalid Email attribute. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4685,6 +4749,10 @@
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
     "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Invalid Signature Algorithm."
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -5639,6 +5707,10 @@
     "translation": "Unable to get the channels"
   },
   {
+    "id": "store.sql_channel.get_pinnedpost_count.app_error",
+    "translation": "Unable to get the channel pinned post count"
+  },
+  {
     "id": "store.sql_channel.get_public_channels.get.app_error",
     "translation": "Unable to get public channels"
   },
@@ -6055,6 +6127,10 @@
     "translation": "no rows changed"
   },
   {
+    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
+  },
+  {
     "id": "store.sql_group.unique_constraint",
     "translation": "a group with that name already exists"
   },
@@ -6327,10 +6403,6 @@
     "translation": "Unable to select the posts to delete for the user (too many), please re-run"
   },
   {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "Unable to determine the maximum supported post size"
-  },
-  {
     "id": "store.sql_post.save.app_error",
     "translation": "Unable to save the Post"
   },
@@ -6373,10 +6445,6 @@
   {
     "id": "store.sql_preference.insert.save.app_error",
     "translation": "Unable to save the preference"
-  },
-  {
-    "id": "store.sql_preference.is_feature_enabled.app_error",
-    "translation": "We encountered an error while finding a pre release feature preference"
   },
   {
     "id": "store.sql_preference.permanent_delete_by_user.app_error",
@@ -6611,18 +6679,6 @@
     "translation": "No entry for that status exists"
   },
   {
-    "id": "store.sql_status.get_online.app_error",
-    "translation": "Encountered an error retrieving all the online statuses"
-  },
-  {
-    "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Encountered an error retrieving all the online/away statuses"
-  },
-  {
-    "id": "store.sql_status.get_team_statuses.app_error",
-    "translation": "Encountered an error retrieving all statuses from the team members"
-  },
-  {
     "id": "store.sql_status.get_total_active_users_count.app_error",
     "translation": "We could not count the active users"
   },
@@ -6665,6 +6721,14 @@
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
     "translation": "Unable to get the channel count for the scheme."
+  },
+  {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "Unable to count the private teams"
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "Unable to count the public teams"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -6720,6 +6784,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Unable to find the existing team"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Unable to find the existing team"
   },
   {
@@ -6829,10 +6897,6 @@
   {
     "id": "store.sql_team.update.updating.app_error",
     "translation": "We encountered an error updating the team"
-  },
-  {
-    "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Unable to update the team name"
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
@@ -7339,12 +7403,100 @@
     "translation": "Unable to parse incoming data"
   },
   {
-    "id": "web.error.unsupported_browser.message",
-    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+    "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+    "translation": "Get the latest Chrome browser"
   },
   {
-    "id": "web.error.unsupported_browser.title",
-    "translation": "Unsupported Browser"
+    "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+    "translation": "Get the latest Firefox browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "Get the latest Safari browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.chrome",
+    "translation": "Google Chrome"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.edge",
+    "translation": "Microsoft Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.firefox",
+    "translation": "Firefox"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.safari",
+    "translation": "Safari"
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "Download the App"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "Download the App"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.mac",
+    "translation": "Install Guide"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.windows",
+    "translation": "Install Guide"
+  },
+  {
+    "id": "web.error.unsupported_browser.learn_more",
+    "translation": "Learn more about supported browsers."
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "Version 61+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "Version 44+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "Version 60+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "Version 12+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.mac",
+    "translation": "macOS 10.9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "Windows 7+"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support",
+    "translation": "We no longer support this browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support_version",
+    "translation": "We no longer support this version of your browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.open_system_browser.edge",
+    "translation": "Open Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_make_default",
+    "translation": "Make default"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "or"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",

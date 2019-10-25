@@ -4,7 +4,6 @@
 package manualtesting
 
 import (
-	"fmt"
 	"hash/fnv"
 	"math/rand"
 	"net/http"
@@ -100,7 +99,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		c.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
-		<-c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
+		c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
 
 		userID = user.Id
 
@@ -162,6 +161,6 @@ func getChannelID(a *app.App, channelname string, teamid string, userid string) 
 			return channel.Id, true
 		}
 	}
-	mlog.Debug(fmt.Sprintf("Could not find channel: %v, %v possibilities searched", channelname, strconv.Itoa(len(*channels))))
+	mlog.Debug("Could not find channel", mlog.String("Channel name", channelname), mlog.Int("Possibilities searched", len(*channels)))
 	return "", false
 }

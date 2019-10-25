@@ -73,9 +73,9 @@ type TextFormatter struct {
 	FieldMap FieldMap
 
 	// CallerPrettyfier can be set by the user to modify the content
-	// of the function and file keys in the json data when ReportCaller is
+	// of the function and file keys in the data when ReportCaller is
 	// activated. If any of the returned value is the empty string the
-	// corresponding key will be removed from json fields.
+	// corresponding key will be removed from fields.
 	CallerPrettyfier func(*runtime.Frame) (function string, file string)
 
 	terminalInitOnce sync.Once
@@ -84,10 +84,6 @@ type TextFormatter struct {
 func (f *TextFormatter) init(entry *Entry) {
 	if entry.Logger != nil {
 		f.isTerminal = checkIfTerminal(entry.Logger.Out)
-
-		if f.isTerminal {
-			initTerminal(entry.Logger.Out)
-		}
 	}
 }
 
@@ -133,13 +129,18 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 		fixedKeys = append(fixedKeys, f.FieldMap.resolve(FieldKeyLogrusError))
 	}
 	if entry.HasCaller() {
-		fixedKeys = append(fixedKeys,
-			f.FieldMap.resolve(FieldKeyFunc), f.FieldMap.resolve(FieldKeyFile))
 		if f.CallerPrettyfier != nil {
 			funcVal, fileVal = f.CallerPrettyfier(entry.Caller)
 		} else {
 			funcVal = entry.Caller.Function
 			fileVal = fmt.Sprintf("%s:%d", entry.Caller.File, entry.Caller.Line)
+		}
+
+		if funcVal != "" {
+			fixedKeys = append(fixedKeys, f.FieldMap.resolve(FieldKeyFunc))
+		}
+		if fileVal != "" {
+			fixedKeys = append(fixedKeys, f.FieldMap.resolve(FieldKeyFile))
 		}
 	}
 
@@ -225,7 +226,6 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *Entry, keys []strin
 	entry.Message = strings.TrimSuffix(entry.Message, "\n")
 
 	caller := ""
-
 	if entry.HasCaller() {
 		funcVal := fmt.Sprintf("%s()", entry.Caller.Function)
 		fileVal := fmt.Sprintf("%s:%d", entry.Caller.File, entry.Caller.Line)
@@ -233,7 +233,14 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *Entry, keys []strin
 		if f.CallerPrettyfier != nil {
 			funcVal, fileVal = f.CallerPrettyfier(entry.Caller)
 		}
-		caller = fileVal + " " + funcVal
+
+		if fileVal == "" {
+			caller = funcVal
+		} else if funcVal == "" {
+			caller = fileVal
+		} else {
+			caller = fileVal + " " + funcVal
+		}
 	}
 
 	if f.DisableTimestamp {

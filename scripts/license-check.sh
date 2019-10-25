@@ -3,7 +3,7 @@ set -e
 IFS=$'\n'
 count=0
 for fileType in GoFiles; do
-    for file in `go list -f $'{{range .GoFiles}}{{$.Dir}}/{{.}}\n{{end}}' "$@"`; do
+    for file in `go list -mod=vendor -f $'{{range .GoFiles}}{{$.Dir}}/{{.}}\n{{end}}' "$@"`; do
         case $file in
             */utils/lru.go|*/utils/imgutils/gif.go|*/store/storetest/mocks/*|*/services/*/mocks/*|*/app/plugin/jira/plugin_*|*/plugin/plugintest/*|*/app/plugin/zoom/plugin_*|*/einterfaces/mocks/*)
             # Third-party, doesn't require a header.
