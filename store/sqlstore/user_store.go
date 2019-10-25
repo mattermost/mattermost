@@ -1267,7 +1267,7 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = sanitizeSearchTerm(term, "*")
 
-	searchType := USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+	var searchType []string
 	if options.AllowEmails {
 		if options.AllowFullNames {
 			searchType = USER_SEARCH_TYPE_ALL
