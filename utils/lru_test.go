@@ -21,7 +21,7 @@ func TestLRU(t *testing.T) {
 	for i := 0; i < 256; i++ {
 		l.Add(i, i)
 	}
-	require.NotEqualf(t, l.Len(), 128, "bad len: %v", l.Len())
+	require.Equalf(t, l.Len(), 128, "bad len: %v", l.Len())
 
 	for i, k := range l.Keys() {
 		v, ok := l.Get(k)
@@ -51,7 +51,7 @@ func TestLRU(t *testing.T) {
 	}
 
 	l.Purge()
-	require.Lenf(t, l, 0, "bad len: %v", l.Len())
+	require.Equalf(t, l.Len(), 0, "bad len: %v", l.Len())
 	if _, ok := l.Get(200); ok {
 		require.False(t, ok, "should contain nothing")
 	}
