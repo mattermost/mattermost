@@ -31,7 +31,7 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 	}
 
 	_, err := ss.Emoji().Save(emoji1)
-	require.Nil(t, err, err)
+	require.Nil(t, err)
 
 	assert.Len(t, emoji1.Id, 26, "should've set id for emoji")
 
@@ -43,13 +43,13 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 	require.NotNil(t, err, "shouldn't be able to save emoji with duplicate name")
 
 	err = ss.Emoji().Delete(emoji1, time.Now().Unix())
-	require.Nil(t, err, err)
+	require.Nil(t, err)
 
 	_, err = ss.Emoji().Save(&emoji2)
-	require.Nilf(t, err, "%v, should be able to save emoji with duplicate name now that original has been deleted", err)
+	require.Nilf(t, err, "should be able to save emoji with duplicate name now that original has been deleted")
 
 	err = ss.Emoji().Delete(&emoji2, time.Now().Unix()+1)
-	require.Nil(t, err, err)
+	require.Nil(t, err)
 }
 
 func testEmojiGet(t *testing.T, ss store.Store) {
@@ -82,12 +82,12 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 
 	for _, emoji := range emojis {
 		_, err := ss.Emoji().Get(emoji.Id, false)
-		require.Nilf(t, err, "failed to get emoji with id %v: %v", emoji.Id, err)
+		require.Nilf(t, err, "failed to get emoji with id %v", emoji.Id)
 	}
 
 	for _, emoji := range emojis {
 		_, err := ss.Emoji().Get(emoji.Id, true)
-		require.Nilf(t, err, "failed to get emoji with id %v: %v", emoji.Id, err)
+		require.Nilf(t, err, "failed to get emoji with id %v", emoji.Id)
 	}
 }
 
@@ -176,7 +176,7 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 
 	for _, emoji := range emojis {
 		_, err := ss.Emoji().GetByName(emoji.Name, true)
-		require.Nilf(t, err, "failed to get emoji with name %v: %v", emoji.Name, err)
+		require.Nilf(t, err, "failed to get emoji with name %v", emoji.Name)
 	}
 }
 
@@ -210,14 +210,14 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 
 	t.Run("one emoji", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name})
-		require.Nilf(t, err, "%v, could not get emoji", err)
+		require.Nilf(t, err, "could not get emoji")
 		require.Equal(t, len(received), 1, "got incorrect emoji")
 		require.Equal(t, *received[0], emojis[0], "got incorrect emoji")
 	})
 
 	t.Run("multiple emojis", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name})
-		require.Nilf(t, err, "%v, could not get emojis", err)
+		require.Nilf(t, err, "could not get emojis")
 		require.Equal(t, len(received), 3, "got incorrect emojis")
 	})
 
@@ -229,7 +229,7 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 
 	t.Run("multiple emojis with nonexistent names", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name, "abcd", "1234"})
-		require.Nilf(t, err, "%v, could not get emojis", err)
+		require.Nilf(t, err, "could not get emojis")
 		require.Equal(t, len(received), 3, "got incorrect emojis")
 	})
 }
@@ -329,7 +329,7 @@ func testEmojiSearch(t *testing.T, ss store.Store) {
 	shouldFind := []bool{true, false, false, false}
 
 	result, err := ss.Emoji().Search("blargh", true, 100)
-	require.Nil(t, err, err)
+	require.Nil(t, err)
 	for i, emoji := range emojis {
 		found := false
 
@@ -345,7 +345,7 @@ func testEmojiSearch(t *testing.T, ss store.Store) {
 
 	shouldFind = []bool{true, true, true, false}
 	result, err = ss.Emoji().Search("blargh", false, 100)
-	require.Nil(t, err, err)
+	require.Nil(t, err)
 	for i, emoji := range emojis {
 		found := false
 
