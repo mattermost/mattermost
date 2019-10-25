@@ -180,8 +180,6 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, resp.IconURL, post.Props["override_icon_url"])
 	assert.Equal(t, "true", post.Props["from_webhook"])
 
-	// Not a built In command
-	builtIn = false
 	// Test Slack text conversion.
 	resp.Text = "<!channel>"
 
@@ -200,9 +198,8 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, "@channel", post.Message)
-	assert.Equal(t, 1, len(post.Attachments()))
-	for _, attachment := range post.Attachments() {
-		assert.Equal(t, "@here", attachment.Text)
+	if assert.Len(t, post.Attachments(), 1) {
+		assert.Equal(t, "@here", post.Attachments()[0].Text)
 	}
 	assert.Equal(t, "true", post.Props["from_webhook"])
 
