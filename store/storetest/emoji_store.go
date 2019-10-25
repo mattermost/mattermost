@@ -33,7 +33,7 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 	_, err := ss.Emoji().Save(emoji1)
 	require.Nil(t, err, err)
 
-	require.Equal(t, len(emoji1.Id), 26, "should've set id for emoji")
+	assert.Len(t, emoji1.Id, 26, "should've set id for emoji")
 
 	emoji2 := model.Emoji{
 		CreatorId: model.NewId(),
@@ -211,7 +211,8 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 	t.Run("one emoji", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name})
 		require.Nilf(t, err, "%v, could not get emoji", err)
-		require.False(t, len(received) != 1 || *received[0] != emojis[0], "got incorrect emoji")
+		require.Equal(t, len(received), 1, "got incorrect emoji")
+		require.Equal(t, *received[0], emojis[0], "got incorrect emoji")
 	})
 
 	t.Run("multiple emojis", func(t *testing.T) {
