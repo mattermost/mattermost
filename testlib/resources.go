@@ -27,6 +27,8 @@ const (
 	actionSymlink
 )
 
+const root = "___mattermost-server"
+
 type testResourceDetails struct {
 	src     string
 	dest    string
@@ -50,6 +52,15 @@ func findFile(path string) string {
 }
 
 func findDir(dir string) (string, bool) {
+	if dir == root {
+		srcPath := findFile("go.mod")
+		if srcPath == "" {
+			return "./", false
+		}
+
+		return path.Dir(srcPath), true
+	}
+
 	found := fileutils.FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
 		return fileInfo.IsDir()
 	})
@@ -65,7 +76,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 	var found bool
 
 	var testResourcesToSetup = []testResourceDetails{
-		{"mattermost-server", "mattermost-server", resourceTypeFolder, actionSymlink},
+		{root, "mattermost-server", resourceTypeFolder, actionSymlink},
 		{"i18n", "i18n", resourceTypeFolder, actionSymlink},
 		{"templates", "templates", resourceTypeFolder, actionSymlink},
 		{"tests", "tests", resourceTypeFolder, actionSymlink},
