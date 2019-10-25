@@ -24,7 +24,6 @@ import (
 
 	s3 "github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/credentials"
-
 	"github.com/stretchr/testify/require"
 )
 
