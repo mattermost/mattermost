@@ -52,9 +52,8 @@ func TestLRU(t *testing.T) {
 
 	l.Purge()
 	require.Equalf(t, l.Len(), 0, "bad len: %v", l.Len())
-	if _, ok := l.Get(200); ok {
-		require.False(t, ok, "should contain nothing")
-	}
+	_, ok := l.Get(200)
+	require.False(t, ok, "should contain nothing")
 }
 
 func TestLRUExpire(t *testing.T) {
@@ -65,14 +64,12 @@ func TestLRUExpire(t *testing.T) {
 	l.AddWithExpiresInSecs(3, 3, 0)
 
 	time.Sleep(time.Millisecond * 2100)
-
-	if r1, ok := l.Get(1); ok {
-		require.False(t, ok, r1)
-	}
-
-	if _, ok2 := l.Get(3); !ok2 {
-		require.True(t, ok2, "should exist")
-	}
+	
+	r1, ok := l.Get(1)
+	require.False(t, ok, r1)
+	
+	_, ok2 := l.Get(3)
+	require.True(t, ok2, "should exist")
 }
 
 func TestLRUGetOrAdd(t *testing.T) {
