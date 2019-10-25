@@ -54,7 +54,7 @@ func TestCreateTeam(t *testing.T) {
 	r, err := Client.DoApiPost("/teams", "garbage")
 	require.NotNil(t, err, "should have errored")
 
-	require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
+	require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 
 	Client.Logout()
 
@@ -389,7 +389,7 @@ func TestPatchTeam(t *testing.T) {
 	r, err := Client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
 	require.NotNil(t, err, "should have errored")
 
-	require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
+	require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 
 	Client.Logout()
 	_, resp = Client.PatchTeam(team.Id, patch)
@@ -2140,10 +2140,10 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		err = th.App.InviteNewUsersToTeam([]string{"test@global.com"}, th.BasicTeam.Id, th.BasicUser.Id)
 		require.NotNil(t, err, "Per team restriction should take precedence over the global restriction")
-		require.Equal(t, err.Where, "InviteNewUsersToTeam", "Per team restriction should take precedence over the global restriction")
+		require.Equalf(t, err.Where, "InviteNewUsersToTeam", "%v, Per team restriction should take precedence over the global restriction", err)
 
 		err = th.App.InviteNewUsersToTeam([]string{"test@common.com"}, th.BasicTeam.Id, th.BasicUser.Id)
-		require.Nil(t, err, "Failed to invite user which was common between team and global domain restriction")
+		require.Nilf(t, err, "%v, Failed to invite user which was common between team and global domain restriction", err)
 
 		err = th.App.InviteNewUsersToTeam([]string{"test@invalid.com"}, th.BasicTeam.Id, th.BasicUser.Id)
 		require.NotNil(t, err, "Should not invite user")
@@ -2284,7 +2284,7 @@ func TestSetTeamIcon(t *testing.T) {
 	team := th.BasicTeam
 
 	data, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err)
+	require.Nil(t, err, err)
 
 	th.LoginTeamAdmin()
 
@@ -2332,7 +2332,7 @@ func TestSetTeamIcon(t *testing.T) {
 
 	info := &model.FileInfo{Path: "teams/" + team.Id + "/teamIcon.png"}
 	err = th.cleanupTestFile(info)
-	require.Nil(t, err)
+	require.Nil(t, err, err)
 }
 
 func TestGetTeamIcon(t *testing.T) {

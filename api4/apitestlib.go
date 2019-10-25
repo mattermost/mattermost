@@ -656,9 +656,9 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
-	require.NotNil(t, resp.Error, "should have errored with message:"+errorId)
+	require.NotNil(t, resp.Error, "should have errored with message: %s")
 
-	require.Equalf(t, resp.Error.Id, errorId, "incorrect error message actual: %s, expected: %s", resp.Error.Id, errorId)
+	require.Equalf(t, resp.Error.Id, errorId, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
 }
 
 func CheckStartsWith(t *testing.T, value, prefix, message string) {
