@@ -349,5 +349,5 @@ func (a *App) getBundleStorePath(id string) string {
 }
 
 func (a *App) getSignatureStorePath(id string, index int) string {
-	return filepath.Join(*a.Config().PluginSettings.Directory, fmt.Sprintf("%s.%d.sig", id, index))
+	return filepath.Join(fileStorePluginFolder, fmt.Sprintf("%s.%d.sig", id, index))
 }
