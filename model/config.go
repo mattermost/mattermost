@@ -2880,7 +2880,7 @@ func (ss *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *ss.ConnectionSecurity == CONN_SECURITY_TLS && *ss.UseLetsEncrypt == false {
+	if *ss.ConnectionSecurity == CONN_SECURITY_TLS && !*ss.UseLetsEncrypt {
 		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file.app_error", nil, "", http.StatusBadRequest)
 
 		if *ss.TLSCertFile == "" {
