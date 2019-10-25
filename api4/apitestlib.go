@@ -591,7 +591,9 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
-	require.Nilf(t, resp.Error, "Expected no error")
+	if resp.Error != nil {
+		require.FailNow(t, "Expected no error, got %q", resp.Error.Error())
+	}
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
@@ -656,7 +658,7 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
-	require.NotNil(t, resp.Error, "should have errored with message: %s")
+	require.NotNilf(t, resp.Error, "should have errored with message: %s", errorId)
 
 	require.Equalf(t, resp.Error.Id, errorId, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
 }
