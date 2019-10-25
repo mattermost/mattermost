@@ -59,7 +59,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 
 	requestID := model.NewId()
-	mlog.Debug("New HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
+	mlog.Debug("Received HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
 
 	c := &Context{}
 	c.App = app.New(
