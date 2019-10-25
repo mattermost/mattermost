@@ -33,6 +33,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GetMemberUsersPage", func(t *testing.T) { testGroupGetMemberUsersPage(t, ss) })
 	t.Run("UpsertMember", func(t *testing.T) { testUpsertMember(t, ss) })
 	t.Run("DeleteMember", func(t *testing.T) { testGroupDeleteMember(t, ss) })
+	t.Run("PermanentDeleteMembersByUser", func(t *testing.T) { testGroupPermanentDeleteMembersByUser(t, ss) })
 
 	t.Run("CreateGroupSyncable", func(t *testing.T) { testCreateGroupSyncable(t, ss) })
 	t.Run("GetGroupSyncable", func(t *testing.T) { testGetGroupSyncable(t, ss) })
@@ -760,6 +761,42 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 	// Delete non-existent Group
 	_, err = ss.Group().DeleteMember(model.NewId(), group.Id)
 	require.Equal(t, err.Id, "store.sql_group.no_rows")
+}
+
+func testGroupPermanentDeleteMembersByUser(t *testing.T, ss store.Store) {
+	var g *model.Group
+	var groups []*model.Group
+	numberOfGroups := 5
+
+	for i := 0; i < numberOfGroups; i++ {
+		g = &model.Group{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Source:      model.GroupSourceLdap,
+			RemoteId:    model.NewId(),
+		}
+		group, err := ss.Group().Create(g)
+		groups = append(groups, group)
+		require.Nil(t, err)
+	}
+
+	// Create user
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user, err := ss.User().Save(u1)
+	require.Nil(t, err)
+
+	// Create members
+	for _, group := range groups {
+		_, err = ss.Group().UpsertMember(group.Id, user.Id)
+		require.Nil(t, err)
+	}
+
+	// Happy path
+	err = ss.Group().PermanentDeleteMembersByUser(user.Id)
+	require.Nil(t, err)
 }
 
 func testCreateGroupSyncable(t *testing.T, ss store.Store) {
