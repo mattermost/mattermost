@@ -1038,7 +1038,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	require.Equal(t, err.Id, "store.sql_group.no_rows")
 
 	// Non-existent Team
-	_, err = ss.Group().DeleteGroupSyncable(groupTeam.GroupId, string(model.NewId()), model.GroupSyncableTypeTeam)
+	_, err = ss.Group().DeleteGroupSyncable(groupTeam.GroupId, model.NewId(), model.GroupSyncableTypeTeam)
 	require.Equal(t, err.Id, "store.sql_group.no_rows")
 
 	// Happy path...
@@ -1795,10 +1795,10 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	_, err = ss.User().Update(user2, true)
 	require.Nil(t, err)
 
-	group1WithMemberCount := model.Group(*group1)
+	group1WithMemberCount := *group1
 	group1WithMemberCount.MemberCount = model.NewInt(1)
 
-	group2WithMemberCount := model.Group(*group2)
+	group2WithMemberCount := *group2
 	group2WithMemberCount.MemberCount = model.NewInt(0)
 
 	testCases := []struct {
@@ -2009,10 +2009,10 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	_, err = ss.User().Update(user2, true)
 	require.Nil(t, err)
 
-	group1WithMemberCount := model.Group(*group1)
+	group1WithMemberCount := *group1
 	group1WithMemberCount.MemberCount = model.NewInt(1)
 
-	group2WithMemberCount := model.Group(*group2)
+	group2WithMemberCount := *group2
 	group2WithMemberCount.MemberCount = model.NewInt(0)
 
 	testCases := []struct {
