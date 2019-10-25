@@ -128,7 +128,5 @@ func TestGetInfoForFile(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equalf(t, info.Name, "file.tif", "Got incorrect filename: %v", info.Name)
 	assert.Equalf(t, info.Extension, "tif", "Got incorrect extension: %v", info.Extension)
-	if info.MimeType != "image/tiff" {
-		assert.Equalf(t, info.MimeType, "image/x-tiff", "Got incorrect mime type: %v", info.MimeType)
-	}
+	assert.True(t, info.MimeType == "image/x-tiff" || info.MimeType == "image/tiff", "Got incorrect mime type: %v", info.MimeType)
 }
