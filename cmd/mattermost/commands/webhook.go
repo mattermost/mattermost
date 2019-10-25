@@ -81,7 +81,7 @@ var WebhookMoveOutgoingCmd = &cobra.Command{
 	Use:     "move-outgoing",
 	Short:   "Move outgoing webhook",
 	Long:    "Move outgoing webhook with an id",
-	Example: "  webhook move newteam oldteam:[oldTeamId]--channel [channelId]",
+	Example: "  webhook move newteam oldteam:webhook-id --channel new-default-channel",
 	RunE:    moveOutgoingWebhookCmd,
 }
 
