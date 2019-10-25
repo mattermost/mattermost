@@ -40,26 +40,20 @@ func escapeQuotes(s string) string {
 	return quoteEscaper.Replace(s)
 }
 
-func randomBytes(n int) []byte {
+func randomBytes(t *testing.T, n int) []byte {
 	bb := make([]byte, n)
 	_, err := rand.Read(bb)
-	if err != nil {
-		panic(err.Error())
-	}
+	require.NoError(t, err)
 	return bb
 }
 
-func fileBytes(path string) []byte {
+func fileBytes(t *testing.T, path string) []byte {
 	path = filepath.Join(testDir, path)
 	f, err := os.Open(path)
-	if err != nil {
-		panic(err.Error())
-	}
+	require.NoError(t, err)
 	defer f.Close()
 	bb, err := ioutil.ReadAll(f)
-	if err != nil {
-		panic(err.Error())
-	}
+	require.NoError(t, err)
 	return bb
 }
 
@@ -183,7 +177,7 @@ func testUploadFilesMultipart(
 		require.Nil(t, err)
 	}
 
-	mw.Close()
+	require.NoError(t, mw.Close())
 	return testDoUploadFileRequest(t, c, "", mwBody.Bytes(), mw.FormDataContentType(), -1)
 }
 
@@ -251,7 +245,7 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                 "Happy invalid image",
 			names:                 []string{"testgif.gif"},
-			blobs:                 [][]byte{fileBytes("test-search.md")},
+			blobs:                 [][]byte{fileBytes(t, "test-search.md")},
 			skipPayloadValidation: true,
 			expectedCreatorId:     th.BasicUser.Id,
 		},
@@ -382,7 +376,7 @@ func TestUploadFiles(t *testing.T) {
 			useChunkedInSimplePost: true,
 			skipPayloadValidation:  true,
 			names:                  []string{"1Mb-stream"},
-			blobs:                  [][]byte{randomBytes(1024 * 1024)},
+			blobs:                  [][]byte{randomBytes(t, 1024*1024)},
 			setupConfig: func(a *app.App) func(a *app.App) {
 				maxFileSize := *a.Config().FileSettings.MaxFileSize
 				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 1024 * 1024 })
@@ -480,7 +474,7 @@ func TestUploadFiles(t *testing.T) {
 			title:                 "Error stream too large",
 			skipPayloadValidation: true,
 			names:                 []string{"1Mb-stream"},
-			blobs:                 [][]byte{randomBytes(1024 * 1024)},
+			blobs:                 [][]byte{randomBytes(t, 1024*1024)},
 			skipSuccessValidation: true,
 			checkResponse:         CheckRequestEntityTooLargeStatus,
 			setupConfig: func(a *app.App) func(a *app.App) {
@@ -532,7 +526,7 @@ func TestUploadFiles(t *testing.T) {
 				blobs := tc.blobs
 				if len(blobs) == 0 {
 					for _, name := range tc.names {
-						blobs = append(blobs, fileBytes(name))
+						blobs = append(blobs, fileBytes(t, name))
 					}
 				}
 
@@ -555,9 +549,9 @@ func TestUploadFiles(t *testing.T) {
 					return
 				}
 
-				if fileResp == nil || len(fileResp.FileInfos) == 0 || len(fileResp.FileInfos) != len(tc.names) {
-					t.Fatal("Empty or mismatched actual or expected FileInfos")
-				}
+				require.NotNil(t, fileResp, "Nil fileResp")
+				require.NotEqual(t, 0, len(fileResp.FileInfos), "Empty FileInfos")
+				require.Equal(t, len(tc.names), len(fileResp.FileInfos), "Mismatched actual or expected FileInfos")
 
 				for i, ri := range fileResp.FileInfos {
 					// The returned file info from the upload call will be missing some fields that will be stored in the database
@@ -653,29 +647,20 @@ func TestGetFile(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	fileId := ""
-	var sent []byte
-	var err error
-	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
+	fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+	CheckNoError(t, resp)
+
+	fileId := fileResp.FileInfos[0].Id
 
 	data, resp := Client.GetFile(fileId)
 	CheckNoError(t, resp)
-
-	if len(data) == 0 {
-		t.Fatal("should not be empty")
-	}
+	require.NotEqual(t, 0, len(data), "should not be empty")
 
 	for i := range data {
-		if data[i] != sent[i] {
-			t.Fatal("received file didn't match sent one")
-		}
+		require.Equal(t, sent[i], data[i], "received file didn't match sent one")
 	}
 
 	_, resp = Client.GetFile("junk")
@@ -713,30 +698,19 @@ func TestGetFileHeaders(t *testing.T) {
 			_, resp = Client.GetFile(fileId)
 			CheckNoError(t, resp)
 
-			if contentType := resp.Header.Get("Content-Type"); !strings.HasPrefix(contentType, expectedContentType) {
-				t.Fatal("returned incorrect Content-Type", contentType)
-			}
+			CheckStartsWith(t, resp.Header.Get("Content-Type"), expectedContentType, "returned incorrect Content-Type")
 
 			if getInline {
-				if contentDisposition := resp.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "inline") {
-					t.Fatal("returned incorrect Content-Disposition", contentDisposition)
-				}
+				CheckStartsWith(t, resp.Header.Get("Content-Disposition"), "inline", "returned incorrect Content-Disposition")
 			} else {
-				if contentDisposition := resp.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "attachment") {
-					t.Fatal("returned incorrect Content-Disposition", contentDisposition)
-				}
+				CheckStartsWith(t, resp.Header.Get("Content-Disposition"), "attachment", "returned incorrect Content-Disposition")
 			}
 
 			_, resp = Client.DownloadFile(fileId, true)
 			CheckNoError(t, resp)
 
-			if contentType := resp.Header.Get("Content-Type"); !strings.HasPrefix(contentType, expectedContentType) {
-				t.Fatal("returned incorrect Content-Type", contentType)
-			}
-
-			if contentDisposition := resp.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "attachment") {
-				t.Fatal("returned incorrect Content-Disposition", contentDisposition)
-			}
+			CheckStartsWith(t, resp.Header.Get("Content-Type"), expectedContentType, "returned incorrect Content-Type")
+			CheckStartsWith(t, resp.Header.Get("Content-Disposition"), "attachment", "returned incorrect Content-Disposition")
 		}
 	}
 
@@ -768,27 +742,20 @@ func TestGetFileThumbnail(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	fileId := ""
-	var sent []byte
-	var err error
-	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
+	fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+	CheckNoError(t, resp)
+
+	fileId := fileResp.FileInfos[0].Id
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
 	data, resp := Client.GetFileThumbnail(fileId)
 	CheckNoError(t, resp)
-
-	if len(data) == 0 {
-		t.Fatal("should not be empty")
-	}
+	require.NotEqual(t, 0, len(data), "should not be empty")
 
 	_, resp = Client.GetFileThumbnail("junk")
 	CheckBadRequestStatus(t, resp)
@@ -823,21 +790,19 @@ func TestGetFileLink(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
-	fileId := ""
-	if data, err := testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
+	fileResp, uploadResp := Client.UploadFile(data, channel.Id, "test.png")
+	CheckNoError(t, uploadResp)
+
+	fileId := fileResp.FileInfos[0].Id
 
 	_, resp := Client.GetFileLink(fileId)
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err := th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
+	err = th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
@@ -850,10 +815,7 @@ func TestGetFileLink(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	link, resp := Client.GetFileLink(fileId)
 	CheckNoError(t, resp)
-
-	if link == "" {
-		t.Fatal("should've received public link")
-	}
+	require.NotEqual(t, "", link, "should've received public link")
 
 	_, resp = Client.GetFileLink("junk")
 	CheckBadRequestStatus(t, resp)
@@ -889,27 +851,19 @@ func TestGetFilePreview(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	fileId := ""
-	var sent []byte
-	var err error
-	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
+	fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+	CheckNoError(t, resp)
+	fileId := fileResp.FileInfos[0].Id
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
 	data, resp := Client.GetFilePreview(fileId)
 	CheckNoError(t, resp)
-
-	if len(data) == 0 {
-		t.Fatal("should not be empty")
-	}
+	require.NotEqual(t, 0, len(data), "should not be empty")
 
 	_, resp = Client.GetFilePreview("junk")
 	CheckBadRequestStatus(t, resp)
@@ -942,17 +896,12 @@ func TestGetFileInfo(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	fileId := ""
-	var sent []byte
-	var err error
-	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
+	fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+	CheckNoError(t, resp)
+	fileId := fileResp.FileInfos[0].Id
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
@@ -960,23 +909,14 @@ func TestGetFileInfo(t *testing.T) {
 	info, resp := Client.GetFileInfo(fileId)
 	CheckNoError(t, resp)
 
-	if err != nil {
-		t.Fatal(err)
-	} else if info.Id != fileId {
-		t.Fatal("got incorrect file")
-	} else if info.CreatorId != user.Id {
-		t.Fatal("file should be assigned to user")
-	} else if info.PostId != "" {
-		t.Fatal("file shouldn't have a post")
-	} else if info.Path != "" {
-		t.Fatal("file path shouldn't have been returned to client")
-	} else if info.ThumbnailPath != "" {
-		t.Fatal("file thumbnail path shouldn't have been returned to client")
-	} else if info.PreviewPath != "" {
-		t.Fatal("file preview path shouldn't have been returned to client")
-	} else if info.MimeType != "image/png" {
-		t.Fatal("mime type should've been image/png")
-	}
+	require.NoError(t, err)
+	require.Equal(t, fileId, info.Id, "got incorrect file")
+	require.Equal(t, user.Id, info.CreatorId, "file should be assigned to user")
+	require.Equal(t, "", info.PostId, "file shouldn't have a post")
+	require.Equal(t, "", info.Path, "file path shouldn't have been returned to client")
+	require.Equal(t, "", info.ThumbnailPath, "file thumbnail path shouldn't have been returned to client")
+	require.Equal(t, "", info.PreviewPath, "file preview path shouldn't have been returned to client")
+	require.Equal(t, "image/png", info.MimeType, "mime type should've been image/png")
 
 	_, resp = Client.GetFileInfo("junk")
 	CheckBadRequestStatus(t, resp)
@@ -1007,18 +947,16 @@ func TestGetPublicFile(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
-	fileId := ""
-	if data, err := testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
+	fileResp, httpResp := Client.UploadFile(data, channel.Id, "test.png")
+	CheckNoError(t, httpResp)
+
+	fileId := fileResp.FileInfos[0].Id
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err := th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
+	err = th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	info, err := th.App.Srv.Store.FileInfo().Get(fileId)
@@ -1028,31 +966,31 @@ func TestGetPublicFile(t *testing.T) {
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
-	if resp, err := http.Get(link); err != nil || resp.StatusCode != http.StatusOK {
-		t.Log(link)
-		t.Fatal("failed to get image with public link", err)
-	}
+	resp, err := http.Get(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode, "failed to get image with public link")
 
-	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link without hash", resp.Status)
-	}
+	resp, err = http.Get(link[:strings.LastIndex(link, "?")])
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link without hash", resp.Status)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
-		t.Fatal("should've failed to get image with disabled public link")
-	}
+
+	resp, err = http.Get(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotImplemented, resp.StatusCode, "should've failed to get image with disabled public link")
 
 	// test after the salt has changed
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link after salt changed")
-	}
+	resp, err = http.Get(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link after salt changed")
 
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link after salt changed")
-	}
+	resp, err = http.Get(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link after salt changed")
 
 	fileInfo, err := th.App.Srv.Store.FileInfo().Get(fileId)
 	require.Nil(t, err)
