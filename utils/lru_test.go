@@ -25,7 +25,7 @@ func TestLRU(t *testing.T) {
 
 	for i, k := range l.Keys() {
 		v, ok := l.Get(k)
-		require.Equalf(t, true, ok, "bad key: %v", k)
+		require.True(t, ok, "bad key: %v", k)
 		require.Equalf(t, v, k, "bad key: %v", k)
 		require.Equalf(t, i+128, v, "bad key: %v", k)
 	}
