@@ -2126,7 +2126,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		require.NotNil(t, err, "Adding users with non-restricted domains was allowed")
 
-		require.False(t, err.Where != "InviteNewUsersToTeam" || err.Id != "api.team.invite_members.invalid_email.app_error", "Got wrong error message!")
+		require.Equalf(t, err.Where, "InviteNewUsersToTeam", "%v, Got wrong error message!", err)
+		require.Equalf(t, err.Id, "api.team.invite_members.invalid_email.app_error", "%v, Got wrong error message!", err)
 	})
 
 	t.Run("override restricted domains", func(t *testing.T) {
@@ -2136,10 +2137,10 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		th.BasicTeam.AllowedDomains = "common.com"
 		_, err = th.App.UpdateTeam(th.BasicTeam)
-		require.Nil(t, err, "Should update the team")
+		require.Nilf(t, err, "%v, Should update the team", err)
 
 		err = th.App.InviteNewUsersToTeam([]string{"test@global.com"}, th.BasicTeam.Id, th.BasicUser.Id)
-		require.NotNil(t, err, "Per team restriction should take precedence over the global restriction")
+		require.NotNilf(t, err, "%v, Per team restriction should take precedence over the global restriction", err)
 		require.Equalf(t, err.Where, "InviteNewUsersToTeam", "%v, Per team restriction should take precedence over the global restriction", err)
 
 		err = th.App.InviteNewUsersToTeam([]string{"test@common.com"}, th.BasicTeam.Id, th.BasicUser.Id)
