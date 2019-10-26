@@ -6127,6 +6127,10 @@
     "translation": "no rows changed"
   },
   {
+    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
+  },
+  {
     "id": "store.sql_group.unique_constraint",
     "translation": "a group with that name already exists"
   },
