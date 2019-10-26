@@ -282,11 +282,7 @@ func getAddManageGuestsPermissionsMigration() permissionsMap {
 	return permissionsMap{
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add: []string{PERMISSION_PROMOTE_GUEST, PERMISSION_DEMOTE_TO_GUEST},
-		},
-		permissionTransformation{
-			On:  permissionExists(PERMISSION_INVITE_USER),
-			Add: []string{PERMISSION_INVITE_GUEST},
+			Add: []string{PERMISSION_PROMOTE_GUEST, PERMISSION_DEMOTE_TO_GUEST, PERMISSION_INVITE_GUEST},
 		},
 	}
 }
