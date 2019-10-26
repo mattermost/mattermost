@@ -135,13 +135,14 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 	}
 
 	botIdBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
-	if kvGetErr != nil || botIdBytes == nil {
+	if kvGetErr != nil {
 		return false, errors.Wrap(kvGetErr, "failed to get bot")
 	}
-	botId := string(botIdBytes)
 
-	if post.UserId == botId {
-		return false, nil
+	if botIdBytes != nil {
+		if post.UserId == string(botIdBytes) {
+			return false, nil
+		}
 	}
 
 	if post.IsSystemMessage() && !messageProcessOptions.AllowSystemMessages {
@@ -167,13 +168,13 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		return false, nil
 	}
 
-	if messageProcessOptions.OnlyBotDMs {
+	if botIdBytes != nil && messageProcessOptions.OnlyBotDMs {
 		channel, appErr := p.API.GetChannel(post.ChannelId)
 		if appErr != nil {
 			return false, errors.Wrap(appErr, "unable to get channel")
 		}
 
-		if !model.IsBotDMChannel(channel, botId) {
+		if !model.IsBotDMChannel(channel, string(botIdBytes)) {
 			return false, nil
 		}
 	}

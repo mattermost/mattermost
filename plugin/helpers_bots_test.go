@@ -232,6 +232,18 @@ func TestShouldProcessMessage(t *testing.T) {
 		assert.True(t, shouldProcessMessage)
 	})
 
+	t.Run("should process the message for plugin without a bot", func(t *testing.T) {
+		channelID := "1"
+		api := setupAPI()
+		api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
+		p.API = api
+
+		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{UserId: "1", Type: model.POST_HEADER_CHANGE, ChannelId: channelID},
+			plugin.AllowSystemMessages(), plugin.FilterChannelIDs([]string{channelID}), plugin.AllowBots(), plugin.FilterUserIDs([]string{"1"}))
+
+		assert.True(t, shouldProcessMessage)
+	})
+
 	t.Run("should process the message when filter channel and filter users list is empty", func(t *testing.T) {
 		channelID := "1"
 		api := setupAPI()
