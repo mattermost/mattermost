@@ -96,7 +96,7 @@ pipeline {
 			}
 
 			steps {
-				withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:sep-17-2019') {
+				withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:oct-18-2019') {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
@@ -272,7 +272,7 @@ pipeline {
 					}
 				}
 
-				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:sep-17-2019') {
+				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:oct-18-2019') {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
@@ -328,7 +328,7 @@ pipeline {
 					}
 				}
 
-				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:sep-17-2019') {
+				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:oct-18-2019') {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
@@ -353,6 +353,10 @@ pipeline {
 				dir('src/github.com/mattermost/mattermost-server') {
 					ansiColor('xterm') {
 						sh """
+						echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
+						/usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+						/usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml exec -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+
 						echo "Generating dump"
 						/usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
 						/usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
@@ -371,7 +375,7 @@ pipeline {
 					}
 				}
 
-				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:sep-17-2019') {
+				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:oct-18-2019') {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
