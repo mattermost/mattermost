@@ -190,6 +190,7 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
 	PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE = true
 	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://api.integrations.mattermost.com"
+	PLUGIN_SETTINGS_OLD_MARKETPLACE_URL        = "https://marketplace.integrations.mattermost.com"
 
 	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
@@ -324,6 +325,7 @@ type ServiceSettings struct {
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 	EnableBotAccountCreation                          *bool
 	EnableSVGs                                        *bool
+	EnableLatex                                       *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -686,6 +688,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 			s.EnableSVGs = NewBool(true)
 		} else {
 			s.EnableSVGs = NewBool(false)
+		}
+	}
+
+	if s.EnableLatex == nil {
+		if isUpdate {
+			s.EnableLatex = NewBool(true)
+		} else {
+			s.EnableLatex = NewBool(false)
 		}
 	}
 }
@@ -2284,7 +2294,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.EnableMarketplace = NewBool(PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE)
 	}
 
-	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" {
+	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" || *s.MarketplaceUrl == PLUGIN_SETTINGS_OLD_MARKETPLACE_URL {
 		s.MarketplaceUrl = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 	}
 }
