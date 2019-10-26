@@ -55,7 +55,7 @@ func FilterUserIDs(filterUserIDs []string) ShouldProcessMessageOption {
 	}
 }
 
-// OnlyBotDMs configures a call to ShouldProcessMessage to return true only for post in Bot DM channel.
+// OnlyBotDMs configures a call to ShouldProcessMessage to return true only for direct messages sent to the bot created by EnsureBot.
 //
 // By default, posts from all channels are allowed.
 func OnlyBotDMs() ShouldProcessMessageOption {
