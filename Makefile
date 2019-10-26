@@ -183,7 +183,7 @@ golangci-lint:
 	fi; \
 
 	@echo Running golangci-lint
-	$(GOPATH)/bin/golangci-lint run
+	golangci-lint run
 
 megacheck: ## Run megacheck on codebasis
 	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
