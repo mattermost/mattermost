@@ -63,12 +63,10 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		CheckNoError(t, resp)
 
 		require.Equalf(t, openGraph["title"], data["title"].(string),
-			"OG data title mismatch for path \"%s\". Expected title: \"%s\". Actual title: \"%s\"",
-			data["path"].(string), data["title"].(string), openGraph["title"])
+			"OG data title mismatch for path \"%s\".")
 
-		require.Equalf(t, ogDataCacheMissCount, data["cacheMissCount"].(int),
-			"Cache miss count didn't match. Expected value %d. Actual value %d.",
-			data["cacheMissCount"].(int), ogDataCacheMissCount)
+		require.Equal(t, ogDataCacheMissCount, data["cacheMissCount"].(int),
+			"Cache miss count didn't match.")
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = false })
