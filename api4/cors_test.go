@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -127,16 +129,13 @@ func TestCORSRequestHandling(t *testing.T) {
 			url := fmt.Sprintf("%v/api/v4/system/ping", host)
 
 			req, err := http.NewRequest("GET", url, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+			require.NoError(t, err)
 			testcase.ModifyRequest(req)
 
 			client := &http.Client{}
 			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal(err)
-			}
+			require.NoError(t, err)
+
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
 			assert.Equal(t, testcase.ExpectedAllowOrigin, resp.Header.Get(acAllowOrigin))
 			assert.Equal(t, testcase.ExpectedExposeHeaders, resp.Header.Get(acExposeHeaders))
