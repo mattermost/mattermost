@@ -1,3 +1,7 @@
+run:
+  timeout: 5m
+  modules-download-mode: vendor
+
 linters-settings:
   govet:
     check-shadowing: true
@@ -5,32 +9,22 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-    - unused
-    - gosimple
-    - structcheck
-    - varcheck
-    - ineffassign
     - deadcode
+    - gofmt
+    - gosimple
+    - govet
+    - ineffassign
+    - structcheck
     - unconvert
-    # TODO: enable these later
-    # - govet
-    # - gofmt
+    - unused
+    - varcheck
+    # TODO: enable this later
     # - errcheck
-    # - staticcheck
-    # - unparam
 
 issues:
   exclude-rules:
-    - linters:
-      # ignore warnings to simplify v, _ := to v :=
-      - gosimple
-      text: "S1005:"
-
     - linters:
       # ignore unused warnings from enterprise code
       # add more as required.
       - unused
       text: "RedisSupplier|LocalCacheSupplier|Enterprise"
-
-  # TODO: slowly remove all warnings from the codebase and remove this.
-  new-from-rev: HEAD~
