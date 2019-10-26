@@ -1422,8 +1422,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
 	}
 
-	c.App.Session = *session
-
 	user.Sanitize(map[string]bool{})
 
 	w.Write([]byte(user.ToJson()))

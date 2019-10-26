@@ -114,7 +114,9 @@ func TestCreateCommand(t *testing.T) {
 		t.Run(testCase.Description, func(t *testing.T) {
 			actual, _ := th.RunCommandWithOutput(t, testCase.Args...)
 
-			cmds, _ := th.SystemAdminClient.ListCommands(team.Id, true)
+			cmds, response := th.SystemAdminClient.ListCommands(team.Id, true)
+
+			require.Nil(t, response.Error, "Failed to list commands")
 
 			if testCase.ExpectedErr == "" {
 				assert.NotZero(t, len(cmds), "Failed to create command")
@@ -272,7 +274,7 @@ func TestModifyCommand(t *testing.T) {
 		assert.Equal(t, cmd.IconURL, command.IconURL)
 	})
 
-	t.Run("mispelled flag", func(t *testing.T) {
+	t.Run("misspelled flag", func(t *testing.T) {
 		args := []string{"command", "", command.Id, "--trigger-wor", "sometrigger"}
 		output, _ := th.RunCommandWithOutput(t, args...)
 		assert.Contains(t, string(output), "Error: unknown flag:")

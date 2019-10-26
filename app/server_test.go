@@ -164,14 +164,15 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 			CipherSuites: []uint16{
-				tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+				tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
 			},
+			MaxVersion: tls.VersionTLS12,
 		},
 	}
 
 	client := &http.Client{Transport: tr}
 	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
-
+	require.Error(t, err, "Expected error due to Cipher mismatch")
 	if !strings.Contains(err.Error(), "remote error: tls: handshake failure") {
 		t.Errorf("Expected protocol version error, got %s", err)
 	}
@@ -183,6 +184,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 			},
+			MaxVersion: tls.VersionTLS12,
 		},
 	}
 

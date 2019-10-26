@@ -87,6 +87,11 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 
 	post.Metadata = &model.PostMetadata{}
 
+	if post.DeleteAt > 0 {
+		// Don't fill out metadata for deleted posts
+		return post
+	}
+
 	// Emojis and reaction counts
 	if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
 		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
