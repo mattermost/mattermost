@@ -11,9 +11,7 @@ import (
 
 // KVSetJSON is a wrapper around KVSet to simplify writing a JSON object to the key value store.
 func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
-	const minimumSupportedVersion = "5.2.0"
-
-	err := p.ensureServerVersion(minimumSupportedVersion)
+	err := p.ensureServerVersion("5.2.0")
 	if err != nil {
 		return err
 	}
@@ -34,9 +32,8 @@ func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 // KVCompareAndSetJSON is a wrapper around KVCompareAndSet to simplify atomically writing a JSON object to the key value store.
 func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error) {
 	var err error
-	const minimumSupportedVersion = "5.12.0"
 
-	err = p.ensureServerVersion(minimumSupportedVersion)
+	err = p.ensureServerVersion("5.12.0")
 	if err != nil {
 		return false, err
 	}
@@ -67,9 +64,8 @@ func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newV
 // KVCompareAndDeleteJSON is a wrapper around KVCompareAndDelete to simplify atomically deleting a JSON object from the key value store.
 func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error) {
 	var err error
-	const minimumSupportedVersion = "5.16.0"
 
-	err = p.ensureServerVersion(minimumSupportedVersion)
+	err = p.ensureServerVersion("5.16.0")
 	if err != nil {
 		return false, err
 	}
@@ -93,9 +89,7 @@ func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (
 
 // KVGetJSON is a wrapper around KVGet to simplify reading a JSON object from the key value store.
 func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
-	const minimumSupportedVersion = "5.2.0"
-
-	err := p.ensureServerVersion(minimumSupportedVersion)
+	err := p.ensureServerVersion("5.2.0")
 	if err != nil {
 		return false, err
 	}
@@ -118,9 +112,7 @@ func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
 
 // KVSetWithExpiryJSON is a wrapper around KVSetWithExpiry to simplify atomically writing a JSON object with expiry to the key value store.
 func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error {
-	const minimumSupportedVersion = "5.6.0"
-
-	err := p.ensureServerVersion(minimumSupportedVersion)
+	err := p.ensureServerVersion("5.6.0")
 	if err != nil {
 		return err
 	}

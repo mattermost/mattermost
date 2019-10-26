@@ -35,7 +35,7 @@ func TestEnsureBot(t *testing.T) {
 		_, retErr := p.EnsureBot(nil)
 
 		assert.NotNil(t, retErr)
-		assert.Equal(t, "incompatible server version for plugin, minimum required version: 5.10.0, current version: 5.9.0", retErr.Error())
+		assert.Equal(t, "failed to ensure bot: incompatible server version for plugin, minimum required version: 5.10.0, current version: 5.9.0", retErr.Error())
 	})
 
 	t.Run("bad parameters", func(t *testing.T) {

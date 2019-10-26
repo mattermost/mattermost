@@ -48,9 +48,9 @@ type HelpersImpl struct {
 }
 
 func (p *HelpersImpl) ensureServerVersion(required string) error {
-	requiredVersion := semver.MustParse(required)
 	serverVersion := p.API.GetServerVersion()
 	currentVersion := semver.MustParse(serverVersion)
+	requiredVersion := semver.MustParse(required)
 
 	if currentVersion.LT(requiredVersion) {
 		return errors.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
