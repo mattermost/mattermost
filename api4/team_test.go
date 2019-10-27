@@ -922,6 +922,83 @@ func TestSearchAllTeams(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestSearchAllTeamsPaged(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.SystemAdminClient
+	commonRandom := model.NewId()
+	teams := [3]*model.Team{}
+
+	for i := 0; i < 3; i++ {
+		uid := model.NewId()
+		newTeam, err := th.App.CreateTeam(&model.Team{
+			DisplayName: fmt.Sprintf("%s %d %s", commonRandom, i, uid),
+			Name:        fmt.Sprintf("%s-%d-%s", commonRandom, i, uid),
+			Type:        model.TEAM_OPEN,
+			Email:       th.GenerateTestEmail(),
+		})
+		require.Nil(t, err)
+		teams[i] = newTeam
+	}
+
+	testCases := []struct {
+		Name               string
+		Search             *model.TeamSearch
+		ExpectedTeams      []string
+		ExpectedTotalCount int64
+	}{
+		{
+			Name:               "Get all teams on one page",
+			Search:             &model.TeamSearch{Term: commonRandom, Paginate: true, Page: 0, PerPage: 100},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Get 2 teams on the first page",
+			Search:             &model.TeamSearch{Term: commonRandom, Paginate: true, Page: 0, PerPage: 2},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Get 1 team on the second page",
+			Search:             &model.TeamSearch{Term: commonRandom, Paginate: true, Page: 1, PerPage: 2},
+			ExpectedTeams:      []string{teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Paginate param defaults to true for SearchTeamsPaged method",
+			Search:             &model.TeamSearch{Term: commonRandom, Paginate: false, Page: 0, PerPage: 1},
+			ExpectedTeams:      []string{teams[0].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Paginate param defaults to true for SearchTeamsPaged method",
+			Search:             &model.TeamSearch{Term: commonRandom, Paginate: false, Page: 0, PerPage: 1},
+			ExpectedTeams:      []string{teams[0].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "No results",
+			Search:             &model.TeamSearch{Term: model.NewId(), Paginate: false, Page: 0, PerPage: 100},
+			ExpectedTeams:      []string{},
+			ExpectedTotalCount: 0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			teams, count, resp := Client.SearchTeamsPaged(tc.Search)
+			require.Nil(t, resp.Error)
+			require.Equal(t, int64(tc.ExpectedTotalCount), count)
+			require.Equal(t, len(tc.ExpectedTeams), len(teams))
+			for i, team := range teams {
+				require.Equal(t, tc.ExpectedTeams[i], team.Id)
+			}
+		})
+	}
+
+}
+
 func TestSearchAllTeamsSanitization(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
