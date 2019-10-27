@@ -378,6 +378,21 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
 
+	// GetGroup gets a group by ID.
+	//
+	// Minimum server version: 5.18
+	GetGroup(groupId string) (*model.Group, *model.AppError)
+
+	// GetGroupByName gets a group by name.
+	//
+	// Minimum server version: 5.18
+	GetGroupByName(name string) (*model.Group, *model.AppError)
+
+	// GetGroupsForUser gets the groups a user is in.
+	//
+	// Minimum server version: 5.18
+	GetGroupsForUser(userId string) ([]*model.Group, *model.AppError)
+
 	// DeleteChannelMember deletes a channel membership for a user.
 	//
 	// Minimum server version: 5.2

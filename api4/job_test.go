@@ -23,7 +23,7 @@ func TestCreateJob(t *testing.T) {
 	}
 
 	received, resp := th.SystemAdminClient.CreateJob(job)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
 	defer th.App.Srv.Store.Job().Delete(received.Id)
 
@@ -52,11 +52,10 @@ func TestGetJob(t *testing.T) {
 	defer th.App.Srv.Store.Job().Delete(job.Id)
 
 	received, resp := th.SystemAdminClient.GetJob(job.Id)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
-	if received.Id != job.Id || received.Status != job.Status {
-		t.Fatal("incorrect job received")
-	}
+	require.Equal(t, job.Id, received.Id, "incorrect job received")
+	require.Equal(t, job.Status, received.Status, "incorrect job received")
 
 	_, resp = th.SystemAdminClient.GetJob("1234")
 	CheckBadRequestStatus(t, resp)
@@ -100,22 +99,16 @@ func TestGetJobs(t *testing.T) {
 	}
 
 	received, resp := th.SystemAdminClient.GetJobs(0, 2)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
-	if len(received) != 2 {
-		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[2].Id {
-		t.Fatal("should've received newest job first")
-	} else if received[1].Id != jobs[0].Id {
-		t.Fatal("should've received second newest job second")
-	}
+	require.Len(t, received, 2, "received wrong number of jobs")
+	require.Equal(t, jobs[2].Id, received[0].Id, "should've received newest job first")
+	require.Equal(t, jobs[0].Id, received[1].Id, "should've received second newest job second")
 
 	received, resp = th.SystemAdminClient.GetJobs(1, 2)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
-	if received[0].Id != jobs[1].Id {
-		t.Fatal("should've received oldest job last")
-	}
+	require.Equal(t,jobs[1].Id, received[0].Id, "should've received oldest job last")
 
 	_, resp = th.Client.GetJobs(0, 60)
 	CheckForbiddenStatus(t, resp)
@@ -157,24 +150,17 @@ func TestGetJobsByType(t *testing.T) {
 	}
 
 	received, resp := th.SystemAdminClient.GetJobsByType(jobType, 0, 2)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
-	if len(received) != 2 {
-		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[2].Id {
-		t.Fatal("should've received newest job first")
-	} else if received[1].Id != jobs[0].Id {
-		t.Fatal("should've received second newest job second")
-	}
+	require.Len(t, received, 2, "received wrong number of jobs")
+	require.Equal(t, jobs[2].Id, received[0].Id, "should've received newest job first")
+	require.Equal(t, jobs[0].Id, received[1].Id, "should've received second newest job second")
 
 	received, resp = th.SystemAdminClient.GetJobsByType(jobType, 1, 2)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
-	if len(received) != 1 {
-		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[1].Id {
-		t.Fatal("should've received oldest job last")
-	}
+	require.Len(t, received, 1, "received wrong number of jobs")
+	require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 
 	_, resp = th.SystemAdminClient.GetJobsByType("", 0, 60)
 	CheckNotFoundStatus(t, resp)
@@ -218,10 +204,10 @@ func TestCancelJob(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.CancelJob(jobs[0].Id)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
 	_, resp = th.SystemAdminClient.CancelJob(jobs[1].Id)
-	CheckNoError(t, resp)
+	require.Nil(t, resp.Error)
 
 	_, resp = th.SystemAdminClient.CancelJob(jobs[2].Id)
 	CheckInternalErrorStatus(t, resp)
