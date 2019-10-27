@@ -93,6 +93,7 @@ func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
 	require.NotNil(t, err, "Missing id should have failed")
 
 	_, err = ss.Webhook().GetIncoming("123", true)
+	require.Nil(t, err)
 	require.Equal(t, err.StatusCode, http.StatusNotFound, "Should have set the status as not found for missing id")
 }
 
@@ -153,6 +154,7 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100)
+	require.Nil(t, err)
 	require.Equal(t, hooks[0].CreateAt, o1.CreateAt, "invalid returned webhook")
 
 	hooks, err = ss.Webhook().GetIncomingByTeam("123", 0, 100)
@@ -367,7 +369,7 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 
 	result, err := ss.Webhook().GetOutgoingList(0, 2)
 	require.Nil(t, err)
-	require.Equal(t, 2, len(result), "wrong number of hooks returned")
+	require.Len(t, result, 2, "wrong number of hooks returned")
 }
 
 func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
@@ -385,7 +387,7 @@ func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
 
 	result, err := ss.Webhook().GetOutgoingByChannel("123", -1, -1)
 	require.Nil(t, err)
-	require.Equal(t, 0, len(result), "no webhooks should have returned")
+	require.Len(t, result, 0, "no webhooks should have returned")
 }
 
 func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, ss store.Store) {
@@ -442,7 +444,7 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
 
 	result, err := ss.Webhook().GetOutgoingByTeam("123", -1, -1)
 	require.Nil(t, err)
-	require.Equal(t, 0, len(result), "no webhooks should have returned")
+	require.Len(t, result, 0, "no webhooks should have returned")
 }
 
 func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, ss store.Store) {
