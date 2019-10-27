@@ -989,7 +989,6 @@ func TestSearchAllTeams(t *testing.T) {
 func TestSearchAllTeamsPaged(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
-	Client := th.SystemAdminClient
 	commonRandom := model.NewId()
 	teams := [3]*model.Team{}
 
@@ -1036,12 +1035,6 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 			ExpectedTotalCount: 3,
 		},
 		{
-			Name:               "Paginate param defaults to true for SearchTeamsPaged method",
-			Search:             &model.TeamSearch{Term: commonRandom, Paginate: false, Page: 0, PerPage: 1},
-			ExpectedTeams:      []string{teams[0].Id},
-			ExpectedTotalCount: 3,
-		},
-		{
 			Name:               "No results",
 			Search:             &model.TeamSearch{Term: model.NewId(), Paginate: false, Page: 0, PerPage: 100},
 			ExpectedTeams:      []string{},
@@ -1051,7 +1044,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			teams, count, resp := Client.SearchTeamsPaged(tc.Search)
+			teams, count, resp := th.SystemAdminClient.SearchTeamsPaged(tc.Search)
 			require.Nil(t, resp.Error)
 			require.Equal(t, int64(tc.ExpectedTotalCount), count)
 			require.Equal(t, len(tc.ExpectedTeams), len(teams))
@@ -1061,6 +1054,9 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		})
 	}
 
+	_, _, resp := th.Client.SearchTeamsPaged(&model.TeamSearch{Term: commonRandom, PerPage: 100})
+	require.Equal(t, "api.team.search_teams.pagination_not_implemented.public_team_search", resp.Error.Id)
+	require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 }
 
 func TestSearchAllTeamsSanitization(t *testing.T) {
