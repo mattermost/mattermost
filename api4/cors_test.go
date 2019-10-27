@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -135,7 +134,6 @@ func TestCORSRequestHandling(t *testing.T) {
 			client := &http.Client{}
 			resp, err := client.Do(req)
 			require.NoError(t, err)
-
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
 			assert.Equal(t, testcase.ExpectedAllowOrigin, resp.Header.Get(acAllowOrigin))
 			assert.Equal(t, testcase.ExpectedExposeHeaders, resp.Header.Get(acExposeHeaders))
@@ -145,5 +143,4 @@ func TestCORSRequestHandling(t *testing.T) {
 			assert.Equal(t, "", resp.Header.Get(acAllowHeaders))
 		})
 	}
-
 }
