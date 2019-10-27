@@ -973,7 +973,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	require.Equal(t, maxUsersPerTeam, int(totalMemberCount), "should still have 5 team members, had %v instead", totalMemberCount)
 
 	// Leaving the team from the UI sets DeleteAt instead of using TeamStore.RemoveMember
-	if _, teamErr := ss.Team().UpdateMember(&model.TeamMember{
+	if _, teamErr = ss.Team().UpdateMember(&model.TeamMember{
 		TeamId:   team.Id,
 		UserId:   userIds[0],
 		DeleteAt: 1234,
