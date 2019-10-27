@@ -925,11 +925,6 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.Session.IsOAuth && patch.Email != nil {
-		if err != nil {
-			c.Err = err
-			return
-		}
-
 		if ouser.Email != *patch.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 			c.Err.DetailedError += ", attempted email update by oauth app"

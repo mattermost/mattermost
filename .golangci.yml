@@ -5,6 +5,7 @@ run:
 linters-settings:
   govet:
     check-shadowing: true
+    enable-all: true
 
 linters:
   disable-all: true
