@@ -20,62 +20,50 @@ func TestWebSocket(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	WebSocketClient, err := th.CreateWebSocketClient()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	defer WebSocketClient.Close()
 
 	time.Sleep(300 * time.Millisecond)
 
 	// Test closing and reconnecting
 	WebSocketClient.Close()
-	if err := WebSocketClient.Connect(); err != nil {
-		t.Fatal(err)
-	}
+	err = WebSocketClient.Connect()
+	require.Nil(t, err)
 
 	WebSocketClient.Listen()
 
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
-		t.Fatal("should have responded OK to authentication challenge")
-	}
+	resp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 
 	WebSocketClient.SendMessage("ping", nil)
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Data["text"].(string) != "pong" {
-		t.Fatal("wrong response")
-	}
+	resp = <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Data["text"].(string),"pong","wrong response")
 
 	WebSocketClient.SendMessage("", nil)
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Error.Id != "api.web_socket_router.no_action.app_error" {
-		t.Fatal("should have been no action response")
-	}
+	resp = <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Error.Id, "api.web_socket_router.no_action.app_error", "should have been no action response")
 
 	WebSocketClient.SendMessage("junk", nil)
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Error.Id != "api.web_socket_router.bad_action.app_error" {
-		t.Fatal("should have been bad action response")
-	}
+	resp = <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Error.Id, "api.web_socket_router.bad_action.app_error", "should have been bad action response")
 
 	req := &model.WebSocketRequest{}
 	req.Seq = 0
 	req.Action = "ping"
 	WebSocketClient.Conn.WriteJSON(req)
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Error.Id != "api.web_socket_router.bad_seq.app_error" {
-		t.Fatal("should have been bad action response")
-	}
+	resp = <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Error.Id, "api.web_socket_router.bad_seq.app_error", "should have been bad action response")
 
 	WebSocketClient.UserTyping("", "")
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Error.Id != "api.websocket_handler.invalid_param.app_error" {
-		t.Fatal("should have been invalid param response")
-	} else {
-		if resp.Error.DetailedError != "" {
-			t.Fatal("detailed error not cleared")
-		}
-	}
+	resp = <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")
+	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
 }
 
 func TestWebSocketEvent(t *testing.T) {
@@ -83,17 +71,14 @@ func TestWebSocketEvent(t *testing.T) {
 	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	defer WebSocketClient.Close()
 
 	WebSocketClient.Listen()
 
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
-		t.Fatal("should have responded OK to authentication challenge")
-	}
+	resp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 
 	omitUser := make(map[string]bool, 1)
 	omitUser["somerandomid"] = true
@@ -123,9 +108,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	stop <- true
 
-	if !eventHit {
-		t.Fatal("did not receive typing event")
-	}
+	require.True(t, eventHit, "did not receive typing event")
 
 	evt2 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", "somerandomid", "", nil)
 	th.App.Publish(evt2)
@@ -150,9 +133,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	stop <- true
 
-	if eventHit {
-		t.Fatal("got typing event for bad channel id")
-	}
+	require.False(t, eventHit, "got typing event for bad channel id")
 }
 
 func TestCreateDirectChannelWithSocket(t *testing.T) {
@@ -170,21 +151,16 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	}
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
-		t.Fatal("should have responded OK to authentication challenge")
-	}
+	resp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 
 	wsr := <-WebSocketClient.EventChannel
-	if wsr.Event != model.WEBSOCKET_EVENT_HELLO {
-		t.Fatal("missing hello")
-	}
+	require.Equal(t, wsr.Event, model.WEBSOCKET_EVENT_HELLO, "missing hello")
 
 	stop := make(chan bool)
 	count := 0
@@ -205,19 +181,15 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 
 	for _, user := range users {
 		time.Sleep(100 * time.Millisecond)
-		if _, resp := Client.CreateDirectChannel(th.BasicUser.Id, user.Id); resp.Error != nil {
-			t.Fatal("failed to create DM channel")
-		}
+		_, resp := Client.CreateDirectChannel(th.BasicUser.Id, user.Id)
+		require.Nil(t, resp.Error, "failed to create DM channel")
 	}
 
 	time.Sleep(5000 * time.Millisecond)
 
 	stop <- true
 
-	if count != len(users) {
-		t.Fatal("We didn't get the proper amount of direct_added messages")
-	}
-
+	require.Equal(t, count, len(users), "We didn't get the proper amount of direct_added messages")
 }
 
 func TestWebsocketOriginSecurity(t *testing.T) {
@@ -230,53 +202,42 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket", http.Header{
 		"Origin": []string{"http://www.evil.com"},
 	})
-	if err == nil {
-		t.Fatal("Should have errored because Origin does not match host! SECURITY ISSUE!")
-	}
+
+	require.NotNil(t, err, "Should have errored because Origin does not match host! SECURITY ISSUE!")
 
 	// We are not a browser so we can spoof this just fine
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket", http.Header{
 		"Origin": []string{fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port)},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err, err)
 
 	// Should succeed now because open CORS
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "*" })
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket", http.Header{
 		"Origin": []string{"http://www.evil.com"},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err, err)
 
 	// Should succeed now because matching CORS
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "http://www.evil.com" })
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket", http.Header{
 		"Origin": []string{"http://www.evil.com"},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err, err)
 
 	// Should fail because non-matching CORS
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "http://www.good.com" })
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket", http.Header{
 		"Origin": []string{"http://www.evil.com"},
 	})
-	if err == nil {
-		t.Fatal("Should have errored because Origin contain AllowCorsFrom")
-	}
+	require.NotNil(t, err, "Should have errored because Origin contain AllowCorsFrom")
 
 	// Should fail because non-matching CORS
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "http://www.good.com" })
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket", http.Header{
 		"Origin": []string{"http://www.good.co"},
 	})
-	if err == nil {
-		t.Fatal("Should have errored because Origin does not match host! SECURITY ISSUE!")
-	}
+	require.NotNil(t, err, "Should have errored because Origin does not match host! SECURITY ISSUE!")
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "" })
 }
@@ -287,16 +248,13 @@ func TestWebSocketStatuses(t *testing.T) {
 
 	Client := th.Client
 	WebSocketClient, err := th.CreateWebSocketClient()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err, err)
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
-		t.Fatal("should have responded OK to authentication challenge")
-	}
+	resp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
@@ -318,79 +276,53 @@ func TestWebSocketStatuses(t *testing.T) {
 	th.LoginBasic2()
 
 	WebSocketClient2, err2 := th.CreateWebSocketClient()
-	if err2 != nil {
-		t.Fatal(err2)
-	}
+	require.Nil(t, err2, err2)
 
 	time.Sleep(1000 * time.Millisecond)
 
 	WebSocketClient.GetStatuses()
-	if resp := <-WebSocketClient.ResponseChannel; resp.Error != nil {
-		t.Fatal(resp.Error)
-	} else {
-		if resp.SeqReply != WebSocketClient.Sequence-1 {
-			t.Fatal("bad sequence number")
-		}
+	resp = <-WebSocketClient.ResponseChannel
+	require.Nil(t, resp.Error, resp.Error)
 
-		for _, status := range resp.Data {
-			if status != model.STATUS_OFFLINE && status != model.STATUS_AWAY && status != model.STATUS_ONLINE && status != model.STATUS_DND {
-				t.Fatalf("one of the statuses had an invalid value status=%v", status)
-			}
-		}
+	require.Equal(t, resp.SeqReply, WebSocketClient.Sequence-1, "bad sequence number")
 
-		if status, ok := resp.Data[th.BasicUser2.Id]; !ok {
-			t.Log(resp.Data)
-			t.Fatal("should have had user status")
-		} else if status != model.STATUS_ONLINE {
-			t.Log(status)
-			t.Fatal("status should have been online")
-		}
+	allowedValues := [4]string{model.STATUS_OFFLINE, model.STATUS_AWAY, model.STATUS_ONLINE, model.STATUS_DND}
+	for _, status := range resp.Data {
+		require.Containsf(t, allowedValues, status, "one of the statuses had an invalid value status=%v", status)
 	}
+
+	status, ok := resp.Data[th.BasicUser2.Id]
+	require.True(t, ok, "should have had user status")
+
+	require.Equal(t, status, model.STATUS_ONLINE, "status should have been online status=%v", status)
 
 	WebSocketClient.GetStatusesByIds([]string{th.BasicUser2.Id})
-	if resp := <-WebSocketClient.ResponseChannel; resp.Error != nil {
-		t.Fatal(resp.Error)
-	} else {
-		if resp.SeqReply != WebSocketClient.Sequence-1 {
-			t.Fatal("bad sequence number")
-		}
+	resp = <-WebSocketClient.ResponseChannel
+	require.Nil(t, resp.Error, resp.Error)
 
-		for _, status := range resp.Data {
-			if status != model.STATUS_OFFLINE && status != model.STATUS_AWAY && status != model.STATUS_ONLINE {
-				t.Fatal("one of the statuses had an invalid value")
-			}
-		}
+	require.Equal(t, resp.SeqReply, WebSocketClient.Sequence-1, "bad sequence number")
 
-		if status, ok := resp.Data[th.BasicUser2.Id]; !ok {
-			t.Log(len(resp.Data))
-			t.Fatal("should have had user status")
-		} else if status != model.STATUS_ONLINE {
-			t.Log(status)
-			t.Fatal("status should have been online")
-		} else if len(resp.Data) != 1 {
-			t.Fatal("only 1 status should be returned")
-		}
+	allowedValues = [4]string{model.STATUS_OFFLINE, model.STATUS_AWAY, model.STATUS_ONLINE}
+	for _, status := range resp.Data {
+		require.Containsf(t, allowedValues, status, "one of the statuses had an invalid value status")
 	}
+
+	status, ok = resp.Data[th.BasicUser2.Id]
+	require.True(t, ok, "should have had user status")
+
+	require.Equal(t, status, model.STATUS_ONLINE, "status should have been online status=%v", status)
+	require.Equal(t, len(resp.Data), 1, "only 1 status should be returned")
 
 	WebSocketClient.GetStatusesByIds([]string{ruser2.Id, "junk"})
-	if resp := <-WebSocketClient.ResponseChannel; resp.Error != nil {
-		t.Fatal(resp.Error)
-	} else {
-		if resp.SeqReply != WebSocketClient.Sequence-1 {
-			t.Fatal("bad sequence number")
-		}
-
-		if len(resp.Data) != 2 {
-			t.Fatal("2 statuses should be returned")
-		}
-	}
+	resp = <-WebSocketClient.ResponseChannel
+	require.Nil(t, resp.Error, resp.Error)
+	require.Equal(t, resp.SeqReply, WebSocketClient.Sequence-1, "bad sequence number")
+	require.Equal(t, len(resp.Data), 2, "2 statuses should be returned")
 
 	WebSocketClient.GetStatusesByIds([]string{})
-	if resp := <-WebSocketClient.ResponseChannel; resp.Error == nil {
-		if resp.SeqReply != WebSocketClient.Sequence-1 {
-			t.Fatal("bad sequence number")
-		}
-		t.Fatal("should have errored - empty user ids")
+	if resp2 := <-WebSocketClient.ResponseChannel; resp2.Error == nil {
+		require.Equal(t, resp2.SeqReply, WebSocketClient.Sequence-1, "bad sequence number")
+		require.NotNil(t, resp2.Error, "should have errored - empty user ids")
 	}
 
 	WebSocketClient2.Close()
@@ -411,17 +343,12 @@ func TestWebSocketStatuses(t *testing.T) {
 	time.Sleep(1500 * time.Millisecond)
 
 	WebSocketClient.GetStatuses()
-	if resp := <-WebSocketClient.ResponseChannel; resp.Error != nil {
-		t.Fatal(resp.Error)
-	} else {
-		if resp.SeqReply != WebSocketClient.Sequence-1 {
-			t.Fatal("bad sequence number")
-		}
+	resp = <-WebSocketClient.ResponseChannel
+	require.Nil(t, resp.Error)
 
-		if _, ok := resp.Data[th.BasicUser2.Id]; ok {
-			t.Fatal("should not have had user status")
-		}
-	}
+	require.Equal(t, resp.SeqReply, WebSocketClient.Sequence-1, "bad sequence number")
+	_, ok = resp.Data[th.BasicUser2.Id]
+	require.False(t, ok, "should not have had user status")
 
 	stop := make(chan bool)
 	onlineHit := false
@@ -449,12 +376,8 @@ func TestWebSocketStatuses(t *testing.T) {
 
 	stop <- true
 
-	if !onlineHit {
-		t.Fatal("didn't get online event")
-	}
-	if !awayHit {
-		t.Fatal("didn't get away event")
-	}
+	require.True(t, onlineHit, "didn't get online event")
+	require.True(t, awayHit, "didn't get away event")
 
 	time.Sleep(500 * time.Millisecond)
 
