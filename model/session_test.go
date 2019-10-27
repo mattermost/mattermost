@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,21 +46,16 @@ func TestSessionJson(t *testing.T) {
 	json := session.ToJson()
 	rsession := SessionFromJson(strings.NewReader(json))
 
-	if rsession.Id != session.Id {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, rsession.Id, session.Id, "Ids do not match")
 
 	session.Sanitize()
 
-	if session.IsExpired() {
-		t.Fatal("Shouldn't expire")
-	}
+	require.False(t, session.IsExpired(), "Shouldn't expire")
 
 	session.ExpiresAt = GetMillis()
 	time.Sleep(10 * time.Millisecond)
-	if !session.IsExpired() {
-		t.Fatal("Should expire")
-	}
+
+	require.True(t, session.IsExpired(), "Should expire")
 
 	session.SetExpireInDays(10)
 }
