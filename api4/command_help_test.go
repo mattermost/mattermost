@@ -6,9 +6,8 @@ package api4
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHelpCommand(t *testing.T) {
