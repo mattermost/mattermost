@@ -232,7 +232,7 @@ jobs:
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mattermost-server \
-              mattermost/mattermost-build-server:feb-28-2019 \
+              mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
 
             echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"

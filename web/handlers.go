@@ -72,14 +72,16 @@ type Handler struct {
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
-	mlog.Debug("request:", mlog.String("method", r.Method), mlog.String("url", r.URL.Path))
+
+	requestID := model.NewId()
+	mlog.Debug("Received HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
 
 	c := &Context{}
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
 	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
-	c.App.RequestId = model.NewId()
+	c.App.RequestId = requestID
 	c.App.IpAddress = utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader)
 	c.App.UserAgent = r.UserAgent()
 	c.App.AcceptLanguage = r.Header.Get("Accept-Language")
