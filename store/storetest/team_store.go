@@ -1136,7 +1136,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	var result int64
 	result, err = ss.Team().GetActiveMemberCount(teamId1, nil)
 	require.Nil(t, err)
-	require.Equal(t, result, 1, "wrong count")
+	require.Equal(t, 1, int(result), "wrong count")
 
 	m3 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	_, err = ss.Team().SaveMember(m3, -1)
