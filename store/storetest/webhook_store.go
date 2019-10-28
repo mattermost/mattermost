@@ -93,7 +93,7 @@ func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
 	require.NotNil(t, err, "Missing id should have failed")
 
 	_, err = ss.Webhook().GetIncoming("123", true)
-	require.Nil(t, err)
+	require.NotNil(t, err)
 	require.Equal(t, err.StatusCode, http.StatusNotFound, "Should have set the status as not found for missing id")
 }
 
