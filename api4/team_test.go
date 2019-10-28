@@ -101,7 +101,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 
 		rteam, resp := th.Client.CreateTeam(team)
 		CheckNoError(t, resp)
-		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
@@ -115,7 +115,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 
 		rteam, resp := th.SystemAdminClient.CreateTeam(team)
 		CheckNoError(t, resp)
-		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 }
 
@@ -186,19 +186,19 @@ func TestGetTeamSanitization(t *testing.T) {
 		rteam, resp := client.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
 
-		require.Equal(t, rteam.Email, "", "should have sanitized email")
+		require.Empty(t, rteam.Email, "should have sanitized email")
 	})
 
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 }
 
@@ -337,13 +337,13 @@ func TestUpdateTeamSanitization(t *testing.T) {
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.UpdateTeam(team)
 		CheckNoError(t, resp)
-		require.NotEqual(t, rteam.Email, "", "should not have sanitized email for admin")
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.UpdateTeam(team)
 		CheckNoError(t, resp)
-		require.NotEqual(t, rteam.Email, "", "should not have sanitized email for admin")
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
 	})
 }
 
@@ -421,13 +421,13 @@ func TestPatchTeamSanitization(t *testing.T) {
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.PatchTeam(team.Id, &model.TeamPatch{})
 		CheckNoError(t, resp)
-		require.NotEqual(t, rteam.Email, "", "should not have sanitized email for admin")
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.PatchTeam(team.Id, &model.TeamPatch{})
 		CheckNoError(t, resp)
-		require.NotEqual(t, rteam.Email, "", "should not have sanitized email for admin")
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
 	})
 }
 
@@ -701,10 +701,10 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		for _, rteam := range rteams {
 			if rteam.Id == team.Id {
 				teamFound = true
-				require.NotEqual(t, rteam.Email, "", "should not have sanitized email for team admin")
+				require.NotEmpty(t, rteam.Email, "should not have sanitized email for team admin")
 			} else if rteam.Id == team2.Id {
 				team2Found = true
-				require.Equal(t, rteam.Email, "", "should've sanitized email for non-admin")
+				require.Empty(t, rteam.Email, "should've sanitized email for non-admin")
 			}
 		}
 
@@ -720,7 +720,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 				continue
 			}
 
-			require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 		}
 	})
 }
@@ -791,19 +791,19 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 
 		rteam, resp := client.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
-		require.Equal(t, rteam.Email, "", "should've sanitized email")
+		require.Empty(t, rteam.Email, "should've sanitized email")
 	})
 
 	t.Run("team admin/non-admin", func(t *testing.T) {
 		rteam, resp := th.Client.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
-		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
-		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 }
 
@@ -824,41 +824,41 @@ func TestSearchAllTeams(t *testing.T) {
 	rteams, resp := Client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
 	CheckNoError(t, resp)
 
-	require.Equal(t, len(rteams), 1, "should have returned 1 team")
+	require.Len(t, rteams, 1, "should have returned 1 team")
 
 	require.Equal(t, oTeam.Id, rteams[0].Id, "invalid team")
 
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: oTeam.DisplayName})
 	CheckNoError(t, resp)
 
-	require.Equal(t, len(rteams), 1, "should have returned 1 team")
+	require.Len(t, rteams, 1, "should have returned 1 team")
 
 	require.Equal(t, oTeam.Id, rteams[0].Id, "invalid team")
 
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
 	CheckNoError(t, resp)
 
-	require.Equal(t, len(rteams), 0, "should have not returned team")
+	require.Len(t, rteams, 0, "should have not returned team")
 
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 	CheckNoError(t, resp)
 
-	require.Equal(t, len(rteams), 0, "should have not returned team")
+	require.Len(t, rteams, 0, "should have not returned team")
 
 	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
 	CheckNoError(t, resp)
 
-	require.Equal(t, len(rteams), 1, "should have returned 1 team")
+	require.Len(t, rteams, 1, "should have returned 1 team")
 
 	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 	CheckNoError(t, resp)
 
-	require.Equal(t, len(rteams), 1, "should have returned 1 team")
+	require.Len(t, rteams, 1, "should have returned 1 team")
 
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: "junk"})
 	CheckNoError(t, resp)
 
-	require.Equal(t, len(rteams), 0, "should have not returned team")
+	require.Len(t, rteams, 0, "should have not returned team")
 
 	Client.Logout()
 
@@ -897,8 +897,8 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		rteams, resp := client.SearchTeams(&model.TeamSearch{Term: t.Name()})
 		CheckNoError(t, resp)
 		for _, rteam := range rteams {
-			require.Equal(t, rteam.Email, "", "should've sanitized email")
-			require.Equal(t, rteam.AllowedDomains, "", "should've sanitized allowed domains")
+			require.Empty(t, rteam.Email, "should've sanitized email")
+			require.Empty(t, rteam.AllowedDomains,"should've sanitized allowed domains")
 		}
 	})
 
@@ -911,8 +911,8 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		rteams, resp := client.SearchTeams(&model.TeamSearch{Term: t.Name()})
 		CheckNoError(t, resp)
 		for _, rteam := range rteams {
-			require.Equal(t, rteam.Email, "", "should've sanitized email")
-			require.Equal(t, rteam.AllowedDomains, "", "should've sanitized allowed domains")
+			require.Empty(t, rteam.Email, "should've sanitized email")
+			require.Empty(t, rteam.AllowedDomains, "should've sanitized allowed domains")
 		}
 	})
 
@@ -921,7 +921,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		for _, rteam := range rteams {
 			if rteam.Id == team.Id || rteam.Id == team2.Id || rteam.Id == th.BasicTeam.Id {
-				require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+				require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 			}
 		}
 	})
@@ -930,7 +930,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		rteams, resp := th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: t.Name()})
 		CheckNoError(t, resp)
 		for _, rteam := range rteams {
-			require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 		}
 	})
 }
@@ -946,7 +946,7 @@ func TestGetTeamsForUser(t *testing.T) {
 	teams, resp := Client.GetTeamsForUser(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
 
-	require.Equal(t, len(teams), 2, "wrong number of teams")
+	require.Len(t, teams, 2, "wrong number of teams")
 
 	found1 := false
 	found2 := false
@@ -1009,7 +1009,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			require.Equal(t, rteam.Email, "", "should've sanitized email")
+			require.Empty(t, rteam.Email, "should've sanitized email")
 		}
 	})
 
@@ -1021,7 +1021,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 		}
 	})
 
@@ -1033,7 +1033,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 		}
 	})
 }
@@ -1092,15 +1092,15 @@ func TestGetTeamMembers(t *testing.T) {
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(rmembers), 1, "should be 1 per page")
+	require.Len(t, rmembers, 1, "should be 1 per page")
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 1, 1, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(rmembers), 1, "should be 1 per page")
+	require.Len(t, rmembers, 1, "should be 1 per page")
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(rmembers), 0, "should be no member")
+	require.Len(t, rmembers, 0, "should be no member")
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 2, "")
 	CheckNoError(t, resp)
@@ -1182,7 +1182,7 @@ func TestGetTeamMembersByIds(t *testing.T) {
 
 	tm1, resp = Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{"junk", th.BasicUser.Id})
 	CheckNoError(t, resp)
-	require.Equal(t, len(tm1), 1, "1 user should be returned")
+	require.Len(t, tm1, 1, "1 user should be returned")
 
 	_, resp = Client.GetTeamMembersByIds("junk", []string{th.BasicUser.Id})
 	CheckBadRequestStatus(t, resp)
@@ -1900,7 +1900,7 @@ func TestGetMyTeamsUnread(t *testing.T) {
 
 	teams, resp = Client.GetTeamsUnreadForUser(user.Id, th.BasicTeam.Id)
 	CheckNoError(t, resp)
-	require.Equal(t, len(teams), 0, "should not have results")
+	require.Len(t, teams, 0, "should not have results")
 
 	_, resp = Client.GetTeamsUnreadForUser("fail", "")
 	CheckBadRequestStatus(t, resp)
@@ -2015,6 +2015,7 @@ func TestImportTeam(t *testing.T) {
 		var data []byte
 		var err error
 		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
+
 		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
 
 		// Import the channels/users/posts
@@ -2267,9 +2268,9 @@ func TestGetTeamInviteInfo(t *testing.T) {
 	team, resp := Client.GetTeamInviteInfo(team.InviteId)
 	CheckNoError(t, resp)
 
-	require.NotEqual(t, team.DisplayName, "", "should not be empty")
+	require.NotEmpty(t, team.DisplayName, "should not be empty")
 
-	require.Equal(t, team.Email, "", "should be empty")
+	require.Empty(t, team.Email, "should be empty")
 
 	team.InviteId = "12345678901234567890123456789012"
 	team, resp = th.SystemAdminClient.UpdateTeam(team)

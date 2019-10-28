@@ -5,13 +5,10 @@ package api4
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
-	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -27,6 +24,7 @@ import (
 
 	s3 "github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/credentials"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -561,31 +559,16 @@ func GenerateTestId() string {
 func CheckUserSanitization(t *testing.T, user *model.User) {
 	t.Helper()
 
-	if user.Password != "" {
-		t.Fatal("password wasn't blank")
-	}
-
-	if user.AuthData != nil && *user.AuthData != "" {
-		t.Fatal("auth data wasn't blank")
-	}
-
-	if user.MfaSecret != "" {
-		t.Fatal("mfa secret wasn't blank")
-	}
+	require.Equal(t, "", user.Password, "password wasn't blank")
+	require.Empty(t, user.AuthData, "auth data wasn't blank")
+	require.Equal(t, "", user.MfaSecret, "mfa secret wasn't blank")
 }
 
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	t.Helper()
 
-	if !reflect.ValueOf(data).IsNil() {
-		t.Fatal("etag data was not nil")
-	}
-
-	if resp.StatusCode != http.StatusNotModified {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusNotModified))
-		t.Fatal("wrong status code for etag")
-	}
+	require.Empty(t, data)
+	require.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
 }
 
 func CheckNoError(t *testing.T, resp *model.Response) {
@@ -599,15 +582,13 @@ func CheckNoError(t *testing.T, resp *model.Response) {
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
 	t.Helper()
 
-	require.NotNilf(t, resp, "Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, expectError)
-
+	require.NotNilf(t, resp, "Unexpected nil response, expected http:%v, expectError:%v", expectedStatus, expectError)
 	if expectError {
-		require.NotNilf(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
+		require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
 	} else {
-		require.Nilf(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
+		require.Nil(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
 	}
-
-	require.Equalf(t, resp.StatusCode, expectedStatus, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
+	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
 }
 
 func CheckOKStatus(t *testing.T, resp *model.Response) {
@@ -659,7 +640,6 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
 	require.NotNilf(t, resp.Error, "should have errored with message: %s", errorId)
-
 	require.Equalf(t, resp.Error.Id, errorId, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
 }
 
