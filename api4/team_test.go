@@ -898,7 +898,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		for _, rteam := range rteams {
 			require.Empty(t, rteam.Email, "should've sanitized email")
-			require.Empty(t, rteam.AllowedDomains,"should've sanitized allowed domains")
+			require.Empty(t, rteam.AllowedDomains, "should've sanitized allowed domains")
 		}
 	})
 
