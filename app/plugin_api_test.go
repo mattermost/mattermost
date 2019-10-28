@@ -1512,12 +1512,11 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
 			buf := bytes.Buffer{}
 			buf.WriteString("This is the request")
-			req, err := http.NewRequest("GET", "/api/v2/test", &buf)
+			req, err := http.NewRequest("GET", "/testplugininterserver/api/v2/test", &buf)
 			if err != nil {
 				return nil, err.Error()
 			}
 			req.Header.Add("Mattermost-User-Id", "userid")
-			req.Header.Add("Mattermost-Destination-Plugin-Id", "testplugininterserver")
 			resp := p.API.PluginHTTP(req)
 			if resp == nil {
 				return nil, "Nil resp"
@@ -1530,7 +1529,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 				return nil, err.Error()
 			}
 			if resp.StatusCode != 598 {
-				return nil, "wrong status"
+				return nil, "wrong status " + string(respbody)
 			}
 			return nil, string(respbody)
 		}
@@ -1554,5 +1553,5 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugininterclient")
 	require.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
-	assert.Equal(t, ret, "we got:This is the request")
+	assert.Equal(t, "we got:This is the request", ret)
 }

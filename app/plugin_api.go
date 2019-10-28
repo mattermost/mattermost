@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -823,11 +824,20 @@ func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
 }
 
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
-	toPluginId := request.Header.Get("Mattermost-Destination-Plugin-Id")
-	if toPluginId == "" {
+	split := strings.SplitN(request.URL.Path, "/", 3)
+	if len(split) != 3 {
 		return &http.Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       ioutil.NopCloser(bytes.NewBufferString("No plugin specified. Specify with Mattermost-Destination-Plugin-Id")),
+			Body:       ioutil.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /pluginid/*")),
+		}
+	}
+	toPluginId := split[1]
+	newURL, err := url.Parse("/" + split[2])
+	request.URL = newURL
+	if toPluginId == "" || err != nil {
+		return &http.Response{
+			StatusCode: http.StatusBadRequest,
+			Body:       ioutil.NopCloser(bytes.NewBufferString("No plugin specified. Form of URL should be /pluginid/*")),
 		}
 	}
 	responseTransfer := &PluginResponseWriter{}

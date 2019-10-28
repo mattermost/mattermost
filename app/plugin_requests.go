@@ -124,7 +124,6 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	}
 
 	r.Header.Del("Mattermost-User-Id")
-	r.Header.Del("Mattermost-Destination-Plugin-Id")
 	if token != "" {
 		session, err := a.GetSession(token)
 		csrfCheckPassed := false
