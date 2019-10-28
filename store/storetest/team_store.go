@@ -1144,11 +1144,11 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 
 	totalMemberCount, err = ss.Team().GetTotalMemberCount(teamId1, nil)
 	require.Nil(t, err)
-	require.Equal(t, totalMemberCount, 2, "wrong count")
+	require.Equal(t, 2, int(totalMemberCount), "wrong count")
 
 	result, err = ss.Team().GetActiveMemberCount(teamId1, nil)
 	require.Nil(t, err)
-	require.Equal(t, result, 1, "wrong count")
+	require.Equal(t, 1, int(result), "wrong count")
 }
 
 func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
