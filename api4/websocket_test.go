@@ -39,7 +39,7 @@ func TestWebSocket(t *testing.T) {
 	WebSocketClient.SendMessage("ping", nil)
 	time.Sleep(300 * time.Millisecond)
 	resp = <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Data["text"].(string),"pong","wrong response")
+	require.Equal(t, resp.Data["text"].(string), "pong", "wrong response")
 
 	WebSocketClient.SendMessage("", nil)
 	time.Sleep(300 * time.Millisecond)
