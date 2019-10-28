@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/services/httpservice"
@@ -58,7 +57,7 @@ func makeLocalBackend(proxy *ImageProxy) *LocalBackend {
 		impl.DefaultBaseURL = baseURL
 	}
 
-	impl.Timeout = time.Duration(httpservice.RequestTimeout)
+	impl.Timeout = httpservice.RequestTimeout
 	impl.ContentTypes = imageContentTypes
 
 	return &LocalBackend{

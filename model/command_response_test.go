@@ -146,7 +146,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 			&CommandResponse{
 				Text: "message 1",
 				ExtraResponses: []*CommandResponse{
-					&CommandResponse{
+					{
 						Text: "message 2",
 					},
 				},
@@ -180,7 +180,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 					},
 				},
 				ExtraResponses: []*CommandResponse{
-					&CommandResponse{
+					{
 						Text: "message 2",
 						Attachments: []*SlackAttachment{
 							{
