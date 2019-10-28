@@ -427,7 +427,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 		require.True(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as true")
 	}
 
-	require.Len(t, teams, 0, "failed team listing")
+	require.NotEqual(t, 0, len(teams), "failed team listing")
 }
 
 func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
@@ -474,7 +474,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 		require.True(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as true")
 	}
 
-	require.Greater(t, len(teams), 10, "should have returned max of 10 teams")
+	require.LessOrEqual(t, len(teams), 10, "should have returned max of 10 teams")
 
 	o5 := model.Team{}
 	o5.DisplayName = "DisplayName"
@@ -492,7 +492,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 		require.True(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as true")
 	}
 
-	require.Greater(t, len(teams), 4, "should have returned max of 4 teams")
+	require.LessOrEqual(t, len(teams), 4, "should have returned max of 4 teams")
 
 	teams, err = ss.Team().GetAllTeamPageListing(1, 1)
 	require.Nil(t, err)
@@ -501,7 +501,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 		require.True(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as true")
 	}
 
-	require.Greater(t, len(teams), 1, "should have returned max of 1 team")
+	require.LessOrEqual(t, len(teams), 1, "should have returned max of 1 team")
 }
 
 func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
@@ -545,7 +545,7 @@ func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 		require.False(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as false")
 	}
 
-	require.Len(t, teams, 0, "failed team listing")
+	require.NotEqual(t, 0, len(teams), "failed team listing")
 }
 
 func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
@@ -591,7 +591,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 		require.False(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as false")
 	}
 
-	require.Greater(t, len(teams), 10, "should have returned max of 10 teams")
+	require.LessOrEqual(t, len(teams), 10, "should have returned max of 10 teams")
 
 	o5 := model.Team{}
 	o5.DisplayName = "DisplayName"
@@ -608,7 +608,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 		require.False(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as false")
 	}
 
-	require.Greater(t, len(teams), 4, "should have returned max of 4 teams")
+	require.LessOrEqual(t, len(teams), 4, "should have returned max of 4 teams")
 
 	teams, listErr = ss.Team().GetAllPrivateTeamPageListing(1, 1)
 	require.Nil(t, listErr)
@@ -616,7 +616,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 		require.False(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as false")
 	}
 
-	require.Greater(t, len(teams), 1, "should have returned max of 1 team")
+	require.LessOrEqual(t, len(teams), 1, "should have returned max of 1 team")
 }
 
 func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
@@ -783,7 +783,7 @@ func testTeamCount(t *testing.T, ss store.Store) {
 
 	teamCount, err := ss.Team().AnalyticsTeamCount()
 	require.Nil(t, err)
-	require.Len(t, teamCount, 0, "should be at least 1 team")
+	require.NotEqual(t, 0, int(teamCount), "should be at least 1 team")
 }
 
 func testTeamMembers(t *testing.T, ss store.Store) {
@@ -1131,7 +1131,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	var totalMemberCount int64
 	totalMemberCount, err = ss.Team().GetTotalMemberCount(teamId1, nil)
 	require.Nil(t, err)
-	require.Equal(t, totalMemberCount, 2, "wrong count")
+	require.Equal(t, int(totalMemberCount), 2, "wrong count")
 
 	var result int64
 	result, err = ss.Team().GetActiveMemberCount(teamId1, nil)
@@ -1189,7 +1189,7 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	}
 	require.Len(t, membersMap, 2, "Should be the unreads for all the teams")
 
-	require.Equal(t, ms1[0].MsgCount, 10, "subtraction failed")
+	require.Equal(t, 10, int(ms1[0].MsgCount), "subtraction failed")
 
 	ms2, err := ss.Team().GetChannelUnreadsForAllTeams(teamId1, uid)
 	require.Nil(t, err)
@@ -1203,7 +1203,7 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 
 	require.Len(t, membersMap, 1, "Should be the unreads for just one team")
 
-	require.Equal(t, ms2[0].MsgCount, 10, "subtraction failed")
+	require.Equal(t, 10, int(ms2[0].MsgCount), "subtraction failed")
 
 	err = ss.Team().RemoveAllMembersByUser(uid)
 	require.Nil(t, err)
@@ -1236,7 +1236,7 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Len(t, ms, 2, "wrong length")
 
-	require.Equal(t, ms[0].MsgCount, 10, "subtraction failed")
+	require.Equal(t, 10, int(ms[0].MsgCount), "subtraction failed")
 }
 
 func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
@@ -1261,7 +1261,7 @@ func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
 	ro1, err := ss.Team().Get(o1.Id)
 	require.Nil(t, err)
 
-	require.LessOrEqual(t, ro1.LastTeamIconUpdate, lastTeamIconUpdateInitial, "LastTeamIconUpdate not updated")
+	require.Greater(t, ro1.LastTeamIconUpdate, lastTeamIconUpdateInitial, "LastTeamIconUpdate not updated")
 }
 
 func testGetTeamsByScheme(t *testing.T, ss store.Store) {
