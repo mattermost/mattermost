@@ -571,7 +571,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, response)
 		assert.Equal(t, 1, len(response.FileInfos))
-		
+
 		fileId := response.FileInfos[0].Id
 		fileInfo, err := th.App.GetFileInfo(fileId)
 		assert.Nil(t, err)
