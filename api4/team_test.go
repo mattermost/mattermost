@@ -114,9 +114,8 @@ func TestCreateTeamSanitization(t *testing.T) {
 
 		rteam, resp := th.Client.CreateTeam(team)
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
@@ -130,9 +129,8 @@ func TestCreateTeamSanitization(t *testing.T) {
 
 		rteam, resp := th.SystemAdminClient.CreateTeam(team)
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 	})
 }
 
@@ -204,25 +202,37 @@ func TestGetTeamSanitization(t *testing.T) {
 
 		rteam, resp := client.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		if rteam.Email != "" {
-			t.Fatal("should've sanitized email")
-		}
+
+		require.Equal(t, rteam.Email, "", "should have sanitized email")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
+	})
+
+	t.Run("team user without invite permissions", func(t *testing.T) {
+		th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+		th.LinkUserToTeam(th.BasicUser2, team)
+
+		client := th.CreateClient()
+		th.LoginBasic2WithClient(client)
+
+		rteam, resp := client.GetTeam(team.Id, "")
+		CheckNoError(t, resp)
+
+		require.Equal(t, rteam.Email, "", "should have sanitized email")
+		require.Equal(t, rteam.InviteId, "", "should have sanitized inviteid")
 	})
 
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 	})
 }
 
@@ -384,17 +394,15 @@ func TestUpdateTeamSanitization(t *testing.T) {
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.UpdateTeam(team)
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email for admin")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email for admin")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid for admin")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.UpdateTeam(team)
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email for admin")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email for admin")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid for admin")
 	})
 }
 
@@ -489,17 +497,15 @@ func TestPatchTeamSanitization(t *testing.T) {
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.PatchTeam(team.Id, &model.TeamPatch{})
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email for admin")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email for admin")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid for admin")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.PatchTeam(team.Id, &model.TeamPatch{})
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email for admin")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email for admin")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid for admin")
 	})
 }
 
@@ -783,14 +789,12 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		for _, rteam := range rteams {
 			if rteam.Id == team.Id {
 				teamFound = true
-				if rteam.Email == "" {
-					t.Fatal("should not have sanitized email for team admin")
-				}
+				require.NotEqual(t, rteam.Email, "", "should not have sanitized email for team admin")
+				require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid for team admin")
 			} else if rteam.Id == team2.Id {
 				team2Found = true
-				if rteam.Email != "" {
-					t.Fatal("should've sanitized email for non-admin")
-				}
+				require.Equal(t, rteam.Email, "", "should have sanitized email for non-admin")
+				require.Equal(t, rteam.InviteId, "", "should have sanitized inviteid")
 			}
 		}
 
@@ -806,10 +810,8 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 			if rteam.Id != team.Id && rteam.Id != team2.Id {
 				continue
 			}
-
-			if rteam.Email == "" {
-				t.Fatal("should not have sanitized email")
-			}
+			require.NotEqual(t, rteam.Email, "", "should not have sanitized email for sysadmin")
+			require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid for sysadmin")
 		}
 	})
 }
@@ -882,25 +884,38 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 
 		rteam, resp := client.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
-		if rteam.Email != "" {
-			t.Fatal("should've sanitized email")
-		}
+
+		require.Equal(t, rteam.Email, "", "should have sanitized email")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
+	})
+
+	t.Run("team user without invite permissions", func(t *testing.T) {
+		th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+		th.LinkUserToTeam(th.BasicUser2, team)
+
+		client := th.CreateClient()
+
+		th.LoginBasic2WithClient(client)
+
+		rteam, resp := client.GetTeam(team.Id, "")
+		CheckNoError(t, resp)
+
+		require.Equal(t, rteam.Email, "", "should have sanitized email")
+		require.Equal(t, rteam.InviteId, "", "should have sanitized inviteid")
 	})
 
 	t.Run("team admin/non-admin", func(t *testing.T) {
 		rteam, resp := th.Client.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+		require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 	})
 }
 
@@ -1019,6 +1034,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 			} else if rteam.AllowedDomains != "" {
 				t.Fatal("should've sanitized allowed domains")
 			}
+			require.Equal(t, rteam.InviteId, "", "should have sanitized inviteid")
 		}
 	})
 
@@ -1036,6 +1052,8 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 			} else if rteam.AllowedDomains != "" {
 				t.Fatal("should've sanitized allowed domains")
 			}
+
+			require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 		}
 	})
 
@@ -1047,6 +1065,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 				if rteam.Email == "" {
 					t.Fatal("should not have sanitized email")
 				}
+				require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 			}
 		}
 	})
@@ -1058,6 +1077,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 			if rteam.Email == "" {
 				t.Fatal("should not have sanitized email")
 			}
+			require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 		}
 	})
 }
@@ -1139,9 +1159,28 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			if rteam.Email != "" {
-				t.Fatal("should've sanitized email")
+			require.Equal(t, rteam.Email, "", "should have sanitized email")
+			require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
+		}
+	})
+
+	t.Run("team user without invite permissions", func(t *testing.T) {
+		th.LinkUserToTeam(th.BasicUser2, team)
+		th.LinkUserToTeam(th.BasicUser2, team2)
+
+		client := th.CreateClient()
+		th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+		th.LoginBasic2WithClient(client)
+
+		rteams, resp := client.GetTeamsForUser(th.BasicUser2.Id, "")
+		CheckNoError(t, resp)
+		for _, rteam := range rteams {
+			if rteam.Id != team.Id && rteam.Id != team2.Id {
+				continue
 			}
+
+			require.Equal(t, rteam.Email, "", "should have sanitized email")
+			require.Equal(t, rteam.InviteId, "", "should have sanitized inviteid")
 		}
 	})
 
@@ -1153,9 +1192,8 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			if rteam.Email == "" {
-				t.Fatal("should not have sanitized email")
-			}
+			require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+			require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 		}
 	})
 
@@ -1167,9 +1205,8 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			if rteam.Email == "" {
-				t.Fatal("should not have sanitized email")
-			}
+			require.NotEqual(t, rteam.Email, "", "should not have sanitized email")
+			require.NotEqual(t, rteam.InviteId, "", "should not have sanitized inviteid")
 		}
 	})
 }
