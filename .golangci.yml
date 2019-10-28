@@ -1,0 +1,32 @@
+run:
+  timeout: 5m
+  modules-download-mode: vendor
+
+linters-settings:
+  govet:
+    check-shadowing: true
+  gofmt:
+    simplify: true
+
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - gofmt
+    - gosimple
+    - govet
+    - ineffassign
+    - structcheck
+    - unconvert
+    - unused
+    - varcheck
+    # TODO: enable this later
+    # - errcheck
+
+issues:
+  exclude-rules:
+    - linters:
+      # ignore unused warnings from enterprise code
+      # add more as required.
+      - unused
+      text: "RedisSupplier|LocalCacheSupplier|Enterprise"

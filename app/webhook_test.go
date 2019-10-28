@@ -389,13 +389,13 @@ func TestSplitWebhookPost(t *testing.T) {
 				Message: strings.Repeat("本", maxPostSize*3/2),
 				Props: map[string]interface{}{
 					"attachments": []*model.SlackAttachment{
-						&model.SlackAttachment{
+						{
 							Text: strings.Repeat("本", 1000),
 						},
-						&model.SlackAttachment{
+						{
 							Text: strings.Repeat("本", 2000),
 						},
-						&model.SlackAttachment{
+						{
 							Text: strings.Repeat("本", model.POST_PROPS_MAX_USER_RUNES-1000),
 						},
 					},
@@ -409,10 +409,10 @@ func TestSplitWebhookPost(t *testing.T) {
 					Message: strings.Repeat("本", maxPostSize/2),
 					Props: map[string]interface{}{
 						"attachments": []*model.SlackAttachment{
-							&model.SlackAttachment{
+							{
 								Text: strings.Repeat("本", 1000),
 							},
-							&model.SlackAttachment{
+							{
 								Text: strings.Repeat("本", 2000),
 							},
 						},
@@ -421,7 +421,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				{
 					Props: map[string]interface{}{
 						"attachments": []*model.SlackAttachment{
-							&model.SlackAttachment{
+							{
 								Text: strings.Repeat("本", model.POST_PROPS_MAX_USER_RUNES-1000),
 							},
 						},
