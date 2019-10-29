@@ -1359,8 +1359,7 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool
 }
 
 func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) string {
-	var querystr string
-	querystr = `
+	querystr := `
 		SELECT
 			CONCAT(MAX(UpdateAt), '.', COUNT(Id)) as etag
 		FROM

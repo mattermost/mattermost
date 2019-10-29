@@ -16,7 +16,6 @@ import (
 )
 
 type ServerTestHelper struct {
-	configStore        config.Store
 	disableConfigWatch bool
 	interruptChan      chan os.Signal
 	originalInterval   int

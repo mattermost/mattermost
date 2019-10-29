@@ -189,7 +189,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 
 	// Test Slack attachments text conversion.
 	resp.Attachments = []*model.SlackAttachment{
-		&model.SlackAttachment{
+		{
 			Text: "<!here>",
 		},
 	}
@@ -212,7 +212,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	resp.ChannelId = ""
 	resp.Text = "<test.com|test website>"
 	resp.Attachments = []*model.SlackAttachment{
-		&model.SlackAttachment{
+		{
 			Text: "<!here>",
 		},
 	}
@@ -257,10 +257,10 @@ func TestHandleCommandResponse(t *testing.T) {
 	resp = &model.CommandResponse{
 		Text: "message 1",
 		ExtraResponses: []*model.CommandResponse{
-			&model.CommandResponse{
+			{
 				Text: "message 2",
 			},
-			&model.CommandResponse{
+			{
 				Type: model.POST_SYSTEM_GENERIC,
 				Text: "message 3",
 			},
@@ -274,8 +274,8 @@ func TestHandleCommandResponse(t *testing.T) {
 
 	resp = &model.CommandResponse{
 		ExtraResponses: []*model.CommandResponse{
-			&model.CommandResponse{},
-			&model.CommandResponse{},
+			{},
+			{},
 		},
 	}
 

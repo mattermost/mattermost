@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"encoding/json"
 	"os"
 	"strings"
@@ -600,33 +599,6 @@ func UpgradeDatabaseToVersion57(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_6_0, VERSION_5_7_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_7_0)
 	}
-}
-
-func getRole(sqlStore SqlStore, name string) (*model.Role, error) {
-	var dbRole Role
-
-	if err := sqlStore.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.Wrapf(err, "failed to find role %s", name)
-		} else {
-			return nil, errors.Wrapf(err, "failed to query role %s", name)
-		}
-	}
-
-	return dbRole.ToModel(), nil
-}
-
-func saveRole(sqlStore SqlStore, role *model.Role) error {
-	dbRole := NewRoleFromModel(role)
-
-	dbRole.UpdateAt = model.GetMillis()
-	if rowsChanged, err := sqlStore.GetMaster().Update(dbRole); err != nil {
-		return errors.Wrap(err, "failed to update role")
-	} else if rowsChanged != 1 {
-		return errors.New("found no role to update")
-	}
-
-	return nil
 }
 
 func UpgradeDatabaseToVersion58(sqlStore SqlStore) {

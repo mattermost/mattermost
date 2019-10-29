@@ -213,7 +213,7 @@ func testOAuthStoreRemoveAccessData(t *testing.T, ss store.Store) {
 	require.Nil(t, result, "did not delete access token")
 }
 
-func testOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
+func TestOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
 	a1 := model.AccessData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()

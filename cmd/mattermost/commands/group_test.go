@@ -114,7 +114,7 @@ func TestChannelGroupStatus(t *testing.T) {
 
 	// get status, should be Disabled
 	output := th.CheckCommand(t, "group", "channel", "status", th.BasicTeam.Name+":"+channel.Name)
-	require.Contains(t, string(output), "Disabled")
+	require.Contains(t, output, "Disabled")
 
 	// add group and enable
 	id := model.NewId()
@@ -143,7 +143,7 @@ func TestChannelGroupStatus(t *testing.T) {
 
 	// get status, should be enabled
 	output = th.CheckCommand(t, "group", "channel", "status", th.BasicTeam.Name+":"+channel.Name)
-	require.Contains(t, string(output), "Enabled")
+	require.Contains(t, output, "Enabled")
 
 	// try to get status of nonexistent channel, should fail
 	require.Error(t, th.RunCommand(t, "group", "channel", "status", th.BasicTeam.Name+":"+channel.Name+"asdf"))
@@ -204,8 +204,8 @@ func TestChannelGroupList(t *testing.T) {
 
 	// list groups
 	output := th.CheckCommand(t, "group", "channel", "list", th.BasicTeam.Name+":"+channel.Name)
-	require.Contains(t, string(output), g1.DisplayName)
-	require.Contains(t, string(output), g2.DisplayName)
+	require.Contains(t, output, g1.DisplayName)
+	require.Contains(t, output, g2.DisplayName)
 
 	// try to get list of nonexistent channel, should fail
 	require.Error(t, th.RunCommand(t, "group", "channel", "list", th.BasicTeam.Name+":"+channel.Name+"asdf"))
@@ -301,7 +301,7 @@ func TestTeamGroupStatus(t *testing.T) {
 
 	// get status, should be Disabled
 	output := th.CheckCommand(t, "group", "team", "status", th.BasicTeam.Name)
-	require.Contains(t, string(output), "Disabled")
+	require.Contains(t, output, "Disabled")
 
 	// add group and enable
 	id := model.NewId()
@@ -330,7 +330,7 @@ func TestTeamGroupStatus(t *testing.T) {
 
 	// get status, should be enabled
 	output = th.CheckCommand(t, "group", "team", "status", th.BasicTeam.Name)
-	require.Contains(t, string(output), "Enabled")
+	require.Contains(t, output, "Enabled")
 
 	// try to get status of nonexistent channel, should fail
 	require.Error(t, th.RunCommand(t, "group", "team", "status", th.BasicTeam.Name+"asdf"))
@@ -388,8 +388,8 @@ func TestTeamGroupList(t *testing.T) {
 
 	// list groups
 	output := th.CheckCommand(t, "group", "team", "list", th.BasicTeam.Name)
-	require.Contains(t, string(output), g1.DisplayName)
-	require.Contains(t, string(output), g2.DisplayName)
+	require.Contains(t, output, g1.DisplayName)
+	require.Contains(t, output, g2.DisplayName)
 
 	// try to get list of nonexistent team, should fail
 	require.Error(t, th.RunCommand(t, "group", "team", "list", th.BasicTeam.Name+"asdf"))
