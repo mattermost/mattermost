@@ -1321,10 +1321,6 @@
     "translation": "Unable to upload file. Image storage is not configured."
   },
   {
-    "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Unable to upload file. File is too large."
-  },
-  {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
@@ -6133,6 +6129,10 @@
   {
     "id": "store.sql_group.no_rows_changed",
     "translation": "no rows changed"
+  },
+  {
+    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",

@@ -177,7 +177,7 @@ func TestKVCompareAndDeleteJSON(t *testing.T) {
 		api.AssertNotCalled(t, "KVCompareAndDelete")
 		p := &plugin.HelpersImpl{API: api}
 
-		ok, err := p.KVCompareAndDeleteJSON("test-key", func() { return })
+		ok, err := p.KVCompareAndDeleteJSON("test-key", func() {})
 
 		api.AssertExpectations(t)
 		assert.Equal(t, false, ok)

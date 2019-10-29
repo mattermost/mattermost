@@ -20,7 +20,7 @@ import (
 func TestPluginSetting(t *testing.T) {
 	settings := &model.PluginSettings{
 		Plugins: map[string]map[string]interface{}{
-			"test": map[string]interface{}{
+			"test": {
 				"foo": "bar",
 			},
 		},
@@ -31,10 +31,10 @@ func TestPluginSetting(t *testing.T) {
 
 func TestPluginActivated(t *testing.T) {
 	states := map[string]*model.PluginState{
-		"foo": &model.PluginState{
+		"foo": {
 			Enable: true,
 		},
-		"bar": &model.PluginState{
+		"bar": {
 			Enable: false,
 		},
 	}

@@ -911,7 +911,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]string{}
-	data["results"] = base64.StdEncoding.EncodeToString([]byte(log.Bytes()))
+	data["results"] = base64.StdEncoding.EncodeToString(log.Bytes())
 	if c.Err != nil {
 		w.WriteHeader(c.Err.StatusCode)
 	}
