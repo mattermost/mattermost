@@ -46,7 +46,7 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	_, err = ss.Emoji().Save(&emoji2)
-	require.Nilf(t, err, "should be able to save emoji with duplicate name now that original has been deleted")
+	require.Nil(t, err, "should be able to save emoji with duplicate name now that original has been deleted")
 
 	err = ss.Emoji().Delete(&emoji2, time.Now().Unix()+1)
 	require.Nil(t, err)
@@ -211,14 +211,14 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 	t.Run("one emoji", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name})
 		require.Nilf(t, err, "could not get emoji")
-		require.Equal(t, len(received), 1, "got incorrect emoji")
+		require.Len(t, received, 1, "got incorrect emoji")
 		require.Equal(t, *received[0], emojis[0], "got incorrect emoji")
 	})
 
 	t.Run("multiple emojis", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name})
-		require.Nilf(t, err, "could not get emojis")
-		require.Equal(t, len(received), 3, "got incorrect emojis")
+		require.Nil(t, err, "could not get emojis")
+		require.Len(t, received, 3, "got incorrect emojis")
 	})
 
 	t.Run("one nonexistent emoji", func(t *testing.T) {
@@ -229,8 +229,8 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 
 	t.Run("multiple emojis with nonexistent names", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name, "abcd", "1234"})
-		require.Nilf(t, err, "could not get emojis")
-		require.Equal(t, len(received), 3, "got incorrect emojis")
+		require.Nil(t, err, "could not get emojis")
+		require.Len(t, received, 3, "got incorrect emojis")
 	})
 }
 
