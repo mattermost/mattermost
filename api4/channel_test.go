@@ -428,7 +428,7 @@ func TestCreateGroupChannel(t *testing.T) {
 	require.Equal(t, model.CHANNEL_GROUP, rgc.Type, "should have created a channel of group type")
 
 	m, _ := th.App.GetChannelMembersPage(rgc.Id, 0, 10)
-	require.Equal(t, len(*m), 3, "should have 3 channel members")
+	require.Len(t, *m, 3, "should have 3 channel members")
 
 	// saving duplicate group channel
 	rgc2, resp := Client.CreateGroupChannel([]string{user3.Id, user2.Id})
@@ -612,7 +612,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), numInitialChannelsForTeam+1, "should be 1 deleted channel")
+	require.Len(t, channels, numInitialChannelsForTeam+1, "should be 1 deleted channel")
 
 	publicChannel2 := th.CreatePublicChannel()
 	Client.DeleteChannel(publicChannel2.Id)
@@ -939,14 +939,14 @@ func TestSearchAllChannels(t *testing.T) {
 	CheckNoError(t, resp)
 
 	assert.Len(t, *channels, 1)
-	assert.Equal(t, (*channels)[0].Id, th.BasicChannel.Id)
+	assert.Equal(t, th.BasicChannel.Id, (*channels)[0].Id)
 
 	search.Term = th.BasicPrivateChannel.Name
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
 
 	assert.Len(t, *channels, 1)
-	assert.Equal(t, (*channels)[0].Id, th.BasicPrivateChannel.Id)
+	assert.Equal(t, th.BasicPrivateChannel.Id, (*channels)[0].Id)
 
 	search.Term = ""
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
@@ -1292,10 +1292,10 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			updatedChannel, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
 			CheckNoError(t, resp)
-			assert.Equal(t, updatedChannel.Type, tc.expectedPrivacy)
+			assert.Equal(t, tc.expectedPrivacy, updatedChannel.Type)
 			updatedChannel, err := th.App.GetChannel(tc.channel.Id)
 			require.Nil(t, err)
-			assert.Equal(t, updatedChannel.Type, tc.expectedPrivacy)
+			assert.Equal(t, tc.expectedPrivacy, updatedChannel.Type)
 		})
 	}
 }
