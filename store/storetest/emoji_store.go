@@ -224,7 +224,7 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 	t.Run("one nonexistent emoji", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{"ab"})
 		require.Nilf(t, err, "%v, could not get emoji", err)
-		require.Equal(t, len(received), 0, "got incorrect emoji")
+		require.Len(t, received, 0, "got incorrect emoji")
 	})
 
 	t.Run("multiple emojis with nonexistent names", func(t *testing.T) {
