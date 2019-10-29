@@ -32,9 +32,9 @@ func TestCreateIncomingWebhook(t *testing.T) {
 
 	rhook, resp := th.SystemAdminClient.CreateIncomingWebhook(hook)
 	CheckNoError(t, resp)
-	require.Equal(t, rhook.ChannelId, hook.ChannelId, "channel ids didn't match")
-	require.Equal(t, rhook.UserId, th.SystemAdminUser.Id, "user ids didn't match")
-	require.Equal(t, rhook.TeamId, th.BasicTeam.Id, "team ids didn't match")
+	require.Equal(t, hook.ChannelId, rhook.ChannelId, "channel ids didn't match")
+	require.Equal(t, th.SystemAdminUser.Id, rhook.UserId, "user ids didn't match")
+	require.Equal(t, th.BasicTeam.Id, rhook.TeamId, "team ids didn't match")
 
 	hook.ChannelId = "junk"
 	_, resp = th.SystemAdminClient.CreateIncomingWebhook(hook)
@@ -355,9 +355,9 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	rhook, resp := th.SystemAdminClient.CreateOutgoingWebhook(hook)
 	CheckNoError(t, resp)
 
-	require.Equal(t, rhook.ChannelId, hook.ChannelId, "channel ids didn't match")
-	require.Equal(t, rhook.CreatorId, th.SystemAdminUser.Id, "user ids didn't match")
-	require.Equal(t, rhook.TeamId, th.BasicChannel.TeamId, "team ids didn't match")
+	require.Equal(t, hook.ChannelId, rhook.ChannelId, "channel ids didn't match")
+	require.Equal(t, th.SystemAdminUser.Id, rhook.CreatorId, "user ids didn't match")
+	require.Equal(t, th.BasicChannel.TeamId, rhook.TeamId, "team ids didn't match")
 
 	hook.ChannelId = "junk"
 	_, resp = th.SystemAdminClient.CreateOutgoingWebhook(hook)
@@ -603,7 +603,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 
 	getHook, resp := th.SystemAdminClient.GetOutgoingWebhook(rhook.Id)
 	CheckNoError(t, resp)
-	require.Equal(t, getHook.Id, rhook.Id, "failed to retrieve the correct outgoing hook")
+	require.Equal(t, rhook.Id, getHook.Id, "failed to retrieve the correct outgoing hook")
 
 	_, resp = Client.GetOutgoingWebhook(rhook.Id)
 	CheckForbiddenStatus(t, resp)
@@ -649,11 +649,11 @@ func TestUpdateIncomingHook(t *testing.T) {
 		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
 		CheckNoError(t, resp)
 		require.NotNil(t, updatedHook)
-		require.Equal(t, updatedHook.DisplayName, "hook2", "Hook name is not updated")
-		require.Equal(t, updatedHook.Description, "description", "Hook description is not updated")
-		require.Equal(t, updatedHook.ChannelId, th.BasicChannel2.Id, "Hook channel is not updated")
-		require.Equal(t, updatedHook.Username, "", "Hook username was incorrectly updated")
-		require.Equal(t, updatedHook.IconURL, "", "Hook icon was incorrectly updated")
+		require.Equal(t, "hook2", updatedHook.DisplayName, "Hook name is not updated")
+		require.Equal(t, "description", updatedHook.Description, "Hook description is not updated")
+		require.Equal(t, th.BasicChannel2.Id, updatedHook.ChannelId, "Hook channel is not updated")
+		require.Equal(t, "", updatedHook.Username, "Hook username was incorrectly updated")
+		require.Equal(t, "", updatedHook.IconURL, "Hook icon was incorrectly updated")
 
 		//updatedHook, _ = th.App.GetIncomingWebhook(createdHook.Id)
 		assert.Equal(t, updatedHook.ChannelId, createdHook.ChannelId)
@@ -672,11 +672,11 @@ func TestUpdateIncomingHook(t *testing.T) {
 		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
 		CheckNoError(t, resp)
 		require.NotNil(t, updatedHook)
-		require.Equal(t, updatedHook.DisplayName, "hook2", "Hook name is not updated")
-		require.Equal(t, updatedHook.Description, "description", "Hook description is not updated")
-		require.Equal(t, updatedHook.ChannelId, th.BasicChannel2.Id, "Hook channel is not updated")
-		require.Equal(t, updatedHook.Username, "username", "Hook username is not updated")
-		require.Equal(t, updatedHook.IconURL, "icon", "Hook icon is not updated")
+		require.Equal(t, "hook2", updatedHook.DisplayName, "Hook name is not updated")
+		require.Equal(t, "description", updatedHook.Description, "Hook description is not updated")
+		require.Equal(t, th.BasicChannel2.Id, updatedHook.ChannelId, "Hook channel is not updated")
+		require.Equal(t, "username", updatedHook.Username, "Hook username is not updated")
+		require.Equal(t, "icon", updatedHook.IconURL, "Hook icon is not updated")
 
 		//updatedHook, _ = th.App.GetIncomingWebhook(createdHook.Id)
 		assert.Equal(t, updatedHook.ChannelId, createdHook.ChannelId)
@@ -702,7 +702,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
 		CheckNoError(t, resp)
 		require.NotNil(t, updatedHook)
-		require.NotEqual(t, updatedHook.UpdateAt, createdHook.UpdateAt, "failed - hook updateAt is not updated")
+		require.NotEqual(t, createdHook.UpdateAt, updatedHook.UpdateAt, "failed - hook updateAt is not updated")
 	})
 
 	t.Run("UpdateNonExistentHook", func(t *testing.T) {
@@ -752,7 +752,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 	t.Run("UpdateByDifferentUser", func(t *testing.T) {
 		updatedHook, resp := Client.UpdateIncomingWebhook(createdHook)
 		CheckNoError(t, resp)
-		require.NotEqual(t, updatedHook.UserId, th.BasicUser2.Id, "Hook's creator userId is not retained")
+		require.NotEqual(t, th.BasicUser2.Id, updatedHook.UserId, "Hook's creator userId is not retained")
 	})
 
 	t.Run("IncomingHooksDisabled", func(t *testing.T) {
@@ -845,7 +845,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 
 	regenHookToken, resp := th.SystemAdminClient.RegenOutgoingHookToken(rhook.Id)
 	CheckNoError(t, resp)
-	require.NotEqual(t, regenHookToken.Token, rhook.Token, "regen didn't work properly")
+	require.NotEqual(t, rhook.Token, regenHookToken.Token, "regen didn't work properly")
 
 	_, resp = Client.RegenOutgoingHookToken(rhook.Id)
 	CheckForbiddenStatus(t, resp)
@@ -880,8 +880,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 
 		updatedHook, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
 		CheckNoError(t, resp)
-		require.Equal(t, updatedHook.DisplayName, "Cats", "did not update")
-		require.Equal(t, updatedHook.Description, "Get me some cats", "did not update")
+		require.Equal(t, "Cats", updatedHook.DisplayName, "did not update")
+		require.Equal(t, "Get me some cats", updatedHook.Description, "did not update")
 	})
 
 	t.Run("OutgoingHooksDisabled", func(t *testing.T) {
@@ -901,7 +901,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 
 		updatedHook2, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook2)
 		CheckNoError(t, resp)
-		require.Equal(t, updatedHook2.CreateAt, createdHook2.CreateAt, "failed - hook create at should not be changed")
+		require.Equal(t, createdHook2.CreateAt, updatedHook2.CreateAt, "failed - hook create at should not be changed")
 	})
 
 	t.Run("ModifyUpdateAt", func(t *testing.T) {
@@ -909,7 +909,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 
 		updatedHook2, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
 		CheckNoError(t, resp)
-		require.NotEqual(t, updatedHook2.UpdateAt, createdHook.UpdateAt, "failed - hook updateAt is not updated")
+		require.NotEqual(t, createdHook.UpdateAt, updatedHook2.UpdateAt, "failed - hook updateAt is not updated")
 	})
 
 	t.Run("UpdateNonExistentHook", func(t *testing.T) {
@@ -949,8 +949,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		createdHook.DisplayName = "Basic user 2"
 		updatedHook, resp := Client.UpdateOutgoingWebhook(createdHook)
 		CheckNoError(t, resp)
-		require.Equal(t, updatedHook.DisplayName, "Basic user 2", "should apply the change")
-		require.Equal(t, updatedHook.CreatorId, th.SystemAdminUser.Id, "hook creator should not be changed")
+		require.Equal(t, "Basic user 2", updatedHook.DisplayName, "should apply the change")
+		require.Equal(t, th.SystemAdminUser.Id, updatedHook.CreatorId, "hook creator should not be changed")
 	})
 
 	t.Run("UpdateToExistingTriggerWordAndCallback", func(t *testing.T) {
