@@ -31,16 +31,16 @@ func TestCreateChannel(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	require.Equal(t, rchannel.Name, channel.Name, "names did not match")
-	require.Equal(t, rchannel.DisplayName, channel.DisplayName, "display names did not match")
-	require.Equal(t, rchannel.TeamId, channel.TeamId, "team ids did not match")
+	require.Equal(t, channel.Name, rchannel.Name, "names did not match")
+	require.Equal(t, channel.DisplayName, rchannel.DisplayName, "display names did not match")
+	require.Equal(t, channel.TeamId, rchannel.TeamId, "team ids did not match")
 
 	rprivate, resp := Client.CreateChannel(private)
 	CheckNoError(t, resp)
 
-	require.Equal(t, rprivate.Name, private.Name, "names did not match")
-	require.Equal(t, rprivate.Type, model.CHANNEL_PRIVATE, "wrong channel type")
-	require.Equal(t, rprivate.CreatorId, th.BasicUser.Id, "wrong creator id")
+	require.Equal(t, private.Name, rprivate.Name, "names did not match")
+	require.Equal(t, model.CHANNEL_PRIVATE, rprivate.Type, "wrong channel type")
+	require.Equal(t, th.BasicUser.Id, rprivate.CreatorId, "wrong creator id")
 
 	_, resp = Client.CreateChannel(channel)
 	CheckErrorMessage(t, resp, "store.sql_channel.save_channel.exists.app_error")
@@ -115,14 +115,14 @@ func TestCreateChannel(t *testing.T) {
 	// Test posting Garbage
 	r, err := Client.DoApiPost("/channels", "garbage")
 	require.Error(t, err, "expected error")
-	require.Equal(t, r.StatusCode, http.StatusBadRequest, "Expected 400 Bad Request")
+	require.Equal(t, http.StatusBadRequest, r.StatusCode, "Expected 400 Bad Request")
 
 	// Test GroupConstrained flag
 	groupConstrainedChannel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id, GroupConstrained: model.NewBool(true)}
 	rchannel, resp = Client.CreateChannel(groupConstrainedChannel)
 	CheckNoError(t, resp)
 
-	require.Equal(t, *rchannel.GroupConstrained, *groupConstrainedChannel.GroupConstrained,
+	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained,
 		"GroupConstrained flags do not match")
 }
 
@@ -146,9 +146,9 @@ func TestUpdateChannel(t *testing.T) {
 	newChannel, resp := Client.UpdateChannel(channel)
 	CheckNoError(t, resp)
 
-	require.Equal(t, newChannel.DisplayName, channel.DisplayName, "Update failed for DisplayName")
-	require.Equal(t, newChannel.Header, channel.Header, "Update failed for Header")
-	require.Equal(t, newChannel.Purpose, channel.Purpose, "Update failed for Purpose")
+	require.Equal(t, channel.DisplayName, newChannel.DisplayName, "Update failed for DisplayName")
+	require.Equal(t, channel.Header, newChannel.Header, "Update failed for Header")
+	require.Equal(t, channel.Purpose, newChannel.Purpose, "Update failed for Purpose")
 
 	// Test GroupConstrained flag
 	channel.GroupConstrained = model.NewBool(true)
@@ -156,7 +156,7 @@ func TestUpdateChannel(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
-	require.Equal(t, *rchannel.GroupConstrained, *channel.GroupConstrained, "GroupConstrained flags do not match")
+	require.Equal(t, *channel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
 
 	//Update a private channel
 	private.DisplayName = "My new display name for private channel"
@@ -166,9 +166,9 @@ func TestUpdateChannel(t *testing.T) {
 	newPrivateChannel, resp := Client.UpdateChannel(private)
 	CheckNoError(t, resp)
 
-	require.Equal(t, newPrivateChannel.DisplayName, private.DisplayName, "Update failed for DisplayName in private channel")
-	require.Equal(t, newPrivateChannel.Header, private.Header, "Update failed for Header in private channel")
-	require.Equal(t, newPrivateChannel.Purpose, private.Purpose, "Update failed for Purpose in private channel")
+	require.Equal(t, private.DisplayName, newPrivateChannel.DisplayName, "Update failed for DisplayName in private channel")
+	require.Equal(t, private.Header, newPrivateChannel.Header, "Update failed for Header in private channel")
+	require.Equal(t, private.Purpose, newPrivateChannel.Purpose, "Update failed for Purpose in private channel")
 
 	//Non existing channel
 	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -235,17 +235,17 @@ func TestPatchChannel(t *testing.T) {
 	channel, resp := Client.PatchChannel(th.BasicChannel.Id, patch)
 	CheckNoError(t, resp)
 
-	require.Equal(t, *patch.Name, channel.Name, "do not match")
-	require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
-	require.Equal(t, *patch.Header, channel.Header, "do not match")
-	require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
+	require.Equal(t, channel.Name, *patch.Name, "do not match")
+	require.Equal(t, channel.DisplayName, *patch.DisplayName, "do not match")
+	require.Equal(t, channel.Header, *patch.Header, "do not match")
+	require.Equal(t, channel.Purpose, *patch.Purpose, "do not match")
 
 	patch.Name = nil
 	oldName := channel.Name
 	channel, resp = Client.PatchChannel(th.BasicChannel.Id, patch)
 	CheckNoError(t, resp)
 
-	require.Equal(t, channel.Name, oldName, "should not have updated")
+	require.Equal(t, oldName, channel.Name, "should not have updated")
 
 	// Test GroupConstrained flag
 	patch.GroupConstrained = model.NewBool(true)
@@ -322,7 +322,7 @@ func TestCreateDirectChannel(t *testing.T) {
 		channelName = user2.Id + "__" + user1.Id
 	}
 
-	require.Equal(t, dm.Name, channelName, "dm name didn't match")
+	require.Equal(t, channelName, dm.Name, "dm name didn't match")
 
 	_, resp = Client.CreateDirectChannel("junk", user2.Id)
 	CheckBadRequestStatus(t, resp)
@@ -338,7 +338,7 @@ func TestCreateDirectChannel(t *testing.T) {
 
 	r, err := Client.DoApiPost("/channels/direct", "garbage")
 	require.Error(t, err)
-	require.Equal(t, r.StatusCode, http.StatusBadRequest)
+	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	Client.Logout()
 	_, resp = Client.CreateDirectChannel(model.NewId(), user2.Id)
@@ -425,7 +425,7 @@ func TestCreateGroupChannel(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 
 	require.NotNil(t, rgc, "should have created a group channel")
-	require.Equal(t, rgc.Type, model.CHANNEL_GROUP, "should have created a channel of group type")
+	require.Equal(t, model.CHANNEL_GROUP, rgc.Type, "should have created a channel of group type")
 
 	m, _ := th.App.GetChannelMembersPage(rgc.Id, 0, 10)
 	require.Equal(t, len(*m), 3, "should have 3 channel members")
@@ -555,7 +555,7 @@ func TestGetChannel(t *testing.T) {
 
 	channel, resp := Client.GetChannel(th.BasicChannel.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, channel.Id, th.BasicChannel.Id, "ids did not match")
+	require.Equal(t, th.BasicChannel.Id, channel.Id, "ids did not match")
 
 	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 	_, resp = Client.GetChannel(th.BasicChannel.Id, "")
@@ -563,7 +563,7 @@ func TestGetChannel(t *testing.T) {
 
 	channel, resp = Client.GetChannel(th.BasicPrivateChannel.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, channel.Id, th.BasicPrivateChannel.Id, "ids did not match")
+	require.Equal(t, th.BasicPrivateChannel.Id, channel.Id, "ids did not match")
 
 	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 	_, resp = Client.GetChannel(th.BasicPrivateChannel.Id, "")
@@ -644,7 +644,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 
 	for i, c := range channels {
 		// check all channels included are open
-		require.Equal(t, c.Type, model.CHANNEL_OPEN, "should include open channel only")
+		require.Equal(t, model.CHANNEL_OPEN, c.Type, "should include open channel only")
 
 		if i > 1 {
 			continue // only check names of the 2 created public channels
@@ -660,8 +660,8 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	require.Equal(t, len(channels), 4, "incorrect length of team public channels")
 
 	for _, c := range channels {
-		require.Equal(t, c.Type, model.CHANNEL_OPEN, "should not include private channel")
-		require.NotEqual(t, c.DisplayName, privateChannel.DisplayName, "should not match private channel display name")
+		require.Equal(t, model.CHANNEL_OPEN, c.Type, "should not include private channel")
+		require.NotEqual(t, privateChannel.DisplayName, c.DisplayName, "should not match private channel display name")
 	}
 
 	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 0, 1, "")
@@ -706,7 +706,7 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	channels, resp := Client.GetPublicChannelsByIdsForTeam(teamId, input)
 	CheckNoError(t, resp)
 	require.Equal(t, len(channels), 1, "should return 1 channel")
-	require.Equal(t, channels[0].DisplayName, output[0], "missing channel")
+	require.Equal(t, output[0], channels[0].DisplayName, "missing channel")
 
 	input = append(input, GenerateTestId())
 	input = append(input, th.BasicChannel2.Id)
@@ -719,7 +719,7 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	require.Equal(t, len(channels), 2, "should return 2 channels")
 
 	for i, c := range channels {
-		require.Equal(t, c.DisplayName, output[i], "missing channel")
+		require.Equal(t, output[i], c.DisplayName, "missing channel")
 	}
 
 	_, resp = Client.GetPublicChannelsByIdsForTeam(GenerateTestId(), input)
@@ -865,7 +865,7 @@ func TestSearchChannels(t *testing.T) {
 
 	found := false
 	for _, c := range channels {
-		require.Equal(t, c.Type, model.CHANNEL_OPEN, "should only return public channels")
+		require.Equal(t, model.CHANNEL_OPEN, c.Type, "should only return public channels")
 
 		if c.Id == th.BasicChannel.Id {
 			found = true
@@ -1205,7 +1205,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	th.LoginTeamAdmin()
 	rchannel, resp := Client.ConvertChannelToPrivate(publicChannel.Id)
 	CheckOKStatus(t, resp)
-	require.Equal(t, rchannel.Type, model.CHANNEL_PRIVATE, "channel should be converted from public to private")
+	require.Equal(t, model.CHANNEL_PRIVATE, rchannel.Type, "channel should be converted from public to private")
 
 	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(privateChannel.Id)
 	CheckBadRequestStatus(t, resp)
@@ -1222,7 +1222,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	publicChannel2 := th.CreatePublicChannel()
 	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(publicChannel2.Id)
 	CheckOKStatus(t, resp)
-	require.Equal(t, rchannel.Type, model.CHANNEL_PRIVATE, "channel should be converted from public to private")
+	require.Equal(t, model.CHANNEL_PRIVATE, rchannel.Type, "channel should be converted from public to private")
 
 	stop := make(chan bool)
 	eventHit := false
@@ -1342,11 +1342,11 @@ func TestGetChannelByName(t *testing.T) {
 
 	channel, resp := Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, channel.Name, th.BasicChannel.Name, "names did not match")
+	require.Equal(t, th.BasicChannel.Name, channel.Name, "names did not match")
 
 	channel, resp = Client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, channel.Name, th.BasicPrivateChannel.Name, "names did not match")
+	require.Equal(t, th.BasicPrivateChannel.Name, channel.Name, "names did not match")
 
 	_, resp = Client.GetChannelByName(strings.ToUpper(th.BasicPrivateChannel.Name), th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
@@ -1356,7 +1356,7 @@ func TestGetChannelByName(t *testing.T) {
 
 	channel, resp = Client.GetChannelByNameIncludeDeleted(th.BasicDeletedChannel.Name, th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, channel.Name, th.BasicDeletedChannel.Name, "names did not match")
+	require.Equal(t, th.BasicDeletedChannel.Name, channel.Name, "names did not match")
 
 	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
@@ -1392,7 +1392,7 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 
 	channel, resp := th.SystemAdminClient.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
-	require.Equal(t, channel.Name, th.BasicChannel.Name, "names did not match")
+	require.Equal(t, th.BasicChannel.Name, channel.Name, "names did not match")
 
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
@@ -1402,7 +1402,7 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 
 	channel, resp = Client.GetChannelByNameForTeamNameIncludeDeleted(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
-	require.Equal(t, channel.Name, th.BasicDeletedChannel.Name, "names did not match")
+	require.Equal(t, th.BasicDeletedChannel.Name, channel.Name, "names did not match")
 
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, model.NewRandomString(15), "")
 	CheckNotFoundStatus(t, resp)
@@ -1470,7 +1470,7 @@ func TestGetChannelMembersByIds(t *testing.T) {
 
 	cm, resp := Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id})
 	CheckNoError(t, resp)
-	require.Equal(t, (*cm)[0].UserId, th.BasicUser.Id, "returned wrong user")
+	require.Equal(t, th.BasicUser.Id, (*cm)[0].UserId, "returned wrong user")
 
 	_, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{})
 	CheckBadRequestStatus(t, resp)
@@ -1508,8 +1508,8 @@ func TestGetChannelMember(t *testing.T) {
 
 	member, resp := Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, member.ChannelId, th.BasicChannel.Id, "wrong channel id")
-	require.Equal(t, member.UserId, th.BasicUser.Id, "wrong user id")
+	require.Equal(t, th.BasicChannel.Id, member.ChannelId, "wrong channel id")
+	require.Equal(t, th.BasicUser.Id, member.UserId, "wrong user id")
 
 	_, resp = Client.GetChannelMember("", th.BasicUser.Id, "")
 	CheckNotFoundStatus(t, resp)
@@ -1593,12 +1593,12 @@ func TestViewChannel(t *testing.T) {
 
 	viewResp, resp := Client.ViewChannel(th.BasicUser.Id, view)
 	CheckNoError(t, resp)
-	require.Equal(t, viewResp.Status, "OK", "should have passed")
+	require.Equal(t, "OK", viewResp.Status, "should have passed")
 
 	channel, _ := th.App.GetChannel(th.BasicChannel.Id)
 
 	lastViewedAt := viewResp.LastViewedAtTimes[channel.Id]
-	require.Equal(t, lastViewedAt, channel.LastPostAt, "LastPostAt does not match returned LastViewedAt time")
+	require.Equal(t, channel.LastPostAt, lastViewedAt, "LastPostAt does not match returned LastViewedAt time")
 
 	view.PrevChannelId = th.BasicChannel.Id
 	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
@@ -1632,8 +1632,8 @@ func TestViewChannel(t *testing.T) {
 	CheckNoError(t, resp)
 	channel, resp = Client.GetChannel(th.BasicChannel.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, member.MsgCount, channel.TotalMsgCount, "should match message counts")
-	require.Equal(t, member.MentionCount, int64(0), "should have no mentions")
+	require.Equal(t, channel.TotalMsgCount, member.MsgCount, "should match message counts")
+	require.Equal(t, int64(0), member.MentionCount, "should have no mentions")
 
 	_, resp = Client.ViewChannel("junk", view)
 	CheckBadRequestStatus(t, resp)
@@ -1643,7 +1643,7 @@ func TestViewChannel(t *testing.T) {
 
 	r, err := Client.DoApiPost(fmt.Sprintf("/channels/members/%v/view", th.BasicUser.Id), "garbage")
 	require.Error(t, err)
-	require.Equal(t, r.StatusCode, http.StatusBadRequest)
+	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	Client.Logout()
 	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
@@ -1662,8 +1662,8 @@ func TestGetChannelUnread(t *testing.T) {
 
 	channelUnread, resp := Client.GetChannelUnread(channel.Id, user.Id)
 	CheckNoError(t, resp)
-	require.Equal(t, channelUnread.TeamId, th.BasicTeam.Id, "wrong team id returned for a regular user call")
-	require.Equal(t, channelUnread.ChannelId, channel.Id, "wrong team id returned for a regular user call")
+	require.Equal(t, th.BasicTeam.Id, channelUnread.TeamId, "wrong team id returned for a regular user call")
+	require.Equal(t, channel.Id, channelUnread.ChannelId, "wrong team id returned for a regular user call")
 
 	_, resp = Client.GetChannelUnread("junk", user.Id)
 	CheckBadRequestStatus(t, resp)
@@ -1703,14 +1703,14 @@ func TestGetChannelStats(t *testing.T) {
 	stats, resp := Client.GetChannelStats(channel.Id, "")
 	CheckNoError(t, resp)
 
-	require.Equal(t, stats.ChannelId, channel.Id, "couldnt't get extra info")
-	require.Equal(t, stats.MemberCount, int64(1), "got incorrect member count")
-	require.Equal(t, stats.PinnedPostCount, int64(0), "got incorrect pinned post count")
+	require.Equal(t, channel.Id, stats.ChannelId, "couldnt't get extra info")
+	require.Equal(t, int64(1), stats.MemberCount, "got incorrect member count")
+	require.Equal(t, int64(0), stats.PinnedPostCount, "got incorrect pinned post count")
 
 	th.CreatePinnedPostWithClient(th.Client, channel)
 	stats, resp = Client.GetChannelStats(channel.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, stats.PinnedPostCount, int64(1), "should have returned 1 pinned post count")
+	require.Equal(t, int64(1), stats.PinnedPostCount, "should have returned 1 pinned post count")
 
 	_, resp = Client.GetChannelStats("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -1785,7 +1785,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 
 	member, resp := Client.GetChannelMember(channel.Id, th.BasicUser2.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, member.Roles, CHANNEL_ADMIN, "roles don't match")
+	require.Equal(t, CHANNEL_ADMIN, member.Roles, "roles don't match")
 
 	// User 1 demotes User 2
 	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_MEMBER)
@@ -1957,8 +1957,8 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 
 	member, err := th.App.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, err)
-	require.Equal(t, member.NotifyProps[model.DESKTOP_NOTIFY_PROP], model.CHANNEL_NOTIFY_MENTION, "bad update")
-	require.Equal(t, member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP], model.CHANNEL_MARK_UNREAD_MENTION, "bad update")
+	require.Equal(t, model.CHANNEL_NOTIFY_MENTION, member.NotifyProps[model.DESKTOP_NOTIFY_PROP], "bad update")
+	require.Equal(t, model.CHANNEL_MARK_UNREAD_MENTION, member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP], "bad update")
 
 	_, resp = Client.UpdateChannelNotifyProps("junk", th.BasicUser.Id, props)
 	CheckBadRequestStatus(t, resp)
@@ -2000,13 +2000,13 @@ func TestAddChannelMember(t *testing.T) {
 	cm, resp := Client.AddChannelMember(publicChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
-	require.Equal(t, cm.ChannelId, publicChannel.Id, "should have returned exact channel")
-	require.Equal(t, cm.UserId, user2.Id, "should have returned exact user added to public channel")
+	require.Equal(t, publicChannel.Id, cm.ChannelId, "should have returned exact channel")
+	require.Equal(t, user2.Id, cm.UserId, "should have returned exact user added to public channel")
 
 	cm, resp = Client.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
-	require.Equal(t, cm.ChannelId, privateChannel.Id, "should have returned exact channel")
-	require.Equal(t, cm.UserId, user2.Id, "should have returned exact user added to private channel")
+	require.Equal(t, privateChannel.Id, cm.ChannelId, "should have returned exact channel")
+	require.Equal(t, user2.Id, cm.UserId, "should have returned exact user added to private channel")
 
 	post := &model.Post{ChannelId: publicChannel.Id, Message: "a" + GenerateTestId() + "a"}
 	rpost, err := Client.CreatePost(post)
@@ -2272,7 +2272,7 @@ func TestRemoveChannelMember(t *testing.T) {
 		})
 
 		wsr := <-wsClient.EventChannel
-		require.Equal(t, wsr.Event, model.WEBSOCKET_EVENT_HELLO)
+		require.Equal(t, model.WEBSOCKET_EVENT_HELLO, wsr.Event)
 
 		// requirePost listens for websocket events and tries to find the post matching
 		// the expected post's channel and message.
