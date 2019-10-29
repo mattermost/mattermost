@@ -646,12 +646,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 		// check all channels included are open
 		require.Equal(t, model.CHANNEL_OPEN, c.Type, "should include open channel only")
 
-		if i > 1 {
-			continue // only check names of the 2 created public channels
-		}
-		require.Condition(t, func() bool {
-			return c.DisplayName == publicChannel1.DisplayName || c.DisplayName == publicChannel2.DisplayName
-		}, "should match public channel display name")
+		require.False(t, i < 2 && !(c.DisplayName == publicChannel1.DisplayName || c.DisplayName == publicChannel2.DisplayName), "should match public channel display name")
 	}
 
 	privateChannel := th.CreatePrivateChannel()
@@ -764,9 +759,7 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 			found[2] = true
 		}
 
-		require.Condition(t, func() bool {
-			return c.TeamId == "" || c.TeamId == th.BasicTeam.Id
-		}, "wrong team")
+		require.True(t, c.TeamId == "" || c.TeamId == th.BasicTeam.Id)
 	}
 
 	for _, f := range found {
@@ -1040,9 +1033,7 @@ func TestDeleteChannel(t *testing.T) {
 	require.True(t, pass, "should have passed")
 
 	ch, err := th.App.GetChannel(publicChannel1.Id)
-	require.Condition(t, func() bool {
-		return err != nil || ch.DeleteAt != 0
-	}, "should have failed to get deleted channel, or returned one with a populated DeleteAt.")
+	require.True(t, err != nil || ch.DeleteAt != 0, "should have failed to get deleted channel, or returned one with a populated DeleteAt.")
 
 	post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
 	_, resp = Client.CreatePost(post1)
