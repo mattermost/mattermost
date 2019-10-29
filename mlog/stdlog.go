@@ -81,7 +81,7 @@ type loggerWriter struct {
 func (l *loggerWriter) Write(p []byte) (int, error) {
 	trimmed := string(bytes.TrimSpace(p))
 	for _, line := range strings.Split(trimmed, "\n") {
-		l.logFunc(string(line))
+		l.logFunc(line)
 	}
 	return len(p), nil
 }

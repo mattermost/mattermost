@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetPing(t *testing.T) {
@@ -66,24 +67,15 @@ func TestGetAudits(t *testing.T) {
 
 	audits, resp := th.SystemAdminClient.GetAudits(0, 100, "")
 	CheckNoError(t, resp)
-
-	if len(audits) == 0 {
-		t.Fatal("should not be empty")
-	}
+	require.NotEmpty(t, audits, "should not be empty")
 
 	audits, resp = th.SystemAdminClient.GetAudits(0, 1, "")
 	CheckNoError(t, resp)
-
-	if len(audits) != 1 {
-		t.Fatal("should only be 1")
-	}
+	require.Len(t, audits, 1, "should only be 1")
 
 	audits, resp = th.SystemAdminClient.GetAudits(1, 1, "")
 	CheckNoError(t, resp)
-
-	if len(audits) != 1 {
-		t.Fatal("should only be 1")
-	}
+	require.Len(t, audits, 1, "should only be 1")
 
 	_, resp = th.SystemAdminClient.GetAudits(-1, -1, "")
 	CheckNoError(t, resp)
@@ -222,17 +214,13 @@ func TestInvalidateCaches(t *testing.T) {
 	t.Run("as system user", func(t *testing.T) {
 		ok, resp := Client.InvalidateCaches()
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should not clean the cache due no permission.")
-		}
+		require.False(t, ok, "should not clean the cache due to no permission.")
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
 		ok, resp := th.SystemAdminClient.InvalidateCaches()
 		CheckNoError(t, resp)
-		if !ok {
-			t.Fatal("should clean the cache")
-		}
+		require.True(t, ok, "should clean the cache")
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
@@ -240,9 +228,7 @@ func TestInvalidateCaches(t *testing.T) {
 
 		ok, resp := th.SystemAdminClient.InvalidateCaches()
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should not clean the cache due no permission.")
-		}
+		require.False(t, ok, "should not clean the cache due to no permission.")
 	})
 }
 
@@ -257,29 +243,19 @@ func TestGetLogs(t *testing.T) {
 
 	logs, resp := th.SystemAdminClient.GetLogs(0, 10)
 	CheckNoError(t, resp)
+	require.Len(t, logs, 10)
 
-	if len(logs) != 10 {
-		t.Log(len(logs))
-		t.Fatal("wrong length")
-	}
 	for i := 10; i < 20; i++ {
 		assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
 	}
 
 	logs, resp = th.SystemAdminClient.GetLogs(1, 10)
 	CheckNoError(t, resp)
-
-	if len(logs) != 10 {
-		t.Log(len(logs))
-		t.Fatal("wrong length")
-	}
+	require.Len(t, logs, 10)
 
 	logs, resp = th.SystemAdminClient.GetLogs(-1, -1)
 	CheckNoError(t, resp)
-
-	if len(logs) == 0 {
-		t.Fatal("should not be empty")
-	}
+	require.NotEmpty(t, logs, "should not be empty")
 
 	_, resp = Client.GetLogs(0, 10)
 	CheckForbiddenStatus(t, resp)
@@ -319,9 +295,8 @@ func TestPostLog(t *testing.T) {
 
 	logMessage, resp := th.SystemAdminClient.PostLog(message)
 	CheckNoError(t, resp)
-	if len(logMessage) == 0 {
-		t.Fatal("should return the log message")
-	}
+	require.NotEmpty(t, logMessage, "should return the log message")
+
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
@@ -331,10 +306,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 
 	rows, resp := Client.GetAnalyticsOld("", "")
 	CheckForbiddenStatus(t, resp)
-	if rows != nil {
-		t.Fatal("should be nil")
-	}
-
+	require.Nil(t, rows, "should be nil")
 	rows, resp = th.SystemAdminClient.GetAnalyticsOld("", "")
 	CheckNoError(t, resp)
 
@@ -376,14 +348,11 @@ func TestGetAnalyticsOld(t *testing.T) {
 	assert.Equal(t, float64(0), rows2[5].Value)
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	require.Nil(t, err)
 	rows2, resp2 = th.SystemAdminClient.GetAnalyticsOld("standard", "")
 	CheckNoError(t, resp2)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
-	assert.Equal(t, float64(1), rows2[5].Value)
+	assert.Equal(t, float64(th.App.TotalWebsocketConnections()), rows2[5].Value)
 
 	WebSocketClient.Close()
 
@@ -433,10 +402,7 @@ func TestS3TestConnection(t *testing.T) {
 	t.Run("as system admin", func(t *testing.T) {
 		_, resp := th.SystemAdminClient.TestS3Connection(&config)
 		CheckBadRequestStatus(t, resp)
-		if resp.Error.Message != "S3 Bucket is required" {
-			t.Fatal("should return error - missing s3 bucket")
-		}
-
+		require.Equal(t, resp.Error.Message, "S3 Bucket is required", "should return error - missing s3 bucket")
 		// If this fails, check the test configuration to ensure minio is setup with the
 		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 		*config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
