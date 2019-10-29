@@ -2507,6 +2507,7 @@ func TestRemoveChannelMember(t *testing.T) {
 		// Setup the system administrator to listen for websocket events from the channels.
 		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 		_, err := th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+		require.Nil(t, err)
 		_, err = th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel2)
 		require.Nil(t, err)
 		props := map[string]string{}
