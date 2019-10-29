@@ -306,7 +306,7 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	require.Equal(t, teamId1, ch.TeamId, "Wrong team id for channel 1")
 	require.NotNil(t, ch.NotifyProps, "wrong props for channel 1")
 	require.EqualValues(t, 0, ch.MentionCount, "wrong MentionCount for channel 1")
-	require.EqualValues(t, 0, ch.MsgCount, "wrong MsgCount for channel 1")
+	require.EqualValues(t, 10, ch.MsgCount, "wrong MsgCount for channel 1")
 
 	// Check for Channel 2
 	ch2, err := ss.Channel().GetChannelUnread(c2.Id, uid)
@@ -550,11 +550,11 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 
 	list, err := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
 	require.Nil(t, err)
-	require.Len(t, list, 1, "invalid number of channels")
+	require.Len(t, *list, 1, "invalid number of channels")
 
 	list, err = ss.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 100)
 	require.Nil(t, err)
-	require.Len(t, list, 1, "invalid number of channels")
+	require.Len(t, *list, 1, "invalid number of channels")
 
 	cresult := ss.Channel().PermanentDelete(o2.Id)
 	require.Nil(t, cresult)
@@ -695,7 +695,7 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 
 	list, err := ss.Channel().GetDeleted(o1.TeamId, 0, 100)
 	require.Nil(t, err, err)
-	require.Len(t, list, 1, "wrong list")
+	require.Len(t, *list, 1, "wrong list")
 	require.Equal(t, o1.Name, (*list)[0].Name, "missing channel")
 
 	o2 := model.Channel{}
@@ -708,7 +708,7 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 
 	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 100)
 	require.Nil(t, err, err)
-	require.Len(t, list, 1, "wrong list")
+	require.Len(t, *list, 1, "wrong list")
 
 	o3 := model.Channel{}
 	o3.TeamId = o1.TeamId
@@ -724,15 +724,15 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 
 	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 100)
 	require.Nil(t, err, err)
-	require.Len(t, list, 2, "wrong list length")
+	require.Len(t, *list, 2, "wrong list length")
 
 	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 1)
 	require.Nil(t, err, err)
-	require.Len(t, list, 1, "wrong list length")
+	require.Len(t, *list, 1, "wrong list length")
 
 	list, err = ss.Channel().GetDeleted(o1.TeamId, 1, 1)
 	require.Nil(t, err, err)
-	require.Len(t, list, 1, "wrong list length")
+	require.Len(t, *list, 1, "wrong list length")
 
 }
 
