@@ -186,7 +186,6 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 	require.Equal(t, "model.config.is_valid.saml_digest_algorithm.app_error", err.Message)
 	*c1.SamlSettings.DigestAlgorithm = temp
 
-	temp = *c1.SamlSettings.SignatureAlgorithm
 	*c1.SamlSettings.SignatureAlgorithm = "Fake Algorithm"
 	err = c1.SamlSettings.isValid()
 	if err == nil {
