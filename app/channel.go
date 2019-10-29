@@ -1525,9 +1525,12 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 func (a *App) postLeaveChannelMessage(user *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.leave.left"), user.Username),
-		Type:      model.POST_LEAVE_CHANNEL,
-		UserId:    user.Id,
+		// Message here embeds `@username`, not just `username`, to ensure that mentions
+		// treat this as a username mention even though the user has now left the channel.
+		// The client renders its own system message, ignoring this value altogether.
+		Message: fmt.Sprintf(utils.T("api.channel.leave.left"), fmt.Sprintf("@%s", user.Username)),
+		Type:    model.POST_LEAVE_CHANNEL,
+		UserId:  user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,
 		},
@@ -1595,9 +1598,12 @@ func (a *App) postAddToTeamMessage(user *model.User, addedUser *model.User, chan
 func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.remove_member.removed"), removedUser.Username),
-		Type:      model.POST_REMOVE_FROM_CHANNEL,
-		UserId:    removerUserId,
+		// Message here embeds `@username`, not just `username`, to ensure that mentions
+		// treat this as a username mention even though the user has now left the channel.
+		// The client renders its own system message, ignoring this value altogether.
+		Message: fmt.Sprintf(utils.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username)),
+		Type:    model.POST_REMOVE_FROM_CHANNEL,
+		UserId:  removerUserId,
 		Props: model.StringInterface{
 			"removedUserId":   removedUser.Id,
 			"removedUsername": removedUser.Username,
