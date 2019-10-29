@@ -134,6 +134,27 @@ func (_m *Helpers) KVSetWithExpiryJSON(key string, value interface{}, expireInSe
 	return r0
 }
 
+// RunOnSingleNode provides a mock function with given fields: id, f
+func (_m *Helpers) RunOnSingleNode(id string, f func()) (bool, error) {
+	ret := _m.Called(id, f)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, func()) bool); ok {
+		r0 = rf(id, f)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, func()) error); ok {
+		r1 = rf(id, f)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ShouldProcessMessage provides a mock function with given fields: post, options
 func (_m *Helpers) ShouldProcessMessage(post *model.Post, options ...plugin.ShouldProcessMessageOption) (bool, error) {
 	_va := make([]interface{}, len(options))

@@ -58,6 +58,15 @@ type Helpers interface {
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 
+	// RunOnSingleNode is a wrapper function which makes function f run only once on a single node
+	// The id parameter is an identifier that uses for synchronization must be unique between each function.
+	//
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if the function f is already run once
+	// Returns (true, nil) if it is the first time that run function f
+	// Minimum server version 5.18
+	RunOnSingleNode(id string, f func()) (bool, error)
+
 	// ShouldProcessMessage returns if the message should be processed by a message hook.
 	//
 	// Use this method to avoid processing unnecessary messages in a MessageHasBeenPosted
