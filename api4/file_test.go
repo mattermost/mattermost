@@ -607,8 +607,7 @@ func TestUploadFiles(t *testing.T) {
 
 							expected, err := ioutil.ReadFile(filepath.Join(testDir, name))
 							require.Nil(t, err)
-
-							if bytes.Compare(data, expected) != 0 {
+							if !bytes.Equal(data, expected) {
 								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
 								require.Nil(t, err)
 								_, _ = io.Copy(tf, bytes.NewReader(data))
