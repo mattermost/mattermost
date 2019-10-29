@@ -58,7 +58,7 @@ func MarketplacePluginsFromReader(reader io.Reader) ([]*MarketplacePlugin, error
 	return plugins, nil
 }
 
-// GetSignatures returns list of signatures
+// GetSignatures returns list of signatures.
 func (plugin *BaseMarketplacePlugin) GetSignatures() []string {
 	signatures := make([]string, 0, len(plugin.Signatures))
 	for _, sig := range plugin.Signatures {

@@ -18,7 +18,7 @@ import (
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 func (a *App) VerifyPlugin(plugin, signature io.Reader) *model.AppError {
-	if verifySignature(bytes.NewReader(mattermostPublicKey), plugin, signature) == nil {
+	if err := verifySignature(bytes.NewReader(mattermostPublicKey), plugin, signature); err == nil {
 		return nil
 	}
 	publicKeys, appErr := a.GetPluginPublicKeys()
@@ -32,7 +32,7 @@ func (a *App) VerifyPlugin(plugin, signature io.Reader) *model.AppError {
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)
-		if verifySignature(publicKey, plugin, signature) == nil {
+		if err := verifySignature(publicKey, plugin, signature); err == nil {
 			return nil
 		}
 	}

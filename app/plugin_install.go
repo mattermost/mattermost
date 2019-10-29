@@ -319,7 +319,7 @@ func (a *App) saveSignatures(pluginId string, signatures []string) *model.AppErr
 			return model.NewAppError("saveSignatures", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		filePath := a.getSignatureStorePath(pluginId, counter+1)
+		filePath := a.getSignatureStorePath(pluginId, counter)
 		if _, appErr := a.WriteFile(bytes.NewReader(signatureBytes), filePath); appErr != nil {
 			return model.NewAppError("saveSignatures", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
@@ -328,7 +328,7 @@ func (a *App) saveSignatures(pluginId string, signatures []string) *model.AppErr
 }
 
 func (a *App) removeSignatures(pluginId string) *model.AppError {
-	for counter := 1; ; counter++ {
+	for counter := 0; ; counter++ {
 		filePath := a.getSignatureStorePath(pluginId, counter)
 		exists, err := a.FileExists(filePath)
 		if err != nil {
@@ -340,7 +340,6 @@ func (a *App) removeSignatures(pluginId string) *model.AppError {
 		if err = a.RemoveFile(filePath); err != nil {
 			return model.NewAppError("removeSignatures", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-
 	}
 }
 

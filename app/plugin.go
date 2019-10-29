@@ -660,7 +660,7 @@ func (a *App) verifySignature(plugin filesstore.ReadCloseSeeker, signaturePaths 
 		}
 		return nil
 	}
-	return model.NewAppError("SyncPlugins", "app.plugin.sync_plugins.verify_signature.app_error", nil, "", http.StatusInternalServerError)
+	return model.NewAppError("verifySignature", "app.plugin.sync_plugins.verify_signature.app_error", nil, "", http.StatusInternalServerError)
 
 }
 

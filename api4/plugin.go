@@ -9,11 +9,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -407,21 +405,6 @@ func verifyPlugin(c *Context, plugin *model.BaseMarketplacePlugin, pluginFileByt
 		mlog.Debug("Plugin signature not verified", mlog.String("public key hash", signature.PublicKeyHash), mlog.Err(appErr))
 	}
 	return model.NewAppError("verifyPlugin", "api.plugin.install.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
-}
-
-func saveSignatures(c *Context, plugin *model.BaseMarketplacePlugin) *model.AppError {
-	for count, signature := range plugin.Signatures {
-		signatureBytes, err := base64.StdEncoding.DecodeString(signature.Signature)
-		if err != nil {
-			return model.NewAppError("saveSignatures", "api.plugin.signature_decode.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
-		filePath := filepath.Join(*c.App.Config().PluginSettings.Directory, fmt.Sprintf("%s.%d.sig", plugin.Manifest.Id, count+1))
-		if _, appErr := c.App.WriteFile(bytes.NewReader(signatureBytes), filePath); appErr != nil {
-			return model.NewAppError("saveSignatures", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-		}
-	}
-	return nil
 }
 
 func installPlugin(c *Context, w http.ResponseWriter, pluginFileBytes []byte, force bool) {
