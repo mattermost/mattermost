@@ -284,7 +284,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 		R, S *big.Int
 	}
 
-	if _, err := asn1.Unmarshal([]byte(signature), &esig); err != nil {
+	if _, err := asn1.Unmarshal(signature, &esig); err != nil {
 		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, err.Error(), http.StatusBadRequest)
 	}
 

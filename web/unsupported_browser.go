@@ -127,7 +127,7 @@ func renderBrowserFirefox(app *app.App) Browser {
 		"/static/images/browser-icons/firefox.svg",
 		app.T("web.error.unsupported_browser.browser_title.firefox"),
 		app.T("web.error.unsupported_browser.min_browser_version.firefox"),
-		"https://www.mozilla.org/en-CA/firefox/new/",
+		"https://www.mozilla.org/firefox/new/",
 		app.T("web.error.unsupported_browser.browser_get_latest.firefox"),
 	}
 }

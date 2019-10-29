@@ -29,7 +29,6 @@ type PushNotificationsHub struct {
 }
 
 type PushNotification struct {
-	id                 string
 	notificationType   NotificationType
 	currentSessionId   string
 	userId             string
