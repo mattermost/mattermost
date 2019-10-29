@@ -619,15 +619,15 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), numInitialChannelsForTeam+2, "should be 2 deleted channels")
+	require.Len(t, channels, numInitialChannelsForTeam+2, "should be 2 deleted channels")
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), 1, "should be one channel per page")
+	require.Len(t, channels, 1, "should be one channel per page")
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 1, 1, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), 1, "should be one channel per page")
+	require.Len(t, channels, 1, "should be one channel per page")
 }
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
@@ -640,7 +640,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 
 	channels, resp := Client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), 4, "wrong path")
+	require.Len(t, channels, 4, "wrong path")
 
 	for i, c := range channels {
 		// check all channels included are open
@@ -657,7 +657,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	privateChannel := th.CreatePrivateChannel()
 	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), 4, "incorrect length of team public channels")
+	require.Len(t, channels, 4, "incorrect length of team public channels")
 
 	for _, c := range channels {
 		require.Equal(t, model.CHANNEL_OPEN, c.Type, "should not include private channel")
@@ -666,15 +666,15 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), 1, "should be one channel per page")
+	require.Len(t, channels, 1, "should be one channel per page")
 
 	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 1, 1, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), 1, "should be one channel per page")
+	require.Len(t, channels, 1, "should be one channel per page")
 
 	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), 0, "should be no channel")
+	require.Len(t, channels, 0, "should be no channel")
 
 	_, resp = Client.GetPublicChannelsForTeam("junk", 0, 100, "")
 	CheckBadRequestStatus(t, resp)
@@ -705,7 +705,7 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 
 	channels, resp := Client.GetPublicChannelsByIdsForTeam(teamId, input)
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), 1, "should return 1 channel")
+	require.Len(t, channels, 1, "should return 1 channel")
 	require.Equal(t, output[0], channels[0].DisplayName, "missing channel")
 
 	input = append(input, GenerateTestId())
@@ -716,7 +716,7 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetPublicChannelsByIdsForTeam(teamId, input)
 	CheckNoError(t, resp)
-	require.Equal(t, len(channels), 2, "should return 2 channels")
+	require.Len(t, channels, 2, "should return 2 channels")
 
 	for i, c := range channels {
 		require.Equal(t, output[i], c.DisplayName, "missing channel")
@@ -1427,19 +1427,19 @@ func TestGetChannelMembers(t *testing.T) {
 
 	members, resp := Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(*members), 3, "should only be 3 users in channel")
+	require.Len(t, *members, 3, "should only be 3 users in channel")
 
 	members, resp = Client.GetChannelMembers(th.BasicChannel.Id, 0, 2, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(*members), 2, "should only be 2 users")
+	require.Len(t, *members, 2, "should only be 2 users")
 
 	members, resp = Client.GetChannelMembers(th.BasicChannel.Id, 1, 1, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(*members), 1, "should only be 1 user")
+	require.Len(t, *members, 1, "should only be 1 user")
 
 	members, resp = Client.GetChannelMembers(th.BasicChannel.Id, 1000, 100000, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(*members), 0, "should be 0 users")
+	require.Len(t, *members, 0, "should be 0 users")
 
 	_, resp = Client.GetChannelMembers("", 0, 60, "")
 	CheckBadRequestStatus(t, resp)
@@ -1477,15 +1477,15 @@ func TestGetChannelMembersByIds(t *testing.T) {
 
 	cm1, resp := Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk"})
 	CheckNoError(t, resp)
-	require.Equal(t, len(*cm1), 0, "no users should be returned")
+	require.Len(t, *cm1, 0, "no users should be returned")
 
 	cm1, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk", th.BasicUser.Id})
 	CheckNoError(t, resp)
-	require.Equal(t, len(*cm1), 1, "1 member should be returned")
+	require.Len(t, *cm1, 1, "1 member should be returned")
 
 	cm1, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser2.Id, th.BasicUser.Id})
 	CheckNoError(t, resp)
-	require.Equal(t, len(*cm1), 2, "2 members should be returned")
+	require.Len(t, *cm1, 2, "2 members should be returned")
 
 	_, resp = Client.GetChannelMembersByIds("junk", []string{th.BasicUser.Id})
 	CheckBadRequestStatus(t, resp)
@@ -1549,7 +1549,7 @@ func TestGetChannelMembersForUser(t *testing.T) {
 
 	members, resp := Client.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(*members), 6, "should have 6 members on team")
+	require.Len(t, *members, 6, "should have 6 members on team")
 
 	_, resp = Client.GetChannelMembersForUser("", th.BasicTeam.Id, "")
 	CheckNotFoundStatus(t, resp)
@@ -1739,12 +1739,12 @@ func TestGetPinnedPosts(t *testing.T) {
 
 	posts, resp := Client.GetPinnedPosts(channel.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(posts.Posts), 0, "should not have gotten a pinned post")
+	require.Len(t, posts.Posts, 0, "should not have gotten a pinned post")
 
 	pinnedPost := th.CreatePinnedPost()
 	posts, resp = Client.GetPinnedPosts(channel.Id, "")
 	CheckNoError(t, resp)
-	require.Equal(t, len(posts.Posts), 1, "should have returned 1 pinned post")
+	require.Len(t, posts.Posts, 1, "should have returned 1 pinned post")
 	require.Contains(t, posts.Posts, pinnedPost.Id, "missing pinned post")
 
 	posts, resp = Client.GetPinnedPosts(channel.Id, resp.Etag)
@@ -2699,7 +2699,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 
 	timezone, resp := Client.GetChannelMembersTimezones(th.BasicChannel.Id)
 	CheckNoError(t, resp)
-	require.Equal(t, len(timezone), 2, "should return 2 timezones")
+	require.Len(t, timezone, 2, "should return 2 timezones")
 
 	//both users have same timezone
 	user2.Timezone["automaticTimezone"] = "XOXO/BLABLA"
@@ -2708,7 +2708,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 
 	timezone, resp = Client.GetChannelMembersTimezones(th.BasicChannel.Id)
 	CheckNoError(t, resp)
-	require.Equal(t, len(timezone), 1, "should return 1 timezone")
+	require.Len(t, timezone, 1, "should return 1 timezone")
 
 	//no timezone set should return empty
 	user2.Timezone["automaticTimezone"] = ""
@@ -2721,7 +2721,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 
 	timezone, resp = Client.GetChannelMembersTimezones(th.BasicChannel.Id)
 	CheckNoError(t, resp)
-	require.Equal(t, len(timezone), 0, "should return 0 timezone")
+	require.Len(t, timezone, 0, "should return 0 timezone")
 }
 
 func TestChannelMembersMinusGroupMembers(t *testing.T) {
