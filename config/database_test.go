@@ -764,7 +764,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 func TestDatabaseGetFile(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, minimalConfig, map[string][]byte{
-		"empty-file": []byte{},
+		"empty-file": {},
 		"test-file":  []byte("test"),
 	})
 	defer tearDown()
