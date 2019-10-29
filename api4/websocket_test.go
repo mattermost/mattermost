@@ -78,6 +78,15 @@ func TestWebSocket(t *testing.T) {
 	}
 }
 
+func TestWebSocketTrailingSlash(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv.ListenAddr.Port)
+	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket/", nil)
+	require.NoError(t, err)
+}
+
 func TestWebSocketEvent(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
