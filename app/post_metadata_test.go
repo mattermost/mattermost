@@ -307,18 +307,22 @@ func TestPreparePostForClient(t *testing.T) {
 		t.Run("does not override icon URL", func(t *testing.T) {
 			clientPost := prepare(false, url, emoji)
 
-			s, _ := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
+			s, ok := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
+			assert.True(t, ok)
 			assert.EqualValues(t, url, s)
-			s, _ = clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			s, ok = clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			assert.True(t, ok)
 			assert.EqualValues(t, emoji, s)
 		})
 
 		t.Run("overrides icon URL", func(t *testing.T) {
 			clientPost := prepare(true, url, emoji)
 
-			s, _ := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
+			s, ok := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
+			assert.True(t, ok)
 			assert.EqualValues(t, overridenUrl, s)
-			s, _ = clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			s, ok = clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			assert.True(t, ok)
 			assert.EqualValues(t, emoji, s)
 		})
 
@@ -476,6 +480,36 @@ func TestPreparePostForClient(t *testing.T) {
 				Height: 336,
 			}, imageDimensions[server.URL+"/test-image1.png"])
 		})
+	})
+
+	t.Run("no metadata for deleted posts", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		fileInfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		require.Nil(t, err)
+
+		post, err := th.App.CreatePost(&model.Post{
+			Message:   "test",
+			FileIds:   []string{fileInfo.Id},
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+		}, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		th.AddReactionToPost(post, th.BasicUser, "taco")
+
+		post, err = th.App.DeletePost(post.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		// DeleteAt isn't set on the post returned by App.DeletePost
+		post.DeleteAt = model.GetMillis()
+
+		clientPost := th.App.PreparePostForClient(post, false, false)
+
+		assert.NotEqual(t, nil, clientPost.Metadata, "should've populated Metadata“")
+		assert.Nil(t, clientPost.Metadata.Reactions, "should not have populated Reactions")
+		assert.Nil(t, clientPost.Metadata.Files, "should not have populated Files")
 	})
 }
 

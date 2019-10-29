@@ -39,12 +39,8 @@ func TestCreateCommand(t *testing.T) {
 	createdCmd, resp := th.SystemAdminClient.CreateCommand(newCmd)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
-	if createdCmd.CreatorId != th.SystemAdminUser.Id {
-		t.Fatal("user ids didn't match")
-	}
-	if createdCmd.TeamId != th.BasicTeam.Id {
-		t.Fatal("team ids didn't match")
-	}
+	require.Equal(t, th.SystemAdminUser.Id, createdCmd.CreatorId, "user ids didn't match")
+	require.Equal(t, th.BasicTeam.Id, createdCmd.TeamId, "team ids didn't match")
 
 	_, resp = th.SystemAdminClient.CreateCommand(newCmd)
 	CheckBadRequestStatus(t, resp)
@@ -100,34 +96,22 @@ func TestUpdateCommand(t *testing.T) {
 	rcmd, resp := Client.UpdateCommand(cmd2)
 	CheckNoError(t, resp)
 
-	if rcmd.Trigger != cmd2.Trigger {
-		t.Fatal("Trigger should have updated")
-	}
+	require.Equal(t, cmd2.Trigger, rcmd.Trigger, "Trigger should have updated")
 
-	if rcmd.Method != cmd2.Method {
-		t.Fatal("Method should have updated")
-	}
+	require.Equal(t, cmd2.Method, rcmd.Method, "Method should have updated")
 
-	if rcmd.URL != cmd2.URL {
-		t.Fatal("URL should have updated")
-	}
+	require.Equal(t, cmd2.URL, rcmd.URL, "URL should have updated")
 
-	if rcmd.CreatorId != cmd1.CreatorId {
-		t.Fatal("CreatorId should have not updated")
-	}
+	require.Equal(t, cmd1.CreatorId, rcmd.CreatorId, "CreatorId should have not updated")
 
-	if rcmd.Token != cmd1.Token {
-		t.Fatal("Token should have not updated")
-	}
+	require.Equal(t, cmd1.Token, rcmd.Token, "Token should have not updated")
 
 	cmd2.Id = GenerateTestId()
 
 	rcmd, resp = Client.UpdateCommand(cmd2)
 	CheckNotFoundStatus(t, resp)
 
-	if rcmd != nil {
-		t.Fatal("should be empty")
-	}
+	require.Nil(t, rcmd, "should be empty")
 
 	cmd2.Id = "junk"
 
@@ -176,21 +160,15 @@ func TestDeleteCommand(t *testing.T) {
 	ok, resp := Client.DeleteCommand(rcmd1.Id)
 	CheckNoError(t, resp)
 
-	if !ok {
-		t.Fatal("should have returned true")
-	}
+	require.True(t, ok)
 
 	rcmd1, _ = th.App.GetCommand(rcmd1.Id)
-	if rcmd1 != nil {
-		t.Fatal("should be nil")
-	}
+	require.Nil(t, rcmd1)
 
 	ok, resp = Client.DeleteCommand("junk")
 	CheckBadRequestStatus(t, resp)
 
-	if ok {
-		t.Fatal("should have returned false")
-	}
+	require.False(t, ok)
 
 	_, resp = Client.DeleteCommand(GenerateTestId())
 	CheckNotFoundStatus(t, resp)
@@ -248,24 +226,16 @@ func TestListCommands(t *testing.T) {
 				foundCustom = true
 			}
 		}
-		if !foundEcho {
-			t.Fatal("Couldn't find echo command")
-		}
-		if !foundCustom {
-			t.Fatal("Should list the custom command")
-		}
+		require.True(t, foundEcho, "Couldn't find echo command")
+		require.True(t, foundCustom, "Should list the custom command")
 	})
 
 	t.Run("ListCustomOnlyCommands", func(t *testing.T) {
 		listCommands, resp := th.SystemAdminClient.ListCommands(th.BasicTeam.Id, true)
 		CheckNoError(t, resp)
 
-		if len(listCommands) > 1 {
-			t.Fatal("Should list just one custom command")
-		}
-		if listCommands[0].Trigger != "custom_command" {
-			t.Fatal("Wrong custom command trigger")
-		}
+		require.Len(t, listCommands, 1, "Should list just one custom command")
+		require.Equal(t, listCommands[0].Trigger, "custom_command", "Wrong custom command trigger")
 	})
 
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
@@ -287,12 +257,8 @@ func TestListCommands(t *testing.T) {
 				foundCustom = true
 			}
 		}
-		if !foundEcho {
-			t.Fatal("Couldn't find echo command")
-		}
-		if foundCustom {
-			t.Fatal("Should not list the custom command")
-		}
+		require.True(t, foundEcho, "Couldn't find echo command")
+		require.False(t, foundCustom, "Should not list the custom command")
 	})
 
 	t.Run("NoMember", func(t *testing.T) {
@@ -344,12 +310,8 @@ func TestListAutocompleteCommands(t *testing.T) {
 				foundCustom = true
 			}
 		}
-		if !foundEcho {
-			t.Fatal("Couldn't find echo command")
-		}
-		if foundCustom {
-			t.Fatal("Should not list the custom command")
-		}
+		require.True(t, foundEcho, "Couldn't find echo command")
+		require.False(t, foundCustom, "Should not list the custom command")
 	})
 
 	t.Run("RegularUserCanListOnlySystemCommands", func(t *testing.T) {
@@ -366,12 +328,8 @@ func TestListAutocompleteCommands(t *testing.T) {
 				foundCustom = true
 			}
 		}
-		if !foundEcho {
-			t.Fatal("Couldn't find echo command")
-		}
-		if foundCustom {
-			t.Fatal("Should not list the custom command")
-		}
+		require.True(t, foundEcho, "Couldn't find echo command")
+		require.False(t, foundCustom, "Should not list the custom command")
 	})
 
 	t.Run("NoMember", func(t *testing.T) {
@@ -414,15 +372,11 @@ func TestRegenToken(t *testing.T) {
 
 	token, resp := th.SystemAdminClient.RegenCommandToken(createdCmd.Id)
 	CheckNoError(t, resp)
-	if token == createdCmd.Token {
-		t.Fatal("should update the token")
-	}
+	require.NotEqual(t, createdCmd.Token, token, "should update the token")
 
 	token, resp = Client.RegenCommandToken(createdCmd.Id)
 	CheckForbiddenStatus(t, resp)
-	if token != "" {
-		t.Fatal("should not return the token")
-	}
+	require.Empty(t, token, "should not return the token")
 }
 
 func TestExecuteInvalidCommand(t *testing.T) {
@@ -457,9 +411,8 @@ func TestExecuteInvalidCommand(t *testing.T) {
 		Trigger:   "getcommand",
 	}
 
-	if _, err := th.App.CreateCommand(getCmd); err != nil {
-		t.Fatal("failed to create get command")
-	}
+	_, err := th.App.CreateCommand(getCmd)
+	require.Nil(t, err, "failed to create get command")
 
 	_, resp := Client.ExecuteCommand(channel.Id, "")
 	CheckBadRequestStatus(t, resp)
@@ -537,9 +490,8 @@ func TestExecuteGetCommand(t *testing.T) {
 		Token:     token,
 	}
 
-	if _, err := th.App.CreateCommand(getCmd); err != nil {
-		t.Fatal("failed to create get command")
-	}
+	_, err := th.App.CreateCommand(getCmd)
+	require.Nil(t, err, "failed to create get command")
 
 	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/getcommand")
 	CheckNoError(t, resp)
@@ -597,9 +549,8 @@ func TestExecutePostCommand(t *testing.T) {
 		Token:     token,
 	}
 
-	if _, err := th.App.CreateCommand(postCmd); err != nil {
-		t.Fatal("failed to create get command")
-	}
+	_, err := th.App.CreateCommand(postCmd)
+	require.Nil(t, err, "failed to create get command")
 
 	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/postcommand")
 	CheckNoError(t, resp)
@@ -652,9 +603,8 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
-	if _, err := th.App.CreateCommand(postCmd); err != nil {
-		t.Fatal("failed to create post command")
-	}
+	_, err := th.App.CreateCommand(postCmd)
+	require.Nil(t, err, "failed to create post command")
 
 	// the execute command endpoint will always search for the command by trigger and team id, inferring team id from the
 	// channel id, so there is no way to use that slash command on a channel that belongs to some other team
@@ -702,15 +652,13 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
-	if _, err := th.App.CreateCommand(postCmd); err != nil {
-		t.Fatal("failed to create post command")
-	}
+	_, err := th.App.CreateCommand(postCmd)
+	require.Nil(t, err, "failed to create post command")
 
 	// make a channel on that team, ensuring that our test user isn't in it
 	channel2 := th.CreateChannelWithClientAndTeam(client, model.CHANNEL_OPEN, team2.Id)
-	if success, _ := client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id); !success {
-		t.Fatal("Failed to remove user from channel")
-	}
+	success, _ := client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id)
+	require.True(t, success, "Failed to remove user from channel")
 
 	// we should not be able to run the slash command in channel2, because we aren't in it
 	_, resp := client.ExecuteCommandWithTeam(channel2.Id, team2.Id, "/postcommand")
@@ -760,9 +708,8 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
-	if _, err := th.App.CreateCommand(postCmd); err != nil {
-		t.Fatal("failed to create post command")
-	}
+	_, err := th.App.CreateCommand(postCmd)
+	require.Nil(t, err, "failed to create post command")
 
 	// make a direct message channel
 	dmChannel, response := client.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
@@ -823,9 +770,8 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
-	if _, err := th.App.CreateCommand(postCmd); err != nil {
-		t.Fatal("failed to create post command")
-	}
+	_, err := th.App.CreateCommand(postCmd)
+	require.Nil(t, err, "failed to create post command")
 
 	// make a direct message channel
 	dmChannel, response := client.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
@@ -836,9 +782,9 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	CheckOKStatus(t, resp)
 
 	// if the user is removed from the team, they should NOT be able to run the slash command in the DM channel
-	if success, _ := client.RemoveTeamMember(team2.Id, th.BasicUser.Id); !success {
-		t.Fatal("Failed to remove user from team")
-	}
+	success, _ := client.RemoveTeamMember(team2.Id, th.BasicUser.Id)
+	require.True(t, success, "Failed to remove user from team")
+
 	_, resp = client.ExecuteCommandWithTeam(dmChannel.Id, team2.Id, "/postcommand")
 	CheckForbiddenStatus(t, resp)
 

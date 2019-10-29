@@ -64,6 +64,8 @@ func TestFindManifest(t *testing.T) {
 func TestManifestUnmarshal(t *testing.T) {
 	expected := Manifest{
 		Id:               "theid",
+		HomepageURL:      "https://example.com",
+		SupportURL:       "https://example.com/support",
 		IconPath:         "assets/icon.svg",
 		MinServerVersion: "5.6.0",
 		Server: &ManifestServer{
@@ -81,7 +83,7 @@ func TestManifestUnmarshal(t *testing.T) {
 			Header: "theheadertext",
 			Footer: "thefootertext",
 			Settings: []*PluginSetting{
-				&PluginSetting{
+				{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               "dropdown",
@@ -89,7 +91,7 @@ func TestManifestUnmarshal(t *testing.T) {
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
-						&PluginOption{
+						{
 							DisplayName: "theoptiondisplayname",
 							Value:       "thevalue",
 						},
@@ -103,6 +105,8 @@ func TestManifestUnmarshal(t *testing.T) {
 	var yamlResult Manifest
 	require.NoError(t, yaml.Unmarshal([]byte(`
 id: theid
+homepage_url: https://example.com
+support_url: https://example.com/support
 icon_path: assets/icon.svg
 min_server_version: 5.6.0
 server:
@@ -133,6 +137,8 @@ settings_schema:
 	var jsonResult Manifest
 	require.NoError(t, json.Unmarshal([]byte(`{
 	"id": "theid",
+	"homepage_url": "https://example.com",
+	"support_url": "https://example.com/support",
 	"icon_path": "assets/icon.svg",
 	"min_server_version": "5.6.0",
 	"server": {
@@ -226,7 +232,7 @@ func TestManifestJson(t *testing.T) {
 			Header: "theheadertext",
 			Footer: "thefootertext",
 			Settings: []*PluginSetting{
-				&PluginSetting{
+				{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               "dropdown",
@@ -234,7 +240,7 @@ func TestManifestJson(t *testing.T) {
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
-						&PluginOption{
+						{
 							DisplayName: "theoptiondisplayname",
 							Value:       "thevalue",
 						},
@@ -293,7 +299,7 @@ func TestManifestClientManifest(t *testing.T) {
 			Header: "theheadertext",
 			Footer: "thefootertext",
 			Settings: []*PluginSetting{
-				&PluginSetting{
+				{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               "dropdown",
@@ -301,7 +307,7 @@ func TestManifestClientManifest(t *testing.T) {
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
-						&PluginOption{
+						{
 							DisplayName: "theoptiondisplayname",
 							Value:       "thevalue",
 						},
