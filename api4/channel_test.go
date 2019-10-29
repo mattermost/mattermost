@@ -114,7 +114,7 @@ func TestCreateChannel(t *testing.T) {
 
 	// Test posting Garbage
 	r, err := Client.DoApiPost("/channels", "garbage")
-	require.Error(t, err, "expected error")
+	require.NotNil(t, err, "expected error")
 	require.Equal(t, http.StatusBadRequest, r.StatusCode, "Expected 400 Bad Request")
 
 	// Test GroupConstrained flag
@@ -337,7 +337,7 @@ func TestCreateDirectChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	r, err := Client.DoApiPost("/channels/direct", "garbage")
-	require.Error(t, err)
+	require.NotNil(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	Client.Logout()
@@ -1642,7 +1642,7 @@ func TestViewChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	r, err := Client.DoApiPost(fmt.Sprintf("/channels/members/%v/view", th.BasicUser.Id), "garbage")
-	require.Error(t, err)
+	require.NotNil(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	Client.Logout()
