@@ -227,7 +227,7 @@ func TestGetEmojiList(t *testing.T) {
 	listEmoji, resp = Client.GetEmojiList(0, 1)
 	CheckNoError(t, resp)
 
-	require.Equal(t, len(listEmoji), 1, "should only return 1")
+	require.Len(t, listEmoji, 1, "should only return 1")
 
 	listEmoji, resp = Client.GetSortedEmojiList(0, 100, model.EMOJI_SORT_BY_NAME)
 	CheckNoError(t, resp)
@@ -479,6 +479,7 @@ func TestGetEmojiImage(t *testing.T) {
 	require.Greater(t, len(emojiImage), 0, "should return the image")
 
 	_, imageType, err := image.DecodeConfig(bytes.NewReader(emojiImage))
+	require.NoError(t, err)
 	require.Equal(t, imageType, "gif", "expected gif")
 
 	emoji2 := &model.Emoji{
