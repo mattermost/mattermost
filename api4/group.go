@@ -621,7 +621,25 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, marshalErr := json.Marshal(groups)
+	var b []byte
+	var marshalErr error
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		var groupsNonAdmin []model.GroupNonAdmin
+		var groupNonAdmin model.GroupNonAdmin
+		for _, group := range groups {
+			groupNonAdmin.Id = group.Id
+			groupNonAdmin.Name = group.Name
+			groupNonAdmin.DisplayName = group.DisplayName
+			groupNonAdmin.Description = group.Description
+			groupNonAdmin.MemberCount = group.MemberCount
+			groupsNonAdmin = append(groupsNonAdmin, groupNonAdmin)
+		}
+		b, marshalErr = json.Marshal(groupsNonAdmin)
+	} else {
+		b, marshalErr = json.Marshal(groups)
+
+	}
+
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getGroups", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
