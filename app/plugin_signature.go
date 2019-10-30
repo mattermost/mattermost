@@ -16,8 +16,20 @@ import (
 	"golang.org/x/crypto/openpgp/armor"
 )
 
+// VerifyPluginWithSignatures verifies that at least one signature corresponds to some public key.
+func (a *App) VerifyPluginWithSignatures(plugin io.ReadSeeker, signatures []io.ReadSeeker) *model.AppError {
+	for _, signature := range signatures {
+		plugin.Seek(0, 0)
+		appErr := a.VerifyPlugin(plugin, signature)
+		if appErr == nil {
+			return nil
+		}
+	}
+	return model.NewAppError("VerifyPluginWithSignatures", "api.plugin.install.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
+}
+
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
-func (a *App) VerifyPlugin(plugin, signature io.Reader) *model.AppError {
+func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
 	if err := verifySignature(bytes.NewReader(mattermostPublicKey), plugin, signature); err == nil {
 		return nil
 	}
@@ -32,6 +44,8 @@ func (a *App) VerifyPlugin(plugin, signature io.Reader) *model.AppError {
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)
+		plugin.Seek(0, 0)
+		signature.Seek(0, 0)
 		if err := verifySignature(publicKey, plugin, signature); err == nil {
 			return nil
 		}

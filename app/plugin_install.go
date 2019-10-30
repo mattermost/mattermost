@@ -37,8 +37,6 @@
 package app
 
 import (
-	"bytes"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -49,6 +47,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -67,16 +66,32 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 		mlog.Error("Failed to get plugin signatures from filestore. Can't install plugin from data.", mlog.Err(appErr))
 		return
 	}
-	signaturePath, ok := pluginSignaturePathMap[data.Id]
+	plugin, ok := pluginSignaturePathMap[data.Id]
 	if !ok {
 		mlog.Error("Failed to get plugin signature from filestore. Can't install plugin from data.", mlog.String("plugin id", data.Id))
 		return
 	}
-	manifest, appErr := a.installPluginWithSignaturePath(signaturePath)
+	var reader filesstore.ReadCloseSeeker
+	reader, appErr = a.FileReader(plugin.path)
 	if appErr != nil {
-		mlog.Error("Failed to install plugin.", mlog.String("plugin id", data.Id), mlog.Err(appErr))
+		mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 		return
 	}
+	defer reader.Close()
+	var manifest *model.Manifest
+	if !*a.Config().PluginSettings.RequirePluginSignature {
+		if manifest, appErr = a.installPluginLocally(reader, true); appErr != nil {
+			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+			return
+		}
+	} else {
+		signatures := a.signaturesFromPathToReader(plugin)
+		if manifest, appErr = a.InstallPluginWithSignatures(plugin.pluginId, reader, signatures, false); appErr != nil {
+			mlog.Error("Failed to sync plugin with signature verification from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+			return
+		}
+	}
+
 	if err := a.notifyPluginEnabled(manifest); err != nil {
 		mlog.Error("Failed notify plugin enabled", mlog.Err(err))
 	}
@@ -99,16 +114,24 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 }
 
 // InstallPluginWithSignatures installs verified plugin and uploads signatures.
-func (a *App) InstallPluginWithSignatures(plugin io.ReadSeeker, signatures []string) (*model.Manifest, *model.AppError) {
+func (a *App) InstallPluginWithSignatures(pluginId string, plugin io.ReadSeeker, signatures []io.ReadSeeker, saveSignatures bool) (*model.Manifest, *model.AppError) {
+	// verify signature
+	if err := a.VerifyPluginWithSignatures(plugin, signatures); err != nil {
+		return nil, err
+	}
+	// save the plugin signatures to the store
+	if saveSignatures {
+		appErr := a.saveSignatures(pluginId, signatures)
+		if appErr != nil {
+			return nil, appErr
+		}
+	}
+	plugin.Seek(0, 0)
 	manifest, appErr := a.installPlugin(plugin, true)
 	if appErr != nil {
 		return nil, appErr
 	}
-	// save the plugin signatures to the store
-	appErr = a.saveSignatures(manifest.Id, signatures)
-	if appErr != nil {
-		return nil, appErr
-	}
+
 	return manifest, nil
 }
 
@@ -312,15 +335,11 @@ func (a *App) removePluginLocally(id string) *model.AppError {
 	return nil
 }
 
-func (a *App) saveSignatures(pluginId string, signatures []string) *model.AppError {
+func (a *App) saveSignatures(pluginId string, signatures []io.ReadSeeker) *model.AppError {
 	for counter, signature := range signatures {
-		signatureBytes, err := base64.StdEncoding.DecodeString(signature)
-		if err != nil {
-			return model.NewAppError("saveSignatures", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
 		filePath := a.getSignatureStorePath(pluginId, counter)
-		if _, appErr := a.WriteFile(bytes.NewReader(signatureBytes), filePath); appErr != nil {
+		signature.Seek(0, 0)
+		if _, appErr := a.WriteFile(signature, filePath); appErr != nil {
 			return model.NewAppError("saveSignatures", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
 	}

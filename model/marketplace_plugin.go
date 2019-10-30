@@ -4,8 +4,11 @@
 package model
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"io"
+	"net/http"
 	"net/url"
 	"strconv"
 )
@@ -58,13 +61,17 @@ func MarketplacePluginsFromReader(reader io.Reader) ([]*MarketplacePlugin, error
 	return plugins, nil
 }
 
-// GetSignatures returns list of signatures.
-func (plugin *BaseMarketplacePlugin) GetSignatures() []string {
-	signatures := make([]string, 0, len(plugin.Signatures))
+// DecodeSignatures Decodes signatures and returns list.
+func (plugin *BaseMarketplacePlugin) DecodeSignatures() ([]io.ReadSeeker, *AppError) {
+	signatures := make([]io.ReadSeeker, 0, len(plugin.Signatures))
 	for _, sig := range plugin.Signatures {
-		signatures = append(signatures, sig.Signature)
+		signatureBytes, err := base64.StdEncoding.DecodeString(sig.Signature)
+		if err != nil {
+			return nil, NewAppError("DecodeSignatures", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		signatures = append(signatures, bytes.NewReader(signatureBytes))
 	}
-	return signatures
+	return signatures, nil
 }
 
 // MarketplacePluginFilter describes the parameters to request a list of plugins.

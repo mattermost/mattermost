@@ -145,17 +145,17 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	pluginFileBytes, appErr := downloadFromUrl(c, plugin.DownloadURL)
-	if err != nil {
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
-	appErr = verifyPlugin(c, plugin, pluginFileBytes)
+	signatures, appErr := plugin.DecodeSignatures()
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	manifest, appErr := c.App.InstallPluginWithSignatures(bytes.NewReader(pluginFileBytes), plugin.GetSignatures())
+	manifest, appErr := c.App.InstallPluginWithSignatures(plugin.Manifest.Id, bytes.NewReader(pluginFileBytes), signatures, true)
 	if appErr != nil {
 		c.Err = appErr
 		return

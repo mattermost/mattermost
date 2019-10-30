@@ -888,7 +888,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Equal(t, "com.mattermost.demo-plugin", plugin.Id)
 		require.Equal(t, "0.3.0", plugin.Version)
 
-		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "com.mattermost.demo-plugin.1.sig")
+		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "com.mattermost.demo-plugin.0.sig")
 		savedSigFile, err := th.App.ReadFile(filePath)
 		require.Nil(t, err)
 		require.EqualValues(t, sigFile, savedSigFile)

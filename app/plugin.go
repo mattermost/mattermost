@@ -231,11 +231,25 @@ func (a *App) SyncPlugins() *model.AppError {
 	if appErr != nil {
 		return appErr
 	}
-	pluginSignaturePathList := make([]*pluginSignaturePaths, 0, len(pluginSignaturePathMap))
-	for _, path := range pluginSignaturePathMap {
-		pluginSignaturePathList = append(pluginSignaturePathList, path)
+	for _, plugin := range pluginSignaturePathMap {
+		var reader filesstore.ReadCloseSeeker
+		reader, appErr := a.FileReader(plugin.path)
+		if appErr != nil {
+			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+			continue
+		}
+		defer reader.Close()
+		if !*a.Config().PluginSettings.RequirePluginSignature {
+			if _, err := a.installPluginLocally(reader, true); err != nil {
+				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
+			}
+		} else {
+			signatures := a.signaturesFromPathToReader(plugin)
+			if _, err := a.InstallPluginWithSignatures(plugin.pluginId, reader, signatures, false); err != nil {
+				mlog.Error("Failed to sync plugin with signature verification from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
+			}
+		}
 	}
-	a.installPluginsWithSignaturePaths(pluginSignaturePathList)
 	return nil
 }
 
@@ -606,8 +620,23 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 }
 
 type pluginSignaturePaths struct {
+	pluginId       string
 	path           string
 	signaturePaths []string
+}
+
+func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) []io.ReadSeeker {
+	signatures := make([]io.ReadSeeker, 0, len(plugin.signaturePaths))
+	for _, signaturePath := range plugin.signaturePaths {
+		var sigReader filesstore.ReadCloseSeeker
+		sigReader, appErr := a.FileReader(signaturePath)
+		if appErr != nil {
+			mlog.Debug("Can't read signature file.", mlog.String("path", signaturePath), mlog.Err(appErr))
+			continue
+		}
+		signatures = append(signatures, sigReader)
+	}
+	return signatures
 }
 
 func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.AppError) {
@@ -624,6 +653,7 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 		if strings.HasSuffix(path, ".tar.gz") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
 			helper := &pluginSignaturePaths{
+				pluginId:       id,
 				path:           path,
 				signaturePaths: []string{},
 			}
@@ -643,53 +673,4 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 		}
 	}
 	return pluginSignaturePathMap, nil
-}
-
-func (a *App) verifySignature(plugin filesstore.ReadCloseSeeker, signaturePaths []string) *model.AppError {
-	for _, signaturePath := range signaturePaths {
-		var sigReader filesstore.ReadCloseSeeker
-		sigReader, appErr := a.FileReader(signaturePath)
-		if appErr != nil {
-			mlog.Debug("Can't read signature file.", mlog.String("path", signaturePath), mlog.Err(appErr))
-			continue
-		}
-		plugin.Seek(0, 0)
-		if err := a.VerifyPlugin(plugin, sigReader); err != nil {
-			mlog.Debug("Failed to verify plugin signature in the file store.", mlog.String("signature", signaturePath), mlog.Err(err))
-			continue
-		}
-		return nil
-	}
-	return model.NewAppError("verifySignature", "app.plugin.sync_plugins.verify_signature.app_error", nil, "", http.StatusInternalServerError)
-
-}
-
-func (a *App) installPluginsWithSignaturePaths(plugins []*pluginSignaturePaths) {
-	for _, plugin := range plugins {
-		if _, err := a.installPluginWithSignaturePath(plugin); err != nil {
-			mlog.Error("Failed to install plugin.", mlog.String("bundle", plugin.path), mlog.Err(err))
-		}
-	}
-}
-
-func (a *App) installPluginWithSignaturePath(plugin *pluginSignaturePaths) (*model.Manifest, *model.AppError) {
-	var reader filesstore.ReadCloseSeeker
-	reader, appErr := a.FileReader(plugin.path)
-	if appErr != nil {
-		return nil, model.NewAppError("installPluginWithSignaturePath", "app.plugin.install_plugin_with_sig.open.app_error", nil, "", http.StatusInternalServerError)
-
-	}
-	defer reader.Close()
-	if *a.Config().PluginSettings.RequirePluginSignature {
-		if appErr = a.verifySignature(reader, plugin.signaturePaths); appErr != nil {
-			return nil, model.NewAppError("installPluginWithSignaturePath", "app.plugin.install_plugin_with_sig.verify.app_error", nil, "", http.StatusInternalServerError)
-		}
-	}
-	reader.Seek(0, 0)
-	mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
-	manifest, err := a.installPluginLocally(reader, true)
-	if err != nil {
-		return nil, model.NewAppError("installPluginWithSignaturePath", "app.plugin.install_plugin_with_sig.sync.app_error", nil, "", http.StatusInternalServerError)
-	}
-	return manifest, nil
 }

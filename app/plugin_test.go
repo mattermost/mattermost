@@ -423,7 +423,7 @@ func TestPluginSync(t *testing.T) {
 			signatureFileReader, err := os.Open(filepath.Join(path, "com.mattermost.demo-plugin-0.3.0.tar.gz.sig"))
 			require.NoError(t, err)
 			defer signatureFileReader.Close()
-			filePath := fmt.Sprintf("%s.1.sig", th.App.getBundleStorePath("testplugin"))
+			filePath := fmt.Sprintf("%s.0.sig", th.App.getBundleStorePath("testplugin"))
 			_, appErr = th.App.WriteFile(signatureFileReader, filePath)
 			checkNoError(t, appErr)
 
@@ -438,7 +438,7 @@ func TestPluginSync(t *testing.T) {
 			signatureFileReader, err = os.Open(filepath.Join(path, "testplugin.tar.gz.sig"))
 			require.NoError(t, err)
 			defer signatureFileReader.Close()
-			filePath = fmt.Sprintf("%s.1.sig", th.App.getBundleStorePath("testplugin"))
+			filePath = fmt.Sprintf("%s.0.sig", th.App.getBundleStorePath("testplugin"))
 			_, appErr = th.App.WriteFile(signatureFileReader, filePath)
 			checkNoError(t, appErr)
 
