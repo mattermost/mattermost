@@ -828,19 +828,23 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	if len(split) != 3 {
 		return &http.Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       ioutil.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /pluginid/*")),
+			Body:       ioutil.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /<pluginid>/*")),
 		}
 	}
-	toPluginId := split[1]
+	destinationPluginId := split[1]
 	newURL, err := url.Parse("/" + split[2])
 	request.URL = newURL
-	if toPluginId == "" || err != nil {
+	if destinationPluginId == "" || err != nil {
+		message := "No plugin specified. Form of URL should be /<pluginid>/*"
+		if err != nil {
+			message = "Form of URL should be /<pluginid>/* Error: " + err.Error()
+		}
 		return &http.Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       ioutil.NopCloser(bytes.NewBufferString("No plugin specified. Form of URL should be /pluginid/*")),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
 	responseTransfer := &PluginResponseWriter{}
-	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, toPluginId)
+	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
 	return responseTransfer.GenerateResponse()
 }
