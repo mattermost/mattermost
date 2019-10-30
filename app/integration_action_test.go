@@ -430,7 +430,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		assert.Equal(t, "value1", val)
 
 		resp := model.SubmitDialogResponse{
-			Error: "some generic error",
+			Error:  "some generic error",
 			Errors: map[string]string{"name1": "some error"},
 		}
 

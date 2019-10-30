@@ -173,6 +173,18 @@ gofmt: ## Runs gofmt against all packages.
 	done
 	@echo "gofmt success"; \
 
+golangci-lint:
+# https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
+# https://github.com/golangci/golangci-lint#binary-release
+# It is recommended to NOT use go get, but instead use a binary release pinned to a version.
+	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
+		echo "golangci-lint is not installed. Please run: curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(GOPATH)/bin v1.21.0"; \
+		exit 1; \
+	fi; \
+
+	@echo Running golangci-lint
+	$(GOPATH)/bin/golangci-lint run
+
 megacheck: ## Run megacheck on codebasis
 	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
 	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
@@ -219,6 +231,7 @@ check-licenses: ## Checks license status.
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
+# TODO: remove govet and gofmt checks once golangci-lint is being enforced.
 check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
 
 test-te-race: ## Checks for race conditions in the team edition.

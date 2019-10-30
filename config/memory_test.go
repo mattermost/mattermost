@@ -282,7 +282,7 @@ func TestMemoryGetFile(t *testing.T) {
 	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
 		InitialConfig: minimalConfig,
 		InitialFiles: map[string][]byte{
-			"empty-file": []byte{},
+			"empty-file": {},
 			"test-file":  []byte("test"),
 		},
 	})
