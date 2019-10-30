@@ -944,7 +944,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	found := make([]bool, 2)
 	for _, p := range posts.Posts {
-		require.GreaterOrEqual(t, since, p.CreateAt, "bad create at for post returned")
+		require.LessOrEqual(t, since, p.CreateAt, "bad create at for post returned")
 
 		if p.Id == post4.Id {
 			found[0] = true
@@ -1135,7 +1135,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 
 	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 2, 2)
 	CheckNoError(t, resp)
-	require.Equal(t, len(rpl.Posts), "should have returned 1 post")
+	require.Equal(t, 1, len(rpl.Posts), "should have returned 1 post")
 
 	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 1000, 10)
 	CheckNoError(t, resp)
