@@ -3523,18 +3523,6 @@
     "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
   },
   {
-    "id": "app.plugin.install_plugin_with_sig.open.app_error",
-    "translation": "Failed to open plugin bundle from file store."
-  },
-  {
-    "id": "app.plugin.install_plugin_with_sig.sync.app_error",
-    "translation": "Failed to sync plugin from file store."
-  },
-  {
-    "id": "app.plugin.install_plugin_with_sig.verify.app_error",
-    "translation": "Failed to verify plugin signature in the file store."
-  },
-  {
     "id": "app.plugin.invalid_id.app_error",
     "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
@@ -3609,10 +3597,6 @@
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
     "translation": "Error reading local plugins folder."
-  },
-  {
-    "id": "app.plugin.sync_plugins.verify_signature.app_error",
-    "translation": "Unable to verify plugin on synchronization."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
