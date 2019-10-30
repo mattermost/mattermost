@@ -3,15 +3,9 @@
 
 package plugin
 
-import (
-	"fmt"
-)
-
-// RunOnSingleNode is a wrapper function which makes function f run only once on a single node.
+// RunOnSingleNode is a wrapper function which makes function f run on a single node only and only once
 // The id parameter is an identifier that uses for synchronization must be unique between each function.
 func (p *HelpersImpl) RunOnSingleNode(id string, f func()) (bool, error) {
-	id = fmt.Sprintf("%s_%s", id, p.API.GetDiagnosticId())
-
 	updated, err := p.KVCompareAndSetJSON(id, nil, true)
 	if err != nil {
 		return false, err

@@ -58,7 +58,7 @@ type Helpers interface {
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 
-	// RunOnSingleNode is a wrapper function which makes function f run only once on a single node
+	// RunOnSingleNode is a wrapper function which makes function f run on a single node only and only once
 	// The id parameter is an identifier that uses for synchronization must be unique between each function.
 	//
 	// Returns (false, err) if DB error occurred

@@ -13,12 +13,11 @@ import (
 )
 
 func TestRunOnSingleNode(t *testing.T) {
-	t.Run("should return true if it's run first time in a node", func(t *testing.T) {
+	t.Run("should return true if it's run first time", func(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
-		api.On("GetDiagnosticId").Return("test_cluster")
-		api.On("KVCompareAndSet", "unique_id_test_cluster", []byte(nil), []byte("true")).
+		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
 			Return(true, nil)
 		p.API = api
 
@@ -28,12 +27,11 @@ func TestRunOnSingleNode(t *testing.T) {
 		api.AssertExpectations(t)
 	})
 
-	t.Run("should return false if it's not run first time in a node", func(t *testing.T) {
+	t.Run("should return false if it's not run first time", func(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
-		api.On("GetDiagnosticId").Return("test_cluster")
-		api.On("KVCompareAndSet", "unique_id_test_cluster", []byte(nil), []byte("true")).
+		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
 			Return(false, nil)
 		p.API = api
 
@@ -47,8 +45,7 @@ func TestRunOnSingleNode(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
-		api.On("GetDiagnosticId").Return("test_cluster")
-		api.On("KVCompareAndSet", "unique_id_test_cluster", []byte(nil), []byte("true")).
+		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
 			Return(false, &model.AppError{})
 		p.API = api
 
