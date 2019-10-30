@@ -84,7 +84,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 			testResourcesToSetup[i].src = srcPath
 		} else if testResource.resType == resourceTypeFolder {
 			srcPath, found = findDir(testResource.src)
-			if found == false {
+			if !found {
 				panic(fmt.Sprintf("Failed to find folder %s", testResource.src))
 			}
 
