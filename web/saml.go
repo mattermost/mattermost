@@ -84,8 +84,12 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJson(strings.NewReader(stateStr))
 	}
 
+	c.LogAudit("attempt")
+
 	action := relayProps["action"]
 	if user, err := samlInterface.DoLogin(encodedXML, relayProps); err != nil {
+		c.LogAudit("fail")
+
 		if action == model.OAUTH_ACTION_MOBILE {
 			err.Translate(c.App.T)
 			w.Write([]byte(err.ToJson()))
@@ -126,11 +130,15 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			})
 		}
 
+		c.LogAuditWithUserId(user.Id, "obtained user")
+
 		session, err := c.App.DoLogin(w, r, user, "")
 		if err != nil {
 			c.Err = err
 			return
 		}
+
+		c.LogAuditWithUserId(user.Id, "success")
 
 		c.App.AttachSessionCookies(w, r, session)
 
