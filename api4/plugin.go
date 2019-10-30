@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -83,15 +84,8 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(m.Value["force"]) > 0 && m.Value["force"][0] == "true" {
 		force = true
 	}
-	manifest, unpackErr := c.App.InstallPlugin(file, force)
 
-	if unpackErr != nil {
-		c.Err = unpackErr
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(manifest.ToJson()))
+	installPlugin(c, w, file, force)
 }
 
 func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -114,7 +108,7 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	installPlugin(c, w, pluginFileBytes, force)
+	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force)
 }
 
 func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -407,8 +401,8 @@ func verifyPlugin(c *Context, plugin *model.BaseMarketplacePlugin, pluginFileByt
 	return model.NewAppError("verifyPlugin", "api.plugin.install.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
 }
 
-func installPlugin(c *Context, w http.ResponseWriter, pluginFileBytes []byte, force bool) {
-	manifest, appErr := c.App.InstallPlugin(bytes.NewReader(pluginFileBytes), force)
+func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {
+	manifest, appErr := c.App.InstallPlugin(plugin, force)
 	if appErr != nil {
 		c.Err = appErr
 		return
