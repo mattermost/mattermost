@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPostToJson(t *testing.T) {
@@ -29,90 +30,73 @@ func TestPostIsValid(t *testing.T) {
 	o := Post{}
 	maxPostSize := 10000
 
-	if err := o.IsValid(maxPostSize); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err1 := o.IsValid(maxPostSize)
+	require.NotNil(t, err1, "should be invalid")
 
 	o.Id = NewId()
-	if err := o.IsValid(maxPostSize); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err2 := o.IsValid(maxPostSize)
+	require.NotNil(t, err2, "should be invalid")
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(maxPostSize); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err3 := o.IsValid(maxPostSize)
+	require.NotNil(t, err3, "should be invalid")
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(maxPostSize); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err4 := o.IsValid(maxPostSize)
+	require.NotNil(t, err4, "should be invalid")
 
 	o.UserId = NewId()
-	if err := o.IsValid(maxPostSize); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err5 := o.IsValid(maxPostSize)
+	require.NotNil(t, err5, "should be invalid")
 
 	o.ChannelId = NewId()
 	o.RootId = "123"
-	if err := o.IsValid(maxPostSize); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err6 := o.IsValid(maxPostSize)
+	require.NotNil(t, err6, "should be invalid")
 
 	o.RootId = ""
 	o.ParentId = "123"
-	if err := o.IsValid(maxPostSize); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err7 := o.IsValid(maxPostSize)
+	require.NotNil(t, err7, "should be invalid")
 
 	o.ParentId = NewId()
 	o.RootId = ""
-	if err := o.IsValid(maxPostSize); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err8 := o.IsValid(maxPostSize)
+	require.NotNil(t, err8, "should be invalid")
 
 	o.ParentId = ""
 	o.Message = strings.Repeat("0", maxPostSize+1)
-	if err := o.IsValid(maxPostSize); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err9 := o.IsValid(maxPostSize)
+	require.NotNil(t, err9, "should be invalid")
 
 	o.Message = strings.Repeat("0", maxPostSize)
-	if err := o.IsValid(maxPostSize); err != nil {
-		t.Fatal(err)
-	}
+	err10 := o.IsValid(maxPostSize)
+	require.Nil(t, err10, err10)
 
 	o.Message = "test"
-	if err := o.IsValid(maxPostSize); err != nil {
-		t.Fatal(err)
-	}
+	err11 := o.IsValid(maxPostSize)
+	require.Nil(t, err11, err11)
 
 	o.Type = "junk"
-	if err := o.IsValid(maxPostSize); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err12 := o.IsValid(maxPostSize)
+	require.NotNil(t, err12, "should be invalid")
 
 	o.Type = POST_CUSTOM_TYPE_PREFIX + "type"
-	if err := o.IsValid(maxPostSize); err != nil {
-		t.Fatal(err)
-	}
+	err13 := o.IsValid(maxPostSize)
+	require.Nil(t, err13, err13)
 }
 
 func TestPostPreSave(t *testing.T) {
 	o := Post{Message: "test"}
 	o.PreSave()
 
-	if o.CreateAt == 0 {
-		t.Fatal("should be set")
-	}
+	require.NotEqual(t, 0, o.CreateAt, "should be set")
 
 	past := GetMillis() - 1
 	o = Post{Message: "test", CreateAt: past}
 	o.PreSave()
 
-	if o.CreateAt > past {
-		t.Fatal("should not be updated")
-	}
+	require.LessOrEqual(t, past, o.CreateAt, "should not be updated")
 
 	o.Etag()
 }
@@ -121,15 +105,11 @@ func TestPostIsSystemMessage(t *testing.T) {
 	post1 := Post{Message: "test_1"}
 	post1.PreSave()
 
-	if post1.IsSystemMessage() {
-		t.Fatalf("TestPostIsSystemMessage failed, expected post1.IsSystemMessage() to be false")
-	}
+	require.False(t, post1.IsSystemMessage(), "post1.IsSystemMessage() should be false")
 
 	post2 := Post{Message: "test_2", Type: POST_JOIN_LEAVE}
 	post2.PreSave()
-	if !post2.IsSystemMessage() {
-		t.Fatalf("TestPostIsSystemMessage failed, expected post2.IsSystemMessage() to be true")
-	}
+	require.True(t, post2.IsSystemMessage(), "post2.IsSystemMessage() should be true")
 }
 
 func TestPostChannelMentions(t *testing.T) {
@@ -144,9 +124,7 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post1.SanitizeProps()
 
-	if post1.Props[PROPS_ADD_CHANNEL_MEMBER] != nil {
-		t.Fatal("should be nil")
-	}
+	require.Nil(t, post1.Props[PROPS_ADD_CHANNEL_MEMBER], "should be nil")
 
 	post2 := &Post{
 		Message: "test",
@@ -157,9 +135,7 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post2.SanitizeProps()
 
-	if post2.Props[PROPS_ADD_CHANNEL_MEMBER] != nil {
-		t.Fatal("should be nil")
-	}
+	require.Nil(t, post2.Props[PROPS_ADD_CHANNEL_MEMBER], "should be nil")
 
 	post3 := &Post{
 		Message: "test",
@@ -171,13 +147,8 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post3.SanitizeProps()
 
-	if post3.Props[PROPS_ADD_CHANNEL_MEMBER] != nil {
-		t.Fatal("should be nil")
-	}
-
-	if post3.Props["attachments"] == nil {
-		t.Fatal("should not be nil")
-	}
+	require.Nil(t, post3.Props[PROPS_ADD_CHANNEL_MEMBER], "should be nil")
+	require.NotNil(t, post3.Props["attachments"], "should not be nil")
 }
 
 func TestPost_AttachmentsEqual(t *testing.T) {
