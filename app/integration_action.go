@@ -69,6 +69,20 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		close(pchan)
 	}()
 
+	cchan := make(chan store.StoreResult, 1)
+	go func() {
+		channel, err := a.Srv.Store.Channel().GetForPost(postId)
+		cchan <- store.StoreResult{Data: channel, Err: err}
+		close(cchan)
+	}()
+
+	userChan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(upstreamRequest.UserId)
+		userChan <- store.StoreResult{Data: user, Err: err}
+		close(userChan)
+	}()
+
 	result := <-pchan
 	if result.Err != nil {
 		if cookie == nil {
@@ -82,7 +96,21 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
+		chanChan := make(chan store.StoreResult, 1)
+		go func() {
+			channel, err := a.Srv.Store.Channel().Get(cookie.ChannelId, true)
+			chanChan <- store.StoreResult{Data: channel, Err: err}
+			close(chanChan)
+		}()
+		cr := <-chanChan
+		if cr.Err != nil {
+			return "", cr.Err
+		}
+		channel := cr.Data.(*model.Channel)
+
 		upstreamRequest.ChannelId = cookie.ChannelId
+		upstreamRequest.ChannelName = channel.Name
+		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = cookie.Type
 		upstreamRequest.Context = cookie.Integration.Context
 		datasource = cookie.DataSource
@@ -93,6 +121,11 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		upstreamURL = cookie.Integration.URL
 	} else {
 		post := result.Data.(*model.Post)
+		result = <-cchan
+		if result.Err != nil {
+			return "", result.Err
+		}
+		channel := result.Data.(*model.Channel)
 
 		action := post.GetAction(actionId)
 		if action == nil || action.Integration == nil {
@@ -100,6 +133,8 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		}
 
 		upstreamRequest.ChannelId = post.ChannelId
+		upstreamRequest.ChannelName = channel.Name
+		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = action.Type
 		upstreamRequest.Context = action.Integration.Context
 		datasource = action.DataSource
@@ -127,32 +162,9 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		upstreamURL = action.Integration.URL
 	}
 
-	// get channel, user and team details
-	chanChan := make(chan store.StoreResult, 1)
-	go func() {
-		channel, err := a.Srv.Store.Channel().Get(upstreamRequest.ChannelId, true)
-		chanChan <- store.StoreResult{Data: channel, Err: err}
-		close(chanChan)
-	}()
-
-	userChan := make(chan store.StoreResult, 1)
-	go func() {
-		user, err := a.Srv.Store.User().Get(upstreamRequest.UserId)
-		userChan <- store.StoreResult{Data: user, Err: err}
-		close(userChan)
-	}()
-
-	cr := <-chanChan
-	if cr.Err != nil {
-		return "", cr.Err
-	}
-	channel := cr.Data.(*model.Channel)
-	upstreamRequest.ChannelName = channel.Name
-	upstreamRequest.TeamId = channel.TeamId
-
 	teamChan := make(chan store.StoreResult, 1)
 	go func() {
-		team, err := a.Srv.Store.Team().Get(channel.TeamId)
+		team, err := a.Srv.Store.Team().Get(upstreamRequest.TeamId)
 		teamChan <- store.StoreResult{Data: team, Err: err}
 		close(teamChan)
 	}()
