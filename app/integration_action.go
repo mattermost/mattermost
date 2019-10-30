@@ -96,17 +96,10 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
-		chanChan := make(chan store.StoreResult, 1)
-		go func() {
-			channel, err := a.Srv.Store.Channel().Get(cookie.ChannelId, true)
-			chanChan <- store.StoreResult{Data: channel, Err: err}
-			close(chanChan)
-		}()
-		cr := <-chanChan
-		if cr.Err != nil {
-			return "", cr.Err
+		channel, err := a.Srv.Store.Channel().Get(cookie.ChannelId, true)
+		if err != nil {
+			return "", err
 		}
-		channel := cr.Data.(*model.Channel)
 
 		upstreamRequest.ChannelId = cookie.ChannelId
 		upstreamRequest.ChannelName = channel.Name
