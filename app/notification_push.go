@@ -431,15 +431,29 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 	explicitMention bool, channelWideMention bool, replyToThreadType string) model.PushNotification {
 
 	msg := model.PushNotification{
-		Category:  model.CATEGORY_CAN_REPLY,
-		Version:   model.PUSH_MESSAGE_V2,
-		Type:      model.PUSH_TYPE_MESSAGE,
-		TeamId:    channel.TeamId,
-		ChannelId: channel.Id,
-		PostId:    post.Id,
-		RootId:    post.RootId,
-		SenderId:  post.UserId,
+		PostId: post.Id,
 	}
+
+	cfg := a.Config()
+	contentsConfig := *cfg.EmailSettings.PushNotificationContents
+
+	if contentsConfig != model.ID_LOADED_NOTIFICATION {
+		msg = a.BuildFullPushNotificationMessage(msg, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+	}
+
+	return msg
+}
+
+func (a *App) BuildFullPushNotificationMessage(msg model.PushNotification, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
+	explicitMention bool, channelWideMention bool, replyToThreadType string) model.PushNotification {
+
+	msg.Category = model.CATEGORY_CAN_REPLY
+	msg.Version = model.PUSH_MESSAGE_V2
+	msg.Type = model.PUSH_TYPE_MESSAGE
+	msg.TeamId = channel.TeamId
+	msg.ChannelId = channel.Id
+	msg.RootId = post.RootId
+	msg.SenderId = post.UserId
 
 	if user.NotifyProps["push"] == "all" {
 		if unreadCount, err := a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id); err != nil {
@@ -459,6 +473,7 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 
 	cfg := a.Config()
 	contentsConfig := *cfg.EmailSettings.PushNotificationContents
+
 	if contentsConfig != model.GENERIC_NO_CHANNEL_NOTIFICATION || channel.Type == model.CHANNEL_DIRECT {
 		msg.ChannelName = channelName
 	}
