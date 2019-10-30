@@ -84,7 +84,7 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 	}
 
 	var manifest *model.Manifest
-	if manifest, appErr = a.installPluginLocally(reader, utils.FromReadCloseSeekerToReadSeeker(signatures), true); appErr != nil {
+	if manifest, appErr = a.installPluginLocally(reader, fromReadCloseSeekerToReadSeeker(signatures), true); appErr != nil {
 		mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 		return
 	}

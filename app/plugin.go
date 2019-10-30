@@ -251,7 +251,7 @@ func (a *App) SyncPlugins() *model.AppError {
 			signatures = a.signaturesFromPathToReader(plugin)
 		}
 
-		if _, err := a.installPluginLocally(reader, utils.FromReadCloseSeekerToReadSeeker(signatures), true); err != nil {
+		if _, err := a.installPluginLocally(reader, fromReadCloseSeekerToReadSeeker(signatures), true); err != nil {
 			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 		}
 
@@ -680,4 +680,12 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 		}
 	}
 	return pluginSignaturePathMap, nil
+}
+
+func fromReadCloseSeekerToReadSeeker(files []filesstore.ReadCloseSeeker) []io.ReadSeeker {
+	res := make([]io.ReadSeeker, 0, len(files))
+	for _, file := range files {
+		res = append(res, file)
+	}
+	return res
 }
