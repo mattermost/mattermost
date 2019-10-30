@@ -30,7 +30,7 @@ func TestEchoCommand(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	p1 := Client.Must(Client.GetPostsForChannel(channel1.Id, 0, 2, "")).(*model.PostList)
-	require.Equal(t, len(p1.Order), 2, "Echo command failed to send")
+	require.Equal(t, 2, len(p1.Order), "Echo command failed to send")
 }
 
 func TestGroupmsgCommands(t *testing.T) {
@@ -62,7 +62,7 @@ func TestGroupmsgCommands(t *testing.T) {
 	require.True(t, strings.HasSuffix(rs2.GotoLocation, "/"+team.Name+"/channels/"+group2), "failed to create second direct channel")
 
 	result := Client.Must(Client.SearchPosts(team.Id, "foobar", false)).(*model.PostList)
-	require.NotEqual(t, len(result.Order), 0, "post did not get sent to direct message")
+	require.NotEqual(t, 0, len(result.Order), "post did not get sent to direct message")
 
 	rs3 := Client.Must(Client.ExecuteCommand(th.BasicChannel.Id, "/groupmsg "+user2.Username+","+user3.Username)).(*model.CommandResponse)
 	require.True(t, strings.HasSuffix(rs3.GotoLocation, "/"+team.Name+"/channels/"+group1), "failed to go back to existing group channel")
@@ -168,7 +168,7 @@ func TestLoadTestSetupCommands(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test setup fuzz 1 1 1")).(*model.CommandResponse)
-	require.Equal(t, rs.Text, "Created environment", rs.Text)
+	require.Equal(t, "Created environment", rs.Text, rs.Text)
 
 	time.Sleep(2 * time.Second)
 }
@@ -188,7 +188,7 @@ func TestLoadTestUsersCommands(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test users fuzz 1 2")).(*model.CommandResponse)
-	require.Equal(t, rs.Text, "Added users", rs.Text)
+	require.Equal(t, "Added users", rs.Text, rs.Text)
 
 	time.Sleep(2 * time.Second)
 }
@@ -208,7 +208,7 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test channels fuzz 1 2")).(*model.CommandResponse)
-	require.Equal(t, rs.Text, "Added channels", rs.Text)
+	require.Equal(t, "Added channels", rs.Text, rs.Text)
 
 	time.Sleep(2 * time.Second)
 }
@@ -228,7 +228,7 @@ func TestLoadTestPostsCommands(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test posts fuzz 2 3 2")).(*model.CommandResponse)
-	require.Equal(t, rs.Text, "Added posts", rs.Text)
+	require.Equal(t, "Added posts", rs.Text, rs.Text)
 
 	time.Sleep(2 * time.Second)
 }
@@ -302,14 +302,14 @@ func TestMeCommand(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	p1 := Client.Must(Client.GetPostsForChannel(channel.Id, 0, 2, "")).(*model.PostList)
-	require.Equal(t, len(p1.Order), 2, "Command failed to send")
+	require.Equal(t, 2, len(p1.Order), "Command failed to send")
 
 	pt := p1.Posts[p1.Order[0]].Type
-	require.Equal(t, pt, model.POST_ME, "invalid post type")
+	require.Equal(t, model.POST_ME, pt, "invalid post type")
 
 	msg := p1.Posts[p1.Order[0]].Message
 	want := "*hello*"
-	require.Equal(t, msg, want, "invalid me response")
+	require.Equal(t, want, msg, "invalid me response")
 }
 
 func TestMsgCommands(t *testing.T) {
@@ -339,7 +339,7 @@ func TestMsgCommands(t *testing.T) {
 	}, "failed to create second direct channel")
 
 	result := Client.Must(Client.SearchPosts(th.BasicTeam.Id, "foobar", false)).(*model.PostList)
-	require.NotEqual(t, len(result.Order), 0, "post did not get sent to direct message")
+	require.NotEqual(t, 0, len(result.Order), "post did not get sent to direct message")
 
 	rs3 := Client.Must(Client.ExecuteCommand(th.BasicChannel.Id, "/msg "+user2.Username)).(*model.CommandResponse)
 	require.Condition(t, func() bool {
@@ -391,8 +391,8 @@ func TestShrugCommand(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	p1 := Client.Must(Client.GetPostsForChannel(channel.Id, 0, 2, "")).(*model.PostList)
-	require.Equal(t, len(p1.Order), 2, "Command failed to send")
-	require.Equal(t, p1.Posts[p1.Order[0]].Message, `¯\\\_(ツ)\_/¯`, "invalid shrug response")
+	require.Equal(t, 2, len(p1.Order), "Command failed to send")
+	require.Equal(t, `¯\\\_(ツ)\_/¯`, p1.Posts[p1.Order[0]].Message, "invalid shrug response")
 }
 
 func TestStatusCommands(t *testing.T) {
@@ -410,10 +410,10 @@ func commandAndTest(t *testing.T, th *TestHelper, status string) {
 	user := th.BasicUser
 
 	r1 := Client.Must(Client.ExecuteCommand(channel.Id, "/"+status)).(*model.CommandResponse)
-	require.NotEqual(t, r1, "Command failed to execute")
+	require.NotEqual(t, "Command failed to execute", r1)
 
 	time.Sleep(1000 * time.Millisecond)
 
 	rstatus := Client.Must(Client.GetUserStatus(user.Id, "")).(*model.Status)
-	require.Equal(t, rstatus.Status, status, "Error setting status")
+	require.Equal(t, status, rstatus.Status, "Error setting status")
 }
