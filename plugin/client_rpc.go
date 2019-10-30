@@ -19,7 +19,7 @@ import (
 	"reflect"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	plugin "github.com/hashicorp/go-plugin"
+	"github.com/hashicorp/go-plugin"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -528,6 +528,121 @@ func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, 
 
 	} else {
 		return encodableError(fmt.Errorf("Hook MessageWillBeUpdated called but not implemented."))
+	}
+	return nil
+}
+
+type Z_LogDebugArgs struct {
+	A string
+	B []interface{}
+}
+
+type Z_LogDebugReturns struct {
+}
+
+func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...interface{}) {
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
+	_args := &Z_LogDebugArgs{msg, stringifiedPairs}
+	_returns := &Z_LogDebugReturns{}
+	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
+		log.Printf("RPC call to LogDebug API failed: %s", err.Error())
+	}
+
+}
+
+func (s *apiRPCServer) LogDebug(args *Z_LogDebugArgs, returns *Z_LogDebugReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogDebug(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogDebug(args.A, args.B...)
+	} else {
+		return encodableError(fmt.Errorf("API LogDebug called but not implemented."))
+	}
+	return nil
+}
+
+type Z_LogInfoArgs struct {
+	A string
+	B []interface{}
+}
+
+type Z_LogInfoReturns struct {
+}
+
+func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...interface{}) {
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
+	_args := &Z_LogInfoArgs{msg, stringifiedPairs}
+	_returns := &Z_LogInfoReturns{}
+	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
+		log.Printf("RPC call to LogInfo API failed: %s", err.Error())
+	}
+
+}
+
+func (s *apiRPCServer) LogInfo(args *Z_LogInfoArgs, returns *Z_LogInfoReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogInfo(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogInfo(args.A, args.B...)
+	} else {
+		return encodableError(fmt.Errorf("API LogInfo called but not implemented."))
+	}
+	return nil
+}
+
+type Z_LogWarnArgs struct {
+	A string
+	B []interface{}
+}
+
+type Z_LogWarnReturns struct {
+}
+
+func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...interface{}) {
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
+	_args := &Z_LogWarnArgs{msg, stringifiedPairs}
+	_returns := &Z_LogWarnReturns{}
+	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
+		log.Printf("RPC call to LogWarn API failed: %s", err.Error())
+	}
+
+}
+
+func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogWarn(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogWarn(args.A, args.B...)
+	} else {
+		return encodableError(fmt.Errorf("API LogWarn called but not implemented."))
+	}
+	return nil
+}
+
+type Z_LogErrorArgs struct {
+	A string
+	B []interface{}
+}
+
+type Z_LogErrorReturns struct {
+}
+
+func (g *apiRPCClient) LogError(msg string, keyValuePairs ...interface{}) {
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
+	_args := &Z_LogErrorArgs{msg, stringifiedPairs}
+	_returns := &Z_LogErrorReturns{}
+	if err := g.client.Call("Plugin.LogError", _args, _returns); err != nil {
+		log.Printf("RPC call to LogError API failed: %s", err.Error())
+	}
+}
+
+func (s *apiRPCServer) LogError(args *Z_LogErrorArgs, returns *Z_LogErrorReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogError(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogError(args.A, args.B...)
+	} else {
+		return encodableError(fmt.Errorf("API LogError called but not implemented."))
 	}
 	return nil
 }
