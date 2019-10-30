@@ -7,10 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestSaveReaction(t *testing.T) {
@@ -35,14 +34,14 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("successful-reaction", func(t *testing.T) {
 		rr, resp := Client.SaveReaction(reaction)
 		CheckNoError(t, resp)
-		require.Equal(t, rr.UserId, reaction.UserId, "UserId did not match")
-		require.Equal(t, rr.PostId, reaction.PostId, "PostId did not match")
-		require.Equal(t, rr.EmojiName, reaction.EmojiName, "EmojiName did not match")
-		require.NotEqual(t, rr.CreateAt, 0, "CreateAt should exist")
+		require.Equal(t, reaction.UserId, rr.UserId, "UserId did not match")
+		require.Equal(t, reaction.PostId, rr.PostId, "PostId did not match")
+		require.Equal(t, reaction.EmojiName, rr.EmojiName, "EmojiName did not match")
+		require.NotEqual(t, 0, rr.CreateAt, "CreateAt should exist")
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "didn't save reaction correctly")
+		require.Equal(t, 1, len(reactions), "didn't save reaction correctly")
 	})
 
 	t.Run("duplicated-reaction", func(t *testing.T) {
@@ -50,7 +49,7 @@ func TestSaveReaction(t *testing.T) {
 		CheckNoError(t, resp)
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "should have not save duplicated reaction")
+		require.Equal(t, 1, len(reactions), "should have not save duplicated reaction")
 	})
 
 	t.Run("save-second-reaction", func(t *testing.T) {
@@ -70,11 +69,11 @@ func TestSaveReaction(t *testing.T) {
 
 		rr, resp := Client.SaveReaction(reaction)
 		CheckNoError(t, resp)
-		require.Equal(t, rr.EmojiName, reaction.EmojiName, "EmojiName did not match")
+		require.Equal(t, reaction.EmojiName, rr.EmojiName, "EmojiName did not match")
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 3, "should have save multiple reactions")
+		require.Equal(t, 3, len(reactions), "should have save multiple reactions")
 	})
 
 	t.Run("react-to-not-existing-post-id", func(t *testing.T) {
@@ -151,7 +150,7 @@ func TestSaveReaction(t *testing.T) {
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 3, "should have not created a reactions")
+		require.Equal(t, 3, len(reactions), "should have not created a reactions")
 		th.AddPermissionToRole(model.PERMISSION_ADD_REACTION.Id, model.CHANNEL_USER_ROLE_ID)
 	})
 
@@ -176,7 +175,7 @@ func TestSaveReaction(t *testing.T) {
 
 		reactions, err := th.App.GetReactionsForPost(post.Id)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 0, "should have not created a reaction")
+		require.Equal(t, 0, len(reactions), "should have not created a reaction")
 
 		th.App.RemoveLicense()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
@@ -202,7 +201,7 @@ func TestSaveReaction(t *testing.T) {
 
 		reactions, err := th.App.GetReactionsForPost(post.Id)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 0, "should have not created a reaction")
+		require.Equal(t, 0, len(reactions), "should have not created a reaction")
 	})
 }
 
@@ -327,7 +326,7 @@ func TestDeleteReaction(t *testing.T) {
 		th.App.SaveReactionForPost(r1)
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "didn't save reaction correctly")
+		require.Equal(t, 1, len(reactions), "didn't save reaction correctly")
 
 		ok, resp := Client.DeleteReaction(r1)
 		CheckNoError(t, resp)
@@ -336,7 +335,7 @@ func TestDeleteReaction(t *testing.T) {
 
 		reactions, err = th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 0, "should have deleted reaction")
+		require.Equal(t, 0, len(reactions), "should have deleted reaction")
 	})
 
 	t.Run("delete-reaction-when-post-has-multiple-reactions", func(t *testing.T) {
@@ -351,23 +350,23 @@ func TestDeleteReaction(t *testing.T) {
 
 		reactions, err = th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "should have deleted only 1 reaction")
-		require.Equal(t, *reactions[0], *r1, "should have deleted 1 reaction only")
+		require.Equal(t, 1, len(reactions), "should have deleted only 1 reaction")
+		require.Equal(t, *r1, *reactions[0], "should have deleted 1 reaction only")
 	})
 
 	t.Run("delete-reaction-when-plus-one-reaction-name", func(t *testing.T) {
 		th.App.SaveReactionForPost(r3)
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 2, "didn't save reactions correctly")
+		require.Equal(t, 2, len(reactions), "didn't save reactions correctly")
 
 		_, resp := Client.DeleteReaction(r3)
 		CheckNoError(t, resp)
 
 		reactions, err = th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "should have deleted 1 reaction only")
-		require.Equal(t, *reactions[0], *r1, "should have deleted 1 reaction only")
+		require.Equal(t, 1, len(reactions), "should have deleted 1 reaction only")
+		require.Equal(t, *r1, *reactions[0], "should have deleted 1 reaction only")
 	})
 
 	t.Run("delete-reaction-made-by-another-user", func(t *testing.T) {
@@ -375,7 +374,7 @@ func TestDeleteReaction(t *testing.T) {
 		th.App.SaveReactionForPost(r4)
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 2, "didn't save reaction correctly")
+		require.Equal(t, 2, len(reactions), "didn't save reaction correctly")
 
 		th.LoginBasic()
 
@@ -386,7 +385,7 @@ func TestDeleteReaction(t *testing.T) {
 
 		reactions, err = th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 2, "should have not deleted a reaction")
+		require.Equal(t, 2, len(reactions), "should have not deleted a reaction")
 	})
 
 	t.Run("delete-reaction-from-not-existing-post-id", func(t *testing.T) {
@@ -449,7 +448,7 @@ func TestDeleteReaction(t *testing.T) {
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 0, "should have deleted both reactions")
+		require.Equal(t, 0, len(reactions), "should have deleted both reactions")
 	})
 
 	t.Run("unable-to-delete-reaction-without-permissions", func(t *testing.T) {
@@ -463,7 +462,7 @@ func TestDeleteReaction(t *testing.T) {
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "should have not deleted a reactions")
+		require.Equal(t, 1, len(reactions), "should have not deleted a reactions")
 		th.AddPermissionToRole(model.PERMISSION_REMOVE_REACTION.Id, model.CHANNEL_USER_ROLE_ID)
 	})
 
@@ -476,7 +475,7 @@ func TestDeleteReaction(t *testing.T) {
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "should have not deleted a reactions")
+		require.Equal(t, 1, len(reactions), "should have not deleted a reactions")
 		th.AddPermissionToRole(model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id, model.SYSTEM_ADMIN_ROLE_ID)
 	})
 
@@ -500,7 +499,7 @@ func TestDeleteReaction(t *testing.T) {
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "should have created a reaction")
+		require.Equal(t, 1, len(reactions), "should have created a reaction")
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 
@@ -509,7 +508,7 @@ func TestDeleteReaction(t *testing.T) {
 
 		reactions, err = th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "should have not deleted a reaction")
+		require.Equal(t, 1, len(reactions), "should have not deleted a reaction")
 
 		th.App.RemoveLicense()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
@@ -532,7 +531,7 @@ func TestDeleteReaction(t *testing.T) {
 
 		reactions, err := th.App.GetReactionsForPost(postId)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "should have created a reaction")
+		require.Equal(t, 1, len(reactions), "should have created a reaction")
 
 		err = th.App.DeleteChannel(channel, userId)
 		assert.Nil(t, err)
@@ -542,7 +541,7 @@ func TestDeleteReaction(t *testing.T) {
 
 		reactions, err = th.App.GetReactionsForPost(post.Id)
 		require.Nil(t, err)
-		require.Equal(t, len(reactions), 1, "should have not deleted a reaction")
+		require.Equal(t, 1, len(reactions), "should have not deleted a reaction")
 	})
 }
 
