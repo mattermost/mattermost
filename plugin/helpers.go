@@ -64,7 +64,8 @@ type Helpers interface {
 	// Returns (false, err) if DB error occurred
 	// Returns (false, nil) if the function f is already run once
 	// Returns (true, nil) if it is the first time that run function f
-	// Minimum server version 5.18
+	//
+	// Minimum server version: 5.10
 	RunOnSingleNode(id string, f func()) (bool, error)
 
 	// ShouldProcessMessage returns if the message should be processed by a message hook.

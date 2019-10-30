@@ -58,4 +58,3 @@ func TestRunOnSingleNode(t *testing.T) {
 		api.AssertExpectations(t)
 	})
 }
-

@@ -7,7 +7,6 @@ import (
 	"fmt"
 )
 
-
 // RunOnSingleNode is a wrapper function which makes function f run only once on a single node.
 // The id parameter is an identifier that uses for synchronization must be unique between each function.
 func (p *HelpersImpl) RunOnSingleNode(id string, f func()) (bool, error) {
