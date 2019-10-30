@@ -76,6 +76,13 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		close(cchan)
 	}()
 
+	userChan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(upstreamRequest.UserId)
+		userChan <- store.StoreResult{Data: user, Err: err}
+		close(userChan)
+	}()
+
 	result := <-pchan
 	if result.Err != nil {
 		if cookie == nil {
@@ -89,7 +96,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
+		channel, err := a.Srv.Store.Channel().Get(cookie.ChannelId, true)
+		if err != nil {
+			return "", err
+		}
+
 		upstreamRequest.ChannelId = cookie.ChannelId
+		upstreamRequest.ChannelName = channel.Name
+		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = cookie.Type
 		upstreamRequest.Context = cookie.Integration.Context
 		datasource = cookie.DataSource
@@ -112,6 +126,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		}
 
 		upstreamRequest.ChannelId = post.ChannelId
+		upstreamRequest.ChannelName = channel.Name
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = action.Type
 		upstreamRequest.Context = action.Integration.Context
@@ -139,6 +154,27 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 		upstreamURL = action.Integration.URL
 	}
+
+	teamChan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(upstreamRequest.TeamId)
+		teamChan <- store.StoreResult{Data: team, Err: err}
+		close(teamChan)
+	}()
+
+	ur := <-userChan
+	if ur.Err != nil {
+		return "", ur.Err
+	}
+	user := ur.Data.(*model.User)
+	upstreamRequest.UserName = user.Username
+
+	tr := <-teamChan
+	if tr.Err != nil {
+		return "", tr.Err
+	}
+	team := tr.Data.(*model.Team)
+	upstreamRequest.TeamName = team.Name
 
 	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
 		if selectedOption != "" {

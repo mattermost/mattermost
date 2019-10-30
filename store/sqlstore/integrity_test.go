@@ -86,10 +86,6 @@ func createChannelMemberWithChannelId(ss store.Store, id string) *model.ChannelM
 	return createChannelMember(ss, id, model.NewId())
 }
 
-func createChannelMemberWithUserId(ss store.Store, id string) *model.ChannelMember {
-	return createChannelMember(ss, model.NewId(), id)
-}
-
 func createCommandWebhook(ss store.Store, commandId, userId, channelId string) *model.CommandWebhook {
 	m := model.CommandWebhook{}
 	m.CommandId = commandId
