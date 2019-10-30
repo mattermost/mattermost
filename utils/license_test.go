@@ -24,7 +24,7 @@ func TestValidateLicense(t *testing.T) {
 
 func TestGetLicenseFileLocation(t *testing.T) {
 	fileName := GetLicenseFileLocation("")
-	require.NotEqual(t, len(fileName), 0, "invalid default file name")
+	require.NotEmpty(t, fileName, "invalid default file name")
 
 	fileName = GetLicenseFileLocation("mattermost.mattermost-license")
 	require.Equal(t, fileName, "mattermost.mattermost-license", "invalid file name")
