@@ -167,7 +167,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 			if fileReader, err := os.Open(walkPath); err != nil {
 				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-			} else if _, err := a.installPluginLocally(fileReader, true); err != nil {
+			} else if _, err := a.installPluginLocally(fileReader, nil, true); err != nil {
 				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
 			}
 
@@ -239,15 +239,16 @@ func (a *App) SyncPlugins() *model.AppError {
 			continue
 		}
 		defer reader.Close()
-		if !*a.Config().PluginSettings.RequirePluginSignature {
-			if _, err := a.installPluginLocally(reader, true); err != nil {
-				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
-			}
+
+		var signatures []io.ReadSeeker
+		if *a.Config().PluginSettings.RequirePluginSignature {
+			signatures = a.signaturesFromPathToReader(plugin)
 		} else {
-			signatures := a.signaturesFromPathToReader(plugin)
-			if _, err := a.InstallPluginWithSignatures(plugin.pluginId, reader, signatures, false); err != nil {
-				mlog.Error("Failed to sync plugin with signature verification from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
-			}
+			signatures = nil
+		}
+
+		if _, err := a.installPluginLocally(reader, signatures, true); err != nil {
+			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 		}
 	}
 	return nil

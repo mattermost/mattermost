@@ -149,7 +149,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	manifest, appErr := c.App.InstallPluginWithSignatures(plugin.Manifest.Id, bytes.NewReader(pluginFileBytes), signatures, true)
+	manifest, appErr := c.App.InstallPluginWithSignatures(bytes.NewReader(pluginFileBytes), signatures)
 	if appErr != nil {
 		c.Err = appErr
 		return

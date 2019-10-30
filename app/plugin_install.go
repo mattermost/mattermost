@@ -78,18 +78,17 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 		return
 	}
 	defer reader.Close()
-	var manifest *model.Manifest
-	if !*a.Config().PluginSettings.RequirePluginSignature {
-		if manifest, appErr = a.installPluginLocally(reader, true); appErr != nil {
-			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
-			return
-		}
+	var signatures []io.ReadSeeker
+	if *a.Config().PluginSettings.RequirePluginSignature {
+		signatures = a.signaturesFromPathToReader(plugin)
 	} else {
-		signatures := a.signaturesFromPathToReader(plugin)
-		if manifest, appErr = a.InstallPluginWithSignatures(plugin.pluginId, reader, signatures, false); appErr != nil {
-			mlog.Error("Failed to sync plugin with signature verification from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
-			return
-		}
+		signatures = nil
+	}
+
+	var manifest *model.Manifest
+	if manifest, appErr = a.installPluginLocally(reader, signatures, true); appErr != nil {
+		mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+		return
 	}
 
 	if err := a.notifyPluginEnabled(manifest); err != nil {
@@ -114,41 +113,27 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 }
 
 // InstallPluginWithSignatures installs verified plugin and uploads signatures.
-func (a *App) InstallPluginWithSignatures(pluginId string, plugin io.ReadSeeker, signatures []io.ReadSeeker, saveSignatures bool) (*model.Manifest, *model.AppError) {
-	// verify signature
-	if err := a.VerifyPluginWithSignatures(plugin, signatures); err != nil {
-		return nil, err
-	}
-	// save the plugin signatures to the store
-	if saveSignatures {
-		appErr := a.saveSignatures(pluginId, signatures)
-		if appErr != nil {
-			return nil, appErr
-		}
-	}
-	plugin.Seek(0, 0)
-	manifest, appErr := a.installPlugin(plugin, true)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	return manifest, nil
+func (a *App) InstallPluginWithSignatures(pluginFile io.ReadSeeker, signatures []io.ReadSeeker) (*model.Manifest, *model.AppError) {
+	return a.installPlugin(pluginFile, signatures, true)
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
-	return a.installPlugin(pluginFile, replace)
+	return a.installPlugin(pluginFile, nil, replace)
 }
 
-func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
-	manifest, appErr := a.installPluginLocally(pluginFile, replace)
+func (a *App) installPlugin(pluginFile io.ReadSeeker, signatures []io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+	pluginFile.Seek(0, 0)
+	manifest, appErr := a.installPluginLocally(pluginFile, signatures, replace)
 	if appErr != nil {
+		return nil, appErr
+	}
+	if appErr = a.saveSignatures(manifest.Id, signatures); appErr != nil {
 		return nil, appErr
 	}
 
 	// Store bundle in the file store to allow access from other servers.
 	pluginFile.Seek(0, 0)
-
 	if _, appErr := a.WriteFile(pluginFile, a.getBundleStorePath(manifest.Id)); appErr != nil {
 		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
@@ -171,10 +156,16 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 	return manifest, nil
 }
 
-func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) installPluginLocally(pluginFile io.ReadSeeker, signatures []io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+	// verify signature
+	if signatures != nil {
+		if err := a.VerifyPluginWithSignatures(pluginFile, signatures); err != nil {
+			return nil, err
+		}
 	}
 
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
@@ -183,6 +174,7 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*mod
 	}
 	defer os.RemoveAll(tmpDir)
 
+	pluginFile.Seek(0, 0)
 	if err = utils.ExtractTarGz(pluginFile, tmpDir); err != nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
