@@ -671,7 +671,6 @@ type API interface {
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// Minimum server version: 5.2
 	LogDebug(msg string, keyValuePairs ...interface{})
@@ -679,7 +678,6 @@ type API interface {
 	// LogInfo writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// Minimum server version: 5.2
 	LogInfo(msg string, keyValuePairs ...interface{})
@@ -687,7 +685,6 @@ type API interface {
 	// LogError writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// Minimum server version: 5.2
 	LogError(msg string, keyValuePairs ...interface{})
@@ -695,7 +692,6 @@ type API interface {
 	// LogWarn writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// Minimum server version: 5.2
 	LogWarn(msg string, keyValuePairs ...interface{})
