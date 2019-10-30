@@ -14,7 +14,7 @@ type Helpers interface {
 
 	// KVSetJSON stores a key-value pair, unique per plugin, marshalling the given value as a JSON string.
 	//
-	// Minimum server version: 5.2
+	// Minimum server version: 5.18
 	KVSetJSON(key string, value interface{}) error
 
 	// KVCompareAndSetJSON updates a key-value pair, unique per plugin, but only if the current value matches the given oldValue after marshalling as a JSON string.
@@ -23,7 +23,7 @@ type Helpers interface {
 	// Returns (false, nil) if current value != oldValue or key already exists when inserting
 	// Returns (true, nil) if current value == oldValue or new key is inserted
 	//
-	// Minimum server version: 5.12
+	// Minimum server version: 5.18
 	KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error)
 
 	// KVCompareAndDeleteJSON deletes a key-value pair, unique per plugin, but only if the current value matches the given oldValue after marshalling as a JSON string.
@@ -41,7 +41,7 @@ type Helpers interface {
 
 	// KVSetWithExpiryJSON stores a key-value pair with an expiry time, unique per plugin, marshalling the given value as a JSON string.
 	//
-	// Minimum server version: 5.6
+	// Minimum server version: 5.18
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 }
 
