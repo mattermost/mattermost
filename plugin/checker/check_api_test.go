@@ -10,29 +10,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRunCheck(t *testing.T) {
+func TestCheckAPIVersionComments(t *testing.T) {
 	testCases := []struct {
 		name, pkgPath, err string
+		expected           result
 	}{
 		{
 			name:    "valid comments",
-			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/valid",
+			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/internal/test/valid",
 			err:     "",
 		},
 		{
 			name:    "invalid comments",
-			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/invalid",
-			err:     "test/invalid/invalid.go:15:2: missing a minimum server version comment\n",
+			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/internal/test/invalid",
+			expected: result{
+				Errors: []string{"internal/test/invalid/invalid.go:15:2: missing a minimum server version comment on method InvalidMethod"},
+			},
 		},
 		{
 			name:    "missing API interface",
-			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/missing",
-			err:     "could not find API interface in package github.com/mattermost/mattermost-server/plugin/checker/test/missing",
+			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/internal/test/missing",
+			err:     "could not find API interface",
 		},
 		{
 			name:    "non-existent package path",
-			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/test/does_not_exist",
-			err:     "could not find API interface in package github.com/mattermost/mattermost-server/plugin/checker/test/does_not_exist",
+			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/internal/test/does_not_exist",
+			err:     "could not find API interface",
 		},
 	}
 
@@ -43,7 +46,8 @@ func TestRunCheck(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := runCheck(tc.pkgPath)
+			res, err := checkAPIVersionComments(tc.pkgPath)
+			assert.Equal(t, res, tc.expected)
 
 			if tc.err != "" {
 				assert.EqualError(t, err, tc.err)
