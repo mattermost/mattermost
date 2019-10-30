@@ -63,7 +63,7 @@ func TestUserPreSave(t *testing.T) {
 	user.PreSave()
 	user.Etag(true, true)
 	assert.NotNil(t, user.Timezone, "Timezone is nil")
-	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default");
+	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default")
 }
 
 func TestUserPreUpdate(t *testing.T) {

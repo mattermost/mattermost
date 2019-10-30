@@ -112,7 +112,7 @@ func TestOpenDialog(t *testing.T) {
 			CallbackId: "callbackid",
 			Title:      "Some Title",
 			Elements: []model.DialogElement{
-				model.DialogElement{
+				{
 					DisplayName: "Element Name",
 					Name:        "element_name",
 					Type:        "text",
