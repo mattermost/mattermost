@@ -8,14 +8,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
-	"net/http"
 	"net/url"
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/pkg/errors"
 )
 
-// MaxNumberOfSignaturesPerPlugin determines maximum number of signatures allow for a single plugin
+// MaxNumberOfSignaturesPerPlugin determines maximum number of signatures allow for a single plugin.
 const MaxNumberOfSignaturesPerPlugin = 32
 
 // PluginSignature is a public key signature of a plugin and the corresponding public key hash for use in verifying a plugin downloaded from the marketplace.
@@ -67,7 +67,7 @@ func MarketplacePluginsFromReader(reader io.Reader) ([]*MarketplacePlugin, error
 }
 
 // DecodeSignatures Decodes signatures and returns list.
-func (plugin *BaseMarketplacePlugin) DecodeSignatures() ([]io.ReadSeeker, *AppError) {
+func (plugin *BaseMarketplacePlugin) DecodeSignatures() ([]io.ReadSeeker, error) {
 	if len(plugin.Signatures) > MaxNumberOfSignaturesPerPlugin {
 		mlog.Debug("Too many signatures from marketplace", mlog.String("plugin", plugin.Manifest.Id))
 		plugin.Signatures = plugin.Signatures[:MaxNumberOfSignaturesPerPlugin]
@@ -76,7 +76,7 @@ func (plugin *BaseMarketplacePlugin) DecodeSignatures() ([]io.ReadSeeker, *AppEr
 	for _, sig := range plugin.Signatures {
 		signatureBytes, err := base64.StdEncoding.DecodeString(sig.Signature)
 		if err != nil {
-			return nil, NewAppError("DecodeSignatures", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrap(err, "Unable to decode base64 signature.")
 		}
 		signatures = append(signatures, bytes.NewReader(signatureBytes))
 	}

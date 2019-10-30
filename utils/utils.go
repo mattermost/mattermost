@@ -4,10 +4,13 @@
 package utils
 
 import (
+	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/services/filesstore"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -106,4 +109,12 @@ func GetHostnameFromSiteURL(siteURL string) string {
 	}
 
 	return u.Hostname()
+}
+
+func FromReadCloseSeekerToReadSeeker(files []filesstore.ReadCloseSeeker) []io.ReadSeeker {
+	res := make([]io.ReadSeeker, 0, len(files))
+	for _, file := range files {
+		res = append(res, file)
+	}
+	return res
 }

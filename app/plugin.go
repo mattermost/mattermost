@@ -22,6 +22,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+type pluginSignaturePaths struct {
+	pluginId       string
+	path           string
+	signaturePaths []string
+}
+
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.
 //
@@ -240,15 +246,17 @@ func (a *App) SyncPlugins() *model.AppError {
 		}
 		defer reader.Close()
 
-		var signatures []io.ReadSeeker
+		var signatures []filesstore.ReadCloseSeeker
 		if *a.Config().PluginSettings.RequirePluginSignature {
 			signatures = a.signaturesFromPathToReader(plugin)
-		} else {
-			signatures = nil
 		}
 
-		if _, err := a.installPluginLocally(reader, signatures, true); err != nil {
+		if _, err := a.installPluginLocally(reader, utils.FromReadCloseSeekerToReadSeeker(signatures), true); err != nil {
 			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
+		}
+
+		for _, signature := range signatures {
+			signature.Close()
 		}
 	}
 	return nil
@@ -400,8 +408,8 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	return resp, nil
 }
 
-// GetPluginPublicKeys returns all public keys listed in the config.
-func (a *App) GetPluginPublicKeys() ([]string, *model.AppError) {
+// GetPluginPublicKeyFiles returns all public keys listed in the config.
+func (a *App) GetPluginPublicKeyFiles() ([]string, *model.AppError) {
 	return a.Config().PluginSettings.SignaturePublicKeyFiles, nil
 }
 
@@ -620,14 +628,8 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	return nil
 }
 
-type pluginSignaturePaths struct {
-	pluginId       string
-	path           string
-	signaturePaths []string
-}
-
-func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) []io.ReadSeeker {
-	signatures := make([]io.ReadSeeker, 0, len(plugin.signaturePaths))
+func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) []filesstore.ReadCloseSeeker {
+	signatures := make([]filesstore.ReadCloseSeeker, 0, len(plugin.signaturePaths))
 	for _, signaturePath := range plugin.signaturePaths {
 		var sigReader filesstore.ReadCloseSeeker
 		sigReader, appErr := a.FileReader(signaturePath)

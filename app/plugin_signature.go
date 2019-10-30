@@ -20,8 +20,7 @@ import (
 func (a *App) VerifyPluginWithSignatures(plugin io.ReadSeeker, signatures []io.ReadSeeker) *model.AppError {
 	for _, signature := range signatures {
 		plugin.Seek(0, 0)
-		appErr := a.VerifyPlugin(plugin, signature)
-		if appErr == nil {
+		if appErr := a.VerifyPlugin(plugin, signature); appErr == nil {
 			return nil
 		}
 	}
@@ -33,7 +32,7 @@ func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
 	if err := verifySignature(bytes.NewReader(mattermostPublicKey), plugin, signature); err == nil {
 		return nil
 	}
-	publicKeys, appErr := a.GetPluginPublicKeys()
+	publicKeys, appErr := a.GetPluginPublicKeyFiles()
 	if appErr != nil {
 		return appErr
 	}

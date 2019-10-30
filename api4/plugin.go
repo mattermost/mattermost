@@ -7,7 +7,6 @@ package api4
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -143,9 +142,9 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = appErr
 		return
 	}
-	signatures, appErr := plugin.DecodeSignatures()
-	if appErr != nil {
-		c.Err = appErr
+	signatures, err := plugin.DecodeSignatures()
+	if err != nil {
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
 		return
 	}
 
@@ -384,21 +383,6 @@ func downloadFromUrl(c *Context, downloadUrl string) ([]byte, *model.AppError) {
 	}
 
 	return fileBytes, nil
-}
-
-func verifyPlugin(c *Context, plugin *model.BaseMarketplacePlugin, pluginFileBytes []byte) *model.AppError {
-	for _, signature := range plugin.Signatures {
-		signatureBytes, err := base64.StdEncoding.DecodeString(signature.Signature)
-		if err != nil {
-			return model.NewAppError("verifyPlugin", "api.plugin.signature_decode.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		appErr := c.App.VerifyPlugin(bytes.NewReader(pluginFileBytes), bytes.NewReader(signatureBytes))
-		if appErr == nil {
-			return nil
-		}
-		mlog.Debug("Plugin signature not verified", mlog.String("public key hash", signature.PublicKeyHash), mlog.Err(appErr))
-	}
-	return model.NewAppError("verifyPlugin", "api.plugin.install.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
 }
 
 func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {

@@ -78,17 +78,19 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 		return
 	}
 	defer reader.Close()
-	var signatures []io.ReadSeeker
+	var signatures []filesstore.ReadCloseSeeker
 	if *a.Config().PluginSettings.RequirePluginSignature {
 		signatures = a.signaturesFromPathToReader(plugin)
-	} else {
-		signatures = nil
 	}
 
 	var manifest *model.Manifest
-	if manifest, appErr = a.installPluginLocally(reader, signatures, true); appErr != nil {
+	if manifest, appErr = a.installPluginLocally(reader, utils.FromReadCloseSeekerToReadSeeker(signatures), true); appErr != nil {
 		mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 		return
+	}
+
+	for _, signature := range signatures {
+		signature.Close()
 	}
 
 	if err := a.notifyPluginEnabled(manifest); err != nil {
@@ -112,7 +114,7 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 	}
 }
 
-// InstallPluginWithSignatures installs verified plugin and uploads signatures.
+// InstallPluginWithSignatures verifies and installs plugin.
 func (a *App) InstallPluginWithSignatures(pluginFile io.ReadSeeker, signatures []io.ReadSeeker) (*model.Manifest, *model.AppError) {
 	return a.installPlugin(pluginFile, signatures, true)
 }
@@ -123,7 +125,6 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 }
 
 func (a *App) installPlugin(pluginFile io.ReadSeeker, signatures []io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
-	pluginFile.Seek(0, 0)
 	manifest, appErr := a.installPluginLocally(pluginFile, signatures, replace)
 	if appErr != nil {
 		return nil, appErr
