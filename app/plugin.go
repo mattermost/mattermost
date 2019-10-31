@@ -682,11 +682,7 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 			if val, ok := pluginSignaturePathMap[id]; !ok {
 				mlog.Error("Unknown signature in the filestore.", mlog.String("path", path))
 			} else {
-				if len(val.signaturePaths) > model.MaxNumberOfSignaturesPerPlugin {
-					mlog.Debug("Too many signatures", mlog.String("plugin", val.pluginId))
-				} else {
-					val.signaturePaths = append(val.signaturePaths, path)
-				}
+				val.signaturePaths = append(val.signaturePaths, path)
 			}
 		}
 	}

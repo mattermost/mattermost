@@ -11,12 +11,8 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/pkg/errors"
 )
-
-// MaxNumberOfSignaturesPerPlugin determines maximum number of signatures allow for a single plugin.
-const MaxNumberOfSignaturesPerPlugin = 32
 
 // PluginSignature is a public key signature of a plugin and the corresponding public key hash for use in verifying a plugin downloaded from the marketplace.
 type PluginSignature struct {
@@ -68,13 +64,8 @@ func MarketplacePluginsFromReader(reader io.Reader) ([]*MarketplacePlugin, error
 
 // DecodeSignatures Decodes signatures and returns list.
 func (plugin *BaseMarketplacePlugin) DecodeSignatures() ([]io.ReadSeeker, error) {
-	pluginSignatures := plugin.Signatures
-	if len(pluginSignatures) > MaxNumberOfSignaturesPerPlugin {
-		mlog.Debug("Too many signatures from marketplace", mlog.String("plugin", plugin.Manifest.Id))
-		pluginSignatures = pluginSignatures[:MaxNumberOfSignaturesPerPlugin]
-	}
-	signatures := make([]io.ReadSeeker, 0, len(pluginSignatures))
-	for _, sig := range pluginSignatures {
+	signatures := make([]io.ReadSeeker, 0, len(plugin.Signatures))
+	for _, sig := range plugin.Signatures {
 		signatureBytes, err := base64.StdEncoding.DecodeString(sig.Signature)
 		if err != nil {
 			return nil, errors.Wrap(err, "Unable to decode base64 signature.")
