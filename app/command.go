@@ -39,8 +39,13 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse) (*model.Post, *model.AppError) {
-	post.Message = model.ParseSlackLinksToMarkdown(response.Text)
+func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+	if skipSlackParsing {
+		post.Message = response.Text
+	} else {
+		post.Message = model.ParseSlackLinksToMarkdown(response.Text)
+	}
+
 	post.CreateAt = model.GetMillis()
 
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
@@ -158,7 +163,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
 	if appErr != nil {
-		mlog.Error(appErr.Error())
+		mlog.Error("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
 	}
 
 	args.TriggerId = triggerId
@@ -187,7 +192,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
 }
 
-// tryExecutePluginCommand attempts to run a built in command based on the given arguments. If no such command can be
+// tryExecuteBuiltInCommand attempts to run a built in command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
 func (a *App) tryExecuteBuiltInCommand(args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
 	provider := GetCommandProvider(trigger)
@@ -362,7 +367,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	_, err := a.HandleCommandResponsePost(command, args, response, builtIn)
 
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("error occurred in handling command response post", mlog.Err(err))
 		lastError = err
 	}
 
@@ -371,7 +376,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 			_, err := a.HandleCommandResponsePost(command, args, resp, builtIn)
 
 			if err != nil {
-				mlog.Error(err.Error())
+				mlog.Error("error occurred in handling command response post", mlog.Err(err))
 				lastError = err
 			}
 		}
@@ -430,11 +435,16 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		post.AddProp("from_webhook", "true")
 	}
 
-	// Process Slack text replacements
-	response.Text = a.ProcessSlackText(response.Text)
-	response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+	// Do not process text if this is a code block
+	skipSlackParsing := command.Trigger == "code"
 
-	if _, err := a.CreateCommandPost(post, args.TeamId, response); err != nil {
+	// Process Slack text replacements
+	if !skipSlackParsing {
+		response.Text = a.ProcessSlackText(response.Text)
+		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+	}
+
+	if _, err := a.CreateCommandPost(post, args.TeamId, response, skipSlackParsing); err != nil {
 		return post, err
 	}
 

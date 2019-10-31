@@ -10,14 +10,14 @@ echo "Importing postgres dump from version 5.0"
 docker exec -i mattermost-postgres psql -U mmuser -d migrated < $(pwd)/scripts/mattermost-postgresql-5.0.sql
 
 echo "Setting up config for db migration"
-make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@dockerhost:5432/migrated?sslmode=disable&connect_timeout=10' --config $TMPDIR/config.json" run-cli
+make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@localhost:5432/migrated?sslmode=disable&connect_timeout=10' --config $TMPDIR/config.json" run-cli
 make ARGS="config set SqlSettings.DriverName 'postgres' --config $TMPDIR/config.json" run-cli
 
 echo "Running the migration"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
 echo "Setting up config for fresh db setup"
-make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@dockerhost:5432/latest?sslmode=disable&connect_timeout=10' --config $TMPDIR/config.json" run-cli
+make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@localhost:5432/latest?sslmode=disable&connect_timeout=10' --config $TMPDIR/config.json" run-cli
 
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
@@ -33,7 +33,12 @@ echo "Generating diff"
 diff $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
 diffErrorCode=$?
 
-if [ $diffErrorCode -eq 0 ]; then echo "Both schemas are same";else cat $DUMPDIR/diff.txt; fi
+if [ $diffErrorCode -eq 0 ]; then
+    echo "Both schemas are same"
+else
+    echo "Schema mismatch"
+    cat $DUMPDIR/diff.txt
+fi
 rm -rf $TMPDIR $DUMPDIR
 
 exit $diffErrorCode

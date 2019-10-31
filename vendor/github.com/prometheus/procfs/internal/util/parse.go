@@ -49,6 +49,21 @@ func ParseUint64s(ss []string) ([]uint64, error) {
 	return us, nil
 }
 
+// ParsePInt64s parses a slice of strings into a slice of int64 pointers.
+func ParsePInt64s(ss []string) ([]*int64, error) {
+	us := make([]*int64, 0, len(ss))
+	for _, s := range ss {
+		u, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		us = append(us, &u)
+	}
+
+	return us, nil
+}
+
 // ReadUintFromFile reads a file and attempts to parse a uint64 from it.
 func ReadUintFromFile(path string) (uint64, error) {
 	data, err := ioutil.ReadFile(path)

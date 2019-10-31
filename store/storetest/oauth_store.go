@@ -213,7 +213,7 @@ func testOAuthStoreRemoveAccessData(t *testing.T, ss store.Store) {
 	require.Nil(t, result, "did not delete access token")
 }
 
-func testOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
+func TestOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
 	a1 := model.AccessData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -382,9 +382,8 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 	err = ss.OAuth().DeleteApp(a1.Id)
 	require.Nil(t, err)
 
-	if _, err = ss.Session().Get(s1.Token); err == nil {
-		t.Fatal("should error - session should be deleted")
-	}
+	_, err = ss.Session().Get(s1.Token)
+	require.NotNil(t, err, "should error - session should be deleted")
 
 	_, err = ss.OAuth().GetAccessData(s1.Token)
 	require.NotNil(t, err, "should error - access data should be deleted")

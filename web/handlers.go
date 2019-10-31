@@ -6,7 +6,12 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"reflect"
+	"runtime"
+	"strings"
 	"time"
+
+	"github.com/NYTimes/gziphandler"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -14,10 +19,20 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
+	handlerName := runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
+	pos := strings.LastIndex(handlerName, ".")
+	if pos != -1 && len(handlerName) > pos {
+		handlerName = handlerName[pos+1:]
+	}
+	return handlerName
+}
+
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      false,
 		RequireMfa:          false,
@@ -33,6 +48,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 	return &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      false,
 		RequireMfa:          false,
@@ -45,6 +61,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 type Handler struct {
 	GetGlobalAppOptions app.AppOptionCreator
 	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
+	HandlerName         string
 	RequireSession      bool
 	TrustRequester      bool
 	RequireMfa          bool
@@ -55,14 +72,16 @@ type Handler struct {
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
-	mlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path))
+
+	requestID := model.NewId()
+	mlog.Debug("Received HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
 
 	c := &Context{}
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
 	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
-	c.App.RequestId = model.NewId()
+	c.App.RequestId = requestID
 	c.App.IpAddress = utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader)
 	c.App.UserAgent = r.UserAgent()
 	c.App.AcceptLanguage = r.Header.Get("Accept-Language")
@@ -190,6 +209,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
+			c.App.Metrics.ObserveApiEndpointDuration(h.HandlerName, elapsed)
 		}
 	}
 }
@@ -239,4 +259,78 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 	}
 
 	return csrfCheckNeeded, csrfCheckPassed
+}
+
+// ApiHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
+// granted.
+func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
+		RequireSession:      false,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
+// ApiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
+// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
+// websocket.
+func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
+		RequireSession:      false,
+		TrustRequester:      true,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
+// ApiSessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
+// be granted.
+func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
+		RequireSession:      true,
+		TrustRequester:      false,
+		RequireMfa:          true,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
+// apiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
+// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
+// websocket.
+func (w *Web) apiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		HandlerName:         GetHandlerName(h),
+		RequireSession:      false,
+		TrustRequester:      true,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
 }

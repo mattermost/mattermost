@@ -58,7 +58,7 @@ func TestS3FileBackendTestSuiteWithEncryption(t *testing.T) {
 func runBackendTest(t *testing.T, encrypt bool) {
 	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
-		s3Host = "dockerhost"
+		s3Host = "localhost"
 	}
 
 	s3Port := os.Getenv("CI_MINIO_PORT")

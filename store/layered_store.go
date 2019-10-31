@@ -7,12 +7,6 @@ import (
 	"context"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-)
-
-const (
-	ENABLE_EXPERIMENTAL_REDIS = false
 )
 
 type LayeredStoreDatabaseLayer interface {
@@ -22,12 +16,8 @@ type LayeredStoreDatabaseLayer interface {
 
 type LayeredStore struct {
 	TmpContext      context.Context
-	ReactionStore   ReactionStore
-	RoleStore       RoleStore
-	SchemeStore     SchemeStore
 	DatabaseLayer   LayeredStoreDatabaseLayer
 	LocalCacheLayer *LocalCacheSupplier
-	RedisLayer      *RedisSupplier
 	LayerChainHead  LayeredStoreSupplier
 }
 
@@ -38,35 +28,17 @@ func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsIn
 		LocalCacheLayer: NewLocalCacheSupplier(metrics, cluster),
 	}
 
-	store.ReactionStore = &LayeredReactionStore{store}
-	store.RoleStore = &LayeredRoleStore{store}
-	store.SchemeStore = &LayeredSchemeStore{store}
-
 	// Setup the chain
-	if ENABLE_EXPERIMENTAL_REDIS {
-		mlog.Debug("Experimental redis enabled.")
-		store.RedisLayer = NewRedisSupplier()
-		store.RedisLayer.SetChainNext(store.DatabaseLayer)
-		store.LayerChainHead = store.RedisLayer
-	} else {
-		store.LocalCacheLayer.SetChainNext(store.DatabaseLayer)
-		store.LayerChainHead = store.LocalCacheLayer
-	}
+	store.LocalCacheLayer.SetChainNext(store.DatabaseLayer)
+	store.LayerChainHead = store.LocalCacheLayer
 
 	return store
 }
 
 type QueryFunction func(LayeredStoreSupplier) *LayeredStoreSupplierResult
 
-func (s *LayeredStore) RunQuery(queryFunction QueryFunction) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := queryFunction(s.LayerChainHead)
-		storeChannel <- result.StoreResult
-	}()
-
-	return storeChannel
+func (s *LayeredStore) GetCurrentSchemaVersion() string {
+	return s.DatabaseLayer.GetCurrentSchemaVersion()
 }
 
 func (s *LayeredStore) Team() TeamStore {
@@ -150,7 +122,7 @@ func (s *LayeredStore) FileInfo() FileInfoStore {
 }
 
 func (s *LayeredStore) Reaction() ReactionStore {
-	return s.ReactionStore
+	return s.DatabaseLayer.Reaction()
 }
 
 func (s *LayeredStore) Job() JobStore {
@@ -170,7 +142,7 @@ func (s *LayeredStore) Plugin() PluginStore {
 }
 
 func (s *LayeredStore) Role() RoleStore {
-	return s.RoleStore
+	return s.DatabaseLayer.Role()
 }
 
 func (s *LayeredStore) TermsOfService() TermsOfServiceStore {
@@ -182,7 +154,7 @@ func (s *LayeredStore) UserTermsOfService() UserTermsOfServiceStore {
 }
 
 func (s *LayeredStore) Scheme() SchemeStore {
-	return s.SchemeStore
+	return s.DatabaseLayer.Scheme()
 }
 
 func (s *LayeredStore) Group() GroupStore {
@@ -226,90 +198,6 @@ func (s *LayeredStore) TotalSearchDbConnections() int {
 	return s.DatabaseLayer.TotalSearchDbConnections()
 }
 
-type LayeredReactionStore struct {
-	*LayeredStore
-}
-
-func (s *LayeredReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	return s.LayerChainHead.ReactionSave(s.TmpContext, reaction)
-}
-
-func (s *LayeredReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	return s.LayerChainHead.ReactionDelete(s.TmpContext, reaction)
-}
-
-func (s *LayeredReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
-	return s.LayerChainHead.ReactionGetForPost(s.TmpContext, postId)
-}
-
-func (s *LayeredReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
-	return s.LayerChainHead.ReactionsBulkGetForPosts(s.TmpContext, postIds)
-}
-
-func (s *LayeredReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
-	return s.LayerChainHead.ReactionDeleteAllWithEmojiName(s.TmpContext, emojiName)
-}
-
-func (s *LayeredReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
-	return s.LayerChainHead.ReactionPermanentDeleteBatch(s.TmpContext, endTime, limit)
-}
-
-type LayeredRoleStore struct {
-	*LayeredStore
-}
-
-func (s *LayeredRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
-	return s.LayerChainHead.RoleSave(s.TmpContext, role)
-}
-
-func (s *LayeredRoleStore) Get(roleId string) (*model.Role, *model.AppError) {
-	return s.LayerChainHead.RoleGet(s.TmpContext, roleId)
-}
-
-func (s *LayeredRoleStore) GetAll() ([]*model.Role, *model.AppError) {
-	return s.LayerChainHead.RoleGetAll(s.TmpContext)
-}
-
-func (s *LayeredRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
-	return s.LayerChainHead.RoleGetByName(s.TmpContext, name)
-}
-
-func (s *LayeredRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError) {
-	return s.LayerChainHead.RoleGetByNames(s.TmpContext, names)
-}
-
-func (s *LayeredRoleStore) Delete(roldId string) (*model.Role, *model.AppError) {
-	return s.LayerChainHead.RoleDelete(s.TmpContext, roldId)
-}
-
-func (s *LayeredRoleStore) PermanentDeleteAll() *model.AppError {
-	return s.LayerChainHead.RolePermanentDeleteAll(s.TmpContext)
-}
-
-type LayeredSchemeStore struct {
-	*LayeredStore
-}
-
-func (s *LayeredSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
-	return s.LayerChainHead.SchemeSave(s.TmpContext, scheme)
-}
-
-func (s *LayeredSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
-	return s.LayerChainHead.SchemeGet(s.TmpContext, schemeId)
-}
-
-func (s *LayeredSchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
-	return s.LayerChainHead.SchemeGetByName(s.TmpContext, schemeName)
-}
-
-func (s *LayeredSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
-	return s.LayerChainHead.SchemeDelete(s.TmpContext, schemeId)
-}
-
-func (s *LayeredSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
-	return s.LayerChainHead.SchemeGetAllPage(s.TmpContext, scope, offset, limit)
-}
-
-func (s *LayeredSchemeStore) PermanentDeleteAll() *model.AppError {
-	return s.LayerChainHead.SchemePermanentDeleteAll(s.TmpContext)
+func (s *LayeredStore) CheckIntegrity() <-chan IntegrityCheckResult {
+	return s.DatabaseLayer.CheckIntegrity()
 }

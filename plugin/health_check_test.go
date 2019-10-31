@@ -130,8 +130,8 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Failures are recent enough to restart
 	rp = newRegisteredPlugin(bundle)
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.2*time.Minute))
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.1*time.Minute))
+	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION/10*2))
+	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION/10))
 	rp.failTimeStamps = append(rp.failTimeStamps, now)
 
 	result = shouldDeactivatePlugin(rp)
@@ -139,8 +139,8 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Failures are too spaced out to warrant a restart
 	rp = newRegisteredPlugin(bundle)
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*2*time.Minute))
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*1*time.Minute))
+	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*2))
+	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*1))
 	rp.failTimeStamps = append(rp.failTimeStamps, now)
 
 	result = shouldDeactivatePlugin(rp)
@@ -148,7 +148,7 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Not enough failures are present to warrant a restart
 	rp = newRegisteredPlugin(bundle)
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.1*time.Minute))
+	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION/10))
 	rp.failTimeStamps = append(rp.failTimeStamps, now)
 
 	result = shouldDeactivatePlugin(rp)

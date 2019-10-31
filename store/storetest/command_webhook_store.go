@@ -4,14 +4,13 @@
 package storetest
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/require"
-
 	"net/http"
+	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCommandWebhookStore(t *testing.T, ss store.Store) {
@@ -29,17 +28,12 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	var r1 *model.CommandWebhook
-	if r1, err = cws.Get(h1.Id); err != nil {
-		t.Fatal(err)
-	} else {
-		if *r1 != *h1 {
-			t.Fatal("invalid returned webhook")
-		}
-	}
+	r1, err = cws.Get(h1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, *r1, *h1, "invalid returned webhook")
 
-	if _, err = cws.Get("123"); err.StatusCode != http.StatusNotFound {
-		t.Fatal("Should have set the status as not found for missing id")
-	}
+	_, err = cws.Get("123")
+	assert.Equal(t, err.StatusCode, http.StatusNotFound, "Should have set the status as not found for missing id")
 
 	h2 := &model.CommandWebhook{}
 	h2.CreateAt = model.GetMillis() - 2*model.COMMAND_WEBHOOK_LIFETIME
@@ -49,25 +43,22 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h2, err = cws.Save(h2)
 	require.Nil(t, err)
 
-	if _, err := cws.Get(h2.Id); err == nil || err.StatusCode != http.StatusNotFound {
-		t.Fatal("Should have set the status as not found for expired webhook")
-	}
+	_, err = cws.Get(h2.Id)
+	require.NotNil(t, err, "Should have set the status as not found for expired webhook")
+	assert.Equal(t, err.StatusCode, http.StatusNotFound, "Should have set the status as not found for expired webhook")
 
 	cws.Cleanup()
 
-	if _, err := cws.Get(h1.Id); err != nil {
-		t.Fatal("Should have no error getting unexpired webhook")
-	}
+	_, err = cws.Get(h1.Id)
+	require.Nil(t, err, "Should have no error getting unexpired webhook")
 
-	if _, err := cws.Get(h2.Id); err.StatusCode != http.StatusNotFound {
-		t.Fatal("Should have set the status as not found for expired webhook")
-	}
+	_, err = cws.Get(h2.Id)
+	assert.Equal(t, err.StatusCode, http.StatusNotFound, "Should have set the status as not found for expired webhook")
 
-	if err := cws.TryUse(h1.Id, 1); err != nil {
-		t.Fatal("Should be able to use webhook once")
-	}
+	err = cws.TryUse(h1.Id, 1)
+	require.Nil(t, err, "Should be able to use webhook once")
 
-	if err := cws.TryUse(h1.Id, 1); err == nil || err.StatusCode != http.StatusBadRequest {
-		t.Fatal("Should be able to use webhook once")
-	}
+	err = cws.TryUse(h1.Id, 1)
+	require.NotNil(t, err, "Should be able to use webhook once")
+	assert.Equal(t, err.StatusCode, http.StatusBadRequest, "Should be able to use webhook once")
 }

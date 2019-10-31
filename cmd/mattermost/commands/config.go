@@ -21,6 +21,8 @@ import (
 	"github.com/mattermost/viper"
 )
 
+const noSettingsNamed = "unable to find a setting named: %s"
+
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Configuration",
@@ -73,7 +75,7 @@ var MigrateConfigCmd = &cobra.Command{
 	Use:     "migrate [from_config] [to_config]",
 	Short:   "Migrate existing config between backends",
 	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it",
-	Example: `config migrate path/to/config.json "postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
+	Example: `config migrate path/to/config.json "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
 	Args:    cobra.ExactArgs(2),
 	RunE:    configMigrateCmdF,
 }
@@ -296,7 +298,7 @@ func updateConfigValue(configSetting string, newVal []string, oldConfig, newConf
 func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal []string) error {
 	res, ok := configMap[configSettings[0]]
 	if !ok {
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 	}
 
 	value := reflect.ValueOf(res)
@@ -307,6 +309,9 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 		// we can only change the value of a particular setting, not the whole map, return error
 		if len(configSettings) == 1 {
 			return errors.New("unable to set multiple settings at once")
+		}
+		if value.Len() == 0 {
+			return fmt.Errorf(noSettingsNamed, configSettings[1])
 		}
 		return UpdateMap(res.(map[string]interface{}), configSettings[1:], newVal)
 
@@ -319,7 +324,7 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 			configMap[configSettings[0]] = val
 			return nil
 		}
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 
 	case reflect.Int64:
 		if len(configSettings) == 1 {
@@ -330,7 +335,7 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 			configMap[configSettings[0]] = int64(val)
 			return nil
 		}
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 
 	case reflect.Bool:
 		if len(configSettings) == 1 {
@@ -341,21 +346,21 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 			configMap[configSettings[0]] = val
 			return nil
 		}
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 
 	case reflect.String:
 		if len(configSettings) == 1 {
 			configMap[configSettings[0]] = newVal[0]
 			return nil
 		}
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 
 	case reflect.Slice:
 		if len(configSettings) == 1 {
 			configMap[configSettings[0]] = newVal
 			return nil
 		}
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 
 	default:
 		return errors.New("type not supported yet")

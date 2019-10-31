@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -90,7 +89,7 @@ func (me *EchoProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		time.Sleep(time.Duration(delay) * time.Second)
 
 		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
-			mlog.Error(fmt.Sprintf("Unable to create /echo post, err=%v", err))
+			mlog.Error("Unable to create /echo post.", mlog.Err(err))
 		}
 	})
 
