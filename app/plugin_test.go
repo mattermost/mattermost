@@ -366,6 +366,7 @@ func TestPluginSync(t *testing.T) {
 				*cfg.PluginSettings.Enable = true
 				*cfg.PluginSettings.Directory = "./test-plugins"
 				*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+				*cfg.PluginSettings.RequirePluginSignature = false
 			})
 			th.App.UpdateConfig(testCase.ConfigFunc)
 
