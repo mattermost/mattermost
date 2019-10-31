@@ -154,7 +154,7 @@ govet: ## Runs govet against all packages.
 	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
 	$(GO) vet $(GOFLAGS) $(ALL_PACKAGES) || exit 1
 	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GOFLAGS) $(ALL_PACKAGES) || exit 1
-	$(GO) run $(GOFLAGS) plugin/checker/main.go
+	$(GO) run $(GOFLAGS) ./plugin/checker
 
 gofmt: ## Runs gofmt against all packages.
 	@echo Running GOFMT
@@ -172,6 +172,16 @@ gofmt: ## Runs gofmt against all packages.
 		fi; \
 	done
 	@echo "gofmt success"; \
+
+golangci-lint: ## Run golangci-lint on codebasis
+# https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
+	@if ! [ -x "$$(command -v golangci-lintt)" ]; then \
+		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
+		exit 1; \
+	fi; \
+
+	@echo Running golangci-lint
+	golangci-lint run
 
 megacheck: ## Run megacheck on codebasis
 	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
@@ -219,6 +229,7 @@ check-licenses: ## Checks license status.
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
+# TODO: remove govet and gofmt checks once golangci-lint is being enforced.
 check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
 
 test-te-race: ## Checks for race conditions in the team edition.

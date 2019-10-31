@@ -378,6 +378,21 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
 
+	// GetGroup gets a group by ID.
+	//
+	// Minimum server version: 5.18
+	GetGroup(groupId string) (*model.Group, *model.AppError)
+
+	// GetGroupByName gets a group by name.
+	//
+	// Minimum server version: 5.18
+	GetGroupByName(name string) (*model.Group, *model.AppError)
+
+	// GetGroupsForUser gets the groups a user is in.
+	//
+	// Minimum server version: 5.18
+	GetGroupsForUser(userId string) ([]*model.Group, *model.AppError)
+
 	// DeleteChannelMember deletes a channel membership for a user.
 	//
 	// Minimum server version: 5.2
@@ -648,7 +663,6 @@ type API interface {
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// Minimum server version: 5.2
 	LogDebug(msg string, keyValuePairs ...interface{})
@@ -656,7 +670,6 @@ type API interface {
 	// LogInfo writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// Minimum server version: 5.2
 	LogInfo(msg string, keyValuePairs ...interface{})
@@ -664,7 +677,6 @@ type API interface {
 	// LogError writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// Minimum server version: 5.2
 	LogError(msg string, keyValuePairs ...interface{})
@@ -672,7 +684,6 @@ type API interface {
 	// LogWarn writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// Minimum server version: 5.2
 	LogWarn(msg string, keyValuePairs ...interface{})

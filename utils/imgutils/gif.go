@@ -32,7 +32,6 @@ type reader interface {
 const (
 	// Fields.
 	fColorTable         = 1 << 7
-	fInterlace          = 1 << 6
 	fColorTableBitsMask = 7
 
 	// Graphic control flags.

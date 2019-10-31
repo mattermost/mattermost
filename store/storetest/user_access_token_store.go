@@ -31,49 +31,36 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if _, err = ss.UserAccessToken().Save(uat); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.UserAccessToken().Save(uat)
+	require.Nil(t, err)
 
-	if result, terr := ss.UserAccessToken().Get(uat.Id); terr != nil {
-		t.Fatal(terr)
-	} else if result.Token != uat.Token {
-		t.Fatal("received incorrect token after save")
-	}
+	result, terr := ss.UserAccessToken().Get(uat.Id)
+	require.Nil(t, terr)
+	require.Equal(t, result.Token, uat.Token, "received incorrect token after save")
 
-	if received, err2 := ss.UserAccessToken().GetByToken(uat.Token); err2 != nil {
-		t.Fatal(err2)
-	} else if received.Token != uat.Token {
-		t.Fatal("received incorrect token after save")
-	}
+	received, err2 := ss.UserAccessToken().GetByToken(uat.Token)
+	require.Nil(t, err2)
+	require.Equal(t, received.Token, uat.Token, "received incorrect token after save")
 
-	if _, err = ss.UserAccessToken().GetByToken("notarealtoken"); err == nil {
-		t.Fatal("should have failed on bad token")
-	}
+	_, err = ss.UserAccessToken().GetByToken("notarealtoken")
+	require.NotNil(t, err, "should have failed on bad token")
 
-	if received, err2 := ss.UserAccessToken().GetByUser(uat.UserId, 0, 100); err2 != nil {
-		t.Fatal(err2)
-	} else if len(received) != 1 {
-		t.Fatal("received incorrect number of tokens after save")
-	}
+	received2, err2 := ss.UserAccessToken().GetByUser(uat.UserId, 0, 100)
+	require.Nil(t, err2)
+	require.Equal(t, 1, len(received2), "received incorrect number of tokens after save")
 
-	if result, appError := ss.UserAccessToken().GetAll(0, 100); appError != nil {
-		t.Fatal(appError)
-	} else if len(result) != 1 {
-		t.Fatal("received incorrect number of tokens after save")
-	}
+	result2, appError := ss.UserAccessToken().GetAll(0, 100)
+	require.Nil(t, appError)
+	require.Equal(t, 1, len(result2), "received incorrect number of tokens after save")
 
-	if err = ss.UserAccessToken().Delete(uat.Id); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.UserAccessToken().Delete(uat.Id)
+	require.Nil(t, err)
 
-	if _, err = ss.Session().Get(s1.Token); err == nil {
-		t.Fatal("should error - session should be deleted")
-	}
+	_, err = ss.Session().Get(s1.Token)
+	require.NotNil(t, err, "should error - session should be deleted")
 
-	if _, err = ss.UserAccessToken().GetByToken(s1.Token); err == nil {
-		t.Fatal("should error - access token should be deleted")
-	}
+	_, err = ss.UserAccessToken().GetByToken(s1.Token)
+	require.NotNil(t, err, "should error - access token should be deleted")
 
 	s2 := &model.Session{}
 	s2.UserId = uat.UserId
@@ -82,21 +69,17 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
-	if _, err = ss.UserAccessToken().Save(uat); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.UserAccessToken().Save(uat)
+	require.Nil(t, err)
 
-	if err := ss.UserAccessToken().DeleteAllForUser(uat.UserId); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.UserAccessToken().DeleteAllForUser(uat.UserId)
+	require.Nil(t, err)
 
-	if _, err := ss.Session().Get(s2.Token); err == nil {
-		t.Fatal("should error - session should be deleted")
-	}
+	_, err = ss.Session().Get(s2.Token)
+	require.NotNil(t, err, "should error - session should be deleted")
 
-	if _, err := ss.UserAccessToken().GetByToken(s2.Token); err == nil {
-		t.Fatal("should error - access token should be deleted")
-	}
+	_, err = ss.UserAccessToken().GetByToken(s2.Token)
+	require.NotNil(t, err, "should error - access token should be deleted")
 }
 
 func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
@@ -113,17 +96,14 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if _, err = ss.UserAccessToken().Save(uat); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.UserAccessToken().Save(uat)
+	require.Nil(t, err)
 
-	if err = ss.UserAccessToken().UpdateTokenDisable(uat.Id); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.UserAccessToken().UpdateTokenDisable(uat.Id)
+	require.Nil(t, err)
 
-	if _, err = ss.Session().Get(s1.Token); err == nil {
-		t.Fatal("should error - session should be deleted")
-	}
+	_, err = ss.Session().Get(s1.Token)
+	require.NotNil(t, err, "should error - session should be deleted")
 
 	s2 := &model.Session{}
 	s2.UserId = uat.UserId
@@ -132,9 +112,8 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
-	if err = ss.UserAccessToken().UpdateTokenEnable(uat.Id); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.UserAccessToken().UpdateTokenEnable(uat.Id)
+	require.Nil(t, err)
 }
 
 func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
@@ -158,25 +137,19 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	s1, err = ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if _, err = ss.UserAccessToken().Save(uat); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.UserAccessToken().Save(uat)
+	require.Nil(t, err)
 
-	if received, err := ss.UserAccessToken().Search(uat.Id); err != nil {
-		t.Fatal(err)
-	} else if len(received) != 1 {
-		t.Fatal("received incorrect number of tokens after search")
-	}
+	received, err := ss.UserAccessToken().Search(uat.Id)
+	require.Nil(t, err)
 
-	if received, err := ss.UserAccessToken().Search(uat.UserId); err != nil {
-		t.Fatal(err)
-	} else if len(received) != 1 {
-		t.Fatal("received incorrect number of tokens after search")
-	}
+	require.Equal(t, 1, len(received), "received incorrect number of tokens after search")
 
-	if received, err := ss.UserAccessToken().Search(u1.Username); err != nil {
-		t.Fatal(err)
-	} else if len(received) != 1 {
-		t.Fatal("received incorrect number of tokens after search")
-	}
+	received, err = ss.UserAccessToken().Search(uat.UserId)
+	require.Nil(t, err)
+	require.Equal(t, 1, len(received), "received incorrect number of tokens after search")
+
+	received, err = ss.UserAccessToken().Search(u1.Username)
+	require.Nil(t, err)
+	require.Equal(t, 1, len(received), "received incorrect number of tokens after search")
 }
