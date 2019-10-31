@@ -236,7 +236,6 @@ golang.org/x/crypto/acme/autocert
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
 golang.org/x/crypto/bcrypt
-golang.org/x/crypto/acme
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k

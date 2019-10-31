@@ -255,6 +255,15 @@ func TestPlugin(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.RemovePlugin("bad.id")
 	CheckBadRequestStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = true
+	})
+	manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	CheckNotImplementedStatus(t, resp)
+	manifest, resp = th.SystemAdminClient.InstallPluginFromUrl("some_url", true)
+	CheckNotImplementedStatus(t, resp)
 }
 
 func TestNotifyClusterPluginEvent(t *testing.T) {
