@@ -463,6 +463,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	require.Nil(t, err)
 	fileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
 	require.Nil(t, err)
+	defer fileReader.Close()
 	th.App.AddPublicKey(publicKeyFilename, fileReader)
 	file, err := th.App.GetPublicKey(publicKeyFilename)
 	require.Nil(t, err)

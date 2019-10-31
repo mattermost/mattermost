@@ -271,14 +271,13 @@ func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 		if err != nil {
 			return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+		defer fileReader.Close()
 
 		if err := a.AddPublicKey(filename, fileReader); err != nil {
 			CommandPrintErrorln("Unable to add public key: " + pkFile + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Added public key: " + pkFile)
 		}
-		fileReader.Close()
-
 	}
 
 	return nil
@@ -301,7 +300,6 @@ func pluginDeletePublicKeyCmdF(command *cobra.Command, args []string) error {
 		} else {
 			CommandPrettyPrintln("Deleted public key: " + pkFile)
 		}
-
 	}
 
 	return nil

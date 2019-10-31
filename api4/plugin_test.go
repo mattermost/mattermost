@@ -306,10 +306,33 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	require.Equal(t, "testplugin", manifest.Id)
 
 	// Successful remove
+	webSocketClient, err := th.CreateWebSocketSystemAdminClient()
+	require.Nil(t, err)
+	webSocketClient.Listen()
+	defer webSocketClient.Close()
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case resp := <-webSocketClient.EventChannel:
+				if resp.Event == model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED && len(resp.Data["plugin_statuses"].([]interface{})) == 0 {
+					done <- true
+					return
+				}
+			case <-time.After(5 * time.Second):
+				done <- false
+				return
+			}
+		}
+	}()
+
 	testCluster.ClearMessages()
 	ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
 	CheckNoError(t, resp)
 	require.True(t, ok)
+
+	result := <-done
+	require.True(t, result, "plugin_statuses_changed websocket event was not received")
 
 	messages = testCluster.GetMessages()
 
@@ -365,7 +388,7 @@ func TestDisableOnRemove(t *testing.T) {
 			pluginsResp, resp := th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
 			require.Len(t, pluginsResp.Active, 0)
-			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{&model.PluginInfo{
+			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
 
@@ -378,7 +401,7 @@ func TestDisableOnRemove(t *testing.T) {
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
 			require.Len(t, pluginsResp.Inactive, 0)
-			require.Equal(t, pluginsResp.Active, []*model.PluginInfo{&model.PluginInfo{
+			require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
 
@@ -392,7 +415,7 @@ func TestDisableOnRemove(t *testing.T) {
 				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 				CheckNoError(t, resp)
 				require.Len(t, pluginsResp.Inactive, 0)
-				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{&model.PluginInfo{
+				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 					Manifest: *manifest,
 				}})
 			}
@@ -417,7 +440,7 @@ func TestDisableOnRemove(t *testing.T) {
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
 			require.Len(t, pluginsResp.Active, 0)
-			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{&model.PluginInfo{
+			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
 
@@ -521,9 +544,9 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "https://github.com/mattermost/mattermost-plugin-nps",
-				IconData:    "http://example.com/icon.svg",
-				DownloadURL: "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
+				IconData:    "https://example.com/icon.svg",
+				DownloadURL: "https://example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
 				Manifest: &model.Manifest{
 					Id:               "com.mattermost.nps",
 					Name:             "User Satisfaction Surveys",
@@ -649,9 +672,9 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "https://github.com/mattermost/mattermost-plugin-nps",
+				HomepageURL: "example.com/mattermost/mattermost-plugin-nps",
 				IconData:    "Cjxzdmcgdmlld0JveD0nMCAwIDEwNSA5MycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz4KPHBhdGggZD0nTTY2LDBoMzl2OTN6TTM4LDBoLTM4djkzek01MiwzNWwyNSw1OGgtMTZsLTgtMThoLTE4eicgZmlsbD0nI0VEMUMyNCcvPgo8L3N2Zz4K",
-				DownloadURL: "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				DownloadURL: "example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
 				Manifest: &model.Manifest{
 					Id:               "com.mattermost.nps",
 					Name:             "User Satisfaction Surveys",
@@ -757,42 +780,50 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		*cfg.PluginSettings.EnableMarketplace = false
 	})
 	path, _ := fileutils.FindDir("tests")
-	signatureFilename := "com.mattermost.demo-plugin-0.3.0.tar.gz.sig"
+	signatureFilename := "testpluginv2.tar.gz.sig"
 	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
 	require.Nil(t, err)
 	sigFile, err := ioutil.ReadAll(signatureFileReader)
 	require.Nil(t, err)
-	demoPluginSignature := base64.StdEncoding.EncodeToString(sigFile)
+	pluginSignature := base64.StdEncoding.EncodeToString(sigFile)
+
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testpluginv2.tar.gz"))
+	require.NoError(t, err)
+	pluginServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(tarData)
+	}))
+	defer pluginServer.Close()
 
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "https://github.com/mattermost/mattermost-plugin-nps",
-				IconData:    "http://example.com/icon.svg",
-				DownloadURL: "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
+				IconData:    "https://example.com/icon.svg",
+				DownloadURL: pluginServer.URL,
 				Manifest: &model.Manifest{
-					Id:               "com.mattermost.nps",
-					Name:             "User Satisfaction Surveys",
-					Description:      "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost.",
-					Version:          "1.0.3",
-					MinServerVersion: "5.14.0",
+					Id:               "testplugin_v2",
+					Name:             "testplugin_v2",
+					Description:      "dsgsdg_v2",
+					Version:          "1.2.2",
+					MinServerVersion: "",
 				},
 			},
 			InstalledVersion: "",
 		},
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "https://github.com/mattermost/mattermost-plugin-demo",
-				IconData:    "http://example.com/icon.svg",
-				DownloadURL: "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.3.0/com.mattermost.demo-plugin-0.3.0.tar.gz",
+				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
+				IconData:    "https://example.com/icon.svg",
+				DownloadURL: pluginServer.URL,
 				Manifest: &model.Manifest{
-					Id:               "com.mattermost.demo-plugin",
-					Name:             "Demo",
-					Description:      "This plugin demonstrates the capabilities of a Mattermost plugin.",
-					Version:          "0.3.0",
-					MinServerVersion: "5.14.0",
+					Id:               "testplugin_v2",
+					Name:             "testplugin_v2",
+					Description:      "dsgsdg_v2",
+					Version:          "1.2.3",
+					MinServerVersion: "",
 				},
-				Signatures: []*model.PluginSignature{{Signature: demoPluginSignature, PublicKeyHash: "F3FACE"}},
+				Signatures: []*model.PluginSignature{{Signature: pluginSignature, PublicKeyHash: "F3FACE"}},
 			},
 			InstalledVersion: "",
 		},
@@ -861,8 +892,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableMarketplace = true
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+			*cfg.PluginSettings.AllowInsecureDownloadUrl = true
 		})
-		pRequest := &model.InstallMarketplacePluginRequest{Id: "com.mattermost.nps", Version: "1.0.3"}
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin_v2", Version: "1.2.2"}
 		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, plugin)
@@ -881,20 +913,22 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.EnableMarketplace = true
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
-		pRequest := &model.InstallMarketplacePluginRequest{Id: "com.mattermost.demo-plugin", Version: "0.3.0"}
-		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
-		CheckNoError(t, resp)
-		require.NotNil(t, plugin)
-		require.Equal(t, "com.mattermost.demo-plugin", plugin.Id)
-		require.Equal(t, "0.3.0", plugin.Version)
 
-		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "com.mattermost.demo-plugin.0.sig")
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin_v2", Version: "1.2.3"}
+		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckNoError(t, resp)
+		require.NotNil(t, manifest)
+		require.Equal(t, "testplugin_v2", manifest.Id)
+		require.Equal(t, "1.2.3", manifest.Version)
+
+		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "testplugin_v2.0.sig")
 		savedSigFile, err := th.App.ReadFile(filePath)
 		require.Nil(t, err)
 		require.EqualValues(t, sigFile, savedSigFile)
 
-		err = th.App.RemovePlugin(plugin.Id)
-		require.Nil(t, err)
+		ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
 		exists, err := th.App.FileExists(filePath)
 		require.Nil(t, err)
 		require.False(t, exists)

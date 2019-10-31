@@ -2,6 +2,8 @@ package analytics
 
 import "time"
 
+var _ Message = (*Group)(nil)
+
 // This type represents object sent in a group call as described in
 // https://segment.com/docs/libraries/http/#group
 type Group struct {
@@ -19,7 +21,11 @@ type Group struct {
 	Integrations Integrations `json:"integrations,omitempty"`
 }
 
-func (msg Group) validate() error {
+func (msg Group) internal() {
+	panic(unimplementedError)
+}
+
+func (msg Group) Validate() error {
 	if len(msg.GroupId) == 0 {
 		return FieldError{
 			Type:  "analytics.Group",
