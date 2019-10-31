@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -238,7 +239,6 @@ func (a *App) SyncPlugins() *model.AppError {
 		return appErr
 	}
 	for _, plugin := range pluginSignaturePathMap {
-		var reader filesstore.ReadCloseSeeker
 		reader, appErr := a.FileReader(plugin.path)
 		if appErr != nil {
 			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
@@ -246,17 +246,19 @@ func (a *App) SyncPlugins() *model.AppError {
 		}
 		defer reader.Close()
 
-		var signatures []filesstore.ReadCloseSeeker
+		var signatures []io.ReadSeeker
 		if *a.Config().PluginSettings.RequirePluginSignature {
-			signatures = a.signaturesFromPathToReader(plugin)
+			sigs, closeFunc, appErr := a.signaturesFromPathToReader(plugin)
+			if appErr != nil {
+				mlog.Error("Failed to open plugin signatures from file store.", mlog.Err(appErr))
+				continue
+			}
+			defer closeFunc()
+			signatures = sigs
 		}
 
-		if _, err := a.installPluginLocally(reader, fromReadCloseSeekerToReadSeeker(signatures), true); err != nil {
+		if _, err := a.installPluginLocally(reader, signatures, true); err != nil {
 			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
-		}
-
-		for _, signature := range signatures {
-			signature.Close()
 		}
 	}
 	return nil
@@ -628,18 +630,26 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	return nil
 }
 
-func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) []filesstore.ReadCloseSeeker {
-	signatures := make([]filesstore.ReadCloseSeeker, 0, len(plugin.signaturePaths))
+func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) (signatures []io.ReadSeeker, closeFunc func(), appErr *model.AppError) {
 	for _, signaturePath := range plugin.signaturePaths {
-		var sigReader filesstore.ReadCloseSeeker
 		sigReader, appErr := a.FileReader(signaturePath)
 		if appErr != nil {
 			mlog.Debug("Can't read signature file.", mlog.String("path", signaturePath), mlog.Err(appErr))
-			continue
+			return nil, nil, appErr
 		}
 		signatures = append(signatures, sigReader)
 	}
-	return signatures
+
+	closeFunc = func() {
+		for _, signature := range signatures {
+			readCloseSeeker, ok := signature.(filesstore.ReadCloseSeeker)
+			if !ok {
+				mlog.Debug("Failed to cast signature to ReadCloseSeeker.", mlog.String("paths", fmt.Sprint(plugin.signaturePaths)), mlog.String("pluginId", plugin.pluginId))
+			}
+			readCloseSeeker.Close()
+		}
+	}
+	return signatures, closeFunc, nil
 }
 
 func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.AppError) {
@@ -665,6 +675,7 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 	}
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".sig") {
+			// Parse plugin id from .sig files, that are stored using getSignatureStorePath
 			id := strings.TrimSuffix(filepath.Base(path), ".sig")
 			index := strings.LastIndex(id, ".")
 			id = id[:index]
@@ -680,15 +691,4 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 		}
 	}
 	return pluginSignaturePathMap, nil
-}
-
-func fromReadCloseSeekerToReadSeeker(files []filesstore.ReadCloseSeeker) []io.ReadSeeker {
-	if files == nil {
-		return nil
-	}
-	res := make([]io.ReadSeeker, 0, len(files))
-	for _, file := range files {
-		res = append(res, file)
-	}
-	return res
 }

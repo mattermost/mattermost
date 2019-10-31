@@ -68,12 +68,13 @@ func MarketplacePluginsFromReader(reader io.Reader) ([]*MarketplacePlugin, error
 
 // DecodeSignatures Decodes signatures and returns list.
 func (plugin *BaseMarketplacePlugin) DecodeSignatures() ([]io.ReadSeeker, error) {
-	if len(plugin.Signatures) > MaxNumberOfSignaturesPerPlugin {
+	pluginSignatures := plugin.Signatures
+	if len(pluginSignatures) > MaxNumberOfSignaturesPerPlugin {
 		mlog.Debug("Too many signatures from marketplace", mlog.String("plugin", plugin.Manifest.Id))
-		plugin.Signatures = plugin.Signatures[:MaxNumberOfSignaturesPerPlugin]
+		pluginSignatures = pluginSignatures[:MaxNumberOfSignaturesPerPlugin]
 	}
-	signatures := make([]io.ReadSeeker, 0, len(plugin.Signatures))
-	for _, sig := range plugin.Signatures {
+	signatures := make([]io.ReadSeeker, 0, len(pluginSignatures))
+	for _, sig := range pluginSignatures {
 		signatureBytes, err := base64.StdEncoding.DecodeString(sig.Signature)
 		if err != nil {
 			return nil, errors.Wrap(err, "Unable to decode base64 signature.")
