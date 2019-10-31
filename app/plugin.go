@@ -639,6 +639,7 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 }
 
 func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) (signatures []io.ReadSeeker, closeFunc func(), appErr *model.AppError) {
+	signatures = []io.ReadSeeker{}
 	for _, signaturePath := range plugin.signaturePaths {
 		sigReader, appErr := a.FileReader(signaturePath)
 		if appErr != nil {
