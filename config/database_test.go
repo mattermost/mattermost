@@ -516,7 +516,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		select {
 		case <-called:
 		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
+			require.Fail(t, "callback should have been called when config written")
 		}
 	})
 }
@@ -757,14 +757,14 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		select {
 		case <-called:
 		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config loaded")
+			require.Fail(t, "callback should have been called when config loaded")
 		}
 	})
 }
 
 func TestDatabaseGetFile(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, minimalConfig, map[string][]byte{
-		"empty-file": []byte{},
+		"empty-file": {},
 		"test-file":  []byte("test"),
 	})
 	defer tearDown()

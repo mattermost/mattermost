@@ -41,9 +41,7 @@ func TestGenerateSecret(t *testing.T) {
 
 	assert.Len(t, secret, 32)
 
-	if len(img) == 0 {
-		t.Fatal("no image set")
-	}
+	require.NotEmpty(t, img, "no image set")
 
 	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(false)
 

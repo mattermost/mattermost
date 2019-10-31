@@ -315,10 +315,33 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	require.Equal(t, "testplugin", manifest.Id)
 
 	// Successful remove
+	webSocketClient, err := th.CreateWebSocketSystemAdminClient()
+	require.Nil(t, err)
+	webSocketClient.Listen()
+	defer webSocketClient.Close()
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case resp := <-webSocketClient.EventChannel:
+				if resp.Event == model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED && len(resp.Data["plugin_statuses"].([]interface{})) == 0 {
+					done <- true
+					return
+				}
+			case <-time.After(5 * time.Second):
+				done <- false
+				return
+			}
+		}
+	}()
+
 	testCluster.ClearMessages()
 	ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
 	CheckNoError(t, resp)
 	require.True(t, ok)
+
+	result := <-done
+	require.True(t, result, "plugin_statuses_changed websocket event was not received")
 
 	messages = testCluster.GetMessages()
 
@@ -374,7 +397,7 @@ func TestDisableOnRemove(t *testing.T) {
 			pluginsResp, resp := th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
 			require.Len(t, pluginsResp.Active, 0)
-			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{&model.PluginInfo{
+			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
 
@@ -387,7 +410,7 @@ func TestDisableOnRemove(t *testing.T) {
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
 			require.Len(t, pluginsResp.Inactive, 0)
-			require.Equal(t, pluginsResp.Active, []*model.PluginInfo{&model.PluginInfo{
+			require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
 
@@ -401,7 +424,7 @@ func TestDisableOnRemove(t *testing.T) {
 				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 				CheckNoError(t, resp)
 				require.Len(t, pluginsResp.Inactive, 0)
-				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{&model.PluginInfo{
+				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 					Manifest: *manifest,
 				}})
 			}
@@ -426,7 +449,7 @@ func TestDisableOnRemove(t *testing.T) {
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
 			require.Len(t, pluginsResp.Active, 0)
-			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{&model.PluginInfo{
+			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
 

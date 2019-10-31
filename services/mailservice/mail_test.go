@@ -9,7 +9,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -29,24 +28,19 @@ func TestMailConnectionFromConfig(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := fs.Get()
+	conn, err := ConnectToSMTPServer(cfg)
+	require.Nil(t, err, "Should connect to the SMTP Server %v", err)
 
-	if conn, err := ConnectToSMTPServer(cfg); err != nil {
-		t.Log(err)
-		t.Fatal("Should connect to the STMP Server")
-	} else {
-		if _, err1 := NewSMTPClient(conn, cfg); err1 != nil {
-			t.Log(err)
-			t.Fatal("Should get new smtp client")
-		}
-	}
+	_, err = NewSMTPClient(conn, cfg)
+
+	require.Nil(t, err, "Should get new SMTP client")
 
 	*cfg.EmailSettings.SMTPServer = "wrongServer"
 	*cfg.EmailSettings.SMTPPort = "553"
 
-	if _, err := ConnectToSMTPServer(cfg); err == nil {
-		t.Log(err)
-		t.Fatal("Should not to the STMP Server")
-	}
+	_, err = ConnectToSMTPServer(cfg)
+
+	require.NotNil(t, err, "Should not connect to the SMTP Server")
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
@@ -55,7 +49,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 
 	cfg := fs.Get()
 
-	if conn, err := ConnectToSMTPServerAdvanced(
+	conn, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
@@ -63,30 +57,28 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
 			SmtpPort:             *cfg.EmailSettings.SMTPPort,
 		},
-	); err != nil {
-		t.Log(err)
-		t.Fatal("Should connect to the STMP Server")
-	} else {
-		if _, err1 := NewSMTPClientAdvanced(
-			conn,
-			utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
-			&SmtpConnectionInfo{
-				ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
-				SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-				SmtpServerName:       *cfg.EmailSettings.SMTPServer,
-				SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
-				SmtpPort:             *cfg.EmailSettings.SMTPPort,
-				Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
-				SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
-				SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
-			},
-		); err1 != nil {
-			t.Log(err)
-			t.Fatal("Should get new smtp client")
-		}
-	}
+	)
 
-	if _, err := ConnectToSMTPServerAdvanced(
+	require.Nil(t, err, "Should connect to the SMTP Server")
+
+	_, err2 := NewSMTPClientAdvanced(
+		conn,
+		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
+		&SmtpConnectionInfo{
+			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
+			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
+			SmtpServerName:       *cfg.EmailSettings.SMTPServer,
+			SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
+			SmtpPort:             *cfg.EmailSettings.SMTPPort,
+			Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
+			SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
+			SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
+		},
+	)
+
+	require.Nil(t, err2, "Should get new SMTP client")
+
+	_, err3 := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
@@ -94,11 +86,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpServerHost:       "wrongServer",
 			SmtpPort:             "553",
 		},
-	); err == nil {
-		t.Log(err)
-		t.Fatal("Should not to the STMP Server")
-	}
-
+	)
+	require.NotNil(t, err3, "Should not connect to the SMTP Server")
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
@@ -116,32 +105,25 @@ func TestSendMailUsingConfig(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
-	if err := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true); err != nil {
-		t.Log(err)
-		t.Fatal("Should connect to the STMP Server")
+	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true)
+	require.Nil(t, err2, "Should connect to the SMTP Server")
+
+	//Check if the email was send to the right email address
+	var resultsMailbox JSONMessageHeaderInbucket
+	err3 := RetryInbucket(5, func() error {
+		var err error
+		resultsMailbox, err = GetMailBox(emailTo)
+		return err
+	})
+	if err3 != nil {
+		t.Log(err3)
+		t.Log("No email was received, maybe due load on the server. Skipping this verification")
 	} else {
-		//Check if the email was send to the right email address
-		var resultsMailbox JSONMessageHeaderInbucket
-		err := RetryInbucket(5, func() error {
-			var err error
-			resultsMailbox, err = GetMailBox(emailTo)
-			return err
-		})
-		if err != nil {
-			t.Log(err)
-			t.Log("No email was received, maybe due load on the server. Disabling this verification")
-		}
-		if err == nil && len(resultsMailbox) > 0 {
-			if !strings.ContainsAny(resultsMailbox[0].To[0], emailTo) {
-				t.Fatal("Wrong To recipient")
-			} else {
-				if resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID); err == nil {
-					if !strings.Contains(resultsEmail.Body.Text, emailBody) {
-						t.Log(resultsEmail.Body.Text)
-						t.Fatal("Received message")
-					}
-				}
-			}
+		if len(resultsMailbox) > 0 {
+			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+			resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+			require.Nil(t, err, "Could not get message from mailbox")
+			require.Contains(t, emailBody, resultsEmail.Body.Text, "Wrong received message %s", resultsEmail.Body.Text)
 		}
 	}
 }
@@ -299,9 +281,7 @@ func TestAuthMethods(t *testing.T) {
 			if err != nil {
 				got = err.Error()
 			}
-			if got != test.err {
-				t.Errorf("%d. got error = %q; want %q", i, got, test.err)
-			}
+			assert.True(t, got == test.err, "%d. got error = %q; want %q", i, got, test.err)
 		})
 	}
 }

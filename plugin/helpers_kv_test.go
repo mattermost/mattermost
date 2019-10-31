@@ -84,7 +84,7 @@ func TestKVSetJSON(t *testing.T) {
 
 		p := &plugin.HelpersImpl{API: api}
 
-		err := p.KVSetJSON("test-key", func() { return })
+		err := p.KVSetJSON("test-key", func() {})
 		api.AssertExpectations(t)
 		assert.Error(t, err)
 	})
@@ -124,7 +124,7 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 		api.AssertNotCalled(t, "KVCompareAndSet")
 		p := &plugin.HelpersImpl{API: api}
 
-		ok, err := p.KVCompareAndSetJSON("test-key", func() { return }, map[string]interface{}{})
+		ok, err := p.KVCompareAndSetJSON("test-key", func() {}, map[string]interface{}{})
 
 		api.AssertExpectations(t)
 		assert.Equal(t, false, ok)
@@ -137,7 +137,7 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 
 		p := &plugin.HelpersImpl{API: api}
 
-		ok, err := p.KVCompareAndSetJSON("test-key", map[string]interface{}{}, func() { return })
+		ok, err := p.KVCompareAndSetJSON("test-key", map[string]interface{}{}, func() {})
 
 		api.AssertExpectations(t)
 		assert.False(t, ok)
@@ -211,7 +211,7 @@ func TestKVCompareAndDeleteJSON(t *testing.T) {
 		api.AssertNotCalled(t, "KVCompareAndDelete")
 		p := &plugin.HelpersImpl{API: api}
 
-		ok, err := p.KVCompareAndDeleteJSON("test-key", func() { return })
+		ok, err := p.KVCompareAndDeleteJSON("test-key", func() {})
 
 		api.AssertExpectations(t)
 		assert.Equal(t, false, ok)
@@ -266,7 +266,7 @@ func TestKVSetWithExpiryJSON(t *testing.T) {
 
 		p := &plugin.HelpersImpl{API: api}
 
-		err := p.KVSetWithExpiryJSON("test-key", func() { return }, 100)
+		err := p.KVSetWithExpiryJSON("test-key", func() {}, 100)
 
 		api.AssertExpectations(t)
 		assert.Error(t, err)

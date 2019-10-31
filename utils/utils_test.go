@@ -23,13 +23,8 @@ func TestStringArrayIntersection(t *testing.T) {
 		"def",
 	}
 
-	if len(StringArrayIntersection(a, b)) != 0 {
-		t.Fatal("should be 0")
-	}
-
-	if len(StringArrayIntersection(a, c)) != 1 {
-		t.Fatal("should be 1")
-	}
+	assert.Len(t, StringArrayIntersection(a, b), 0)
+	assert.Len(t, StringArrayIntersection(a, c), 1)
 }
 
 func TestRemoveDuplicatesFromStringArray(t *testing.T) {
@@ -43,9 +38,7 @@ func TestRemoveDuplicatesFromStringArray(t *testing.T) {
 		"a",
 	}
 
-	if len(RemoveDuplicatesFromStringArray(a)) != 3 {
-		t.Fatal("should be 3")
-	}
+	assert.Len(t, RemoveDuplicatesFromStringArray(a), 3)
 }
 
 func TestStringSliceDiff(t *testing.T) {
@@ -53,7 +46,7 @@ func TestStringSliceDiff(t *testing.T) {
 	b := []string{"two", "seven", "four", "six"}
 	expected := []string{"one", "three", "five"}
 
-	assert.Equal(t, StringSliceDiff(a, b), expected)
+	assert.Equal(t, expected, StringSliceDiff(a, b))
 }
 
 func TestGetIpAddress(t *testing.T) {
