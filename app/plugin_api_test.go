@@ -1440,6 +1440,17 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 	}
 }
 
+func TestPluginCallLogAPI(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	pluginID := "com.mattermost.sample"
+	path, _ := fileutils.FindDir("mattermost-server/app/plugin_api_test")
+	pluginCode, err := ioutil.ReadFile(filepath.Join(path, "plugin_using_log_api.go"))
+	assert.NoError(t, err)
+	setupPluginApiTest(t, string(pluginCode),
+		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
+}
+
 func TestPluginAddUserToChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
