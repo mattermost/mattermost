@@ -1264,7 +1264,7 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("only o1 initially listed in public channels", func(t *testing.T) {
-		list, channelErr := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100)
+		list, channelErr := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100, false)
 		require.Nil(t, channelErr)
 		require.Equal(t, &model.ChannelList{&o1}, list)
 	})
@@ -1292,19 +1292,19 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err, "channel should have been deleted")
 
 	t.Run("both o1 and o4 listed in public channels", func(t *testing.T) {
-		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100)
+		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100, false)
 		require.Nil(t, err)
 		require.Equal(t, &model.ChannelList{&o1, &o4}, list)
 	})
 
 	t.Run("only o1 listed in public channels with offset 0, limit 1", func(t *testing.T) {
-		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 1)
+		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 1, false)
 		require.Nil(t, err)
 		require.Equal(t, &model.ChannelList{&o1}, list)
 	})
 
 	t.Run("only o4 listed in public channels with offset 1, limit 1", func(t *testing.T) {
-		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 1, 1)
+		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 1, 1, false)
 		require.Nil(t, err)
 		require.Equal(t, &model.ChannelList{&o4}, list)
 	})

@@ -24,6 +24,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.ApiSessionRequired(updateChannelScheme)).Methods("PUT")
 
 	api.BaseRoutes.ChannelsForTeam.Handle("", api.ApiSessionRequired(getPublicChannelsForTeam)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("/archived", api.ApiSessionRequired(getArchivedChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.ApiSessionRequired(getDeletedChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.ApiSessionRequired(getPublicChannelsByIdsForTeam)).Methods("POST")
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.ApiSessionRequired(searchChannelsForTeam)).Methods("POST")
@@ -676,6 +677,32 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 	w.Write([]byte(channels.ToJson()))
 }
 
+func getArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
+		c.SetPermissionError(model.PERMISSION_LIST_TEAM_CHANNELS)
+		return
+	}
+
+	channels, err := c.App.GetArchivedChannelsForTeam(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	err = c.App.FillInChannelsProps(channels)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(channels.ToJson()))
+}
+
 func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -757,7 +784,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, true)
+	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, false)
 	if err != nil {
 		c.Err = err
 		return

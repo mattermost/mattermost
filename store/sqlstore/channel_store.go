@@ -1025,7 +1025,11 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	deleteQuery := "AND pc.DeleteAt = 0"
+	if includeDeleted {
+		deleteQuery = "AND pc.DeleteAt != 0"
+	}
 	channels := &model.ChannelList{}
 	_, err := s.GetReplica().Select(channels, `
 		SELECT
@@ -1036,7 +1040,7 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 			PublicChannels pc ON (pc.Id = Channels.Id)
 		WHERE
 			pc.TeamId = :TeamId
-		AND pc.DeleteAt = 0
+		`+deleteQuery+`
 		ORDER BY pc.DisplayName
 		LIMIT :Limit
 		OFFSET :Offset

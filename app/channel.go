@@ -1233,8 +1233,7 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 }
 
 func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	includeDeletedOpt := *a.Config().TeamSettings.ExperimentalViewArchivedChannels && includeDeleted
-	return a.Srv.Store.Channel().GetChannels(teamId, userId, includeDeletedOpt)
+	return a.Srv.Store.Channel().GetChannels(teamId, userId, includeDeleted)
 }
 
 func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
@@ -1274,7 +1273,11 @@ func (a *App) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) 
 }
 
 func (a *App) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	return a.Srv.Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit)
+	return a.Srv.Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit, false)
+}
+
+func (a *App) GetArchivedChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	return a.Srv.Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit, true)
 }
 
 func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
