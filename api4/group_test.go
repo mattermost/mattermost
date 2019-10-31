@@ -8,12 +8,67 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func TestGetGroupsAdminAndNonAdmin(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+	id := model.NewId()
+	g, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+		CreateAt:    model.GetMillis(),
+		UpdateAt:    model.GetMillis(),
+		DeleteAt:    model.GetMillis(),
+	})
+	require.Nil(t, err)
+
+	opts := model.GroupSearchOpts{
+		IncludeMemberCount: true,
+	}
+
+	a, _ := th.Client.GetGroups(opts)
+	var nonAdminGroup, adminGroup model.Group
+	for idx, value := range a {
+		if value.Id == g.Id {
+			nonAdminGroup = *a[idx]
+		}
+	}
+
+	b, _ := th.SystemAdminClient.GetGroups(opts)
+	for idx, value := range b {
+		if value.Id == g.Id {
+			adminGroup = *b[idx]
+		}
+	}
+
+	require.Equal(t, g.Name, nonAdminGroup.Name)
+	require.Equal(t, g.DisplayName, nonAdminGroup.DisplayName)
+	require.Equal(t, g.Description, nonAdminGroup.Description)
+	require.NotNil(t, nonAdminGroup.MemberCount)
+	require.Empty(t, nonAdminGroup.Source)
+	require.Empty(t, nonAdminGroup.RemoteId)
+	require.Empty(t, nonAdminGroup.CreateAt)
+	require.Empty(t, nonAdminGroup.UpdateAt)
+	require.Empty(t, nonAdminGroup.DeleteAt)
+
+	require.Equal(t, g.Name, adminGroup.Name)
+	require.Equal(t, g.DisplayName, adminGroup.DisplayName)
+	require.Equal(t, g.Description, adminGroup.Description)
+	require.NotNil(t, adminGroup.MemberCount)
+	require.Equal(t, g.Source, adminGroup.Source)
+	require.Equal(t, g.RemoteId, adminGroup.RemoteId)
+	require.Equal(t, g.CreateAt, adminGroup.CreateAt)
+	require.Equal(t, g.UpdateAt, adminGroup.UpdateAt)
+	require.Equal(t, g.DeleteAt, adminGroup.DeleteAt)
+}
 
 func TestGetGroup(t *testing.T) {
 	th := Setup().InitBasic()
