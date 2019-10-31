@@ -47,7 +47,6 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -71,26 +70,29 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 		mlog.Error("Failed to get plugin signature from filestore. Can't install plugin from data.", mlog.String("plugin id", data.Id))
 		return
 	}
-	var reader filesstore.ReadCloseSeeker
-	reader, appErr = a.FileReader(plugin.path)
+
+	reader, appErr := a.FileReader(plugin.path)
 	if appErr != nil {
 		mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 		return
 	}
 	defer reader.Close()
-	var signatures []filesstore.ReadCloseSeeker
+
+	var signatures []io.ReadSeeker
 	if *a.Config().PluginSettings.RequirePluginSignature {
-		signatures = a.signaturesFromPathToReader(plugin)
+		sigs, closeFunc, err := a.signaturesFromPathToReader(plugin)
+		if err != nil {
+			mlog.Error("Failed to open plugin signatures from file store.", mlog.Err(err))
+			return
+		}
+		defer closeFunc()
+		signatures = sigs
 	}
 
-	var manifest *model.Manifest
-	if manifest, appErr = a.installPluginLocally(reader, fromReadCloseSeekerToReadSeeker(signatures), true); appErr != nil {
+	manifest, appErr := a.installPluginLocally(reader, signatures, true)
+	if appErr != nil {
 		mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 		return
-	}
-
-	for _, signature := range signatures {
-		signature.Close()
 	}
 
 	if err := a.notifyPluginEnabled(manifest); err != nil {
@@ -129,6 +131,7 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, signatures []io.ReadSeeker
 	if appErr != nil {
 		return nil, appErr
 	}
+
 	if appErr = a.saveSignatures(manifest.Id, signatures); appErr != nil {
 		return nil, appErr
 	}
