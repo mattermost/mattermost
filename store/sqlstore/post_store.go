@@ -1346,7 +1346,6 @@ func (s *SqlPostStore) GetOldest() (*model.Post, *model.AppError) {
 }
 
 func (s *SqlPostStore) determineMaxPostSize() int {
-	var maxPostSize int = model.POST_MESSAGE_MAX_RUNES_V1
 	var maxPostSizeBytes int32
 
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1384,7 +1383,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 	}
 
 	// Assume a worst-case representation of four bytes per rune.
-	maxPostSize = int(maxPostSizeBytes) / 4
+	maxPostSize := int(maxPostSizeBytes) / 4
 
 	// To maintain backwards compatibility, don't yield a maximum post
 	// size smaller than the previous limit, even though it wasn't

@@ -1399,7 +1399,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	session, err := c.App.DoLogin(w, r, user, deviceId)
+	err = c.App.DoLogin(w, r, user, deviceId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1408,7 +1408,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
-		c.App.AttachSessionCookies(w, r, session)
+		c.App.AttachSessionCookies(w, r)
 	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
