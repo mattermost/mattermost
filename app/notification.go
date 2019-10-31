@@ -164,42 +164,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				continue
 			}
 
-			userAllowsEmails := profileMap[id].NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
-			if channelEmail, ok := channelMemberNotifyPropsMap[id][model.EMAIL_NOTIFY_PROP]; ok {
-				if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
-					userAllowsEmails = channelEmail != "false"
-				}
-			}
-
-			// Remove the user as recipient when the user has muted the channel.
-			if channelMuted, ok := channelMemberNotifyPropsMap[id][model.MARK_UNREAD_NOTIFY_PROP]; ok {
-				if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
-					mlog.Debug("Channel muted for user", mlog.String("user_id", id), mlog.String("channel_mute", channelMuted))
-					userAllowsEmails = false
-				}
-			}
-
 			//If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
 				mlog.Error("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
 				continue
 			}
 
-			var status *model.Status
-			var err *model.AppError
-			if status, err = a.GetStatus(id); err != nil {
-				status = &model.Status{
-					UserId:         id,
-					Status:         model.STATUS_OFFLINE,
-					Manual:         false,
-					LastActivityAt: 0,
-					ActiveChannel:  "",
-				}
-			}
-
-			autoResponderRelated := status.Status == model.STATUS_OUT_OF_OFFICE || post.Type == model.POST_AUTO_RESPONDER
-
-			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 && !autoResponderRelated {
+			if a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
 				a.sendNotificationEmail(notification, profileMap[id], team)
 			}
 		}
@@ -375,6 +346,40 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	a.Publish(message)
 	return mentionedUsersList, nil
+}
+
+func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
+	userAllowsEmails := user.NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
+	if channelEmail, ok := channelMemberNotificationProps[model.EMAIL_NOTIFY_PROP]; ok {
+		if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
+			userAllowsEmails = channelEmail != "false"
+		}
+	}
+
+	// Remove the user as recipient when the user has muted the channel.
+	if channelMuted, ok := channelMemberNotificationProps[model.MARK_UNREAD_NOTIFY_PROP]; ok {
+		if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
+			mlog.Debug("Channel muted for user", mlog.String("user_id", user.Id), mlog.String("channel_mute", channelMuted))
+			userAllowsEmails = false
+		}
+	}
+
+	var status *model.Status
+	var err *model.AppError
+	if status, err = a.GetStatus(user.Id); err != nil {
+		status = &model.Status{
+			UserId:         user.Id,
+			Status:         model.STATUS_OFFLINE,
+			Manual:         false,
+			LastActivityAt: 0,
+			ActiveChannel:  "",
+		}
+	}
+
+	autoResponderRelated := status.Status == model.STATUS_OUT_OF_OFFICE || post.Type == model.POST_AUTO_RESPONDER
+	emailNotificationsAllowedForStatus := status.Status != model.STATUS_ONLINE && status.Status != model.STATUS_DND
+
+	return userAllowsEmails && emailNotificationsAllowedForStatus && user.DeleteAt == 0 && !autoResponderRelated
 }
 
 // sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions

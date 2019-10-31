@@ -52,7 +52,3 @@ services:
       http.host: "0.0.0.0"
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
-  redis:
-    image: redis
-    networks:
-      - mm-test
