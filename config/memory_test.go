@@ -218,7 +218,7 @@ func TestMemoryStoreSet(t *testing.T) {
 		select {
 		case <-called:
 		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
+			require.Fail(t, "callback should have been called when config written")
 		}
 	})
 }
@@ -271,7 +271,7 @@ func TestMemoryStoreLoad(t *testing.T) {
 		select {
 		case <-called:
 		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config loaded")
+			require.Fail(t, "callback should have been called when config loaded")
 		}
 	})
 }
@@ -282,7 +282,7 @@ func TestMemoryGetFile(t *testing.T) {
 	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
 		InitialConfig: minimalConfig,
 		InitialFiles: map[string][]byte{
-			"empty-file": []byte{},
+			"empty-file": {},
 			"test-file":  []byte("test"),
 		},
 	})

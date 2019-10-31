@@ -46,6 +46,7 @@ func (a *App) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
 }
 
 func (a *App) SyncPluginsActiveState() {
+	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	a.Srv.PluginsLock.RLock()
 	pluginsEnvironment := a.Srv.PluginsEnvironment
 	a.Srv.PluginsLock.RUnlock()
@@ -127,6 +128,7 @@ func (a *App) NewPluginAPI(manifest *model.Manifest) plugin.API {
 }
 
 func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
+	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	a.Srv.PluginsLock.RLock()
 	pluginsEnvironment := a.Srv.PluginsEnvironment
 	a.Srv.PluginsLock.RUnlock()
@@ -260,9 +262,7 @@ func (a *App) SyncPlugins() *model.AppError {
 }
 
 func (a *App) ShutDownPlugins() {
-	a.Srv.PluginsLock.Lock()
-	pluginsEnvironment := a.Srv.PluginsEnvironment
-	defer a.Srv.PluginsLock.Unlock()
+	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return
 	}
@@ -273,7 +273,15 @@ func (a *App) ShutDownPlugins() {
 
 	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
 	a.Srv.PluginConfigListenerId = ""
-	a.Srv.PluginsEnvironment = nil
+
+	// Acquiring lock manually before cleaning up PluginsEnvironment.
+	a.Srv.PluginsLock.Lock()
+	defer a.Srv.PluginsLock.Unlock()
+	if a.Srv.PluginsEnvironment == pluginsEnvironment {
+		a.Srv.PluginsEnvironment = nil
+	} else {
+		mlog.Warn("Another PluginsEnvironment detected while shutting down plugins.")
+	}
 }
 
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
