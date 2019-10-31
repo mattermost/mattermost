@@ -366,8 +366,8 @@ func ShouldSendPushNotification(user *model.User, channelNotifyProps model.Strin
 func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned bool) bool {
 	userNotifyProps := user.NotifyProps
 	userNotify := userNotifyProps[model.PUSH_NOTIFY_PROP]
-	channelNotify, _ := channelNotifyProps[model.PUSH_NOTIFY_PROP]
-	if channelNotify == "" {
+	channelNotify, ok := channelNotifyProps[model.PUSH_NOTIFY_PROP]
+	if !ok || channelNotify == "" {
 		channelNotify = model.CHANNEL_NOTIFY_DEFAULT
 	}
 

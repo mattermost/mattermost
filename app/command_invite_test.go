@@ -104,7 +104,7 @@ func TestInviteProvider(t *testing.T) {
 		},
 		{
 			desc:     "try to add a user which is not part of the team",
-			expected: "api.command_invite.not_team_member",
+			expected: "api.command_invite.user_not_in_team.app_error",
 			msg:      basicUser4.Username,
 		},
 		{
