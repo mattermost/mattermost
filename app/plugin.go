@@ -74,9 +74,7 @@ func (a *App) SyncPluginsActiveState() {
 			if !pluginEnabled {
 				deactivated := pluginsEnvironment.Deactivate(pluginId)
 				if deactivated && plugin.Manifest.HasClient() {
-					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
-					message.Add("manifest", plugin.Manifest.ClientManifest())
-					a.Publish(message)
+					a.sendPluginDisableEvent(plugin.Manifest)
 				}
 			}
 		}
@@ -111,8 +109,6 @@ func (a *App) SyncPluginsActiveState() {
 				}
 			}
 		}
-	} else { // If plugins are disabled, shutdown plugins.
-		pluginsEnvironment.Shutdown()
 	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
@@ -259,12 +255,34 @@ func (a *App) SyncPlugins() *model.AppError {
 }
 
 func (a *App) ShutDownPlugins() {
-	pluginsEnvironment := a.GetPluginsEnvironment()
+	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
+	a.Srv.PluginsLock.RLock()
+	pluginsEnvironment := a.Srv.PluginsEnvironment
+	a.Srv.PluginsLock.RUnlock()
+
 	if pluginsEnvironment == nil {
+		mlog.Warn("Plugins are already shutdown while trying to shut them down")
 		return
 	}
 
 	mlog.Info("Shutting down plugins")
+
+	availablePlugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		mlog.Error("Failed to get available plugins while trying to shut them down. Clients will not get notified about shut down plugins.", mlog.Err(err))
+	}
+	for _, plugin := range availablePlugins {
+		pluginId := plugin.Manifest.Id
+		pluginEnabled := false
+		if state, ok := a.Config().PluginSettings.PluginStates[pluginId]; ok {
+			pluginEnabled = state.Enable
+		}
+
+		// Notifiy clients that the client has been shut down
+		if pluginEnabled && plugin.Manifest.HasClient() {
+			a.sendPluginDisableEvent(plugin.Manifest)
+		}
+	}
 
 	pluginsEnvironment.Shutdown()
 
@@ -551,9 +569,23 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	}
 
 	// Notify all cluster peer clients.
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
-	message.Add("manifest", manifest.ClientManifest())
-	a.Publish(message)
+	a.sendPluginEnableEvent(manifest)
 
 	return nil
+}
+
+func (a *App) sendPluginEnableEvent(m *model.Manifest) {
+	mlog.Debug("Sending plugin enable event", mlog.String("plugin id", m.Id))
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
+	message.Add("manifest", m.ClientManifest())
+	a.Publish(message)
+}
+
+func (a *App) sendPluginDisableEvent(m *model.Manifest) {
+	mlog.Debug("Sending plugin disable event", mlog.String("plugin id", m.Id))
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
+	message.Add("manifest", m.ClientManifest())
+	a.Publish(message)
 }
