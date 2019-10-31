@@ -280,7 +280,7 @@ func (a *App) removePluginLocally(id string) *model.AppError {
 	}
 
 	if manifest == nil {
-		return model.NewAppError("removePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("removePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
 	pluginsEnvironment.Deactivate(id)
