@@ -1539,6 +1539,31 @@ func (_m *ChannelStore) SearchInTeam(teamId string, term string, includeDeleted 
 	return r0, r1
 }
 
+// SearchArchivedInTeam provides a mock function with given fields: teamId, term, includeDeleted
+func (_m *ChannelStore) SearchArchivedInTeam(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	ret := _m.Called(teamId, term)
+
+	var r0 *model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, string, bool) *model.ChannelList); ok {
+		r0 = rf(teamId, term, true)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+		r1 = rf(teamId, term, true)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SearchMore provides a mock function with given fields: userId, teamId, term
 func (_m *ChannelStore) SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError) {
 	ret := _m.Called(userId, teamId, term)

@@ -2154,6 +2154,27 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	})
 }
 
+func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	deleteFilter := "AND c.DeleteAt != 0"
+
+	return s.performSearch(`
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			PublicChannels c ON (c.Id = Channels.Id)
+		WHERE
+			c.TeamId = :TeamId
+			`+deleteFilter+`
+			SEARCH_CLAUSE
+		ORDER BY c.DisplayName
+		LIMIT 100
+		`, term, map[string]interface{}{
+		"TeamId": teamId,
+	})
+}
+
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
 	deleteFilter := "AND c.DeleteAt = 0"
 	if includeDeleted {
