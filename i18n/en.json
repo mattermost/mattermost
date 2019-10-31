@@ -1509,6 +1509,10 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "An error occurred while opening the public key file."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -3463,6 +3467,10 @@
     "translation": "Unable to deactivate plugin"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "An error occurred while deleting the public key."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Plugins have been disabled. Please check your logs for details."
   },
@@ -3485,6 +3493,10 @@
   {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Unable to get active plugins"
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "An error occurred while getting the public key from the store."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3535,6 +3547,10 @@
     "translation": "Failed to marshal marketplace plugins."
   },
   {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
+  },
+  {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
   },
@@ -3573,6 +3589,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "Unable to generate plugin webapp bundle."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "An error occurred while reading the file."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "An error occurred while saving the file."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
