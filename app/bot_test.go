@@ -591,6 +591,7 @@ func TestNotifySysadminsBotDisabled(t *testing.T) {
 		Username: "un_sysadmin1",
 		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 	_, err := th.App.CreateUser(&sysadmin1)
+	require.Nil(t, err, "failed to create user")
 	th.App.UpdateUserRoles(sysadmin1.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
 
 	sysadmin2 := model.User{
@@ -600,6 +601,7 @@ func TestNotifySysadminsBotDisabled(t *testing.T) {
 		Username: "un_sysadmin2",
 		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 	_, err = th.App.CreateUser(&sysadmin2)
+	require.Nil(t, err, "failed to create user")
 	th.App.UpdateUserRoles(sysadmin2.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
 
 	// create user to be disabled
@@ -609,9 +611,7 @@ func TestNotifySysadminsBotDisabled(t *testing.T) {
 		Nickname: "user1",
 		Password: "Password1",
 	})
-	if err != nil {
-		t.Fatalf("failed to create user: %v", err)
-	}
+	require.Nil(t, err, "failed to create user")
 
 	// create user that doesn't own any bots
 	user2, err := th.App.CreateUser(&model.User{
@@ -620,9 +620,7 @@ func TestNotifySysadminsBotDisabled(t *testing.T) {
 		Nickname: "user2",
 		Password: "Password1",
 	})
-	if err != nil {
-		t.Fatalf("failed to create user: %v", err)
-	}
+	require.Nil(t, err, "failed to create user")
 
 	// create bots owned by user
 	var bot *model.Bot
@@ -649,8 +647,11 @@ func TestNotifySysadminsBotDisabled(t *testing.T) {
 
 	// get posts from sysadmin1 and sysadmin2 DM channels
 	posts1, err := th.App.GetPosts(channelSys1.Id, 0, 5)
-	posts2, err := th.App.GetPosts(channelSys2.Id, 0, 5)
+	require.Nil(t, err)
 	assert.Len(t, posts1.Order, 0)
+
+	posts2, err := th.App.GetPosts(channelSys2.Id, 0, 5)
+	require.Nil(t, err)
 	assert.Len(t, posts2.Order, 0)
 
 	// send notification for user with bots
@@ -659,8 +660,11 @@ func TestNotifySysadminsBotDisabled(t *testing.T) {
 
 	// get posts from sysadmin1  and sysadmin2 DM channels
 	posts1, err = th.App.GetPosts(channelSys1.Id, 0, 5)
-	posts2, err = th.App.GetPosts(channelSys2.Id, 0, 5)
+	require.Nil(t, err)
 	assert.Len(t, posts1.Order, 1)
+
+	posts2, err = th.App.GetPosts(channelSys2.Id, 0, 5)
+	require.Nil(t, err)
 	assert.Len(t, posts2.Order, 1)
 
 	post := posts1.Posts[posts1.Order[0]].Message
