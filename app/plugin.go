@@ -683,6 +683,9 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 }
 
 func fromReadCloseSeekerToReadSeeker(files []filesstore.ReadCloseSeeker) []io.ReadSeeker {
+	if files == nil {
+		return nil
+	}
 	res := make([]io.ReadSeeker, 0, len(files))
 	for _, file := range files {
 		res = append(res, file)
