@@ -783,10 +783,6 @@
     "translation": "invite"
   },
   {
-    "id": "api.command_invite.not_team_member",
-    "translation": "Failed to add user to channel because they are not a member of the team."
-  },
-  {
     "id": "api.command_invite.permission.app_error",
     "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
   },
