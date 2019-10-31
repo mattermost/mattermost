@@ -157,14 +157,17 @@ type PostActionIntegration struct {
 }
 
 type PostActionIntegrationRequest struct {
-	UserId     string                 `json:"user_id"`
-	ChannelId  string                 `json:"channel_id"`
-	TeamId     string                 `json:"team_id"`
-	PostId     string                 `json:"post_id"`
-	TriggerId  string                 `json:"trigger_id"`
-	Type       string                 `json:"type"`
-	DataSource string                 `json:"data_source"`
-	Context    map[string]interface{} `json:"context,omitempty"`
+	UserId      string                 `json:"user_id"`
+	UserName    string                 `json:"user_name"`
+	ChannelId   string                 `json:"channel_id"`
+	ChannelName string                 `json:"channel_name"`
+	TeamId      string                 `json:"team_id"`
+	TeamName    string                 `json:"team_domain"`
+	PostId      string                 `json:"post_id"`
+	TriggerId   string                 `json:"trigger_id"`
+	Type        string                 `json:"type"`
+	DataSource  string                 `json:"data_source"`
+	Context     map[string]interface{} `json:"context,omitempty"`
 }
 
 type PostActionIntegrationResponse struct {

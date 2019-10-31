@@ -6,10 +6,11 @@ package api4
 import (
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateOAuthApp(t *testing.T) {
@@ -35,21 +36,14 @@ func TestCreateOAuthApp(t *testing.T) {
 	rapp, resp := AdminClient.CreateOAuthApp(oapp)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
-
-	if rapp.Name != oapp.Name {
-		t.Fatal("names did not match")
-	}
-
-	if rapp.IsTrusted != oapp.IsTrusted {
-		t.Fatal("trusted did no match")
-	}
+	assert.Equal(t, oapp.Name, rapp.Name, "names did not match")
+	assert.Equal(t, oapp.IsTrusted, rapp.IsTrusted, "trusted did no match")
 
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
 	_, resp = Client.CreateOAuthApp(oapp)
 	CheckForbiddenStatus(t, resp)
-
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
@@ -57,23 +51,15 @@ func TestCreateOAuthApp(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	if rapp.IsTrusted {
-		t.Fatal("trusted should be false - created by non admin")
-	}
+	assert.False(t, rapp.IsTrusted, "trusted should be false - created by non admin")
 
 	oapp.Name = ""
 	_, resp = AdminClient.CreateOAuthApp(oapp)
 	CheckBadRequestStatus(t, resp)
 
-	if r, err := Client.DoApiPost("/oauth/apps", "garbage"); err == nil {
-		t.Fatal("should have failed")
-	} else {
-		if r.StatusCode != http.StatusBadRequest {
-			t.Log("actual: " + strconv.Itoa(r.StatusCode))
-			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
-			t.Fatal("wrong status code")
-		}
-	}
+	r, err := Client.DoApiPost("/oauth/apps", "garbage")
+	require.Error(t, err, "expected error from garbage post")
+	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	Client.Logout()
 	_, resp = Client.CreateOAuthApp(oapp)
@@ -122,54 +108,22 @@ func TestUpdateOAuthApp(t *testing.T) {
 
 	updatedApp, resp := AdminClient.UpdateOAuthApp(oapp)
 	CheckNoError(t, resp)
-
-	if updatedApp.Id != oapp.Id {
-		t.Fatal("Id should have not updated")
-	}
-
-	if updatedApp.CreatorId != oapp.CreatorId {
-		t.Fatal("CreatorId should have not updated")
-	}
-
-	if updatedApp.CreateAt != oapp.CreateAt {
-		t.Fatal("CreateAt should have not updated")
-	}
-
-	if updatedApp.UpdateAt == oapp.UpdateAt {
-		t.Fatal("UpdateAt should have updated")
-	}
-
-	if updatedApp.ClientSecret != oapp.ClientSecret {
-		t.Fatal("ClientSecret should have not updated")
-	}
-
-	if updatedApp.Name != oapp.Name {
-		t.Fatal("Name should have updated")
-	}
-
-	if updatedApp.Description != oapp.Description {
-		t.Fatal("Description should have updated")
-	}
-
-	if updatedApp.IconURL != oapp.IconURL {
-		t.Fatal("IconURL should have updated")
-	}
+	assert.Equal(t, oapp.Id, updatedApp.Id, "Id should have not updated")
+	assert.Equal(t, oapp.CreatorId, updatedApp.CreatorId, "CreatorId should have not updated")
+	assert.Equal(t, oapp.CreateAt, updatedApp.CreateAt, "CreateAt should have not updated")
+	assert.NotEqual(t, oapp.UpdateAt, updatedApp.UpdateAt, "UpdateAt should have updated")
+	assert.Equal(t, oapp.ClientSecret, updatedApp.ClientSecret, "ClientSecret should have not updated")
+	assert.Equal(t, oapp.Name, updatedApp.Name, "Name should have updated")
+	assert.Equal(t, oapp.Description, updatedApp.Description, "Description should have updated")
+	assert.Equal(t, oapp.IconURL, updatedApp.IconURL, "IconURL should have updated")
 
 	if len(updatedApp.CallbackUrls) == len(oapp.CallbackUrls) {
 		for i, callbackUrl := range updatedApp.CallbackUrls {
-			if callbackUrl != oapp.CallbackUrls[i] {
-				t.Fatal("Description should have updated")
-			}
+			assert.Equal(t, oapp.CallbackUrls[i], callbackUrl, "Description should have updated")
 		}
 	}
-
-	if updatedApp.Homepage != oapp.Homepage {
-		t.Fatal("Homepage should have updated")
-	}
-
-	if updatedApp.IsTrusted != oapp.IsTrusted {
-		t.Fatal("IsTrusted should have updated")
-	}
+	assert.Equal(t, oapp.Homepage, updatedApp.Homepage, "Homepage should have updated")
+	assert.Equal(t, oapp.IsTrusted, updatedApp.IsTrusted, "IsTrusted should have updated")
 
 	th.LoginBasic2()
 	updatedApp.CreatorId = th.BasicUser2.Id
@@ -241,24 +195,16 @@ func TestGetOAuthApps(t *testing.T) {
 			found2 = true
 		}
 	}
-
-	if !found1 || !found2 {
-		t.Fatal("missing oauth app")
-	}
+	assert.Truef(t, found1, "missing oauth app %v", rapp.Id)
+	assert.Truef(t, found2, "missing oauth app %v", rapp2.Id)
 
 	apps, resp = AdminClient.GetOAuthApps(1, 1)
 	CheckNoError(t, resp)
-
-	if len(apps) != 1 {
-		t.Fatal("paging failed")
-	}
+	require.Equal(t, 1, len(apps), "paging failed")
 
 	apps, resp = Client.GetOAuthApps(0, 1000)
 	CheckNoError(t, resp)
-
-	if len(apps) != 1 && apps[0].Id != rapp2.Id {
-		t.Fatal("wrong apps returned")
-	}
+	require.True(t, len(apps) == 1 || apps[0].Id == rapp2.Id, "wrong apps returned")
 
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
@@ -304,25 +250,13 @@ func TestGetOAuthApp(t *testing.T) {
 
 	rrapp, resp := AdminClient.GetOAuthApp(rapp.Id)
 	CheckNoError(t, resp)
-
-	if rapp.Id != rrapp.Id {
-		t.Fatal("wrong app")
-	}
-
-	if rrapp.ClientSecret == "" {
-		t.Fatal("should not be sanitized")
-	}
+	assert.Equal(t, rapp.Id, rrapp.Id, "wrong app")
+	assert.NotEqual(t, "", rrapp.ClientSecret, "should not be sanitized")
 
 	rrapp2, resp := AdminClient.GetOAuthApp(rapp2.Id)
 	CheckNoError(t, resp)
-
-	if rapp2.Id != rrapp2.Id {
-		t.Fatal("wrong app")
-	}
-
-	if rrapp2.ClientSecret == "" {
-		t.Fatal("should not be sanitized")
-	}
+	assert.Equal(t, rapp2.Id, rrapp2.Id, "wrong app")
+	assert.NotEqual(t, "", rrapp2.ClientSecret, "should not be sanitized")
 
 	_, resp = Client.GetOAuthApp(rapp2.Id)
 	CheckNoError(t, resp)
@@ -380,25 +314,13 @@ func TestGetOAuthAppInfo(t *testing.T) {
 
 	rrapp, resp := AdminClient.GetOAuthAppInfo(rapp.Id)
 	CheckNoError(t, resp)
-
-	if rapp.Id != rrapp.Id {
-		t.Fatal("wrong app")
-	}
-
-	if rrapp.ClientSecret != "" {
-		t.Fatal("should be sanitized")
-	}
+	assert.Equal(t, rapp.Id, rrapp.Id, "wrong app")
+	assert.Equal(t, "", rrapp.ClientSecret, "should be sanitized")
 
 	rrapp2, resp := AdminClient.GetOAuthAppInfo(rapp2.Id)
 	CheckNoError(t, resp)
-
-	if rapp2.Id != rrapp2.Id {
-		t.Fatal("wrong app")
-	}
-
-	if rrapp2.ClientSecret != "" {
-		t.Fatal("should be sanitized")
-	}
+	assert.Equal(t, rapp2.Id, rrapp2.Id, "wrong app")
+	assert.Equal(t, "", rrapp2.ClientSecret, "should be sanitized")
 
 	_, resp = Client.GetOAuthAppInfo(rapp2.Id)
 	CheckNoError(t, resp)
@@ -456,10 +378,7 @@ func TestDeleteOAuthApp(t *testing.T) {
 
 	pass, resp := AdminClient.DeleteOAuthApp(rapp.Id)
 	CheckNoError(t, resp)
-
-	if !pass {
-		t.Fatal("should have passed")
-	}
+	assert.True(t, pass, "should have passed")
 
 	_, resp = AdminClient.DeleteOAuthApp(rapp2.Id)
 	CheckNoError(t, resp)
@@ -526,14 +445,8 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 
 	rrapp, resp := AdminClient.RegenerateOAuthAppSecret(rapp.Id)
 	CheckNoError(t, resp)
-
-	if rrapp.Id != rapp.Id {
-		t.Fatal("wrong app")
-	}
-
-	if rrapp.ClientSecret == rapp.ClientSecret {
-		t.Fatal("secret didn't change")
-	}
+	assert.Equal(t, rrapp.Id, rapp.Id, "wrong app")
+	assert.NotEqual(t, rapp.ClientSecret, rrapp.ClientSecret, "secret didn't change")
 
 	_, resp = AdminClient.RegenerateOAuthAppSecret(rapp2.Id)
 	CheckNoError(t, resp)
@@ -608,15 +521,9 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 		if a.Id == rapp.Id {
 			found = true
 		}
-
-		if a.ClientSecret != "" {
-			t.Fatal("not sanitized")
-		}
+		assert.Equal(t, "", a.ClientSecret, "not sanitized")
 	}
-
-	if !found {
-		t.Fatal("missing app")
-	}
+	require.True(t, found, "missing app")
 
 	_, resp = Client.GetAuthorizedOAuthAppsForUser(th.BasicUser2.Id, 0, 1000)
 	CheckForbiddenStatus(t, resp)
