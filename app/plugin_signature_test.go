@@ -16,9 +16,20 @@ func TestVerifySignature(t *testing.T) {
 	path, _ := fileutils.FindDir("tests")
 	pluginFilename := "testplugin.tar.gz"
 	signatureFilename := "testplugin.tar.gz.sig"
-	t.Run("verify armored signature", func(t *testing.T) {
-		publicKeyFilename := "development-public-key.asc"
-		publicKeyFileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
+	armoredSignatureFilename := "testplugin.tar.gz.asc"
+	publicKeyFilename := "development-public-key.gpg"
+	armoredPublicKeyFilename := "development-public-key.asc"
+	t.Run("verify armored signature and armored public key", func(t *testing.T) {
+		publicKeyFileReader, err := os.Open(filepath.Join(path, armoredPublicKeyFilename))
+		require.Nil(t, err)
+		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
+		require.Nil(t, err)
+		signatureFileReader, err := os.Open(filepath.Join(path, armoredSignatureFilename))
+		require.Nil(t, err)
+		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
+	})
+	t.Run("verify non armored signature and armored public key", func(t *testing.T) {
+		publicKeyFileReader, err := os.Open(filepath.Join(path, armoredPublicKeyFilename))
 		require.Nil(t, err)
 		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
 		require.Nil(t, err)
@@ -26,8 +37,16 @@ func TestVerifySignature(t *testing.T) {
 		require.Nil(t, err)
 		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
 	})
-	t.Run("verify non armored signature", func(t *testing.T) {
-		publicKeyFilename := "development-public-key.gpg"
+	t.Run("verify armored signature and non armored public key", func(t *testing.T) {
+		publicKeyFileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
+		require.Nil(t, err)
+		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
+		require.Nil(t, err)
+		armoredSignatureFileReader, err := os.Open(filepath.Join(path, armoredSignatureFilename))
+		require.Nil(t, err)
+		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, armoredSignatureFileReader))
+	})
+	t.Run("verify non armored signature and non armored public key", func(t *testing.T) {
 		publicKeyFileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
 		require.Nil(t, err)
 		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
