@@ -86,7 +86,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.SanitizeInput()
+	user.SanitizeInput(c.IsSystemAdmin())
 
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
