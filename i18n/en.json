@@ -1529,6 +1529,10 @@
     "translation": "An error ocurred reading the plugin file stream."
   },
   {
+    "id": "api.plugin.install.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request"
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Missing file in multipart/form request"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -3571,8 +3579,16 @@
     "translation": "Unable to restart plugin on upgrade."
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Unable to store the plugin to the configured file store."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Unable to store the plugin signature to the configured file store."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",

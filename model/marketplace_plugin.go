@@ -4,18 +4,32 @@
 package model
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/url"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
+
+// PluginSignature is a public key signature of a plugin and the corresponding public key hash for use in verifying a plugin downloaded from the marketplace.
+type PluginSignature struct {
+	// Signature represents a signature of a plugin saved in base64 encoding.
+	Signature string `json:"signature"`
+	// PublicKeyHash represents first arbitrary number of symbols of the
+	// public key fingerprint, hashed using SHA-1 algorithm.
+	PublicKeyHash string `json:"public_key_hash"`
+}
 
 // BaseMarketplacePlugin is a Mattermost plugin received from the marketplace server.
 type BaseMarketplacePlugin struct {
-	HomepageURL string    `json:"homepage_url"`
-	DownloadURL string    `json:"download_url"`
-	IconData    string    `json:"icon_data"`
-	Manifest    *Manifest `json:"manifest"`
+	HomepageURL string             `json:"homepage_url"`
+	DownloadURL string             `json:"download_url"`
+	IconData    string             `json:"icon_data"`
+	Manifest    *Manifest          `json:"manifest"`
+	Signatures  []*PluginSignature `json:"signatures"`
 }
 
 // MarketplacePlugin is a state aware marketplace plugin.
@@ -46,6 +60,19 @@ func MarketplacePluginsFromReader(reader io.Reader) ([]*MarketplacePlugin, error
 	}
 
 	return plugins, nil
+}
+
+// DecodeSignatures Decodes signatures and returns list.
+func (plugin *BaseMarketplacePlugin) DecodeSignatures() ([]io.ReadSeeker, error) {
+	signatures := make([]io.ReadSeeker, 0, len(plugin.Signatures))
+	for _, sig := range plugin.Signatures {
+		signatureBytes, err := base64.StdEncoding.DecodeString(sig.Signature)
+		if err != nil {
+			return nil, errors.Wrap(err, "Unable to decode base64 signature.")
+		}
+		signatures = append(signatures, bytes.NewReader(signatureBytes))
+	}
+	return signatures, nil
 }
 
 // MarketplacePluginFilter describes the parameters to request a list of plugins.

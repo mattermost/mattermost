@@ -232,7 +232,7 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "Failed reading verbose flag.")
 	}
 
-	pluginPublicKeysResp, appErr := a.GetPluginPublicKeys()
+	pluginPublicKeysResp, appErr := a.GetPluginPublicKeyFiles()
 	if appErr != nil {
 		return errors.Wrap(appErr, "Unable to list public keys.")
 	}

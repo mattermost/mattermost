@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -21,6 +22,12 @@ import (
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/pkg/errors"
 )
+
+type pluginSignaturePaths struct {
+	pluginId       string
+	path           string
+	signaturePaths []string
+}
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.
@@ -169,7 +176,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 			if fileReader, err := os.Open(walkPath); err != nil {
 				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-			} else if _, err := a.installPluginLocally(fileReader, true); err != nil {
+			} else if _, err := a.installPluginLocally(fileReader, nil, true); err != nil {
 				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
 			}
 
@@ -229,35 +236,33 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	// Install plugins from the file store.
-	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
+	pluginSignaturePathMap, appErr := a.getPluginsFromFolder()
 	if appErr != nil {
-		return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return appErr
 	}
-	if len(fileStorePaths) == 0 {
-		mlog.Info("Found no files in plugins file store")
-		return nil
-	}
-
-	for _, path := range fileStorePaths {
-		if !strings.HasSuffix(path, ".tar.gz") {
-			mlog.Warn("Ignoring non-plugin in file store", mlog.String("bundle", path))
-			continue
-		}
-
-		var reader filesstore.ReadCloseSeeker
-		reader, appErr = a.FileReader(path)
+	for _, plugin := range pluginSignaturePathMap {
+		reader, appErr := a.FileReader(plugin.path)
 		if appErr != nil {
-			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", path), mlog.Err(appErr))
+			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 			continue
 		}
 		defer reader.Close()
 
-		mlog.Info("Syncing plugin from file store", mlog.String("bundle", path))
-		if _, err := a.installPluginLocally(reader, true); err != nil {
-			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", path), mlog.Err(err))
+		var signatures []io.ReadSeeker
+		if *a.Config().PluginSettings.RequirePluginSignature {
+			sigs, closeFunc, appErr := a.signaturesFromPathToReader(plugin)
+			if appErr != nil {
+				mlog.Error("Failed to open plugin signatures from file store.", mlog.Err(appErr))
+				continue
+			}
+			defer closeFunc()
+			signatures = sigs
+		}
+
+		if _, err := a.installPluginLocally(reader, signatures, true); err != nil {
+			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 		}
 	}
-
 	return nil
 }
 
@@ -413,8 +418,8 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	return resp, nil
 }
 
-// GetPluginPublicKeys returns all public keys listed in the config.
-func (a *App) GetPluginPublicKeys() ([]string, *model.AppError) {
+// GetPluginPublicKeyFiles returns all public keys listed in the config.
+func (a *App) GetPluginPublicKeyFiles() ([]string, *model.AppError) {
 	return a.Config().PluginSettings.SignaturePublicKeyFiles, nil
 }
 
@@ -631,4 +636,60 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	a.Publish(message)
 
 	return nil
+}
+
+func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) (signatures []io.ReadSeeker, closeFunc func(), appErr *model.AppError) {
+	signatures = []io.ReadSeeker{}
+	for _, signaturePath := range plugin.signaturePaths {
+		sigReader, appErr := a.FileReader(signaturePath)
+		if appErr != nil {
+			mlog.Debug("Can't read signature file.", mlog.String("path", signaturePath), mlog.Err(appErr))
+			return nil, nil, appErr
+		}
+		signatures = append(signatures, sigReader)
+	}
+
+	closeFunc = func() {
+		for _, signature := range signatures {
+			readCloseSeeker, ok := signature.(filesstore.ReadCloseSeeker)
+			if !ok {
+				mlog.Debug("Failed to cast signature to ReadCloseSeeker.", mlog.String("paths", fmt.Sprint(plugin.signaturePaths)), mlog.String("pluginId", plugin.pluginId))
+			}
+			readCloseSeeker.Close()
+		}
+	}
+	return signatures, closeFunc, nil
+}
+
+func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.AppError) {
+	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
+	if appErr != nil {
+		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+	pluginSignaturePathMap := make(map[string]*pluginSignaturePaths)
+	for _, path := range fileStorePaths {
+		if strings.HasSuffix(path, ".tar.gz") {
+			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
+			helper := &pluginSignaturePaths{
+				pluginId:       id,
+				path:           path,
+				signaturePaths: []string{},
+			}
+			pluginSignaturePathMap[id] = helper
+		}
+	}
+	for _, path := range fileStorePaths {
+		if strings.HasSuffix(path, ".sig") {
+			// Parse plugin id from .sig files, that are stored using getSignatureStorePath
+			id := strings.TrimSuffix(filepath.Base(path), ".sig")
+			index := strings.LastIndex(id, ".")
+			id = id[:index]
+			if val, ok := pluginSignaturePathMap[id]; !ok {
+				mlog.Error("Unknown signature", mlog.String("path", path))
+			} else {
+				val.signaturePaths = append(val.signaturePaths, path)
+			}
+		}
+	}
+	return pluginSignaturePathMap, nil
 }
