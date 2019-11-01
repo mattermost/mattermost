@@ -699,7 +699,7 @@ func (ss *SqlSupplier) AlterColumnDefaultIfExists(tableName string, columnName s
 		return false
 	}
 
-	var defaultValue = ""
+	var defaultValue string
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		// Some column types in MySQL cannot have defaults, so don't try to configure anything.
 		if mySqlColDefault == nil {

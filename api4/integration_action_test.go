@@ -27,8 +27,11 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assert.NotEmpty(th.t, string(bb))
 	poir := model.PostActionIntegrationRequestFromJson(bytes.NewReader(bb))
 	assert.NotEmpty(th.t, poir.UserId)
+	assert.NotEmpty(th.t, poir.UserName)
 	assert.NotEmpty(th.t, poir.ChannelId)
-	assert.Empty(th.t, poir.TeamId)
+	assert.NotEmpty(th.t, poir.ChannelName)
+	assert.NotEmpty(th.t, poir.TeamId)
+	assert.NotEmpty(th.t, poir.TeamName)
 	assert.NotEmpty(th.t, poir.PostId)
 	assert.NotEmpty(th.t, poir.TriggerId)
 	assert.Equal(th.t, "button", poir.Type)
@@ -112,7 +115,7 @@ func TestOpenDialog(t *testing.T) {
 			CallbackId: "callbackid",
 			Title:      "Some Title",
 			Elements: []model.DialogElement{
-				model.DialogElement{
+				{
 					DisplayName: "Element Name",
 					Name:        "element_name",
 					Type:        "text",

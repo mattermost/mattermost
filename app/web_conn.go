@@ -331,10 +331,7 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 	// If the event is destined to a specific user
 	if len(msg.Broadcast.UserId) > 0 {
-		if webCon.UserId == msg.Broadcast.UserId {
-			return true
-		}
-		return false
+		return webCon.UserId == msg.Broadcast.UserId
 	}
 
 	// if the user is omitted don't send the message
@@ -397,10 +394,5 @@ func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
 		currentSession = session
 	}
 
-	member := currentSession.GetTeamByTeamId(teamId)
-
-	if member != nil {
-		return true
-	}
-	return false
+	return currentSession.GetTeamByTeamId(teamId) != nil
 }
