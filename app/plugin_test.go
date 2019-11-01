@@ -421,7 +421,7 @@ func TestPluginSync(t *testing.T) {
 			require.Len(t, pluginStatus, 0)
 
 			// Wrong signature
-			signatureFileReader, err := os.Open(filepath.Join(path, "com.mattermost.demo-plugin-0.3.0.tar.gz.sig"))
+			signatureFileReader, err := os.Open(filepath.Join(path, "testpluginv2.tar.gz.sig"))
 			require.NoError(t, err)
 			defer signatureFileReader.Close()
 			filePath := fmt.Sprintf("%s.0.sig", th.App.getBundleStorePath("testplugin"))
