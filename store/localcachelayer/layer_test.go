@@ -35,19 +35,6 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}
 }
 
-func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, storetest.SqlSupplier)) {
-	defer func() {
-		if err := recover(); err != nil {
-			tearDownStores()
-			panic(err)
-		}
-	}()
-	for _, st := range storeTypes {
-		st := st
-		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, st.SqlSupplier) })
-	}
-}
-
 func initStores() {
 	storeTypes = append(storeTypes, &storeType{
 		Name:        "LocalCache+MySQL",
