@@ -334,7 +334,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		authData = nil
 	} else {
 		// If no AuthData or Password is specified, we must generate a password.
-		password = model.NewId()
+		password = model.GeneratePassword(*a.Config().PasswordSettings.MinimumLength)
 		authData = nil
 	}
 

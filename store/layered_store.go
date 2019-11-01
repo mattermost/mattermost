@@ -7,11 +7,6 @@ import (
 	"context"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/mlog"
-)
-
-const (
-	ENABLE_EXPERIMENTAL_REDIS = false
 )
 
 type LayeredStoreDatabaseLayer interface {
@@ -23,7 +18,6 @@ type LayeredStore struct {
 	TmpContext      context.Context
 	DatabaseLayer   LayeredStoreDatabaseLayer
 	LocalCacheLayer *LocalCacheSupplier
-	RedisLayer      *RedisSupplier
 	LayerChainHead  LayeredStoreSupplier
 }
 
@@ -35,15 +29,8 @@ func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsIn
 	}
 
 	// Setup the chain
-	if ENABLE_EXPERIMENTAL_REDIS {
-		mlog.Debug("Experimental redis enabled.")
-		store.RedisLayer = NewRedisSupplier()
-		store.RedisLayer.SetChainNext(store.DatabaseLayer)
-		store.LayerChainHead = store.RedisLayer
-	} else {
-		store.LocalCacheLayer.SetChainNext(store.DatabaseLayer)
-		store.LayerChainHead = store.LocalCacheLayer
-	}
+	store.LocalCacheLayer.SetChainNext(store.DatabaseLayer)
+	store.LayerChainHead = store.LocalCacheLayer
 
 	return store
 }

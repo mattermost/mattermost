@@ -148,6 +148,12 @@ func UpdateAssetsSubpathFromConfig(config *model.Config) error {
 		return nil
 	}
 
+	// Similarly, don't rewrite during a CI build, when the assets may not even be present.
+	if os.Getenv("IS_CI") == "true" {
+		mlog.Debug("Skipping update to assets subpath since CI build")
+		return nil
+	}
+
 	subpath, err := GetSubpathFromConfig(config)
 	if err != nil {
 		return err

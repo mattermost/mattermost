@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"encoding/json"
 	"os"
 	"strings"
@@ -602,33 +601,6 @@ func UpgradeDatabaseToVersion57(sqlStore SqlStore) {
 	}
 }
 
-func getRole(sqlStore SqlStore, name string) (*model.Role, error) {
-	var dbRole Role
-
-	if err := sqlStore.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.Wrapf(err, "failed to find role %s", name)
-		} else {
-			return nil, errors.Wrapf(err, "failed to query role %s", name)
-		}
-	}
-
-	return dbRole.ToModel(), nil
-}
-
-func saveRole(sqlStore SqlStore, role *model.Role) error {
-	dbRole := NewRoleFromModel(role)
-
-	dbRole.UpdateAt = model.GetMillis()
-	if rowsChanged, err := sqlStore.GetMaster().Update(dbRole); err != nil {
-		return errors.Wrap(err, "failed to update role")
-	} else if rowsChanged != 1 {
-		return errors.New("found no role to update")
-	}
-
-	return nil
-}
-
 func UpgradeDatabaseToVersion58(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_7_0, VERSION_5_8_0) {
 		// idx_channels_txt was removed in `UpgradeDatabaseToVersion50`, but merged as part of
@@ -713,17 +685,6 @@ func UpgradeDatabaseToVersion513(sqlStore SqlStore) {
 
 func UpgradeDatabaseToVersion514(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_13_0, VERSION_5_14_0) {
-		sqlStore.AlterColumnTypeIfExists("TeamMembers", "SchemeGuest", "tinyint(4)", "boolean")
-		sqlStore.AlterColumnTypeIfExists("ChannelMembers", "SchemeGuest", "tinyint(4)", "boolean")
-		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultTeamGuestRole", "varchar(64)", "VARCHAR(64)")
-		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultChannelGuestRole", "varchar(64)", "VARCHAR(64)")
-		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
-		sqlStore.AlterColumnTypeIfExists("Channels", "GroupConstrained", "tinyint(1)", "boolean")
-		sqlStore.AlterColumnTypeIfExists("Teams", "GroupConstrained", "tinyint(1)", "boolean")
-
-		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
-		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
-
 		saveSchemaVersion(sqlStore, VERSION_5_14_0)
 	}
 }
@@ -742,5 +703,21 @@ func UpgradeDatabaseToVersion516(sqlStore SqlStore) {
 			sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
 		}
 		saveSchemaVersion(sqlStore, VERSION_5_16_0)
+
+		// Fix mismatches between the canonical and migrated schemas.
+		sqlStore.AlterColumnTypeIfExists("TeamMembers", "SchemeGuest", "tinyint(4)", "boolean")
+		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultTeamGuestRole", "varchar(64)", "VARCHAR(64)")
+		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultChannelGuestRole", "varchar(64)", "VARCHAR(64)")
+		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
+		sqlStore.AlterColumnTypeIfExists("Channels", "GroupConstrained", "tinyint(1)", "boolean")
+		sqlStore.AlterColumnTypeIfExists("Teams", "GroupConstrained", "tinyint(1)", "boolean")
+
+		// One known mismatch remains: ChannelMembers.SchemeGuest. The requisite migration
+		// is left here for posterity, but we're avoiding fix this given the corresponding
+		// table rewrite in most MySQL and Postgres instances.
+		// sqlStore.AlterColumnTypeIfExists("ChannelMembers", "SchemeGuest", "tinyint(4)", "boolean")
+
+		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
+		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
 	}
 }

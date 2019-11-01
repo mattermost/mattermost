@@ -55,9 +55,3 @@ clean-old-docker:
 		docker stop mattermost-elasticsearch > /dev/null; \
 		docker rm -v mattermost-elasticsearch > /dev/null; \
 	fi
-
-	@if [ $(shell docker ps -a | grep -ci mattermost-redis) -eq 1 ]; then \
-		echo removing mattermost-redis; \
-		docker stop mattermost-redis > /dev/null; \
-		docker rm -v mattermost-redis > /dev/null; \
-	fi
