@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-// KVSetJSON implements Helpers.KVSetJSON
+// KVSetJSON implements Helpers.KVSetJSON.
 func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 	options := model.PluginKVSetOptions{
 		EncodeJSON: true,
@@ -24,7 +24,7 @@ func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 	return nil
 }
 
-// KVSetJSON implements Helpers.KVCompareAndSetJSON
+// KVSetJSON implements Helpers.KVCompareAndSetJSON.
 func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error) {
 	options := model.PluginKVSetOptions{
 		EncodeJSON: true,
@@ -40,7 +40,7 @@ func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newV
 	return set, nil
 }
 
-// KVCompareAndDeleteJSON implements Helpers.KVCompareAndDeleteJSON
+// KVCompareAndDeleteJSON implements Helpers.KVCompareAndDeleteJSON.
 func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error) {
 	var oldData []byte
 
@@ -60,7 +60,7 @@ func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (
 	return deleted, nil
 }
 
-// KVGetJSON implements Helpers.KVGetJSON
+// KVGetJSON implements Helpers.KVGetJSON.
 func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
 	data, appErr := p.API.KVGet(key)
 	if appErr != nil {
@@ -78,7 +78,7 @@ func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
 	return true, nil
 }
 
-// KVSetWithExpiryJSON implements Helpers.KVSetWithExpiryJSON
+// KVSetWithExpiryJSON implements Helpers.KVSetWithExpiryJSON.
 func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error {
 	options := model.PluginKVSetOptions{
 		EncodeJSON:      true,

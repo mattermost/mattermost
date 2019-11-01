@@ -10,13 +10,13 @@ import (
 
 // PluginKVSetOptions contains information on how to store a value in the plugin KV store.
 type PluginKVSetOptions struct {
-	EncodeJSON      bool        // If true store the information encoded as JSON
+	EncodeJSON      bool        // If true, store the JSON encoding of newValue
 	Atomic          bool        // Only store the value if the current value matches the oldValue
-	OldValue        interface{} // The value to compare with the current value
+	OldValue        interface{} // The value to compare with the current value when Atomic is true
 	ExpireInSeconds int64       // Set an expire counter
 }
 
-// IsValid return if the chosen options are valid.
+// IsValid return nil if the chosen options are valid.
 func (opt *PluginKVSetOptions) IsValid() *AppError {
 	if !opt.Atomic && opt.OldValue != nil {
 		return NewAppError(

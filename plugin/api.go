@@ -613,6 +613,7 @@ type API interface {
 	KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError)
 
 	// KVSetWithOptions stores a key-value pair, unique per plugin, according to the given options.
+	// If options.EncodeJSON is not true, the type of newValue must be of type []byte.
 	// Returns (false, err) if DB error occurred
 	// Returns (false, nil) if the value was not set
 	// Returns (true, nil) if he value was set
