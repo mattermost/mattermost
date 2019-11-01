@@ -153,7 +153,7 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	autocompleteHint, _ := command.Flags().GetString("autocompleteHint")
 	post, errp := command.Flags().GetBool("post")
 	method := "P"
-	if errp != nil || post == false {
+	if errp != nil || !post {
 		method = "G"
 	}
 
@@ -371,7 +371,7 @@ func modifyCommandCmdF(command *cobra.Command, args []string) error {
 
 	post, err := command.Flags().GetBool("post")
 	method := "P"
-	if err != nil || post == false {
+	if err != nil || !post {
 		method = "G"
 	}
 	modifiedCommand.Method = method
