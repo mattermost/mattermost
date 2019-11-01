@@ -680,6 +680,7 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 				signaturePaths: []string{},
 			}
 			pluginSignaturePathMap[id] = helper
+			mlog.Debug("Found plugin in the file store", mlog.String("plugin id", id))
 		}
 	}
 	for _, path := range fileStorePaths {
