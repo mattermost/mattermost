@@ -11,13 +11,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/viper"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/viper"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 )
 
 const noSettingsNamed = "unable to find a setting named: %s"

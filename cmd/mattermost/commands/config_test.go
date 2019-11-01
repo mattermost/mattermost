@@ -13,10 +13,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/config"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 type TestConfig struct {
@@ -196,8 +197,8 @@ func TestConfigReset(t *testing.T) {
 		assert.NoError(t, th.RunCommand(t, "config", "reset", "--confirm"))
 		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
 		output2 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
-		assert.Contains(t, string(output1), "true")
-		assert.Contains(t, string(output2), "true")
+		assert.Contains(t, output1, "true")
+		assert.Contains(t, output2, "true")
 	})
 
 	t.Run("Success when a configuration section is given", func(t *testing.T) {
@@ -208,9 +209,9 @@ func TestConfigReset(t *testing.T) {
 		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
 		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
 		output3 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
-		assert.Contains(t, string(output1), "true")
-		assert.Contains(t, string(output2), "true")
-		assert.Contains(t, string(output3), "false")
+		assert.Contains(t, output1, "true")
+		assert.Contains(t, output2, "true")
+		assert.Contains(t, output3, "false")
 	})
 
 	t.Run("Success when a configuration setting is given", func(t *testing.T) {
@@ -219,8 +220,8 @@ func TestConfigReset(t *testing.T) {
 		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings.RunJobs"))
 		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
 		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
-		assert.Contains(t, string(output1), "true")
-		assert.Contains(t, string(output2), "false")
+		assert.Contains(t, output1, "true")
+		assert.Contains(t, output2, "false")
 	})
 }
 
