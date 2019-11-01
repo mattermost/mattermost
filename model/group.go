@@ -43,14 +43,6 @@ type Group struct {
 	MemberCount  *int        `db:"-" json:"member_count,omitempty"`
 }
 
-type GroupNonAdmin struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	Description string `json:"description"`
-	MemberCount *int   `db:"-" json:"member_count,omitempty"`
-}
-
 type GroupPatch struct {
 	Name        *string `json:"name"`
 	DisplayName *string `json:"display_name"`
