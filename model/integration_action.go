@@ -58,6 +58,9 @@ type PostAction struct {
 	// other types of actions.
 	DefaultOption string `json:"default_option,omitempty"`
 
+	// Style allows you to set CSS style on the element created.
+	Style map[string]string `json:"style,omitempty"`
+
 	// Defines the interaction with the backend upon a user action.
 	// Integration contains Context, which is private plugin data;
 	// Integrations are stripped from Posts when they are sent to the
