@@ -286,8 +286,8 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		defer connection.Close()
 
 		rpcServer := rpc.NewServer()
-		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w}); err != nil {
-			g.log.Error("Plugin failed to ServeHTTP, coulden't register RPC name", mlog.Err(err))
+		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w, log: g.log}); err != nil {
+			g.log.Error("Plugin failed to ServeHTTP, couldn't register RPC name", mlog.Err(err))
 			return
 		}
 		rpcServer.ServeConn(connection)
