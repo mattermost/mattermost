@@ -666,10 +666,6 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 	if appErr != nil {
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
-	if len(fileStorePaths) == 0 {
-		mlog.Info("Found no files in plugins file store")
-		return nil, nil
-	}
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePaths)
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
@@ -680,7 +676,6 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 				signaturePaths: []string{},
 			}
 			pluginSignaturePathMap[id] = helper
-			mlog.Debug("Found plugin in the file store", mlog.String("plugin id", id))
 		}
 	}
 	for _, path := range fileStorePaths {
@@ -690,7 +685,7 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 			index := strings.LastIndex(id, ".")
 			id = id[:index]
 			if val, ok := pluginSignaturePathMap[id]; !ok {
-				mlog.Error("Unknown signature in the filestore.", mlog.String("path", path))
+				mlog.Error("Unknown signature", mlog.String("path", path))
 			} else {
 				val.signaturePaths = append(val.signaturePaths, path)
 			}
