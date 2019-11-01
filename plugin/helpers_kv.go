@@ -7,34 +7,45 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
-
-	"github.com/mattermost/mattermost-server/model"
 )
 
 // KVSetJSON implements Helpers.KVSetJSON.
 func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
-	options := model.PluginKVSetOptions{
-		EncodeJSON: true,
+	data, err := json.Marshal(value)
+	if err != nil {
+		return err
 	}
 
-	if _, err := p.API.KVSetWithOptions(key, value, options); err != nil {
-		return err
+	appErr := p.API.KVSet(key, data)
+	if appErr != nil {
+		return appErr
 	}
 
 	return nil
 }
 
-// KVSetJSON implements Helpers.KVCompareAndSetJSON.
+// KVCompareAndSetJSON implements Helpers.KVCompareAndSetJSON.
 func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error) {
-	options := model.PluginKVSetOptions{
-		EncodeJSON: true,
-		Atomic:     true,
-		OldValue:   oldValue,
+	var oldData, newData []byte
+	var err error
+
+	if oldValue != nil {
+		oldData, err = json.Marshal(oldValue)
+		if err != nil {
+			return false, errors.Wrap(err, "unable to marshal old value")
+		}
 	}
 
-	set, err := p.API.KVSetWithOptions(key, newValue, options)
-	if err != nil {
-		return false, err
+	if newValue != nil {
+		newData, err = json.Marshal(newValue)
+		if err != nil {
+			return false, errors.Wrap(err, "unable to marshal new value")
+		}
+	}
+
+	set, appErr := p.API.KVCompareAndSet(key, oldData, newData)
+	if appErr != nil {
+		return set, appErr
 	}
 
 	return set, nil
@@ -43,9 +54,9 @@ func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newV
 // KVCompareAndDeleteJSON implements Helpers.KVCompareAndDeleteJSON.
 func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error) {
 	var oldData []byte
+	var err error
 
 	if oldValue != nil {
-		var err error
 		oldData, err = json.Marshal(oldValue)
 		if err != nil {
 			return false, errors.Wrap(err, "unable to marshal old value")
@@ -80,13 +91,14 @@ func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
 
 // KVSetWithExpiryJSON implements Helpers.KVSetWithExpiryJSON.
 func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error {
-	options := model.PluginKVSetOptions{
-		EncodeJSON:      true,
-		ExpireInSeconds: expireInSeconds,
+	data, err := json.Marshal(value)
+	if err != nil {
+		return err
 	}
 
-	if _, err := p.API.KVSetWithOptions(key, value, options); err != nil {
-		return err
+	appErr := p.API.KVSetWithExpiry(key, data, expireInSeconds)
+	if appErr != nil {
+		return appErr
 	}
 
 	return nil
