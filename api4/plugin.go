@@ -101,13 +101,13 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	force := r.URL.Query().Get("force") == "true"
 	downloadUrl := r.URL.Query().Get("plugin_download_url")
 
-	pluginFileBytes, err := downloadFromUrl(c, downloadUrl)
+	pluginFile, err := downloadFromUrl(c, downloadUrl)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force)
+	installPlugin(c, w, pluginFile, force)
 }
 
 func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -137,7 +137,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	pluginFileBytes, appErr := downloadFromUrl(c, plugin.DownloadURL)
+	pluginFile, appErr := downloadFromUrl(c, plugin.DownloadURL)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -148,7 +148,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	manifest, appErr := c.App.InstallPluginWithSignatures(bytes.NewReader(pluginFileBytes), signatures)
+	manifest, appErr := c.App.InstallPluginWithSignatures(pluginFile, signatures)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -355,7 +355,7 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 	}, nil
 }
 
-func downloadFromUrl(c *Context, downloadUrl string) ([]byte, *model.AppError) {
+func downloadFromUrl(c *Context, downloadUrl string) (io.ReadSeeker, *model.AppError) {
 	if !model.IsValidHttpUrl(downloadUrl) {
 		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -382,7 +382,7 @@ func downloadFromUrl(c *Context, downloadUrl string) ([]byte, *model.AppError) {
 		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	return fileBytes, nil
+	return bytes.NewReader(fileBytes), nil
 }
 
 func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {
