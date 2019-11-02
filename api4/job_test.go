@@ -108,7 +108,7 @@ func TestGetJobs(t *testing.T) {
 	received, resp = th.SystemAdminClient.GetJobs(1, 2)
 	require.Nil(t, resp.Error)
 
-	require.Equal(t,jobs[1].Id, received[0].Id, "should've received oldest job last")
+	require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 
 	_, resp = th.Client.GetJobs(0, 60)
 	CheckForbiddenStatus(t, resp)
