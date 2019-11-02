@@ -1865,7 +1865,7 @@ func TestGetUsersInTeam(t *testing.T) {
 
 	rusers, resp = th.Client.GetUsersInTeam(teamId, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Empty(t,rusers, "should be no users")
+	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
 	_, resp = th.Client.GetUsersInTeam(teamId, 0, 60, "")
