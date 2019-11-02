@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -15,22 +17,22 @@ func TestGetOldClientLicense(t *testing.T) {
 	license, resp := Client.GetOldClientLicense("")
 	CheckNoError(t, resp)
 
-	if len(license["IsLicensed"]) == 0 {
-		t.Fatal("license not returned correctly")
-	}
+	require.NotEqual(t, license["IsLicensed"], "", "license not returned correctly")
 
 	Client.Logout()
 
 	_, resp = Client.GetOldClientLicense("")
 	CheckNoError(t, resp)
 
-	if _, err := Client.DoApiGet("/license/client", ""); err == nil || err.StatusCode != http.StatusNotImplemented {
-		t.Fatal("should have errored with 501")
-	}
+	_, err := Client.DoApiGet("/license/client", "")
+	require.Error(t, err, "get /license/client did not return an error")
+	require.Equal(t, err.StatusCode, http.StatusNotImplemented,
+		"expected 501 Not Implemented")
 
-	if _, err := Client.DoApiGet("/license/client?format=junk", ""); err == nil || err.StatusCode != http.StatusBadRequest {
-		t.Fatal("should have errored with 400")
-	}
+	_, err = Client.DoApiGet("/license/client?format=junk", "")
+	require.Error(t, err, "get /license/client?format=junk did not return an error")
+	require.Equal(t, err.StatusCode, http.StatusBadRequest,
+		"expected 400 Bad Request")
 
 	license, resp = th.SystemAdminClient.GetOldClientLicense("")
 	CheckNoError(t, resp)

@@ -50,7 +50,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	s := httptest.NewServer(http.HandlerFunc(dummyWebsocketHandler(t)))
+	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
 	th.App.HubStart()
@@ -68,7 +68,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	s := httptest.NewServer(http.HandlerFunc(dummyWebsocketHandler(t)))
+	s := httptest.NewServer(dummyWebsocketHandler(t))
 
 	th.App.HubStart()
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)

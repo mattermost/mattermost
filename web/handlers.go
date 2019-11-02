@@ -72,14 +72,16 @@ type Handler struct {
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
-	mlog.Debug("request:", mlog.String("method", r.Method), mlog.String("url", r.URL.Path))
+
+	requestID := model.NewId()
+	mlog.Debug("Received HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
 
 	c := &Context{}
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
 	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
-	c.App.RequestId = model.NewId()
+	c.App.RequestId = requestID
 	c.App.IpAddress = utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader)
 	c.App.UserAgent = r.UserAgent()
 	c.App.AcceptLanguage = r.Header.Get("Accept-Language")
@@ -306,25 +308,6 @@ func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		RequireSession:      true,
 		TrustRequester:      false,
 		RequireMfa:          true,
-		IsStatic:            false,
-	}
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
-	}
-	return handler
-}
-
-// apiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
-// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
-// websocket.
-func (w *Web) apiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	handler := &Handler{
-		GetGlobalAppOptions: w.GetGlobalAppOptions,
-		HandleFunc:          h,
-		HandlerName:         GetHandlerName(h),
-		RequireSession:      false,
-		TrustRequester:      true,
-		RequireMfa:          false,
 		IsStatic:            false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {

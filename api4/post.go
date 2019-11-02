@@ -384,8 +384,11 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-
-	list, err := c.App.GetPostThread(c.Params.PostId)
+	skipFetchThreads := false
+	if r.URL.Query().Get("fetchThreads") == "false" {
+		skipFetchThreads = true
+	}
+	list, err := c.App.GetPostThread(c.Params.PostId, skipFetchThreads)
 	if err != nil {
 		c.Err = err
 		return
@@ -472,7 +475,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeamForUser(terms, c.App.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset), page, perPage)
+	results, err := c.App.SearchPostsInTeamForUser(terms, c.App.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
