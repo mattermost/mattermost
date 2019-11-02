@@ -3,7 +3,11 @@
 
 package plugin
 
-import "github.com/mattermost/mattermost-server/model"
+import (
+	"github.com/mattermost/mattermost-server/model"
+	"net/http"
+	"net/url"
+)
 
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
@@ -37,8 +41,18 @@ type Helpers interface {
 	//
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
-}
 
+	InstallPluginFromUrl(url string, replace bool) (*model.Manifest, *model.AppError)
+}
 type HelpersImpl struct {
 	API API
+}
+
+func (p *HelpersImpl) InstallPluginFromUrl(downloadUrl string, replace bool) (*model.Manifest, *model.AppError) {
+	parsedUrl, _ := url.Parse(downloadUrl)
+	if !*p.API.GetConfig().PluginSettings.AllowInsecureDownloadUrl && parsedUrl.Scheme != "https" {
+		return nil, model.NewAppError("InstallPluginFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil, nil
 }
