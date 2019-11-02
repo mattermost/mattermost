@@ -66,6 +66,15 @@ func TestWebSocket(t *testing.T) {
 	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
 }
 
+func TestWebSocketTrailingSlash(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv.ListenAddr.Port)
+	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket/", nil)
+	require.NoError(t, err)
+}
+
 func TestWebSocketEvent(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
