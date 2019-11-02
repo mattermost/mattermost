@@ -11,12 +11,20 @@ func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
 	return a.Srv.Store.Group().Get(id)
 }
 
+func (a *App) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	return a.Srv.Store.Group().GetByName(name)
+}
+
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
 	return a.Srv.Store.Group().GetByRemoteID(remoteID, groupSource)
 }
 
 func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
 	return a.Srv.Store.Group().GetAllBySource(groupSource)
+}
+
+func (a *App) GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError) {
+	return a.Srv.Store.Group().GetByUser(userId)
 }
 
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
