@@ -47,7 +47,7 @@ func TestUploadBrandImage(t *testing.T) {
 	} else if resp.StatusCode == http.StatusUnauthorized {
 		CheckUnauthorizedStatus(t, resp)
 	} else {
-		require.FailNow(t, "Should have failed either forbidden or unauthorized")
+		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
 	_, resp = th.SystemAdminClient.UploadBrandImage(data)
