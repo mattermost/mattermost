@@ -196,12 +196,12 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	u3.Email = MakeEmail()
 	userUpdate, err := ss.User().Update(u3, false)
 	require.Nil(t, err, "Update should not have failed")
-	require.Equal(t, oldEmail, userUpdate.New.Email, "Email should not have been updated as the update is not trusted")
+	assert.Equal(t, oldEmail, userUpdate.New.Email, "Email should not have been updated as the update is not trusted")
 
 	u3.Email = MakeEmail()
 	userUpdate, err = ss.User().Update(u3, true)
 	require.Nil(t, err, "Update should not have failed")
-	require.NotEqual(t, oldEmail, userUpdate.New.Email, "Email should have been updated as the update is trusted")
+	assert.NotEqual(t, oldEmail, userUpdate.New.Email, "Email should have been updated as the update is trusted")
 
 	err = ss.User().UpdateLastPictureUpdate(u1.Id)
 	require.Nil(t, err, "Update should not have failed")
