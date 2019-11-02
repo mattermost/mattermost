@@ -616,7 +616,7 @@ type API interface {
 	// If options.EncodeJSON is not true, the type of newValue must be of type []byte.
 	// Returns (false, err) if DB error occurred
 	// Returns (false, nil) if the value was not set
-	// Returns (true, nil) if he value was set
+	// Returns (true, nil) if the value was set
 	//
 	// Minimum server version: 5.18
 	KVSetWithOptions(key string, newValue interface{}, options model.PluginKVSetOptions) (bool, *model.AppError)
