@@ -49,30 +49,6 @@ func (s *LocalCacheSupplier) Next() LayeredStoreSupplier {
 	return s.next
 }
 
-func (s *LocalCacheSupplier) doStandardReadCache(ctx context.Context, cache ObjectCache, key string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	if hintsContains(hints, LSH_NO_CACHE) {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter(cache.Name())
-		}
-		return nil
-	}
-
-	if cacheItem, ok := cache.Get(key); ok {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheHitCounter(cache.Name())
-		}
-		result := NewSupplierResult()
-		result.Data = cacheItem
-		return result
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter(cache.Name())
-	}
-
-	return nil
-}
-
 func (s *LocalCacheSupplier) doStandardAddToCache(ctx context.Context, cache ObjectCache, key string, result *LayeredStoreSupplierResult, hints ...LayeredStoreHint) {
 	if result.Err == nil && result.Data != nil {
 		cache.AddWithDefaultExpires(key, result.Data)
