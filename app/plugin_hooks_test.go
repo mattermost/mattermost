@@ -694,7 +694,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
+	err = th.App.DoLogin(w, r, th.BasicUser, "")
 
 	assert.Contains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
 }
@@ -733,10 +733,10 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(w, r, th.BasicUser, "")
+	err = th.App.DoLogin(w, r, th.BasicUser, "")
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
-	assert.Equal(t, session.UserId, th.BasicUser.Id)
+	assert.Equal(t, th.App.Session.UserId, th.BasicUser.Id)
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
@@ -774,7 +774,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
+	err = th.App.DoLogin(w, r, th.BasicUser, "")
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
 
