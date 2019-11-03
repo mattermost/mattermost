@@ -267,6 +267,28 @@ func (a *App) ShutDownPlugins() {
 
 	mlog.Info("Shutting down plugins")
 
+	pluginsEnvironment.Shutdown()
+
+	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
+	a.Srv.PluginConfigListenerId = ""
+
+	// Acquiring lock manually before cleaning up PluginsEnvironment.
+	a.Srv.PluginsLock.Lock()
+	defer a.Srv.PluginsLock.Unlock()
+	if a.Srv.PluginsEnvironment == pluginsEnvironment {
+		a.Srv.PluginsEnvironment = nil
+	} else {
+		mlog.Warn("Another PluginsEnvironment detected while shutting down plugins.")
+	}
+}
+
+// ShutDownClientPlugins inform all clients that all plugins have been disabled.
+func (a *App) ShutDownClientPlugins() {
+	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
+	a.Srv.PluginsLock.RLock()
+	pluginsEnvironment := a.Srv.PluginsEnvironment
+	a.Srv.PluginsLock.RUnlock()
+
 	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		mlog.Error("Failed to get available plugins while trying to shut them down. Clients will not get notified about shut down plugins.", mlog.Err(err))
@@ -282,20 +304,6 @@ func (a *App) ShutDownPlugins() {
 		if pluginEnabled && plugin.Manifest.HasClient() {
 			a.sendPluginDisableEvent(plugin.Manifest)
 		}
-	}
-
-	pluginsEnvironment.Shutdown()
-
-	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
-	a.Srv.PluginConfigListenerId = ""
-
-	// Acquiring lock manually before cleaning up PluginsEnvironment.
-	a.Srv.PluginsLock.Lock()
-	defer a.Srv.PluginsLock.Unlock()
-	if a.Srv.PluginsEnvironment == pluginsEnvironment {
-		a.Srv.PluginsEnvironment = nil
-	} else {
-		mlog.Warn("Another PluginsEnvironment detected while shutting down plugins.")
 	}
 }
 

@@ -146,6 +146,7 @@ func (s *Server) RunOldAppInitalization() error {
 		if *cfg.PluginSettings.Enable {
 			s.FakeApp().InitPlugins(*cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
 		} else {
+			s.FakeApp().ShutDownClientPlugins()
 			s.FakeApp().ShutDownPlugins()
 		}
 	})
