@@ -289,6 +289,11 @@ func (a *App) ShutDownClientPlugins() {
 	pluginsEnvironment := a.Srv.PluginsEnvironment
 	a.Srv.PluginsLock.RUnlock()
 
+	if pluginsEnvironment == nil {
+		mlog.Debug("Plugins are already shutdown while trying to inform clients about this")
+		return
+	}
+
 	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		mlog.Error("Failed to get available plugins while trying to shut them down. Clients will not get notified about shut down plugins.", mlog.Err(err))
