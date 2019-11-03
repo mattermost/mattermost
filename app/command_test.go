@@ -186,17 +186,22 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, "@channel", post.Message)
+	assert.Equal(t, "true", post.Props["from_webhook"])
 
 	// Test Slack attachments text conversion.
 	resp.Attachments = []*model.SlackAttachment{
-		&model.SlackAttachment{
+		{
 			Text: "<!here>",
 		},
 	}
 
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, "@here", resp.Attachments[0].Text)
+	assert.Equal(t, "@channel", post.Message)
+	if assert.Len(t, post.Attachments(), 1) {
+		assert.Equal(t, "@here", post.Attachments()[0].Text)
+	}
+	assert.Equal(t, "true", post.Props["from_webhook"])
 
 	channel = th.CreatePrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
@@ -212,7 +217,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	resp.ChannelId = ""
 	resp.Text = "<test.com|test website>"
 	resp.Attachments = []*model.SlackAttachment{
-		&model.SlackAttachment{
+		{
 			Text: "<!here>",
 		},
 	}
@@ -257,10 +262,10 @@ func TestHandleCommandResponse(t *testing.T) {
 	resp = &model.CommandResponse{
 		Text: "message 1",
 		ExtraResponses: []*model.CommandResponse{
-			&model.CommandResponse{
+			{
 				Text: "message 2",
 			},
-			&model.CommandResponse{
+			{
 				Type: model.POST_SYSTEM_GENERIC,
 				Text: "message 3",
 			},
@@ -274,8 +279,8 @@ func TestHandleCommandResponse(t *testing.T) {
 
 	resp = &model.CommandResponse{
 		ExtraResponses: []*model.CommandResponse{
-			&model.CommandResponse{},
-			&model.CommandResponse{},
+			{},
+			{},
 		},
 	}
 

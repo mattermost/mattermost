@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSessionDeepCopy(t *testing.T) {
@@ -18,7 +18,7 @@ func TestSessionDeepCopy(t *testing.T) {
 	mapKey := "key"
 	mapValue := "val"
 
-	session := &Session{Id: sessionId, Props: map[string]string{mapKey: mapValue}, TeamMembers: []*TeamMember{&TeamMember{UserId: userId, TeamId: "someteamId"}}}
+	session := &Session{Id: sessionId, Props: map[string]string{mapKey: mapValue}, TeamMembers: []*TeamMember{{UserId: userId, TeamId: "someteamId"}}}
 
 	copySession := session.DeepCopy()
 	copySession.Id = "changed"
