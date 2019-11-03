@@ -39,7 +39,7 @@ func TestWebSocket(t *testing.T) {
 	WebSocketClient.SendMessage("ping", nil)
 	time.Sleep(300 * time.Millisecond)
 	resp = <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Data["text"].(string),"pong","wrong response")
+	require.Equal(t, resp.Data["text"].(string), "pong", "wrong response")
 
 	WebSocketClient.SendMessage("", nil)
 	time.Sleep(300 * time.Millisecond)
@@ -64,6 +64,15 @@ func TestWebSocket(t *testing.T) {
 	resp = <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")
 	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
+}
+
+func TestWebSocketTrailingSlash(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv.ListenAddr.Port)
+	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket/", nil)
+	require.NoError(t, err)
 }
 
 func TestWebSocketEvent(t *testing.T) {
