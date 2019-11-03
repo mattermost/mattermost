@@ -17,9 +17,9 @@ func TestClient4CreatePost(t *testing.T) {
 	post := &Post{
 		Props: map[string]interface{}{
 			"attachments": []*SlackAttachment{
-				&SlackAttachment{
+				{
 					Actions: []*PostAction{
-						&PostAction{
+						{
 							Integration: &PostActionIntegration{
 								Context: map[string]interface{}{
 									"foo": "bar",
@@ -37,9 +37,9 @@ func TestClient4CreatePost(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		attachments := PostFromJson(r.Body).Attachments()
 		assert.Equal(t, []*SlackAttachment{
-			&SlackAttachment{
+			{
 				Actions: []*PostAction{
-					&PostAction{
+					{
 						Integration: &PostActionIntegration{
 							Context: map[string]interface{}{
 								"foo": "bar",

@@ -73,8 +73,6 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 	} else {
 		mlog.Warn("Failed to retrieve URL for overriden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
-
-	return
 }
 
 func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {

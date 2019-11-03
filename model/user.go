@@ -9,10 +9,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/services/timezones"
@@ -835,4 +837,28 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	bodyBytes, _ := ioutil.ReadAll(data)
 	json.Unmarshal(bodyBytes, uwg)
 	return uwg
+}
+
+var passwordRandomSource = rand.NewSource(time.Now().Unix())
+var passwordSpecialChars = "!$%^&*(),."
+var passwordNumbers = "0123456789"
+var passwordUpperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
+var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
+
+func GeneratePassword(minimumLength int) string {
+	r := rand.New(passwordRandomSource)
+
+	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
+	password := string([]rune(passwordUpperCaseLetters)[r.Intn(len(passwordUpperCaseLetters))]) +
+		string([]rune(passwordNumbers)[r.Intn(len(passwordNumbers))]) +
+		string([]rune(passwordLowerCaseLetters)[r.Intn(len(passwordLowerCaseLetters))]) +
+		string([]rune(passwordSpecialChars)[r.Intn(len(passwordSpecialChars))])
+
+	for len(password) < minimumLength {
+		i := r.Intn(len(passwordAllChars))
+		password = password + string([]rune(passwordAllChars)[i])
+	}
+
+	return password
 }
