@@ -261,7 +261,7 @@ func (a *App) ShutDownPlugins() {
 	a.Srv.PluginsLock.RUnlock()
 
 	if pluginsEnvironment == nil {
-		mlog.Warn("Plugins are already shutdown while trying to shut them down")
+		mlog.Debug("Plugins are already shutdown while trying to shut them down")
 		return
 	}
 
