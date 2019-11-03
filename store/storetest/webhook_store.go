@@ -228,7 +228,7 @@ func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
+func TestWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
 	o1 := buildIncomingWebhook()
 
 	o1, err := ss.Webhook().SaveIncoming(o1)
