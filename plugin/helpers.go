@@ -52,6 +52,8 @@ type Helpers interface {
 	//
 	// The behaviour is customizable using the given options, since plugin needs may vary.
 	// By default, system messages and messages from bots will be skipped.
+	//
+	// Minimum server version: 5.2
 	ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error)
 }
 
