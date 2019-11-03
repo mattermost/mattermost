@@ -206,6 +206,10 @@ plugin-mocks: ## Creates mock files for plugins.
 	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
+httpservice-mocks: ## Creates mock files for httpservice.
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir services/httpservice -name HTTPService -output services/httpservice/mocks -note 'Regenerate this file using `make httpservice-mocks`.'
+
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'

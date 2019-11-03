@@ -6,10 +6,10 @@ package plugin
 import (
 	"bytes"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/httpservice"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
 )
 
 type Helpers interface {
@@ -48,7 +48,8 @@ type Helpers interface {
 	InstallPluginFromUrl(url string, replace bool) (*model.Manifest, *model.AppError)
 }
 type HelpersImpl struct {
-	API API
+	API         API
+	HTTPService httpservice.HTTPService
 }
 
 func (p *HelpersImpl) InstallPluginFromUrl(downloadUrl string, replace bool) (*model.Manifest, *model.AppError) {
@@ -57,7 +58,7 @@ func (p *HelpersImpl) InstallPluginFromUrl(downloadUrl string, replace bool) (*m
 		return nil, model.NewAppError("InstallPluginFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	client := &http.Client{Timeout: 60 * time.Minute}
+	client := p.HTTPService.MakeClient(true)
 	response, err := client.Get(downloadUrl)
 	if err != nil {
 		return nil, model.NewAppError("InstallPluginFromUrlHelper", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
