@@ -356,3 +356,19 @@ func TestGetOldClientConfig(t *testing.T) {
 		}
 	})
 }
+
+func TestPatchConfig(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	t.Run("config is missing", func(t *testing.T) {
+		_, response := client.PatchConfig(nil)
+		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("user is not system admin", func(t *testing.T) {
+		_, response := client.PatchConfig(&model.Config{})
+		CheckForbiddenStatus(t, response)
+	})
+}
