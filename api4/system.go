@@ -397,7 +397,6 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))
-	return
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -415,5 +414,4 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
-	return
 }

@@ -30,13 +30,9 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 	savedTermsOfService, err := ss.TermsOfService().Save(termsOfService)
 	require.Nil(t, err)
 
-	if len(savedTermsOfService.Id) != 26 {
-		t.Fatal("Id should have been populated")
-	}
+	require.Len(t, savedTermsOfService.Id, 26, "Id should have been populated")
 
-	if savedTermsOfService.CreateAt == 0 {
-		t.Fatal("Create at should have been populated")
-	}
+	require.NotEqual(t, savedTermsOfService.CreateAt, 0, "Create at should have been populated")
 }
 
 func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
