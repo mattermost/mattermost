@@ -436,7 +436,7 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 	contentsConfig := *cfg.EmailSettings.PushNotificationContents
 
 	if contentsConfig == model.ID_LOADED_NOTIFICATION {
-		msg = a.buildIdLoadedPushNotificationMessage(post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+		msg = a.buildIdLoadedPushNotificationMessage(post)
 	} else {
 		msg = a.buildFullPushNotificationMessage(post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
@@ -446,8 +446,7 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 	return msg
 }
 
-func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string) model.PushNotification {
+func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post) model.PushNotification {
 
 	msg := model.PushNotification{
 		PostId:   post.Id,
