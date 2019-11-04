@@ -283,7 +283,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
 		redirectUrl = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
-		session, err := c.App.DoLogin(w, r, user, "")
+		err = c.App.DoLogin(w, r, user, "")
 		if err != nil {
 			err.Translate(c.App.T)
 			c.Err = err
@@ -293,9 +293,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.App.AttachSessionCookies(w, r, session)
-
-		c.App.Session = *session
+		c.App.AttachSessionCookies(w, r)
 
 		if _, ok := props["redirect_to"]; ok {
 			redirectUrl = props["redirect_to"]

@@ -92,62 +92,57 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 		Username: model.NewId(),
 	}
 
-	if _, err := ss.User().Save(&u1); err != nil {
-		t.Fatal("couldn't save user", err)
-	}
+	_, err := ss.User().Save(&u1)
+	require.Nil(t, err, "couldn't save user")
+
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, maxUsersPerTeam)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, maxUsersPerTeam)
 	require.Nil(t, err)
 
-	if _, err := ss.User().Save(&u1); err == nil {
-		t.Fatal("shouldn't be able to update user from save")
-	}
+	_, err = ss.User().Save(&u1)
+	require.NotNil(t, err, "shouldn't be able to update user from save")
 
 	u2 := model.User{
 		Email:    u1.Email,
 		Username: model.NewId(),
 	}
-	if _, err := ss.User().Save(&u2); err == nil {
-		t.Fatal("should be unique email")
-	}
+	_, err = ss.User().Save(&u2)
+	require.NotNil(t, err, "should be unique email")
 
 	u2.Email = MakeEmail()
 	u2.Username = u1.Username
-	if _, err := ss.User().Save(&u1); err == nil {
-		t.Fatal("should be unique username")
-	}
+	_, err = ss.User().Save(&u1)
+	require.NotNil(t, err, "should be unique username")
 
 	u2.Username = ""
-	if _, err := ss.User().Save(&u1); err == nil {
-		t.Fatal("should be unique username")
-	}
+	_, err = ss.User().Save(&u1)
+	require.NotNil(t, err, "should be unique username")
 
 	for i := 0; i < 49; i++ {
 		u := model.User{
 			Email:    MakeEmail(),
 			Username: model.NewId(),
 		}
-		if _, err := ss.User().Save(&u); err != nil {
-			t.Fatal("couldn't save item", err)
-		}
+		_, err = ss.User().Save(&u)
+		require.Nil(t, err, "couldn't save item")
+
 		defer func() { require.Nil(t, ss.User().PermanentDelete(u.Id)) }()
 
-		_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, maxUsersPerTeam)
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, maxUsersPerTeam)
 		require.Nil(t, err)
 	}
 
 	u2.Id = ""
 	u2.Email = MakeEmail()
 	u2.Username = model.NewId()
-	if _, err := ss.User().Save(&u2); err != nil {
-		t.Fatal("couldn't save item", err)
-	}
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err, "couldn't save item")
+
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
-	if _, err := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, maxUsersPerTeam); err == nil {
-		t.Fatal("should be the limit")
-	}
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, maxUsersPerTeam)
+	require.NotNil(t, err, "should be the limit")
 }
 
 func testUserStoreUpdate(t *testing.T, ss store.Store) {
@@ -170,26 +165,22 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.Nil(t, err)
 
-	if _, err = ss.User().Update(u1, false); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.User().Update(u1, false)
+	require.Nil(t, err)
 
 	missing := &model.User{}
-	if _, err = ss.User().Update(missing, false); err == nil {
-		t.Fatal("Update should have failed because of missing key")
-	}
+	_, err = ss.User().Update(missing, false)
+	require.NotNil(t, err, "Update should have failed because of missing key")
 
 	newId := &model.User{
 		Id: model.NewId(),
 	}
-	if _, err = ss.User().Update(newId, false); err == nil {
-		t.Fatal("Update should have failed because id change")
-	}
+	_, err = ss.User().Update(newId, false)
+	require.NotNil(t, err, "Update should have failed because id change")
 
 	u2.Email = MakeEmail()
-	if _, err = ss.User().Update(u2, false); err == nil {
-		t.Fatal("Update should have failed because you can't modify AD/LDAP fields")
-	}
+	_, err = ss.User().Update(u2, false)
+	require.NotNil(t, err, "Update should have failed because you can't modify AD/LDAP fields")
 
 	u3 := &model.User{
 		Email:       MakeEmail(),
@@ -203,28 +194,17 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	u3.Email = MakeEmail()
-	if userUpdate, err := ss.User().Update(u3, false); err != nil {
-		t.Fatal("Update should not have failed")
-	} else {
-		newUser := userUpdate.New
-		if newUser.Email != oldEmail {
-			t.Fatal("Email should not have been updated as the update is not trusted")
-		}
-	}
+	userUpdate, err := ss.User().Update(u3, false)
+	require.Nil(t, err, "Update should not have failed")
+	assert.Equal(t, oldEmail, userUpdate.New.Email, "Email should not have been updated as the update is not trusted")
 
 	u3.Email = MakeEmail()
-	if userUpdate, err := ss.User().Update(u3, true); err != nil {
-		t.Fatal("Update should not have failed")
-	} else {
-		newUser := userUpdate.New
-		if newUser.Email == oldEmail {
-			t.Fatal("Email should have been updated as the update is trusted")
-		}
-	}
+	userUpdate, err = ss.User().Update(u3, true)
+	require.Nil(t, err, "Update should not have failed")
+	assert.NotEqual(t, oldEmail, userUpdate.New.Email, "Email should have been updated as the update is trusted")
 
-	if err := ss.User().UpdateLastPictureUpdate(u1.Id); err != nil {
-		t.Fatal("Update should not have failed")
-	}
+	err = ss.User().UpdateLastPictureUpdate(u1.Id)
+	require.Nil(t, err, "Update should not have failed")
 }
 
 func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
@@ -236,16 +216,12 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.Nil(t, err)
 
-	if _, err = ss.User().UpdateUpdateAt(u1.Id); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.User().UpdateUpdateAt(u1.Id)
+	require.Nil(t, err)
 
 	user, err := ss.User().Get(u1.Id)
 	require.Nil(t, err)
-	if user.UpdateAt <= u1.UpdateAt {
-		t.Fatal("UpdateAt not updated correctly")
-	}
-
+	require.Less(t, u1.UpdateAt, user.UpdateAt, "UpdateAt not updated correctly")
 }
 
 func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
@@ -257,15 +233,12 @@ func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.Nil(t, err)
 
-	if err = ss.User().UpdateFailedPasswordAttempts(u1.Id, 3); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.User().UpdateFailedPasswordAttempts(u1.Id, 3)
+	require.Nil(t, err)
 
 	user, err := ss.User().Get(u1.Id)
 	require.Nil(t, err)
-	if user.FailedAttempts != 3 {
-		t.Fatal("FailedAttempts not updated correctly")
-	}
+	require.Equal(t, 3, user.FailedAttempts, "FailedAttempts not updated correctly")
 }
 
 func testUserStoreGet(t *testing.T, ss store.Store) {
@@ -1448,7 +1421,7 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, ss store.Stor
 				users, ok := res[channelId]
 				require.True(t, ok)
 
-				userIds := []string{}
+				var userIds []string
 				for _, user := range users {
 					userIds = append(userIds, user.Id)
 				}
@@ -1901,17 +1874,12 @@ func testUserStoreUpdatePassword(t *testing.T, ss store.Store) {
 
 	hashedPassword := model.HashPassword("newpwd")
 
-	if err := ss.User().UpdatePassword(u1.Id, hashedPassword); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.User().UpdatePassword(u1.Id, hashedPassword)
+	require.Nil(t, err)
 
-	if user, err := ss.User().GetByEmail(u1.Email); err != nil {
-		t.Fatal(err)
-	} else {
-		if user.Password != hashedPassword {
-			t.Fatal("Password was not updated correctly")
-		}
-	}
+	user, err := ss.User().GetByEmail(u1.Email)
+	require.Nil(t, err)
+	require.Equal(t, user.Password, hashedPassword, "Password was not updated correctly")
 }
 
 func testUserStoreDelete(t *testing.T, ss store.Store) {
@@ -1923,9 +1891,8 @@ func testUserStoreDelete(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.Nil(t, err)
 
-	if err := ss.User().PermanentDelete(u1.Id); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.User().PermanentDelete(u1.Id)
+	require.Nil(t, err)
 }
 
 func testUserStoreUpdateAuthData(t *testing.T, ss store.Store) {
@@ -1945,19 +1912,11 @@ func testUserStoreUpdateAuthData(t *testing.T, ss store.Store) {
 	_, err = ss.User().UpdateAuthData(u1.Id, service, &authData, "", true)
 	require.Nil(t, err)
 
-	if user, err := ss.User().GetByEmail(u1.Email); err != nil {
-		t.Fatal(err)
-	} else {
-		if user.AuthService != service {
-			t.Fatal("AuthService was not updated correctly")
-		}
-		if *user.AuthData != authData {
-			t.Fatal("AuthData was not updated correctly")
-		}
-		if user.Password != "" {
-			t.Fatal("Password was not cleared properly")
-		}
-	}
+	user, err := ss.User().GetByEmail(u1.Email)
+	require.Nil(t, err)
+	require.Equal(t, service, user.AuthService, "AuthService was not updated correctly")
+	require.Equal(t, authData, *user.AuthData, "AuthData was not updated correctly")
+	require.Equal(t, "", user.Password, "Password was not cleared properly")
 }
 
 func testUserUnreadCount(t *testing.T, ss store.Store) {
@@ -1993,9 +1952,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
 	require.Nil(t, err)
 
-	if _, channelErr := ss.Channel().Save(&c1, -1); err != nil {
-		t.Fatal("couldn't save item", channelErr)
-	}
+	_, err = ss.Channel().Save(&c1, -1)
+	require.Nil(t, err, "couldn't save item")
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = c1.Id
@@ -2013,9 +1971,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	m1.ChannelId = c2.Id
 	m2.ChannelId = c2.Id
 
-	if _, err = ss.Channel().SaveDirectChannel(&c2, &m1, &m2); err != nil {
-		t.Fatal("couldn't save direct channel", err)
-	}
+	_, err = ss.Channel().SaveDirectChannel(&c2, &m1, &m2)
+	require.Nil(t, err, "couldn't save direct channel")
 
 	p1 := model.Post{}
 	p1.ChannelId = c1.Id
@@ -2051,21 +2008,15 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
 	require.Nil(t, unreadCountErr)
-	if badge != 3 {
-		t.Fatal("should have 3 unread messages")
-	}
+	require.Equal(t, int64(3), badge, "should have 3 unread messages")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
 	require.Nil(t, unreadCountErr)
-	if badge != 1 {
-		t.Fatal("should have 1 unread messages for that channel")
-	}
+	require.Equal(t, int64(1), badge, "should have 1 unread messages for that channel")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c2.Id)
 	require.Nil(t, unreadCountErr)
-	if badge != 2 {
-		t.Fatal("should have 2 unread messages for that channel")
-	}
+	require.Equal(t, int64(2), badge, "should have 2 unread messages for that channel")
 }
 
 func testUserStoreUpdateMfaSecret(t *testing.T, ss store.Store) {
@@ -2075,14 +2026,12 @@ func testUserStoreUpdateMfaSecret(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	if err = ss.User().UpdateMfaSecret(u1.Id, "12345"); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.User().UpdateMfaSecret(u1.Id, "12345")
+	require.Nil(t, err)
 
 	// should pass, no update will occur though
-	if err = ss.User().UpdateMfaSecret("junk", "12345"); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.User().UpdateMfaSecret("junk", "12345")
+	require.Nil(t, err)
 }
 
 func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
@@ -2094,18 +2043,15 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err = ss.User().UpdateMfaActive(u1.Id, true); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.User().UpdateMfaActive(u1.Id, true)
+	require.Nil(t, err)
 
-	if err = ss.User().UpdateMfaActive(u1.Id, false); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.User().UpdateMfaActive(u1.Id, false)
+	require.Nil(t, err)
 
 	// should pass, no update will occur though
-	if err = ss.User().UpdateMfaActive("junk", true); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.User().UpdateMfaActive("junk", true)
+	require.Nil(t, err)
 }
 
 func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlSupplier) {
@@ -3516,9 +3462,7 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	count, err := ss.User().AnalyticsGetInactiveUsersCount()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
@@ -3528,22 +3472,13 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	newCount, err := ss.User().AnalyticsGetInactiveUsersCount()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if count != newCount-1 {
-		t.Fatal("Expected 1 more inactive users but found otherwise.", count, newCount)
-	}
+	require.Nil(t, err)
+	require.Equal(t, count, newCount-1, "Expected 1 more inactive users but found otherwise.")
 }
 
 func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
-	var countBefore int64
-	if result, err := ss.User().AnalyticsGetSystemAdminCount(); err != nil {
-		t.Fatal(err)
-	} else {
-		countBefore = result
-	}
+	countBefore, err := ss.User().AnalyticsGetSystemAdminCount()
+	require.Nil(t, err)
 
 	u1 := model.User{}
 	u1.Email = MakeEmail()
@@ -3554,24 +3489,19 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	u2.Email = MakeEmail()
 	u2.Username = model.NewId()
 
-	if _, err := ss.User().Save(&u1); err != nil {
-		t.Fatal("couldn't save user", err)
-	}
+	_, err = ss.User().Save(&u1)
+	require.Nil(t, err, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	if _, err := ss.User().Save(&u2); err != nil {
-		t.Fatal("couldn't save user", err)
-	}
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err, "couldn't save user")
+
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
-	if result, err := ss.User().AnalyticsGetSystemAdminCount(); err != nil {
-		t.Fatal(err)
-	} else {
-		// We expect to find 1 more system admin than there was at the start of this test function.
-		if count := result; count != countBefore+1 {
-			t.Fatal("Did not get the expected number of system admins. Expected, got: ", countBefore+1, count)
-		}
-	}
+	result, err := ss.User().AnalyticsGetSystemAdminCount()
+	require.Nil(t, err)
+	require.Equal(t, countBefore+1, result, "Did not get the expected number of system admins.")
+
 }
 
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
@@ -4048,9 +3978,8 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 		require.NotNil(t, user)
 		testUsers = append(testUsers, user)
 	}
-	userGroupA := testUsers[0]
-	userGroupB := testUsers[1]
-	userNoGroup := testUsers[2]
+	require.Len(t, testUsers, 3, "testUsers length doesn't meet required length")
+	userGroupA, userGroupB, userNoGroup := testUsers[0], testUsers[1], testUsers[2]
 
 	// add non-group-member to the team (to prove that the query isn't just returning all members)
 	_, err = ss.Team().SaveMember(&model.TeamMember{
@@ -4075,8 +4004,8 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 		require.NotNil(t, group)
 		testGroups = append(testGroups, group)
 	}
-	groupA := testGroups[0]
-	groupB := testGroups[1]
+	require.Len(t, testGroups, 2, "testGroups length doesn't meet required length")
+	groupA, groupB := testGroups[0], testGroups[1]
 
 	// add members to groups
 	_, err = ss.Group().UpsertMember(groupA.Id, userGroupA.Id)
@@ -4169,9 +4098,8 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 		require.NotNil(t, user)
 		testUsers = append(testUsers, user)
 	}
-	userGroupA := testUsers[0]
-	userGroupB := testUsers[1]
-	userNoGroup := testUsers[2]
+	require.Len(t, testUsers, 3, "testUsers length doesn't meet required length")
+	userGroupA, userGroupB, userNoGroup := testUsers[0], testUsers[1], testUsers[2]
 
 	// add non-group-member to the channel (to prove that the query isn't just returning all members)
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
@@ -4196,8 +4124,8 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 		require.NotNil(t, group)
 		testGroups = append(testGroups, group)
 	}
-	groupA := testGroups[0]
-	groupB := testGroups[1]
+	require.Len(t, testGroups, 2, "testGroups length doesn't meet required length")
+	groupA, groupB := testGroups[0], testGroups[1]
 
 	// add members to groups
 	_, err = ss.Group().UpsertMember(groupA.Id, userGroupA.Id)
