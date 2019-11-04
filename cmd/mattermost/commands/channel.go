@@ -456,7 +456,7 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 				if channel.Type == model.CHANNEL_PRIVATE {
 					output += " (private)"
 				}
-				CommandPrintErrorln(output)
+				CommandPrettyPrintln(output)
 			}
 		}
 	}

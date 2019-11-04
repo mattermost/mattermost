@@ -63,8 +63,8 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) *model.AppError
 
 	defer finalizeTransaction(transaction)
 	for _, preference := range *preferences {
-		if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
-			return upsertResult.Err
+		if upsertErr := s.save(transaction, &preference); upsertErr != nil {
+			return upsertErr
 		}
 	}
 
@@ -75,13 +75,11 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) *model.AppError
 	return nil
 }
 
-func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) store.StoreResult {
-	result := store.StoreResult{}
-
+func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
 	preference.PreUpdate()
 
-	if result.Err = preference.IsValid(); result.Err != nil {
-		return result
+	if err := preference.IsValid(); err != nil {
+		return err
 	}
 
 	params := map[string]interface{}{
@@ -100,8 +98,9 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 				(:UserId, :Category, :Name, :Value)
 			ON DUPLICATE KEY UPDATE
 				Value = :Value`, params); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+		return nil
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
 		count, err := transaction.SelectInt(
@@ -114,47 +113,37 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 				AND Category = :Category
 				AND Name = :Name`, params)
 		if err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return result
+			return model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if count == 1 {
-			result = s.update(transaction, preference)
-		} else {
-			result = s.insert(transaction, preference)
+			return s.update(transaction, preference)
 		}
-	} else {
-		result.Err = model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.missing_driver.app_error", nil, "Failed to update preference because of missing driver", http.StatusNotImplemented)
+		return s.insert(transaction, preference)
 	}
-
-	return result
+	return model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.missing_driver.app_error", nil, "Failed to update preference because of missing driver", http.StatusNotImplemented)
 }
 
-func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) store.StoreResult {
-	result := store.StoreResult{}
-
+func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
 	if err := transaction.Insert(preference); err != nil {
 		if IsUniqueConstraintError(err, []string{"UserId", "preferences_pkey"}) {
-			result.Err = model.NewAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.exists.app_error", nil,
+			return model.NewAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.exists.app_error", nil,
 				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusBadRequest)
-		} else {
-			result.Err = model.NewAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.save.app_error", nil,
-				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusInternalServerError)
 		}
-	}
-
-	return result
-}
-
-func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) store.StoreResult {
-	result := store.StoreResult{}
-
-	if _, err := transaction.Update(preference); err != nil {
-		result.Err = model.NewAppError("SqlPreferenceStore.update", "store.sql_preference.update.app_error", nil,
+		return model.NewAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.save.app_error", nil,
 			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	return result
+	return nil
+}
+
+func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
+	if _, err := transaction.Update(preference); err != nil {
+		return model.NewAppError("SqlPreferenceStore.update", "store.sql_preference.update.app_error", nil,
+			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s SqlPreferenceStore) Get(userId string, category string, name string) (*model.Preference, *model.AppError) {
@@ -209,9 +198,9 @@ func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, *model.App
 
 func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
 	query :=
-		`DELETE FROM 
-			Preferences 
-		WHERE 
+		`DELETE FROM
+			Preferences
+		WHERE
 			UserId = :UserId`
 
 	if _, err := s.GetMaster().Exec(query, map[string]interface{}{"UserId": userId}); err != nil {
@@ -219,21 +208,6 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError
 	}
 
 	return nil
-}
-
-func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) (bool, *model.AppError) {
-	query :=
-		`SELECT value FROM Preferences
-		WHERE
-			UserId = :UserId
-			AND Category = :Category
-			AND Name = :Name`
-
-	value, err := s.GetReplica().SelectStr(query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": store.FEATURE_TOGGLE_PREFIX + feature})
-	if err != nil {
-		return false, model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", "store.sql_preference.is_feature_enabled.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return value == "true", nil
 }
 
 func (s SqlPreferenceStore) Delete(userId, category, name string) *model.AppError {

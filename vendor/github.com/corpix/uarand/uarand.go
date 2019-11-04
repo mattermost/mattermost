@@ -2,6 +2,7 @@ package uarand
 
 import (
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -24,11 +25,17 @@ type Randomizer interface {
 type UARand struct {
 	Randomizer
 	UserAgents []string
+
+	mutex sync.Mutex
 }
 
 // GetRandom returns a random user agent from UserAgents slice.
 func (u *UARand) GetRandom() string {
-	return u.UserAgents[u.Intn(len(u.UserAgents))]
+	u.mutex.Lock()
+	n := u.Intn(len(u.UserAgents))
+	u.mutex.Unlock()
+
+	return u.UserAgents[n]
 }
 
 // GetRandom returns a random user agent from UserAgents slice.
@@ -39,11 +46,18 @@ func GetRandom() string {
 
 // New return UserAgent randomizer settings with default user-agents list
 func New(r Randomizer) *UARand {
-	return &UARand{r, UserAgents}
+	return &UARand{
+		Randomizer: r,
+		UserAgents: UserAgents,
+		mutex:      sync.Mutex{},
+	}
 }
 
 // NewWithCustomList return UserAgent randomizer settings with custom user-agents list
 func NewWithCustomList(userAgents []string) *UARand {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return &UARand{r, userAgents}
+	return &UARand{
+		Randomizer: rand.New(rand.NewSource(time.Now().UnixNano())),
+		UserAgents: userAgents,
+		mutex:      sync.Mutex{},
+	}
 }

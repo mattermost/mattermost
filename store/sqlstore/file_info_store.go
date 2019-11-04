@@ -7,6 +7,8 @@ import (
 	"database/sql"
 	"net/http"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -116,9 +118,13 @@ func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 	}
 }
 
-func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
+	cacheKey := postId
+	if includeDeleted {
+		cacheKey += "_deleted"
+	}
 	if allowFromCache {
-		if cacheItem, ok := fileInfoCache.Get(postId); ok {
+		if cacheItem, ok := fileInfoCache.Get(cacheKey); ok {
 			if fs.metrics != nil {
 				fs.metrics.IncrementMemCacheHitCounter("File Info Cache")
 			}
@@ -142,21 +148,27 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowF
 		dbmap = fs.GetMaster()
 	}
 
-	if _, err := dbmap.Select(&infos,
-		`SELECT
-				*
-			FROM
-				FileInfo
-			WHERE
-				PostId = :PostId
-				AND DeleteAt = 0
-			ORDER BY
-				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
+	query := fs.getQueryBuilder().
+		Select("*").
+		From("FileInfo").
+		Where(sq.Eq{"PostId": postId}).
+		OrderBy("CreateAt")
+
+	if !includeDeleted {
+		query = query.Where("DeleteAt = 0")
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlFileInfoStore.GetForPost", "store.sql_file_info.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err := dbmap.Select(&infos, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlFileInfoStore.GetForPost",
 			"store.sql_file_info.get_for_post.app_error", nil, "post_id="+postId+", "+err.Error(), http.StatusInternalServerError)
 	}
 	if len(infos) > 0 {
-		fileInfoCache.AddWithExpiresInSecs(postId, infos, FILE_INFO_CACHE_SEC)
+		fileInfoCache.AddWithExpiresInSecs(cacheKey, infos, FILE_INFO_CACHE_SEC)
 	}
 
 	return infos, nil
@@ -177,22 +189,27 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.
 				AND DeleteAt = 0
 			ORDER BY
 				CreateAt`, map[string]interface{}{"CreatorId": userId}); err != nil {
-		return nil, model.NewAppError("SqlFileInfoStore.GetForPost",
+		return nil, model.NewAppError("SqlFileInfoStore.GetForUser",
 			"store.sql_file_info.get_for_user_id.app_error", nil, "creator_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return infos, nil
 }
 
 func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) *model.AppError {
-	sqlResult, err := fs.GetMaster().Exec(
-		`UPDATE
-					FileInfo
-				SET
-					PostId = :PostId
-				WHERE
-					Id = :Id
-					AND PostId = ''
-					AND CreatorId = :CreatorId`, map[string]interface{}{"PostId": postId, "Id": fileId, "CreatorId": creatorId})
+	sqlResult, err := fs.GetMaster().Exec(`
+		UPDATE
+			FileInfo
+		SET
+			PostId = :PostId
+		WHERE
+			Id = :Id
+			AND PostId = ''
+			AND (CreatorId = :CreatorId OR CreatorId = 'nouser')
+	`, map[string]interface{}{
+		"PostId":    postId,
+		"Id":        fileId,
+		"CreatorId": creatorId,
+	})
 	if err != nil {
 		return model.NewAppError("SqlFileInfoStore.AttachToPost",
 			"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)

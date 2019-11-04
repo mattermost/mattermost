@@ -13,7 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
@@ -256,22 +258,17 @@ func TestUpdatePostEditAt(t *testing.T) {
 	*post = *th.BasicPost
 
 	post.IsPinned = true
-	if saved, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal(err)
-	} else if saved.EditAt != post.EditAt {
-		t.Fatal("shouldn't have updated post.EditAt when pinning post")
-
-		*post = *saved
-	}
+	saved, err := th.App.UpdatePost(post, true)
+	require.Nil(t, err)
+	assert.Equal(t, saved.EditAt, post.EditAt, "shouldn't have updated post.EditAt when pinning post")
+	*post = *saved
 
 	time.Sleep(time.Millisecond * 100)
 
 	post.Message = model.NewId()
-	if saved, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal(err)
-	} else if saved.EditAt == post.EditAt {
-		t.Fatal("should have updated post.EditAt when updating post message")
-	}
+	saved, err = th.App.UpdatePost(post, true)
+	require.Nil(t, err)
+	assert.NotEqual(t, saved.EditAt, post.EditAt, "should have updated post.EditAt when updating post message")
 
 	time.Sleep(time.Millisecond * 200)
 }
@@ -288,25 +285,23 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
 	})
-	if _, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal(err)
-	}
+	_, err := th.App.UpdatePost(post, true)
+	require.Nil(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = 1000000000
 	})
 	post.Message = model.NewId()
-	if _, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal("should allow you to edit the post")
-	}
+
+	_, err = th.App.UpdatePost(post, true)
+	require.Nil(t, err, "should allow you to edit the post")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = 1
 	})
 	post.Message = model.NewId()
-	if _, err := th.App.UpdatePost(post, true); err == nil {
-		t.Fatal("should fail on update old post")
-	}
+	_, err = th.App.UpdatePost(post, true)
+	require.NotNil(t, err, "should fail on update old post")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
@@ -337,14 +332,11 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	userNotInChannel := th.BasicUser
 	rootPost := th.BasicPost
 
-	if _, err := th.App.AddUserToChannel(userInChannel, channel); err != nil {
-		t.Fatal(err)
-	}
+	_, err := th.App.AddUserToChannel(userInChannel, channel)
+	require.Nil(t, err)
 
-	if err := th.App.RemoveUserFromChannel(userNotInChannel.Id, "", channel); err != nil {
-		t.Fatal(err)
-	}
-
+	err = th.App.RemoveUserFromChannel(userNotInChannel.Id, "", channel)
+	require.Nil(t, err)
 	replyPost := model.Post{
 		Message:       "asd",
 		ChannelId:     channel.Id,
@@ -355,9 +347,8 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := th.App.CreatePostAsUser(&replyPost, ""); err != nil {
-		t.Fatal(err)
-	}
+	_, err = th.App.CreatePostAsUser(&replyPost, "")
+	require.Nil(t, err)
 }
 
 func TestPostAttachPostToChildPost(t *testing.T) {
@@ -379,9 +370,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 	}
 
 	res1, err := th.App.CreatePostAsUser(&replyPost1, "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	replyPost2 := model.Post{
 		Message:       "reply two",
@@ -394,9 +383,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 	}
 
 	_, err = th.App.CreatePostAsUser(&replyPost2, "")
-	if err.StatusCode != http.StatusBadRequest {
-		t.Fatal(fmt.Sprintf("Expected BadRequest error, got %v", err))
-	}
+	assert.Equalf(t, err.StatusCode, http.StatusBadRequest, "Expected BadRequest error, got %v", err)
 
 	replyPost3 := model.Post{
 		Message:       "reply three",
@@ -408,9 +395,8 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := th.App.CreatePostAsUser(&replyPost3, ""); err != nil {
-		t.Fatal(err)
-	}
+	_, err = th.App.CreatePostAsUser(&replyPost3, "")
+	assert.Nil(t, err)
 }
 
 func TestPostChannelMentions(t *testing.T) {
@@ -426,9 +412,7 @@ func TestPostChannelMentions(t *testing.T) {
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
 	}, false)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
+	require.Nil(t, err)
 	defer th.App.PermanentDeleteChannel(channelToMention)
 
 	_, err = th.App.AddUserToChannel(user, channel)
@@ -615,14 +599,11 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	data := []byte("abcd")
 
 	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
-	if err != nil {
-		t.Fatal(err)
-	} else {
-		defer func() {
-			th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
-			th.App.RemoveFile(info1.Path)
-		}()
-	}
+	require.Nil(t, err)
+	defer func() {
+		th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.RemoveFile(info1.Path)
+	}()
 
 	post := &model.Post{
 		Message:       "asd",
@@ -770,5 +751,161 @@ func TestUpdatePost(t *testing.T) {
 		rpost, err = th.App.UpdatePost(post, false)
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+}
+
+func TestSearchPostsInTeamForUser(t *testing.T) {
+	perPage := 5
+	searchTerm := "searchTerm"
+
+	setup := func(t *testing.T, enableElasticsearch bool) (*TestHelper, []*model.Post) {
+		th := Setup(t).InitBasic()
+
+		posts := make([]*model.Post, 7)
+		for i := 0; i < cap(posts); i++ {
+			post, err := th.App.CreatePost(&model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   searchTerm,
+			}, th.BasicChannel, false)
+
+			require.Nil(t, err)
+
+			posts[i] = post
+		}
+
+		if enableElasticsearch {
+			th.App.SetLicense(model.NewTestLicense("elastic_search"))
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableIndexing = true
+				*cfg.ElasticsearchSettings.EnableSearching = true
+			})
+		} else {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableSearching = false
+			})
+		}
+
+		return th, posts
+	}
+
+	t.Run("should return everything as first page of posts from database", func(t *testing.T) {
+		th, posts := setup(t, false)
+		defer th.TearDown()
+
+		page := 0
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{
+			posts[6].Id,
+			posts[5].Id,
+			posts[4].Id,
+			posts[3].Id,
+			posts[2].Id,
+			posts[1].Id,
+			posts[0].Id,
+		}, results.Order)
+	})
+
+	t.Run("should not return later pages of posts from database", func(t *testing.T) {
+		th, _ := setup(t, false)
+		defer th.TearDown()
+
+		page := 1
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{}, results.Order)
+	})
+
+	t.Run("should return first page of posts from ElasticSearch", func(t *testing.T) {
+		th, posts := setup(t, true)
+		defer th.TearDown()
+
+		page := 0
+		resultsPage := []string{
+			posts[6].Id,
+			posts[5].Id,
+			posts[4].Id,
+			posts[3].Id,
+			posts[2].Id,
+		}
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, resultsPage, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should return later pages of posts from ElasticSearch", func(t *testing.T) {
+		th, posts := setup(t, true)
+		defer th.TearDown()
+
+		page := 1
+		resultsPage := []string{
+			posts[1].Id,
+			posts[0].Id,
+		}
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, resultsPage, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should fall back to database if ElasticSearch fails on first page", func(t *testing.T) {
+		th, posts := setup(t, true)
+		defer th.TearDown()
+
+		page := 0
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{
+			posts[6].Id,
+			posts[5].Id,
+			posts[4].Id,
+			posts[3].Id,
+			posts[2].Id,
+			posts[1].Id,
+			posts[0].Id,
+		}, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should return nothing if ElasticSearch fails on later pages", func(t *testing.T) {
+		th, _ := setup(t, true)
+		defer th.TearDown()
+
+		page := 1
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{}, results.Order)
+		es.AssertExpectations(t)
 	})
 }

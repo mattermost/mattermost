@@ -12,9 +12,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	s3 "github.com/minio/minio-go"
-	"github.com/minio/minio-go/pkg/credentials"
-	"github.com/minio/minio-go/pkg/encrypt"
+	s3 "github.com/minio/minio-go/v6"
+	"github.com/minio/minio-go/v6/pkg/credentials"
+	"github.com/minio/minio-go/v6/pkg/encrypt"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -238,9 +238,13 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) 
 	}
 
 	doneCh := make(chan struct{})
-
 	defer close(doneCh)
 
+	if !strings.HasSuffix(path, "/") && len(path) > 0 {
+		// s3Clnt returns only the path itself when "/" is not present
+		// appending "/" to make it consistent across all filesstores
+		path = path + "/"
+	}
 	for object := range s3Clnt.ListObjects(b.bucket, path, false, doneCh) {
 		if object.Err != nil {
 			return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, object.Err.Error(), http.StatusInternalServerError)

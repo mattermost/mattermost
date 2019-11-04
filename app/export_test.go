@@ -18,15 +18,22 @@ func TestReactionsOfPost(t *testing.T) {
 
 	post := th.BasicPost
 	post.HasReactions = true
-
+	th.BasicUser2.DeleteAt = 1234
 	reactionObject := model.Reaction{
 		UserId:    th.BasicUser.Id,
 		PostId:    post.Id,
 		EmojiName: "emoji",
 		CreateAt:  model.GetMillis(),
 	}
+	reactionObjectDeleted := model.Reaction{
+		UserId:    th.BasicUser2.Id,
+		PostId:    post.Id,
+		EmojiName: "emoji",
+		CreateAt:  model.GetMillis(),
+	}
 
 	th.App.SaveReactionForPost(&reactionObject)
+	th.App.SaveReactionForPost(&reactionObjectDeleted)
 	reactionsOfPost, err := th.App.BuildPostReactions(post.Id)
 	require.Nil(t, err)
 
@@ -108,9 +115,8 @@ func TestDirCreationForEmoji(t *testing.T) {
 
 	pathToDir := th.App.createDirForEmoji("test.json", "exported_emoji_test")
 	defer os.Remove(pathToDir)
-	if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
-		t.Fatal("Directory exported_emoji_test should exist")
-	}
+	_, err := os.Stat(pathToDir)
+	require.False(t, os.IsNotExist(err), "Directory exported_emoji_test should exist")
 }
 
 func TestCopyEmojiImages(t *testing.T) {
@@ -140,13 +146,10 @@ func TestCopyEmojiImages(t *testing.T) {
 	defer os.RemoveAll(filePath)
 
 	copyError := th.App.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
-	if copyError != nil {
-		t.Fatal(copyError)
-	}
+	require.Nil(t, copyError)
 
-	if _, err := os.Stat(pathToDir + "/" + emoji.Id + "/image"); os.IsNotExist(err) {
-		t.Fatal("File should exist ", err)
-	}
+	_, err = os.Stat(pathToDir + "/" + emoji.Id + "/image")
+	require.False(t, os.IsNotExist(err), "File should exist ")
 }
 
 func TestExportCustomEmoji(t *testing.T) {
@@ -163,9 +166,8 @@ func TestExportCustomEmoji(t *testing.T) {
 	dirNameToExportEmoji := "exported_emoji_test"
 	defer os.RemoveAll("../" + dirNameToExportEmoji)
 
-	if err := th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji); err != nil {
-		t.Fatal(err)
-	}
+	err = th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
+	require.Nil(t, err, "should not have failed")
 }
 
 func TestExportAllUsers(t *testing.T) {

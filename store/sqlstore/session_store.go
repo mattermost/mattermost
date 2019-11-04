@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -206,6 +205,23 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 	return deviceId, nil
 }
 
+func (me SqlSessionStore) UpdateProps(session *model.Session) *model.AppError {
+	oldSession, appErr := me.Get(session.Id)
+	if appErr != nil {
+		return appErr
+	}
+	oldSession.Props = session.Props
+
+	count, err := me.GetMaster().Update(oldSession)
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.UpdateProps", "store.sql_session.update_props.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if count != 1 {
+		return model.NewAppError("SqlSessionStore.UpdateProps", "store.sql_session.update_props.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (me SqlSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
 	query :=
 		`SELECT
@@ -234,13 +250,13 @@ func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 
 	for rowsAffected > 0 {
 		if sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize}); err != nil {
-			mlog.Error(fmt.Sprintf("Unable to cleanup session store. err=%v", err.Error()))
+			mlog.Error("Unable to cleanup session store.", mlog.Err(err))
 			return
 		} else {
 			var rowErr error
 			rowsAffected, rowErr = sqlResult.RowsAffected()
 			if rowErr != nil {
-				mlog.Error(fmt.Sprintf("Unable to cleanup session store. err=%v", err.Error()))
+				mlog.Error("Unable to cleanup session store.", mlog.Err(err))
 				return
 			}
 		}

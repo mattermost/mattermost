@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -36,7 +37,7 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
-	memoryStore, err := config.NewMemoryStore()
+	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}
@@ -296,6 +297,26 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	return post
 }
 
+func (me *TestHelper) CreateMessagePost(channel *model.Channel, message string) *model.Post {
+	post := &model.Post{
+		UserId:    me.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   message,
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	if post, err = me.App.CreatePost(post, channel, false); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return post
+}
+
 func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
@@ -479,22 +500,14 @@ func (me *TestHelper) ResetEmojisMigration() {
 
 func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
 	teamCount, err := me.App.Srv.Store.Team().AnalyticsTeamCount()
-	if err != nil {
-		t.Fatalf("Failed to get team count.")
-	}
-	if teamCount != expected {
-		t.Fatalf("Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
-	}
+	require.Nil(t, err, "Failed to get team count.")
+	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 }
 
 func (me *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	if count, err := me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); err == nil {
-		if count != expected {
-			t.Fatalf("Unexpected number of channels. Expected: %v, found: %v", expected, count)
-		}
-	} else {
-		t.Fatalf("Failed to get channel count.")
-	}
+	count, err := me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	require.Nilf(t, err, "Failed to get channel count.")
+	require.Equalf(t, count, expected, "Unexpected number of channels. Expected: %v, found: %v", expected, count)
 }
 
 func (me *TestHelper) SetupTeamScheme() *model.Scheme {

@@ -5,10 +5,11 @@ package app
 
 import (
 	"bytes"
-	"fmt"
+	"crypto/sha1"
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -293,9 +294,9 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 	hasUserEmailVerifiedChanged := false
 
 	var user *model.User
-	if result := <-a.Srv.Store.User().GetByUsername(*data.Username); result.Err == nil {
-		user = result.Data.(*model.User)
-	} else {
+	var err *model.AppError
+	user, err = a.Srv.Store.User().GetByUsername(*data.Username)
+	if err != nil {
 		user = &model.User{}
 		user.MakeNonNil()
 		user.SetDefaultNotifications()
@@ -333,7 +334,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		authData = nil
 	} else {
 		// If no AuthData or Password is specified, we must generate a password.
-		password = model.NewId()
+		password = model.GeneratePassword(*a.Config().PasswordSettings.MinimumLength)
 		authData = nil
 	}
 
@@ -470,7 +471,6 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 	}
 
-	var err *model.AppError
 	var savedUser *model.User
 	if user.Id == "" {
 		if savedUser, err = a.createUser(user); err != nil {
@@ -826,15 +826,16 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 }
 
 func (a *App) ImportReaction(data *ReactionImportData, post *model.Post, dryRun bool) *model.AppError {
-	if err := validateReactionImportData(data, post.CreateAt); err != nil {
+	var err *model.AppError
+	if err = validateReactionImportData(data, post.CreateAt); err != nil {
 		return err
 	}
 
-	result := <-a.Srv.Store.User().GetByUsername(*data.User)
-	if result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, result.Err.Error(), http.StatusBadRequest)
+	var user *model.User
+	user, err = a.Srv.Store.User().GetByUsername(*data.User)
+	if err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, err.Error(), http.StatusBadRequest)
 	}
-	user := result.Data.(*model.User)
 
 	reaction := &model.Reaction{
 		UserId:    user.Id,
@@ -842,22 +843,24 @@ func (a *App) ImportReaction(data *ReactionImportData, post *model.Post, dryRun 
 		EmojiName: *data.EmojiName,
 		CreateAt:  *data.CreateAt,
 	}
-	if _, err := a.Srv.Store.Reaction().Save(reaction); err != nil {
+	if _, err = a.Srv.Store.Reaction().Save(reaction); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string, dryRun bool) *model.AppError {
-	if err := validateReplyImportData(data, post.CreateAt, a.MaxPostSize()); err != nil {
+	var err *model.AppError
+	if err = validateReplyImportData(data, post.CreateAt, a.MaxPostSize()); err != nil {
 		return err
 	}
 
-	result := <-a.Srv.Store.User().GetByUsername(*data.User)
-	if result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, result.Err.Error(), http.StatusBadRequest)
+	var user *model.User
+	user, err = a.Srv.Store.User().GetByUsername(*data.User)
+	if err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, err.Error(), http.StatusBadRequest)
 	}
-	user := result.Data.(*model.User)
 
 	// Check if this post already exists.
 	replies, err := a.Srv.Store.Post().GetPostsCreatedAt(post.ChannelId, *data.CreateAt)
@@ -914,18 +917,42 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 	if file != nil {
 		timestamp := utils.TimeFromMillis(post.CreateAt)
 		buf := bytes.NewBuffer(nil)
-		io.Copy(buf, file)
+		_, _ = io.Copy(buf, file)
+		// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
+		if post.Id != "" {
+			if oldFiles, err := a.GetFileInfosForPost(post.Id, true); err == nil {
+				for _, oldFile := range oldFiles {
+					if oldFile.Name != path.Base(file.Name()) || oldFile.Size != int64(buf.Len()) {
+						continue
+					}
+					// check md5
+					newHash := sha1.Sum(buf.Bytes())
+					oldFileData, err := a.GetFile(oldFile.Id)
+					if err != nil {
+						return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+					}
+					oldHash := sha1.Sum(oldFileData)
 
+					if bytes.Equal(oldHash[:], newHash[:]) {
+						mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
+						return nil, nil
+					}
+
+				}
+			} else {
+				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+			}
+		}
 		fileInfo, err := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
 
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Failed to upload file: %s", err.Error()))
+			mlog.Error("Failed to upload file:", mlog.Err(err))
 			return nil, err
 		}
 
 		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{buf.Bytes()})
 
-		mlog.Info(fmt.Sprintf("uploading file with name %s", file.Name()))
+		mlog.Info("Uploading file with name", mlog.String("file_name", file.Name()))
 		return fileInfo, nil
 	}
 	return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -951,11 +978,11 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *data.Channel}, err.Error(), http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.User().GetByUsername(*data.User)
-	if result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": *data.User}, result.Err.Error(), http.StatusBadRequest)
+	var user *model.User
+	user, err = a.Srv.Store.User().GetByUsername(*data.User)
+	if err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": *data.User}, err.Error(), http.StatusBadRequest)
 	}
-	user := result.Data.(*model.User)
 
 	// Check if this post already exists.
 	posts, err := a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, *data.CreateAt)
@@ -983,7 +1010,8 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	if data.Attachments != nil {
-		fileIds, err := a.uploadAttachments(data.Attachments, post, team.Id, dryRun)
+		var fileIds []string
+		fileIds, err = a.uploadAttachments(data.Attachments, post, team.Id, dryRun)
 		if err != nil {
 			return err
 		}
@@ -991,11 +1019,11 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	}
 
 	if post.Id == "" {
-		if _, err := a.Srv.Store.Post().Save(post); err != nil {
+		if _, err = a.Srv.Store.Post().Save(post); err != nil {
 			return err
 		}
 	} else {
-		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
+		if _, err = a.Srv.Store.Post().Overwrite(post); err != nil {
 			return err
 		}
 	}
@@ -1004,11 +1032,11 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 		var preferences model.Preferences
 
 		for _, username := range *data.FlaggedBy {
-			result := <-a.Srv.Store.User().GetByUsername(username)
-			if result.Err != nil {
-				return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": username}, result.Err.Error(), http.StatusBadRequest)
+			var user *model.User
+			user, err = a.Srv.Store.User().GetByUsername(username)
+			if err != nil {
+				return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": username}, err.Error(), http.StatusBadRequest)
 			}
-			user := result.Data.(*model.User)
 
 			preferences = append(preferences, model.Preference{
 				UserId:   user.Id,
@@ -1052,7 +1080,9 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 		if err != nil {
 			return nil, err
 		}
-		fileIds = append(fileIds, fileInfo.Id)
+		if fileInfo != nil { // nil is returned when the file was skipped due to duplication
+			fileIds = append(fileIds, fileInfo.Id)
+		}
 	}
 	return fileIds, nil
 }
@@ -1060,12 +1090,13 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 func (a *App) UpdateFileInfoWithPostId(post *model.Post) {
 	for _, fileId := range post.FileIds {
 		if err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
-			mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, err), mlog.String("post_id", post.Id))
+			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}
 }
 func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppError {
-	if err := validateDirectChannelImportData(data); err != nil {
+	var err *model.AppError
+	if err = validateDirectChannelImportData(data); err != nil {
 		return err
 	}
 
@@ -1077,11 +1108,11 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	var userIds []string
 	userMap := make(map[string]string)
 	for _, username := range *data.Members {
-		result := <-a.Srv.Store.User().GetByUsername(username)
-		if result.Err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.member_not_found.error", nil, result.Err.Error(), http.StatusBadRequest)
+		var user *model.User
+		user, err = a.Srv.Store.User().GetByUsername(username)
+		if err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.member_not_found.error", nil, err.Error(), http.StatusBadRequest)
 		}
-		user := result.Data.(*model.User)
 		userIds = append(userIds, user.Id)
 		userMap[username] = user.Id
 	}
@@ -1140,7 +1171,8 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 }
 
 func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError {
-	if err := validateDirectPostImportData(data, a.MaxPostSize()); err != nil {
+	var err *model.AppError
+	if err = validateDirectPostImportData(data, a.MaxPostSize()); err != nil {
 		return err
 	}
 
@@ -1151,34 +1183,35 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 	var userIds []string
 	for _, username := range *data.ChannelMembers {
-		result := <-a.Srv.Store.User().GetByUsername(username)
-		if result.Err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_direct_post.channel_member_not_found.error", nil, result.Err.Error(), http.StatusBadRequest)
+		var user *model.User
+		user, err = a.Srv.Store.User().GetByUsername(username)
+		if err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_post.channel_member_not_found.error", nil, err.Error(), http.StatusBadRequest)
 		}
-		user := result.Data.(*model.User)
 		userIds = append(userIds, user.Id)
 	}
 
 	var channel *model.Channel
+	var ch *model.Channel
 	if len(userIds) == 2 {
-		ch, err := a.createDirectChannel(userIds[0], userIds[1])
+		ch, err = a.createDirectChannel(userIds[0], userIds[1])
 		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
 			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
 		channel = ch
 	} else {
-		ch, err := a.createGroupChannel(userIds, userIds[0])
+		ch, err = a.createGroupChannel(userIds, userIds[0])
 		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
 			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
 		channel = ch
 	}
 
-	result := <-a.Srv.Store.User().GetByUsername(*data.User)
-	if result.Err != nil {
+	var user *model.User
+	user, err = a.Srv.Store.User().GetByUsername(*data.User)
+	if err != nil {
 		return model.NewAppError("BulkImport", "app.import.import_direct_post.user_not_found.error", map[string]interface{}{"Username": *data.User}, "", http.StatusBadRequest)
 	}
-	user := result.Data.(*model.User)
 
 	// Check if this post already exists.
 	posts, err := a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, *data.CreateAt)
@@ -1206,7 +1239,8 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	if data.Attachments != nil {
-		fileIds, err := a.uploadAttachments(data.Attachments, post, "noteam", dryRun)
+		var fileIds []string
+		fileIds, err = a.uploadAttachments(data.Attachments, post, "noteam", dryRun)
 		if err != nil {
 			return err
 		}
@@ -1214,11 +1248,11 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	}
 
 	if post.Id == "" {
-		if _, err := a.Srv.Store.Post().Save(post); err != nil {
+		if _, err = a.Srv.Store.Post().Save(post); err != nil {
 			return err
 		}
 	} else {
-		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
+		if _, err = a.Srv.Store.Post().Overwrite(post); err != nil {
 			return err
 		}
 	}
@@ -1227,11 +1261,11 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 		var preferences model.Preferences
 
 		for _, username := range *data.FlaggedBy {
-			result := <-a.Srv.Store.User().GetByUsername(username)
-			if result.Err != nil {
+			var user *model.User
+			user, err = a.Srv.Store.User().GetByUsername(username)
+			if err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_direct_post.user_not_found.error", map[string]interface{}{"Username": username}, "", http.StatusBadRequest)
 			}
-			user := result.Data.(*model.User)
 
 			preferences = append(preferences, model.Preference{
 				UserId:   user.Id,
@@ -1280,7 +1314,7 @@ func (a *App) ImportEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 
 	var emoji *model.Emoji
 
-	emoji, appError := a.Srv.Store.Emoji().GetByName(*data.Name)
+	emoji, appError := a.Srv.Store.Emoji().GetByName(*data.Name, true)
 	if appError != nil && appError.StatusCode != http.StatusNotFound {
 		return appError
 	}

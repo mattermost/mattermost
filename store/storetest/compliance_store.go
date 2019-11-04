@@ -76,14 +76,18 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
-	u1 = store.Must(ss.User().Save(u1)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1))
+	u1, err = ss.User().Save(u1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
+	require.Nil(t, err)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Username = model.NewId()
-	u2 = store.Must(ss.User().Save(u2)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1))
+	u2, err = ss.User().Save(u2)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
+	require.Nil(t, err)
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
@@ -181,14 +185,18 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
-	u1 = store.Must(ss.User().Save(u1)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1))
+	u1, err = ss.User().Save(u1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
+	require.Nil(t, err)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Username = model.NewId()
-	u2 = store.Must(ss.User().Save(u2)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1))
+	u2, err = ss.User().Save(u2)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
+	require.Nil(t, err)
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
@@ -198,7 +206,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	c1, err = ss.Channel().Save(c1, -1)
 	require.Nil(t, err)
 
-	cDM, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	cDM, err := ss.Channel().CreateDirectChannel(u1, u2)
 	require.Nil(t, err)
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -272,21 +280,25 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1 = store.Must(ss.User().Save(user1)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
-	}, -1))
+	}, -1)
+	require.Nil(t, err)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2 = store.Must(ss.User().Save(user2)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
+	user2, err = ss.User().Save(user2)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user2.Id,
-	}, -1))
+	}, -1)
+	require.Nil(t, err)
 
 	// need a public channel
 	channel := &model.Channel{
@@ -370,21 +382,25 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1 = store.Must(ss.User().Save(user1)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
-	}, -1))
+	}, -1)
+	require.Nil(t, err)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2 = store.Must(ss.User().Save(user2)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
+	user2, err = ss.User().Save(user2)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user2.Id,
-	}, -1))
+	}, -1)
+	require.Nil(t, err)
 
 	// need a private channel
 	channel := &model.Channel{
@@ -470,24 +486,28 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1 = store.Must(ss.User().Save(user1)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
-	}, -1))
+	}, -1)
+	require.Nil(t, err)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2 = store.Must(ss.User().Save(user2)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
+	user2, err = ss.User().Save(user2)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user2.Id,
-	}, -1))
+	}, -1)
+	require.Nil(t, err)
 
 	// as well as a DM channel between those users
-	directMessageChannel, err := ss.Channel().CreateDirectChannel(user1.Id, user2.Id)
+	directMessageChannel, err := ss.Channel().CreateDirectChannel(user1, user2)
 	require.Nil(t, err)
 
 	// user1 also sends a DM to user2
@@ -545,31 +565,37 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1 = store.Must(ss.User().Save(user1)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
-	}, -1))
+	}, -1)
+	require.Nil(t, err)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2 = store.Must(ss.User().Save(user2)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
+	user2, err = ss.User().Save(user2)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user2.Id,
-	}, -1))
+	}, -1)
+	require.Nil(t, err)
 
 	user3 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user3 = store.Must(ss.User().Save(user3)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
+	user3, err = ss.User().Save(user3)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user3.Id,
-	}, -1))
+	}, -1)
+	require.Nil(t, err)
 
 	// can't create a group channel directly, because importing app creates an import cycle, so we have to fake it
 	groupMessageChannel := &model.Channel{

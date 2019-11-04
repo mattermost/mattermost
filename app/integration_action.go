@@ -76,6 +76,13 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		close(cchan)
 	}()
 
+	userChan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(upstreamRequest.UserId)
+		userChan <- store.StoreResult{Data: user, Err: err}
+		close(userChan)
+	}()
+
 	result := <-pchan
 	if result.Err != nil {
 		if cookie == nil {
@@ -89,7 +96,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
+		channel, err := a.Srv.Store.Channel().Get(cookie.ChannelId, true)
+		if err != nil {
+			return "", err
+		}
+
 		upstreamRequest.ChannelId = cookie.ChannelId
+		upstreamRequest.ChannelName = channel.Name
+		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = cookie.Type
 		upstreamRequest.Context = cookie.Integration.Context
 		datasource = cookie.DataSource
@@ -112,6 +126,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		}
 
 		upstreamRequest.ChannelId = post.ChannelId
+		upstreamRequest.ChannelName = channel.Name
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = action.Type
 		upstreamRequest.Context = action.Integration.Context
@@ -139,6 +154,27 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 		upstreamURL = action.Integration.URL
 	}
+
+	teamChan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(upstreamRequest.TeamId)
+		teamChan <- store.StoreResult{Data: team, Err: err}
+		close(teamChan)
+	}()
+
+	ur := <-userChan
+	if ur.Err != nil {
+		return "", ur.Err
+	}
+	user := ur.Data.(*model.User)
+	upstreamRequest.UserName = user.Username
+
+	tr := <-teamChan
+	if tr.Err != nil {
+		return "", tr.Err
+	}
+	team := tr.Data.(*model.Team)
+	upstreamRequest.TeamName = team.Name
 
 	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
 		if selectedOption != "" {
@@ -207,6 +243,20 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+	inURL, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
+	rawURLPath := path.Clean(rawURL)
+	if siteURL != nil && (strings.HasPrefix(rawURLPath, "/plugins/") || strings.HasPrefix(rawURLPath, "plugins/")) {
+		inURL.Scheme = siteURL.Scheme
+		inURL.Host = siteURL.Host
+		inURL.Path = path.Join("/", siteURL.Path, rawURLPath)
+		rawURL = inURL.String()
+	}
+
 	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -216,10 +266,8 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
-	url, _ := url.Parse(rawURL)
-	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, path.Join(subpath, "plugins")) {
+	if (inURL.Hostname() == "localhost" || inURL.Hostname() == "127.0.0.1" || inURL.Hostname() == siteURL.Hostname()) && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
 		req.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
 		httpClient = a.HTTPService.MakeClient(true)
 	} else {

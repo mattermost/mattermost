@@ -10,6 +10,7 @@ import (
 
 type FakeClusterInterface struct {
 	clusterMessageHandler einterfaces.ClusterMessageHandler
+	messages              []*model.ClusterMessage
 }
 
 func (c *FakeClusterInterface) StartInterNodeCommunication() {}
@@ -28,7 +29,9 @@ func (c *FakeClusterInterface) GetMyClusterInfo() *model.ClusterInfo { return ni
 
 func (c *FakeClusterInterface) GetClusterInfos() []*model.ClusterInfo { return nil }
 
-func (c *FakeClusterInterface) SendClusterMessage(cluster *model.ClusterMessage) {}
+func (c *FakeClusterInterface) SendClusterMessage(message *model.ClusterMessage) {
+	c.messages = append(c.messages, message)
+}
 
 func (c *FakeClusterInterface) NotifyMsg(buf []byte) {}
 
@@ -45,11 +48,21 @@ func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newCo
 }
 
 func (c *FakeClusterInterface) SendClearRoleCacheMessage() {
-	c.clusterMessageHandler(&model.ClusterMessage{
-		Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
-	})
+	if c.clusterMessageHandler != nil {
+		c.clusterMessageHandler(&model.ClusterMessage{
+			Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
+		})
+	}
 }
 
 func (c *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	return nil, nil
+}
+
+func (c *FakeClusterInterface) GetMessages() []*model.ClusterMessage {
+	return c.messages
+}
+
+func (c *FakeClusterInterface) ClearMessages() {
+	c.messages = nil
 }

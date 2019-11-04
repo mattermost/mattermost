@@ -2,6 +2,8 @@ package analytics
 
 import "time"
 
+var _ Message = (*Page)(nil)
+
 // This type represents object sent in a page call as described in
 // https://segment.com/docs/libraries/http/#page
 type Page struct {
@@ -19,7 +21,11 @@ type Page struct {
 	Integrations Integrations `json:"integrations,omitempty"`
 }
 
-func (msg Page) validate() error {
+func (msg Page) internal() {
+	panic(unimplementedError)
+}
+
+func (msg Page) Validate() error {
 	if len(msg.UserId) == 0 && len(msg.AnonymousId) == 0 {
 		return FieldError{
 			Type:  "analytics.Page",

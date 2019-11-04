@@ -18,6 +18,7 @@ func (api *API) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request))
 	handler := &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      false,
 		RequireMfa:          false,
@@ -35,6 +36,7 @@ func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.R
 	handler := &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
 		RequireSession:      true,
 		TrustRequester:      false,
 		RequireMfa:          true,
@@ -54,6 +56,7 @@ func (api *API) ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *htt
 	handler := &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
 		RequireSession:      true,
 		TrustRequester:      false,
 		RequireMfa:          false,
@@ -73,6 +76,7 @@ func (api *API) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 	handler := &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      true,
 		RequireMfa:          false,
@@ -91,6 +95,7 @@ func (api *API) ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseW
 	handler := &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
 		RequireSession:      true,
 		TrustRequester:      true,
 		RequireMfa:          true,
