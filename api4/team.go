@@ -66,6 +66,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.TeamMember.Handle("/schemeRoles", api.ApiSessionRequired(updateTeamMemberSchemeRoles)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/import", api.ApiSessionRequired(importTeam)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/invite/email", api.ApiSessionRequired(inviteUsersToTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/invite-guests/email", api.ApiSessionRequired(inviteGuestsToChannels)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("/invites/email", api.ApiSessionRequired(invalidateAllEmailInvites)).Methods("DELETE")
 	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.ApiHandler(getInviteInfo)).Methods("GET")
 
@@ -501,6 +502,11 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	if len(tokenId) > 0 {
 		member, err = c.App.AddTeamMemberByToken(c.App.Session.UserId, tokenId)
 	} else if len(inviteId) > 0 {
+		if c.App.Session.Props[model.SESSION_PROP_IS_GUEST] == "true" {
+			c.Err = model.NewAppError("addUserToTeamFromInvite", "api.team.add_user_to_team_from_invite.guest.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
 		member, err = c.App.AddTeamMemberByInviteId(inviteId, c.App.Session.UserId)
 	} else {
 		err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)
@@ -660,7 +666,13 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stats, err := c.App.GetTeamStats(c.Params.TeamId)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	stats, err := c.App.GetTeamStats(c.Params.TeamId, restrictions)
 	if err != nil {
 		c.Err = err
 		return
@@ -722,7 +734,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
-	var teams []*model.Team
+	teams := []*model.Team{}
 	var err *model.AppError
 	var teamsWithCount *model.TeamsWithCount
 
@@ -733,9 +745,17 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 			teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 		}
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
-		teams, err = c.App.GetAllPrivateTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		if c.Params.IncludeTotalCount {
+			teamsWithCount, err = c.App.GetAllPrivateTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		} else {
+			teams, err = c.App.GetAllPrivateTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		}
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		teams, err = c.App.GetAllPublicTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		if c.Params.IncludeTotalCount {
+			teamsWithCount, err = c.App.GetAllPublicTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		} else {
+			teams, err = c.App.GetAllPublicTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		}
 	}
 
 	if err != nil {
@@ -797,14 +817,31 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := make(map[string]bool)
-
-	if _, err := c.App.GetTeamByName(c.Params.TeamName); err != nil {
-		resp["exists"] = false
-	} else {
-		resp["exists"] = true
+	team, err := c.App.GetTeamByName(c.Params.TeamName)
+	if err != nil && err.StatusCode != http.StatusNotFound {
+		c.Err = err
+		return
 	}
 
+	exists := false
+
+	if team != nil {
+		var teamMember *model.TeamMember
+		teamMember, err = c.App.GetTeamMember(team.Id, c.App.Session.UserId)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			c.Err = err
+			return
+		}
+
+		// Verify that the user can see the team (be a member or have the permission to list the team)
+		if (teamMember != nil && teamMember.DeleteAt == 0) ||
+			(team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS)) ||
+			(!team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS)) {
+			exists = true
+		}
+	}
+
+	resp := map[string]bool{"exists": exists}
 	w.Write([]byte(model.MapBoolToJson(resp)))
 }
 
@@ -874,7 +911,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]string{}
-	data["results"] = base64.StdEncoding.EncodeToString([]byte(log.Bytes()))
+	data["results"] = base64.StdEncoding.EncodeToString(log.Bytes())
 	if c.Err != nil {
 		w.WriteHeader(c.Err.StatusCode)
 	}
@@ -905,6 +942,42 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := c.App.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.License() == nil {
+		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invate_guests_to_channels.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !*c.App.Config().GuestAccountsSettings.Enable {
+		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invate_guests_to_channels.disabled.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_INVITE_GUEST) {
+		c.SetPermissionError(model.PERMISSION_INVITE_GUEST)
+		return
+	}
+
+	guestsInvite := model.GuestsInviteFromJson(r.Body)
+	if err := guestsInvite.IsValid(); err != nil {
+		c.Err = err
+		return
+	}
+
+	err := c.App.InviteGuestsToChannels(c.Params.TeamId, guestsInvite, c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return

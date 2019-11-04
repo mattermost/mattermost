@@ -560,26 +560,32 @@ func (srv *Server) serveDNS(m []byte, w *response) {
 	req := new(Msg)
 	req.setHdr(dh)
 
-	switch srv.MsgAcceptFunc(dh) {
+	switch action := srv.MsgAcceptFunc(dh); action {
 	case MsgAccept:
 		if req.unpack(dh, m, off) == nil {
 			break
 		}
 
 		fallthrough
-	case MsgReject:
+	case MsgReject, MsgRejectNotImplemented:
+		opcode := req.Opcode
 		req.SetRcodeFormatError(req)
+		req.Zero = false
+		if action == MsgRejectNotImplemented {
+			req.Opcode = opcode
+			req.Rcode = RcodeNotImplemented
+		}
+
 		// Are we allowed to delete any OPT records here?
 		req.Ns, req.Answer, req.Extra = nil, nil, nil
 
 		w.WriteMsg(req)
-
+		fallthrough
+	case MsgIgnore:
 		if w.udp != nil && cap(m) == srv.UDPSize {
 			srv.udpPool.Put(m[:srv.UDPSize])
 		}
 
-		return
-	case MsgIgnore:
 		return
 	}
 

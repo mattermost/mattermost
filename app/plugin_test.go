@@ -7,16 +7,21 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func getHashedKey(key string) string {
@@ -182,6 +187,147 @@ func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
 	assert.Equal(t, []byte("test2"), ret)
 }
 
+func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginId := "testpluginid"
+
+	defer func() {
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
+	}()
+
+	t.Run("fails with a non-serializable object as the new value", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", func() {}, model.PluginKVSetOptions{
+			EncodeJSON: true,
+		})
+		assert.False(t, result)
+		assert.NotNil(t, err)
+
+		// verify that after the failure it was not set
+		ret, err := th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(nil), ret)
+	})
+
+	t.Run("fails with a non-serializable object as the old value", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
+			"val-a": 10,
+		}, model.PluginKVSetOptions{
+			EncodeJSON: true,
+			Atomic:     true,
+			OldValue:   func() {},
+		})
+		assert.False(t, result)
+		assert.NotNil(t, err)
+
+		// verify that after the failure it was not set
+		ret, err := th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(nil), ret)
+	})
+
+	t.Run("storing a value json encoded works", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
+			"val-a": 10,
+		}, model.PluginKVSetOptions{
+			EncodeJSON: true,
+		})
+		assert.True(t, result)
+		assert.Nil(t, err)
+
+		// and I can get it back!
+		ret, err := th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(`{"val-a":10}`), ret)
+	})
+
+	t.Run("test that setting it atomic when it doesn't match doesn't change anything", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
+			"val-a": 30,
+		}, model.PluginKVSetOptions{
+			EncodeJSON: true,
+			Atomic:     true,
+			OldValue: map[string]interface{}{
+				"val-a": 20,
+			},
+		})
+		assert.False(t, result)
+		assert.Nil(t, err)
+
+		// test that the value didn't change
+		ret, err := th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(`{"val-a":10}`), ret)
+	})
+
+	t.Run("test the atomic change with the proper old value", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
+			"val-a": 30,
+		}, model.PluginKVSetOptions{
+			EncodeJSON: true,
+			Atomic:     true,
+			OldValue: map[string]interface{}{
+				"val-a": 10,
+			},
+		})
+		assert.True(t, result)
+		assert.Nil(t, err)
+
+		// test that the value did change
+		ret, err := th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(`{"val-a":30}`), ret)
+	})
+}
+
+func TestPluginKeyValueStoreSetWithOptionsByteArray(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginId := "testpluginid"
+
+	defer func() {
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
+	}()
+
+	// storing a value works
+	result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`myvalue`), model.PluginKVSetOptions{})
+	assert.True(t, result)
+	assert.Nil(t, err)
+
+	// and I can get it back!
+	ret, err := th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`myvalue`), ret)
+
+	// test that setting it atomic when it doesn't match doesn't change anything
+	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`newvalue`), model.PluginKVSetOptions{
+		Atomic:   true,
+		OldValue: []byte(`differentvalue`),
+	})
+	assert.False(t, result)
+	assert.Nil(t, err)
+
+	// test that the value didn't change
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`myvalue`), ret)
+
+	// now do the atomic change with the proper old value
+	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`newvalue`), model.PluginKVSetOptions{
+		Atomic:   true,
+		OldValue: []byte(`myvalue`),
+	})
+	assert.True(t, result)
+	assert.Nil(t, err)
+
+	// test that the value did change
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`newvalue`), ret)
+}
+
 func TestServePluginRequest(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -311,4 +457,93 @@ func TestGetPluginStatuses(t *testing.T) {
 	pluginStatuses, err := th.App.GetPluginStatuses()
 	require.Nil(t, err)
 	require.NotNil(t, pluginStatuses)
+}
+
+func TestPluginSync(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testCases := []struct {
+		Description string
+		ConfigFunc  func(cfg *model.Config)
+	}{
+		{
+			"local",
+			func(cfg *model.Config) {
+				cfg.FileSettings.DriverName = model.NewString(model.IMAGE_DRIVER_LOCAL)
+			},
+		},
+		{
+			"s3",
+			func(cfg *model.Config) {
+				s3Host := os.Getenv("CI_MINIO_HOST")
+				if s3Host == "" {
+					s3Host = "localhost"
+				}
+
+				s3Port := os.Getenv("CI_MINIO_PORT")
+				if s3Port == "" {
+					s3Port = "9001"
+				}
+
+				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+				cfg.FileSettings.DriverName = model.NewString(model.IMAGE_DRIVER_S3)
+				cfg.FileSettings.AmazonS3AccessKeyId = model.NewString(model.MINIO_ACCESS_KEY)
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.MINIO_SECRET_KEY)
+				cfg.FileSettings.AmazonS3Bucket = model.NewString(model.MINIO_BUCKET)
+				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
+				cfg.FileSettings.AmazonS3Region = model.NewString("")
+				cfg.FileSettings.AmazonS3SSL = model.NewBool(false)
+
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			os.MkdirAll("./test-plugins", os.ModePerm)
+			defer os.RemoveAll("./test-plugins")
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Enable = true
+				*cfg.PluginSettings.Directory = "./test-plugins"
+				*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+			})
+			th.App.UpdateConfig(testCase.ConfigFunc)
+
+			env, err := plugin.NewEnvironment(th.App.NewPluginAPI, "./test-plugins", "./test-client-plugins", th.App.Log)
+			require.NoError(t, err)
+			th.App.SetPluginsEnvironment(env)
+
+			// New bundle in the file store case
+			path, _ := fileutils.FindDir("tests")
+			fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+			require.NoError(t, err)
+			defer fileReader.Close()
+
+			_, appErr := th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin"))
+			checkNoError(t, appErr)
+
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+
+			// Check if installed
+			pluginStatus, err := env.Statuses()
+			require.Nil(t, err)
+			require.True(t, len(pluginStatus) == 1)
+			require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+			// Bundle removed from the file store case
+			appErr = th.App.RemoveFile(th.App.getBundleStorePath("testplugin"))
+			checkNoError(t, appErr)
+
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+
+			// Check if removed
+			pluginStatus, err = env.Statuses()
+			require.Nil(t, err)
+			require.True(t, len(pluginStatus) == 0)
+		})
+	}
 }

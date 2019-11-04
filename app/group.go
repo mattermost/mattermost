@@ -4,13 +4,15 @@
 package app
 
 import (
-	"strings"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
 	return a.Srv.Store.Group().Get(id)
+}
+
+func (a *App) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	return a.Srv.Store.Group().GetByName(name)
 }
 
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
@@ -19,6 +21,10 @@ func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource)
 
 func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
 	return a.Srv.Store.Group().GetAllBySource(groupSource)
+}
+
+func (a *App) GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError) {
+	return a.Srv.Store.Group().GetByUser(userId)
 }
 
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
@@ -140,7 +146,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 	// parse all group ids of all users
 	allUsersGroupIDMap := map[string]bool{}
 	for _, user := range users {
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			allUsersGroupIDMap[groupID] = true
 		}
 	}
@@ -166,7 +172,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 	// populate each instance's groups field
 	for _, user := range users {
 		user.Groups = []*model.Group{}
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			group, ok := groupMap[groupID]
 			if ok {
 				user.Groups = append(user.Groups, group)
@@ -199,7 +205,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 	// parse all group ids of all users
 	allUsersGroupIDMap := map[string]bool{}
 	for _, user := range users {
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			allUsersGroupIDMap[groupID] = true
 		}
 	}
@@ -225,7 +231,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 	// populate each instance's groups field
 	for _, user := range users {
 		user.Groups = []*model.Group{}
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			group, ok := groupMap[groupID]
 			if ok {
 				user.Groups = append(user.Groups, group)

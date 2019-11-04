@@ -34,7 +34,7 @@ govet:
 
 .PHONY: golint
 golint:
-	@go get github.com/golang/lint/golint
+	@go get golang.org/x/lint/golint
 	$(eval LINT_LOG := $(shell mktemp -t golint.XXXXX))
 	@cat /dev/null > $(LINT_LOG)
 	@$(foreach pkg, $(PACKAGES), golint $(pkg) >> $(LINT_LOG) || true;)

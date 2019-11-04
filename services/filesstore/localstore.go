@@ -114,12 +114,13 @@ func (b *LocalFileBackend) ListDirectory(path string) (*[]string, *model.AppErro
 	var paths []string
 	fileInfos, err := ioutil.ReadDir(filepath.Join(b.directory, path))
 	if err != nil {
+		if os.IsNotExist(err) {
+			return &paths, nil
+		}
 		return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.local.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	for _, fileInfo := range fileInfos {
-		if fileInfo.IsDir() {
-			paths = append(paths, filepath.Join(path, fileInfo.Name()))
-		}
+		paths = append(paths, filepath.Join(path, fileInfo.Name()))
 	}
 	return &paths, nil
 }
