@@ -450,6 +450,7 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_OAUTH, map[string]interface{}{
 		"enable_gitlab":    cfg.GitLabSettings.Enable,
+		"enable_gitcoin":   cfg.GitCoinSettings.Enable,
 		"enable_google":    cfg.GoogleSettings.Enable,
 		"enable_office365": cfg.Office365Settings.Enable,
 	})

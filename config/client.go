@@ -233,6 +233,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["EmailLoginButtonTextColor"] = *c.EmailSettings.LoginButtonTextColor
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(*c.GitLabSettings.Enable)
+	props["EnableSignUpWithGitCoin"] = strconv.FormatBool(*c.GitCoinSettings.Enable)
 
 	props["TermsOfServiceLink"] = *c.SupportSettings.TermsOfServiceLink
 	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink

@@ -101,13 +101,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.IsStatic {
+		//w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
-		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
-		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
-			h.cspShaDirective,
-		))
+		//w.Header().Set("Access-Control-Allow-Origin", "*")
+		//// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
+		//w.Header().Set("Content-Security-Policy", fmt.Sprintf(
+		//	"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
+		//	h.cspShaDirective,
+		//))
 	} else {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")
@@ -116,6 +117,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Expires", "0")
 		}
 	}
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
