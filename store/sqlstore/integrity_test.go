@@ -302,7 +302,7 @@ func createTeam(ss store.Store, userId string) *model.Team {
 	m.DisplayName = "DisplayName"
 	m.Type = model.TEAM_OPEN
 	m.Email = "test@example.com"
-	m.Name = "z-z-z" + model.NewId() + "b"
+	m.Name = "z-z-z" + model.NewTeamName() + "b"
 	t, _ := ss.Team().Save(&m)
 	return t
 }

@@ -4,14 +4,13 @@
 package api4
 
 import (
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
-
-	"encoding/base64"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
@@ -265,7 +264,7 @@ func TestUpdateTeam(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "Name", Description: "Some description", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Description: "Some description", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewTeamName() + "a", Email: "success+" + model.NewId() + "@simulator." + "amazonses.com", Type: model.TEAM_OPEN}
 	team, _ = Client.CreateTeam(team)
 
 	team.Description = "updated description"
@@ -403,7 +402,7 @@ func TestPatchTeam(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
 	team, _ = Client.CreateTeam(team)
 
 	patch := &model.TeamPatch{}
@@ -508,7 +507,7 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
 	team, _ = Client.CreateTeam(team)
 
 	assert.NotEqual(t, team.InviteId, "")

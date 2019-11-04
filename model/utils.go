@@ -146,6 +146,15 @@ func NewId() string {
 	return b.String()
 }
 
+// NewTeamName is a NewId that will be a valid team name.
+func NewTeamName() string {
+	teamName := NewId()
+	for IsReservedTeamName(teamName) {
+		teamName = NewId()
+	}
+	return teamName
+}
+
 func NewRandomString(length int) string {
 	var b bytes.Buffer
 	str := make([]byte, length+8)
