@@ -1309,6 +1309,12 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 		require.Equal(t, &model.ChannelList{&o4}, list)
 	})
 
+	t.Run("only o5 listed in archived channels", func(t *testing.T) {
+		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100, true)
+		require.Nil(t, err)
+		require.Equal(t, &model.ChannelList{&o5}, list)
+	})
+
 	t.Run("verify analytics for open channels", func(t *testing.T) {
 		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		require.Nil(t, err)
