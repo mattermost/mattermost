@@ -974,7 +974,10 @@ func TestBuildPushNotificationMessageContents(t *testing.T) {
 		"only post ID included in push notification": {
 			contentsConfig: model.ID_LOADED_NOTIFICATION,
 			expectedMsg: model.PushNotification{
-				PostId: post.Id,
+				PostId:   post.Id,
+				Category: model.CATEGORY_CAN_REPLY,
+				Version:  model.PUSH_MESSAGE_V2,
+				Type:     model.PUSH_TYPE_ID_LOADED,
 			},
 		},
 		"full contents included in push notification": {

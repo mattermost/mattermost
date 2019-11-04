@@ -430,50 +430,51 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) model.PushNotification {
 
-	msg := model.PushNotification{
-		PostId: post.Id,
-	}
+	var msg model.PushNotification
 
 	cfg := a.Config()
 	contentsConfig := *cfg.EmailSettings.PushNotificationContents
 
-	if contentsConfig != model.ID_LOADED_NOTIFICATION {
-		msg = a.BuildFullPushNotificationMessage(msg, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+	if contentsConfig == model.ID_LOADED_NOTIFICATION {
+		msg = a.buildIdLoadedPushNotificationMessage(post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+	} else {
+		msg = a.buildFullPushNotificationMessage(post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+	}
+
+	msg.Badge = a.getPushNotificationBadge(user, channel)
+
+	return msg
+}
+
+func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
+	explicitMention bool, channelWideMention bool, replyToThreadType string) model.PushNotification {
+
+	msg := model.PushNotification{
+		PostId:   post.Id,
+		Category: model.CATEGORY_CAN_REPLY,
+		Version:  model.PUSH_MESSAGE_V2,
+		Type:     model.PUSH_TYPE_ID_LOADED,
 	}
 
 	return msg
 }
 
-func (a *App) BuildFullPushNotificationMessage(msg model.PushNotification, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
+func (a *App) buildFullPushNotificationMessage(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) model.PushNotification {
 
-	msg.Category = model.CATEGORY_CAN_REPLY
-	msg.Version = model.PUSH_MESSAGE_V2
-	msg.Type = model.PUSH_TYPE_MESSAGE
-	msg.TeamId = channel.TeamId
-	msg.ChannelId = channel.Id
-	msg.RootId = post.RootId
-	msg.SenderId = post.UserId
-
-	if user.NotifyProps["push"] == "all" {
-		if unreadCount, err := a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id); err != nil {
-			msg.Badge = 1
-			mlog.Error("We could not get the unread message count for the user", mlog.String("user_id", user.Id), mlog.Err(err))
-		} else {
-			msg.Badge = int(unreadCount)
-		}
-	} else {
-		if unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id); err != nil {
-			msg.Badge = 1
-			mlog.Error("We could not get the unread message count for the user", mlog.String("user_id", user.Id), mlog.Err(err))
-		} else {
-			msg.Badge = int(unreadCount)
-		}
+	msg := model.PushNotification{
+		Category:  model.CATEGORY_CAN_REPLY,
+		Version:   model.PUSH_MESSAGE_V2,
+		Type:      model.PUSH_TYPE_MESSAGE,
+		TeamId:    channel.TeamId,
+		ChannelId: channel.Id,
+		PostId:    post.Id,
+		RootId:    post.RootId,
+		SenderId:  post.UserId,
 	}
 
 	cfg := a.Config()
 	contentsConfig := *cfg.EmailSettings.PushNotificationContents
-
 	if contentsConfig != model.GENERIC_NO_CHANNEL_NOTIFICATION || channel.Type == model.CHANNEL_DIRECT {
 		msg.ChannelName = channelName
 	}
@@ -498,4 +499,26 @@ func (a *App) BuildFullPushNotificationMessage(msg model.PushNotification, post 
 	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
 
 	return msg
+}
+
+func (a *App) getPushNotificationBadge(user *model.User, channel *model.Channel) int {
+	var badge int
+
+	if user.NotifyProps["push"] == "all" {
+		if unreadCount, err := a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id); err != nil {
+			badge = 1
+			mlog.Error("We could not get the unread message count for the user", mlog.String("user_id", user.Id), mlog.Err(err))
+		} else {
+			badge = int(unreadCount)
+		}
+	} else {
+		if unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id); err != nil {
+			badge = 1
+			mlog.Error("We could not get the unread message count for the user", mlog.String("user_id", user.Id), mlog.Err(err))
+		} else {
+			badge = int(unreadCount)
+		}
+	}
+
+	return badge
 }
