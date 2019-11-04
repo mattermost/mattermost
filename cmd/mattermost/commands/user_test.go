@@ -89,7 +89,6 @@ func TestChangeUserEmail(t *testing.T) {
 
 	require.Equal(t, user.Email, newEmail, "should've updated to the new email")
 
-
 	// should fail because using an invalid email
 	require.Error(t, th.RunCommand(t, "user", "email", th.BasicUser.Username, "wrong$email.com"))
 

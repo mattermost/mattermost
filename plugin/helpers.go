@@ -14,6 +14,10 @@ type Helpers interface {
 	EnsureBot(bot *model.Bot, options ...EnsureBotOption) (string, error)
 
 	// KVSetJSON stores a key-value pair, unique per plugin, marshalling the given value as a JSON string.
+	//
+	// Deprecated: Use p.API.KVSetWithOptions instead.
+	//
+	// Minimum server version: 5.2
 	KVSetJSON(key string, value interface{}) error
 
 	// KVCompareAndSetJSON updates a key-value pair, unique per plugin, but only if the current value matches the given oldValue after marshalling as a JSON string.
@@ -21,6 +25,8 @@ type Helpers interface {
 	// Returns (false, err) if DB error occurred
 	// Returns (false, nil) if current value != oldValue or key already exists when inserting
 	// Returns (true, nil) if current value == oldValue or new key is inserted
+	//
+	// Deprecated: Use p.API.KVSetWithOptions instead.
 	//
 	// Minimum server version: 5.12
 	KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error)
@@ -34,9 +40,13 @@ type Helpers interface {
 	KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error)
 
 	// KVGetJSON retrieves a value based on the key, unique per plugin, unmarshalling the previously set JSON string into the given value. Returns true if the key exists.
+	//
+	// Minimum server version: 5.2
 	KVGetJSON(key string, value interface{}) (bool, error)
 
 	// KVSetWithExpiryJSON stores a key-value pair with an expiry time, unique per plugin, marshalling the given value as a JSON string.
+	//
+	// Deprecated: Use p.API.KVSetWithOptions instead.
 	//
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
