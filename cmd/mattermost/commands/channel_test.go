@@ -86,17 +86,17 @@ func TestListChannels(t *testing.T) {
 
 	output := th.CheckCommand(t, "channel", "list", th.BasicTeam.Name)
 
-	require.True(t, strings.Contains(string(output), "town-square"), "should have channels")
+	require.True(t, strings.Contains(output, "town-square"), "should have channels")
 
-	require.True(t, strings.Contains(string(output), channel.Name+" (archived)"), "should have archived channel")
+	require.True(t, strings.Contains(output, channel.Name+" (archived)"), "should have archived channel")
 
-	require.True(t, strings.Contains(string(output), privateChannel.Name+" (private)"), "should have private channel")
+	require.True(t, strings.Contains(output, privateChannel.Name+" (private)"), "should have private channel")
 
 	th.Client.Must(th.Client.DeleteChannel(privateChannel.Id))
 
 	output = th.CheckCommand(t, "channel", "list", th.BasicTeam.Name)
 
-	require.True(t, strings.Contains(string(output), privateChannel.Name+" (archived) (private)"), "should have a channel both archived and private")
+	require.True(t, strings.Contains(output, privateChannel.Name+" (archived) (private)"), "should have a channel both archived and private")
 }
 
 func TestRestoreChannel(t *testing.T) {

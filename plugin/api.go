@@ -756,6 +756,15 @@ type API interface {
 	// Minimum server version: 5.16
 	KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError)
 
+	// KVSetWithOptions stores a key-value pair, unique per plugin, according to the given options.
+	// If options.EncodeJSON is not true, the type of newValue must be of type []byte.
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if the value was not set
+	// Returns (true, nil) if the value was set
+	//
+	// Minimum server version: 5.18
+	KVSetWithOptions(key string, newValue interface{}, options model.PluginKVSetOptions) (bool, *model.AppError)
+
 	// KVSet stores a key-value pair with an expiry time, unique per plugin.
 	//
 	// @tag KeyValueStore
@@ -817,7 +826,6 @@ type API interface {
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// @tag Logging
 	// Minimum server version: 5.2
@@ -826,7 +834,6 @@ type API interface {
 	// LogInfo writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// @tag Logging
 	// Minimum server version: 5.2
@@ -835,7 +842,6 @@ type API interface {
 	// LogError writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// @tag Logging
 	// Minimum server version: 5.2
@@ -844,7 +850,6 @@ type API interface {
 	// LogWarn writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
-	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	//
 	// @tag Logging
 	// Minimum server version: 5.2
