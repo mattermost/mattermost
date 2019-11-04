@@ -3,7 +3,12 @@
 
 package plugin
 
-import "github.com/mattermost/mattermost-server/model"
+import (
+	"context"
+	"github.com/mattermost/mattermost-server/einterfaces"
+
+	"github.com/mattermost/mattermost-server/model"
+)
 
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
@@ -37,6 +42,11 @@ type Helpers interface {
 	//
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
+
+	// KVAtomicModify alllows modifying a key-value pair atomically. This function returns err if either a cancellation, or a DB error occurred.
+	//
+	// Minimum server version: 5.6
+	KVAtomicModify(ctx context.Context, key string, bucket einterfaces.TokenBucketInterface, fn func(initialValue []byte) ([]byte, error)) error
 }
 
 type HelpersImpl struct {

@@ -4,9 +4,11 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
-
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/einterfaces"
 )
 
 // KVGetJSON is a wrapper around KVGet to simplify reading a JSON object from the key value store.
@@ -102,4 +104,72 @@ func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireI
 	}
 
 	return nil
+}
+
+// KVAtomicModify is a wrapper around KVGet and KVCompareAndSet that atomically modify data from the KV storage. This function
+// takes the following parameters:
+// . ctx 	A instance of context that should be use for cancellation.
+// . key	String for querying the storage.
+// . bucket	An instance of the TokenBucket interface that is use for throttling control on retries.
+// . fn 	A function the modifies the initial data.
+func (p *HelpersImpl) KVAtomicModify(ctx context.Context, key string, bucket einterfaces.TokenBucketInterface, fn func(initialValue []byte) ([]byte, error)) error {
+	defer bucket.Done()
+
+	var initialBytes []byte
+	var modifiedBytes []byte
+	var err error
+	for {
+		select {
+		case <-ctx.Done():
+			return errors.Wrap(ctx.Err(), "modification error")
+		default:
+			if err := bucket.Take(); err != nil {
+				return errors.Wrap(err, "modification error")
+			}
+		}
+
+		if initialBytes, err = p.kvGetWithContext(ctx, key); err != nil {
+			return errors.Wrap(err, "modification error")
+		}
+		if modifiedBytes, err = fn(initialBytes); err != nil {
+			return errors.Wrap(err, "modification error")
+		}
+
+		success, err := p.kvCompareAndSetWithContext(ctx, key, initialBytes, modifiedBytes)
+		if err != nil {
+			return err
+		}
+		if success {
+			break
+		}
+	}
+	return nil
+}
+
+func (p *HelpersImpl) kvGetWithContext(ctx context.Context, key string) ([]byte, error) {
+	select {
+	case <-ctx.Done():
+		return nil, errors.Wrap(ctx.Err(), "unable to read value")
+	default:
+	}
+
+	b, err := p.API.KVGet(key)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to read value")
+	}
+	return b, nil
+}
+
+func (p *HelpersImpl) kvCompareAndSetWithContext(ctx context.Context, key string, oldValue, newValue []byte) (bool, error) {
+	select {
+	case <-ctx.Done():
+		return false, errors.Wrap(ctx.Err(), "unable to modify old value")
+	default:
+	}
+
+	ok, err := p.API.KVCompareAndSet(key, oldValue, newValue)
+	if err != nil {
+		return ok, errors.Wrap(err, "unable to modify old value")
+	}
+	return ok, nil
 }

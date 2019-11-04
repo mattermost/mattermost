@@ -1,8 +1,13 @@
 package plugin_test
 
 import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
@@ -297,5 +302,100 @@ func TestKVSetWithExpiryJSON(t *testing.T) {
 
 		api.AssertExpectations(t)
 		assert.NoError(t, err)
+	})
+}
+
+func TestKVAtomicModify(t *testing.T) {
+	// Test fixtures.
+	key := "test-key"
+	valA := []byte(`{"val":"unmodified"}`)
+	valB := []byte(`{"val":"modified"}`)
+	valErr := []byte(`{"val":"error"}`)
+
+	// This function should intentionally return:
+	// a) error when valErr OR []byte(`{"val":"error"}`) is supplied.
+	// b) valB OR []byte(`{"val":"modified"}`) when any other value is supplied.
+	modifyFN := func(b []byte) ([]byte, error) {
+		if bytes.Compare(b, valErr) == 0 {
+			return nil, fmt.Errorf("intentional")
+		}
+		return valB, nil
+	}
+
+	t.Run("acceptance test", func(t *testing.T) {
+		ctx := context.Background()
+
+		bucket := new(mocks.TokenBucketInterface)
+		bucket.On("Take").Return(nil)
+		bucket.On("Done").Once()
+
+		api := &plugintest.API{}
+		api.On("KVGet", key).Once().Return(valA, nil)
+		api.On("KVCompareAndSet", key, valA, valB).Once().Return(true, nil)
+
+		p := &plugin.HelpersImpl{API: api}
+		err := p.KVAtomicModify(ctx, key, bucket, modifyFN)
+
+		api.AssertExpectations(t)
+		assert.NoError(t, err)
+	})
+
+	t.Run("token bucket error", func(t *testing.T) {
+		ctx := context.Background()
+
+		bucket := new(mocks.TokenBucketInterface)
+		bucket.On("Take").Return(errors.New("token bucket error"))
+		bucket.On("Done").Once()
+
+		api := &plugintest.API{}
+		api.AssertNotCalled(t, "KVGet")
+		api.AssertNotCalled(t, "KVCompareAndSet")
+
+		p := &plugin.HelpersImpl{API: api}
+		err := p.KVAtomicModify(ctx, key, bucket, modifyFN)
+
+		api.AssertExpectations(t)
+		assert.Error(t, err)
+		assert.Equal(t, "modification error: token bucket error", err.Error())
+	})
+
+	t.Run("on context cancellation", func(t *testing.T) {
+		ctx := context.Background()
+		ctx, cancel := context.WithCancel(ctx)
+
+		bucket := new(mocks.TokenBucketInterface)
+		bucket.AssertNotCalled(t, "Take")
+		bucket.On("Done").Once()
+
+		api := &plugintest.API{}
+		api.AssertNotCalled(t, "KVGet")
+		api.AssertNotCalled(t, "KVCompareAndSet")
+
+		p := &plugin.HelpersImpl{API: api}
+		cancel()
+		err := p.KVAtomicModify(ctx, key, bucket, modifyFN)
+
+		api.AssertExpectations(t)
+		assert.Error(t, err)
+		assert.Equal(t, "modification error: context canceled", err.Error())
+	})
+
+	t.Run("on function modify error", func(t *testing.T) {
+		ctx := context.Background()
+
+		bucket := new(mocks.TokenBucketInterface)
+		bucket.On("Take").Return(nil)
+		bucket.On("Done").Once()
+
+		api := &plugintest.API{}
+		api.On("KVGet", key).Once().Return(valErr, nil)
+		api.AssertNotCalled(t, "KVCompareAndSet")
+
+		p := &plugin.HelpersImpl{API: api}
+		err := p.KVAtomicModify(ctx, key, bucket, modifyFN)
+
+		api.AssertExpectations(t)
+		assert.Error(t, err)
+		assert.Equal(t, "modification error: intentional", err.Error())
 	})
 }
