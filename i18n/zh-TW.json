@@ -799,6 +799,10 @@
     "translation": "{{.User}} 已在頻道當中。"
   },
   {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "{{.Username}}不是此頻道的成員。"
+  },
+  {
     "id": "api.command_invite_people.permission.app_error",
     "translation": "沒有權限以邀請新使用者加入此伺服器。"
   },

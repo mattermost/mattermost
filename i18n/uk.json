@@ -799,6 +799,10 @@
     "translation": "{{.User}} вже знаходиться в каналі."
   },
   {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "{{.Username}} не є учасником цього каналу."
+  },
+  {
     "id": "api.command_invite_people.permission.app_error",
     "translation": "У вас немає дозволу на запрошення нових користувачів на цей сервер."
   },

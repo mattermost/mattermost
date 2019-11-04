@@ -799,6 +799,10 @@
     "translation": "{{.User}} は既にチャンネルに追加されています。"
   },
   {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} はチームのメンバーではありません。"
+  },
+  {
     "id": "api.command_invite_people.permission.app_error",
     "translation": "新しいユーザーをこのサーバーに招待する権限がありません。"
   },

@@ -709,7 +709,7 @@
   },
   {
     "id": "api.command_groupmsg.hint",
-    "translation": "@[用户名1],@[用户名2] '消息'"
+    "translation": "@[用户名1]，@[用户名2] '消息'"
   },
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
@@ -797,6 +797,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} 已在频道。"
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} 不是此团队的成员。"
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1772,7 +1776,7 @@
   },
   {
     "id": "api.server.start_server.starting.critical",
-    "translation": "启动服务出错, err:%v"
+    "translation": "启动服务出错 err:%v"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -3404,11 +3408,11 @@
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}，{{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}，{{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.group_message.full",
@@ -3416,11 +3420,11 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}，{{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}，{{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.full",
@@ -3428,27 +3432,27 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}，{{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}，{{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] 来自 {{ .SenderDisplayName}} 于 {{.Month}} {{.Day}}, {{.Year}} 发送的新私信消息"
+    "translation": "[{{.SiteName}}] 来自 {{ .SenderDisplayName}} 于 {{.Month}} {{.Day}}，{{.Year}} 发送的新私信消息"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] 在 [{{ .SiteName }}] 于 {{.Month}} {{.Day}}, {{.Year}} 的新团体消息"
+    "translation": "[{{ .SiteName }}] 在 [{{ .SiteName }}] 于 {{.Month}} {{.Day}}，{{.Year}} 的新团体消息"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] 于 {{.Month}} {{.Day}}, {{.Year}} 的新团体消息"
+    "translation": "[{{.SiteName}}] 于 {{.Month}} {{.Day}}，{{.Year}} 的新团体消息"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] 在 [{{ .SiteName }}] 的通知于 {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] 在 [{{ .SiteName }}] 的通知于 {{.Month}} {{.Day}}，{{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -6416,7 +6420,7 @@
   },
   {
     "id": "store.sql_preference.insert.exists.app_error",
-    "translation": "一个带用户id,分类，名称的偏好设置已经存在"
+    "translation": "一个带用户 id、分类以及名称的偏好设置已经存在"
   },
   {
     "id": "store.sql_preference.insert.save.app_error",

@@ -799,6 +799,10 @@
     "translation": "{{.User}} è già membro del canale."
   },
   {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} non è un membro di questo canale."
+  },
+  {
     "id": "api.command_invite_people.permission.app_error",
     "translation": "Non si possiedono i permessi per invitare nuovi utenti su questo server."
   },
