@@ -123,7 +123,7 @@ func (p *HelpersImpl) KVAtomicModify(ctx context.Context, key string, bucket ein
 		case <-ctx.Done():
 			return errors.Wrap(ctx.Err(), "modification error")
 		default:
-			if err := bucket.Take(); err != nil {
+			if err = bucket.Take(); err != nil {
 				return errors.Wrap(err, "modification error")
 			}
 		}
