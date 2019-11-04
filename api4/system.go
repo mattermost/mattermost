@@ -262,7 +262,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		msg = msg[0:399]
 	}
 
-	msg = "Logs API Endpoint Message: " + msg
+	msg = "Client Logs API Endpoint Message: " + msg
 	fields := []mlog.Field{
 		mlog.String("type", "client_message"),
 		mlog.String("user_agent", c.App.UserAgent),
