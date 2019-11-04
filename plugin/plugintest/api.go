@@ -2023,6 +2023,31 @@ func (_m *API) HasPermissionToTeam(userId string, teamId string, permission *mod
 	return r0
 }
 
+// InstallPlugin provides a mock function with given fields: file, replace
+func (_m *API) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	ret := _m.Called(file, replace)
+
+	var r0 *model.Manifest
+	if rf, ok := ret.Get(0).(func(io.Reader, bool) *model.Manifest); ok {
+		r0 = rf(file, replace)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Manifest)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(io.Reader, bool) *model.AppError); ok {
+		r1 = rf(file, replace)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // KVCompareAndDelete provides a mock function with given fields: key, oldValue
 func (_m *API) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
 	ret := _m.Called(key, oldValue)
@@ -2181,6 +2206,29 @@ func (_m *API) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) 
 	}
 
 	return r0
+}
+
+// KVSetWithOptions provides a mock function with given fields: key, newValue, options
+func (_m *API) KVSetWithOptions(key string, newValue interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	ret := _m.Called(key, newValue, options)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, interface{}, model.PluginKVSetOptions) bool); ok {
+		r0 = rf(key, newValue, options)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, interface{}, model.PluginKVSetOptions) *model.AppError); ok {
+		r1 = rf(key, newValue, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // LoadPluginConfiguration provides a mock function with given fields: dest
@@ -2877,31 +2925,6 @@ func (_m *API) UploadFile(data []byte, channelId string, filename string) (*mode
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func([]byte, string, string) *model.AppError); ok {
 		r1 = rf(data, channelId, filename)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// InstallPlugin provides a mock function with given fields: file, replace
-func (_m *API) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
-	ret := _m.Called(file, replace)
-
-	var r0 *model.Manifest
-	if rf, ok := ret.Get(0).(func(io.Reader, bool) *model.Manifest); ok {
-		r0 = rf(file, replace)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Manifest)
-		}
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(io.Reader, bool) *model.AppError); ok {
-		r1 = rf(file, replace)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
