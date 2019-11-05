@@ -2210,6 +2210,29 @@ func (_m *API) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) 
 	return r0
 }
 
+// KVSetWithOptions provides a mock function with given fields: key, newValue, options
+func (_m *API) KVSetWithOptions(key string, newValue interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	ret := _m.Called(key, newValue, options)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, interface{}, model.PluginKVSetOptions) bool); ok {
+		r0 = rf(key, newValue, options)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, interface{}, model.PluginKVSetOptions) *model.AppError); ok {
+		r1 = rf(key, newValue, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // LoadPluginConfiguration provides a mock function with given fields: dest
 func (_m *API) LoadPluginConfiguration(dest interface{}) error {
 	ret := _m.Called(dest)

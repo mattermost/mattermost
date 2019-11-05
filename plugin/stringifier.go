@@ -8,7 +8,7 @@ import (
 )
 
 func stringify(objects []interface{}) []string {
-	stringified := make([]string, len(objects), len(objects))
+	stringified := make([]string, len(objects))
 	for i, object := range objects {
 		stringified[i] = fmt.Sprintf("%+v", object)
 	}
