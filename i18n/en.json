@@ -4719,10 +4719,6 @@
     "translation": "Invalid Canonical Algorithm."
   },
   {
-    "id": "model.config.is_valid.saml_digest_algorithm.app_error",
-    "translation": "Invalid Digest Algorithm."
-  },
-  {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Invalid Email attribute. Must be set."
   },
