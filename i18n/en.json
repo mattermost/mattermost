@@ -3519,10 +3519,6 @@
     "translation": "Plugins have been disabled. Please check your logs for details."
   },
   {
-    "id": "app.plugin.extract.app_error",
-    "translation": "Encountered error extracting plugin"
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Encountered filesystem error"
   },
