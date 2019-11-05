@@ -172,6 +172,9 @@ func TestPatchBot(t *testing.T) {
 		patchedBot, err := th.App.PatchBot(createdBot.UserId, botPatch)
 		require.Nil(t, err)
 
+		// patchedBot should create a new .UpdateAt time
+		require.NotEqual(t, createdBot.UpdateAt, patchedBot.UpdateAt)
+
 		createdBot.Username = "username2"
 		createdBot.DisplayName = "updated bot"
 		createdBot.Description = "an updated bot"

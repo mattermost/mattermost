@@ -91,12 +91,13 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 	} else {
 		// Update if oldValue is not nil
 		updateResult, err := ps.GetMaster().Exec(
-			`UPDATE PluginKeyValueStore SET PValue = :New WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`,
+			`UPDATE PluginKeyValueStore SET PValue = :New, ExpireAt = :ExpireAt WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`,
 			map[string]interface{}{
 				"PluginId": kv.PluginId,
 				"Key":      kv.Key,
 				"Old":      oldValue,
 				"New":      kv.Value,
+				"ExpireAt": kv.ExpireAt,
 			},
 		)
 		if err != nil {
@@ -145,6 +146,34 @@ func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []b
 	}
 
 	return true, nil
+}
+
+func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value interface{}, opt model.PluginKVSetOptions) (bool, *model.AppError) {
+	if err := opt.IsValid(); err != nil {
+		return false, err
+	}
+
+	kv, err := model.NewPluginKeyValueFromOptions(pluginId, key, value, opt)
+	if err != nil {
+		return false, err
+	}
+
+	if opt.Atomic {
+		var serializedOldValue []byte
+		serializedOldValue, err = opt.GetOldValueSerialized()
+		if err != nil {
+			return false, err
+		}
+
+		return ps.CompareAndSet(kv, serializedOldValue)
+	}
+
+	savedKv, err := ps.SaveOrUpdate(kv)
+	if err != nil {
+		return false, err
+	}
+
+	return savedKv != nil, nil
 }
 
 func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError) {
