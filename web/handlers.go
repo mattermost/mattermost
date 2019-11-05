@@ -315,22 +315,3 @@ func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 	}
 	return handler
 }
-
-// apiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
-// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
-// websocket.
-func (w *Web) apiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	handler := &Handler{
-		GetGlobalAppOptions: w.GetGlobalAppOptions,
-		HandleFunc:          h,
-		HandlerName:         GetHandlerName(h),
-		RequireSession:      false,
-		TrustRequester:      true,
-		RequireMfa:          false,
-		IsStatic:            false,
-	}
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
-	}
-	return handler
-}
