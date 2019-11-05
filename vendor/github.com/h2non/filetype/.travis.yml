@@ -1,0 +1,15 @@
+language: go
+
+go:
+  - "1.11"
+  - "1.10"
+  - "tip"
+
+before_install:
+  - go get -u -v golang.org/x/lint/golint
+
+script:
+  - diff -u <(echo -n) <(gofmt -s -d ./)
+  - diff -u <(echo -n) <(go vet ./...)
+  - diff -u <(echo -n) <(golint)
+  - go test -v -race ./...
