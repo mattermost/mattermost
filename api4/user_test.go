@@ -1369,7 +1369,8 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 	usersByChannelId, resp := th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
 	CheckNoError(t, resp)
 
-	users, _ := usersByChannelId[gc1.Id]
+	users, ok := usersByChannelId[gc1.Id]
+	assert.True(t, ok)
 	userIds := []string{}
 	for _, user := range users {
 		userIds = append(userIds, user.Id)
@@ -1379,8 +1380,9 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 
 	th.LoginBasic2()
 	usersByChannelId, resp = th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
+	CheckNoError(t, resp)
 
-	_, ok := usersByChannelId[gc1.Id]
+	_, ok = usersByChannelId[gc1.Id]
 	require.False(t, ok)
 
 	th.Client.Logout()
@@ -4425,6 +4427,7 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 
 	success, resp := th.Client.RegisterTermsOfServiceAction(th.BasicUser.Id, "st_1", true)
 	CheckErrorMessage(t, resp, "store.sql_terms_of_service_store.get.no_rows.app_error")
+	assert.Nil(t, success)
 
 	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 	if err != nil {
