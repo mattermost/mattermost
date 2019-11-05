@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"io"
+	"net/http"
 
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/mattermost/mattermost-server/model"
@@ -747,6 +748,11 @@ type API interface {
 	//
 	// Minimum server version: 5.14
 	DeleteBotIconImage(botUserId string) *model.AppError
+
+	// PluginHTTP allows inter-plugin requests to plugin APIs.
+	//
+	// Minimum server version: 5.18
+	PluginHTTP(request *http.Request) *http.Response
 }
 
 var handshake = plugin.HandshakeConfig{
