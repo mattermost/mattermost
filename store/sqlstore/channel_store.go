@@ -1025,9 +1025,9 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int, onlyDeleted bool) (*model.ChannelList, *model.AppError) {
 	deleteQuery := "AND pc.DeleteAt = 0"
-	if includeDeleted {
+	if onlyDeleted {
 		deleteQuery = "AND pc.DeleteAt != 0"
 	}
 	channels := &model.ChannelList{}
