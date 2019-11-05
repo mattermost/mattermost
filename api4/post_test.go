@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -74,6 +75,60 @@ func TestCreatePost(t *testing.T) {
 	if rpost2.CreateAt == post2.CreateAt {
 		t.Fatal("create at should not match")
 	}
+
+	t.Run("with file uploaded by same user", func(t *testing.T) {
+		fileResp, subResponse := Client.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
+		CheckNoError(t, subResponse)
+		fileId := fileResp.FileInfos[0].Id
+
+		postWithFiles, subResponse := Client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with files",
+			FileIds:   model.StringArray{fileId},
+		})
+		CheckNoError(t, subResponse)
+		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
+
+		actualPostWithFiles, subResponse := Client.GetPost(postWithFiles.Id, "")
+		CheckNoError(t, subResponse)
+		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
+	})
+
+	t.Run("with file uploaded by different user", func(t *testing.T) {
+		fileResp, subResponse := th.SystemAdminClient.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
+		CheckNoError(t, subResponse)
+		fileId := fileResp.FileInfos[0].Id
+
+		postWithFiles, subResponse := Client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with files",
+			FileIds:   model.StringArray{fileId},
+		})
+		CheckNoError(t, subResponse)
+		assert.Empty(t, postWithFiles.FileIds)
+
+		actualPostWithFiles, subResponse := Client.GetPost(postWithFiles.Id, "")
+		CheckNoError(t, subResponse)
+		assert.Empty(t, actualPostWithFiles.FileIds)
+	})
+
+	t.Run("with file uploaded by nouser", func(t *testing.T) {
+		fileInfo, err := th.App.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
+		require.Nil(t, err)
+		fileId := fileInfo.Id
+
+		postWithFiles, subResponse := Client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with files",
+			FileIds:   model.StringArray{fileId},
+		})
+		CheckNoError(t, subResponse)
+		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
+
+		actualPostWithFiles, subResponse := Client.GetPost(postWithFiles.Id, "")
+		CheckNoError(t, subResponse)
+		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
+	})
 
 	post.RootId = ""
 	post.ParentId = ""
@@ -186,7 +241,7 @@ func testCreatePostWithOutgoingHook(
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	var hook *model.OutgoingWebhook
@@ -532,95 +587,154 @@ func TestUpdatePost(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense())
 
-	post := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a"}
-	rpost, resp := Client.CreatePost(post)
-	CheckNoError(t, resp)
-
-	if rpost.Message != post.Message {
-		t.Fatal("full name didn't match")
+	fileIds := make([]string, 3)
+	data, err := testutils.ReadTestFile("test.png")
+	require.Nil(t, err)
+	for i := 0; i < len(fileIds); i++ {
+		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
+		CheckNoError(t, resp)
+		fileIds[i] = fileResp.FileInfos[0].Id
 	}
 
-	if rpost.EditAt != 0 {
-		t.Fatal("Newly created post shouldn't have EditAt set")
-	}
+	rpost, err := th.App.CreatePost(&model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   "zz" + model.NewId() + "a",
+		FileIds:   fileIds,
+	}, channel, false)
+	require.Nil(t, err)
 
-	msg := "zz" + model.NewId() + " update post"
-	rpost.Message = msg
-	rpost.UserId = ""
+	assert.Equal(t, rpost.Message, rpost.Message, "full name didn't match")
+	assert.EqualValues(t, 0, rpost.EditAt, "Newly created post shouldn't have EditAt set")
+	assert.Equal(t, model.StringArray(fileIds), rpost.FileIds, "FileIds should have been set")
 
-	rupost, resp := Client.UpdatePost(rpost.Id, rpost)
-	CheckNoError(t, resp)
+	t.Run("same message, fewer files", func(t *testing.T) {
+		msg := "zz" + model.NewId() + " update post"
+		rpost.Message = msg
+		rpost.UserId = ""
 
-	if rupost.Message != msg {
-		t.Fatal("failed to updates")
-	}
-	if rupost.EditAt == 0 {
-		t.Fatal("EditAt not updated for post")
-	}
+		rupost, resp := Client.UpdatePost(rpost.Id, &model.Post{
+			Id:      rpost.Id,
+			Message: rpost.Message,
+			FileIds: fileIds[0:2], // one fewer file id
+		})
+		CheckNoError(t, resp)
 
-	msg1 := "#hashtag a" + model.NewId() + " update post again"
-	rpost.Message = msg1
-	rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
-	rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
-	CheckNoError(t, resp)
+		assert.Equal(t, rupost.Message, msg, "failed to updates")
+		assert.NotEqual(t, 0, rupost.EditAt, "EditAt not updated for post")
+		assert.Equal(t, model.StringArray(fileIds), rupost.FileIds, "FileIds should have not have been updated")
 
-	if rrupost.Message != msg1 && rrupost.Hashtags != "#hashtag" {
-		t.Fatal("failed to updates")
-	}
+		actual, resp := Client.GetPost(rpost.Id, "")
+		CheckNoError(t, resp)
 
-	if rrupost.Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
-		t.Fatal("failed to sanitize Props['add_channel_member'], should be nil")
-	}
-
-	rpost2, err := th.App.CreatePost(&model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE, UserId: th.BasicUser.Id}, channel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	up2 := &model.Post{Id: rpost2.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 2"}
-	_, resp = Client.UpdatePost(rpost2.Id, up2)
-	CheckBadRequestStatus(t, resp)
-
-	rpost3, err := th.App.CreatePost(&model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", UserId: th.BasicUser.Id}, channel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	fileIds := model.StringArray{"abcdef", "geh"}
-	up3 := &model.Post{Id: rpost3.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 3", FileIds: fileIds}
-	rrupost3, resp := Client.UpdatePost(rpost3.Id, up3)
-	CheckNoError(t, resp)
-	assert.Empty(t, rrupost3.FileIds)
-
-	up4 := &model.Post{Id: rpost3.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 3"}
-	up4.AddProp("attachments", []model.SlackAttachment{
-		{
-			Text: "Hello World",
-		},
+		assert.Equal(t, actual.Message, msg, "failed to updates")
+		assert.NotEqual(t, 0, actual.EditAt, "EditAt not updated for post")
+		assert.Equal(t, model.StringArray(fileIds), actual.FileIds, "FileIds should have not have been updated")
 	})
-	rrupost3, resp = Client.UpdatePost(rpost3.Id, up4)
-	CheckNoError(t, resp)
-	assert.NotEqual(t, rpost3.EditAt, rrupost3.EditAt)
-	assert.NotEqual(t, rpost3.Attachments(), rrupost3.Attachments())
 
-	Client.Logout()
-	_, resp = Client.UpdatePost(rpost.Id, rpost)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("new message, invalid props", func(t *testing.T) {
+		msg1 := "#hashtag a" + model.NewId() + " update post again"
+		rpost.Message = msg1
+		rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
+		rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
+		CheckNoError(t, resp)
 
-	th.LoginBasic2()
-	_, resp = Client.UpdatePost(rpost.Id, rpost)
-	CheckForbiddenStatus(t, resp)
+		assert.Equal(t, msg1, rrupost.Message, "failed to update message")
+		assert.Equal(t, "#hashtag", rrupost.Hashtags, "failed to update hashtags")
+		assert.Nil(t, rrupost.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
 
-	Client.Logout()
+		actual, resp := Client.GetPost(rpost.Id, "")
+		CheckNoError(t, resp)
 
-	th.LoginTeamAdmin()
-	_, resp = Client.UpdatePost(rpost.Id, rpost)
-	CheckForbiddenStatus(t, resp)
+		assert.Equal(t, msg1, actual.Message, "failed to update message")
+		assert.Equal(t, "#hashtag", actual.Hashtags, "failed to update hashtags")
+		assert.Nil(t, actual.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
+	})
 
-	Client.Logout()
+	t.Run("join/leave post", func(t *testing.T) {
+		rpost2, err := th.App.CreatePost(&model.Post{
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			Type:      model.POST_JOIN_LEAVE,
+			UserId:    th.BasicUser.Id,
+		}, channel, false)
+		require.Nil(t, err)
 
-	_, resp = th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
-	CheckNoError(t, resp)
+		up2 := &model.Post{
+			Id:        rpost2.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + " update post 2",
+		}
+		_, resp := Client.UpdatePost(rpost2.Id, up2)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	rpost3, err := th.App.CreatePost(&model.Post{
+		ChannelId: channel.Id,
+		Message:   "zz" + model.NewId() + "a",
+		UserId:    th.BasicUser.Id,
+	}, channel, false)
+	require.Nil(t, err)
+
+	t.Run("new message, add files", func(t *testing.T) {
+		up3 := &model.Post{
+			Id:        rpost3.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + " update post 3",
+			FileIds:   fileIds[0:2],
+		}
+		rrupost3, resp := Client.UpdatePost(rpost3.Id, up3)
+		CheckNoError(t, resp)
+		assert.Empty(t, rrupost3.FileIds)
+
+		actual, resp := Client.GetPost(rpost.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, model.StringArray(fileIds), actual.FileIds)
+	})
+
+	t.Run("add slack attachments", func(t *testing.T) {
+		up4 := &model.Post{
+			Id:        rpost3.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + " update post 3",
+		}
+		up4.AddProp("attachments", []model.SlackAttachment{
+			{
+				Text: "Hello World",
+			},
+		})
+		rrupost3, resp := Client.UpdatePost(rpost3.Id, up4)
+		CheckNoError(t, resp)
+		assert.NotEqual(t, rpost3.EditAt, rrupost3.EditAt)
+		assert.NotEqual(t, rpost3.Attachments(), rrupost3.Attachments())
+	})
+
+	t.Run("logged out", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.UpdatePost(rpost.Id, rpost)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("different user", func(t *testing.T) {
+		th.LoginBasic2()
+		_, resp := Client.UpdatePost(rpost.Id, rpost)
+		CheckForbiddenStatus(t, resp)
+
+		Client.Logout()
+	})
+
+	t.Run("different user, but team admin", func(t *testing.T) {
+		th.LoginTeamAdmin()
+		_, resp := Client.UpdatePost(rpost.Id, rpost)
+		CheckForbiddenStatus(t, resp)
+
+		Client.Logout()
+	})
+
+	t.Run("different user, but system admin", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
@@ -656,98 +770,105 @@ func TestPatchPost(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense())
 
+	fileIds := make([]string, 3)
+	data, err := testutils.ReadTestFile("test.png")
+	require.Nil(t, err)
+	for i := 0; i < len(fileIds); i++ {
+		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
+		CheckNoError(t, resp)
+		fileIds[i] = fileResp.FileInfos[0].Id
+	}
+
 	post := &model.Post{
 		ChannelId:    channel.Id,
 		IsPinned:     true,
 		Message:      "#hashtag a message",
 		Props:        model.StringInterface{"channel_header": "old_header"},
-		FileIds:      model.StringArray{"file1", "file2"},
+		FileIds:      fileIds[0:2],
 		HasReactions: true,
 	}
 	post, _ = Client.CreatePost(post)
 
-	patch := &model.PostPatch{}
+	var rpost *model.Post
+	t.Run("new message, props, files, HasReactions bit", func(t *testing.T) {
+		patch := &model.PostPatch{}
 
-	patch.IsPinned = model.NewBool(false)
-	patch.Message = model.NewString("#otherhashtag other message")
-	patch.Props = new(model.StringInterface)
-	*patch.Props = model.StringInterface{"channel_header": "new_header"}
-	patch.FileIds = new(model.StringArray)
-	*patch.FileIds = model.StringArray{"file1", "otherfile2", "otherfile3"}
-	patch.HasReactions = model.NewBool(false)
+		patch.IsPinned = model.NewBool(false)
+		patch.Message = model.NewString("#otherhashtag other message")
+		patch.Props = &model.StringInterface{"channel_header": "new_header"}
+		patchFileIds := model.StringArray(fileIds) // one extra file
+		patch.FileIds = &patchFileIds
+		patch.HasReactions = model.NewBool(false)
 
-	rpost, resp := Client.PatchPost(post.Id, patch)
-	CheckNoError(t, resp)
+		var resp *model.Response
+		rpost, resp = Client.PatchPost(post.Id, patch)
+		CheckNoError(t, resp)
 
-	if rpost.IsPinned {
-		t.Fatal("IsPinned did not update properly")
-	}
-	if rpost.Message != "#otherhashtag other message" {
-		t.Fatal("Message did not update properly")
-	}
-	if len(rpost.Props) != 1 {
-		t.Fatal("Props did not update properly")
-	}
-	if !reflect.DeepEqual(rpost.Props, *patch.Props) {
-		t.Fatal("Props did not update properly")
-	}
-	if rpost.Hashtags != "#otherhashtag" {
-		t.Fatal("Message did not update properly")
-	}
-	if len(rpost.FileIds) == 3 {
-		t.Fatal("FileIds should not update properly")
-	}
-	if reflect.DeepEqual(rpost.FileIds, *patch.FileIds) {
-		t.Fatal("FileIds should not update")
-	}
-	if rpost.HasReactions {
-		t.Fatal("HasReactions did not update properly")
-	}
+		assert.False(t, rpost.IsPinned, "IsPinned did not update properly")
+		assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
+		assert.Equal(t, *patch.Props, rpost.Props, "Props did not update properly")
+		assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
+		assert.Equal(t, model.StringArray(fileIds[0:2]), rpost.FileIds, "FileIds should not update")
+		assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
+	})
 
-	patch2 := &model.PostPatch{}
-	attachments := []model.SlackAttachment{
-		{
-			Text: "Hello World",
-		},
-	}
-	patch2.Props = new(model.StringInterface)
-	*patch2.Props = model.StringInterface{"attachments": attachments}
-
-	rpost2, resp := Client.PatchPost(post.Id, patch2)
-	CheckNoError(t, resp)
-	assert.NotEmpty(t, rpost2.Props["attachments"])
-	assert.NotEqual(t, rpost.EditAt, rpost2.EditAt)
-
-	if r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage"); err == nil {
-		t.Fatal("should have errored")
-	} else {
-		if r.StatusCode != http.StatusBadRequest {
-			t.Log("actual: " + strconv.Itoa(r.StatusCode))
-			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
-			t.Fatal("wrong status code")
+	t.Run("add slack attachments", func(t *testing.T) {
+		patch2 := &model.PostPatch{}
+		attachments := []model.SlackAttachment{
+			{
+				Text: "Hello World",
+			},
 		}
-	}
+		patch2.Props = &model.StringInterface{"attachments": attachments}
 
-	_, resp = Client.PatchPost("junk", patch)
-	CheckBadRequestStatus(t, resp)
+		rpost2, resp := Client.PatchPost(post.Id, patch2)
+		CheckNoError(t, resp)
+		assert.NotEmpty(t, rpost2.Props["attachments"])
+		assert.NotEqual(t, rpost.EditAt, rpost2.EditAt)
+	})
 
-	_, resp = Client.PatchPost(GenerateTestId(), patch)
-	CheckForbiddenStatus(t, resp)
+	t.Run("invalid requests", func(t *testing.T) {
+		r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage")
+		require.EqualError(t, err, ": Invalid or missing post in request body, ")
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
-	Client.Logout()
-	_, resp = Client.PatchPost(post.Id, patch)
-	CheckUnauthorizedStatus(t, resp)
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost("junk", patch)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	th.LoginBasic2()
-	_, resp = Client.PatchPost(post.Id, patch)
-	CheckForbiddenStatus(t, resp)
+	t.Run("unknown post", func(t *testing.T) {
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost(GenerateTestId(), patch)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	th.LoginTeamAdmin()
-	_, resp = Client.PatchPost(post.Id, patch)
-	CheckForbiddenStatus(t, resp)
+	t.Run("logged out", func(t *testing.T) {
+		Client.Logout()
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost(post.Id, patch)
+		CheckUnauthorizedStatus(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.PatchPost(post.Id, patch)
-	CheckNoError(t, resp)
+	t.Run("different user", func(t *testing.T) {
+		th.LoginBasic2()
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost(post.Id, patch)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("different user, but team admin", func(t *testing.T) {
+		th.LoginTeamAdmin()
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost(post.Id, patch)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("different user, but system admin", func(t *testing.T) {
+		patch := &model.PostPatch{}
+		_, resp := th.SystemAdminClient.PatchPost(post.Id, patch)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestPinPost(t *testing.T) {
@@ -1716,20 +1837,73 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	post2 := th.CreatePost()
 	post3 := th.CreatePost()
 	post4 := th.CreatePost()
-	th.CreatePost() // post5
-	post6 := th.CreatePost()
-	post7 := th.CreatePost()
-	post8 := th.CreatePost()
-	post9 := th.CreatePost()
-	post10 := th.CreatePost()
+	post5 := th.CreatePost()
+	replyPost := &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post4.Id, ParentId: post4.Id}
+	post6, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post7, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post8, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post9, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+	post10, resp := Client.CreatePost(replyPost)
+	CheckNoError(t, resp)
+
+	postIdNames := map[string]string{
+		post1.Id:  "post1",
+		post2.Id:  "post2",
+		post3.Id:  "post3",
+		post4.Id:  "post4",
+		post5.Id:  "post5",
+		post6.Id:  "post6 (reply to post4)",
+		post7.Id:  "post7 (reply to post4)",
+		post8.Id:  "post8 (reply to post4)",
+		post9.Id:  "post9 (reply to post4)",
+		post10.Id: "post10 (reply to post4)",
+	}
+
+	namePost := func(postId string) string {
+		name, ok := postIdNames[postId]
+		if ok {
+			return name
+		}
+
+		return fmt.Sprintf("unknown (%s)", postId)
+	}
+
+	namePosts := func(postIds []string) []string {
+		namedPostIds := make([]string, 0, len(postIds))
+		for _, postId := range postIds {
+			namedPostIds = append(namedPostIds, namePost(postId))
+		}
+
+		return namedPostIds
+	}
+
+	namePostsMap := func(posts map[string]*model.Post) []string {
+		namedPostIds := make([]string, 0, len(posts))
+		for postId := range posts {
+			namedPostIds = append(namedPostIds, namePost(postId))
+		}
+		sort.Strings(namedPostIds)
+
+		return namedPostIds
+	}
+
+	assertPostList := func(t *testing.T, expected, actual *model.PostList) {
+		t.Helper()
+
+		require.Equal(t, namePosts(expected.Order), namePosts(actual.Order), "unexpected post order")
+		require.Equal(t, namePostsMap(expected.Posts), namePostsMap(actual.Posts), "unexpected posts")
+		require.Equal(t, namePost(expected.NextPostId), namePost(actual.NextPostId), "unexpected next post id")
+		require.Equal(t, namePost(expected.PrevPostId), namePost(actual.PrevPostId), "unexpected prev post id")
+	}
 
 	// All returned posts are all read by the user, since it's created by the user itself.
 	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
 	CheckNoError(t, resp)
-
-	if len(posts.Order) != 12 {
-		t.Fatal("Should return 12 posts only since there's no unread post")
-	}
+	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
 
 	// Set channel member's last viewed to 0.
 	// All returned posts are latest posts as if all previous posts were already read by the user.
@@ -1743,14 +1917,15 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 12 {
-		t.Fatal("Should return 12 posts only since there's no unread post")
-	}
+	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
 
 	// get the first system post generated before the created posts above
 	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
 	CheckNoError(t, resp)
-	systemPostId1 := posts.Order[1]
+	systemPost0 := posts.Posts[posts.Order[0]]
+	postIdNames[systemPost0.Id] = "system post 0"
+	systemPost1 := posts.Posts[posts.Order[1]]
+	postIdNames[systemPost1.Id] = "system post 1"
 
 	// Set channel member's last viewed before post1.
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
@@ -1763,15 +1938,18 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 5 || posts.Order[0] != post3.Id || posts.Order[4] != systemPostId1 {
-		t.Fatal("Should return 5 posts and match order")
-	}
-	if posts.NextPostId != post4.Id {
-		t.Fatal("should return post4.Id as NextPostId")
-	}
-	if posts.PrevPostId != "" {
-		t.Fatal("should return an empty PrevPostId")
-	}
+	assertPostList(t, &model.PostList{
+		Order: []string{post3.Id, post2.Id, post1.Id, systemPost0.Id, systemPost1.Id},
+		Posts: map[string]*model.Post{
+			systemPost0.Id: systemPost0,
+			systemPost1.Id: systemPost1,
+			post1.Id:       post1,
+			post2.Id:       post2,
+			post3.Id:       post3,
+		},
+		NextPostId: post4.Id,
+		PrevPostId: "",
+	}, posts)
 
 	// Set channel member's last viewed before post6.
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
@@ -1784,15 +1962,21 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 6 || posts.Order[0] != post8.Id || posts.Order[5] != post3.Id {
-		t.Fatal("Should return 6 posts and match order")
-	}
-	if posts.NextPostId != post9.Id {
-		t.Fatal("should return post8.Id as NextPostId")
-	}
-	if posts.PrevPostId != post2.Id {
-		t.Fatal("should return post2.Id as PrevPostId")
-	}
+	assertPostList(t, &model.PostList{
+		Order: []string{post8.Id, post7.Id, post6.Id, post5.Id, post4.Id, post3.Id},
+		Posts: map[string]*model.Post{
+			post3.Id:  post3,
+			post4.Id:  post4,
+			post5.Id:  post5,
+			post6.Id:  post6,
+			post7.Id:  post7,
+			post8.Id:  post8,
+			post9.Id:  post9,
+			post10.Id: post10,
+		},
+		NextPostId: post9.Id,
+		PrevPostId: post2.Id,
+	}, posts)
 
 	// Set channel member's last viewed before post10.
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
@@ -1805,15 +1989,19 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 4 || posts.Order[0] != post10.Id || posts.Order[3] != post7.Id {
-		t.Fatal("Should return 4 posts and match order")
-	}
-	if posts.NextPostId != "" {
-		t.Fatal("should return an empty NextPostId")
-	}
-	if posts.PrevPostId != post6.Id {
-		t.Fatal("should return post6.Id as PrevPostId")
-	}
+	assertPostList(t, &model.PostList{
+		Order: []string{post10.Id, post9.Id, post8.Id, post7.Id},
+		Posts: map[string]*model.Post{
+			post4.Id:  post4,
+			post6.Id:  post6,
+			post7.Id:  post7,
+			post8.Id:  post8,
+			post9.Id:  post9,
+			post10.Id: post10,
+		},
+		NextPostId: "",
+		PrevPostId: post6.Id,
+	}, posts)
 
 	// Set channel member's last viewed equal to post10.
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
@@ -1826,15 +2014,62 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 3 || posts.Order[0] != post10.Id || posts.Order[2] != post8.Id {
-		t.Fatal("Should return 3 posts and match order")
-	}
-	if posts.NextPostId != "" {
-		t.Fatal("should return an empty NextPostId")
-	}
-	if posts.PrevPostId != post7.Id {
-		t.Fatal("should return post7.Id as PrevPostId")
-	}
+	assertPostList(t, &model.PostList{
+		Order: []string{post10.Id, post9.Id, post8.Id},
+		Posts: map[string]*model.Post{
+			post4.Id:  post4,
+			post6.Id:  post6,
+			post7.Id:  post7,
+			post8.Id:  post8,
+			post9.Id:  post9,
+			post10.Id: post10,
+		},
+		NextPostId: "",
+		PrevPostId: post7.Id,
+	}, posts)
+
+	// Set channel member's last viewed to just before a new reply to a previous thread, not
+	// otherwise in the requested window.
+	post11 := th.CreatePost()
+	post12, resp := Client.CreatePost(&model.Post{
+		ChannelId: channelId,
+		Message:   model.NewId(),
+		RootId:    post4.Id,
+		ParentId:  post4.Id,
+	})
+	CheckNoError(t, resp)
+	post13 := th.CreatePost()
+
+	postIdNames[post11.Id] = "post11"
+	postIdNames[post12.Id] = "post12 (reply to post4)"
+	postIdNames[post13.Id] = "post13"
+
+	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	require.Nil(t, err)
+	channelMember.LastViewedAt = post12.CreateAt - 1
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
+	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 1, 2)
+	CheckNoError(t, resp)
+
+	assertPostList(t, &model.PostList{
+		Order: []string{post13.Id, post12.Id, post11.Id},
+		Posts: map[string]*model.Post{
+			post4.Id:  post4,
+			post6.Id:  post6,
+			post7.Id:  post7,
+			post8.Id:  post8,
+			post9.Id:  post9,
+			post10.Id: post10,
+			post11.Id: post11,
+			post12.Id: post12,
+			post13.Id: post13,
+		},
+		NextPostId: "",
+		PrevPostId: post10.Id,
+	}, posts)
 }
 
 func TestGetPost(t *testing.T) {

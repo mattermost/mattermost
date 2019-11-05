@@ -79,6 +79,64 @@ func TestDisableAutoResponder(t *testing.T) {
 	assert.Equal(t, userUpdated2.NotifyProps["auto_responder_active"], "false")
 }
 
+func TestSendAutoResponseIfNecessary(t *testing.T) {
+	t.Run("should send auto response when enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		receiver := th.CreateUser()
+
+		patch := &model.UserPatch{
+			NotifyProps: map[string]string{
+				"auto_responder_active":  "true",
+				"auto_responder_message": "Hello, I'm unavailable today.",
+			},
+		}
+		receiver, err := th.App.PatchUser(receiver.Id, patch, true)
+		require.Nil(t, err)
+
+		channel := th.CreateDmChannel(receiver)
+
+		sent, err := th.App.SendAutoResponseIfNecessary(channel, th.BasicUser)
+
+		assert.Nil(t, err)
+		assert.True(t, sent)
+	})
+
+	t.Run("should not send auto response when disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		receiver := th.CreateUser()
+
+		patch := &model.UserPatch{
+			NotifyProps: map[string]string{
+				"auto_responder_active":  "false",
+				"auto_responder_message": "Hello, I'm unavailable today.",
+			},
+		}
+		receiver, err := th.App.PatchUser(receiver.Id, patch, true)
+		require.Nil(t, err)
+
+		channel := th.CreateDmChannel(receiver)
+
+		sent, err := th.App.SendAutoResponseIfNecessary(channel, th.BasicUser)
+
+		assert.Nil(t, err)
+		assert.False(t, sent)
+	})
+
+	t.Run("should not send auto response for non-DM channel", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		sent, err := th.App.SendAutoResponseIfNecessary(th.BasicChannel, th.BasicUser)
+
+		assert.Nil(t, err)
+		assert.False(t, sent)
+	})
+}
+
 func TestSendAutoResponseSuccess(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -101,7 +159,10 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 		th.BasicChannel,
 		false)
 
-	th.App.SendAutoResponse(th.BasicChannel, userUpdated1)
+	sent, err := th.App.SendAutoResponse(th.BasicChannel, userUpdated1)
+
+	assert.Nil(t, err)
+	assert.True(t, sent)
 
 	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
 		require.Nil(t, err)
@@ -138,7 +199,10 @@ func TestSendAutoResponseFailure(t *testing.T) {
 		th.BasicChannel,
 		false)
 
-	th.App.SendAutoResponse(th.BasicChannel, userUpdated1)
+	sent, err := th.App.SendAutoResponse(th.BasicChannel, userUpdated1)
+
+	assert.Nil(t, err)
+	assert.False(t, sent)
 
 	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
 		require.Nil(t, err)

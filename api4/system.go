@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -26,6 +27,7 @@ func (api *API) InitSystem() {
 
 	api.BaseRoutes.ApiRoot.Handle("/audits", api.ApiSessionRequired(getAudits)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/email/test", api.ApiSessionRequired(testEmail)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/site_url/test", api.ApiSessionRequired(testSiteURL)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/file/s3_test", api.ApiSessionRequired(testS3)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/database/recycle", api.ApiSessionRequired(databaseRecycle)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/caches/invalidate", api.ApiSessionRequired(invalidateCaches)).Methods("POST")
@@ -54,7 +56,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	actualGoroutines := runtime.NumGoroutine()
 	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold > 0 && actualGoroutines >= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
-		mlog.Warn(fmt.Sprintf("The number of running goroutines (%v) is over the health threshold (%v)", actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
+		mlog.Warn("The number of running goroutines is over the health threshold", mlog.Int("goroutines", actualGoroutines), mlog.Int("health_threshold", *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
 		s[model.STATUS] = model.STATUS_UNHEALTHY
 	}
 
@@ -64,11 +66,32 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("get_server_status") != "" {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.STATUS_OK
-		_, appErr := c.App.Srv.Store.System().Get()
-		if appErr != nil {
-			mlog.Debug(fmt.Sprintf("Unable to get database status: %s", appErr.Error()))
+
+		// Database Write/Read Check
+		currentTime := fmt.Sprintf("%d", time.Now().Unix())
+		healthCheckKey := "health_check"
+
+		writeErr := c.App.Srv.Store.System().SaveOrUpdate(&model.System{
+			Name:  healthCheckKey,
+			Value: currentTime,
+		})
+		if writeErr != nil {
+			mlog.Debug("Unable to write to database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
+		} else {
+			healthCheck, readErr := c.App.Srv.Store.System().GetByName(healthCheckKey)
+			if readErr != nil {
+				mlog.Debug("Unable to read from database.", mlog.Err(readErr))
+				s[dbStatusKey] = model.STATUS_UNHEALTHY
+				s[model.STATUS] = model.STATUS_UNHEALTHY
+			} else if healthCheck.Value != currentTime {
+				mlog.Debug("Incorrect healthcheck value", mlog.String("expected", currentTime), mlog.String("got", healthCheck.Value))
+				s[dbStatusKey] = model.STATUS_UNHEALTHY
+				s[model.STATUS] = model.STATUS_UNHEALTHY
+			} else {
+				mlog.Debug("Able to write/read files to database")
+			}
 		}
 
 		filestoreStatusKey := "filestore_status"
@@ -82,7 +105,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 				s[model.STATUS] = model.STATUS_UNHEALTHY
 			}
 		} else {
-			mlog.Debug(fmt.Sprintf("Unable to get filestore for ping status: %s", appErr.Error()))
+			mlog.Debug("Unable to get filestore for ping status.", mlog.Err(appErr))
 			s[filestoreStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		}
@@ -115,6 +138,32 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := c.App.TestEmail(c.App.Session.UserId, cfg)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("testSiteURL", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	props := model.MapFromJson(r.Body)
+	siteURL := props["site_url"]
+	if siteURL == "" {
+		c.SetInvalidParam("site_url")
+		return
+	}
+	err := c.App.TestSiteURL(siteURL)
 	if err != nil {
 		c.Err = err
 		return
@@ -213,14 +262,16 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		msg = msg[0:399]
 	}
 
+	msg = "Client Logs API Endpoint Message: " + msg
+	fields := []mlog.Field{
+		mlog.String("type", "client_message"),
+		mlog.String("user_agent", c.App.UserAgent),
+	}
+
 	if !forceToDebug && lvl == "ERROR" {
-		err := &model.AppError{}
-		err.Message = msg
-		err.Id = msg
-		err.Where = "client"
-		c.LogError(err)
+		mlog.Error(msg, fields...)
 	} else {
-		mlog.Debug(fmt.Sprint(msg))
+		mlog.Debug(msg, fields...)
 	}
 
 	m["message"] = msg
@@ -348,7 +399,6 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))
-	return
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -366,5 +416,4 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
-	return
 }

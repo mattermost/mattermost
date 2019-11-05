@@ -19,7 +19,7 @@ import (
 	"reflect"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	plugin "github.com/hashicorp/go-plugin"
+	"github.com/hashicorp/go-plugin"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -56,11 +56,13 @@ func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (interface
 }
 
 type apiRPCClient struct {
-	client *rpc.Client
+	client    *rpc.Client
+	muxBroker *plugin.MuxBroker
 }
 
 type apiRPCServer struct {
-	impl API
+	impl      API
+	muxBroker *plugin.MuxBroker
 }
 
 // ErrorString is a fallback for sending unregistered implementations of the error interface across
@@ -171,7 +173,8 @@ type Z_OnActivateReturns struct {
 func (g *hooksRPCClient) OnActivate() error {
 	muxId := g.muxBroker.NextId()
 	go g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
-		impl: g.apiImpl,
+		impl:      g.apiImpl,
+		muxBroker: g.muxBroker,
 	})
 
 	_args := &Z_OnActivateArgs{
@@ -192,7 +195,8 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 	}
 
 	s.apiRPCClient = &apiRPCClient{
-		client: rpc.NewClient(connection),
+		client:    rpc.NewClient(connection),
+		muxBroker: s.muxBroker,
 	}
 
 	if mmplugin, ok := s.impl.(interface {
@@ -286,8 +290,8 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		defer connection.Close()
 
 		rpcServer := rpc.NewServer()
-		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w}); err != nil {
-			g.log.Error("Plugin failed to ServeHTTP, coulden't register RPC name", mlog.Err(err))
+		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w, log: g.log}); err != nil {
+			g.log.Error("Plugin failed to ServeHTTP, couldn't register RPC name", mlog.Err(err))
 			return
 		}
 		rpcServer.ServeConn(connection)
@@ -363,6 +367,76 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 	return nil
 }
 
+type Z_PluginHTTPArgs struct {
+	Request     *http.Request
+	RequestBody []byte
+}
+
+type Z_PluginHTTPReturns struct {
+	Response     *http.Response
+	ResponseBody []byte
+}
+
+func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
+	forwardedRequest := &http.Request{
+		Method:     request.Method,
+		URL:        request.URL,
+		Proto:      request.Proto,
+		ProtoMajor: request.ProtoMajor,
+		ProtoMinor: request.ProtoMinor,
+		Header:     request.Header,
+		Host:       request.Host,
+		RemoteAddr: request.RemoteAddr,
+		RequestURI: request.RequestURI,
+	}
+
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		log.Printf("RPC call to PluginHTTP API failed: %s", err.Error())
+		return nil
+	}
+	request.Body.Close()
+	request.Body = nil
+
+	_args := &Z_PluginHTTPArgs{
+		Request:     forwardedRequest,
+		RequestBody: requestBody,
+	}
+
+	_returns := &Z_PluginHTTPReturns{}
+	if err := g.client.Call("Plugin.PluginHTTP", _args, _returns); err != nil {
+		log.Printf("RPC call to PluginHTTP API failed: %s", err.Error())
+		return nil
+	}
+
+	_returns.Response.Body = ioutil.NopCloser(bytes.NewBuffer(_returns.ResponseBody))
+
+	return _returns.Response
+}
+
+func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPReturns) error {
+	args.Request.Body = ioutil.NopCloser(bytes.NewBuffer(args.RequestBody))
+
+	if hook, ok := s.impl.(interface {
+		PluginHTTP(request *http.Request) *http.Response
+	}); ok {
+		response := hook.PluginHTTP(args.Request)
+
+		responseBody, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return encodableError(fmt.Errorf("RPC call to PluginHTTP API failed: %s", err.Error()))
+		}
+		response.Body.Close()
+		response.Body = nil
+
+		returns.Response = response
+		returns.ResponseBody = responseBody
+	} else {
+		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented."))
+	}
+	return nil
+}
+
 func init() {
 	hookNameToId["FileWillBeUploaded"] = FileWillBeUploadedId
 }
@@ -395,26 +469,31 @@ func (g *hooksRPCClient) FileWillBeUploaded(c *Context, info *model.FileInfo, fi
 		serveIOReader(file, uploadedFileConnection)
 	}()
 
+	replacementDone := make(chan bool)
 	replacementFileStreamId := g.muxBroker.NextId()
 	go func() {
+		defer close(replacementDone)
+
 		replacementFileConnection, err := g.muxBroker.Accept(replacementFileStreamId)
 		if err != nil {
 			g.log.Error("Plugin failed to serve replacement file stream. MuxBroker could not Accept connection", mlog.Err(err))
 			return
 		}
 		defer replacementFileConnection.Close()
-		if _, err := io.Copy(output, replacementFileConnection); err != nil && err != io.EOF {
+		if _, err := io.Copy(output, replacementFileConnection); err != nil {
 			g.log.Error("Error reading replacement file.", mlog.Err(err))
 		}
 	}()
 
 	_args := &Z_FileWillBeUploadedArgs{c, info, uploadedFileStreamId, replacementFileStreamId}
 	_returns := &Z_FileWillBeUploadedReturns{A: _args.B}
-	if g.implemented[FileWillBeUploadedId] {
-		if err := g.client.Call("Plugin.FileWillBeUploaded", _args, _returns); err != nil {
-			g.log.Error("RPC call FileWillBeUploaded to plugin failed.", mlog.Err(err))
-		}
+	if err := g.client.Call("Plugin.FileWillBeUploaded", _args, _returns); err != nil {
+		g.log.Error("RPC call FileWillBeUploaded to plugin failed.", mlog.Err(err))
 	}
+
+	// Ensure the io.Copy from the replacementFileConnection above completes.
+	<-replacementDone
+
 	return _returns.A, _returns.B
 }
 
@@ -523,6 +602,121 @@ func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, 
 
 	} else {
 		return encodableError(fmt.Errorf("Hook MessageWillBeUpdated called but not implemented."))
+	}
+	return nil
+}
+
+type Z_LogDebugArgs struct {
+	A string
+	B []interface{}
+}
+
+type Z_LogDebugReturns struct {
+}
+
+func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...interface{}) {
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
+	_args := &Z_LogDebugArgs{msg, stringifiedPairs}
+	_returns := &Z_LogDebugReturns{}
+	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
+		log.Printf("RPC call to LogDebug API failed: %s", err.Error())
+	}
+
+}
+
+func (s *apiRPCServer) LogDebug(args *Z_LogDebugArgs, returns *Z_LogDebugReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogDebug(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogDebug(args.A, args.B...)
+	} else {
+		return encodableError(fmt.Errorf("API LogDebug called but not implemented."))
+	}
+	return nil
+}
+
+type Z_LogInfoArgs struct {
+	A string
+	B []interface{}
+}
+
+type Z_LogInfoReturns struct {
+}
+
+func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...interface{}) {
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
+	_args := &Z_LogInfoArgs{msg, stringifiedPairs}
+	_returns := &Z_LogInfoReturns{}
+	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
+		log.Printf("RPC call to LogInfo API failed: %s", err.Error())
+	}
+
+}
+
+func (s *apiRPCServer) LogInfo(args *Z_LogInfoArgs, returns *Z_LogInfoReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogInfo(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogInfo(args.A, args.B...)
+	} else {
+		return encodableError(fmt.Errorf("API LogInfo called but not implemented."))
+	}
+	return nil
+}
+
+type Z_LogWarnArgs struct {
+	A string
+	B []interface{}
+}
+
+type Z_LogWarnReturns struct {
+}
+
+func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...interface{}) {
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
+	_args := &Z_LogWarnArgs{msg, stringifiedPairs}
+	_returns := &Z_LogWarnReturns{}
+	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
+		log.Printf("RPC call to LogWarn API failed: %s", err.Error())
+	}
+
+}
+
+func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogWarn(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogWarn(args.A, args.B...)
+	} else {
+		return encodableError(fmt.Errorf("API LogWarn called but not implemented."))
+	}
+	return nil
+}
+
+type Z_LogErrorArgs struct {
+	A string
+	B []interface{}
+}
+
+type Z_LogErrorReturns struct {
+}
+
+func (g *apiRPCClient) LogError(msg string, keyValuePairs ...interface{}) {
+	stringifiedPairs := stringifyToObjects(keyValuePairs)
+	_args := &Z_LogErrorArgs{msg, stringifiedPairs}
+	_returns := &Z_LogErrorReturns{}
+	if err := g.client.Call("Plugin.LogError", _args, _returns); err != nil {
+		log.Printf("RPC call to LogError API failed: %s", err.Error())
+	}
+}
+
+func (s *apiRPCServer) LogError(args *Z_LogErrorArgs, returns *Z_LogErrorReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogError(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogError(args.A, args.B...)
+	} else {
+		return encodableError(fmt.Errorf("API LogError called but not implemented."))
 	}
 	return nil
 }

@@ -6023,10 +6023,6 @@
     "translation": "Não foi possível selecionar as publicações para excluir do usuário (muitos), por favor, re-executar"
   },
   {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "Não foi possível determinar o tamanho máximo de publicação suportado"
-  },
-  {
     "id": "store.sql_post.save.app_error",
     "translation": "Não foi possível salvar a Publicação"
   },

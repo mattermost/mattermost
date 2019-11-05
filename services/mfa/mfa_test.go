@@ -4,9 +4,13 @@
 package mfa
 
 import (
+	b32 "encoding/base32"
+	"fmt"
 	"net/url"
 	"testing"
+	"time"
 
+	"github.com/dgryski/dgoogauth"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/store/storetest/mocks"
@@ -37,9 +41,7 @@ func TestGenerateSecret(t *testing.T) {
 
 	assert.Len(t, secret, 32)
 
-	if len(img) == 0 {
-		t.Fatal("no image set")
-	}
+	require.NotEmpty(t, img, "no image set")
 
 	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(false)
 
@@ -66,4 +68,28 @@ func TestGetIssuerFromUrl(t *testing.T) {
 	for _, c := range cases {
 		assert.Equal(t, c.Expected, getIssuerFromUrl(c.Input))
 	}
+}
+
+func TestActivate(t *testing.T) {
+	user := &model.User{Id: model.NewId(), Roles: "system_user"}
+
+	config := model.Config{}
+	config.SetDefaults()
+	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(true)
+	configService := testutils.StaticConfigService{Cfg: &config}
+	storeMock := mocks.Store{}
+	userStoreMock := mocks.UserStore{}
+	userStoreMock.On("UpdateMfaActive", user.Id, mock.AnythingOfType("bool")).Return(func(userId string, active bool) *model.AppError {
+		return nil
+	})
+	storeMock.On("User").Return(&userStoreMock)
+
+	mfa := Mfa{configService, &storeMock}
+
+	user.MfaSecret = b32.StdEncoding.EncodeToString([]byte(model.NewRandomString(MFA_SECRET_SIZE)))
+
+	token := dgoogauth.ComputeCode(user.MfaSecret, time.Now().UTC().Unix()/30)
+
+	err := mfa.Activate(user, fmt.Sprintf("%06d", token))
+	require.Nil(t, err)
 }

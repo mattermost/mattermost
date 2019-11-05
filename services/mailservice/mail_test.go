@@ -9,7 +9,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -29,24 +28,19 @@ func TestMailConnectionFromConfig(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := fs.Get()
+	conn, err := ConnectToSMTPServer(cfg)
+	require.Nil(t, err, "Should connect to the SMTP Server %v", err)
 
-	if conn, err := ConnectToSMTPServer(cfg); err != nil {
-		t.Log(err)
-		t.Fatal("Should connect to the STMP Server")
-	} else {
-		if _, err1 := NewSMTPClient(conn, cfg); err1 != nil {
-			t.Log(err)
-			t.Fatal("Should get new smtp client")
-		}
-	}
+	_, err = NewSMTPClient(conn, cfg)
+
+	require.Nil(t, err, "Should get new SMTP client")
 
 	*cfg.EmailSettings.SMTPServer = "wrongServer"
 	*cfg.EmailSettings.SMTPPort = "553"
 
-	if _, err := ConnectToSMTPServer(cfg); err == nil {
-		t.Log(err)
-		t.Fatal("Should not to the STMP Server")
-	}
+	_, err = ConnectToSMTPServer(cfg)
+
+	require.NotNil(t, err, "Should not connect to the SMTP Server")
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
@@ -55,7 +49,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 
 	cfg := fs.Get()
 
-	if conn, err := ConnectToSMTPServerAdvanced(
+	conn, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
@@ -63,30 +57,28 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
 			SmtpPort:             *cfg.EmailSettings.SMTPPort,
 		},
-	); err != nil {
-		t.Log(err)
-		t.Fatal("Should connect to the STMP Server")
-	} else {
-		if _, err1 := NewSMTPClientAdvanced(
-			conn,
-			utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
-			&SmtpConnectionInfo{
-				ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
-				SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-				SmtpServerName:       *cfg.EmailSettings.SMTPServer,
-				SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
-				SmtpPort:             *cfg.EmailSettings.SMTPPort,
-				Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
-				SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
-				SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
-			},
-		); err1 != nil {
-			t.Log(err)
-			t.Fatal("Should get new smtp client")
-		}
-	}
+	)
 
-	if _, err := ConnectToSMTPServerAdvanced(
+	require.Nil(t, err, "Should connect to the SMTP Server")
+
+	_, err2 := NewSMTPClientAdvanced(
+		conn,
+		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
+		&SmtpConnectionInfo{
+			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
+			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
+			SmtpServerName:       *cfg.EmailSettings.SMTPServer,
+			SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
+			SmtpPort:             *cfg.EmailSettings.SMTPPort,
+			Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
+			SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
+			SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
+		},
+	)
+
+	require.Nil(t, err2, "Should get new SMTP client")
+
+	_, err3 := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
@@ -94,11 +86,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpServerHost:       "wrongServer",
 			SmtpPort:             "553",
 		},
-	); err == nil {
-		t.Log(err)
-		t.Fatal("Should not to the STMP Server")
-	}
-
+	)
+	require.NotNil(t, err3, "Should not connect to the SMTP Server")
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
@@ -116,32 +105,25 @@ func TestSendMailUsingConfig(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
-	if err := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true); err != nil {
-		t.Log(err)
-		t.Fatal("Should connect to the STMP Server")
+	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true)
+	require.Nil(t, err2, "Should connect to the SMTP Server")
+
+	//Check if the email was send to the right email address
+	var resultsMailbox JSONMessageHeaderInbucket
+	err3 := RetryInbucket(5, func() error {
+		var err error
+		resultsMailbox, err = GetMailBox(emailTo)
+		return err
+	})
+	if err3 != nil {
+		t.Log(err3)
+		t.Log("No email was received, maybe due load on the server. Skipping this verification")
 	} else {
-		//Check if the email was send to the right email address
-		var resultsMailbox JSONMessageHeaderInbucket
-		err := RetryInbucket(5, func() error {
-			var err error
-			resultsMailbox, err = GetMailBox(emailTo)
-			return err
-		})
-		if err != nil {
-			t.Log(err)
-			t.Log("No email was received, maybe due load on the server. Disabling this verification")
-		}
-		if err == nil && len(resultsMailbox) > 0 {
-			if !strings.ContainsAny(resultsMailbox[0].To[0], emailTo) {
-				t.Fatal("Wrong To recipient")
-			} else {
-				if resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID); err == nil {
-					if !strings.Contains(resultsEmail.Body.Text, emailBody) {
-						t.Log(resultsEmail.Body.Text)
-						t.Fatal("Received message")
-					}
-				}
-			}
+		if len(resultsMailbox) > 0 {
+			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+			resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+			require.Nil(t, err, "Could not get message from mailbox")
+			require.Contains(t, emailBody, resultsEmail.Body.Text, "Wrong received message %s", resultsEmail.Body.Text)
 		}
 	}
 }
@@ -168,9 +150,8 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	assert.Nil(t, err)
 
 	// create two files with the same name that will both be attached to the email
-	fileName := "file.txt"
-	filePath1 := fmt.Sprintf("test1/%s", fileName)
-	filePath2 := fmt.Sprintf("test2/%s", fileName)
+	filePath1 := fmt.Sprintf("test1/%s", "file1.txt")
+	filePath2 := fmt.Sprintf("test2/%s", "file2.txt")
 	fileContents1 := []byte("hello world")
 	fileContents2 := []byte("foo bar")
 	_, err = fileBackend.WriteFile(bytes.NewReader(fileContents1), filePath1)
@@ -182,68 +163,70 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 
 	attachments := make([]*model.FileInfo, 2)
 	attachments[0] = &model.FileInfo{
-		Name: fileName,
+		Name: "file1.txt",
 		Path: filePath1,
 	}
 	attachments[1] = &model.FileInfo{
-		Name: fileName,
+		Name: "file2.txt",
 		Path: filePath2,
+	}
+
+	embeddedFiles := map[string]io.Reader{
+		"test": bytes.NewReader([]byte("test data")),
 	}
 
 	headers := make(map[string]string)
 	headers["TestHeader"] = "TestValue"
 
-	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, replyTo, emailSubject, emailBody, attachments, headers, cfg, true); err != nil {
-		t.Log(err)
-		t.Fatal("Should connect to the STMP Server")
-	} else {
-		//Check if the email was send to the right email address
-		var resultsMailbox JSONMessageHeaderInbucket
-		err := RetryInbucket(5, func() error {
-			var err error
-			resultsMailbox, err = GetMailBox(smtpTo)
-			return err
-		})
-		if err != nil {
-			t.Log(err)
-			t.Fatal("No emails found for address " + smtpTo)
-		}
-		if err == nil && len(resultsMailbox) > 0 {
-			if !strings.ContainsAny(resultsMailbox[0].To[0], smtpTo) {
-				t.Fatal("Wrong To recipient")
-			} else {
-				if resultsEmail, err := GetMessageFromMailbox(smtpTo, resultsMailbox[0].ID); err == nil {
-					if !strings.Contains(resultsEmail.Body.Text, emailBody) {
-						t.Log(resultsEmail.Body.Text)
-						t.Fatal("Received message")
-					}
+	err = SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, replyTo, emailSubject, emailBody, attachments, embeddedFiles, headers, cfg, true)
+	require.Nil(t, err, "Should connect to the STMP Server: %v", err)
 
-					// verify that the To header of the email message is set to the MIME recipient, even though we got it out of the SMTP recipient's email inbox
-					assert.Equal(t, mimeTo, resultsEmail.Header["To"][0])
+	//Check if the email was send to the right email address
+	var resultsMailbox JSONMessageHeaderInbucket
+	err = RetryInbucket(5, func() error {
+		var mailErr error
+		resultsMailbox, mailErr = GetMailBox(smtpTo)
+		return mailErr
+	})
+	require.Nil(t, err, "No emails found for address %s. error: %v", smtpTo, err)
+	require.NotEqual(t, len(resultsMailbox), 0)
 
-					// verify that the MIME from address is correct - unfortunately, we can't verify the SMTP from address
-					assert.Equal(t, from.String(), resultsEmail.Header["From"][0])
+	require.Contains(t, resultsMailbox[0].To[0], mimeTo, "Wrong To recipient")
 
-					// check that the custom mime headers came through - header case seems to get mutated
-					assert.Equal(t, "TestValue", resultsEmail.Header["Testheader"][0])
+	resultsEmail, err := GetMessageFromMailbox(smtpTo, resultsMailbox[0].ID)
+	require.Nil(t, err)
 
-					// ensure that the attachments were successfully sent
-					assert.Len(t, resultsEmail.Attachments, 2)
-					assert.Equal(t, fileName, resultsEmail.Attachments[0].Filename)
-					assert.Equal(t, fileName, resultsEmail.Attachments[1].Filename)
-					attachment1 := string(resultsEmail.Attachments[0].Bytes)
-					attachment2 := string(resultsEmail.Attachments[1].Bytes)
-					if attachment1 == string(fileContents1) {
-						assert.Equal(t, attachment2, string(fileContents2))
-					} else if attachment1 == string(fileContents2) {
-						assert.Equal(t, attachment2, string(fileContents1))
-					} else {
-						assert.Fail(t, "Unrecognized attachment contents")
-					}
-				}
-			}
-		}
+	require.Contains(t, emailBody, resultsEmail.Body.Text, "Wrong received message")
+
+	// verify that the To header of the email message is set to the MIME recipient, even though we got it out of the SMTP recipient's email inbox
+	assert.Equal(t, mimeTo, resultsEmail.Header["To"][0])
+
+	// verify that the MIME from address is correct - unfortunately, we can't verify the SMTP from address
+	assert.Equal(t, from.String(), resultsEmail.Header["From"][0])
+
+	// check that the custom mime headers came through - header case seems to get mutated
+	assert.Equal(t, "TestValue", resultsEmail.Header["Testheader"][0])
+
+	// ensure that the attachments were successfully sent
+	assert.Len(t, resultsEmail.Attachments, 3)
+
+	attachmentsFilenames := []string{
+		resultsEmail.Attachments[0].Filename,
+		resultsEmail.Attachments[1].Filename,
+		resultsEmail.Attachments[2].Filename,
 	}
+	assert.Contains(t, attachmentsFilenames, "file1.txt")
+	assert.Contains(t, attachmentsFilenames, "file2.txt")
+	assert.Contains(t, attachmentsFilenames, "test")
+
+	attachment1 := string(resultsEmail.Attachments[0].Bytes)
+	attachment2 := string(resultsEmail.Attachments[1].Bytes)
+	attachment3 := string(resultsEmail.Attachments[2].Bytes)
+	attachmentsData := []string{attachment1, attachment2, attachment3}
+
+	assert.Contains(t, attachmentsData, string(fileContents1))
+	assert.Contains(t, attachmentsData, string(fileContents2))
+	assert.Contains(t, attachmentsData, "test data")
 }
 
 func TestAuthMethods(t *testing.T) {
@@ -298,9 +281,7 @@ func TestAuthMethods(t *testing.T) {
 			if err != nil {
 				got = err.Error()
 			}
-			if got != test.err {
-				t.Errorf("%d. got error = %q; want %q", i, got, test.err)
-			}
+			assert.True(t, got == test.err, "%d. got error = %q; want %q", i, got, test.err)
 		})
 	}
 }
@@ -349,7 +330,7 @@ func TestSendMail(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			appErr = SendMail(mocm, "", "", mail.Address{}, tc.replyTo, "", "", nil, nil, mockBackend, time.Now())
+			appErr = SendMail(mocm, "", "", mail.Address{}, tc.replyTo, "", "", nil, nil, nil, mockBackend, time.Now())
 			require.Nil(t, appErr)
 			if len(tc.contains) > 0 {
 				require.Contains(t, string(mocm.data), tc.contains)

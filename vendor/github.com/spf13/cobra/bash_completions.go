@@ -129,7 +129,13 @@ __%[1]s_handle_reply()
     fi
 
     if [[ ${#COMPREPLY[@]} -eq 0 ]]; then
-        declare -F __custom_func >/dev/null && __custom_func
+		if declare -F __%[1]s_custom_func >/dev/null; then
+			# try command name qualified custom func
+			__%[1]s_custom_func
+		else
+			# otherwise fall back to unqualified for compatibility
+			declare -F __custom_func >/dev/null && __custom_func
+		fi
     fi
 
     # available in bash-completion >= 2, not always present on macOS
@@ -193,7 +199,8 @@ __%[1]s_handle_flag()
     fi
 
     # skip the argument to a two word flag
-    if __%[1]s_contains_word "${words[c]}" "${two_word_flags[@]}"; then
+    if [[ ${words[c]} != *"="* ]] && __%[1]s_contains_word "${words[c]}" "${two_word_flags[@]}"; then
+			  __%[1]s_debug "${FUNCNAME[0]}: found a flag ${words[c]}, skip the next argument"
         c=$((c+1))
         # if we are looking for a flags value, don't show commands
         if [[ $c -eq $cword ]]; then
@@ -373,6 +380,10 @@ func writeFlag(buf *bytes.Buffer, flag *pflag.Flag, cmd *Command) {
 	}
 	format += "\")\n"
 	buf.WriteString(fmt.Sprintf(format, name))
+	if len(flag.NoOptDefVal) == 0 {
+		format = "    two_word_flags+=(\"--%s\")\n"
+		buf.WriteString(fmt.Sprintf(format, name))
+	}
 	writeFlagHandler(buf, "--"+name, flag.Annotations, cmd)
 }
 
@@ -533,52 +544,4 @@ func (c *Command) GenBashCompletionFile(filename string) error {
 	defer outFile.Close()
 
 	return c.GenBashCompletion(outFile)
-}
-
-// MarkFlagRequired adds the BashCompOneRequiredFlag annotation to the named flag if it exists,
-// and causes your command to report an error if invoked without the flag.
-func (c *Command) MarkFlagRequired(name string) error {
-	return MarkFlagRequired(c.Flags(), name)
-}
-
-// MarkPersistentFlagRequired adds the BashCompOneRequiredFlag annotation to the named persistent flag if it exists,
-// and causes your command to report an error if invoked without the flag.
-func (c *Command) MarkPersistentFlagRequired(name string) error {
-	return MarkFlagRequired(c.PersistentFlags(), name)
-}
-
-// MarkFlagRequired adds the BashCompOneRequiredFlag annotation to the named flag if it exists,
-// and causes your command to report an error if invoked without the flag.
-func MarkFlagRequired(flags *pflag.FlagSet, name string) error {
-	return flags.SetAnnotation(name, BashCompOneRequiredFlag, []string{"true"})
-}
-
-// MarkFlagFilename adds the BashCompFilenameExt annotation to the named flag, if it exists.
-// Generated bash autocompletion will select filenames for the flag, limiting to named extensions if provided.
-func (c *Command) MarkFlagFilename(name string, extensions ...string) error {
-	return MarkFlagFilename(c.Flags(), name, extensions...)
-}
-
-// MarkFlagCustom adds the BashCompCustom annotation to the named flag, if it exists.
-// Generated bash autocompletion will call the bash function f for the flag.
-func (c *Command) MarkFlagCustom(name string, f string) error {
-	return MarkFlagCustom(c.Flags(), name, f)
-}
-
-// MarkPersistentFlagFilename adds the BashCompFilenameExt annotation to the named persistent flag, if it exists.
-// Generated bash autocompletion will select filenames for the flag, limiting to named extensions if provided.
-func (c *Command) MarkPersistentFlagFilename(name string, extensions ...string) error {
-	return MarkFlagFilename(c.PersistentFlags(), name, extensions...)
-}
-
-// MarkFlagFilename adds the BashCompFilenameExt annotation to the named flag in the flag set, if it exists.
-// Generated bash autocompletion will select filenames for the flag, limiting to named extensions if provided.
-func MarkFlagFilename(flags *pflag.FlagSet, name string, extensions ...string) error {
-	return flags.SetAnnotation(name, BashCompFilenameExt, extensions)
-}
-
-// MarkFlagCustom adds the BashCompCustom annotation to the named flag in the flag set, if it exists.
-// Generated bash autocompletion will call the bash function f for the flag.
-func MarkFlagCustom(flags *pflag.FlagSet, name string, f string) error {
-	return flags.SetAnnotation(name, BashCompCustom, []string{f})
 }

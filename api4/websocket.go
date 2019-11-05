@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -13,7 +12,8 @@ import (
 )
 
 func (api *API) InitWebSocket() {
-	api.BaseRoutes.ApiRoot.Handle("/websocket", api.ApiHandlerTrustRequester(connectWebSocket)).Methods("GET")
+	// Optionally supports a trailing slash
+	api.BaseRoutes.ApiRoot.Handle("/{websocket:websocket(?:\\/)?}", api.ApiHandlerTrustRequester(connectWebSocket)).Methods("GET")
 }
 
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -25,7 +25,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("websocket connect err: %v", err))
+		mlog.Error("websocket connect err.", mlog.Err(err))
 		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, "", http.StatusInternalServerError)
 		return
 	}

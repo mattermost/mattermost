@@ -23,7 +23,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +72,7 @@ func TestPostAction(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -80,8 +80,11 @@ func TestPostAction(t *testing.T) {
 		assert.NotNil(t, request)
 
 		assert.Equal(t, request.UserId, th.BasicUser.Id)
+		assert.Equal(t, request.UserName, th.BasicUser.Username)
 		assert.Equal(t, request.ChannelId, th.BasicChannel.Id)
+		assert.Equal(t, request.ChannelName, th.BasicChannel.Name)
 		assert.Equal(t, request.TeamId, th.BasicTeam.Id)
+		assert.Equal(t, request.TeamName, th.BasicTeam.Name)
 		assert.True(t, len(request.TriggerId) > 0)
 		if request.Type == model.POST_ACTION_TYPE_SELECT {
 			assert.Equal(t, request.DataSource, "some_source")
@@ -316,7 +319,7 @@ func TestPostActionProps(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -399,7 +402,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	submit := model.SubmitDialogRequest{
@@ -430,6 +433,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		assert.Equal(t, "value1", val)
 
 		resp := model.SubmitDialogResponse{
+			Error:  "some generic error",
 			Errors: map[string]string{"name1": "some error"},
 		}
 
@@ -444,6 +448,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	resp, err := th.App.SubmitInteractiveDialog(submit)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
+	assert.Equal(t, "some generic error", resp.Error)
 	assert.Equal(t, "some error", resp.Errors["name1"])
 
 	submit.URL = ""
