@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
-    "translation": "%v joined the channel as guest."
+    "translation": "%v dołączył do kanału jako gość."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "The default channel cannot be made private."
+    "translation": "Domyślny kanał nie może zostać kanałem prywatnym."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -797,6 +797,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} jest obecnie na kanale."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "{{.Username}} nie jest członkiem tego kanału."
   },
   {
     "id": "api.command_invite_people.permission.app_error",

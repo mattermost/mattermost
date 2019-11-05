@@ -799,6 +799,10 @@
     "translation": "{{.User}} est déjà membre de ce canal."
   },
   {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} n'est pas membre de cette équipe."
+  },
+  {
     "id": "api.command_invite_people.permission.app_error",
     "translation": "Vous n'avez pas les permissions requises pour inviter de nouveaux utilisateurs sur ce serveur."
   },
@@ -1876,7 +1880,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+    "translation": "Les utilisateurs invités ne sont pas autorisés à rejoindre une équipe par un lien d'invitation. Veuillez demander à l'équipe concernée une invitation par e-mail pour utilisateurs invités."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",

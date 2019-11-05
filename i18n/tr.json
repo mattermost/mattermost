@@ -799,6 +799,10 @@
     "translation": "{{.User}} zaten kanalda."
   },
   {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} bu takımın bir üyesi değil."
+  },
+  {
     "id": "api.command_invite_people.permission.app_error",
     "translation": "Bu sunucuya yeni kullanıcılar çağırma izniniz yok."
   },
