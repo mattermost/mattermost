@@ -136,7 +136,7 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
 			AND DeleteAt = 0`, map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": emoji.Id}); err != nil {
 		return model.NewAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.app_error", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusInternalServerError)
 	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-		return model.NewAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.no_results", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusBadRequest)
+		return model.NewAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.no_results", nil, "id="+emoji.Id, http.StatusBadRequest)
 	}
 
 	es.removeFromCache(emoji)
