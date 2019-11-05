@@ -107,6 +107,18 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	LockTeammateValChanged := *appCfg.TeamSettings.LockTeammateNameDisplay == false && *cfg.TeamSettings.LockTeammateNameDisplay == true
+	NameDisplayChanged := *cfg.TeamSettings.LockTeammateNameDisplay == true && *cfg.TeamSettings.TeammateNameDisplay != *appCfg.TeamSettings.TeammateNameDisplay
+	if LockTeammateValChanged || NameDisplayChanged {
+		preferences := []model.Preference{{"", "", "name_format", *cfg.TeamSettings.TeammateNameDisplay}}
+		err = c.App.UpdatePreferencesForAll(preferences)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+	}
+
 	c.LogAudit("updateConfig")
 
 	cfg = c.App.GetSanitizedConfig()

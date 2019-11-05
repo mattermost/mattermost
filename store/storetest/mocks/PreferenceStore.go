@@ -191,3 +191,19 @@ func (_m *PreferenceStore) Save(preferences *model.Preferences) *model.AppError 
 
 	return r0
 }
+
+// SaveForAll provides a mock function with given fields: preferences
+func (_m *PreferenceStore) SaveForAll(preferences model.Preferences) *model.AppError {
+	ret := _m.Called(preferences)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(model.Preferences) *model.AppError); ok {
+		r0 = rf(preferences)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}

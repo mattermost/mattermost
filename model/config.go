@@ -1526,6 +1526,7 @@ type TeamSettings struct {
 	ExperimentalEnableAutomaticReplies                        *bool
 	ExperimentalHideTownSquareinLHS                           *bool
 	ExperimentalTownSquareIsReadOnly                          *bool
+	LockTeammateNameDisplay                                   *bool
 	ExperimentalPrimaryTeam                                   *string
 	ExperimentalDefaultChannels                               []string
 }
@@ -1671,6 +1672,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.ExperimentalViewArchivedChannels == nil {
 		s.ExperimentalViewArchivedChannels = NewBool(false)
+	}
+
+	if s.LockTeammateNameDisplay == nil {
+		s.LockTeammateNameDisplay = NewBool(false)
 	}
 }
 
