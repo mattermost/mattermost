@@ -1312,6 +1312,10 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	t.Run("only o5 listed in archived channels", func(t *testing.T) {
 		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100, true)
 		require.Nil(t, err)
+		require.Equal(t, 1, len(*list))
+		// UpdateAt and DeleteAt fields are out-of-date, so we update them manually
+		o5.UpdateAt = (*list)[0].UpdateAt
+		o5.DeleteAt = (*list)[0].DeleteAt
 		require.Equal(t, &model.ChannelList{&o5}, list)
 	})
 
