@@ -36,6 +36,13 @@ type registeredPlugin struct {
 	supervisor     *supervisor
 }
 
+// PrepackagedPlugin describes prepackaged plugin
+type PrepackagedPlugin struct {
+	IconData   string
+	Manifest   *model.Manifest
+	Signatures [][]byte
+}
+
 // Environment represents the execution environment of active plugins.
 //
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
@@ -47,6 +54,7 @@ type Environment struct {
 	newAPIImpl           apiImplCreatorFunc
 	pluginDir            string
 	webappPluginDir      string
+	prepackagedPlugins   []*PrepackagedPlugin
 }
 
 func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
@@ -437,6 +445,11 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 
 		return true
 	})
+}
+
+// SetPrepackagedPlugins saves prepackaged plugins in the environment
+func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
+	env.prepackagedPlugins = plugins
 }
 
 func newRegisteredPlugin(bundle *model.BundleInfo) *registeredPlugin {

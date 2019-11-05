@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -483,4 +484,60 @@ func TestPluginPublicKeys(t *testing.T) {
 	require.Nil(t, err)
 	_, err = th.App.GetPublicKey(publicKeyFilename)
 	require.NotNil(t, err)
+}
+
+func TestInstallPrepackagedPlugins(t *testing.T) {
+	path, _ := fileutils.FindDir("tests")
+	plugFolder := filepath.Join(path, "prepackaged_plugins")
+	os.Mkdir(plugFolder, os.ModePerm)
+	defer os.RemoveAll(plugFolder)
+	prepackagedPluginsDir, found := fileutils.FindDir(plugFolder)
+	require.True(t, found)
+
+	pluginPath := filepath.Join(path, "testplugin.tar.gz")
+	err := utils.CopyFile(pluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+	require.Nil(t, err)
+
+	os.MkdirAll("./test-plugins", os.ModePerm)
+	defer os.RemoveAll("./test-plugins")
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.Directory = "./test-plugins"
+		*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+	})
+
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, "./test-plugins", "./test-client-plugins", th.App.Log)
+	require.NoError(t, err)
+	th.App.SetPluginsEnvironment(env)
+
+	plugins := th.App.installPrepackagedPlugins(prepackagedPluginsDir)
+	require.Len(t, plugins, 1)
+	require.Equal(t, plugins[0].Manifest.Id, "testplugin")
+	require.Len(t, plugins[0].Signatures, 0)
+
+	pluginStatus, err := env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 1)
+	require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+	signPath := filepath.Join(path, "testplugin.tar.gz.sig")
+	err = utils.CopyFile(signPath, filepath.Join(prepackagedPluginsDir, "testplugin.0.sig"))
+	require.Nil(t, err)
+	pluginPath2 := filepath.Join(path, "testpluginv2.tar.gz")
+	err = utils.CopyFile(pluginPath2, filepath.Join(prepackagedPluginsDir, "testpluginv2.tar.gz"))
+	require.Nil(t, err)
+	signPath2 := filepath.Join(path, "testpluginv2.tar.gz.sig")
+	err = utils.CopyFile(signPath2, filepath.Join(prepackagedPluginsDir, "testpluginv2.0.sig"))
+	require.Nil(t, err)
+
+	plugins = th.App.installPrepackagedPlugins(prepackagedPluginsDir)
+	require.Len(t, plugins, 2)
+	require.Equal(t, plugins[0].Manifest.Id, "testplugin")
+	require.Len(t, plugins[0].Signatures, 1)
+	require.Equal(t, plugins[1].Manifest.Id, "testplugin_v2")
+	require.Len(t, plugins[1].Signatures, 1)
 }

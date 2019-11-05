@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,6 +14,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/h2non/filetype"
+	svg "github.com/h2non/go-is-svg"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
@@ -167,24 +170,10 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
 	}
 
-	prepackagedPluginsDir, found := fileutils.FindDir("prepackaged_plugins")
-	if found {
-		if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
-			if !strings.HasSuffix(walkPath, ".tar.gz") {
-				return nil
-			}
-
-			if fileReader, err := os.Open(walkPath); err != nil {
-				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-			} else if _, err := a.installPluginLocally(fileReader, nil, true); err != nil {
-				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-			}
-
-			return nil
-		}); err != nil {
-			mlog.Error("Failed to complete unpacking prepackaged plugins", mlog.Err(err))
-		}
-	}
+	plugins := a.installPrepackagedPlugins("prepackaged_plugins")
+	pluginsEnvironment = a.GetPluginsEnvironment()
+	pluginsEnvironment.SetPrepackagedPlugins(plugins)
+	a.SetPluginsEnvironment(pluginsEnvironment)
 
 	// Sync plugin active state when config changes. Also notify plugins.
 	a.Srv.PluginsLock.Lock()
@@ -638,6 +627,88 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	return nil
 }
 
+func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.PrepackagedPlugin {
+	prepackagedPluginsDir, found := fileutils.FindDir(pluginsDir)
+	if found {
+		fileStorePaths := []string{}
+		if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
+			fileStorePaths = append(fileStorePaths, walkPath)
+			return nil
+		}); err != nil {
+			mlog.Error("Failed to walk prepackaged plugins", mlog.Err(err))
+		}
+		println(fmt.Sprintf("fileStorePaths = %v", fileStorePaths))
+
+		pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
+		println(fmt.Sprintf("%v", pluginSignaturePathMap))
+
+		plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
+		for _, pluginPaths := range pluginSignaturePathMap {
+			println(fmt.Sprintf("pluginPaths = %v", pluginPaths))
+
+			plug, err := a.installPrepackagedPlugin(pluginPaths)
+			if err != nil {
+				mlog.Error("Failed to install prepackaged plugin %s", mlog.Err(err), mlog.String("path", pluginPaths.path))
+				continue
+			}
+			plugins = append(plugins, plug)
+		}
+		return plugins
+	}
+	return nil
+}
+
+func (a *App) installPrepackagedPlugin(pluginPaths *pluginSignaturePaths) (*plugin.PrepackagedPlugin, error) {
+	fileReader, err := os.Open(pluginPaths.path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPaths.path)
+	}
+	tmpDir, err := ioutil.TempDir("", "plugintmp")
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to create temp dir plugintmp")
+	}
+	defer os.RemoveAll(tmpDir)
+
+	plug, pluginDir, err := getPrepackagedPlugin(pluginPaths, fileReader, tmpDir)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPaths.path)
+	}
+
+	if _, err := a.installExtractedPlugin(plug.Manifest, pluginDir, true); err != nil {
+		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPaths.path)
+	}
+
+	return plug, nil
+}
+
+func getPrepackagedPlugin(pluginPaths *pluginSignaturePaths, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {
+	manifest, pluginDir, err := extractPlugin(pluginFile, tmpDir)
+	if err != nil {
+		return nil, pluginDir, errors.Wrapf(err, "Failed to extract plugin with path %s", pluginPaths.path)
+	}
+
+	plug := new(plugin.PrepackagedPlugin)
+	plug.Manifest = manifest
+	plug.Signatures = make([][]byte, 0, len(pluginPaths.signaturePaths))
+
+	for _, sig := range pluginPaths.signaturePaths {
+		sigReader, err := os.Open(sig)
+		if err != nil {
+			return nil, pluginDir, errors.Wrapf(err, "Failed to open prepackaged plugin signature %s", sig)
+		}
+		bytes, err := ioutil.ReadAll(sigReader)
+		if err != nil {
+			return nil, pluginDir, errors.Wrapf(err, "Failed to read prepackaged plugin signature %s", sig)
+		}
+		plug.Signatures = append(plug.Signatures, bytes)
+	}
+	plug.IconData, err = getIcon(manifest.IconPath)
+	if err != nil {
+		mlog.Error("Failed to get icon", mlog.Err(err), mlog.String("icon path", manifest.IconPath))
+	}
+	return plug, pluginDir, nil
+}
+
 func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) (signatures []io.ReadSeeker, closeFunc func(), appErr *model.AppError) {
 	signatures = []io.ReadSeeker{}
 	for _, signaturePath := range plugin.signaturePaths {
@@ -666,6 +737,10 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 	if appErr != nil {
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
+	return getPluginsFromFilePaths(fileStorePaths), nil
+}
+
+func getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePaths {
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePaths)
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
@@ -691,5 +766,42 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.A
 			}
 		}
 	}
-	return pluginSignaturePathMap, nil
+	return pluginSignaturePathMap
+}
+
+func getIcon(iconPath string) (string, error) {
+	icon, err := fetchIcon(iconPath)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to fetch icon %s", iconPath)
+	}
+	if svg.Is(icon) {
+		return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
+	}
+	kind, err := filetype.Image(icon)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to match icon at %s to image", iconPath)
+	}
+	return fmt.Sprintf("data:%s;base64,%s", kind.MIME, base64.StdEncoding.EncodeToString(icon)), nil
+}
+
+func fetchIcon(icon string) ([]byte, error) {
+	if strings.HasPrefix(icon, "http") {
+		mlog.Debug("fetching icon from url %s", mlog.String("url", icon))
+
+		resp, err := http.Get(icon)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to download plugin icon at %s", icon)
+		}
+		defer resp.Body.Close()
+
+		return ioutil.ReadAll(resp.Body)
+	}
+
+	mlog.Debug("fetching icon from path %s", mlog.String("path", icon))
+	data, err := ioutil.ReadFile(icon)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to open icon at path %s", icon)
+	}
+
+	return data, nil
 }
