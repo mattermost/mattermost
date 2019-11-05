@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetClusterStatus(t *testing.T) {
@@ -22,9 +23,7 @@ func TestGetClusterStatus(t *testing.T) {
 		infos, resp := th.SystemAdminClient.GetClusterStatus()
 		CheckNoError(t, resp)
 
-		if infos == nil {
-			t.Fatal("should not be nil")
-		}
+		require.NotNil(t, infos, "cluster status should not be nil")
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {

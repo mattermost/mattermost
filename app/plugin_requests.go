@@ -42,6 +42,37 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	a.servePluginRequest(w, r, hooks.ServeHTTP)
 }
 
+func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		err := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin enviroment not found.", http.StatusNotImplemented)
+		a.Log.Error(err.Error())
+		w.WriteHeader(err.StatusCode)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(err.ToJson()))
+		return
+	}
+
+	hooks, err := pluginsEnvironment.HooksForPlugin(destinationPluginId)
+	if err != nil {
+		a.Log.Error("Access to route for non-existent plugin in inter plugin request",
+			mlog.String("sourse_plugin_id", sourcePluginId),
+			mlog.String("destination_plugin_id", destinationPluginId),
+			mlog.Err(err),
+		)
+		http.NotFound(w, r)
+		return
+	}
+
+	context := &plugin.Context{
+		RequestId:      model.NewId(),
+		UserAgent:      r.UserAgent(),
+		SourcePluginId: sourcePluginId,
+	}
+
+	hooks.ServeHTTP(context, w, r)
+}
+
 // ServePluginPublicRequest serves public plugin files
 // at the URL http(s)://$SITE_URL/plugins/$PLUGIN_ID/public/{anything}
 func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {

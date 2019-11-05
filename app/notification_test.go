@@ -1789,3 +1789,100 @@ func TestGetNotificationNameFormat(t *testing.T) {
 		assert.Equal(t, model.SHOW_USERNAME, th.App.GetNotificationNameFormat(th.BasicUser))
 	})
 }
+
+func TestUserAllowsEmail(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should return true", func(t *testing.T) {
+		user := th.CreateUser()
+
+		th.App.SetStatusOffline(user.Id, true)
+
+		channelMemberNotificationProps := model.StringMap{
+			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
+			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+		}
+
+		assert.True(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+	})
+
+	t.Run("should return false in case the status is ONLINE", func(t *testing.T) {
+		user := th.CreateUser()
+
+		th.App.SetStatusOnline(user.Id, true)
+
+		channelMemberNotificationProps := model.StringMap{
+			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
+			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+		}
+
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+	})
+
+	t.Run("should return false in case the EMAIL_NOTIFY_PROP is false", func(t *testing.T) {
+		user := th.CreateUser()
+
+		th.App.SetStatusOffline(user.Id, true)
+
+		channelMemberNotificationProps := model.StringMap{
+			model.EMAIL_NOTIFY_PROP:       "false",
+			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+		}
+
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+	})
+
+	t.Run("should return false in case the MARK_UNREAD_NOTIFY_PROP is CHANNEL_MARK_UNREAD_MENTION", func(t *testing.T) {
+		user := th.CreateUser()
+
+		th.App.SetStatusOffline(user.Id, true)
+
+		channelMemberNotificationProps := model.StringMap{
+			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
+			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_MENTION,
+		}
+
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+	})
+
+	t.Run("should return false in case the Post type is POST_AUTO_RESPONDER", func(t *testing.T) {
+		user := th.CreateUser()
+
+		th.App.SetStatusOffline(user.Id, true)
+
+		channelMemberNotificationProps := model.StringMap{
+			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
+			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+		}
+
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
+	})
+
+	t.Run("should return false in case the status is STATUS_OUT_OF_OFFICE", func(t *testing.T) {
+		user := th.CreateUser()
+
+		th.App.SetStatusOutOfOffice(user.Id)
+
+		channelMemberNotificationProps := model.StringMap{
+			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
+			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+		}
+
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
+	})
+
+	t.Run("should return false in case the status is STATUS_ONLINE", func(t *testing.T) {
+		user := th.CreateUser()
+
+		th.App.SetStatusDoNotDisturb(user.Id)
+
+		channelMemberNotificationProps := model.StringMap{
+			model.EMAIL_NOTIFY_PROP:       model.CHANNEL_NOTIFY_DEFAULT,
+			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
+		}
+
+		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
+	})
+
+}

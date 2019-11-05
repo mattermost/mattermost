@@ -53,7 +53,7 @@ func TestDoUploadFile(t *testing.T) {
 	}()
 
 	value := fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamId, channelId, userId, info1.Id, filename)
-	assert.Equal(t, value, info1.Path, "stored file at incorrect path" )
+	assert.Equal(t, value, info1.Path, "stored file at incorrect path")
 
 	info2, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
@@ -106,6 +106,103 @@ func TestUploadFile(t *testing.T) {
 	assert.Equal(t, value, info1.Path, "Stored file at incorrect path")
 }
 
+func TestParseOldFilenames(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	fileId := model.NewId()
+
+	tests := []struct {
+		description string
+		filenames   []string
+		channelId   string
+		userId      string
+		expected    [][]string
+	}{
+		{
+			description: "Empty input should result in empty output",
+			filenames:   []string{},
+			channelId:   th.BasicChannel.Id,
+			userId:      th.BasicUser.Id,
+			expected:    [][]string{},
+		},
+		{
+			description: "Filename with invalid format should not parse",
+			filenames:   []string{"/path/to/some/file.png"},
+			channelId:   th.BasicChannel.Id,
+			userId:      th.BasicUser.Id,
+			expected:    [][]string{},
+		},
+		{
+			description: "ChannelId in Filename should not match",
+			filenames: []string{
+				fmt.Sprintf("/%v/%v/%v/file.png", model.NewId(), th.BasicUser.Id, fileId),
+			},
+			channelId: th.BasicChannel.Id,
+			userId:    th.BasicUser.Id,
+			expected:  [][]string{},
+		},
+		{
+			description: "UserId in Filename should not match",
+			filenames: []string{
+				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, model.NewId(), fileId),
+			},
+			channelId: th.BasicChannel.Id,
+			userId:    th.BasicUser.Id,
+			expected:  [][]string{},
+		},
+		{
+			description: "../ in filename should not parse",
+			filenames: []string{
+				fmt.Sprintf("/%v/%v/%v/../../../file.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
+			},
+			channelId: th.BasicChannel.Id,
+			userId:    th.BasicUser.Id,
+			expected:  [][]string{},
+		},
+		{
+			description: "Should only parse valid filenames",
+			filenames: []string{
+				fmt.Sprintf("/%v/%v/%v/../otherfile.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
+				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
+			},
+			channelId: th.BasicChannel.Id,
+			userId:    th.BasicUser.Id,
+			expected: [][]string{
+				{
+					th.BasicChannel.Id,
+					th.BasicUser.Id,
+					fileId,
+					"file.png",
+				},
+			},
+		},
+		{
+			description: "Valid Filename should parse",
+			filenames: []string{
+				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
+			},
+			channelId: th.BasicChannel.Id,
+			userId:    th.BasicUser.Id,
+			expected: [][]string{
+				{
+					th.BasicChannel.Id,
+					th.BasicUser.Id,
+					fileId,
+					"file.png",
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(tt *testing.T) {
+			result := parseOldFilenames(test.filenames, test.channelId, test.userId)
+			require.Equal(tt, result, test.expected)
+		})
+	}
+}
+
 func TestGetInfoForFilename(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -113,10 +210,7 @@ func TestGetInfoForFilename(t *testing.T) {
 	post := th.BasicPost
 	teamId := th.BasicTeam.Id
 
-	info := th.App.GetInfoForFilename(post, teamId, "sometestfile")
-	assert.Nil(t, info, "Test bad filename")
-
-	info = th.App.GetInfoForFilename(post, teamId, "/somechannel/someuser/someid/somefile.png")
+	info := th.App.getInfoForFilename(post, teamId, post.ChannelId, post.UserId, "someid", "somefile.png")
 	assert.Nil(t, info, "Test non-existent file")
 }
 
@@ -124,13 +218,13 @@ func TestFindTeamIdForFilename(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	teamId := th.App.FindTeamIdForFilename(th.BasicPost, fmt.Sprintf("/%v/%v/%v/blargh.png", th.BasicChannel.Id, th.BasicUser.Id, "someid"))
+	teamId := th.App.findTeamIdForFilename(th.BasicPost, "someid", "somefile.png")
 	assert.Equal(t, th.BasicTeam.Id, teamId)
 
 	_, err := th.App.CreateTeamWithUser(&model.Team{Email: th.BasicUser.Email, Name: "zz" + model.NewId(), DisplayName: "Joram's Test Team", Type: model.TEAM_OPEN}, th.BasicUser.Id)
 	require.Nil(t, err)
 
-	teamId = th.App.FindTeamIdForFilename(th.BasicPost, fmt.Sprintf("/%v/%v/%v/blargh.png", th.BasicChannel.Id, th.BasicUser.Id, "someid"))
+	teamId = th.App.findTeamIdForFilename(th.BasicPost, "someid", "somefile.png")
 	assert.Equal(t, "", teamId)
 }
 
@@ -151,14 +245,21 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	require.Nil(t, fileErr)
 	defer file.Close()
 
-	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "someid")
+	fileId := model.NewId()
+	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileId)
 	_, err := th.App.WriteFile(file, fpath)
 	require.Nil(t, err)
-	rpost, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, "someid")}}, th.BasicChannel, false)
+	rpost, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileId)}}, th.BasicChannel, false)
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)
 	assert.Equal(t, 1, len(infos))
+
+	rpost, err = th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileId)}}, th.BasicChannel, false)
+	require.Nil(t, err)
+
+	infos = th.App.MigrateFilenamesToFileInfos(rpost)
+	assert.Equal(t, 0, len(infos))
 }
 
 func TestCopyFileInfos(t *testing.T) {
