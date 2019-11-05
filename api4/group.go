@@ -575,14 +575,18 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.getGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
+	teamID := c.Params.NotAssociatedToTeam
+	channelID := c.Params.NotAssociatedToChannel
 
 	opts := model.GroupSearchOpts{
 		Q:                  c.Params.Q,
 		IncludeMemberCount: c.Params.IncludeMemberCount,
 	}
 
-	teamID := c.Params.NotAssociatedToTeam
-	if len(teamID) == 26 {
+	// Check to see if valid TeamID has been provided, then check to see if the user requesting this has
+	// permission to the team in order to add the teamID to the opts
+	_, getTeamErr := c.App.GetTeam(teamID)
+	if getTeamErr == nil {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamID, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
@@ -590,13 +594,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.NotAssociatedToTeam = teamID
 	}
 
-	channelID := c.Params.NotAssociatedToChannel
-	if len(channelID) == 26 {
-		channel, err := c.App.GetChannel(channelID)
-		if err != nil {
-			c.Err = err
-			return
-		}
+	channel, getChannelErr := c.App.GetChannel(channelID)
+	if getChannelErr == nil {
 		var permission *model.Permission
 		if channel.Type == model.CHANNEL_PRIVATE {
 			permission = model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS
@@ -610,35 +609,18 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.NotAssociatedToChannel = channelID
 	}
 
+	if getTeamErr != nil && getChannelErr != nil {
+		c.Err = model.NewAppError("Api4.getGroups", "api.getGroups.invalid_or_missing_channel_or_team_id", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	groups, err := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	var toMarshal interface{} = groups
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		var groupsNonAdmin []interface{}
-		for _, group := range groups {
-			groupNonAdmin := &struct {
-				Id          string `json:"id"`
-				Name        string `json:"name"`
-				DisplayName string `json:"display_name"`
-				Description string `json:"description"`
-				MemberCount *int   `db:"-" json:"member_count,omitempty"`
-			}{
-				Id:          group.Id,
-				Name:        group.Name,
-				DisplayName: group.DisplayName,
-				Description: group.Description,
-				MemberCount: group.MemberCount,
-			}
-			groupsNonAdmin = append(groupsNonAdmin, groupNonAdmin)
-		}
-		toMarshal = groupsNonAdmin
-	}
-
-	b, marshalErr := json.Marshal(toMarshal)
+	b, marshalErr := json.Marshal(groups)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getGroups", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return

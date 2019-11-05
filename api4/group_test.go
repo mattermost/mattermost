@@ -13,63 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetGroupsAdminAndNonAdmin(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	th.App.SetLicense(model.NewTestLicense("ldap"))
-	id := model.NewId()
-	g, err := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + id,
-		Name:        "name" + id,
-		Source:      model.GroupSourceLdap,
-		Description: "description_" + id,
-		RemoteId:    model.NewId(),
-		CreateAt:    model.GetMillis(),
-		UpdateAt:    model.GetMillis(),
-		DeleteAt:    model.GetMillis(),
-	})
-	require.Nil(t, err)
-
-	opts := model.GroupSearchOpts{
-		IncludeMemberCount: true,
-	}
-
-	a, _ := th.Client.GetGroups(opts)
-	var nonAdminGroup, adminGroup model.Group
-	for idx, value := range a {
-		if value.Id == g.Id {
-			nonAdminGroup = *a[idx]
-		}
-	}
-
-	b, _ := th.SystemAdminClient.GetGroups(opts)
-	for idx, value := range b {
-		if value.Id == g.Id {
-			adminGroup = *b[idx]
-		}
-	}
-
-	require.Equal(t, g.Name, nonAdminGroup.Name)
-	require.Equal(t, g.DisplayName, nonAdminGroup.DisplayName)
-	require.Equal(t, g.Description, nonAdminGroup.Description)
-	require.NotNil(t, nonAdminGroup.MemberCount)
-	require.Empty(t, nonAdminGroup.Source)
-	require.Empty(t, nonAdminGroup.RemoteId)
-	require.Empty(t, nonAdminGroup.CreateAt)
-	require.Empty(t, nonAdminGroup.UpdateAt)
-	require.Empty(t, nonAdminGroup.DeleteAt)
-
-	require.Equal(t, g.Name, adminGroup.Name)
-	require.Equal(t, g.DisplayName, adminGroup.DisplayName)
-	require.Equal(t, g.Description, adminGroup.Description)
-	require.NotNil(t, adminGroup.MemberCount)
-	require.Equal(t, g.Source, adminGroup.Source)
-	require.Equal(t, g.RemoteId, adminGroup.RemoteId)
-	require.Equal(t, g.CreateAt, adminGroup.CreateAt)
-	require.Equal(t, g.UpdateAt, adminGroup.UpdateAt)
-	require.Equal(t, g.DeleteAt, adminGroup.DeleteAt)
-}
-
 func TestGetGroup(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -819,6 +762,20 @@ func TestGetGroups(t *testing.T) {
 	CheckNotImplementedStatus(t, response)
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, response = th.SystemAdminClient.GetGroups(opts)
+	CheckBadRequestStatus(t, response)
+
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
+	require.Nil(t, response.Error)
+
+	opts.NotAssociatedToChannel = th.BasicChannel.Id
+
+	_, response = th.Client.GetGroups(opts)
+	CheckForbiddenStatus(t, response)
+
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
+	require.Nil(t, response.Error)
 
 	groups, response := th.SystemAdminClient.GetGroups(opts)
 	assert.Nil(t, response.Error)
