@@ -10,6 +10,11 @@ webapp/yarn-error.log
 mattermost.mattermost-license
 config/mattermost.mattermost-license
 config/config.json
+fmtcoverage.htm
+mm_mysql_backup.sql
+mm_postgres_backup.bak
+notifications.log
+report.xml
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map
