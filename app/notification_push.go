@@ -430,6 +430,37 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) model.PushNotification {
 
+	var msg model.PushNotification
+
+	cfg := a.Config()
+	contentsConfig := *cfg.EmailSettings.PushNotificationContents
+
+	if contentsConfig == model.ID_LOADED_NOTIFICATION {
+		msg = a.buildIdLoadedPushNotificationMessage(post)
+	} else {
+		msg = a.buildFullPushNotificationMessage(post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+	}
+
+	msg.Badge = a.getPushNotificationBadge(user, channel)
+
+	return msg
+}
+
+func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post) model.PushNotification {
+
+	msg := model.PushNotification{
+		PostId:   post.Id,
+		Category: model.CATEGORY_CAN_REPLY,
+		Version:  model.PUSH_MESSAGE_V2,
+		Type:     model.PUSH_TYPE_ID_LOADED,
+	}
+
+	return msg
+}
+
+func (a *App) buildFullPushNotificationMessage(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
+	explicitMention bool, channelWideMention bool, replyToThreadType string) model.PushNotification {
+
 	msg := model.PushNotification{
 		Category:  model.CATEGORY_CAN_REPLY,
 		Version:   model.PUSH_MESSAGE_V2,
@@ -439,22 +470,6 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 		PostId:    post.Id,
 		RootId:    post.RootId,
 		SenderId:  post.UserId,
-	}
-
-	if user.NotifyProps["push"] == "all" {
-		if unreadCount, err := a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id); err != nil {
-			msg.Badge = 1
-			mlog.Error("We could not get the unread message count for the user", mlog.String("user_id", user.Id), mlog.Err(err))
-		} else {
-			msg.Badge = int(unreadCount)
-		}
-	} else {
-		if unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id); err != nil {
-			msg.Badge = 1
-			mlog.Error("We could not get the unread message count for the user", mlog.String("user_id", user.Id), mlog.Err(err))
-		} else {
-			msg.Badge = int(unreadCount)
-		}
 	}
 
 	cfg := a.Config()
@@ -483,4 +498,26 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
 
 	return msg
+}
+
+func (a *App) getPushNotificationBadge(user *model.User, channel *model.Channel) int {
+	var badge int
+
+	if user.NotifyProps["push"] == "all" {
+		if unreadCount, err := a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id); err != nil {
+			badge = 1
+			mlog.Error("We could not get the unread message count for the user", mlog.String("user_id", user.Id), mlog.Err(err))
+		} else {
+			badge = int(unreadCount)
+		}
+	} else {
+		if unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id); err != nil {
+			badge = 1
+			mlog.Error("We could not get the unread message count for the user", mlog.String("user_id", user.Id), mlog.Err(err))
+		} else {
+			badge = int(unreadCount)
+		}
+	}
+
+	return badge
 }
