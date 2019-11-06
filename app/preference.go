@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -67,8 +66,7 @@ func (a *App) UpdatePreferencesForAll(preferences model.Preferences) *model.AppE
 		return err
 	}
 
-	fmt.Printf("\n\n\n\n\nAM I GOING TO PUBLISH WEBSOCKET EVENT?\n\n\n\n\n\n?")
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_CHANGED, "", "", a.Session.UserId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_CHANGED, "", "", "", nil)
 	message.Add("preferences", preferences.ToJson())
 	a.Publish(message)
 
