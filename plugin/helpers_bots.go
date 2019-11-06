@@ -10,6 +10,11 @@ import (
 )
 
 func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) {
+	err := p.ensureServerVersion("5.10.0")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to ensure bot")
+	}
+
 	// Must provide a bot with a username
 	if bot == nil || len(bot.Username) < 1 {
 		return "", errors.New("passed a bad bot, nil or no username")

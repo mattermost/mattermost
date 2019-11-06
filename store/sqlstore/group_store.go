@@ -123,6 +123,18 @@ func (s *SqlGroupStore) Get(groupId string) (*model.Group, *model.AppError) {
 	return group, nil
 }
 
+func (s *SqlGroupStore) GetByName(name string) (*model.Group, *model.AppError) {
+	var group *model.Group
+	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlGroupStore.GroupGetByName", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
+		}
+		return nil, model.NewAppError("SqlGroupStore.GroupGetByName", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return group, nil
+}
+
 func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
 	var groups []*model.Group
 	query := s.getQueryBuilder().Select("*").From("UserGroups").Where(sq.Eq{"Id": groupIDs})
@@ -153,6 +165,26 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 
 	if _, err := s.GetReplica().Select(&groups, "SELECT * from UserGroups WHERE DeleteAt = 0 AND Source = :Source", map[string]interface{}{"Source": groupSource}); err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GroupGetAllBySource", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groups, nil
+}
+
+func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, *model.AppError) {
+	var groups []*model.Group
+
+	query := `
+		SELECT
+			UserGroups.*
+		FROM
+			GroupMembers
+			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
+		WHERE
+			GroupMembers.DeleteAt = 0
+			AND UserId = :UserId`
+
+	if _, err := s.GetReplica().Select(&groups, query, map[string]interface{}{"UserId": userId}); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetByUser", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return groups, nil
@@ -339,6 +371,13 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.Grou
 	}
 
 	return retrievedMember, nil
+}
+
+func (s *SqlGroupStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
+	if _, err := s.GetMaster().Exec("DELETE FROM GroupMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		return model.NewAppError("SqlGroupStore.GroupPermanentDeleteMembersByUser", "store.sql_group.permanent_delete_members_by_user.app_error", map[string]interface{}{"UserId": userId}, "", http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
@@ -547,7 +586,7 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 	case model.GroupSyncableTypeChannel:
 		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
 	default:
-		return nil, model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId, http.StatusInternalServerError)
 	}
 
 	if err != nil {
@@ -580,7 +619,7 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 	case model.GroupSyncableTypeChannel:
 		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
 	default:
-		return nil, model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId, http.StatusInternalServerError)
 	}
 
 	if err != nil {

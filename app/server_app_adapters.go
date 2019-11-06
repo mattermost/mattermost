@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -62,12 +61,12 @@ func (s *Server) RunOldAppInitalization() error {
 
 	if s.FakeApp().Srv.newStore == nil {
 		s.FakeApp().Srv.newStore = func() store.Store {
-			return store.NewTimerLayer(localcachelayer.NewLocalCacheLayer(store.NewLayeredStore(sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics), s.Metrics, s.Cluster), s.Metrics, s.Cluster), s.Metrics)
+			return store.NewTimerLayer(localcachelayer.NewLocalCacheLayer(sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics), s.Metrics, s.Cluster), s.Metrics)
 		}
 	}
 
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
+		mlog.Error("Failed to parse server templates", mlog.Err(err))
 	} else {
 		s.FakeApp().Srv.htmlTemplateWatcher = htmlTemplateWatcher
 	}
@@ -131,7 +130,7 @@ func (s *Server) RunOldAppInitalization() error {
 		appErr = backend.TestConnection()
 	}
 	if appErr != nil {
-		mlog.Error("Problem with file storage settings: " + appErr.Error())
+		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	}
 
 	if model.BuildEnterpriseReady == "true" {

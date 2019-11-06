@@ -59,7 +59,7 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildEnterpriseRead
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
-MINIMUM_SUPPORTED_GO_MINOR_VERSION = 12
+MINIMUM_SUPPORTED_GO_MINOR_VERSION = 13
 GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
@@ -78,7 +78,7 @@ TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
 # Packages lists
-TE_PACKAGES=$(shell go list ./...)
+TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.1.1
@@ -89,8 +89,8 @@ PLUGIN_PACKAGES += mattermost-plugin-github-v0.11.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.2.1
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.2.2
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
@@ -104,7 +104,7 @@ else
 	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
-EE_PACKAGES=$(shell go list ./enterprise/...)
+EE_PACKAGES=$(shell $(GO) list ./enterprise/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
@@ -154,7 +154,7 @@ govet: ## Runs govet against all packages.
 	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
 	$(GO) vet $(GOFLAGS) $(ALL_PACKAGES) || exit 1
 	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GOFLAGS) $(ALL_PACKAGES) || exit 1
-	$(GO) run plugin/checker/main.go
+	$(GO) run $(GOFLAGS) ./plugin/checker
 
 gofmt: ## Runs gofmt against all packages.
 	@echo Running GOFMT
@@ -172,6 +172,16 @@ gofmt: ## Runs gofmt against all packages.
 		fi; \
 	done
 	@echo "gofmt success"; \
+
+golangci-lint: ## Run golangci-lint on codebasis
+# https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
+	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
+		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
+		exit 1; \
+	fi; \
+
+	@echo Running golangci-lint
+	golangci-lint run
 
 megacheck: ## Run megacheck on codebasis
 	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
@@ -219,6 +229,7 @@ check-licenses: ## Checks license status.
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
+# TODO: remove govet and gofmt checks once golangci-lint is being enforced.
 check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
 
 test-te-race: ## Checks for race conditions in the team edition.
