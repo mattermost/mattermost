@@ -678,9 +678,6 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	Client := th.Client
 	team := th.BasicTeam
 
-	_, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
-	CheckForbiddenStatus(t, resp)
-
 	th.LoginTeamAdmin()
 
 	channels, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
