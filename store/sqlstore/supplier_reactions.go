@@ -160,8 +160,8 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 		return 0, model.NewAppError("SqlReactionStore.PermanentDeleteBatch", "store.sql_reaction.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
 
-	rowsAffected, err1 := sqlResult.RowsAffected()
-	if err1 != nil {
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
 		return 0, model.NewAppError("SqlReactionStore.PermanentDeleteBatch", "store.sql_reaction.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
 	return rowsAffected, nil

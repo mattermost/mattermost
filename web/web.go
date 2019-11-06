@@ -47,7 +47,7 @@ func New(config configservice.ConfigService, globalOptions app.AppOptionCreator,
 // -1 means that the browser is not supported in any version.
 var browserMinimumSupported = map[string]int{
 	"BrowserIE":     12,
-	"BrowserSafari": 9,
+	"BrowserSafari": 12,
 }
 
 func CheckClientCompatability(agentString string) bool {

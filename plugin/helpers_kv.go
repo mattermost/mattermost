@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// KVSetJSON is a wrapper around KVSet to simplify writing a JSON object to the key value store.
+// KVSetJSON implements Helpers.KVSetJSON.
 func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 	err := p.ensureServerVersion("5.2.0")
 	if err != nil {
@@ -29,7 +29,7 @@ func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 	return nil
 }
 
-// KVCompareAndSetJSON is a wrapper around KVCompareAndSet to simplify atomically writing a JSON object to the key value store.
+// KVCompareAndSetJSON implements Helpers.KVCompareAndSetJSON.
 func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error) {
 	var err error
 
@@ -61,7 +61,7 @@ func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newV
 	return set, nil
 }
 
-// KVCompareAndDeleteJSON is a wrapper around KVCompareAndDelete to simplify atomically deleting a JSON object from the key value store.
+// KVCompareAndDeleteJSON implements Helpers.KVCompareAndDeleteJSON.
 func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error) {
 	var err error
 
@@ -87,7 +87,7 @@ func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (
 	return deleted, nil
 }
 
-// KVGetJSON is a wrapper around KVGet to simplify reading a JSON object from the key value store.
+// KVGetJSON implements Helpers.KVGetJSON.
 func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
 	err := p.ensureServerVersion("5.2.0")
 	if err != nil {
