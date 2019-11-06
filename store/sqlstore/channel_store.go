@@ -1036,6 +1036,7 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 			PublicChannels pc ON (pc.Id = Channels.Id)
 		WHERE
 			pc.TeamId = :TeamId
+		AND pc.DeleteAt = 0 
 		ORDER BY pc.DisplayName
 		LIMIT :Limit
 		OFFSET :Offset
