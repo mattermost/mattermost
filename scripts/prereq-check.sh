@@ -19,7 +19,7 @@ check_prereq()
 
     if check_version $installed_version $required_version; then
         echo "$dependency minimum requirement met. Required: $required_version, Found: $installed_version"
-    else 
+    else
         echo "WARNING! Mattermost did not find the minimum supported version of '$dependency' installed. Required: $required_version, Found: $installed_version"
         echo "We highly recommend stopping installation and updating dependencies before continuing"
         read -p "Enter Y to continue anyway (not recommended)." -n 1 -r
@@ -35,7 +35,7 @@ echo "Checking prerequisites"
 
 REQUIREDNODEVERSION=8.9.0
 REQUIREDNPMVERSION=5.6.0
-REQUIREDGOVERSION=1.12.0
+REQUIREDGOVERSION=1.13.0
 REQUIREDDOCKERVERSION=17.0
 
 NODEVERSION=$(sed 's/v//' <<< $(node -v))

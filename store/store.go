@@ -528,6 +528,7 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)
 	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
+	SetWithOptions(pluginId string, key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError)
 	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
 	Delete(pluginId, key string) *model.AppError
 	DeleteAllForPlugin(PluginId string) *model.AppError
@@ -582,6 +583,7 @@ type GroupStore interface {
 	GetMemberCount(groupID string) (int64, *model.AppError)
 	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
+	PermanentDeleteMembersByUser(userId string) *model.AppError
 
 	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
