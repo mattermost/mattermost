@@ -64,10 +64,10 @@ func TestLRUExpire(t *testing.T) {
 	l.AddWithExpiresInSecs(3, 3, 0)
 
 	time.Sleep(time.Millisecond * 2100)
-	
+
 	r1, ok := l.Get(1)
 	require.False(t, ok, r1)
-	
+
 	_, ok2 := l.Get(3)
 	require.True(t, ok2, "should exist")
 }
