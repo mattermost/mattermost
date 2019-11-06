@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-ldap/ldap"
+	"github.com/mattermost/ldap"
 )
 
 const (
@@ -130,6 +130,7 @@ const (
 	LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE           = ""
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
+	SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE      = ""
 	SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
 	SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE      = ""
@@ -138,7 +139,21 @@ const (
 	SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE     = ""
 	SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE   = ""
 
-	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://about.mattermost.com/downloads/"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1    = "RSAwithSHA1"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256  = "RSAwithSHA256"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA384  = "RSAwithSHA384"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512  = "RSAwithSHA512"
+	SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM = SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1
+
+	SAML_SETTINGS_DIGEST_ALGORITHM_SHA1    = "SHA1"
+	SAML_SETTINGS_DIGEST_ALGORITHM_SHA256  = "SHA256"
+	SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM = SAML_SETTINGS_DIGEST_ALGORITHM_SHA1
+
+	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N    = "Canonical1.0"
+	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11  = "Canonical1.1"
+	SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM = SAML_SETTINGS_CANONICAL_ALGORITHM_C14N
+
+	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://mattermost.com/download/#mattermostApps"
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
 	NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK     = "https://about.mattermost.com/mattermost-ios-app/"
 
@@ -171,8 +186,11 @@ const (
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
 
-	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
-	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
+	PLUGIN_SETTINGS_DEFAULT_DIRECTORY          = "./plugins"
+	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
+	PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE = true
+	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://api.integrations.mattermost.com"
+	PLUGIN_SETTINGS_OLD_MARKETPLACE_URL        = "https://marketplace.integrations.mattermost.com"
 
 	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
@@ -304,10 +322,10 @@ type ServiceSettings struct {
 	DisableLegacyMFA                                  *bool `restricted:"true"`
 	ExperimentalStrictCSRFEnforcement                 *bool `restricted:"true"`
 	EnableEmailInvitations                            *bool
-	ExperimentalLdapGroupSync                         *bool
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 	EnableBotAccountCreation                          *bool
 	EnableSVGs                                        *bool
+	EnableLatex                                       *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -653,10 +671,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.DisableLegacyMFA = NewBool(!isUpdate)
 	}
 
-	if s.ExperimentalLdapGroupSync == nil {
-		s.ExperimentalLdapGroupSync = NewBool(false)
-	}
-
 	if s.ExperimentalStrictCSRFEnforcement == nil {
 		s.ExperimentalStrictCSRFEnforcement = NewBool(false)
 	}
@@ -674,6 +688,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 			s.EnableSVGs = NewBool(true)
 		} else {
 			s.EnableSVGs = NewBool(false)
+		}
+	}
+
+	if s.EnableLatex == nil {
+		if isUpdate {
+			s.EnableLatex = NewBool(true)
+		} else {
+			s.EnableLatex = NewBool(false)
 		}
 	}
 }
@@ -1231,7 +1253,7 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
-		s.SMTPPort = NewString("2500")
+		s.SMTPPort = NewString("10025")
 	}
 
 	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
@@ -1675,6 +1697,7 @@ type LdapSettings struct {
 	// Filtering
 	UserFilter  *string
 	GroupFilter *string
+	GuestFilter *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string
@@ -1744,6 +1767,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.UserFilter == nil {
 		s.UserFilter = NewString("")
+	}
+
+	if s.GuestFilter == nil {
+		s.GuestFilter = NewString("")
 	}
 
 	if s.GroupFilter == nil {
@@ -1883,6 +1910,10 @@ type SamlSettings struct {
 	IdpDescriptorUrl            *string
 	AssertionConsumerServiceURL *string
 
+	SignatureAlgorithm *string
+	DigestAlgorithm    *string
+	CanonicalAlgorithm *string
+
 	ScopingIDPProviderId *string
 	ScopingIDPName       *string
 
@@ -1892,6 +1923,7 @@ type SamlSettings struct {
 
 	// User Mapping
 	IdAttribute        *string
+	GuestAttribute     *string
 	FirstNameAttribute *string
 	LastNameAttribute  *string
 	EmailAttribute     *string
@@ -1930,6 +1962,18 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.SignRequest == nil {
 		s.SignRequest = NewBool(false)
+	}
+
+	if s.SignatureAlgorithm == nil {
+		s.SignatureAlgorithm = NewString(SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM)
+	}
+
+	if s.DigestAlgorithm == nil {
+		s.DigestAlgorithm = NewString(SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM)
+	}
+
+	if s.CanonicalAlgorithm == nil {
+		s.CanonicalAlgorithm = NewString(SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM)
 	}
 
 	if s.IdpUrl == nil {
@@ -1972,6 +2016,9 @@ func (s *SamlSettings) SetDefaults() {
 		s.IdAttribute = NewString(SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE)
 	}
 
+	if s.GuestAttribute == nil {
+		s.GuestAttribute = NewString(SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE)
+	}
 	if s.FirstNameAttribute == nil {
 		s.FirstNameAttribute = NewString(SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE)
 	}
@@ -2201,6 +2248,8 @@ type PluginSettings struct {
 	ClientDirectory          *string `restricted:"true"`
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
+	EnableMarketplace        *bool
+	MarketplaceUrl           *string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2220,20 +2269,12 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.EnableHealthCheck = NewBool(true)
 	}
 
-	if s.Directory == nil {
+	if s.Directory == nil || *s.Directory == "" {
 		s.Directory = NewString(PLUGIN_SETTINGS_DEFAULT_DIRECTORY)
 	}
 
-	if *s.Directory == "" {
-		*s.Directory = PLUGIN_SETTINGS_DEFAULT_DIRECTORY
-	}
-
-	if s.ClientDirectory == nil {
+	if s.ClientDirectory == nil || *s.ClientDirectory == "" {
 		s.ClientDirectory = NewString(PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY)
-	}
-
-	if *s.ClientDirectory == "" {
-		*s.ClientDirectory = PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY
 	}
 
 	if s.Plugins == nil {
@@ -2247,6 +2288,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["com.mattermost.nps"] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
+	}
+
+	if s.EnableMarketplace == nil {
+		s.EnableMarketplace = NewBool(PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE)
+	}
+
+	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" || *s.MarketplaceUrl == PLUGIN_SETTINGS_OLD_MARKETPLACE_URL {
+		s.MarketplaceUrl = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 	}
 }
 
@@ -2750,6 +2799,12 @@ func (ls *LdapSettings) isValid() *AppError {
 				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
+
+		if *ls.GuestFilter != "" {
+			if _, err := ldap.CompileFilter(*ls.GuestFilter); err != nil {
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil
@@ -2796,6 +2851,25 @@ func (ss *SamlSettings) isValid() *AppError {
 		if len(*ss.EmailAttribute) == 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
+
+		if !(*ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA384 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_signature_algorithm.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !(*ss.DigestAlgorithm == SAML_SETTINGS_DIGEST_ALGORITHM_SHA1 || *ss.DigestAlgorithm == SAML_SETTINGS_DIGEST_ALGORITHM_SHA256) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_digest_algorithm.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !(*ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N || *ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if len(*ss.GuestAttribute) > 0 {
+			if !(strings.Contains(*ss.GuestAttribute, "=")) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+			if len(strings.Split(*ss.GuestAttribute, "=")) != 2 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil
@@ -2806,7 +2880,7 @@ func (ss *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *ss.ConnectionSecurity == CONN_SECURITY_TLS && *ss.UseLetsEncrypt == false {
+	if *ss.ConnectionSecurity == CONN_SECURITY_TLS && !*ss.UseLetsEncrypt {
 		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file.app_error", nil, "", http.StatusBadRequest)
 
 		if *ss.TLSCertFile == "" {

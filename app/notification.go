@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 	"unicode"
@@ -165,42 +164,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				continue
 			}
 
-			userAllowsEmails := profileMap[id].NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
-			if channelEmail, ok := channelMemberNotifyPropsMap[id][model.EMAIL_NOTIFY_PROP]; ok {
-				if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
-					userAllowsEmails = channelEmail != "false"
-				}
-			}
-
-			// Remove the user as recipient when the user has muted the channel.
-			if channelMuted, ok := channelMemberNotifyPropsMap[id][model.MARK_UNREAD_NOTIFY_PROP]; ok {
-				if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
-					mlog.Debug(fmt.Sprintf("Channel muted for user_id %v, channel_mute %v", id, channelMuted))
-					userAllowsEmails = false
-				}
-			}
-
 			//If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
-				mlog.Error(fmt.Sprintf("Skipped sending notification email to %v, address not verified. [details: user_id=%v]", profileMap[id].Email, id))
+				mlog.Error("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
 				continue
 			}
 
-			var status *model.Status
-			var err *model.AppError
-			if status, err = a.GetStatus(id); err != nil {
-				status = &model.Status{
-					UserId:         id,
-					Status:         model.STATUS_OFFLINE,
-					Manual:         false,
-					LastActivityAt: 0,
-					ActiveChannel:  "",
-				}
-			}
-
-			autoResponderRelated := status.Status == model.STATUS_OUT_OF_OFFICE || post.Type == model.POST_AUTO_RESPONDER
-
-			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 && !autoResponderRelated {
+			if a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
 				a.sendNotificationEmail(notification, profileMap[id], team)
 			}
 		}
@@ -250,7 +220,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	// MUST be completed before push notifications send
 	for _, umc := range updateMentionChans {
 		if err := <-umc; err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update mention count, post_id=%v channel_id=%v err=%v", post.Id, post.ChannelId, result.Err), mlog.String("post_id", post.Id))
+			mlog.Warn(
+				"Failed to update mention count",
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+				mlog.Err(err),
+			)
 		}
 	}
 
@@ -352,7 +327,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		var infos []*model.FileInfo
 		if result := <-fchan; result.Err != nil {
-			mlog.Warn(fmt.Sprint("Unable to get fileInfo for push notifications.", post.Id, result.Err), mlog.String("post_id", post.Id))
+			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(result.Err))
 		} else {
 			infos = result.Data.([]*model.FileInfo)
 		}
@@ -371,6 +346,40 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	a.Publish(message)
 	return mentionedUsersList, nil
+}
+
+func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
+	userAllowsEmails := user.NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
+	if channelEmail, ok := channelMemberNotificationProps[model.EMAIL_NOTIFY_PROP]; ok {
+		if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
+			userAllowsEmails = channelEmail != "false"
+		}
+	}
+
+	// Remove the user as recipient when the user has muted the channel.
+	if channelMuted, ok := channelMemberNotificationProps[model.MARK_UNREAD_NOTIFY_PROP]; ok {
+		if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
+			mlog.Debug("Channel muted for user", mlog.String("user_id", user.Id), mlog.String("channel_mute", channelMuted))
+			userAllowsEmails = false
+		}
+	}
+
+	var status *model.Status
+	var err *model.AppError
+	if status, err = a.GetStatus(user.Id); err != nil {
+		status = &model.Status{
+			UserId:         user.Id,
+			Status:         model.STATUS_OFFLINE,
+			Manual:         false,
+			LastActivityAt: 0,
+			ActiveChannel:  "",
+		}
+	}
+
+	autoResponderRelated := status.Status == model.STATUS_OUT_OF_OFFICE || post.Type == model.POST_AUTO_RESPONDER
+	emailNotificationsAllowedForStatus := status.Status != model.STATUS_ONLINE && status.Status != model.STATUS_DND
+
+	return userAllowsEmails && emailNotificationsAllowedForStatus && user.DeleteAt == 0 && !autoResponderRelated
 }
 
 // sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
@@ -593,7 +602,9 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 			for _, k := range splitKeys {
 				// note that these are made lower case so that we can do a case insensitive check for them
 				key := strings.ToLower(k)
-				keywords[key] = append(keywords[key], id)
+				if key != "" {
+					keywords[key] = append(keywords[key], id)
+				}
 			}
 		}
 
@@ -640,7 +651,7 @@ type postNotification struct {
 func (n *postNotification) GetChannelName(userNameFormat string, excludeId string) string {
 	switch n.channel.Type {
 	case model.CHANNEL_DIRECT:
-		return n.sender.GetDisplayName(userNameFormat)
+		return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 	case model.CHANNEL_GROUP:
 		names := []string{}
 		for _, user := range n.profileMap {
@@ -670,7 +681,7 @@ func (n *postNotification) GetSenderName(userNameFormat string, overridesAllowed
 		}
 	}
 
-	return n.sender.GetDisplayName(userNameFormat)
+	return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 }
 
 // addMentionedUsers will add the mentioned user id in the struct's list for mentioned users
@@ -783,4 +794,17 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 			e.addMentionedUsers(ids)
 		}
 	}
+}
+
+func (a *App) GetNotificationNameFormat(user *model.User) string {
+	if !*a.Config().PrivacySettings.ShowFullName {
+		return model.SHOW_USERNAME
+	}
+
+	data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT)
+	if err != nil {
+		return *a.Config().TeamSettings.TeammateNameDisplay
+	}
+
+	return data.Value
 }

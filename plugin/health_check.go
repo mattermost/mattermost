@@ -4,7 +4,7 @@
 package plugin
 
 import (
-	"fmt"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -19,9 +19,10 @@ const (
 )
 
 type PluginHealthCheckJob struct {
-	cancel    chan struct{}
-	cancelled chan struct{}
-	env       *Environment
+	cancel     chan struct{}
+	cancelled  chan struct{}
+	cancelOnce sync.Once
+	env        *Environment
 }
 
 // InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
@@ -86,7 +87,7 @@ func (job *PluginHealthCheckJob) checkPlugin(id string) {
 	pluginErr := sup.PerformHealthCheck()
 
 	if pluginErr != nil {
-		mlog.Error(fmt.Sprintf("Health check failed for plugin %s, error: %s", id, pluginErr.Error()))
+		mlog.Error("Health check failed for plugin", mlog.String("id", id), mlog.Err(pluginErr))
 		job.handleHealthCheckFail(id, pluginErr)
 	}
 }
@@ -105,13 +106,13 @@ func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
 
 	if shouldDeactivatePlugin(p) {
 		p.failTimeStamps = []time.Time{}
-		mlog.Debug(fmt.Sprintf("Deactivating plugin due to multiple crashes `%s`", id))
+		mlog.Debug("Deactivating plugin due to multiple crashes", mlog.String("id", id))
 		job.env.Deactivate(id)
 		job.env.SetPluginState(id, model.PluginStateFailedToStayRunning)
 	} else {
-		mlog.Debug(fmt.Sprintf("Restarting plugin due to failed health check `%s`", id))
+		mlog.Debug("Restarting plugin due to failed health check", mlog.String("id", id))
 		if err := job.env.RestartPlugin(id); err != nil {
-			mlog.Error(fmt.Sprintf("Failed to restart plugin `%s`: %s", id, err.Error()))
+			mlog.Error("Failed to restart plugin", mlog.String("id", id), mlog.Err(err))
 		}
 	}
 }
@@ -125,7 +126,9 @@ func newPluginHealthCheckJob(env *Environment) *PluginHealthCheckJob {
 }
 
 func (job *PluginHealthCheckJob) Cancel() {
-	close(job.cancel)
+	job.cancelOnce.Do(func() {
+		close(job.cancel)
+	})
 	<-job.cancelled
 }
 

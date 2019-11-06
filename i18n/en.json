@@ -172,6 +172,10 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v added to the channel as guest by %v."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v."
   },
@@ -258,6 +262,10 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Unable to delete direct or group message channels"
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v joined the channel as guest."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -378,6 +386,10 @@
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "The default channel cannot be made private."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -785,6 +797,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} is already in the channel."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} is not a member of the team."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1307,10 +1323,6 @@
   {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Unable to upload file. Image storage is not configured."
-  },
-  {
-    "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Unable to upload file. File is too large."
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
@@ -1861,6 +1873,10 @@
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parameter required to add user to team."
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -2767,6 +2783,10 @@
     "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
+    "id": "app.admin.test_site_url.failure",
+    "translation": "This is not a valid live URL"
+  },
+  {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Must specify the team ID to create a channel"
   },
@@ -3364,7 +3384,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new Direct Message from @{{.SenderName}}"
+    "translation": "You have a new Direct Message from {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
@@ -3372,7 +3392,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "You have a new Group Message from @{{.SenderName}}"
+    "translation": "You have a new Group Message from {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3380,11 +3400,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from @{{.SenderName}}"
+    "translation": "You have a new notification from {{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3396,7 +3416,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3408,7 +3428,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3416,7 +3436,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] New Direct Message from @{{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] New Direct Message from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3491,6 +3511,22 @@
     "translation": "Unable to find manifest for extracted plugin"
   },
   {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": "Failed to create marketplace client."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Marketplace has been disabled. Please check your logs for details."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.app_error",
+    "translation": "Failed to get plugins from the marketplace server."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "Failed to marshal marketplace plugins."
+  },
+  {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
   },
@@ -3507,6 +3543,10 @@
     "translation": "Unable to remove plugin bundle from file store."
   },
   {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Unable to store the plugin to the configured file store."
   },
@@ -3521,6 +3561,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins and/or plugin uploads have been disabled."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3911,6 +3955,10 @@
     "translation": "Invalid AD/LDAP Filter"
   },
   {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Invalid AD/LDAP Guest Filter"
+  },
+  {
     "id": "ent.ldap_groups.group_search_error",
     "translation": "error retrieving ldap group"
   },
@@ -4152,7 +4200,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Error trying to authenticate MFA token"
+    "translation": "Invalid MFA token."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4476,15 +4524,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elastic Search AutocompleteEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch AutocompleteEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch SearchEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4667,8 +4715,20 @@
     "translation": "Service Provider Login URL must be a valid URL and start with http:// or https://."
   },
   {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "Invalid Canonical Algorithm."
+  },
+  {
+    "id": "model.config.is_valid.saml_digest_algorithm.app_error",
+    "translation": "Invalid Digest Algorithm."
+  },
+  {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Invalid Email attribute. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4689,6 +4749,10 @@
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
     "translation": "Service Provider Public Certificate missing. Did you forget to upload it?"
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Invalid Signature Algorithm."
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -5089,6 +5153,14 @@
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
     "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+  },
+  {
+    "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
+    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+  },
+  {
+    "id": "model.plugin_kvset_options.serialize_value.app_error",
+    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5643,6 +5715,10 @@
     "translation": "Unable to get the channels"
   },
   {
+    "id": "store.sql_channel.get_pinnedpost_count.app_error",
+    "translation": "Unable to get the channel pinned post count"
+  },
+  {
     "id": "store.sql_channel.get_public_channels.get.app_error",
     "translation": "Unable to get public channels"
   },
@@ -6059,6 +6135,10 @@
     "translation": "no rows changed"
   },
   {
+    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
+  },
+  {
     "id": "store.sql_group.unique_constraint",
     "translation": "a group with that name already exists"
   },
@@ -6329,10 +6409,6 @@
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
     "translation": "Unable to select the posts to delete for the user (too many), please re-run"
-  },
-  {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "Unable to determine the maximum supported post size"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -6655,6 +6731,14 @@
     "translation": "Unable to get the channel count for the scheme."
   },
   {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "Unable to count the private teams"
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "Unable to count the public teams"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "Unable to count the teams"
   },
@@ -6708,6 +6792,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Unable to find the existing team"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Unable to find the existing team"
   },
   {
@@ -7400,11 +7488,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "We no longer support this browser"
+    "translation": "This browser is no longer supported by Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "We no longer support this version of your browser"
+    "translation": "This version of your browser is no longer supported by Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",

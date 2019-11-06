@@ -28,6 +28,7 @@ const (
 type Field = zapcore.Field
 
 var Int64 = zap.Int64
+var Int32 = zap.Int32
 var Int = zap.Int
 var Uint32 = zap.Uint32
 var String = zap.String
@@ -85,7 +86,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	}
 
 	if config.EnableConsole {
-		writer := zapcore.Lock(os.Stdout)
+		writer := zapcore.Lock(os.Stderr)
 		core := zapcore.NewCore(makeEncoder(config.ConsoleJson), writer, logger.consoleLevel)
 		cores = append(cores, core)
 	}

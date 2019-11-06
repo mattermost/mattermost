@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -1387,6 +1388,68 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	}
 }
 
+func TestUpdateChannelPrivacy(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	type testTable []struct {
+		name            string
+		channel         *model.Channel
+		expectedPrivacy string
+	}
+
+	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id, false)
+	privateChannel := th.CreatePrivateChannel()
+	publicChannel := th.CreatePublicChannel()
+
+	tt := testTable{
+		{"Updating default channel should fail with forbidden status if not logged in", defaultChannel, model.CHANNEL_OPEN},
+		{"Updating private channel should fail with forbidden status if not logged in", privateChannel, model.CHANNEL_PRIVATE},
+		{"Updating public channel should fail with forbidden status if not logged in", publicChannel, model.CHANNEL_OPEN},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			_, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+			CheckForbiddenStatus(t, resp)
+		})
+	}
+
+	th.LoginTeamAdmin()
+
+	tt = testTable{
+		{"Converting default channel to private should fail", defaultChannel, model.CHANNEL_PRIVATE},
+		{"Updating privacy to an invalid setting should fail", publicChannel, "invalid"},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			_, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+			CheckBadRequestStatus(t, resp)
+		})
+	}
+
+	tt = testTable{
+		{"Default channel should stay public", defaultChannel, model.CHANNEL_OPEN},
+		{"Public channel should stay public", publicChannel, model.CHANNEL_OPEN},
+		{"Private channel should stay private", privateChannel, model.CHANNEL_PRIVATE},
+		{"Public channel should convert to private", publicChannel, model.CHANNEL_PRIVATE},
+		{"Private channel should convert to public", privateChannel, model.CHANNEL_OPEN},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			updatedChannel, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+			CheckNoError(t, resp)
+			assert.Equal(t, updatedChannel.Type, tc.expectedPrivacy)
+			updatedChannel, err := th.App.GetChannel(tc.channel.Id)
+			require.Nil(t, err)
+			assert.Equal(t, updatedChannel.Type, tc.expectedPrivacy)
+		})
+	}
+}
+
 func TestRestoreChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -1849,6 +1912,16 @@ func TestGetChannelStats(t *testing.T) {
 		t.Fatal("couldnt't get extra info")
 	} else if stats.MemberCount != 1 {
 		t.Fatal("got incorrect member count")
+	} else if stats.PinnedPostCount != 0 {
+		t.Fatal("got incorrect pinned post count")
+	}
+
+	th.CreatePinnedPostWithClient(th.Client, channel)
+	stats, resp = Client.GetChannelStats(channel.Id, "")
+	CheckNoError(t, resp)
+
+	if stats.PinnedPostCount != 1 {
+		t.Fatal("should have returned 1 pinned post count")
 	}
 
 	_, resp = Client.GetChannelStats("junk", "")
@@ -2430,15 +2503,80 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
-	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
-	CheckNoError(t, resp)
+	t.Run("success", func(t *testing.T) {
+		// Setup the system administrator to listen for websocket events from the channels.
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		_, err := th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+		require.Nil(t, err)
+		_, err = th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel2)
+		require.Nil(t, err)
+		props := map[string]string{}
+		props[model.DESKTOP_NOTIFY_PROP] = model.CHANNEL_NOTIFY_ALL
+		_, resp = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel.Id, th.SystemAdminUser.Id, props)
+		_, resp = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel2.Id, th.SystemAdminUser.Id, props)
+		CheckNoError(t, resp)
 
-	_, resp = Client.RemoveUserFromChannel(th.BasicChannel2.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+		wsClient, err := th.CreateWebSocketSystemAdminClient()
+		require.Nil(t, err)
+		wsClient.Listen()
+		var closeWsClient sync.Once
+		defer closeWsClient.Do(func() {
+			wsClient.Close()
+		})
 
-	_, resp = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+		wsr := <-wsClient.EventChannel
+		require.Equal(t, wsr.Event, model.WEBSOCKET_EVENT_HELLO)
+
+		// requirePost listens for websocket events and tries to find the post matching
+		// the expected post's channel and message.
+		requirePost := func(expectedPost *model.Post) {
+			t.Helper()
+			for {
+				select {
+				case event := <-wsClient.EventChannel:
+					postData, ok := event.Data["post"]
+					if !ok {
+						continue
+					}
+
+					post := model.PostFromJson(strings.NewReader(postData.(string)))
+					if post.ChannelId == expectedPost.ChannelId && post.Message == expectedPost.Message {
+						return
+					}
+				case <-time.After(5 * time.Second):
+					t.Fatal("failed to find expected post after 5 seconds")
+					return
+				}
+			}
+		}
+
+		th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+		_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
+		CheckNoError(t, resp)
+
+		requirePost(&model.Post{
+			Message:   fmt.Sprintf("@%s left the channel.", th.BasicUser2.Username),
+			ChannelId: th.BasicChannel.Id,
+		})
+
+		_, resp = Client.RemoveUserFromChannel(th.BasicChannel2.Id, th.BasicUser.Id)
+		CheckNoError(t, resp)
+		requirePost(&model.Post{
+			Message:   fmt.Sprintf("@%s removed from the channel.", th.BasicUser.Username),
+			ChannelId: th.BasicChannel2.Id,
+		})
+
+		_, resp = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+		CheckNoError(t, resp)
+		requirePost(&model.Post{
+			Message:   fmt.Sprintf("@%s removed from the channel.", th.BasicUser.Username),
+			ChannelId: th.BasicChannel.Id,
+		})
+
+		closeWsClient.Do(func() {
+			wsClient.Close()
+		})
+	})
 
 	// Leave deleted channel
 	th.LoginBasic()
@@ -2859,6 +2997,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 
 	user.Timezone["manualTimezone"] = ""
 	_, resp = Client.UpdateUser(user)
+	CheckNoError(t, resp)
 
 	timezone, resp = Client.GetChannelMembersTimezones(th.BasicChannel.Id)
 	CheckNoError(t, resp)

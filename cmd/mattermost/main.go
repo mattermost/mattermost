@@ -15,10 +15,10 @@ import (
 	_ "github.com/mattermost/mattermost-server/imports"
 
 	// Enterprise Deps
-	_ "github.com/dgryski/dgoogauth"
-	_ "github.com/go-ldap/ldap"
+	_ "github.com/gorilla/handlers"
 	_ "github.com/hako/durafmt"
 	_ "github.com/hashicorp/memberlist"
+	_ "github.com/mattermost/ldap"
 	_ "github.com/mattermost/rsc/qr"
 	_ "github.com/prometheus/client_golang/prometheus"
 	_ "github.com/prometheus/client_golang/prometheus/promhttp"

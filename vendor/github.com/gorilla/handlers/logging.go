@@ -43,6 +43,9 @@ func (h loggingHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	url := *req.URL
 
 	h.handler.ServeHTTP(logger, req)
+	if req.MultipartForm != nil {
+		req.MultipartForm.RemoveAll()
+	}
 
 	params := LogFormatterParams{
 		Request:    req,

@@ -157,14 +157,17 @@ type PostActionIntegration struct {
 }
 
 type PostActionIntegrationRequest struct {
-	UserId     string                 `json:"user_id"`
-	ChannelId  string                 `json:"channel_id"`
-	TeamId     string                 `json:"team_id"`
-	PostId     string                 `json:"post_id"`
-	TriggerId  string                 `json:"trigger_id"`
-	Type       string                 `json:"type"`
-	DataSource string                 `json:"data_source"`
-	Context    map[string]interface{} `json:"context,omitempty"`
+	UserId      string                 `json:"user_id"`
+	UserName    string                 `json:"user_name"`
+	ChannelId   string                 `json:"channel_id"`
+	ChannelName string                 `json:"channel_name"`
+	TeamId      string                 `json:"team_id"`
+	TeamName    string                 `json:"team_domain"`
+	PostId      string                 `json:"post_id"`
+	TriggerId   string                 `json:"trigger_id"`
+	Type        string                 `json:"type"`
+	DataSource  string                 `json:"data_source"`
+	Context     map[string]interface{} `json:"context,omitempty"`
 }
 
 type PostActionIntegrationResponse struct {
@@ -178,13 +181,14 @@ type PostActionAPIResponse struct {
 }
 
 type Dialog struct {
-	CallbackId     string          `json:"callback_id"`
-	Title          string          `json:"title"`
-	IconURL        string          `json:"icon_url"`
-	Elements       []DialogElement `json:"elements"`
-	SubmitLabel    string          `json:"submit_label"`
-	NotifyOnCancel bool            `json:"notify_on_cancel"`
-	State          string          `json:"state"`
+	CallbackId       string          `json:"callback_id"`
+	Title            string          `json:"title"`
+	IntroductionText string          `json:"introduction_text"`
+	IconURL          string          `json:"icon_url"`
+	Elements         []DialogElement `json:"elements"`
+	SubmitLabel      string          `json:"submit_label"`
+	NotifyOnCancel   bool            `json:"notify_on_cancel"`
+	State            string          `json:"state"`
 }
 
 type DialogElement struct {
@@ -221,6 +225,7 @@ type SubmitDialogRequest struct {
 }
 
 type SubmitDialogResponse struct {
+	Error  string            `json:"error,omitempty"`
 	Errors map[string]string `json:"errors,omitempty"`
 }
 
@@ -282,7 +287,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 		R, S *big.Int
 	}
 
-	if _, err := asn1.Unmarshal([]byte(signature), &esig); err != nil {
+	if _, err := asn1.Unmarshal(signature, &esig); err != nil {
 		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, err.Error(), http.StatusBadRequest)
 	}
 
