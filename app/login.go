@@ -110,7 +110,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
 }
 
-func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) (*model.Session, *model.AppError) {
+func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) *model.AppError {
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
 		pluginContext := a.PluginContext()
@@ -120,7 +120,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		}, plugin.UserWillLogInId)
 
 		if rejectionReason != "" {
-			return nil, model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
+			return model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -133,7 +133,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		// A special case where we logout of all other sessions with the same Id
 		if err := a.RevokeSessionsForDeviceId(user.Id, deviceId, ""); err != nil {
 			err.StatusCode = http.StatusInternalServerError
-			return nil, err
+			return err
 		}
 	} else {
 		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthWebInDays)
@@ -158,10 +158,11 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	var err *model.AppError
 	if session, err = a.CreateSession(session); err != nil {
 		err.StatusCode = http.StatusInternalServerError
-		return nil, err
+		return err
 	}
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
+
 	a.Session = *session
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
@@ -174,10 +175,10 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		})
 	}
 
-	return session, nil
+	return nil
 }
 
-func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request, session *model.Session) {
+func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
 	secure := false
 	if GetProtocol(r) == "https" {
 		secure = true
@@ -190,7 +191,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request, sessi
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
-		Value:    session.Token,
+		Value:    a.Session.Token,
 		Path:     subpath,
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
@@ -201,7 +202,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request, sessi
 
 	userCookie := &http.Cookie{
 		Name:    model.SESSION_COOKIE_USER,
-		Value:   session.UserId,
+		Value:   a.Session.UserId,
 		Path:    subpath,
 		MaxAge:  maxAge,
 		Expires: expiresAt,
@@ -211,7 +212,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request, sessi
 
 	csrfCookie := &http.Cookie{
 		Name:    model.SESSION_COOKIE_CSRF,
-		Value:   session.GetCSRF(),
+		Value:   a.Session.GetCSRF(),
 		Path:    subpath,
 		MaxAge:  maxAge,
 		Expires: expiresAt,

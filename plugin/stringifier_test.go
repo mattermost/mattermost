@@ -15,7 +15,7 @@ func TestStringify(t *testing.T) {
 		assert.Empty(t, strings)
 	})
 	t.Run("EmptyShouldReturnEmpty", func(t *testing.T) {
-		strings := stringify(make([]interface{}, 0, 0))
+		strings := stringify(make([]interface{}, 0))
 		assert.Empty(t, strings)
 	})
 	t.Run("PrimitivesAndCompositesShouldReturnCorrectValues", func(t *testing.T) {
@@ -83,7 +83,7 @@ func TestToObjects(t *testing.T) {
 		assert.Nil(t, objects)
 	})
 	t.Run("EmptyShouldReturnEmpty", func(t *testing.T) {
-		objects := toObjects(make([]string, 0, 0))
+		objects := toObjects(make([]string, 0))
 		assert.Empty(t, objects)
 	})
 	t.Run("ShouldReturnSliceOfObjects", func(t *testing.T) {
