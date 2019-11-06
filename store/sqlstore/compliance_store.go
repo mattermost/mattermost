@@ -75,7 +75,7 @@ func (us SqlComplianceStore) Get(id string) (*model.Compliance, *model.AppError)
 		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if obj == nil {
-		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error(), http.StatusNotFound)
+		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, "", http.StatusNotFound)
 	}
 	return obj.(*model.Compliance), nil
 }
