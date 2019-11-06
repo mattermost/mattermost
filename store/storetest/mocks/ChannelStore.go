@@ -1083,8 +1083,8 @@ func (_m *ChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds 
 }
 
 // GetPublicChannelsForTeam provides a mock function with given fields: teamId, offset, limit
-func (_m *ChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	ret := _m.Called(teamId, offset, limit, includeDeleted)
+func (_m *ChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	ret := _m.Called(teamId, offset, limit)
 
 	var r0 *model.ChannelList
 	if rf, ok := ret.Get(0).(func(string, int, int) *model.ChannelList); ok {

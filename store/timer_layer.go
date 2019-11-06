@@ -1208,10 +1208,10 @@ func (s *TimerLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, ch
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
