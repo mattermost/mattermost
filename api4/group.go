@@ -578,15 +578,22 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamID := c.Params.NotAssociatedToTeam
 	channelID := c.Params.NotAssociatedToChannel
 
+	if len(teamID) <= 0 && len(channelID) <= 0 {
+		c.Err = model.NewAppError("Api4.getGroups", "api.getGroups.invalid_or_missing_channel_or_team_id", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	opts := model.GroupSearchOpts{
 		Q:                  c.Params.Q,
 		IncludeMemberCount: c.Params.IncludeMemberCount,
 	}
 
-	// Check to see if valid TeamID has been provided, then check to see if the user requesting this has
-	// permission to the team in order to add the teamID to the opts
-	_, getTeamErr := c.App.GetTeam(teamID)
-	if getTeamErr == nil {
+	if len(teamID) > 0 {
+		_, err := c.App.GetTeam(teamID)
+		if err != nil {
+			c.Err = err
+			return
+		}
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamID, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
@@ -594,8 +601,12 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.NotAssociatedToTeam = teamID
 	}
 
-	channel, getChannelErr := c.App.GetChannel(channelID)
-	if getChannelErr == nil {
+	if len(channelID) > 0 {
+		channel, err := c.App.GetChannel(channelID)
+		if err != nil {
+			c.Err = err
+			return
+		}
 		var permission *model.Permission
 		if channel.Type == model.CHANNEL_PRIVATE {
 			permission = model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS
@@ -607,11 +618,6 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		opts.NotAssociatedToChannel = channelID
-	}
-
-	if getTeamErr != nil && getChannelErr != nil {
-		c.Err = model.NewAppError("Api4.getGroups", "api.getGroups.invalid_or_missing_channel_or_team_id", nil, "", http.StatusBadRequest)
-		return
 	}
 
 	groups, err := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
