@@ -2787,12 +2787,12 @@
     "translation": "This is not a valid live URL"
   },
   {
-    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1.printall",
-    "translation": "{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n"
-  },
-  {
     "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1",
     "translation": "{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1.printall",
+    "translation": "{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n"
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.2",
@@ -2803,12 +2803,12 @@
     "translation": "\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true."
   },
   {
-    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1.printall",
-    "translation": "{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}"
-  },
-  {
     "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1",
     "translation": "{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1.printall",
+    "translation": "{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}"
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.2",
