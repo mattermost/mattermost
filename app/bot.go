@@ -199,7 +199,6 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 }
 
 func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError {
-
 	perPage := 1000
 	options := &model.BotGetOptions{
 		OwnerId:        userId,
@@ -259,16 +258,18 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError 
 }
 
 func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotList) string {
-
 	disableBotsSetting := *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
 
-	numBots := 10
-	if len(userBots) < 10 {
-		numBots = len(userBots)
+	var printAllBots = true
+	numBotsToPrint := len(userBots)
+
+	if numBotsToPrint > 10 {
+		numBotsToPrint = 10
+		printAllBots = false
 	}
 
 	var message, botList string
-	for _, bot := range userBots[:numBots] {
+	for _, bot := range userBots[:numBotsToPrint] {
 		botList += fmt.Sprintf("* %v\n", bot.Username)
 	}
 
@@ -276,13 +277,21 @@ func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotL
 	infoMessage := T("app.bot.get_disable_bot_sysadmin_message.infoMessage")
 
 	if disableBotsSetting {
-		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1",
+		message = T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1",
 			map[string]interface{}{"UserName": user.Username, "NumBots": len(userBots), "BotNames": botList})
+		if printAllBots {
+			message = T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1.printall",
+				map[string]interface{}{"UserName": user.Username, "BotNames": botList})
+		}
 		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.2")
 		message += infoMessage
 	} else {
-		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1",
+		message = T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1",
 			map[string]interface{}{"UserName": user.Username, "NumBots": len(userBots), "BotNames": botList})
+		if printAllBots {
+			message = T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1.printall",
+				map[string]interface{}{"UserName": user.Username, "NumBots": len(userBots), "BotNames": botList})
+		}
 		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.2")
 		message += infoMessage
 		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.3")
