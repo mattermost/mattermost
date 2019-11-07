@@ -58,7 +58,7 @@ type Helpers interface {
 	// KVAtomicModify alllows modifying a key-value pair atomically. This function returns err if either a cancellation, or a DB error occurred.
 	//
 	// Minimum server version: 5.6
-	KVAtomicModify(ctx context.Context, key string, bucket einterfaces.TokenBucketInterface, fn func(initialValue []byte) ([]byte, error)) error
+	KVAtomicModify(ctx context.Context, key string, bucket einterfaces.TokenBucket, fn func(initialValue []byte) ([]byte, error)) error
 }
 
 type HelpersImpl struct {

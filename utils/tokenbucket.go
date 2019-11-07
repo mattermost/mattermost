@@ -5,90 +5,100 @@ package utils
 
 import (
 	"errors"
+	"math"
 	"sync"
 	"time"
 
 	clk "github.com/benbjohnson/clock"
 )
 
-// Bucket implements a token bucket interface. TODO(gsagula): Note that this library has not been tested for
-// high performance use-cases yet.
+// Bucket implements a token bucket interface. TODO(gsagula): Although it should be fairly precise, note that this library
+// has not been tested for accuracy.
 type Bucket struct {
 	burst  chan struct{}
-	done   chan struct{}
+	close  chan struct{}
 	closed bool
 	rate   time.Duration
+	last   time.Time
 	once   sync.Once
 	clock  clk.Clock
 }
 
-// NewTokenBucket returns an instance of a token bucket. Duration parameter sets the refill rate, or how long a token takes
-// to get back to the bucket. Burst sets the bucket's capacity.
-func NewTokenBucket(duration time.Duration, burst uint64) *Bucket {
+// NewTokenBucket returns a pointer to a token bucket's instance and a done func. Done() should be called when the bucket
+// is no longer needed. Duration parameter sets the constant refill rate of one token per duration (how long a token takes
+// to get back to the bucket). Burst sets the bucket's capacity.
+func NewTokenBucket(duration time.Duration, burst uint64) (bucket *Bucket, done func()) {
 	return NewTokenBucketWithClock(duration, burst, nil)
 }
 
 // NewTokenBucketWithClock is exactly like NewTokenBucket except that it takes a clock interface for testing. When clock is
 // nil, a real clock instance will be supplied to the Bucket.
-func NewTokenBucketWithClock(duration time.Duration, burst uint64, clock clk.Clock) *Bucket {
+func NewTokenBucketWithClock(duration time.Duration, burst uint64, clock clk.Clock) (bucket *Bucket, done func()) {
 	if clock == nil {
 		clock = clk.New()
 	}
 
-	bucket := &Bucket{
+	if duration.Nanoseconds() <= 0 {
+		duration = 1 * time.Nanosecond
+	}
+
+	b := &Bucket{
 		burst:  make(chan struct{}, burst),
-		done:   make(chan struct{}),
+		close:  make(chan struct{}),
 		closed: false,
 		rate:   duration,
+		last:   clock.Now(),
 		clock:  clock,
 	}
 
-	// It loads the burst channel.
+	// It loads the burst channel by making tokens mediately available in the buffer.
 	for i := uint64(0); i < burst; i++ {
-		bucket.burst <- struct{}{}
+		b.burst <- struct{}{}
 	}
 
-	// Routine that refills the bucket at constant rate.
+	// Routine that refills the bucket at constant rate (token/thick).
 	go func(b *Bucket) {
-		if b.rate.Nanoseconds() <= 0 {
-			for {
-				select {
-				case <-b.done:
-					return
-				default:
-					b.burst <- struct{}{}
-				}
-			}
-		} else {
-			ticker := b.clock.Ticker(b.rate)
-			for {
-				select {
-				case <-b.done:
-					ticker.Stop()
-					return
-				case <-ticker.C:
-					b.burst <- struct{}{}
-				}
+		ticker := b.clock.Ticker(b.rate)
+		for {
+			select {
+			case <-b.close:
+				ticker.Stop()
+				return
+			case b.last = <-ticker.C:
+				b.burst <- struct{}{}
 			}
 		}
-	}(bucket)
-	return bucket
+	}(b)
+
+	return b, b.done
 }
 
-// Take will block until a token is removed from the bucket. Calling this function after Closed()
-// will return an error.
-func (b *Bucket) Take() error {
+// Take returns a token if any is available, otherwise it blocks until at least one token
+// is returned to the bucket. This function will return an error if called after Done().
+func (b *Bucket) Take() (err error) {
 	if b.closed {
 		return errors.New("bucket is closed")
 	}
+	// Blocks if burst channel is empty.
 	<-b.burst
 	return nil
 }
 
-// Done will stop the routine that refills the bucket.
-func (b *Bucket) Done() {
+// Until returns the approximated duration until the a token is available in the bucket. If buffer is
+// not empty, this function return duration 0. This function returns error if when called after Done().
+func (b *Bucket) Until() (duration time.Duration, err error) {
+	if b.closed {
+		return time.Duration(math.MaxInt64), errors.New("bucket is closed")
+	}
+	if d := b.rate - time.Since(b.last); d.Nanoseconds() > 0 {
+		return d, nil
+	}
+	return time.Duration(0), nil
+}
+
+func (b *Bucket) done() {
 	b.once.Do(func() {
-		close(b.done)
+		close(b.close)
 		b.closed = true
 	})
 }

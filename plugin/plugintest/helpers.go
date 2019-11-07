@@ -40,11 +40,11 @@ func (_m *Helpers) EnsureBot(bot *model.Bot) (string, error) {
 }
 
 // KVAtomicModify provides a mock function with given fields: ctx, key, bucket, fn
-func (_m *Helpers) KVAtomicModify(ctx context.Context, key string, bucket einterfaces.TokenBucketInterface, fn func([]byte) ([]byte, error)) error {
+func (_m *Helpers) KVAtomicModify(ctx context.Context, key string, bucket einterfaces.TokenBucket, fn func([]byte) ([]byte, error)) error {
 	ret := _m.Called(ctx, key, bucket, fn)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, einterfaces.TokenBucketInterface, func([]byte) ([]byte, error)) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, einterfaces.TokenBucket, func([]byte) ([]byte, error)) error); ok {
 		r0 = rf(ctx, key, bucket, fn)
 	} else {
 		r0 = ret.Error(0)

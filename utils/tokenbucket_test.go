@@ -4,71 +4,100 @@
 package utils
 
 import (
-	"github.com/stretchr/testify/assert"
-	"runtime"
 	"testing"
 	"time"
 
-	clk "github.com/benbjohnson/clock"
+	"github.com/stretchr/testify/assert"
 )
 
-// TODO(gsagula): write more robust tests.
-func TestTokenBucket(t *testing.T) {
-	type Result struct {
-		Taken bool
-		Err   error
-	}
+type TestCase struct {
+	rate           time.Duration
+	burst          uint64
+	calls          int
+	minTotalTime   time.Duration
+	minWaitPerCall time.Duration
+}
 
-	take := func(b *Bucket, m *clk.Mock) (chan *Result, chan time.Duration) {
-		r := make(chan *Result)
-		d := make(chan time.Duration)
-		go func() {
-			for {
-				select {
-				case duration := <-d:
-					m.Add(duration)
-					if duration.Nanoseconds() > 0 {
-						r <- &Result{
-							Taken: true,
-							Err:   b.Take(),
-						}
-					}
-				default:
-				}
+// TODO(gsagula): Add a verification step that compares the waiting time with an acceptable
+// marginal error. It should just logs a warning but not fail.
+func CallBucket(t *testing.T, name string, tc TestCase) {
+	b, done := NewTokenBucket(tc.rate, tc.burst)
+	defer done()
+	t.Run(name, func(t *testing.T) {
+		startTotalTime := time.Now()
+		for i := 0; i <= tc.calls; i++ {
+			untilTime, err := b.Until()
+			assert.NoError(t, err)
+			if i >= int(tc.burst) {
+				// Min waiting time per call will be close to rate when bucket is empty.
+				assert.GreaterOrEqual(t, tc.rate.Nanoseconds(), untilTime.Nanoseconds(),
+					"Until() cannot return a duration greater than (refill rate) %v, but it was %v",
+					tc.rate, untilTime, untilTime-tc.rate)
 			}
-		}()
-		runtime.Gosched()
-		return r, d
-	}
-
-	t.Run("mocked clock", func(t *testing.T) {
-		clock := clk.NewMock()
-		clock.Now().UTC()
-		tb := NewTokenBucketWithClock(1*time.Nanosecond, 2, clock)
-		defer tb.Done()
-
-		r, d := take(tb, clock)
-		assert.NoError(t, tb.Take())
-		assert.NoError(t, tb.Take())
-
-		d <- 1 * time.Nanosecond
-		ok := <-r
-		assert.Equal(t, true, ok.Taken)
-		assert.NoError(t, ok.Err)
-	})
-
-	t.Run("real clock", func(t *testing.T) {
-		burst := uint64(3)
-		refill := 10 * time.Millisecond
-		tb := NewTokenBucket(refill, burst)
-		for i := 0; i < int(burst); i++ {
-			assert.NoError(t, tb.Take())
+			b.Take()
 		}
-		start := time.Now()
-		assert.NoError(t, tb.Take())
-		duration := time.Now().Sub(start)
+		totalTime := time.Since(startTotalTime)
+		assert.GreaterOrEqual(t, totalTime.Nanoseconds(), tc.minTotalTime.Nanoseconds(),
+			"Until() cannot return a duration greater than (refill rate) %v, but it was %v",
+			tc.minTotalTime, totalTime, totalTime-tc.minTotalTime)
+	})
+}
 
-		// Assert that Take() blocks.
-		assert.GreaterOrEqual(t, duration.Nanoseconds(), refill.Nanoseconds())
+func TestTokenBucket(t *testing.T) {
+	const (
+		// MSecond represents 1 millisecond.
+		Millisecond = 1 * time.Millisecond
+		// Microsecond represents 1 microsecond.
+		Microsecond = 1 * time.Microsecond
+	)
+	t.Run("test bucket's acceptance when", func(t *testing.T) {
+		tcs := map[string]TestCase{
+			"rate is in milliseconds": {
+				rate:         Millisecond,
+				burst:        0,
+				calls:        1e3,
+				minTotalTime: 1e3 * Millisecond,
+			},
+			"rate is in milliseconds with burst": {
+				rate:         Millisecond,
+				burst:        10,
+				calls:        1e3,
+				minTotalTime: 1e3*Millisecond - 10*Millisecond,
+			},
+			"rate is in microseconds": {
+				rate:         Microsecond,
+				burst:        0,
+				calls:        1e5,
+				minTotalTime: 1e5 * Microsecond,
+			},
+			"rate is in microseconds with burst": {
+				rate:         Microsecond,
+				burst:        20,
+				calls:        1e5,
+				minTotalTime: 1e5*Microsecond - 20*Microsecond,
+			},
+			"calling Take() after Done()": {
+				rate:         Microsecond,
+				burst:        20,
+				calls:        1e5,
+				minTotalTime: 1e5*Microsecond - 20*Microsecond,
+			},
+		}
+		for n, tc := range tcs {
+			CallBucket(t, n, tc)
+		}
+
+		t.Run("test calling take after done", func(t *testing.T) {
+			b, done := NewTokenBucket(1*time.Nanosecond, 1)
+			done()
+			assert.Error(t, b.Take())
+		})
+
+		t.Run("test calling until after done", func(t *testing.T) {
+			b, done := NewTokenBucket(1*time.Nanosecond, 1)
+			done()
+			_, err := b.Until()
+			assert.Error(t, err)
+		})
 	})
 }

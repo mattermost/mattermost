@@ -325,9 +325,8 @@ func TestKVAtomicModify(t *testing.T) {
 	t.Run("acceptance test", func(t *testing.T) {
 		ctx := context.Background()
 
-		bucket := new(mocks.TokenBucketInterface)
+		bucket := new(mocks.TokenBucket)
 		bucket.On("Take").Return(nil)
-		bucket.On("Done").Once()
 
 		api := &plugintest.API{}
 		api.On("KVGet", key).Once().Return(valA, nil)
@@ -343,9 +342,8 @@ func TestKVAtomicModify(t *testing.T) {
 	t.Run("token bucket error", func(t *testing.T) {
 		ctx := context.Background()
 
-		bucket := new(mocks.TokenBucketInterface)
+		bucket := new(mocks.TokenBucket)
 		bucket.On("Take").Return(errors.New("token bucket error"))
-		bucket.On("Done").Once()
 
 		api := &plugintest.API{}
 		api.AssertNotCalled(t, "KVGet")
@@ -363,9 +361,8 @@ func TestKVAtomicModify(t *testing.T) {
 		ctx := context.Background()
 		ctx, cancel := context.WithCancel(ctx)
 
-		bucket := new(mocks.TokenBucketInterface)
+		bucket := new(mocks.TokenBucket)
 		bucket.AssertNotCalled(t, "Take")
-		bucket.On("Done").Once()
 
 		api := &plugintest.API{}
 		api.AssertNotCalled(t, "KVGet")
@@ -383,9 +380,8 @@ func TestKVAtomicModify(t *testing.T) {
 	t.Run("on function modify error", func(t *testing.T) {
 		ctx := context.Background()
 
-		bucket := new(mocks.TokenBucketInterface)
+		bucket := new(mocks.TokenBucket)
 		bucket.On("Take").Return(nil)
-		bucket.On("Done").Once()
 
 		api := &plugintest.API{}
 		api.On("KVGet", key).Once().Return(valErr, nil)

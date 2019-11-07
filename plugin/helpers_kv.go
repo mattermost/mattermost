@@ -112,26 +112,26 @@ func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireI
 // . key	String for querying the storage.
 // . bucket	An instance of the TokenBucket interface that is use for throttling control on retries.
 // . fn 	A function the modifies the initial data.
-func (p *HelpersImpl) KVAtomicModify(ctx context.Context, key string, bucket einterfaces.TokenBucketInterface, fn func(initialValue []byte) ([]byte, error)) error {
-	defer bucket.Done()
-
-	var initialBytes []byte
-	var modifiedBytes []byte
+func (p *HelpersImpl) KVAtomicModify(ctx context.Context, key string, bucket einterfaces.TokenBucket, fn func(initialValue []byte) ([]byte, error)) error {
+	var initialBytes, modifiedBytes []byte
 	var err error
 	for {
 		select {
 		case <-ctx.Done():
 			return errors.Wrap(ctx.Err(), "modification error")
 		default:
-			if err = bucket.Take(); err != nil {
+			err = bucket.Take()
+			if err != nil {
 				return errors.Wrap(err, "modification error")
 			}
 		}
 
-		if initialBytes, err = p.kvGetWithContext(ctx, key); err != nil {
+		initialBytes, err = p.kvGetWithContext(ctx, key)
+		if err != nil {
 			return errors.Wrap(err, "modification error")
 		}
-		if modifiedBytes, err = fn(initialBytes); err != nil {
+		modifiedBytes, err = fn(initialBytes)
+		if err != nil {
 			return errors.Wrap(err, "modification error")
 		}
 
