@@ -3,7 +3,11 @@
 
 package plugin
 
-import "github.com/mattermost/mattermost-server/model"
+import (
+	"github.com/blang/semver"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
+)
 
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
@@ -14,6 +18,8 @@ type Helpers interface {
 
 	// KVSetJSON stores a key-value pair, unique per plugin, marshalling the given value as a JSON string.
 	//
+	// Deprecated: Use p.API.KVSetWithOptions instead.
+	//
 	// Minimum server version: 5.2
 	KVSetJSON(key string, value interface{}) error
 
@@ -22,6 +28,8 @@ type Helpers interface {
 	// Returns (false, err) if DB error occurred
 	// Returns (false, nil) if current value != oldValue or key already exists when inserting
 	// Returns (true, nil) if current value == oldValue or new key is inserted
+	//
+	// Deprecated: Use p.API.KVSetWithOptions instead.
 	//
 	// Minimum server version: 5.12
 	KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error)
@@ -41,10 +49,23 @@ type Helpers interface {
 
 	// KVSetWithExpiryJSON stores a key-value pair with an expiry time, unique per plugin, marshalling the given value as a JSON string.
 	//
+	// Deprecated: Use p.API.KVSetWithOptions instead.
+	//
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 }
 
 type HelpersImpl struct {
 	API API
+}
+
+func (p *HelpersImpl) ensureServerVersion(required string) error {
+	serverVersion := p.API.GetServerVersion()
+	currentVersion := semver.MustParse(serverVersion)
+	requiredVersion := semver.MustParse(required)
+
+	if currentVersion.LT(requiredVersion) {
+		return errors.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
+	}
+	return nil
 }
