@@ -110,8 +110,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	LockTeammateValChanged := !*appCfg.TeamSettings.LockTeammateNameDisplay && *cfg.TeamSettings.LockTeammateNameDisplay
 	NameDisplayChanged := *cfg.TeamSettings.LockTeammateNameDisplay && *cfg.TeamSettings.TeammateNameDisplay != *appCfg.TeamSettings.TeammateNameDisplay
 	if LockTeammateValChanged || NameDisplayChanged {
-		preferences := []model.Preference{{"", "display_settings", "name_format", *cfg.TeamSettings.TeammateNameDisplay}}
-		err = c.App.UpdatePreferencesForAll(preferences)
+		preference := model.PreferenceForAll{"display_settings", "name_format", *cfg.TeamSettings.TeammateNameDisplay}
+		err = c.App.UpdatePreferenceForAll(preference)
 		if err != nil {
 			c.Err = err
 			return

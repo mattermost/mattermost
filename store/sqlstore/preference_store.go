@@ -75,12 +75,10 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) *model.AppError
 	return nil
 }
 
-func (s SqlPreferenceStore) SaveForAll(preferences model.Preferences) *model.AppError {
-	for _, preference := range preferences {
-		_, err := s.GetMaster().Exec("UPDATE Preferences SET Value = :Value WHERE Name = :Name AND Value <> :Value", map[string]interface{}{"Value": preference.Value, "Name": preference.Name})
-		if err != nil {
-			return model.NewAppError("SqlPreferenceStore.SaveForAll", "store.sql_preference.save_for_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+func (s SqlPreferenceStore) SaveForAll(preference model.PreferenceForAll) *model.AppError {
+	_, err := s.GetMaster().Exec("UPDATE Preferences SET Value = :Value WHERE Name = :Name AND Value <> :Value AND Category = :Category ", map[string]interface{}{"Value": preference.Value, "Name": preference.Name, "Category": preference.Category})
+	if err != nil {
+		return model.NewAppError("SqlPreferenceStore.SaveForAll", "store.sql_preference.save_for_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
