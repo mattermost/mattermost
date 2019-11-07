@@ -4,14 +4,19 @@
 package plugin
 
 import (
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/pkg/errors"
 )
 
-// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
-// Returns the id of the resulting bot.
+// EnsureBot implements Helpers.EnsureBot
 func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotID string, retErr error) {
+	err := p.ensureServerVersion("5.10.0")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to ensure bot")
+	}
+
 	// Must provide a bot with a username
 	if bot == nil || len(bot.Username) < 1 {
 		return "", errors.New("passed a bad bot, nil or no username")
