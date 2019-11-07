@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/testlib"
-
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
@@ -97,11 +95,6 @@ func Setup() *TestHelper {
 }
 
 func (th *TestHelper) InitPlugins() *TestHelper {
-
-	if th.tempWorkspace == "" {
-		th.tempWorkspace, _ = testlib.SetupTestResources()
-	}
-
 	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
 	webappDir := filepath.Join(th.tempWorkspace, "webapp")
 
