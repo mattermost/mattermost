@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -824,4 +825,30 @@ func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
 	}
 
 	return api.app.DeleteBotIconImage(userId)
+}
+
+func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
+	split := strings.SplitN(request.URL.Path, "/", 3)
+	if len(split) != 3 {
+		return &http.Response{
+			StatusCode: http.StatusBadRequest,
+			Body:       ioutil.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /<pluginid>/*")),
+		}
+	}
+	destinationPluginId := split[1]
+	newURL, err := url.Parse("/" + split[2])
+	request.URL = newURL
+	if destinationPluginId == "" || err != nil {
+		message := "No plugin specified. Form of URL should be /<pluginid>/*"
+		if err != nil {
+			message = "Form of URL should be /<pluginid>/* Error: " + err.Error()
+		}
+		return &http.Response{
+			StatusCode: http.StatusBadRequest,
+			Body:       ioutil.NopCloser(bytes.NewBufferString(message)),
+		}
+	}
+	responseTransfer := &PluginResponseWriter{}
+	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
+	return responseTransfer.GenerateResponse()
 }

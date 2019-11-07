@@ -11,11 +11,10 @@ import (
 )
 
 type TestCase struct {
-	rate           time.Duration
-	burst          uint64
-	calls          int
-	minTotalTime   time.Duration
-	minWaitPerCall time.Duration
+	rate         time.Duration
+	burst        uint64
+	calls        int
+	minTotalTime time.Duration
 }
 
 // TODO(gsagula): Add a verification step that compares the waiting time with an acceptable

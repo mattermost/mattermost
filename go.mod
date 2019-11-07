@@ -7,7 +7,6 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878 // indirect
 	github.com/avct/uasurfer v0.0.0-20190821150637-906cc7dc6197
-	github.com/benbjohnson/clock v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/corpix/uarand v0.1.1 // indirect

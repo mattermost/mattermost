@@ -5,9 +5,12 @@ package plugin
 
 import (
 	"context"
-	"github.com/mattermost/mattermost-server/einterfaces"
 
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
+
+	"github.com/blang/semver"
+	"github.com/pkg/errors"
 )
 
 type Helpers interface {
@@ -63,4 +66,15 @@ type Helpers interface {
 
 type HelpersImpl struct {
 	API API
+}
+
+func (p *HelpersImpl) ensureServerVersion(required string) error {
+	serverVersion := p.API.GetServerVersion()
+	currentVersion := semver.MustParse(serverVersion)
+	requiredVersion := semver.MustParse(required)
+
+	if currentVersion.LT(requiredVersion) {
+		return errors.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
+	}
+	return nil
 }

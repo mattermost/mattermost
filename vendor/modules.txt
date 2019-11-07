@@ -6,8 +6,6 @@ github.com/NYTimes/gziphandler
 github.com/armon/go-metrics
 # github.com/avct/uasurfer v0.0.0-20190821150637-906cc7dc6197
 github.com/avct/uasurfer
-# github.com/benbjohnson/clock v1.0.0
-github.com/benbjohnson/clock
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
 # github.com/blang/semver v3.5.1+incompatible
