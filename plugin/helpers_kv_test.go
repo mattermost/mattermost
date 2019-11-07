@@ -316,7 +316,7 @@ func TestKVAtomicModify(t *testing.T) {
 	// a) error when valErr OR []byte(`{"val":"error"}`) is supplied.
 	// b) valB OR []byte(`{"val":"modified"}`) when any other value is supplied.
 	modifyFN := func(b []byte) ([]byte, error) {
-		if bytes.Compare(b, valErr) == 0 {
+		if bytes.Equal(b, valErr) {
 			return nil, fmt.Errorf("intentional")
 		}
 		return valB, nil
