@@ -14,7 +14,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/h2non/filetype"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -173,7 +172,6 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	plugins := a.installPrepackagedPlugins("prepackaged_plugins")
 	pluginsEnvironment = a.GetPluginsEnvironment()
 	pluginsEnvironment.SetPrepackagedPlugins(plugins)
-	a.SetPluginsEnvironment(pluginsEnvironment)
 
 	// Sync plugin active state when config changes. Also notify plugins.
 	a.Srv.PluginsLock.Lock()
@@ -637,15 +635,9 @@ func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		}); err != nil {
 			mlog.Error("Failed to walk prepackaged plugins", mlog.Err(err))
 		}
-		println(fmt.Sprintf("fileStorePaths = %v", fileStorePaths))
-
 		pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
-		println(fmt.Sprintf("%v", pluginSignaturePathMap))
-
 		plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
 		for _, pluginPaths := range pluginSignaturePathMap {
-			println(fmt.Sprintf("pluginPaths = %v", pluginPaths))
-
 			plug, err := a.installPrepackagedPlugin(pluginPaths)
 			if err != nil {
 				mlog.Error("Failed to install prepackaged plugin %s", mlog.Err(err), mlog.String("path", pluginPaths.path))
@@ -687,26 +679,26 @@ func getPrepackagedPlugin(pluginPaths *pluginSignaturePaths, pluginFile io.ReadS
 		return nil, pluginDir, errors.Wrapf(err, "Failed to extract plugin with path %s", pluginPaths.path)
 	}
 
-	plug := new(plugin.PrepackagedPlugin)
-	plug.Manifest = manifest
-	plug.Signatures = make([][]byte, 0, len(pluginPaths.signaturePaths))
+	plugin := new(plugin.PrepackagedPlugin)
+	plugin.Manifest = manifest
+	plugin.Signatures = make([][]byte, 0, len(pluginPaths.signaturePaths))
 
 	for _, sig := range pluginPaths.signaturePaths {
-		sigReader, err := os.Open(sig)
-		if err != nil {
-			return nil, pluginDir, errors.Wrapf(err, "Failed to open prepackaged plugin signature %s", sig)
+		sigReader, sigErr := os.Open(sig)
+		if sigErr != nil {
+			return nil, pluginDir, errors.Wrapf(sigErr, "Failed to open prepackaged plugin signature %s", sig)
 		}
-		bytes, err := ioutil.ReadAll(sigReader)
-		if err != nil {
-			return nil, pluginDir, errors.Wrapf(err, "Failed to read prepackaged plugin signature %s", sig)
+		bytes, sigErr := ioutil.ReadAll(sigReader)
+		if sigErr != nil {
+			return nil, pluginDir, errors.Wrapf(sigErr, "Failed to read prepackaged plugin signature %s", sig)
 		}
-		plug.Signatures = append(plug.Signatures, bytes)
+		plugin.Signatures = append(plugin.Signatures, bytes)
 	}
-	plug.IconData, err = getIcon(manifest.IconPath)
+	plugin.IconData, err = getIcon(manifest.IconPath)
 	if err != nil {
 		mlog.Error("Failed to get icon", mlog.Err(err), mlog.String("icon path", manifest.IconPath))
 	}
-	return plug, pluginDir, nil
+	return plugin, pluginDir, nil
 }
 
 func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) (signatures []io.ReadSeeker, closeFunc func(), appErr *model.AppError) {
@@ -770,38 +762,12 @@ func getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignatur
 }
 
 func getIcon(iconPath string) (string, error) {
-	icon, err := fetchIcon(iconPath)
+	icon, err := ioutil.ReadFile(iconPath)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to fetch icon %s", iconPath)
+		return "", errors.Wrapf(err, "failed to open icon at path %s", iconPath)
 	}
-	if svg.Is(icon) {
-		return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
+	if !svg.Is(icon) {
+		return "", errors.Wrapf(err, "icon is not svg %s", iconPath)
 	}
-	kind, err := filetype.Image(icon)
-	if err != nil {
-		return "", errors.Wrapf(err, "failed to match icon at %s to image", iconPath)
-	}
-	return fmt.Sprintf("data:%s;base64,%s", kind.MIME, base64.StdEncoding.EncodeToString(icon)), nil
-}
-
-func fetchIcon(icon string) ([]byte, error) {
-	if strings.HasPrefix(icon, "http") {
-		mlog.Debug("fetching icon from url %s", mlog.String("url", icon))
-
-		resp, err := http.Get(icon)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to download plugin icon at %s", icon)
-		}
-		defer resp.Body.Close()
-
-		return ioutil.ReadAll(resp.Body)
-	}
-
-	mlog.Debug("fetching icon from path %s", mlog.String("path", icon))
-	data, err := ioutil.ReadFile(icon)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to open icon at path %s", icon)
-	}
-
-	return data, nil
+	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
 }
