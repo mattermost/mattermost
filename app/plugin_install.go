@@ -181,11 +181,11 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, signatures []io.Rea
 
 	manifest, pluginDir, err := extractPlugin(pluginFile, tmpDir)
 	if err != nil {
-		return nil, model.NewAppError("installPluginLocally", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("installPluginLocally", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	manifest, appErr := a.installExtractedPlugin(manifest, pluginDir, replace)
-	if err != nil {
+	if appErr != nil {
 		return nil, appErr
 	}
 

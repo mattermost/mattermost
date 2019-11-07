@@ -536,8 +536,20 @@ func TestInstallPrepackagedPlugins(t *testing.T) {
 
 	plugins = th.App.installPrepackagedPlugins(prepackagedPluginsDir)
 	require.Len(t, plugins, 2)
-	require.Equal(t, plugins[0].Manifest.Id, "testplugin")
+	require.Contains(t, []string{"testplugin", "testplugin_v2"}, plugins[0].Manifest.Id)
 	require.Len(t, plugins[0].Signatures, 1)
-	require.Equal(t, plugins[1].Manifest.Id, "testplugin_v2")
+	require.Contains(t, []string{"testplugin", "testplugin_v2"}, plugins[1].Manifest.Id)
 	require.Len(t, plugins[1].Signatures, 1)
+
+	pluginStatus, err = env.Statuses()
+	require.Len(t, pluginStatus, 2)
+
+	appErr := th.App.RemovePlugin("testplugin")
+	checkNoError(t, appErr)
+	appErr = th.App.RemovePlugin("testplugin_v2")
+	checkNoError(t, appErr)
+
+	pluginStatus, err = env.Statuses()
+	require.Len(t, pluginStatus, 0)
+
 }
