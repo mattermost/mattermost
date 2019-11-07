@@ -162,7 +162,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 		os.Exit(EXIT_CREATE_TABLE)
 	}
 
-	err = UpgradeDatabase(supplier, model.CurrentVersion)
+	err = upgradeDatabase(supplier, model.CurrentVersion)
 	if err != nil {
 		mlog.Critical("Failed to upgrade database.", mlog.Err(err))
 		time.Sleep(time.Second)
