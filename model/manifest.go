@@ -91,6 +91,9 @@ type PluginSettingsSchema struct {
 //      "id": "com.mycompany.myplugin",
 //      "name": "My Plugin",
 //      "description": "This is my plugin",
+//      "homepage_url": "https://example.com",
+//      "support_url": "https://example.com/support",
+//      "icon_path": "assets/logo.svg",
 //      "version": "0.1.0",
 //      "min_server_version": "5.6.0",
 //      "server": {
