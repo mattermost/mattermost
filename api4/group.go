@@ -575,10 +575,17 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.getGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
-	teamID := c.Params.NotAssociatedToTeam
-	channelID := c.Params.NotAssociatedToChannel
+	var teamID, channelID string
 
-	if len(teamID) <= 0 && len(channelID) <= 0 {
+	if id := c.Params.NotAssociatedToTeam; model.IsValidId(id) {
+		teamID = id
+	}
+
+	if id := c.Params.NotAssociatedToChannel; model.IsValidId(id) {
+		channelID = id
+	}
+
+	if teamID == "" && channelID == "" {
 		c.Err = model.NewAppError("Api4.getGroups", "api.getGroups.invalid_or_missing_channel_or_team_id", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -588,20 +595,20 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeMemberCount: c.Params.IncludeMemberCount,
 	}
 
-	if len(teamID) > 0 {
+	if teamID != "" {
 		_, err := c.App.GetTeam(teamID)
 		if err != nil {
 			c.Err = err
 			return
 		}
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamID, model.PERMISSION_VIEW_TEAM) {
-			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamID, model.PERMISSION_MANAGE_TEAM) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
 			return
 		}
 		opts.NotAssociatedToTeam = teamID
 	}
 
-	if len(channelID) > 0 {
+	if channelID != "" {
 		channel, err := c.App.GetChannel(channelID)
 		if err != nil {
 			c.Err = err
