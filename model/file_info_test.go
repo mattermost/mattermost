@@ -24,7 +24,7 @@ func TestFileInfoIsValid(t *testing.T) {
 		Path:      "fake/path.png",
 	}
 
-	t.Run("Original File Info", func(t *testing.T) {
+	t.Run("Valid File Info", func(t *testing.T) {
 		assert.Nil(t, info.IsValid())
 	})
 
@@ -56,22 +56,18 @@ func TestFileInfoIsValid(t *testing.T) {
 		assert.NotNil(t, info.IsValid(), "empty Path isn't valid")
 		info.Path = "fake/path.png"
 	})
-
-	t.Run("Original file is still valid", func(t *testing.T) {
-		assert.Nil(t, info.IsValid())
-	})
 }
 
 func TestFileInfoIsImage(t *testing.T) {
 	info := &FileInfo{}
-	t.Run("Mime PNG is an image", func(t *testing.T) {
+	t.Run("MimeType set to image/png is considered an image", func(t *testing.T) {
 		info.MimeType = "image/png"
-		assert.True(t, info.IsImage(), "file is an image")
+		assert.True(t, info.IsImage(), "PNG file should be considered as an image")
 	})
 
-	t.Run("Mime Text is not an image", func(t *testing.T) {
+	t.Run("MimeType set to text/plain is not considered an image", func(t *testing.T) {
 		info.MimeType = "text/plain"
-		assert.False(t, info.IsImage(), "file is not an image")
+		assert.False(t, info.IsImage(), "Text file should not be considered as an image")
 	})
 }
 
@@ -192,17 +188,17 @@ func TestGetInfoForFile(t *testing.T) {
 			info, errApp := GetInfoForBytes(tc.filename, tc.file)
 			require.Nil(t, errApp)
 
-			assert.Equalf(t, info.Name, tc.filename, "Got incorrect filename: %v", info.Name)
-			assert.Equalf(t, info.Extension, tc.expectedExtension, "Got incorrect extension: %v", info.Extension)
-			assert.EqualValuesf(t, info.Size, tc.expectedSize, "Got incorrect size: %v", info.Size)
-			assert.Equalf(t, info.Width, tc.expectedWidth, "Got incorrect width: %v", info.Width)
-			assert.Equalf(t, info.Height, tc.expectedHeight, "Got incorrect height: %v", info.Height)
-			assert.Equalf(t, info.HasPreviewImage, tc.expectedHasPreviewImage, "Got incorrect has preview image: %v", info.HasPreviewImage)
+			assert.Equalf(t, tc.filename, info.Name, "Got incorrect filename: %v", info.Name)
+			assert.Equalf(t, tc.expectedExtension, info.Extension, "Got incorrect extension: %v", info.Extension)
+			assert.EqualValuesf(t, tc.expectedSize, info.Size, "Got incorrect size: %v", info.Size)
+			assert.Equalf(t, tc.expectedWidth, info.Width, "Got incorrect width: %v", info.Width)
+			assert.Equalf(t, tc.expectedHeight, info.Height, "Got incorrect height: %v", info.Height)
+			assert.Equalf(t, tc.expectedHasPreviewImage, info.HasPreviewImage, "Got incorrect has preview image: %v", info.HasPreviewImage)
 
 			if tc.usePrefixForMime {
 				assert.Truef(t, strings.HasPrefix(info.MimeType, tc.expectedMime), "Got incorrect mime type: %v", info.MimeType)
 			} else {
-				assert.Equalf(t, info.MimeType, tc.expectedMime, "Got incorrect mime type: %v", info.MimeType)
+				assert.Equalf(t, tc.expectedMime, info.MimeType, "Got incorrect mime type: %v", info.MimeType)
 			}
 		})
 	}
