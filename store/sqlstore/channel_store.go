@@ -2209,9 +2209,7 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 	})
 
 	output := *publicChannels
-	for _, c := range *privateChannels {
-		output = append(output, c)
-	}
+	output = append(output, *privateChannels...)
 
 	outputErr := publicErr
 	if privateErr != nil {
