@@ -45,6 +45,12 @@ func (p *HelpersImpl) readFile(path string) ([]byte, error) {
 }
 
 func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (retBotId string, retErr error) {
+
+	err := p.ensureServerVersion("5.10.0")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to ensure bot")
+	}
+
 	// Default options
 	o := &EnsureBotOptions{
 		ProfileImagePath: "",
