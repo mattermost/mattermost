@@ -36,7 +36,7 @@ func (_m *Helpers) EnsureBot(bot *model.Bot) (string, error) {
 }
 
 // InstallPluginFromUrl provides a mock function with given fields: url, replace
-func (_m *Helpers) InstallPluginFromUrl(url string, replace bool) (*model.Manifest, *model.AppError) {
+func (_m *Helpers) InstallPluginFromUrl(url string, replace bool) (*model.Manifest, error) {
 	ret := _m.Called(url, replace)
 
 	var r0 *model.Manifest
@@ -48,13 +48,11 @@ func (_m *Helpers) InstallPluginFromUrl(url string, replace bool) (*model.Manife
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(url, replace)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

@@ -59,8 +59,10 @@ type Helpers interface {
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 
+	// InstallPluginFromUrl installs the plugin from the provided url.
+	//
 	// Minimum server version: 5.18
-	InstallPluginFromUrl(url string, replace bool) (*model.Manifest, *model.AppError)
+	InstallPluginFromUrl(url string, replace bool) (*model.Manifest, error)
 }
 type HelpersImpl struct {
 	API API
@@ -77,27 +79,27 @@ func (p *HelpersImpl) ensureServerVersion(required string) error {
 	return nil
 }
 
-func (p *HelpersImpl) InstallPluginFromUrl(downloadUrl string, replace bool) (*model.Manifest, *model.AppError) {
+func (p *HelpersImpl) InstallPluginFromUrl(downloadUrl string, replace bool) (*model.Manifest, error) {
 	parsedUrl, _ := url.Parse(downloadUrl)
 	if !*p.API.GetConfig().PluginSettings.AllowInsecureDownloadUrl && parsedUrl.Scheme != "https" {
-		return nil, model.NewAppError("InstallPluginFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
+		return nil, errors.New("downloading from insecure url is not allowed")
 	}
 
 	client := &http.Client{Timeout: 60 * time.Minute}
 	response, err := client.Get(downloadUrl)
 	if err != nil {
-		return nil, model.NewAppError("InstallPluginFromUrlHelper", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, errors.Wrap(err, "unable to download the plugin")
 	}
 	defer response.Body.Close()
 
 	fileBytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, model.NewAppError("InstallPluginFromUrlHelper", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, errors.Wrap(err, "unable to read response")
 	}
 
 	manifest, appError := p.API.InstallPlugin(bytes.NewReader(fileBytes), true)
 	if appError != nil {
-		return nil, appError
+		return nil, errors.Wrap(err, "unable to install pluginz")
 	}
 
 	return manifest, nil
