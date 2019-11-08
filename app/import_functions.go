@@ -886,12 +886,18 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 	reply.Message = *data.Message
 	reply.CreateAt = *data.CreateAt
 
-	if data.Attachments != nil {
-		fileIds, err := a.uploadAttachments(data.Attachments, reply, teamId, dryRun)
-		if err != nil {
-			return err
+	fileIds, err := a.uploadAttachments(data.Attachments, reply, teamId, dryRun)
+	if err != nil {
+		return err
+	}
+	for _, fileID := range reply.FileIds {
+		if _, ok := fileIds[fileID]; !ok {
+			a.RemoveFile(fileID)
 		}
-		reply.FileIds = append(reply.FileIds, fileIds...)
+	}
+	reply.FileIds = make([]string, 0)
+	for fileID := range fileIds {
+		reply.FileIds = append(reply.FileIds, fileID)
 	}
 
 	if reply.Id == "" {
@@ -938,7 +944,7 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 
 			if bytes.Equal(oldHash[:], newHash[:]) {
 				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
-				return nil, nil
+				return oldFile, nil
 			}
 		}
 	}
@@ -1005,13 +1011,18 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-	if data.Attachments != nil {
-		var fileIds []string
-		fileIds, err = a.uploadAttachments(data.Attachments, post, team.Id, dryRun)
-		if err != nil {
-			return err
+	fileIds, err := a.uploadAttachments(data.Attachments, post, team.Id, dryRun)
+	if err != nil {
+		return err
+	}
+	for _, fileID := range post.FileIds {
+		if _, ok := fileIds[fileID]; !ok {
+			a.RemoveFile(fileID)
 		}
-		post.FileIds = append(post.FileIds, fileIds...)
+	}
+	post.FileIds = make([]string, 0)
+	for fileID := range fileIds {
+		post.FileIds = append(post.FileIds, fileID)
 	}
 
 	if post.Id == "" {
@@ -1069,16 +1080,17 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	return nil
 }
 
-func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model.Post, teamId string, dryRun bool) ([]string, *model.AppError) {
-	fileIds := []string{}
+func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model.Post, teamId string, dryRun bool) (map[string]bool, *model.AppError) {
+	fileIds := make(map[string]bool)
+	if attachments == nil {
+		return nil, nil
+	}
 	for _, attachment := range *attachments {
 		fileInfo, err := a.ImportAttachment(&attachment, post, teamId, dryRun)
 		if err != nil {
 			return nil, err
 		}
-		if fileInfo != nil { // nil is returned when the file was skipped due to duplication
-			fileIds = append(fileIds, fileInfo.Id)
-		}
+		fileIds[fileInfo.Id] = true
 	}
 	return fileIds, nil
 }
@@ -1234,13 +1246,18 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-	if data.Attachments != nil {
-		var fileIds []string
-		fileIds, err = a.uploadAttachments(data.Attachments, post, "noteam", dryRun)
-		if err != nil {
-			return err
+	fileIds, err := a.uploadAttachments(data.Attachments, post, "noteam", dryRun)
+	if err != nil {
+		return err
+	}
+	for _, fileID := range post.FileIds {
+		if _, ok := fileIds[fileID]; !ok {
+			a.RemoveFile(fileID)
 		}
-		post.FileIds = append(post.FileIds, fileIds...)
+	}
+	post.FileIds = make([]string, 0)
+	for fileID := range fileIds {
+		post.FileIds = append(post.FileIds, fileID)
 	}
 
 	if post.Id == "" {
