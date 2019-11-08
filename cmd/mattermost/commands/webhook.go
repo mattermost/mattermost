@@ -82,6 +82,7 @@ var WebhookMoveOutgoingCmd = &cobra.Command{
 	Short:   "Move outgoing webhook",
 	Long:    "Move outgoing webhook with an id",
 	Example: "  webhook move newteam oldteam:webhook-id --channel new-default-channel",
+	Args:    cobra.ExactArgs(2),
 	RunE:    moveOutgoingWebhookCmd,
 }
 
@@ -463,14 +464,6 @@ func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer app.Shutdown()
-
-	if len(args) < 1 {
-		return errors.New("TeamId is not specified")
-	}
-
-	if len(args) < 2 {
-		return errors.New("Outgoing Webhook information is not specified")
-	}
 
 	newTeamId := args[0]
 	_, teamError := app.GetTeam(newTeamId)

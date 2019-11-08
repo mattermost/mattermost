@@ -455,9 +455,8 @@ func TestMoveOutgoingWebhook(t *testing.T) {
 	th.SetConfig(config)
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
+	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
@@ -484,12 +483,8 @@ func TestMoveOutgoingWebhook(t *testing.T) {
 	}
 
 	oldHook, err := th.App.CreateOutgoingWebhook(outgoingWebhookWithChannel)
-	if err != nil {
-		t.Fatal("unable to create outgoing webhooks: " + err.Error())
-	}
-	defer func() {
-		th.App.DeleteOutgoingWebhook(oldHook.Id)
-	}()
+	require.Nil(t, err)
+	defer th.App.DeleteOutgoingWebhook(oldHook.Id)
 
 	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing"))
 	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", th.BasicTeam.Id))
@@ -529,12 +524,8 @@ func TestMoveOutgoingWebhook(t *testing.T) {
 	}
 
 	oldHook2, err := th.App.CreateOutgoingWebhook(outgoingWebhookWithoutChannel)
-	if err != nil {
-		t.Fatal("unable to create outgoing webhooks: " + err.Error())
-	}
-	defer func() {
-		th.App.DeleteOutgoingWebhook(oldHook2.Id)
-	}()
+	require.Nil(t, err)
+	defer th.App.DeleteOutgoingWebhook(oldHook2.Id)
 
 	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook2.Id)
 	output = th.CheckCommand(t, "webhook", "list", newTeam.Name)
