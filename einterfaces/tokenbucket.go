@@ -3,7 +3,7 @@
 
 package einterfaces
 
-// TokenBucket defines an interface for a token bucket algorithm (https://en.wikipedia.org/wiki/Token_bucket).
+// TokenBucket defines an interface for token bucket algorithm (https://en.wikipedia.org/wiki/Token_bucket).
 type TokenBucket interface {
 	// Take removes a token from the bucket.
 	Take() error

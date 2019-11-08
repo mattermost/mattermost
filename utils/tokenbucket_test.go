@@ -18,7 +18,7 @@ type TestCase struct {
 }
 
 // TODO(gsagula): Add a verification step that compares the waiting time with an acceptable
-// marginal error. It should just logs a warning but not fail.
+// marginal error. It should just log a warning but not fail.
 func CallBucket(t *testing.T, name string, tc TestCase) {
 	b, done := NewTokenBucket(tc.rate, tc.burst)
 	defer done()
@@ -28,7 +28,7 @@ func CallBucket(t *testing.T, name string, tc TestCase) {
 			untilTime, err := b.Until()
 			assert.NoError(t, err)
 			if i >= int(tc.burst) {
-				// Min waiting time per call will be close to rate when bucket is empty.
+				// Min waiting time per call is similar to rate when bucket is empty.
 				assert.GreaterOrEqual(t, tc.rate.Nanoseconds(), untilTime.Nanoseconds(),
 					"Until() cannot return a duration greater than (refill rate) %v, but it was %v",
 					tc.rate, untilTime, untilTime-tc.rate)
@@ -44,7 +44,7 @@ func CallBucket(t *testing.T, name string, tc TestCase) {
 
 func TestTokenBucket(t *testing.T) {
 	const (
-		// MSecond represents 1 millisecond.
+		// Millisecond represents 1 millisecond.
 		Millisecond = 1 * time.Millisecond
 		// Microsecond represents 1 microsecond.
 		Microsecond = 1 * time.Microsecond

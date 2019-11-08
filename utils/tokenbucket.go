@@ -11,7 +11,7 @@ import (
 )
 
 // Bucket implements a token bucket interface. TODO(gsagula): Although it should be fairly precise,
-// note that this library has not been tested for accuracy.
+// note that this library has not been tested for accuracy yet.
 type Bucket struct {
 	burst  chan struct{}
 	close  chan struct{}
@@ -21,9 +21,9 @@ type Bucket struct {
 	once   sync.Once
 }
 
-// NewTokenBucket returns a pointer to a token bucket's instance and a done func. Done() should be called when the bucket
-// is no longer needed. Duration parameter sets the constant refill rate of one token per duration (how long a token takes
-// to get back to the bucket). Burst sets the bucket's capacity.
+// NewTokenBucket returns a pointer to a token bucket's instance and a done function. Done should be called when the bucket
+// is no longer needed. Duration parameter sets the constant refill rate of one token per tick (how long a token takes
+// to get back into the bucket). Burst sets the bucket's capacity.
 func NewTokenBucket(duration time.Duration, burst uint64) (bucket *Bucket, done func()) {
 	if duration.Nanoseconds() <= 0 {
 		duration = 1 * time.Nanosecond
@@ -37,7 +37,7 @@ func NewTokenBucket(duration time.Duration, burst uint64) (bucket *Bucket, done 
 		last:   time.Now(),
 	}
 
-	// It loads the burst channel by making tokens mediately available in the buffer.
+	// It initiates the burst channel by making tokens mediately available in the buffer.
 	for i := uint64(0); i < burst; i++ {
 		b.burst <- struct{}{}
 	}
@@ -59,8 +59,9 @@ func NewTokenBucket(duration time.Duration, burst uint64) (bucket *Bucket, done 
 	return b, b.done
 }
 
-// Take consumes a token if any is available, otherwise it blocks until at least one token
-// is returned into the bucket. This function will return an error if called after Done().
+// Take consumes a token from the bucket if any is available. If the bucket is empty, this function will
+// block until at least one token is back into the bucket. This function will return an error if called
+// after done.
 func (b *Bucket) Take() (err error) {
 	if b.closed {
 		return errors.New("bucket is closed")
@@ -71,7 +72,7 @@ func (b *Bucket) Take() (err error) {
 }
 
 // Until returns the duration until a token is available in the bucket. If the bucket is
-// not empty, this function returns duration 0. This function returns error if when called after Done().
+// not empty, this function returns duration 0. This function returns error if when called after done.
 func (b *Bucket) Until() (duration time.Duration, err error) {
 	if b.closed {
 		return time.Duration(math.MaxInt64), errors.New("bucket is closed")

@@ -132,12 +132,13 @@ func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireI
 	return nil
 }
 
-// KVAtomicModify is a wrapper around KVGet and KVCompareAndSet that atomically modify data from the KV storage. This function
+// KVAtomicModify is a wrapper around KVGet and KVCompareAndSet that atomically modifies data for a particular key. This function
 // takes the following parameters:
-// . ctx 	A instance of context that should be use for cancellation.
-// . key	String for querying the storage.
-// . bucket	An instance of the TokenBucket interface that is use for throttling control on retries.
-// . fn 	A function the modifies the initial data.
+// - ctx 	An instance of a request context that should be used for stopping the transaction in the case of downstream
+// 			cancellations.
+// - key	A key string for used querying the data to be modified.
+// - bucket	An instance of a token bucket that should be used for throttling control on retries.
+// - fn 	A function that modifies the data queried for the specific key.
 func (p *HelpersImpl) KVAtomicModify(ctx context.Context, key string, bucket einterfaces.TokenBucket, fn func(initialValue []byte) ([]byte, error)) error {
 	var initialBytes, modifiedBytes []byte
 	var err error
