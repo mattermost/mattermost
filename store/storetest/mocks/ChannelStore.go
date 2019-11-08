@@ -647,7 +647,7 @@ func (_m *ChannelStore) GetChannelsByScheme(schemeId string, offset int, limit i
 }
 
 // GetDeleted provides a mock function with given fields: team_id, offset, limit
-func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
 	ret := _m.Called(team_id, offset, limit)
 
 	var r0 *model.ChannelList

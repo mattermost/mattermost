@@ -703,6 +703,31 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 		t.Fatal("should be 2 deleted channels")
 	}
 
+	th.LoginBasic()
+
+	privateChannel1 := th.CreatePrivateChannel()
+	Client.DeleteChannel(privateChannel1.Id)
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(channels) != numInitialChannelsForTeam+3 {
+		t.Fatal("should be 3 deleted channels")
+	}
+
+	// Login as different user and create private channel
+	th.LoginBasic2()
+	privateChannel2 := th.CreatePrivateChannel()
+	Client.DeleteChannel(privateChannel2.Id)
+
+	// Log back in as first user
+	th.LoginBasic()
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(channels) != numInitialChannelsForTeam+3 {
+		t.Fatal("should still be 3 deleted channels", len(channels), numInitialChannelsForTeam+3)
+	}
+
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
 	if len(channels) != 1 {
