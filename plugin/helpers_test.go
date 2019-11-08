@@ -5,7 +5,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
-	"github.com/mattermost/mattermost-server/services/httpservice/mocks"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,11 +19,9 @@ func TestInstallPluginFromUrl(t *testing.T) {
 	replace := true
 	h := &plugin.HelpersImpl{}
 	api := &plugintest.API{}
-	httpService := &mocks.HTTPService{}
 	config := &model.Config{}
 	api.On("GetConfig").Return(config)
 	h.API = api
-	h.HTTPService = httpService
 
 	t.Run("downloading from insecure url is not allowed", func(t *testing.T) {
 		config.PluginSettings.AllowInsecureDownloadUrl = model.NewBool(false)
@@ -43,10 +40,10 @@ func TestInstallPluginFromUrl(t *testing.T) {
 		require.NoError(t, err)
 		expectedManifest := &model.Manifest{Id: "testplugin"}
 		api.On("InstallPlugin", bytes.NewReader(tarData), true).Return(expectedManifest, nil)
-		httpService.On("MakeClient", true).Return(http.DefaultClient)
+
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
-			res.Write(tarData)
+			_, _ = res.Write(tarData)
 		}))
 		defer func() { testServer.Close() }()
 		url := testServer.URL
