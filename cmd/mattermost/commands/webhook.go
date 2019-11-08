@@ -491,14 +491,17 @@ func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
 		return appError
 	}
 
-	channelId, channelErr := command.Flags().GetString("channel")
-	if channelErr != nil {
-		return channelErr
-	}
+	if webhook.ChannelId != "" {
+		channelName, channelErr := command.Flags().GetString("channel")
+		if channelErr != nil {
+			return channelErr
+		}
 
-	channel, getChannelErr := app.GetChannel(channelId)
-	if getChannelErr != nil {
-		return getChannelErr
+		channel, getChannelErr := app.GetChannelByName(channelName, newTeamId, false)
+		if getChannelErr != nil {
+			return getChannelErr
+		}
+		webhook.ChannelId = channel.Id
 	}
 
 	deleteErr := app.DeleteOutgoingWebhook(webhook.Id)
@@ -508,7 +511,7 @@ func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
 
 	webhook.Id = ""
 	webhook.TeamId = newTeamId
-	webhook.ChannelId = channel.Id
+
 	_, createErr := app.CreateOutgoingWebhook(webhook)
 	if createErr != nil {
 		return model.NewAppError("moveOutgoingWebhookCmd", "cli.outgoing_webhook.inconsistent_state.app_error", nil, "", http.StatusInternalServerError)

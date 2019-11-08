@@ -469,7 +469,7 @@ func TestMoveOutgoingWebhook(t *testing.T) {
 	iconURL := "myhookicon1"
 	contentType := "myhookcontent1"
 
-	outgoingWebhook := &model.OutgoingWebhook{
+	outgoingWebhookWithChannel := &model.OutgoingWebhook{
 		CreatorId:    th.BasicUser.Id,
 		Username:     th.BasicUser.Username,
 		TeamId:       th.BasicTeam.Id,
@@ -483,7 +483,7 @@ func TestMoveOutgoingWebhook(t *testing.T) {
 		ContentType:  contentType,
 	}
 
-	oldHook, err := th.App.CreateOutgoingWebhook(outgoingWebhook)
+	oldHook, err := th.App.CreateOutgoingWebhook(outgoingWebhookWithChannel)
 	if err != nil {
 		t.Fatal("unable to create outgoing webhooks: " + err.Error())
 	}
@@ -507,11 +507,36 @@ func TestMoveOutgoingWebhook(t *testing.T) {
 	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", "invalid"))
 
 	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.CHANNEL_OPEN, newTeam.Id)
-	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", channel.Id)
+	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", channel.Name)
 
 	_, webhookErr := th.App.GetOutgoingWebhook(oldHook.Id)
 	assert.Error(t, webhookErr)
 
 	output := th.CheckCommand(t, "webhook", "list", newTeam.Name)
-	assert.True(t, strings.Contains(string(output), displayName))
+	assert.True(t, strings.Contains(output, displayName))
+
+	outgoingWebhookWithoutChannel := &model.OutgoingWebhook{
+		CreatorId:    th.BasicUser.Id,
+		Username:     th.BasicUser.Username,
+		TeamId:       th.BasicTeam.Id,
+		DisplayName:  displayName + "2",
+		Description:  description,
+		TriggerWords: triggerWords,
+		TriggerWhen:  triggerWhen,
+		CallbackURLs: callbackURLs,
+		IconURL:      iconURL,
+		ContentType:  contentType,
+	}
+
+	oldHook2, err := th.App.CreateOutgoingWebhook(outgoingWebhookWithoutChannel)
+	if err != nil {
+		t.Fatal("unable to create outgoing webhooks: " + err.Error())
+	}
+	defer func() {
+		th.App.DeleteOutgoingWebhook(oldHook2.Id)
+	}()
+
+	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook2.Id)
+	output = th.CheckCommand(t, "webhook", "list", newTeam.Name)
+	assert.True(t, strings.Contains(output, displayName+"2"))
 }
