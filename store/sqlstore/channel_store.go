@@ -2168,25 +2168,57 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	})
 }
 
-func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	deleteFilter := "AND c.DeleteAt != 0"
-
-	return s.performSearch(`
+func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
+	publicChannels, publicErr := s.performSearch(`
 		SELECT
 			Channels.*
 		FROM
 			Channels
 		JOIN
-			PublicChannels c ON (c.Id = Channels.Id)
+			Channels c ON (c.Id = Channels.Id)
 		WHERE
 			c.TeamId = :TeamId
-			`+deleteFilter+`
 			SEARCH_CLAUSE
+			AND c.DeleteAt != 0
+			AND c.Type != 'P'
 		ORDER BY c.DisplayName
 		LIMIT 100
 		`, term, map[string]interface{}{
 		"TeamId": teamId,
+		"UserId": userId,
 	})
+
+	privateChannels, privateErr := s.performSearch(`
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			Channels c ON (c.Id = Channels.Id)
+		WHERE
+			c.TeamId = :TeamId
+			SEARCH_CLAUSE
+			AND c.DeleteAt != 0
+			AND c.Type = 'P'
+			AND c.Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
+		ORDER BY c.DisplayName
+		LIMIT 100
+		`, term, map[string]interface{}{
+		"TeamId": teamId,
+		"UserId": userId,
+	})
+
+	output := *publicChannels
+	for _, c := range *privateChannels {
+		output = append(output, c)
+	}
+
+	outputErr := publicErr
+	if privateErr != nil {
+		outputErr = privateErr
+	}
+
+	return &output, outputErr
 }
 
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {

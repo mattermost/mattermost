@@ -1860,10 +1860,10 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 	return a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
 }
 
-func (a *App) SearchArchivedChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+func (a *App) SearchArchivedChannels(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	return a.Srv.Store.Channel().SearchArchivedInTeam(teamId, term)
+	return a.Srv.Store.Channel().SearchArchivedInTeam(teamId, term, userId)
 }
 
 func (a *App) SearchChannelsForUser(userId, teamId, term string) (*model.ChannelList, *model.AppError) {

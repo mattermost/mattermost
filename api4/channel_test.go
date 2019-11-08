@@ -1087,9 +1087,11 @@ func TestSearchArchivedChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	search := &model.ChannelSearch{Term: th.BasicDeletedChannel.Name}
+	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
 
-	channels, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+	Client.DeleteChannel(th.BasicChannel.Id)
+
+	channels, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
 	CheckNoError(t, resp)
 
 	found := false
@@ -1098,7 +1100,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 			t.Fatal("should only return public channels")
 		}
 
-		if c.Id == th.BasicDeletedChannel.Id {
+		if c.Id == th.BasicChannel.Id {
 			found = true
 		}
 	}
@@ -1108,7 +1110,9 @@ func TestSearchArchivedChannels(t *testing.T) {
 	}
 
 	search.Term = th.BasicPrivateChannel.Name
-	channels, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+	Client.DeleteChannel(th.BasicPrivateChannel.Id)
+
+	channels, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
 	CheckNoError(t, resp)
 
 	found = false
@@ -1118,22 +1122,22 @@ func TestSearchArchivedChannels(t *testing.T) {
 		}
 	}
 
-	if found {
-		t.Fatal("shouldn't find private channel")
+	if !found {
+		t.Fatal("couldn't find private channel")
 	}
 
 	search.Term = ""
-	_, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+	_, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
 	CheckNoError(t, resp)
 
 	search.Term = th.BasicDeletedChannel.Name
-	_, resp = Client.SearchArchivedChannels(model.NewId(), search)
+	_, resp = Client.SearchArchivedChannels(model.NewId(), search, th.BasicUser.Id)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.SearchArchivedChannels("junk", search)
+	_, resp = Client.SearchArchivedChannels("junk", search, th.BasicUser.Id)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.SearchArchivedChannels(th.BasicTeam.Id, search)
+	_, resp = th.SystemAdminClient.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
 	CheckNoError(t, resp)
 
 	// Check the appropriate permissions are enforced.
@@ -1147,7 +1151,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 
 	t.Run("Search for a BasicDeletedChannel, which the user is a member of", func(t *testing.T) {
 		search.Term = th.BasicDeletedChannel.Name
-		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
 		CheckNoError(t, resp)
 
 		channelNames := []string{}
@@ -1161,7 +1165,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 		th.App.RemoveUserFromChannel(th.BasicUser.Id, th.BasicUser.Id, th.BasicDeletedChannel)
 
 		search.Term = th.BasicDeletedChannel.Name
-		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
 		CheckNoError(t, resp)
 
 		channelNames := []string{}

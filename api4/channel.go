@@ -871,7 +871,7 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	var channels *model.ChannelList
 	var err *model.AppError
 	if c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
-		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term)
+		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.App.Session.UserId)
 	} else {
 		// If the user is not a team member, return a 404
 		if _, err = c.App.GetTeamMember(c.Params.TeamId, c.App.Session.UserId); err != nil {
@@ -879,7 +879,7 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 			return
 		}
 
-		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term)
+		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.App.Session.UserId)
 	}
 
 	if err != nil {
