@@ -911,51 +911,47 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 
 func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, teamId string, dryRun bool) (*model.FileInfo, *model.AppError) {
 	file, err := os.Open(*data.Path)
-	if err != nil {
+	if file == nil || err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 	}
-	if file != nil {
-		timestamp := utils.TimeFromMillis(post.CreateAt)
-		buf := bytes.NewBuffer(nil)
-		_, _ = io.Copy(buf, file)
-		// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
-		if post.Id != "" {
-			if oldFiles, err := a.GetFileInfosForPost(post.Id, true); err == nil {
-				for _, oldFile := range oldFiles {
-					if oldFile.Name != path.Base(file.Name()) || oldFile.Size != int64(buf.Len()) {
-						continue
-					}
-					// check md5
-					newHash := sha1.Sum(buf.Bytes())
-					oldFileData, err := a.GetFile(oldFile.Id)
-					if err != nil {
-						return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
-					}
-					oldHash := sha1.Sum(oldFileData)
 
-					if bytes.Equal(oldHash[:], newHash[:]) {
-						mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
-						return nil, nil
-					}
-
-				}
-			} else {
+	timestamp := utils.TimeFromMillis(post.CreateAt)
+	buf := bytes.NewBuffer(nil)
+	_, _ = io.Copy(buf, file)
+	// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
+	if post.Id != "" {
+		oldFiles, err := a.GetFileInfosForPost(post.Id, true)
+		if err != nil {
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+		}
+		for _, oldFile := range oldFiles {
+			if oldFile.Name != path.Base(file.Name()) || oldFile.Size != int64(buf.Len()) {
+				continue
+			}
+			// check md5
+			newHash := sha1.Sum(buf.Bytes())
+			oldFileData, err := a.GetFile(oldFile.Id)
+			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}
+			oldHash := sha1.Sum(oldFileData) // rather directly
+
+			if bytes.Equal(oldHash[:], newHash[:]) {
+				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
+				return nil, nil
+			}
 		}
-		fileInfo, err := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
-
-		if err != nil {
-			mlog.Error("Failed to upload file:", mlog.Err(err))
-			return nil, err
-		}
-
-		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{buf.Bytes()})
-
-		mlog.Info("Uploading file with name", mlog.String("file_name", file.Name()))
-		return fileInfo, nil
 	}
-	return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+	fileInfo, appErr := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
+	if appErr != nil {
+		mlog.Error("Failed to upload file:", mlog.Err(err))
+		return nil, appErr
+	}
+
+	a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{buf.Bytes()})
+
+	mlog.Info("Uploading file with name", mlog.String("file_name", file.Name()))
+	return fileInfo, nil
 }
 
 func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
