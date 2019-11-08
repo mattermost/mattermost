@@ -59,6 +59,7 @@ type Helpers interface {
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 
+	// Minimum server version: 5.18
 	InstallPluginFromUrl(url string, replace bool) (*model.Manifest, *model.AppError)
 }
 type HelpersImpl struct {
