@@ -200,6 +200,11 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 			for bio.Scan() {
 				var notificationInfo NotificationInfo
 				if err = json.Unmarshal(bio.Bytes(), &notificationInfo); err != nil {
+					// Unexpected error during json unmarshal, send
+					// the error to caller for actionable as needed.
+					notificationInfoCh <- NotificationInfo{
+						Err: err,
+					}
 					closeResponse(resp)
 					continue
 				}
@@ -211,7 +216,11 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 					return
 				}
 			}
-
+			if err = bio.Err(); err != nil {
+				notificationInfoCh <- NotificationInfo{
+					Err: err,
+				}
+			}
 			// Close current connection before looping further.
 			closeResponse(resp)
 		}
