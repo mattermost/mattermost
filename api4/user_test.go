@@ -1780,7 +1780,7 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 		case resp, ok := <-client.EventChannel:
 			if !ok {
 				t.Fatalf("channel closed before receiving expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
-			} else if resp.Event == model.WEBSOCKET_EVENT_USER_UPDATED {
+			} else if resp.EventType() == model.WEBSOCKET_EVENT_USER_UPDATED {
 				test(resp)
 				return
 			}
@@ -1792,7 +1792,7 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 
 func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSocketClient, email string) {
 	assertExpectedWebsocketEvent(t, client, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
-		if eventUser, ok := event.Data["user"].(map[string]interface{}); !ok {
+		if eventUser, ok := event.Data()["user"].(map[string]interface{}); !ok {
 			t.Fatalf("expected user")
 		} else if userEmail, ok := eventUser["email"].(string); !ok {
 			t.Fatalf("expected email %s, but got nil", email)

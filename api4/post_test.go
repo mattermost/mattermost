@@ -537,7 +537,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
+			if event.EventType() == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
 				t.Fatal("should not have ephemeral message event")
 			}
 
@@ -559,12 +559,12 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.Event != model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
+			if event.EventType() != model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
 				// Ignore any other events
 				continue
 			}
 
-			wpost := model.PostFromJson(strings.NewReader(event.Data["post"].(string)))
+			wpost := model.PostFromJson(strings.NewReader(event.Data()["post"].(string)))
 			if acm, ok := wpost.Props[model.PROPS_ADD_CHANNEL_MEMBER].(map[string]interface{}); !ok {
 				t.Fatal("should have received ephemeral post with 'add_channel_member' in props")
 			} else {

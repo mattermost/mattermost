@@ -1370,7 +1370,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED && resp.Data["channel_id"].(string) == publicChannel2.Id {
+				if resp.EventType() == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED && resp.Data()["channel_id"].(string) == publicChannel2.Id {
 					eventHit = true
 				}
 			case <-stop:
@@ -2525,7 +2525,7 @@ func TestRemoveChannelMember(t *testing.T) {
 		})
 
 		wsr := <-wsClient.EventChannel
-		require.Equal(t, wsr.Event, model.WEBSOCKET_EVENT_HELLO)
+		require.Equal(t, wsr.EventType(), model.WEBSOCKET_EVENT_HELLO)
 
 		// requirePost listens for websocket events and tries to find the post matching
 		// the expected post's channel and message.
@@ -2534,7 +2534,7 @@ func TestRemoveChannelMember(t *testing.T) {
 			for {
 				select {
 				case event := <-wsClient.EventChannel:
-					postData, ok := event.Data["post"]
+					postData, ok := event.Data()["post"]
 					if !ok {
 						continue
 					}

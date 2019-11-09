@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -121,9 +122,9 @@ func (wsc *WebSocketClient) Listen() {
 				return
 			}
 
-			var event WebSocketEvent
-			if err := json.Unmarshal(rawMsg, &event); err == nil && event.IsValid() {
-				wsc.EventChannel <- &event
+			event := WebSocketEventFromJson(bytes.NewReader(rawMsg))
+			if event.IsValid() {
+				wsc.EventChannel <- event
 				continue
 			}
 

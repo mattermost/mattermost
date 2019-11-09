@@ -1079,13 +1079,13 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	a.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	adminMessage.Add("user", &adminCopyOfUser)
-	adminMessage.Broadcast.ContainsSensitiveData = true
+	adminMessage.Broadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
 	a.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", &user)
-	message.Broadcast.ContainsSanitizedData = true
+	message.Broadcast().ContainsSanitizedData = true
 	a.Publish(message)
 }
 

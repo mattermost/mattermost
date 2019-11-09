@@ -104,7 +104,7 @@ func TestWebSocketEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_TYPING && resp.Data["user_id"].(string) == "somerandomid" {
+				if resp.EventType() == model.WEBSOCKET_EVENT_TYPING && resp.Data()["user_id"].(string) == "somerandomid" {
 					eventHit = true
 				}
 			case <-stop:
@@ -129,7 +129,7 @@ func TestWebSocketEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_TYPING {
+				if resp.EventType() == model.WEBSOCKET_EVENT_TYPING {
 					eventHit = true
 				}
 			case <-stop:
@@ -169,7 +169,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 
 	wsr := <-WebSocketClient.EventChannel
-	require.Equal(t, wsr.Event, model.WEBSOCKET_EVENT_HELLO, "missing hello")
+	require.Equal(t, wsr.EventType(), model.WEBSOCKET_EVENT_HELLO, "missing hello")
 
 	stop := make(chan bool)
 	count := 0
@@ -178,7 +178,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 		for {
 			select {
 			case wsr := <-WebSocketClient.EventChannel:
-				if wsr != nil && wsr.Event == model.WEBSOCKET_EVENT_DIRECT_ADDED {
+				if wsr != nil && wsr.EventType() == model.WEBSOCKET_EVENT_DIRECT_ADDED {
 					count = count + 1
 				}
 
@@ -367,8 +367,8 @@ func TestWebSocketStatuses(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_STATUS_CHANGE && resp.Data["user_id"].(string) == th.BasicUser.Id {
-					status := resp.Data["status"].(string)
+				if resp.EventType() == model.WEBSOCKET_EVENT_STATUS_CHANGE && resp.Data()["user_id"].(string) == th.BasicUser.Id {
+					status := resp.Data()["status"].(string)
 					if status == model.STATUS_ONLINE {
 						onlineHit = true
 					} else if status == model.STATUS_AWAY {
