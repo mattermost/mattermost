@@ -638,12 +638,12 @@ func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
 		plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
 		for _, pluginPaths := range pluginSignaturePathMap {
-			plug, err := a.installPrepackagedPlugin(pluginPaths)
+			plugin, err := a.installPrepackagedPlugin(pluginPaths)
 			if err != nil {
 				mlog.Error("Failed to install prepackaged plugin %s", mlog.Err(err), mlog.String("path", pluginPaths.path))
 				continue
 			}
-			plugins = append(plugins, plug)
+			plugins = append(plugins, plugin)
 		}
 		return plugins
 	}
