@@ -110,10 +110,15 @@ func TestCreateUserInputFilter(t *testing.T) {
 			_, resp := th.SystemAdminClient.CreateUser(user)
 			CheckBadRequestStatus(t, resp)
 		})
-
-		t.Run("AuthServiceFilter", func(t *testing.T) {
-			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername(), AuthService: "ldap"}
+		t.Run("ValidAuthServiceFilter", func(t *testing.T) {
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Username: GenerateTestUsername(), AuthService: "ldap", AuthData: model.NewString("999099")}
 			_, resp := th.SystemAdminClient.CreateUser(user)
+			CheckNoError(t, resp)
+		})
+
+		t.Run("InvalidAuthServiceFilter", func(t *testing.T) {
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername(), AuthService: "ldap"}
+			_, resp := th.Client.CreateUser(user)
 			CheckBadRequestStatus(t, resp)
 		})
 	})
