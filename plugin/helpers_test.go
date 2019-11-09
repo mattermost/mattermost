@@ -1,10 +1,10 @@
 package plugin_test
 
 import (
-	"bytes"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -39,7 +39,7 @@ func TestInstallPluginFromUrl(t *testing.T) {
 		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
 		expectedManifest := &model.Manifest{Id: "testplugin"}
-		api.On("InstallPlugin", bytes.NewReader(tarData), true).Return(expectedManifest, nil)
+		api.On("InstallPlugin", mock.Anything, true).Return(expectedManifest, nil)
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)

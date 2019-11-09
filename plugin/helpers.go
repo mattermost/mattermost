@@ -4,11 +4,9 @@
 package plugin
 
 import (
-	"bytes"
 	"github.com/blang/semver"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -92,14 +90,9 @@ func (p *HelpersImpl) InstallPluginFromUrl(downloadUrl string, replace bool) (*m
 	}
 	defer response.Body.Close()
 
-	fileBytes, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to read response")
-	}
-
-	manifest, appError := p.API.InstallPlugin(bytes.NewReader(fileBytes), true)
+	manifest, appError := p.API.InstallPlugin(response.Body, true)
 	if appError != nil {
-		return nil, errors.Wrap(err, "unable to install pluginz")
+		return nil, errors.Wrap(err, "unable to install plugin")
 	}
 
 	return manifest, nil
