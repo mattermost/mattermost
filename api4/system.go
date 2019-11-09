@@ -287,14 +287,16 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		msg = msg[0:399]
 	}
 
+	msg = "Client Logs API Endpoint Message: " + msg
+	fields := []mlog.Field{
+		mlog.String("type", "client_message"),
+		mlog.String("user_agent", c.App.UserAgent),
+	}
+
 	if !forceToDebug && lvl == "ERROR" {
-		err := &model.AppError{}
-		err.Message = msg
-		err.Id = msg
-		err.Where = "client"
-		c.LogError(err)
+		mlog.Error(msg, fields...)
 	} else {
-		mlog.Debug("message", mlog.String("message", msg))
+		mlog.Debug(msg, fields...)
 	}
 
 	m["message"] = msg
@@ -434,7 +436,6 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))
-	return
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -455,5 +456,4 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
-	return
 }

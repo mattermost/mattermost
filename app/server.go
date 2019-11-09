@@ -222,8 +222,9 @@ func NewServer(options ...Option) (*Server, error) {
 
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
 	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
+
 	pwd, _ := os.Getwd()
-	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
+	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
 
 	s.checkPushNotificationServerUrl()
@@ -251,7 +252,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if err := s.Store.Status().ResetAll(); err != nil {
-		mlog.Error(fmt.Sprint("Error to reset the server status.", err.Error()))
+		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
 	if s.joinCluster && s.Cluster != nil {
@@ -317,7 +318,7 @@ func (s *Server) StopHTTPServer() {
 		didShutdown := false
 		for s.didFinishListen != nil && !didShutdown {
 			if err := s.Server.Shutdown(ctx); err != nil {
-				mlog.Warn(err.Error())
+				mlog.Warn("Unable to shutdown server", mlog.Err(err))
 			}
 			timer := time.NewTimer(time.Millisecond * 50)
 			select {
@@ -339,7 +340,7 @@ func (s *Server) Shutdown() error {
 
 	err := s.shutdownDiagnostics()
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Unable to cleanly shutdown diagnostic client: %s", err))
+		mlog.Error("Unable to cleanly shutdown diagnostic client", mlog.Err(err))
 	}
 
 	s.StopHTTPServer()
@@ -509,7 +510,7 @@ func (s *Server) Start() error {
 
 	if *s.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
-			mlog.Error("Unable to setup forwarding: " + err.Error())
+			mlog.Error("Unable to setup forwarding", mlog.Err(err))
 		} else if port != "443" {
 			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
@@ -526,7 +527,7 @@ func (s *Server) Start() error {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
 					if err != nil {
-						mlog.Error("Unable to setup forwarding: " + err.Error())
+						mlog.Error("Unable to setup forwarding", mlog.Err(err))
 						return
 					}
 					defer redirectListener.Close()
@@ -612,7 +613,7 @@ func (s *Server) Start() error {
 		}
 
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
+			mlog.Critical("Error starting server", mlog.Err(err))
 			time.Sleep(time.Second)
 		}
 
@@ -639,7 +640,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 func (s *Server) checkPushNotificationServerUrl() {
 	notificationServer := *s.Config().EmailSettings.PushNotificationServer
-	if strings.HasPrefix(notificationServer, "http://") == true {
+	if strings.HasPrefix(notificationServer, "http://") {
 		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
 	}
 }

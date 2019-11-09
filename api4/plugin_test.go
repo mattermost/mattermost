@@ -387,7 +387,7 @@ func TestDisableOnRemove(t *testing.T) {
 			pluginsResp, resp := th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
 			require.Len(t, pluginsResp.Active, 0)
-			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{&model.PluginInfo{
+			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
 
@@ -400,7 +400,7 @@ func TestDisableOnRemove(t *testing.T) {
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
 			require.Len(t, pluginsResp.Inactive, 0)
-			require.Equal(t, pluginsResp.Active, []*model.PluginInfo{&model.PluginInfo{
+			require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
 
@@ -414,7 +414,7 @@ func TestDisableOnRemove(t *testing.T) {
 				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 				CheckNoError(t, resp)
 				require.Len(t, pluginsResp.Inactive, 0)
-				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{&model.PluginInfo{
+				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 					Manifest: *manifest,
 				}})
 			}
@@ -439,7 +439,7 @@ func TestDisableOnRemove(t *testing.T) {
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
 			require.Len(t, pluginsResp.Active, 0)
-			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{&model.PluginInfo{
+			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
 

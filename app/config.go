@@ -138,8 +138,10 @@ func (a *App) ensurePostActionCookieSecret() error {
 			return err
 		}
 		system.Value = string(v)
-		if err = a.Srv.Store.System().Save(system); err == nil {
-			// If we were able to save the key, use it, otherwise ignore the error.
+		// If we were able to save the key, use it, otherwise log the error.
+		if appErr := a.Srv.Store.System().Save(system); appErr != nil {
+			mlog.Error("Failed to save PostActionCookieSecret", mlog.Err(appErr))
+		} else {
 			secret = newSecret
 		}
 	}
@@ -199,8 +201,10 @@ func (a *App) ensureAsymmetricSigningKey() error {
 			return err
 		}
 		system.Value = string(v)
-		if err = a.Srv.Store.System().Save(system); err == nil {
-			// If we were able to save the key, use it, otherwise ignore the error.
+		// If we were able to save the key, use it, otherwise log the error.
+		if appErr := a.Srv.Store.System().Save(system); appErr != nil {
+			mlog.Error("Failed to save AsymmetricSigningKey", mlog.Err(appErr))
+		} else {
 			key = newKey
 		}
 	}

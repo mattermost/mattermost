@@ -15,10 +15,10 @@ import (
 
 func createAudit(ss store.Store, userId, sessionId string) *model.Audit {
 	audit := model.Audit{
-		UserId: userId,
+		UserId:    userId,
 		SessionId: sessionId,
 		IpAddress: "ipaddress",
-		Action: "Action",
+		Action:    "Action",
 	}
 	ss.Audit().Save(&audit)
 	return &audit
@@ -47,7 +47,7 @@ func createChannelWithSchemeId(ss store.Store, schemeId *string) *model.Channel 
 	return c
 }
 
-func createCommand(ss store.Store, userId, teamId string) * model.Command {
+func createCommand(ss store.Store, userId, teamId string) *model.Command {
 	m := model.Command{}
 	m.CreatorId = userId
 	m.Method = model.COMMAND_METHOD_POST
@@ -76,19 +76,15 @@ func createChannelMemberHistory(ss store.Store, channelId, userId string) *model
 }
 
 func createChannelWithTeamId(ss store.Store, id string) *model.Channel {
-	return createChannel(ss, id, model.NewId());
+	return createChannel(ss, id, model.NewId())
 }
 
 func createChannelWithCreatorId(ss store.Store, id string) *model.Channel {
-	return createChannel(ss, model.NewId(), id);
+	return createChannel(ss, model.NewId(), id)
 }
 
 func createChannelMemberWithChannelId(ss store.Store, id string) *model.ChannelMember {
-	return createChannelMember(ss, id, model.NewId());
-}
-
-func createChannelMemberWithUserId(ss store.Store, id string) *model.ChannelMember {
-	return createChannelMember(ss, model.NewId(), id);
+	return createChannelMember(ss, id, model.NewId())
 }
 
 func createCommandWebhook(ss store.Store, commandId, userId, channelId string) *model.CommandWebhook {
@@ -193,20 +189,20 @@ func createPost(ss store.Store, channelId, userId, rootId, parentId string) *mod
 }
 
 func createPostWithChannelId(ss store.Store, id string) *model.Post {
-	return createPost(ss, id, model.NewId(), "", "");
+	return createPost(ss, id, model.NewId(), "", "")
 }
 
 func createPostWithUserId(ss store.Store, id string) *model.Post {
-	return createPost(ss, model.NewId(), id, "", "");
+	return createPost(ss, model.NewId(), id, "", "")
 }
 
 func createPreferences(ss store.Store, userId string) *model.Preferences {
 	preferences := model.Preferences{
 		{
-			UserId: userId,
-			Name: model.NewId(),
+			UserId:   userId,
+			Name:     model.NewId(),
 			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-			Value: "somevalue",
+			Value:    "somevalue",
 		},
 	}
 	ss.Preference().Save(&preferences)
@@ -367,13 +363,13 @@ func TestCheckIntegrity(t *testing.T) {
 
 func TestCheckParentChildIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		t.Run("should receive an error", func(t *testing.T) {
 			config := relationalCheckConfig{
-				parentName: "NotValid",
+				parentName:   "NotValid",
 				parentIdAttr: "NotValid",
-				childName: "NotValid",
-				childIdAttr: "NotValid",
+				childName:    "NotValid",
+				childIdAttr:  "NotValid",
 			}
 			result := checkParentChildIntegrity(supplier, config)
 			require.NotNil(t, result.Err)
@@ -384,7 +380,7 @@ func TestCheckParentChildIntegrity(t *testing.T) {
 
 func TestCheckChannelsCommandWebhooksIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -403,7 +399,7 @@ func TestCheckChannelsCommandWebhooksIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: channelId,
-				ChildId: cwh.Id,
+				ChildId:  cwh.Id,
 			}, data.Records[0])
 			dbmap.Delete(cwh)
 		})
@@ -412,7 +408,7 @@ func TestCheckChannelsCommandWebhooksIntegrity(t *testing.T) {
 
 func TestCheckChannelsChannelMemberHistoryIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -442,7 +438,7 @@ func TestCheckChannelsChannelMemberHistoryIntegrity(t *testing.T) {
 
 func TestCheckChannelsChannelMembersIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -470,7 +466,7 @@ func TestCheckChannelsChannelMembersIntegrity(t *testing.T) {
 
 func TestCheckChannelsIncomingWebhooksIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -489,7 +485,7 @@ func TestCheckChannelsIncomingWebhooksIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: channelId,
-				ChildId: wh.Id,
+				ChildId:  wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -498,7 +494,7 @@ func TestCheckChannelsIncomingWebhooksIntegrity(t *testing.T) {
 
 func TestCheckChannelsOutgoingWebhooksIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -519,7 +515,7 @@ func TestCheckChannelsOutgoingWebhooksIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: channelId,
-				ChildId: wh.Id,
+				ChildId:  wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -528,7 +524,7 @@ func TestCheckChannelsOutgoingWebhooksIntegrity(t *testing.T) {
 
 func TestCheckChannelsPostsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -546,7 +542,7 @@ func TestCheckChannelsPostsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: post.ChannelId,
-				ChildId: post.Id,
+				ChildId:  post.Id,
 			}, data.Records[0])
 			dbmap.Delete(post)
 		})
@@ -555,7 +551,7 @@ func TestCheckChannelsPostsIntegrity(t *testing.T) {
 
 func TestCheckCommandsCommandWebhooksIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -574,7 +570,7 @@ func TestCheckCommandsCommandWebhooksIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: commandId,
-				ChildId: cwh.Id,
+				ChildId:  cwh.Id,
 			}, data.Records[0])
 			dbmap.Delete(cwh)
 		})
@@ -583,7 +579,7 @@ func TestCheckCommandsCommandWebhooksIntegrity(t *testing.T) {
 
 func TestCheckPostsFileInfoIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -610,7 +606,7 @@ func TestCheckPostsFileInfoIntegrity(t *testing.T) {
 
 func TestCheckPostsPostsParentIdIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -632,7 +628,7 @@ func TestCheckPostsPostsParentIdIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: parentId,
-				ChildId: post.Id,
+				ChildId:  post.Id,
 			}, data.Records[0])
 			dbmap.Delete(root)
 			dbmap.Delete(post)
@@ -642,7 +638,7 @@ func TestCheckPostsPostsParentIdIntegrity(t *testing.T) {
 
 func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -663,7 +659,7 @@ func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: rootId,
-				ChildId: post.Id,
+				ChildId:  post.Id,
 			}, data.Records[0])
 			dbmap.Delete(post)
 		})
@@ -672,7 +668,7 @@ func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
 
 func TestCheckPostsReactionsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -699,7 +695,7 @@ func TestCheckPostsReactionsIntegrity(t *testing.T) {
 
 func TestCheckSchemesChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -721,7 +717,7 @@ func TestCheckSchemesChannelsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: schemeId,
-				ChildId: channel.Id,
+				ChildId:  channel.Id,
 			}, data.Records[0])
 			dbmap.Delete(channel)
 		})
@@ -730,7 +726,7 @@ func TestCheckSchemesChannelsIntegrity(t *testing.T) {
 
 func TestCheckSchemesTeamsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -752,7 +748,7 @@ func TestCheckSchemesTeamsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: schemeId,
-				ChildId: team.Id,
+				ChildId:  team.Id,
 			}, data.Records[0])
 			dbmap.Delete(team)
 		})
@@ -761,7 +757,7 @@ func TestCheckSchemesTeamsIntegrity(t *testing.T) {
 
 func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -783,7 +779,7 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: sessionId,
-				ChildId: audit.Id,
+				ChildId:  audit.Id,
 			}, data.Records[0])
 			ss.Audit().PermanentDeleteByUser(userId)
 		})
@@ -792,7 +788,7 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 
 func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -810,7 +806,7 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: channel.TeamId,
-				ChildId: channel.Id,
+				ChildId:  channel.Id,
 			}, data.Records[0])
 			dbmap.Delete(channel)
 		})
@@ -819,7 +815,7 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 
 func TestCheckTeamsCommandsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -838,7 +834,7 @@ func TestCheckTeamsCommandsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: teamId,
-				ChildId: cmd.Id,
+				ChildId:  cmd.Id,
 			}, data.Records[0])
 			dbmap.Delete(cmd)
 		})
@@ -847,7 +843,7 @@ func TestCheckTeamsCommandsIntegrity(t *testing.T) {
 
 func TestCheckTeamsIncomingWebhooksIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -866,7 +862,7 @@ func TestCheckTeamsIncomingWebhooksIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: teamId,
-				ChildId: wh.Id,
+				ChildId:  wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -875,7 +871,7 @@ func TestCheckTeamsIncomingWebhooksIntegrity(t *testing.T) {
 
 func TestCheckTeamsOutgoingWebhooksIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -894,7 +890,7 @@ func TestCheckTeamsOutgoingWebhooksIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: teamId,
-				ChildId: wh.Id,
+				ChildId:  wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -903,7 +899,7 @@ func TestCheckTeamsOutgoingWebhooksIntegrity(t *testing.T) {
 
 func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -931,7 +927,7 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 
 func TestCheckUsersAuditsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -952,7 +948,7 @@ func TestCheckUsersAuditsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: audit.Id,
+				ChildId:  audit.Id,
 			}, data.Records[0])
 			ss.Audit().PermanentDeleteByUser(userId)
 		})
@@ -961,7 +957,7 @@ func TestCheckUsersAuditsIntegrity(t *testing.T) {
 
 func TestCheckUsersCommandWebhooksIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -980,7 +976,7 @@ func TestCheckUsersCommandWebhooksIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: cwh.Id,
+				ChildId:  cwh.Id,
 			}, data.Records[0])
 			dbmap.Delete(cwh)
 		})
@@ -989,7 +985,7 @@ func TestCheckUsersCommandWebhooksIntegrity(t *testing.T) {
 
 func TestCheckUsersChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1007,7 +1003,7 @@ func TestCheckUsersChannelsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: channel.CreatorId,
-				ChildId: channel.Id,
+				ChildId:  channel.Id,
 			}, data.Records[0])
 			dbmap.Delete(channel)
 		})
@@ -1016,7 +1012,7 @@ func TestCheckUsersChannelsIntegrity(t *testing.T) {
 
 func TestCheckUsersChannelMemberHistoryIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1046,7 +1042,7 @@ func TestCheckUsersChannelMemberHistoryIntegrity(t *testing.T) {
 
 func TestCheckUsersChannelMembersIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1076,7 +1072,7 @@ func TestCheckUsersChannelMembersIntegrity(t *testing.T) {
 
 func TestCheckUsersCommandsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1095,7 +1091,7 @@ func TestCheckUsersCommandsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: cmd.Id,
+				ChildId:  cmd.Id,
 			}, data.Records[0])
 			dbmap.Delete(cmd)
 		})
@@ -1104,7 +1100,7 @@ func TestCheckUsersCommandsIntegrity(t *testing.T) {
 
 func TestCheckUsersCompliancesIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1125,7 +1121,7 @@ func TestCheckUsersCompliancesIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: compliance.Id,
+				ChildId:  compliance.Id,
 			}, data.Records[0])
 			dbmap.Delete(compliance)
 		})
@@ -1134,7 +1130,7 @@ func TestCheckUsersCompliancesIntegrity(t *testing.T) {
 
 func TestCheckUsersEmojiIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1155,7 +1151,7 @@ func TestCheckUsersEmojiIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: emoji.Id,
+				ChildId:  emoji.Id,
 			}, data.Records[0])
 			dbmap.Delete(emoji)
 		})
@@ -1164,7 +1160,7 @@ func TestCheckUsersEmojiIntegrity(t *testing.T) {
 
 func TestCheckUsersFileInfoIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1193,7 +1189,7 @@ func TestCheckUsersFileInfoIntegrity(t *testing.T) {
 
 func TestCheckUsersIncomingWebhooksIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1212,7 +1208,7 @@ func TestCheckUsersIncomingWebhooksIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: wh.Id,
+				ChildId:  wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -1221,7 +1217,7 @@ func TestCheckUsersIncomingWebhooksIntegrity(t *testing.T) {
 
 func TestCheckUsersOAuthAccessDataIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1242,7 +1238,7 @@ func TestCheckUsersOAuthAccessDataIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: ad.Token,
+				ChildId:  ad.Token,
 			}, data.Records[0])
 			ss.OAuth().RemoveAccessData(ad.Token)
 		})
@@ -1251,7 +1247,7 @@ func TestCheckUsersOAuthAccessDataIntegrity(t *testing.T) {
 
 func TestCheckUsersOAuthAppsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1272,7 +1268,7 @@ func TestCheckUsersOAuthAppsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: app.Id,
+				ChildId:  app.Id,
 			}, data.Records[0])
 			ss.OAuth().DeleteApp(app.Id)
 		})
@@ -1281,7 +1277,7 @@ func TestCheckUsersOAuthAppsIntegrity(t *testing.T) {
 
 func TestCheckUsersOAuthAuthDataIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1302,7 +1298,7 @@ func TestCheckUsersOAuthAuthDataIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: ad.Code,
+				ChildId:  ad.Code,
 			}, data.Records[0])
 			ss.OAuth().RemoveAuthData(ad.Code)
 		})
@@ -1311,7 +1307,7 @@ func TestCheckUsersOAuthAuthDataIntegrity(t *testing.T) {
 
 func TestCheckUsersOutgoingWebhooksIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1330,7 +1326,7 @@ func TestCheckUsersOutgoingWebhooksIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: wh.Id,
+				ChildId:  wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -1339,7 +1335,7 @@ func TestCheckUsersOutgoingWebhooksIntegrity(t *testing.T) {
 
 func TestCheckUsersPostsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1357,7 +1353,7 @@ func TestCheckUsersPostsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: post.UserId,
-				ChildId: post.Id,
+				ChildId:  post.Id,
 			}, data.Records[0])
 			dbmap.Delete(post)
 		})
@@ -1366,7 +1362,7 @@ func TestCheckUsersPostsIntegrity(t *testing.T) {
 
 func TestCheckUsersPreferencesIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1395,7 +1391,7 @@ func TestCheckUsersPreferencesIntegrity(t *testing.T) {
 
 func TestCheckUsersReactionsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1424,7 +1420,7 @@ func TestCheckUsersReactionsIntegrity(t *testing.T) {
 
 func TestCheckUsersSessionsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1443,7 +1439,7 @@ func TestCheckUsersSessionsIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: session.Id,
+				ChildId:  session.Id,
 			}, data.Records[0])
 			dbmap.Delete(session)
 		})
@@ -1452,7 +1448,7 @@ func TestCheckUsersSessionsIntegrity(t *testing.T) {
 
 func TestCheckUsersStatusIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1481,7 +1477,7 @@ func TestCheckUsersStatusIntegrity(t *testing.T) {
 
 func TestCheckUsersTeamMembersIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1511,7 +1507,7 @@ func TestCheckUsersTeamMembersIntegrity(t *testing.T) {
 
 func TestCheckUsersUserAccessTokensIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		supplier := ss.(*store.LayeredStore).DatabaseLayer.(*SqlSupplier)
+		supplier := ss.(*SqlSupplier)
 		dbmap := supplier.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1532,7 +1528,7 @@ func TestCheckUsersUserAccessTokensIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
-				ChildId: uat.Id,
+				ChildId:  uat.Id,
 			}, data.Records[0])
 			ss.UserAccessToken().Delete(uat.Id)
 		})

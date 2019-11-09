@@ -14,11 +14,6 @@ import (
 	"github.com/mattermost/mattermost-server/services/tracing"
 )
 
-const (
-	groupMemberActionCreate = iota
-	groupMemberActionDelete
-)
-
 func (api *API) InitGroup() {
 	// GET /api/v4/groups
 	api.BaseRoutes.Groups.Handle("", api.ApiSessionRequired(getGroups)).Methods("GET")

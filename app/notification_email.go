@@ -100,7 +100,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 
 	a.Srv.Go(func() {
 		if err := a.SendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
-			mlog.Error(fmt.Sprint("Error to send the email", user.Email, err))
+			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(err))
 		}
 	})
 
@@ -285,7 +285,7 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) string {
 	team, err := a.GetTeamByName(teamName)
 	if err != nil {
-		mlog.Error("Encountered error while looking up team by name", mlog.String("Team Name", teamName), mlog.Err(err))
+		mlog.Error("Encountered error while looking up team by name", mlog.String("team_name", teamName), mlog.Err(err))
 		return postMessage
 	}
 
@@ -320,7 +320,7 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 	// extract the filenames from their paths and determine what type of files are attached
 	infos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
 	if err != nil {
-		mlog.Warn(fmt.Sprintf("Encountered error when getting files for notification message, post_id=%v, err=%v", post.Id, err), mlog.String("post_id", post.Id))
+		mlog.Warn("Encountered error when getting files for notification message", mlog.String("post_id", post.Id), mlog.Err(err))
 	}
 
 	filenames := make([]string, len(infos))
