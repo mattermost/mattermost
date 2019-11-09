@@ -60,19 +60,6 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 	return nil
 }
 
-func (a *App) UpdatePreferenceForAll(preference model.PreferenceForAll) *model.AppError {
-	if err := a.Srv.Store.Preference().SaveForAll(preference); err != nil {
-		err.StatusCode = http.StatusBadRequest
-		return err
-	}
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", "", nil)
-	message.Add("preference", preference.ToJson())
-	a.Publish(message)
-
-	return nil
-}
-
 func (a *App) DeletePreferences(userId string, preferences model.Preferences) *model.AppError {
 	for _, preference := range preferences {
 		if userId != preference.UserId {

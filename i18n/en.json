@@ -6475,10 +6475,6 @@
     "translation": "We encountered an error while updating preferences"
   },
   {
-    "id": "store.sql_preference.save_for_all.app_error",
-    "translation": "We encountered an error while saving a preference for all users"
-  },
-  {
     "id": "store.sql_preference.update.app_error",
     "translation": "Unable to update the preference"
   },

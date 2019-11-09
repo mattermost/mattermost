@@ -430,7 +430,6 @@ type CommandWebhookStore interface {
 
 type PreferenceStore interface {
 	Save(preferences *model.Preferences) *model.AppError
-	SaveForAll(preference model.PreferenceForAll) *model.AppError
 	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
 	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
 	GetAll(userId string) (model.Preferences, *model.AppError)

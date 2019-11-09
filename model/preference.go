@@ -56,17 +56,6 @@ type Preference struct {
 	Value    string `json:"value"`
 }
 
-type PreferenceForAll struct {
-	Category string `json:"category"`
-	Name     string `json:"name"`
-	Value    string `json:"value"`
-}
-
-func (p *PreferenceForAll) ToJson() string {
-	b, _ := json.Marshal(p)
-	return string(b)
-}
-
 func (o *Preference) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
