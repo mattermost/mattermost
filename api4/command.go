@@ -57,6 +57,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:updateCommand")
 	c.App.Context = ctx
+	span.SetTag("CommandId", c.Params.CommandId)
 	defer span.Finish()
 	c.RequireCommandId()
 	if c.Err != nil {
@@ -108,6 +109,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:deleteCommand")
 	c.App.Context = ctx
+	span.SetTag("CommandId", c.Params.CommandId)
 	defer span.Finish()
 	c.RequireCommandId()
 	if c.Err != nil {
@@ -257,6 +259,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:listAutocompleteCommands")
 	c.App.Context = ctx
+	span.SetTag("TeamId", c.Params.TeamId)
 	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -280,6 +283,7 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:regenCommandToken")
 	c.App.Context = ctx
+	span.SetTag("CommandId", c.Params.CommandId)
 	defer span.Finish()
 	c.RequireCommandId()
 	if c.Err != nil {

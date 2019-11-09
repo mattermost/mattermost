@@ -68,6 +68,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:updateIncomingHook")
 	c.App.Context = ctx
+	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
 	if c.Err != nil {
@@ -145,6 +146,8 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:getIncomingHooks")
 	c.App.Context = ctx
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	teamId := r.URL.Query().Get("team_id")
 	userId := c.App.Session.UserId
@@ -189,6 +192,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:getIncomingHook")
 	c.App.Context = ctx
+	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
 	if c.Err != nil {
@@ -232,6 +236,7 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:deleteIncomingHook")
 	c.App.Context = ctx
+	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
 	if c.Err != nil {
@@ -280,6 +285,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:updateOutgoingHook")
 	c.App.Context = ctx
+	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
 	if c.Err != nil {
@@ -372,6 +378,8 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:getOutgoingHooks")
 	c.App.Context = ctx
+	span.SetTag("PerPage", c.Params.PerPage)
+	span.SetTag("Page", c.Params.Page)
 	defer span.Finish()
 	channelId := r.URL.Query().Get("channel_id")
 	teamId := r.URL.Query().Get("team_id")
@@ -429,6 +437,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:getOutgoingHook")
 	c.App.Context = ctx
+	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
 	if c.Err != nil {
@@ -461,6 +470,7 @@ func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:regenOutgoingHookToken")
 	c.App.Context = ctx
+	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
 	if c.Err != nil {
@@ -498,6 +508,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:deleteOutgoingHook")
 	c.App.Context = ctx
+	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
 	if c.Err != nil {

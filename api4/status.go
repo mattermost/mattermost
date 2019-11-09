@@ -22,6 +22,7 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		// No permission check required
 		"api4:status:getUserStatus")
 	c.App.Context = ctx
+	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
@@ -67,6 +68,7 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:status:updateUserStatus")
 	c.App.Context = ctx
+	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {

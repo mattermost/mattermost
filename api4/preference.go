@@ -21,6 +21,7 @@ func (api *API) InitPreference() {
 func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:preference:getPreferences")
 	c.App.Context = ctx
+	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
@@ -44,6 +45,8 @@ func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:preference:getPreferencesByCategory")
 	c.App.Context = ctx
+	span.SetTag("UserId", c.Params.UserId)
+	span.SetTag("Category", c.Params.Category)
 	defer span.Finish()
 	c.RequireUserId().RequireCategory()
 	if c.Err != nil {
@@ -67,6 +70,9 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:preference:getPreferenceByCategoryAndName")
 	c.App.Context = ctx
+	span.SetTag("UserId", c.Params.UserId)
+	span.SetTag("Category", c.Params.Category)
+	span.SetTag("PreferenceName", c.Params.PreferenceName)
 	defer span.Finish()
 	c.RequireUserId().RequireCategory().RequirePreferenceName()
 	if c.Err != nil {
@@ -90,6 +96,7 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:preference:updatePreferences")
 	c.App.Context = ctx
+	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
@@ -137,6 +144,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:preference:deletePreferences")
 	c.App.Context = ctx
+	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {

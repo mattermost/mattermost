@@ -120,6 +120,9 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getPostsForChannel")
 	c.App.Context = ctx
+	span.SetTag("ChannelId", c.Params.ChannelId)
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	c.RequireChannelId()
 	if c.Err != nil {
@@ -212,6 +215,10 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getPostsForChannelAroundLastUnread")
 	c.App.Context = ctx
+	span.SetTag("UserId", c.Params.UserId)
+	span.SetTag("ChannelId", c.Params.ChannelId)
+	span.SetTag("LimitBefore", c.Params.LimitBefore)
+	span.SetTag("LimitAfter", c.Params.LimitAfter)
 	defer span.Finish()
 	c.RequireUserId().RequireChannelId()
 	if c.Err != nil {
@@ -269,6 +276,9 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getFlaggedPostsForUser")
 	c.App.Context = ctx
+	span.SetTag("UserId", c.Params.UserId)
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
@@ -331,6 +341,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getPost")
 	c.App.Context = ctx
+	span.SetTag("PostId", c.Params.PostId)
 	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
@@ -374,6 +385,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:deletePost")
 	c.App.Context = ctx
+	span.SetTag("PostId", c.Params.PostId)
 	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
@@ -409,6 +421,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getPostThread")
 	c.App.Context = ctx
+	span.SetTag("PostId", c.Params.PostId)
 	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
@@ -462,6 +475,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:searchPosts")
 	c.App.Context = ctx
+	span.SetTag("TeamId", c.Params.TeamId)
 	defer span.Finish()
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -533,6 +547,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:updatePost")
 	c.App.Context = ctx
+	span.SetTag("PostId", c.Params.PostId)
 	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
@@ -587,6 +602,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:patchPost")
 	c.App.Context = ctx
+	span.SetTag("PostId", c.Params.PostId)
 	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
@@ -697,6 +713,7 @@ func unpinPost(c *Context, w http.ResponseWriter, r *http.Request) {
 func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:post:getFileInfosForPost")
 	c.App.Context = ctx
+	span.SetTag("PostId", c.Params.PostId)
 	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {

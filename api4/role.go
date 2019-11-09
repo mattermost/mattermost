@@ -21,6 +21,7 @@ func (api *API) InitRole() {
 func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:getRole")
 	c.App.Context = ctx
+	span.SetTag("RoleId", c.Params.RoleId)
 	defer span.Finish()
 	c.RequireRoleId()
 	if c.Err != nil {
@@ -39,6 +40,7 @@ func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
 func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:getRoleByName")
 	c.App.Context = ctx
+	span.SetTag("RoleName", c.Params.RoleName)
 	defer span.Finish()
 	c.RequireRoleName()
 	if c.Err != nil {
@@ -91,6 +93,7 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:patchRole")
 	c.App.Context = ctx
+	span.SetTag("RoleId", c.Params.RoleId)
 	defer span.Finish()
 	c.RequireRoleId()
 	if c.Err != nil {

@@ -185,6 +185,8 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:getAudits")
 	c.App.Context = ctx
+	span.SetTag("PerPage", c.Params.PerPage)
+	span.SetTag("Page", c.Params.Page)
 	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -247,6 +249,8 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:system:getLogs")
 	c.App.Context = ctx
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("LogsPerPage", c.Params.LogsPerPage)
 	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)

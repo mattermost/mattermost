@@ -21,6 +21,8 @@ func (api *API) InitAction() {
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:integration_action:doPostAction")
 	c.App.Context = ctx
+	span.SetTag("PostId", c.Params.PostId)
+	span.SetTag("ActionId", c.Params.ActionId)
 	defer span.Finish()
 	c.RequirePostId().RequireActionId()
 	if c.Err != nil {

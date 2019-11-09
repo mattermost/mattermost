@@ -69,6 +69,8 @@ func (api *API) InitFile() {
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:uploadFile")
 	c.App.Context = ctx
+	span.SetTag("ChannelId", c.Params.ChannelId)
+	span.SetTag("Filename", c.Params.Filename)
 	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
 
@@ -528,6 +530,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFile")
 	c.App.Context = ctx
+	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
@@ -568,6 +571,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFileThumbnail")
 	c.App.Context = ctx
+	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
@@ -613,6 +617,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFileLink")
 	c.App.Context = ctx
+	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
@@ -649,6 +654,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFilePreview")
 	c.App.Context = ctx
+	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
@@ -694,6 +700,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFileInfo")
 	c.App.Context = ctx
+	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {
@@ -718,6 +725,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getPublicFile")
 	c.App.Context = ctx
+	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
 	if c.Err != nil {

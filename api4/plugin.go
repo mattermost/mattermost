@@ -207,6 +207,7 @@ func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:removePlugin")
 	c.App.Context = ctx
+	span.SetTag("PluginId", c.Params.PluginId)
 	defer span.Finish()
 	c.RequirePluginId()
 	if c.Err != nil {
@@ -304,6 +305,7 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:enablePlugin")
 	c.App.Context = ctx
+	span.SetTag("PluginId", c.Params.PluginId)
 	defer span.Finish()
 	c.RequirePluginId()
 	if c.Err != nil {
@@ -331,6 +333,7 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:plugin:disablePlugin")
 	c.App.Context = ctx
+	span.SetTag("PluginId", c.Params.PluginId)
 	defer span.Finish()
 	c.RequirePluginId()
 	if c.Err != nil {

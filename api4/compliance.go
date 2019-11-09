@@ -50,6 +50,8 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:getComplianceReports")
 	c.App.Context = ctx
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -68,6 +70,7 @@ func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:getComplianceReport")
 	c.App.Context = ctx
+	span.SetTag("ReportId", c.Params.ReportId)
 	defer span.Finish()
 	c.RequireReportId()
 	if c.Err != nil {
@@ -91,6 +94,7 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:downloadComplianceReport")
 	c.App.Context = ctx
+	span.SetTag("ReportId", c.Params.ReportId)
 	defer span.Finish()
 	c.RequireReportId()
 	if c.Err != nil {

@@ -53,6 +53,7 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:getScheme")
 	c.App.Context = ctx
+	span.SetTag("SchemeId", c.Params.SchemeId)
 	defer span.Finish()
 	c.RequireSchemeId()
 	if c.Err != nil {
@@ -76,6 +77,9 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:getSchemes")
 	c.App.Context = ctx
+	span.SetTag("Scope", c.Params.Scope)
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -100,6 +104,9 @@ func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
 func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:getTeamsForScheme")
 	c.App.Context = ctx
+	span.SetTag("SchemeId", c.Params.SchemeId)
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	c.RequireSchemeId()
 	if c.Err != nil {
@@ -134,6 +141,9 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:getChannelsForScheme")
 	c.App.Context = ctx
+	span.SetTag("SchemeId", c.Params.SchemeId)
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	c.RequireSchemeId()
 	if c.Err != nil {
@@ -168,6 +178,7 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:patchScheme")
 	c.App.Context = ctx
+	span.SetTag("SchemeId", c.Params.SchemeId)
 	defer span.Finish()
 	c.RequireSchemeId()
 	if c.Err != nil {
@@ -209,6 +220,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:scheme:deleteScheme")
 	c.App.Context = ctx
+	span.SetTag("SchemeId", c.Params.SchemeId)
 	defer span.Finish()
 	c.RequireSchemeId()
 	if c.Err != nil {

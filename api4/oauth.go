@@ -58,6 +58,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:updateOAuthApp")
 	c.App.Context = ctx
+	span.SetTag("AppId", c.Params.AppId)
 	defer span.Finish()
 	c.RequireAppId()
 	if c.Err != nil {
@@ -108,6 +109,8 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:getOAuthApps")
 	c.App.Context = ctx
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OAUTH) {
 		c.Err = model.NewAppError("getOAuthApps", "api.command.admin_only.app_error", nil, "", http.StatusForbidden)
@@ -136,6 +139,7 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:getOAuthApp")
 	c.App.Context = ctx
+	span.SetTag("AppId", c.Params.AppId)
 	defer span.Finish()
 	c.RequireAppId()
 	if c.Err != nil {
@@ -164,6 +168,7 @@ func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:getOAuthAppInfo")
 	c.App.Context = ctx
+	span.SetTag("AppId", c.Params.AppId)
 	defer span.Finish()
 	c.RequireAppId()
 	if c.Err != nil {
@@ -183,6 +188,7 @@ func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:deleteOAuthApp")
 	c.App.Context = ctx
+	span.SetTag("AppId", c.Params.AppId)
 	defer span.Finish()
 	c.RequireAppId()
 	if c.Err != nil {
@@ -220,6 +226,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:regenerateOAuthAppSecret")
 	c.App.Context = ctx
+	span.SetTag("AppId", c.Params.AppId)
 	defer span.Finish()
 	c.RequireAppId()
 	if c.Err != nil {
@@ -255,6 +262,9 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:getAuthorizedOAuthApps")
 	c.App.Context = ctx
+	span.SetTag("UserId", c.Params.UserId)
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {

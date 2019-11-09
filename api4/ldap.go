@@ -77,6 +77,11 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:getLdapGroups")
 	c.App.Context = ctx
+	span.SetTag("Q", c.Params.Q)
+	span.SetTag("IsLinked", c.Params.IsLinked)
+	span.SetTag("IsConfigured", c.Params.IsConfigured)
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -132,6 +137,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:linkLdapGroup")
 	c.App.Context = ctx
+	span.SetTag("RemoteId", c.Params.RemoteId)
 	defer span.Finish()
 	c.RequireRemoteId()
 	if c.Err != nil {
@@ -224,6 +230,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:unlinkLdapGroup")
 	c.App.Context = ctx
+	span.SetTag("RemoteId", c.Params.RemoteId)
 	defer span.Finish()
 	c.RequireRemoteId()
 	if c.Err != nil {

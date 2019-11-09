@@ -21,6 +21,7 @@ func (api *API) InitJob() {
 func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:job:getJob")
 	c.App.Context = ctx
+	span.SetTag("JobId", c.Params.JobId)
 	defer span.Finish()
 	c.RequireJobId()
 	if c.Err != nil {
@@ -69,6 +70,8 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:job:getJobs")
 	c.App.Context = ctx
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	if c.Err != nil {
 		return
@@ -91,6 +94,9 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:job:getJobsByType")
 	c.App.Context = ctx
+	span.SetTag("JobType", c.Params.JobType)
+	span.SetTag("Page", c.Params.Page)
+	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
 	c.RequireJobType()
 	if c.Err != nil {
@@ -114,6 +120,7 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:job:cancelJob")
 	c.App.Context = ctx
+	span.SetTag("JobId", c.Params.JobId)
 	defer span.Finish()
 	c.RequireJobId()
 	if c.Err != nil {

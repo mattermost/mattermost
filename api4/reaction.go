@@ -54,6 +54,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:reaction:getReactions")
 	c.App.Context = ctx
+	span.SetTag("PostId", c.Params.PostId)
 	defer span.Finish()
 	c.RequirePostId()
 	if c.Err != nil {
@@ -77,6 +78,9 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:reaction:deleteReaction")
 	c.App.Context = ctx
+	span.SetTag("PostId", c.Params.PostId)
+	span.SetTag("UserId", c.Params.UserId)
+	span.SetTag("EmojiName", c.Params.EmojiName)
 	defer span.Finish()
 	c.RequireUserId()
 	if c.Err != nil {
