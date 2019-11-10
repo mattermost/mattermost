@@ -4,8 +4,10 @@
 package api4
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -36,6 +38,13 @@ func (api *API) InitLdap() {
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:syncLdap")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	if c.App.License() == nil || !*c.App.License().Features.LDAP {
 		c.Err = model.NewAppError("Api4.syncLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
@@ -55,6 +64,13 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:testLdap")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	if c.App.License() == nil || !*c.App.License().Features.LDAP {
 		c.Err = model.NewAppError("Api4.testLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
@@ -77,6 +93,13 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:getLdapGroups")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Q", c.Params.Q)
 	span.SetTag("IsLinked", c.Params.IsLinked)
 	span.SetTag("IsConfigured", c.Params.IsConfigured)
@@ -137,6 +160,13 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:linkLdapGroup")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("RemoteId", c.Params.RemoteId)
 	defer span.Finish()
 	c.RequireRemoteId()
@@ -230,6 +260,13 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:ldap:unlinkLdapGroup")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("RemoteId", c.Params.RemoteId)
 	defer span.Finish()
 	c.RequireRemoteId()

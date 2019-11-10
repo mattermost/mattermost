@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -21,6 +23,13 @@ func (api *API) InitRole() {
 func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:getRole")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("RoleId", c.Params.RoleId)
 	defer span.Finish()
 	c.RequireRoleId()
@@ -40,6 +49,13 @@ func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
 func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:getRoleByName")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("RoleName", c.Params.RoleName)
 	defer span.Finish()
 	c.RequireRoleName()
@@ -59,6 +75,13 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:getRolesByNames")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	rolenames := model.ArrayFromJson(r.Body)
 
@@ -93,6 +116,13 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:role:patchRole")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("RoleId", c.Params.RoleId)
 	defer span.Finish()
 	c.RequireRoleId()

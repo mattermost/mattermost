@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -83,6 +84,13 @@ func (api *API) InitUser() {
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:createUser")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	user := model.UserFromJson(r.Body)
 	if user == nil {
@@ -138,6 +146,13 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUser")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -194,6 +209,13 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserByUsername")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Username", c.Params.Username)
 	defer span.Finish()
 	c.RequireUsername()
@@ -258,6 +280,13 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserByEmail")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Email", c.Params.Email)
 	defer span.Finish()
 	c.RequireEmail()
@@ -311,6 +340,13 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getDefaultProfileImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -349,6 +385,13 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getProfileImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -398,6 +441,13 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:setProfileImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
@@ -452,6 +502,13 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:setDefaultProfileImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -487,6 +544,13 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getTotalUsersStats")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	if c.Err != nil {
 		return
@@ -510,6 +574,13 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUsersByGroupChannelIds")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	channelIds := model.ArrayFromJson(r.Body)
 
@@ -531,6 +602,13 @@ func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Reques
 func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUsers")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
@@ -676,6 +754,13 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUsersByIds")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	userIds := model.ArrayFromJson(r.Body)
 
@@ -718,6 +803,13 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUsersByNames")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	usernames := model.ArrayFromJson(r.Body)
 
@@ -744,6 +836,13 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:searchUsers")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.UserSearchFromJson(r.Body)
 	if props == nil {
@@ -820,6 +919,13 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:autocompleteUsers")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	channelId := r.URL.Query().Get("in_channel")
 	teamId := r.URL.Query().Get("in_team")
@@ -903,6 +1009,13 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updateUser")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -963,6 +1076,13 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:patchUser")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1022,6 +1142,13 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:deleteUser")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1059,6 +1186,13 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updateUserRoles")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1091,6 +1225,13 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updateUserActive")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1144,6 +1285,13 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updateUserAuth")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	if !c.IsSystemAdmin() {
@@ -1177,6 +1325,13 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:checkUserMfa")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 
 	if *c.App.Config().ServiceSettings.DisableLegacyMFA {
@@ -1212,6 +1367,13 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updateUserMfa")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1260,6 +1422,13 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:generateMfaSecret")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1293,6 +1462,13 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:updatePassword")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1333,6 +1509,13 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:resetPassword")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
@@ -1360,6 +1543,13 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:sendPasswordReset")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
@@ -1391,6 +1581,13 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Mask all sensitive errors, with the exception of the following
 		ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:login")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 
 	defer func() {
@@ -1530,6 +1727,13 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:logout")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	Logout(c, w, r)
 }
@@ -1537,6 +1741,13 @@ func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:Logout")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	c.LogAudit("")
 	c.RemoveSessionCookie(w, r)
@@ -1553,6 +1764,13 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getSessions")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1581,6 +1799,13 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:revokeSession")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1622,6 +1847,13 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:revokeAllSessionsForUser")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1645,6 +1877,13 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:revokeAllSessionsAllUsers")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -1662,6 +1901,13 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:attachDeviceId")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
@@ -1715,6 +1961,13 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserAudits")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
@@ -1741,6 +1994,13 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:verifyUserEmail")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
@@ -1762,6 +2022,13 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:sendVerificationEmail")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
@@ -1791,6 +2058,13 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:switchAccountType")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	switchRequest := model.SwitchRequestFromJson(r.Body)
 	if switchRequest == nil {
@@ -1831,6 +2105,13 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:createUserAccessToken")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1883,6 +2164,13 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:searchUserAccessTokens")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -1911,6 +2199,13 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserAccessTokens")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
@@ -1931,6 +2226,13 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserAccessTokensForUser")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
@@ -1962,6 +2264,13 @@ func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Reque
 func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserAccessToken")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("TokenId", c.Params.TokenId)
 	defer span.Finish()
 	c.RequireTokenId()
@@ -1991,6 +2300,13 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:revokeUserAccessToken")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
@@ -2029,6 +2345,13 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:disableUserAccessToken")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 	tokenId := props["token_id"]
@@ -2068,6 +2391,13 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:enableUserAccessToken")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.MapFromJson(r.Body)
 
@@ -2107,6 +2437,13 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:saveUserTermsOfService")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.StringInterfaceFromJson(r.Body)
 
@@ -2131,6 +2468,13 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:getUserTermsOfService")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	userId := c.App.Session.UserId
 	result, err := c.App.GetUserTermsOfService(userId)
@@ -2144,6 +2488,13 @@ func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:promoteGuestToUser")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -2188,6 +2539,13 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:user:demoteUserToGuest")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()

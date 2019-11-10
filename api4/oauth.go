@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -25,6 +27,13 @@ func (api *API) InitOAuth() {
 func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:createOAuthApp")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	oauthApp := model.OAuthAppFromJson(r.Body)
 
@@ -58,6 +67,13 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:updateOAuthApp")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("AppId", c.Params.AppId)
 	defer span.Finish()
 	c.RequireAppId()
@@ -109,6 +125,13 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:getOAuthApps")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
@@ -139,6 +162,13 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:getOAuthApp")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("AppId", c.Params.AppId)
 	defer span.Finish()
 	c.RequireAppId()
@@ -168,6 +198,13 @@ func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:getOAuthAppInfo")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("AppId", c.Params.AppId)
 	defer span.Finish()
 	c.RequireAppId()
@@ -188,6 +225,13 @@ func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:deleteOAuthApp")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("AppId", c.Params.AppId)
 	defer span.Finish()
 	c.RequireAppId()
@@ -226,6 +270,13 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:regenerateOAuthAppSecret")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("AppId", c.Params.AppId)
 	defer span.Finish()
 	c.RequireAppId()
@@ -262,6 +313,13 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:oauth:getAuthorizedOAuthApps")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)

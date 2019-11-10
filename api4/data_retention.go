@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"github.com/mattermost/mattermost-server/services/tracing"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -17,6 +19,13 @@ func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		// No permission check required.
 		ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:data_retention:getPolicy")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 
 	policy, err := c.App.GetDataRetentionPolicy()

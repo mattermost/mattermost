@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -67,6 +68,13 @@ func (api *API) InitGroup() {
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroup")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("GroupId", c.Params.GroupId)
 	defer span.Finish()
 	c.RequireGroupId()
@@ -102,6 +110,13 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:patchGroup")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("GroupId", c.Params.GroupId)
 	defer span.Finish()
 	c.RequireGroupId()
@@ -151,6 +166,13 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:linkGroupSyncable")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("SyncableId", c.Params.SyncableId)
 	span.SetTag("SyncableType", c.Params.SyncableType)
 	span.SetTag("GroupId", c.Params.GroupId)
@@ -238,6 +260,13 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroupSyncable")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("SyncableId", c.Params.SyncableId)
 	span.SetTag("SyncableType", c.Params.SyncableType)
 	span.SetTag("GroupId", c.Params.GroupId)
@@ -287,6 +316,13 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroupSyncables")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("SyncableType", c.Params.SyncableType)
 	span.SetTag("GroupId", c.Params.GroupId)
 	defer span.Finish()
@@ -329,6 +365,13 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:patchGroupSyncable")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("SyncableId", c.Params.SyncableId)
 	span.SetTag("SyncableType", c.Params.SyncableType)
 	span.SetTag("GroupId", c.Params.GroupId)
@@ -400,6 +443,13 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:unlinkGroupSyncable")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("SyncableId", c.Params.SyncableId)
 	span.SetTag("SyncableType", c.Params.SyncableType)
 	span.SetTag("GroupId", c.Params.GroupId)
@@ -471,6 +521,13 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroupMembers")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("GroupId", c.Params.GroupId)
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
@@ -514,6 +571,13 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroupsByChannel")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Q", c.Params.Q)
 	span.SetTag("IncludeMemberCount", c.Params.IncludeMemberCount)
 	span.SetTag("Paginate", c.Params.Paginate)
@@ -580,6 +644,13 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroupsByTeam")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("TeamId", c.Params.TeamId)
 	span.SetTag("Q", c.Params.Q)
 	span.SetTag("IncludeMemberCount", c.Params.IncludeMemberCount)
@@ -635,6 +706,13 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:group:getGroups")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("PerPage", c.Params.PerPage)
 	span.SetTag("Q", c.Params.Q)
 	span.SetTag("IncludeMemberCount", c.Params.IncludeMemberCount)

@@ -4,8 +4,10 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/mattermost/mattermost-server/services/tracing"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -62,6 +64,13 @@ func (api *API) InitChannel() {
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:createChannel")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	channel := model.ChannelFromJson(r.Body)
 	if channel == nil {
@@ -93,6 +102,13 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannel")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -196,6 +212,13 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:convertChannelToPrivate")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -245,6 +268,13 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannelPrivacy")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -297,6 +327,13 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:patchChannel")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -361,6 +398,13 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:restoreChannel")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -394,6 +438,13 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:createDirectChannel")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	userIds := model.ArrayFromJson(r.Body)
 	allowed := false
@@ -452,6 +503,13 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:searchGroupChannels")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.ChannelSearchFromJson(r.Body)
 	if props == nil {
@@ -471,6 +529,13 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:createGroupChannel")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	userIds := model.ArrayFromJson(r.Body)
 
@@ -531,6 +596,13 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannel")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 
@@ -571,6 +643,13 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelUnread")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
@@ -601,6 +680,13 @@ func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelStats")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -638,6 +724,13 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getPinnedPosts")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -669,6 +762,13 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getAllChannels")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ExcludeDefaultChannels", c.Params.ExcludeDefaultChannels)
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
@@ -713,6 +813,13 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getPublicChannelsForTeam")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("TeamId", c.Params.TeamId)
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
@@ -745,6 +852,13 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getDeletedChannelsForTeam")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("TeamId", c.Params.TeamId)
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
@@ -777,6 +891,13 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getPublicChannelsByIdsForTeam")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("TeamId", c.Params.TeamId)
 	defer span.Finish()
 	c.RequireTeamId()
@@ -820,6 +941,13 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelsForTeamForUser")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	span.SetTag("TeamId", c.Params.TeamId)
 	defer span.Finish()
@@ -861,6 +989,13 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:autocompleteChannelsForTeam")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("TeamId", c.Params.TeamId)
 	defer span.Finish()
 	c.RequireTeamId()
@@ -889,6 +1024,13 @@ func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Requ
 func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:autocompleteChannelsForTeamForSearch")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("TeamId", c.Params.TeamId)
 	defer span.Finish()
 	c.RequireTeamId()
@@ -917,6 +1059,13 @@ func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *
 func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:searchChannelsForTeam")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("TeamId", c.Params.TeamId)
 	defer span.Finish()
 	c.RequireTeamId()
@@ -957,6 +1106,13 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:searchAllChannels")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	props := model.ChannelSearchFromJson(r.Body)
 	if props == nil {
@@ -989,6 +1145,13 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:deleteChannel")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -1031,6 +1194,13 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelByName")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelName", c.Params.ChannelName)
 	span.SetTag("TeamId", c.Params.TeamId)
 	defer span.Finish()
@@ -1071,6 +1241,13 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelByNameForTeamName")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelName", c.Params.ChannelName)
 	span.SetTag("TeamName", c.Params.TeamName)
 	defer span.Finish()
@@ -1104,6 +1281,13 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelMembers")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
 	span.SetTag("ChannelId", c.Params.ChannelId)
@@ -1130,6 +1314,13 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelMembersTimezones")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -1154,6 +1345,13 @@ func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Reque
 func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelMembersByIds")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -1184,6 +1382,13 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelMember")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
@@ -1209,6 +1414,13 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:getChannelMembersForUser")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("TeamId", c.Params.TeamId)
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
@@ -1239,6 +1451,13 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:viewChannel")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -1288,6 +1507,13 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannelMemberRoles")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
@@ -1320,6 +1546,13 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannelMemberSchemeRoles")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
@@ -1350,6 +1583,13 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannelMemberNotifyProps")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
@@ -1381,6 +1621,13 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:addChannelMember")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -1503,6 +1750,13 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:removeChannelMember")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
@@ -1552,6 +1806,13 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:updateChannelScheme")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	defer span.Finish()
 	c.RequireChannelId()
@@ -1606,6 +1867,13 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:channel:channelMembersMinusGroupMembers")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)

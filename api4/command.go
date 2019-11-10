@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -27,6 +29,13 @@ func (api *API) InitCommand() {
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:createCommand")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	cmd := model.CommandFromJson(r.Body)
 	if cmd == nil {
@@ -57,6 +66,13 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:updateCommand")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("CommandId", c.Params.CommandId)
 	defer span.Finish()
 	c.RequireCommandId()
@@ -109,6 +125,13 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:deleteCommand")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("CommandId", c.Params.CommandId)
 	defer span.Finish()
 	c.RequireCommandId()
@@ -150,6 +173,13 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:listCommands")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	customOnly, failConv := strconv.ParseBool(r.URL.Query().Get("custom_only"))
 	if failConv != nil {
@@ -203,6 +233,13 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:executeCommand")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	commandArgs := model.CommandArgsFromJson(r.Body)
 	if commandArgs == nil {
@@ -259,6 +296,13 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:listAutocompleteCommands")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("TeamId", c.Params.TeamId)
 	defer span.Finish()
 	c.RequireTeamId()
@@ -283,6 +327,13 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:command:regenCommandToken")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("CommandId", c.Params.CommandId)
 	defer span.Finish()
 	c.RequireCommandId()

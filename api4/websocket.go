@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -20,6 +22,13 @@ func (api *API) InitWebSocket() {
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:websocket:connectWebSocket")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  model.SOCKET_MAX_MESSAGE_SIZE_KB,

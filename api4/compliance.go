@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -22,6 +24,13 @@ func (api *API) InitCompliance() {
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:createComplianceReport")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	job := model.ComplianceFromJson(r.Body)
 	if job == nil {
@@ -50,6 +59,13 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:getComplianceReports")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
@@ -70,6 +86,13 @@ func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:getComplianceReport")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ReportId", c.Params.ReportId)
 	defer span.Finish()
 	c.RequireReportId()
@@ -94,6 +117,13 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:compliance:downloadComplianceReport")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ReportId", c.Params.ReportId)
 	defer span.Finish()
 	c.RequireReportId()

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -31,6 +32,13 @@ func (api *API) InitBot() {
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:createBot")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	botPatch := model.BotPatchFromJson(r.Body)
 	if botPatch == nil {
@@ -73,6 +81,13 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:patchBot")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("BotUserId", c.Params.BotUserId)
 	defer span.Finish()
 	c.RequireBotUserId()
@@ -104,6 +119,13 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:getBot")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("BotUserId", c.Params.BotUserId)
 	defer span.Finish()
 	c.RequireBotUserId()
@@ -147,6 +169,13 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:getBots")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
@@ -187,6 +216,13 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:disableBot")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	updateBotActive(c, w, r, false)
 }
@@ -194,6 +230,13 @@ func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
 func enableBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:enableBot")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	updateBotActive(c, w, r, true)
 }
@@ -222,6 +265,13 @@ func updateBotActive(c *Context, w http.ResponseWriter, r *http.Request, active 
 func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:assignBot")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("BotUserId", c.Params.BotUserId)
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
@@ -257,6 +307,13 @@ func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
 func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:getBotIconImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("BotUserId", c.Params.BotUserId)
 	defer span.Finish()
 	c.RequireBotUserId()
@@ -302,6 +359,13 @@ func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:setBotIconImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("BotUserId", c.Params.BotUserId)
 	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
@@ -352,6 +416,13 @@ func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:bot:deleteBotIconImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("BotUserId", c.Params.BotUserId)
 	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)

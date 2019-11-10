@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -33,6 +34,13 @@ func (api *API) InitEmoji() {
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:createEmoji")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
 
@@ -99,6 +107,13 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:getEmojiList")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
@@ -125,6 +140,13 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:deleteEmoji")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("EmojiId", c.Params.EmojiId)
 	defer span.Finish()
 	c.RequireEmojiId()
@@ -189,6 +211,13 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:getEmoji")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("EmojiId", c.Params.EmojiId)
 	defer span.Finish()
 	c.RequireEmojiId()
@@ -213,6 +242,13 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:getEmojiByName")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("EmojiName", c.Params.EmojiName)
 	defer span.Finish()
 	c.RequireEmojiName()
@@ -232,6 +268,13 @@ func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:getEmojiImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("EmojiId", c.Params.EmojiId)
 	defer span.Finish()
 	c.RequireEmojiId()
@@ -258,6 +301,13 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:searchEmojis")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	emojiSearch := model.EmojiSearchFromJson(r.Body)
 	if emojiSearch == nil {
@@ -282,6 +332,13 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:emoji:autocompleteEmojis")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	name := r.URL.Query().Get("name")
 

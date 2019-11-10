@@ -69,6 +69,13 @@ func (api *API) InitFile() {
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:uploadFile")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("ChannelId", c.Params.ChannelId)
 	span.SetTag("Filename", c.Params.Filename)
 	defer span.Finish()
@@ -192,6 +199,13 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Drain any remaining bytes in the request body, up to a limit
 		ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:uploadFileStream")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 
 	defer io.CopyN(ioutil.Discard, r.Body, maxUploadDrainBytes)
@@ -530,6 +544,13 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFile")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
@@ -571,6 +592,13 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFileThumbnail")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
@@ -617,6 +645,13 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFileLink")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
@@ -654,6 +689,13 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFilePreview")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
@@ -700,6 +742,13 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getFileInfo")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()
@@ -725,6 +774,13 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:file:getPublicFile")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("FileId", c.Params.FileId)
 	defer span.Finish()
 	c.RequireFileId()

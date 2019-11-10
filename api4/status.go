@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -22,6 +24,13 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		// No permission check required
 		"api4:status:getUserStatus")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()
@@ -46,6 +55,12 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:status:getUserStatusesByIds")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
 
 	// No permission check required
 	defer span.Finish()
@@ -68,6 +83,13 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:status:updateUserStatus")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("UserId", c.Params.UserId)
 	defer span.Finish()
 	c.RequireUserId()

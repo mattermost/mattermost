@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -23,6 +24,13 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		// No permission check required
 		ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:brand:getBrandImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 
 	img, err := c.App.GetBrandImage()
@@ -39,6 +47,13 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:brand:uploadBrandImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	defer io.Copy(ioutil.Discard, r.Body)
 
@@ -84,6 +99,13 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:brand:deleteBrandImage")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)

@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -28,6 +30,13 @@ func (api *API) InitWebhook() {
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:createIncomingHook")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	hook := model.IncomingWebhookFromJson(r.Body)
 	if hook == nil {
@@ -68,6 +77,13 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:updateIncomingHook")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
@@ -146,6 +162,13 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:getIncomingHooks")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("Page", c.Params.Page)
 	span.SetTag("PerPage", c.Params.PerPage)
 	defer span.Finish()
@@ -192,6 +215,13 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:getIncomingHook")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
@@ -236,6 +266,13 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:deleteIncomingHook")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
@@ -285,6 +322,13 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:updateOutgoingHook")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
@@ -347,6 +391,13 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:createOutgoingHook")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	hook := model.OutgoingWebhookFromJson(r.Body)
 	if hook == nil {
@@ -378,6 +429,13 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:getOutgoingHooks")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("PerPage", c.Params.PerPage)
 	span.SetTag("Page", c.Params.Page)
 	defer span.Finish()
@@ -437,6 +495,13 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:getOutgoingHook")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
@@ -470,6 +535,13 @@ func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:regenOutgoingHookToken")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()
@@ -508,6 +580,13 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:webhook:deleteOutgoingHook")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("HookId", c.Params.HookId)
 	defer span.Finish()
 	c.RequireHookId()

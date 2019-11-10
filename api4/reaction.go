@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -20,6 +22,13 @@ func (api *API) InitReaction() {
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:reaction:saveReaction")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	reaction := model.ReactionFromJson(r.Body)
 	if reaction == nil {
@@ -54,6 +63,13 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:reaction:getReactions")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("PostId", c.Params.PostId)
 	defer span.Finish()
 	c.RequirePostId()
@@ -78,6 +94,13 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:reaction:deleteReaction")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	span.SetTag("PostId", c.Params.PostId)
 	span.SetTag("UserId", c.Params.UserId)
 	span.SetTag("EmojiName", c.Params.EmojiName)
@@ -125,6 +148,13 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 	span, ctx := tracing.StartSpanWithParentByContext(c.App.Context, "api4:reaction:getBulkReactions")
 	c.App.Context = ctx
+	var bodyBytes []byte
+	if r.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(r.Body)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		span.SetTag("body", string(bodyBytes))
+	}
+
 	defer span.Finish()
 	postIds := model.ArrayFromJson(r.Body)
 	for _, postId := range postIds {
