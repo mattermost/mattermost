@@ -11,6 +11,8 @@ import (
 	"image/color"
 	"image/png"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -741,6 +743,93 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 	}
 
 	assert.True(t, found)
+}
+
+func TestInstallPlugin(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	path, _ := fileutils.FindDir("tests")
+	ts := httptest.NewServer(http.FileServer(http.Dir(path)))
+	defer ts.Close()
+	downloadURL := ts.URL + "/testplugin.tar.gz"
+
+	var pluginJson map[string]interface{}
+	err := json.Unmarshal([]byte(fmt.Sprintf(`{"DownloadURL": "%s"}`, downloadURL)), &pluginJson)
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		cfg.PluginSettings.Plugins["testinstallplugin"] = pluginJson
+	})
+
+	tearDown, _ := setupPluginApiTest(t,
+		`
+		package main
+
+		import (
+			"net/http"
+		
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/pkg/errors"
+		)
+
+		type configuration struct {
+			DownloadURL string
+		}
+		
+		type Plugin struct {
+			plugin.MattermostPlugin
+
+			configuration configuration
+		}
+
+		func (p *Plugin) OnConfigurationChange() error {
+			if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
+				return err
+			}
+			return nil
+		}
+		
+		func (p *Plugin) OnActivate() error {
+			resp, err := http.Get(p.configuration.DownloadURL)
+			if err != nil {
+				return err
+			}
+			defer resp.Body.Close()
+			_, aerr := p.API.InstallPlugin(resp.Body, true)
+			if aerr != nil {
+				return errors.Wrap(aerr, "cannot install plugin")
+			}
+			return nil
+		}
+
+		func main() {
+			plugin.ClientMain(&Plugin{})
+		}
+		
+	`,
+		`{"id": "testinstallplugin", "backend": {"executable": "backend.exe"}, "settings_schema": {
+		"settings": [
+			{
+				"key": "DownloadURL",
+				"type": "text"
+			}
+		]
+	}}`, "testinstallplugin", th.App)
+	defer tearDown()
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testinstallplugin")
+	require.NoError(t, err)
+
+	err = hooks.OnActivate()
+	require.NoError(t, err)
+
+	plugins, aerr := th.App.GetPlugins()
+	require.Nil(t, aerr)
+	require.Len(t, plugins.Inactive, 1)
+	require.Equal(t, "testplugin", plugins.Inactive[0].Id)
 }
 
 func TestPluginAPIGetTeamIcon(t *testing.T) {
