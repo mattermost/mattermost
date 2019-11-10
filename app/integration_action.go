@@ -98,7 +98,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
-		channel, err := a.Srv.Store.Channel().Get(cookie.ChannelId, true)
+		channel, err := a.Srv.Store.Channel().Get(a.Context, cookie.ChannelId, true)
 		if err != nil {
 			return "", err
 		}
