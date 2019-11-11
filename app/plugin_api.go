@@ -149,7 +149,7 @@ func (api *PluginAPI) GetTeam(teamId string) (*model.Team, *model.AppError) {
 }
 
 func (api *PluginAPI) SearchTeams(term string) ([]*model.Team, *model.AppError) {
-	teams, _, err := api.app.SearchAllTeams(term, nil)
+	teams, _, err := api.app.SearchAllTeams(&model.TeamSearch{Term: term})
 	return teams, err
 }
 

@@ -711,11 +711,11 @@ func (a *App) GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.Team
 }
 
 // SearchAllTeams returns a team list and the total count of the results
-func (a *App) SearchAllTeams(term string, searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
-	if searchOpts.Paginate {
-		return a.Srv.Store.Team().SearchAllPaged(term, searchOpts.Page, searchOpts.PerPage)
+func (a *App) SearchAllTeams(searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
+	if searchOpts.IsPaginated() {
+		return a.Srv.Store.Team().SearchAllPaged(searchOpts.Term, *searchOpts.Page, *searchOpts.PerPage)
 	}
-	results, err := a.Srv.Store.Team().SearchAll(term)
+	results, err := a.Srv.Store.Team().SearchAll(searchOpts.Term)
 	return results, int64(len(results)), err
 }
 

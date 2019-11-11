@@ -1012,31 +1012,31 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 	}{
 		{
 			Name:               "Get all teams on one page",
-			Search:             &model.TeamSearch{Term: commonRandom, Paginate: true, Page: 0, PerPage: 100},
+			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
 			ExpectedTotalCount: 3,
 		},
 		{
 			Name:               "Get 2 teams on the first page",
-			Search:             &model.TeamSearch{Term: commonRandom, Paginate: true, Page: 0, PerPage: 2},
+			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(0), PerPage: model.NewInt(2)},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id},
 			ExpectedTotalCount: 3,
 		},
 		{
 			Name:               "Get 1 team on the second page",
-			Search:             &model.TeamSearch{Term: commonRandom, Paginate: true, Page: 1, PerPage: 2},
+			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(1), PerPage: model.NewInt(2)},
 			ExpectedTeams:      []string{teams[2].Id},
 			ExpectedTotalCount: 3,
 		},
 		{
-			Name:               "Paginate param defaults to true for SearchTeamsPaged method",
-			Search:             &model.TeamSearch{Term: commonRandom, Paginate: false, Page: 0, PerPage: 1},
-			ExpectedTeams:      []string{teams[0].Id},
+			Name:               "SearchTeamsPaged paginates results by default",
+			Search:             &model.TeamSearch{Term: commonRandom},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
 			ExpectedTotalCount: 3,
 		},
 		{
 			Name:               "No results",
-			Search:             &model.TeamSearch{Term: model.NewId(), Paginate: false, Page: 0, PerPage: 100},
+			Search:             &model.TeamSearch{Term: model.NewId()},
 			ExpectedTeams:      []string{},
 			ExpectedTotalCount: 0,
 		},
@@ -1054,7 +1054,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		})
 	}
 
-	_, _, resp := th.Client.SearchTeamsPaged(&model.TeamSearch{Term: commonRandom, PerPage: 100})
+	_, _, resp := th.Client.SearchTeamsPaged(&model.TeamSearch{Term: commonRandom, PerPage: model.NewInt(100)})
 	require.Equal(t, "api.team.search_teams.pagination_not_implemented.public_team_search", resp.Error.Id)
 	require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 }
