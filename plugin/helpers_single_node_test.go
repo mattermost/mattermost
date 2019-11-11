@@ -13,11 +13,13 @@ import (
 )
 
 func TestRunOnSingleNode(t *testing.T) {
-	t.Run("should return true if it's run first time", func(t *testing.T) {
+	t.Run("should execute if there is no other node running the function", func(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
 		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
+			Return(true, nil)
+		api.On("KVCompareAndDelete", "unique_id", []byte("true")).
 			Return(true, nil)
 		p.API = api
 
@@ -27,7 +29,7 @@ func TestRunOnSingleNode(t *testing.T) {
 		api.AssertExpectations(t)
 	})
 
-	t.Run("should return false if it's not run first time", func(t *testing.T) {
+	t.Run("should not execute if there is node running the function", func(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
@@ -41,7 +43,7 @@ func TestRunOnSingleNode(t *testing.T) {
 		api.AssertExpectations(t)
 	})
 
-	t.Run("should return error if KVCompareAndSet returns error", func(t *testing.T) {
+	t.Run("should return an error if KVCompareAndSet returns an error", func(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
@@ -52,6 +54,38 @@ func TestRunOnSingleNode(t *testing.T) {
 		executed, err := p.RunOnSingleNode("unique_id", func() {})
 		assert.Error(t, err)
 		assert.False(t, executed)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("should execute and return an error if KVCompareAndDelete returns error", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
+			Return(true, nil)
+		api.On("KVCompareAndDelete", "unique_id", []byte("true")).
+			Return(false, &model.AppError{})
+		p.API = api
+
+		executed, err := p.RunOnSingleNode("unique_id", func() {})
+		assert.Error(t, err)
+		assert.True(t, executed)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("should execute and return an error if helper can't delete a lock key", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
+			Return(true, nil)
+		api.On("KVCompareAndDelete", "unique_id", []byte("true")).
+			Return(false, nil)
+		p.API = api
+
+		executed, err := p.RunOnSingleNode("unique_id", func() {})
+		assert.Error(t, err)
+		assert.True(t, executed)
 		api.AssertExpectations(t)
 	})
 }

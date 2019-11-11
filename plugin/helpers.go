@@ -58,11 +58,12 @@ type Helpers interface {
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 
-	// RunOnSingleNode is a wrapper function which makes function f run on a single node only and only once
+	// RunOnSingleNode is a wrapper function which should guarantee that only one plugin instance can run a function associated with the given id at a time
 	// The id parameter is an identifier that uses for synchronization must be unique between each function.
 	//
 	// Returns (false, err) if DB error occurred
-	// Returns (false, nil) if the function f is already run once
+	// Returns (false, nil) if the function f is running on other nodes
+	// Returns (true, err) if the function is already run but can't delete a lock key
 	// Returns (true, nil) if it is the first time that run function f
 	//
 	// Minimum server version: 5.10
