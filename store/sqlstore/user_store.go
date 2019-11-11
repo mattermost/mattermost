@@ -1448,10 +1448,9 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		OrderBy("u.CreateAt").
 		Limit(uint64(limit)).
 		ToSql()
-	_, err1 := us.GetSearchReplica().Select(&users, usersQuery, args...)
-
-	if err1 != nil {
-		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_users.app_error", nil, err1.Error(), http.StatusInternalServerError)
+	_, err := us.GetSearchReplica().Select(&users, usersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	userIds := []string{}
@@ -1478,10 +1477,9 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"c.Type": "O", "cm.UserId": userIds}).
 		ToSql()
-	_, err2 := us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
-
-	if err2 != nil {
-		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error", nil, err2.Error(), http.StatusInternalServerError)
+	_, err = us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var teamMembers []*model.TeamMember
@@ -1490,10 +1488,9 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		From("TeamMembers").
 		Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
 		ToSql()
-	_, err3 := us.GetSearchReplica().Select(&teamMembers, teamMembersQuery, args...)
-
-	if err3 != nil {
-		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error", nil, err3.Error(), http.StatusInternalServerError)
+	_, err = us.GetSearchReplica().Select(&teamMembers, teamMembersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	userMap := map[string]*model.UserForIndexing{}

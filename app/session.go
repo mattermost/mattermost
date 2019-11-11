@@ -72,8 +72,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "", http.StatusUnauthorized)
 	}
 
-	if session != nil &&
-		*a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
+	if *a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
 		!session.IsOAuth &&
 		session.Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_USER_ACCESS_TOKEN {
 
