@@ -13,11 +13,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/config"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -165,6 +164,64 @@ func TestConfigSet(t *testing.T) {
 		assert.NoError(t, th.RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
 		output := th.CheckCommand(t, "config", "get", "LocalizationSettings.DefaultServerLocale")
 		assert.Contains(t, output, "\"es\"")
+	})
+}
+
+func TestConfigReset(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	t.Run("No Error when no arguments are given (reset all the configurations)", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "reset"))
+	})
+
+	t.Run("No Error when a configuration section is given", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings"))
+	})
+
+	t.Run("No Error when a configuration setting is given", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings.RunJobs"))
+	})
+
+	t.Run("Error when the wrong configuration section is given", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "reset", "InvalidSettings"))
+	})
+
+	t.Run("Error when the wrong configuration setting is given", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "reset", "JobSettings.InvalidConfiguration"))
+	})
+
+	t.Run("Success when the confirm boolean flag is given", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "reset", "--confirm"))
+		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
+		output2 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
+		assert.Contains(t, output1, "true")
+		assert.Contains(t, output2, "true")
+	})
+
+	t.Run("Success when a configuration section is given", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings"))
+		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
+		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
+		output3 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
+		assert.Contains(t, output1, "true")
+		assert.Contains(t, output2, "true")
+		assert.Contains(t, output3, "false")
+	})
+
+	t.Run("Success when a configuration setting is given", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings.RunJobs"))
+		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
+		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
+		assert.Contains(t, output1, "true")
+		assert.Contains(t, output2, "false")
 	})
 }
 
