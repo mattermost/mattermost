@@ -1510,9 +1510,7 @@ func TestAddTeamMembers(t *testing.T) {
 	}
 
 	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
-	if err != nil {
-		require.FailNow(t, err.Error())
-	}
+	require.Nil(t, err)
 
 	// Regular user can't add a member to a team they don't belong to.
 	th.LoginBasic2()
