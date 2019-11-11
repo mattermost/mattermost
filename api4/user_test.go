@@ -110,10 +110,15 @@ func TestCreateUserInputFilter(t *testing.T) {
 			_, resp := th.SystemAdminClient.CreateUser(user)
 			CheckBadRequestStatus(t, resp)
 		})
-
-		t.Run("AuthServiceFilter", func(t *testing.T) {
-			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername(), AuthService: "ldap"}
+		t.Run("ValidAuthServiceFilter", func(t *testing.T) {
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Username: GenerateTestUsername(), AuthService: "ldap", AuthData: model.NewString("999099")}
 			_, resp := th.SystemAdminClient.CreateUser(user)
+			CheckNoError(t, resp)
+		})
+
+		t.Run("InvalidAuthServiceFilter", func(t *testing.T) {
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername(), AuthService: "ldap"}
+			_, resp := th.Client.CreateUser(user)
 			CheckBadRequestStatus(t, resp)
 		})
 	})
@@ -1369,7 +1374,8 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 	usersByChannelId, resp := th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
 	CheckNoError(t, resp)
 
-	users, _ := usersByChannelId[gc1.Id]
+	users, ok := usersByChannelId[gc1.Id]
+	assert.True(t, ok)
 	userIds := []string{}
 	for _, user := range users {
 		userIds = append(userIds, user.Id)
@@ -1381,7 +1387,7 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 	usersByChannelId, resp = th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
 	CheckNoError(t, resp)
 
-	_, ok := usersByChannelId[gc1.Id]
+	_, ok = usersByChannelId[gc1.Id]
 	require.False(t, ok)
 
 	th.Client.Logout()
