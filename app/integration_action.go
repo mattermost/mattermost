@@ -21,6 +21,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
@@ -242,19 +244,16 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
+// For internal requests, requests are routed directly to a plugin ServerHTTP hook
 func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	rawURLPath := path.Clean(rawURL)
-	if siteURL != nil && (strings.HasPrefix(rawURLPath, "/plugins/") || strings.HasPrefix(rawURLPath, "plugins/")) {
-		inURL.Scheme = siteURL.Scheme
-		inURL.Host = siteURL.Host
-		inURL.Path = path.Join("/", siteURL.Path, rawURLPath)
-		rawURL = inURL.String()
+	if strings.HasPrefix(rawURLPath, "/plugins/") || strings.HasPrefix(rawURLPath, "plugins/") {
+		return a.DoLocalRequest(rawURLPath, body)
 	}
 
 	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
@@ -267,6 +266,7 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	if (inURL.Hostname() == "localhost" || inURL.Hostname() == "127.0.0.1" || inURL.Hostname() == siteURL.Hostname()) && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
 		req.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
 		httpClient = a.HTTPService.MakeClient(true)
@@ -281,6 +281,74 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 
 	if resp.StatusCode != http.StatusOK {
 		return resp, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)
+	}
+
+	return resp, nil
+}
+
+type LocalResponseWriter struct {
+	data    []byte
+	headers http.Header
+	status  int
+}
+
+func (w *LocalResponseWriter) Header() http.Header {
+	if w.headers == nil {
+		w.headers = make(http.Header)
+	}
+	return w.headers
+}
+
+func (w *LocalResponseWriter) Write(bytes []byte) (int, error) {
+	w.data = make([]byte, len(bytes))
+	copy(w.data, bytes)
+	return len(w.data), nil
+}
+
+func (w *LocalResponseWriter) WriteHeader(statusCode int) {
+	w.status = statusCode
+}
+
+func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+	rawURL = strings.TrimPrefix(rawURL, "/")
+	inURL, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+	}
+	result := strings.Split(inURL.Path, "/")
+	if len(result) < 2 {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err=Unable to find pluginId", http.StatusBadRequest)
+	}
+	if result[0] != "plugins" {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err=plugins not in path", http.StatusBadRequest)
+	}
+	pluginId := result[1]
+
+	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginId)
+
+	w := &LocalResponseWriter{}
+	r, err := http.NewRequest("POST", path, bytes.NewReader(body))
+	if err != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+	}
+	r.Header.Set("Mattermost-User-Id", a.Session.UserId)
+	r.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
+	params := make(map[string]string)
+	params["plugin_id"] = pluginId
+	r = mux.SetURLVars(r, params)
+
+	a.ServePluginRequest(w, r)
+
+	resp := &http.Response{
+		StatusCode: w.status,
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header:     w.headers,
+		Body:       ioutil.NopCloser(bytes.NewReader(w.data)),
+	}
+	if resp.StatusCode == 0 {
+		resp.StatusCode = http.StatusOK
 	}
 
 	return resp, nil
