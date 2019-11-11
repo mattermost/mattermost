@@ -105,7 +105,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 						if time.Now().After(*nextTime) {
 							scheduler := schedulers.schedulers[idx]
 							if scheduler != nil {
-								if scheduler.Enabled(cfg) {
+								if schedulers.isLeader && scheduler.Enabled(cfg) {
 									if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
 										mlog.Error("Failed to schedule job", mlog.String("scheduler", scheduler.Name()), mlog.Err(err))
 									} else {
