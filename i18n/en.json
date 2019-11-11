@@ -1342,7 +1342,7 @@
   },
   {
     "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
-    "translation": "Invalid/Missing channel ID or Team ID"
+    "translation": "Invalid/Missing channel ID or Team ID."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
