@@ -1098,8 +1098,8 @@ func TestSearchAllChannelsPaged(t *testing.T) {
 
 	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
 	search.Term = ""
-	search.Paginate = true
-	search.PerPage = 2
+	search.Page = model.NewInt(0)
+	search.PerPage = model.NewInt(2)
 	channelsWithCount, resp := th.SystemAdminClient.SearchAllChannelsPaged(search)
 	CheckNoError(t, resp)
 	require.Len(t, *channelsWithCount.Channels, 2)
