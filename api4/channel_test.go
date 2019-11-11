@@ -1091,7 +1091,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 
 	Client.DeleteChannel(th.BasicChannel.Id)
 
-	channels, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
+	channels, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
 	CheckNoError(t, resp)
 
 	found := false
@@ -1112,7 +1112,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 	search.Term = th.BasicPrivateChannel.Name
 	Client.DeleteChannel(th.BasicPrivateChannel.Id)
 
-	channels, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
+	channels, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search)
 	CheckNoError(t, resp)
 
 	found = false
@@ -1127,17 +1127,17 @@ func TestSearchArchivedChannels(t *testing.T) {
 	}
 
 	search.Term = ""
-	_, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
+	_, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search)
 	CheckNoError(t, resp)
 
 	search.Term = th.BasicDeletedChannel.Name
-	_, resp = Client.SearchArchivedChannels(model.NewId(), search, th.BasicUser.Id)
+	_, resp = Client.SearchArchivedChannels(model.NewId(), search)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.SearchArchivedChannels("junk", search, th.BasicUser.Id)
+	_, resp = Client.SearchArchivedChannels("junk", search)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
+	_, resp = th.SystemAdminClient.SearchArchivedChannels(th.BasicTeam.Id, search)
 	CheckNoError(t, resp)
 
 	// Check the appropriate permissions are enforced.
@@ -1151,7 +1151,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 
 	t.Run("Search for a BasicDeletedChannel, which the user is a member of", func(t *testing.T) {
 		search.Term = th.BasicDeletedChannel.Name
-		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
+		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
 		CheckNoError(t, resp)
 
 		channelNames := []string{}
@@ -1165,7 +1165,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 		th.App.RemoveUserFromChannel(th.BasicUser.Id, th.BasicUser.Id, th.BasicDeletedChannel)
 
 		search.Term = th.BasicDeletedChannel.Name
-		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search, th.BasicUser.Id)
+		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
 		CheckNoError(t, resp)
 
 		channelNames := []string{}

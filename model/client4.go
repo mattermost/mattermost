@@ -2236,7 +2236,7 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 }
 
 // SearchArchivedChannels returns the archived channels on a team matching the provided search term.
-func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch, userId string) ([]*Channel, *Response) {
+func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search_archived", search.ToJson())
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
