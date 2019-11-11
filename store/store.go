@@ -633,6 +633,10 @@ type ChannelSearchOpts struct {
 	PerPage              *int
 }
 
+func (c *ChannelSearchOpts) IsPaginated() bool {
+	return c.Page != nil && c.PerPage != nil
+}
+
 type UserGetByIdsOpts struct {
 	// IsAdmin tracks whether or not the request is being made by an administrator. Does nothing when provided by a client.
 	IsAdmin bool

@@ -2215,7 +2215,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
 	}
 
-	if opts.Page != nil && opts.PerPage != nil && !countQuery {
+	if opts.IsPaginated() && !countQuery {
 		query = query.Offset(uint64(*opts.Page * *opts.PerPage))
 	}
 
@@ -2251,7 +2251,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 	var totalCount int64
 
 	// only query a 2nd time for the count if the results are being requested paginated.
-	if opts.Page != nil && opts.PerPage != nil {
+	if opts.IsPaginated() {
 		queryString, args, err = s.channelSearchQuery(term, opts, true).ToSql()
 		if err != nil {
 			return nil, 0, model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
