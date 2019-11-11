@@ -72,15 +72,15 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 		mlog.Error("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
 
+	api := api4.Init(server, server.AppOptions, server.Router)
+	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
+	web.New(server, server.AppOptions, server.Router)
+
 	serverErr := server.Start()
 	if serverErr != nil {
 		mlog.Critical(serverErr.Error())
 		return serverErr
 	}
-
-	api := api4.Init(server, server.AppOptions, server.Router)
-	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
-	web.New(server, server.AppOptions, server.Router)
 
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {

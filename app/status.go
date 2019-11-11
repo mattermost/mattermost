@@ -4,8 +4,6 @@
 package app
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -215,11 +213,11 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
 		if broadcast {
 			if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
-				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, err), mlog.String("user_id", userId))
+				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
 			}
 		} else {
 			if err := a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
-				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, err), mlog.String("user_id", userId))
+				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
 			}
 		}
 	}
@@ -304,7 +302,7 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
 	if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
-		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", status.UserId, err))
+		mlog.Error("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
 	a.BroadcastStatus(status)
