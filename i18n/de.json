@@ -800,7 +800,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "{{.Username}} ist kein Mitglied dieses Kanals."
+    "translation": "@{{.Username}} ist kein Mitglied dieses Teams."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1880,7 +1880,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+    "translation": "Gäste dürfen nicht durch einen Einladungslink einem Team beitreten. Bitte fordern Sie eine Einladung in das Team per E-Mail an."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
