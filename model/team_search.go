@@ -9,10 +9,13 @@ import (
 )
 
 type TeamSearch struct {
-	Term     string `json:"term"`
-	Paginate bool   `json:"paginate"`
-	Page     int    `json:"page"`
-	PerPage  int    `json:"per_page"`
+	Term    string `json:"term"`
+	Page    *int   `json:"page,omitempty"`
+	PerPage *int   `json:"per_page,omitempty"`
+}
+
+func (t *TeamSearch) IsPaginated() bool {
+	return t.Page != nil && t.PerPage != nil
 }
 
 // ToJson convert a TeamSearch to json string

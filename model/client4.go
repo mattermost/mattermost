@@ -1659,7 +1659,12 @@ func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response) {
 
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
 func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Response) {
-	search.Paginate = true
+	if search.Page == nil {
+		search.Page = NewInt(0)
+	}
+	if search.PerPage == nil {
+		search.PerPage = NewInt(100)
+	}
 	r, err := c.DoApiPost(c.GetTeamsRoute()+"/search", search.ToJson())
 	if err != nil {
 		return nil, 0, BuildErrorResponse(r, err)
