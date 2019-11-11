@@ -99,9 +99,8 @@ type ChannelSearchOpts struct {
 	ExcludeDefaultChannels bool
 	IncludeDeleted         bool
 	ExcludeChannelNames    []string
-	Paginate               bool
-	Page                   int
-	PerPage                int
+	Page                   *int
+	PerPage                *int
 }
 
 func (o *Channel) DeepCopy() *Channel {

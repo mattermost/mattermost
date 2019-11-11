@@ -876,7 +876,6 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		NotAssociatedToGroup:   props.NotAssociatedToGroup,
 		ExcludeDefaultChannels: props.ExcludeDefaultChannels,
 		IncludeDeleted:         r.URL.Query().Get("include_deleted") == "true",
-		Paginate:               props.Paginate,
 		Page:                   props.Page,
 		PerPage:                props.PerPage,
 	}
@@ -891,7 +890,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var payload []byte
 
-	if props.Paginate {
+	if props.Page != nil && props.PerPage != nil {
 		data := model.ChannelsWithCount{Channels: channels, TotalCount: totalCount}
 		payload = data.ToJson()
 	} else {

@@ -1846,7 +1846,6 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 		ExcludeChannelNames:  opts.ExcludeChannelNames,
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
-		Paginate:             opts.Paginate,
 		Page:                 opts.Page,
 		PerPage:              opts.PerPage,
 	}

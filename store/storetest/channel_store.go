@@ -2703,8 +2703,8 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		{"exclude defaults search 'off'", "off-", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"off-topic"}}, &model.ChannelList{&o8, &o7}, 0},
 		{"exclude defaults search 'town'", "town", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"town-square"}}, &model.ChannelList{}, 0},
 		{"exclude by group association", "off", store.ChannelSearchOpts{IncludeDeleted: false, NotAssociatedToGroup: group.Id}, &model.ChannelList{&o8, &o6}, 0},
-		{"paginate true includes count", "off", store.ChannelSearchOpts{IncludeDeleted: false, Paginate: true, PerPage: 100}, &model.ChannelList{&o8, &o7, &o6}, 3},
-		{"paginate true, page 2 correct entries and count", "off", store.ChannelSearchOpts{IncludeDeleted: false, Paginate: true, PerPage: 2, Page: 1}, &model.ChannelList{&o6}, 3},
+		{"paginate includes count", "off", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(100)}, &model.ChannelList{&o8, &o7, &o6}, 3},
+		{"paginate, page 2 correct entries and count", "off", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(2), Page: model.NewInt(1)}, &model.ChannelList{&o6}, 3},
 	}
 
 	for _, testCase := range testCases {
@@ -2715,7 +2715,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 			for i, expected := range *testCase.ExpectedResults {
 				require.Equal(t, expected.Id, (*channels)[i].Id)
 			}
-			if testCase.Opts.Paginate {
+			if testCase.Opts.Page != nil || testCase.Opts.PerPage != nil {
 				require.Equal(t, int64(testCase.TotalCount), count)
 			}
 		})

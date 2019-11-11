@@ -629,9 +629,8 @@ type ChannelSearchOpts struct {
 	NotAssociatedToGroup string
 	IncludeDeleted       bool
 	ExcludeChannelNames  []string
-	Paginate             bool
-	Page                 int
-	PerPage              int
+	Page                 *int
+	PerPage              *int
 }
 
 type UserGetByIdsOpts struct {

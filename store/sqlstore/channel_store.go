@@ -2185,8 +2185,8 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 
 func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearchOpts, countQuery bool) sq.SelectBuilder {
 	var limit int
-	if opts.Paginate {
-		limit = opts.PerPage
+	if opts.PerPage != nil {
+		limit = *opts.PerPage
 	} else {
 		limit = 100
 	}
@@ -2215,8 +2215,8 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
 	}
 
-	if opts.Paginate && !countQuery {
-		query = query.Offset(uint64(opts.Page * opts.PerPage))
+	if opts.Page != nil && opts.PerPage != nil && !countQuery {
+		query = query.Offset(uint64(*opts.Page * *opts.PerPage))
 	}
 
 	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
@@ -2251,7 +2251,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 	var totalCount int64
 
 	// only query a 2nd time for the count if the results are being requested paginated.
-	if opts.Paginate {
+	if opts.Page != nil && opts.PerPage != nil {
 		queryString, args, err = s.channelSearchQuery(term, opts, true).ToSql()
 		if err != nil {
 			return nil, 0, model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)

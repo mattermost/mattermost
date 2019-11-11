@@ -14,9 +14,8 @@ type ChannelSearch struct {
 	Term                   string `json:"term"`
 	ExcludeDefaultChannels bool   `json:"exclude_default_channels"`
 	NotAssociatedToGroup   string `json:"not_associated_to_group"`
-	Paginate               bool   `json:"paginate"`
-	Page                   int    `json:"page"`
-	PerPage                int    `json:"per_page"`
+	Page                   *int   `json:"page,omitempty"`
+	PerPage                *int   `json:"per_page,omitempty"`
 }
 
 // ToJson convert a Channel to a json string
