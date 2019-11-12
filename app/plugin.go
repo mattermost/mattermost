@@ -297,6 +297,7 @@ func (a *App) ShutDownClientPlugins() {
 	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		mlog.Error("Failed to get available plugins while trying to shut them down. Clients will not get notified about shut down plugins.", mlog.Err(err))
+		return
 	}
 	for _, plugin := range availablePlugins {
 		pluginId := plugin.Manifest.Id
