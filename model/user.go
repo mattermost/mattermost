@@ -512,9 +512,11 @@ func (u *User) Sanitize(options map[string]bool) {
 }
 
 // Remove any input data from the user object that is not user controlled
-func (u *User) SanitizeInput() {
-	u.AuthData = NewString("")
-	u.AuthService = ""
+func (u *User) SanitizeInput(isAdmin bool) {
+	if !isAdmin {
+		u.AuthData = NewString("")
+		u.AuthService = ""
+	}
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
 	u.FailedAttempts = 0

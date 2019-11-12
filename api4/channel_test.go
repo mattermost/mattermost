@@ -678,9 +678,6 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	Client := th.Client
 	team := th.BasicTeam
 
-	_, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
-	CheckForbiddenStatus(t, resp)
-
 	th.LoginTeamAdmin()
 
 	channels, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
@@ -704,6 +701,31 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	if len(channels) != numInitialChannelsForTeam+2 {
 		t.Fatal("should be 2 deleted channels")
+	}
+
+	th.LoginBasic()
+
+	privateChannel1 := th.CreatePrivateChannel()
+	Client.DeleteChannel(privateChannel1.Id)
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(channels) != numInitialChannelsForTeam+3 {
+		t.Fatal("should be 3 deleted channels")
+	}
+
+	// Login as different user and create private channel
+	th.LoginBasic2()
+	privateChannel2 := th.CreatePrivateChannel()
+	Client.DeleteChannel(privateChannel2.Id)
+
+	// Log back in as first user
+	th.LoginBasic()
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(channels) != numInitialChannelsForTeam+3 {
+		t.Fatal("should still be 3 deleted channels", len(channels), numInitialChannelsForTeam+3)
 	}
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 1, "")
@@ -1057,6 +1079,100 @@ func TestSearchChannels(t *testing.T) {
 			channelNames = append(channelNames, c.Name)
 		}
 		require.NotContains(t, channelNames, th.BasicChannel.Name)
+	})
+}
+
+func TestSearchArchivedChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
+
+	Client.DeleteChannel(th.BasicChannel.Id)
+
+	channels, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	found := false
+	for _, c := range channels {
+		if c.Type != model.CHANNEL_OPEN {
+			t.Fatal("should only return public channels")
+		}
+
+		if c.Id == th.BasicChannel.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("didn't find channel")
+	}
+
+	search.Term = th.BasicPrivateChannel.Name
+	Client.DeleteChannel(th.BasicPrivateChannel.Id)
+
+	channels, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	found = false
+	for _, c := range channels {
+		if c.Id == th.BasicPrivateChannel.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("couldn't find private channel")
+	}
+
+	search.Term = ""
+	_, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	search.Term = th.BasicDeletedChannel.Name
+	_, resp = Client.SearchArchivedChannels(model.NewId(), search)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.SearchArchivedChannels("junk", search)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.SearchArchivedChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Remove list channels permission from the user
+	th.RemovePermissionFromRole(model.PERMISSION_LIST_TEAM_CHANNELS.Id, model.TEAM_USER_ROLE_ID)
+
+	t.Run("Search for a BasicDeletedChannel, which the user is a member of", func(t *testing.T) {
+		search.Term = th.BasicDeletedChannel.Name
+		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+		CheckNoError(t, resp)
+
+		channelNames := []string{}
+		for _, c := range channelList {
+			channelNames = append(channelNames, c.Name)
+		}
+		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
+	})
+
+	t.Run("Remove the user from BasicDeletedChannel and search again, should still return", func(t *testing.T) {
+		th.App.RemoveUserFromChannel(th.BasicUser.Id, th.BasicUser.Id, th.BasicDeletedChannel)
+
+		search.Term = th.BasicDeletedChannel.Name
+		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+		CheckNoError(t, resp)
+
+		channelNames := []string{}
+		for _, c := range channelList {
+			channelNames = append(channelNames, c.Name)
+		}
+		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
 	})
 }
 
