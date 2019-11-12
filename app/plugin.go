@@ -678,7 +678,6 @@ func (a *App) installPrepackagedPlugin(pluginPaths *pluginSignaturePaths, avalia
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPaths.path)
 	}
-	println(fmt.Sprintf("plugin.id = %s, plugin.ver = %s", plugin.Manifest.Id, plugin.Manifest.Version))
 
 	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
 		return plugin, nil
