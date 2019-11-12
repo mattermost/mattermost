@@ -263,8 +263,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			newApp := New(s.AppOptions()...)
-			if appErr := newApp.DeactivateGuests(); appErr != nil {
+			if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
