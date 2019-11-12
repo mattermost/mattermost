@@ -177,7 +177,7 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 		CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
 	}
 
-	CommandPrettyPrintln("Listing disenabled plugins")
+	CommandPrettyPrintln("Listing disabled plugins")
 	for _, plugin := range pluginsResp.Inactive {
 		CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
 	}
