@@ -542,6 +542,7 @@ func TestInstallPrepackagedPlugins(t *testing.T) {
 	require.Len(t, plugins[1].Signatures, 1)
 
 	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
 	require.Len(t, pluginStatus, 2)
 
 	appErr := th.App.RemovePlugin("testplugin")
@@ -550,6 +551,7 @@ func TestInstallPrepackagedPlugins(t *testing.T) {
 	checkNoError(t, appErr)
 
 	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
 	require.Len(t, pluginStatus, 0)
 
 }
