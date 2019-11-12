@@ -21,7 +21,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 
-	//analytcis "./Desktop/rudderGoSDK/analytics-go"
 	analytics "github.com/rudderlabs/analytics-go"
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
