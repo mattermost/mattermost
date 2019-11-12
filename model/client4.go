@@ -2235,6 +2235,16 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 	return ChannelSliceFromJson(r.Body), BuildResponse(r)
 }
 
+// SearchArchivedChannels returns the archived channels on a team matching the provided search term.
+func (c *Client4) SearchArchivedChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
+	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search_archived", search.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeamData, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
