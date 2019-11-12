@@ -18,11 +18,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-// This is a bridge between the old and new initalization for the context refactor.
-// It calls app layer initalization code that then turns around and acts on the server.
-// Don't add anything new here, new initilization should be done in the server and
+// This is a bridge between the old and new initialization for the context refactor.
+// It calls app layer initialization code that then turns around and acts on the server.
+// Don't add anything new here, new initialization should be done in the server and
 // performed in the NewServer function.
-func (s *Server) RunOldAppInitalization() error {
+func (s *Server) RunOldAppInitialization() error {
 	s.FakeApp().CreatePushNotificationsHub()
 	s.FakeApp().StartPushNotificationsHubWorkers()
 
