@@ -2308,6 +2308,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.SignaturePublicKeyFiles == nil {
 		s.SignaturePublicKeyFiles = []string{}
 	}
+
+	if s.AutomaticPrepackagedPlugins == nil {
+		s.AutomaticPrepackagedPlugins = NewBool(true)
+	}
 }
 
 type GlobalRelayMessageExportSettings struct {

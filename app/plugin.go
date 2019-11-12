@@ -27,6 +27,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const prepackagedPluginsFolder = "prepackaged_plugins"
+
 type pluginSignaturePaths struct {
 	pluginId       string
 	path           string
@@ -171,7 +173,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
 	}
 
-	plugins := a.installPrepackagedPlugins("prepackaged_plugins")
+	plugins := a.installPrepackagedPlugins(prepackagedPluginsFolder)
 	pluginsEnvironment = a.GetPluginsEnvironment()
 	pluginsEnvironment.SetPrepackagedPlugins(plugins)
 
@@ -676,6 +678,7 @@ func (a *App) installPrepackagedPlugin(pluginPaths *pluginSignaturePaths, avalia
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPaths.path)
 	}
+	println(fmt.Sprintf("plugin.id = %s, plugin.ver = %s", plugin.Manifest.Id, plugin.Manifest.Version))
 
 	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
 		return plugin, nil
@@ -686,6 +689,7 @@ func (a *App) installPrepackagedPlugin(pluginPaths *pluginSignaturePaths, avalia
 		if err != nil {
 			return nil, errors.Wrapf(err, "Failed to parse plugin version %s for prepackaged plugin %s", plugin.Manifest.Version, plugin.Manifest.Id)
 		}
+
 		if newVersion {
 			signatures, err := a.readSignaturesFromPath(pluginPaths)
 			if err != nil {
@@ -713,12 +717,12 @@ func isNewVersion(manifest *model.Manifest, avaliablePlugins []*model.BundleInfo
 			if err != nil {
 				return false, errors.Errorf("failed to parse version %s for plugin %s", manifest.Version, manifest.Id)
 			}
-			if newVersion.GT(curVersion) {
-				return true, nil
+			if curVersion.GT(newVersion) {
+				return false, nil
 			}
 		}
 	}
-	return false, nil
+	return true, nil
 }
 
 func getPrepackagedPlugin(pluginPaths *pluginSignaturePaths, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {

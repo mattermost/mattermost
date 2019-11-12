@@ -488,7 +488,7 @@ func TestPluginPublicKeys(t *testing.T) {
 
 func TestInstallPrepackagedPlugins(t *testing.T) {
 	path, _ := fileutils.FindDir("tests")
-	plugFolder := filepath.Join(path, "prepackaged_plugins")
+	plugFolder := filepath.Join(path, prepackagedPluginsFolder)
 	os.Mkdir(plugFolder, os.ModePerm)
 	defer os.RemoveAll(plugFolder)
 	prepackagedPluginsDir, found := fileutils.FindDir(plugFolder)
@@ -508,6 +508,7 @@ func TestInstallPrepackagedPlugins(t *testing.T) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.Directory = "./test-plugins"
 		*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+		*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
 	})
 
 	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, "./test-plugins", "./test-client-plugins", th.App.Log)
@@ -521,8 +522,7 @@ func TestInstallPrepackagedPlugins(t *testing.T) {
 
 	pluginStatus, err := env.Statuses()
 	require.Nil(t, err)
-	require.Len(t, pluginStatus, 1)
-	require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+	require.Len(t, pluginStatus, 0)
 
 	signPath := filepath.Join(path, "testplugin.tar.gz.sig")
 	err = utils.CopyFile(signPath, filepath.Join(prepackagedPluginsDir, "testplugin.0.sig"))
@@ -534,6 +534,8 @@ func TestInstallPrepackagedPlugins(t *testing.T) {
 	err = utils.CopyFile(signPath2, filepath.Join(prepackagedPluginsDir, "testpluginv2.0.sig"))
 	require.Nil(t, err)
 
+	th.App.Config().PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
+	th.App.Config().PluginSettings.PluginStates["testplugin_v2"] = &model.PluginState{Enable: true}
 	plugins = th.App.installPrepackagedPlugins(prepackagedPluginsDir)
 	require.Len(t, plugins, 2)
 	require.Contains(t, []string{"testplugin", "testplugin_v2"}, plugins[0].Manifest.Id)
@@ -549,9 +551,17 @@ func TestInstallPrepackagedPlugins(t *testing.T) {
 	checkNoError(t, appErr)
 	appErr = th.App.RemovePlugin("testplugin_v2")
 	checkNoError(t, appErr)
-
 	pluginStatus, err = env.Statuses()
 	require.Nil(t, err)
 	require.Len(t, pluginStatus, 0)
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
+	})
+	th.App.Config().PluginSettings.PluginStates["testplugin_v2"] = &model.PluginState{Enable: false}
+	plugins = th.App.installPrepackagedPlugins(prepackagedPluginsDir)
+	require.Len(t, plugins, 2)
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 0)
 }
