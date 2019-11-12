@@ -14,28 +14,29 @@ import (
 
 func TestRunOnSingleNode(t *testing.T) {
 	t.Run("should execute if there is no other node running the function", func(t *testing.T) {
+		var appError error
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
-		api.On("GetServerVersion").Return("5.16.0")
-		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
+		api.On("GetServerVersion").Return("5.12.0")
+		api.On("KVCompareAndSet", "runOnSingleNodeLock:unique_id", []byte(nil), []byte("lock")).
 			Return(true, nil)
-		api.On("KVCompareAndDelete", "unique_id", []byte("true")).
-			Return(true, nil)
+		api.On("KVDelete", "runOnSingleNodeLock:unique_id").
+			Return(appError)
 		p.API = api
 
 		executed, err := p.RunOnSingleNode("unique_id", func() {})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.True(t, executed)
 		api.AssertExpectations(t)
 	})
 
-	t.Run("should not execute if there is node running the function", func(t *testing.T) {
+	t.Run("should not execute if there is a node running the function", func(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
-		api.On("GetServerVersion").Return("5.16.0")
-		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
+		api.On("GetServerVersion").Return("5.12.0")
+		api.On("KVCompareAndSet", "runOnSingleNodeLock:unique_id", []byte(nil), []byte("lock")).
 			Return(false, nil)
 		p.API = api
 
@@ -49,8 +50,8 @@ func TestRunOnSingleNode(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
-		api.On("GetServerVersion").Return("5.16.0")
-		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
+		api.On("GetServerVersion").Return("5.12.0")
+		api.On("KVCompareAndSet", "runOnSingleNodeLock:unique_id", []byte(nil), []byte("lock")).
 			Return(false, &model.AppError{})
 		p.API = api
 
@@ -60,32 +61,15 @@ func TestRunOnSingleNode(t *testing.T) {
 		api.AssertExpectations(t)
 	})
 
-	t.Run("should execute and return an error if KVCompareAndDelete returns error", func(t *testing.T) {
+	t.Run("should execute and return an error if KVDelete returns error", func(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
-		api.On("GetServerVersion").Return("5.16.0")
-		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
+		api.On("GetServerVersion").Return("5.12.0")
+		api.On("KVCompareAndSet", "runOnSingleNodeLock:unique_id", []byte(nil), []byte("lock")).
 			Return(true, nil)
-		api.On("KVCompareAndDelete", "unique_id", []byte("true")).
-			Return(false, &model.AppError{})
-		p.API = api
-
-		executed, err := p.RunOnSingleNode("unique_id", func() {})
-		assert.Error(t, err)
-		assert.True(t, executed)
-		api.AssertExpectations(t)
-	})
-
-	t.Run("should execute and return an error if helper can't delete a lock key", func(t *testing.T) {
-		p := &plugin.HelpersImpl{}
-
-		api := &plugintest.API{}
-		api.On("GetServerVersion").Return("5.16.0")
-		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
-			Return(true, nil)
-		api.On("KVCompareAndDelete", "unique_id", []byte("true")).
-			Return(false, nil)
+		api.On("KVDelete", "runOnSingleNodeLock:unique_id").
+			Return(&model.AppError{})
 		p.API = api
 
 		executed, err := p.RunOnSingleNode("unique_id", func() {})

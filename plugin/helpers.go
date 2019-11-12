@@ -66,7 +66,7 @@ type Helpers interface {
 	// Returns (true, err) if the function is already run but can't delete a lock key
 	// Returns (true, nil) if it is the first time that run function f
 	//
-	// Minimum server version: 5.16
+	// Minimum server version: 5.12
 	RunOnSingleNode(id string, f func()) (bool, error)
 
 	// ShouldProcessMessage returns if the message should be processed by a message hook.

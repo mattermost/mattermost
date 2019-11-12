@@ -3,25 +3,31 @@
 
 package plugin
 
-import "errors"
+import "fmt"
 
 // RunOnSingleNode is a wrapper function which should guarantee that only one plugin instance can run a function associated with the given id at a time
 // The id parameter is an identifier that uses for synchronization must be unique between each function.
 func (p *HelpersImpl) RunOnSingleNode(id string, f func()) (bool, error) {
-	updated, err := p.KVCompareAndSetJSON(id, nil, true)
+	err := p.ensureServerVersion("5.12.0")
 	if err != nil {
 		return false, err
-	} else if !updated {
+	}
+
+	id = fmt.Sprintf("runOnSingleNodeLock:%s", id)
+
+	updated, appErr := p.API.KVCompareAndSet(id, nil, []byte("lock"))
+	if appErr != nil {
+		return false, appErr
+	}
+	if !updated {
 		return false, nil
 	}
 
 	f()
 
-	success, err := p.KVCompareAndDeleteJSON(id, true)
-	if err != nil {
-		return true, err
-	} else if !success {
-		return true, errors.New("unable to unlock lock mechanism")
+	appErr = p.API.KVDelete(id)
+	if appErr != nil {
+		return true, appErr
 	}
 	return true, nil
 }
