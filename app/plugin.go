@@ -627,27 +627,28 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 
 func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.PrepackagedPlugin {
 	prepackagedPluginsDir, found := fileutils.FindDir(pluginsDir)
-	if found {
-		fileStorePaths := []string{}
-		if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
-			fileStorePaths = append(fileStorePaths, walkPath)
-			return nil
-		}); err != nil {
-			mlog.Error("Failed to walk prepackaged plugins", mlog.Err(err))
-		}
-		pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
-		plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
-		for _, pluginPaths := range pluginSignaturePathMap {
-			plugin, err := a.installPrepackagedPlugin(pluginPaths)
-			if err != nil {
-				mlog.Error("Failed to install prepackaged plugin %s", mlog.Err(err), mlog.String("path", pluginPaths.path))
-				continue
-			}
-			plugins = append(plugins, plugin)
-		}
-		return plugins
+	if !found {
+		return nil
 	}
-	return nil
+
+	fileStorePaths := []string{}
+	if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
+		fileStorePaths = append(fileStorePaths, walkPath)
+		return nil
+	}); err != nil {
+		mlog.Error("Failed to walk prepackaged plugins", mlog.Err(err))
+	}
+	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
+	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
+	for _, pluginPaths := range pluginSignaturePathMap {
+		plugin, err := a.installPrepackagedPlugin(pluginPaths)
+		if err != nil {
+			mlog.Error("Failed to install prepackaged plugin %s", mlog.Err(err), mlog.String("path", pluginPaths.path))
+			continue
+		}
+		plugins = append(plugins, plugin)
+	}
+	return plugins
 }
 
 func (a *App) installPrepackagedPlugin(pluginPaths *pluginSignaturePaths) (*plugin.PrepackagedPlugin, error) {
