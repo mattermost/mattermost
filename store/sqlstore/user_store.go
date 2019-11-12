@@ -142,7 +142,6 @@ func (us SqlUserStore) Save(user *model.User) (*model.User, *model.AppError) {
 }
 
 func (us SqlUserStore) DeactivateGuests() ([]string, *model.AppError) {
-	userIds := []string{}
 	curTime := model.GetMillis()
 	updateQuery := us.getQueryBuilder().Update("Users").
 		Set("UpdateAt", curTime).
@@ -167,6 +166,7 @@ func (us SqlUserStore) DeactivateGuests() ([]string, *model.AppError) {
 		return nil, model.NewAppError("SqlUserStore.UpdateActiveForMultipleUsers", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	userIds := []string{}
 	_, err = us.GetMaster().Select(&userIds, queryString, args...)
 	if err != nil {
 		return nil, model.NewAppError("SqlUserStore.UpdateActiveForMultipleUsers", "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error", nil, err.Error(), http.StatusInternalServerError)
