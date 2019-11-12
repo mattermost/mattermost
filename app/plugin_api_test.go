@@ -50,6 +50,51 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	return pluginDir
 }
 
+func TestPluginGetChannelsOptions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	setupPluginApiTest(t,
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			_, err := p.API.GetChannels(&model.GetChannelsOptions{
+				Page:         10,
+			})
+			if err != nil {
+				return nil, err.Error() + "failed get channels with options"
+			}
+
+			return nil, "stub"
+		}
+
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+		`{"id": "testplugingetchannelsoptions", "backend": {"executable": "backend.exe"}, "settings_schema": {
+	}}`, "testplugingetchannelsoptions", th.App)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugingetchannelsoptions")
+	require.Nil(t, err)
+	require.NotNil(t, hooks)
+	require.Nil(t, err)
+
+	_, errString := hooks.MessageWillBePosted(nil, nil)
+	assert.Equal(t, "stub", errString)
+}
+
 func TestPublicFilesPathConfiguration(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
