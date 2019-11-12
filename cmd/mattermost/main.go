@@ -15,7 +15,7 @@ import (
 	_ "github.com/mattermost/mattermost-server/imports"
 
 	// Enterprise Deps
-	_ "github.com/dgryski/dgoogauth"
+	_ "github.com/gorilla/handlers"
 	_ "github.com/hako/durafmt"
 	_ "github.com/hashicorp/memberlist"
 	_ "github.com/mattermost/ldap"
