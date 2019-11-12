@@ -154,6 +154,8 @@ govet: ## Runs govet against all packages.
 	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
 	$(GO) vet $(GOFLAGS) $(ALL_PACKAGES) || exit 1
 	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GOFLAGS) $(ALL_PACKAGES) || exit 1
+
+checker:
 	$(GO) run $(GOFLAGS) ./plugin/checker
 
 gofmt: ## Runs gofmt against all packages.
@@ -173,11 +175,11 @@ gofmt: ## Runs gofmt against all packages.
 	done
 	@echo "gofmt success"; \
 
-golangci-lint: ## Run golangci-lint on codebasis
+golangci-lint: ## Run golangci-lint on codebase
 # https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
 	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
-		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
-		exit 1; \
+		echo "Installing golangci-lint"; \
+		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(GOPATH)/bin v1.21.0; \
 	fi; \
 
 	@echo Running golangci-lint
@@ -229,8 +231,7 @@ check-licenses: ## Checks license status.
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-# TODO: remove govet and gofmt checks once golangci-lint is being enforced.
-check-style: govet gofmt check-licenses check-plugin-golint ## Runs govet and gofmt against all packages and also ensures plugin package golint compliant
+check-style: golangci-lint checker check-licenses check-plugin-golint ## Runs golangci against all packages and also ensures plugin package golint compliant
 
 check-plugin-golint: # Checks if golint returns any uncompliant code for any file that starts with plugin/helpers
 	@! golint ./plugin/ | grep plugin/helpers
