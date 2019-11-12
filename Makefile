@@ -59,7 +59,7 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildEnterpriseRead
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
-MINIMUM_SUPPORTED_GO_MINOR_VERSION = 12
+MINIMUM_SUPPORTED_GO_MINOR_VERSION = 13
 GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
@@ -81,7 +81,7 @@ TESTFLAGSEE ?= -short
 TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.1.1
+PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
@@ -175,7 +175,7 @@ gofmt: ## Runs gofmt against all packages.
 
 golangci-lint: ## Run golangci-lint on codebasis
 # https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
-	@if ! [ -x "$$(command -v golangci-lintt)" ]; then \
+	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
 		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
 		exit 1; \
 	fi; \
@@ -230,7 +230,10 @@ check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
 # TODO: remove govet and gofmt checks once golangci-lint is being enforced.
-check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
+check-style: govet gofmt check-licenses check-plugin-golint ## Runs govet and gofmt against all packages and also ensures plugin package golint compliant
+
+check-plugin-golint: # Checks if golint returns any uncompliant code for any file that starts with plugin/helpers
+	@! golint ./plugin/ | grep plugin/helpers
 
 test-te-race: ## Checks for race conditions in the team edition.
 	@echo Testing TE race conditions
@@ -398,7 +401,7 @@ stop-client: ## Stops the webapp.
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) stop
 
-stop: stop-server stop-client ## Stops server and client.
+stop: stop-server stop-client stop-docker ## Stops server, client and the docker compose.
 
 restart: restart-server restart-client ## Restarts the server and webapp.
 

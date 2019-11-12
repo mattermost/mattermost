@@ -186,7 +186,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	err := s.RunOldAppInitalization()
+	err := s.RunOldAppInitialization()
 	if err != nil {
 		return nil, err
 	}
