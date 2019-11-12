@@ -753,7 +753,7 @@ func UpgradeDatabaseToVersion516(sqlStore SqlStore) {
 	}
 }
 
-func upgradeDatabaseToVersion517(sqlStore SqlStore) {
+func UpgradeDatabaseToVersion517(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_16_0, VERSION_5_17_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_17_0)
 	}
