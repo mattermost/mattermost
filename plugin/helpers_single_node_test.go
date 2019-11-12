@@ -17,6 +17,7 @@ func TestRunOnSingleNode(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.16.0")
 		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
 			Return(true, nil)
 		api.On("KVCompareAndDelete", "unique_id", []byte("true")).
@@ -33,6 +34,7 @@ func TestRunOnSingleNode(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.16.0")
 		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
 			Return(false, nil)
 		p.API = api
@@ -47,6 +49,7 @@ func TestRunOnSingleNode(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.16.0")
 		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
 			Return(false, &model.AppError{})
 		p.API = api
@@ -61,6 +64,7 @@ func TestRunOnSingleNode(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.16.0")
 		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
 			Return(true, nil)
 		api.On("KVCompareAndDelete", "unique_id", []byte("true")).
@@ -77,6 +81,7 @@ func TestRunOnSingleNode(t *testing.T) {
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.16.0")
 		api.On("KVCompareAndSet", "unique_id", []byte(nil), []byte("true")).
 			Return(true, nil)
 		api.On("KVCompareAndDelete", "unique_id", []byte("true")).
