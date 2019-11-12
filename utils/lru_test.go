@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLRU(t *testing.T) {
@@ -20,50 +21,39 @@ func TestLRU(t *testing.T) {
 	for i := 0; i < 256; i++ {
 		l.Add(i, i)
 	}
-	if l.Len() != 128 {
-		t.Fatalf("bad len: %v", l.Len())
-	}
+	require.Equalf(t, l.Len(), 128, "bad len: %v", l.Len())
 
 	for i, k := range l.Keys() {
-		if v, ok := l.Get(k); !ok || v != k || v != i+128 {
-			t.Fatalf("bad key: %v", k)
-		}
+		v, ok := l.Get(k)
+		require.True(t, ok, "bad key: %v", k)
+		require.Equalf(t, v, k, "bad key: %v", k)
+		require.Equalf(t, i+128, v, "bad key: %v", k)
 	}
 	for i := 0; i < 128; i++ {
 		_, ok := l.Get(i)
-		if ok {
-			t.Fatalf("should be evicted")
-		}
+		require.False(t, ok, "should be evicted")
 	}
 	for i := 128; i < 256; i++ {
 		_, ok := l.Get(i)
-		if !ok {
-			t.Fatalf("should not be evicted")
-		}
+		require.True(t, ok, "should not be evicted")
 	}
 	for i := 128; i < 192; i++ {
 		l.Remove(i)
 		_, ok := l.Get(i)
-		if ok {
-			t.Fatalf("should be deleted")
-		}
+		require.False(t, ok, "should be deleted")
 	}
 
 	l.Get(192) // expect 192 to be last key in l.Keys()
 
 	for i, k := range l.Keys() {
-		if (i < 63 && k != i+193) || (i == 63 && k != 192) {
-			t.Fatalf("out of order key: %v", k)
-		}
+		require.Falsef(t, (i < 63 && k != i+193), "out of order key: %v", k)
+		require.Falsef(t, (i == 63 && k != 192), "out of order key: %v", k)
 	}
 
 	l.Purge()
-	if l.Len() != 0 {
-		t.Fatalf("bad len: %v", l.Len())
-	}
-	if _, ok := l.Get(200); ok {
-		t.Fatalf("should contain nothing")
-	}
+	require.Equalf(t, l.Len(), 0, "bad len: %v", l.Len())
+	_, ok := l.Get(200)
+	require.False(t, ok, "should contain nothing")
 }
 
 func TestLRUExpire(t *testing.T) {
@@ -75,13 +65,11 @@ func TestLRUExpire(t *testing.T) {
 
 	time.Sleep(time.Millisecond * 2100)
 
-	if r1, ok := l.Get(1); ok {
-		t.Fatal(r1)
-	}
+	r1, ok := l.Get(1)
+	require.False(t, ok, r1)
 
-	if _, ok2 := l.Get(3); !ok2 {
-		t.Fatal("should exist")
-	}
+	_, ok2 := l.Get(3)
+	require.True(t, ok2, "should exist")
 }
 
 func TestLRUGetOrAdd(t *testing.T) {

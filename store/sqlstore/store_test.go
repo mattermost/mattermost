@@ -70,7 +70,7 @@ func initStores() {
 		go func() {
 			defer wg.Done()
 			st.SqlSupplier = NewSqlSupplier(*st.SqlSettings, nil)
-			st.Store = store.NewLayeredStore(st.SqlSupplier, nil, nil)
+			st.Store = st.SqlSupplier
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
 		}()
