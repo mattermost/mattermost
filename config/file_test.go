@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/testutils"
 )
 
 func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
@@ -477,11 +478,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "callback should have been called when config written")
-		}
+		require.True(t, testutils.WasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 
 	t.Run("watcher restarted", func(t *testing.T) {
@@ -513,11 +510,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "callback should have been called when config written")
-		}
+		require.True(t, testutils.WasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 }
 
@@ -749,11 +742,7 @@ func TestFileStoreLoad(t *testing.T) {
 		err = fs.Load()
 		require.NoError(t, err)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "callback should have been called when config loaded")
-		}
+		require.True(t, testutils.WasCalled(called, 5*time.Second), "callback should have been called when config loaded")
 	})
 }
 
@@ -786,11 +775,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
-		select {
-		case <-called:
-			require.Fail(t, "callback should not have been called since watching disabled")
-		case <-time.After(1 * time.Second):
-		}
+		require.False(t, testutils.WasCalled(called, 1*time.Second), "callback should not have been called since watching disabled")
 	})
 
 	t.Run("enabled", func(t *testing.T) {
@@ -809,11 +794,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "callback should have been called when config written")
-		}
+		require.True(t, testutils.WasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 }
 
