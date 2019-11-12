@@ -764,7 +764,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "User cannot be added to this channel because it is constrained to group members only."
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
   },
   {
     "id": "api.command_invite.hint",
@@ -1864,7 +1864,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
   },
   {
     "id": "api.team.add_user_to_team.added",
