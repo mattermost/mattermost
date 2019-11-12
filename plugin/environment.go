@@ -48,13 +48,14 @@ type PrepackagedPlugin struct {
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	registeredPlugins    sync.Map
-	pluginHealthCheckJob *PluginHealthCheckJob
-	logger               *mlog.Logger
-	newAPIImpl           apiImplCreatorFunc
-	pluginDir            string
-	webappPluginDir      string
-	prepackagedPlugins   []*PrepackagedPlugin
+	registeredPlugins      sync.Map
+	pluginHealthCheckJob   *PluginHealthCheckJob
+	logger                 *mlog.Logger
+	newAPIImpl             apiImplCreatorFunc
+	pluginDir              string
+	webappPluginDir        string
+	prepackagedPlugins     []*PrepackagedPlugin
+	prepackagedPluginsLock sync.RWMutex
 }
 
 func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
@@ -449,7 +450,9 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 
 // SetPrepackagedPlugins saves prepackaged plugins in the environment
 func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
+	env.prepackagedPluginsLock.Lock()
 	env.prepackagedPlugins = plugins
+	env.prepackagedPluginsLock.Unlock()
 }
 
 func newRegisteredPlugin(bundle *model.BundleInfo) *registeredPlugin {

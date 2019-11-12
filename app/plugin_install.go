@@ -380,7 +380,7 @@ func (a *App) installExtractedPlugin(manifest *model.Manifest, fromPluginDir str
 		manifest = updatedManifest
 	}
 
-	// Activate plugin if it was previously activated.
+	// Activate the plugin if enabled.
 	pluginState := a.Config().PluginSettings.PluginStates[manifest.Id]
 	if pluginState != nil && pluginState.Enable {
 		updatedManifest, _, err := pluginsEnvironment.Activate(manifest.Id)

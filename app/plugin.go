@@ -629,35 +629,36 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 
 func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.PrepackagedPlugin {
 	prepackagedPluginsDir, found := fileutils.FindDir(pluginsDir)
-	if found {
-		pluginsEnvironment := a.GetPluginsEnvironment()
-		availablePlugins, err := pluginsEnvironment.Available()
-		if err != nil {
-			mlog.Error("Failed to get avaliable plugins", mlog.Err(err))
-			return nil
-		}
-
-		var fileStorePaths []string
-		if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
-			fileStorePaths = append(fileStorePaths, walkPath)
-			return nil
-		}); err != nil {
-			mlog.Error("Failed to walk prepackaged plugins", mlog.Err(err))
-		}
-		pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
-		plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
-		for _, pluginPaths := range pluginSignaturePathMap {
-			plugin, err := a.installPrepackagedPlugin(pluginPaths, availablePlugins)
-			if err != nil {
-				mlog.Error("Failed to install prepackaged plugin %s", mlog.Err(err), mlog.String("path", pluginPaths.path))
-			}
-			if plugin != nil {
-				plugins = append(plugins, plugin)
-			}
-		}
-		return plugins
+	if !found {
+		return nil
 	}
-	return nil
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	availablePlugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		mlog.Error("Failed to get avaliable plugins", mlog.Err(err))
+		return nil
+	}
+
+	var fileStorePaths []string
+	if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
+		fileStorePaths = append(fileStorePaths, walkPath)
+		return nil
+	}); err != nil {
+		mlog.Error("Failed to walk prepackaged plugins", mlog.Err(err))
+	}
+	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
+	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
+	for _, pluginPaths := range pluginSignaturePathMap {
+		plugin, err := a.installPrepackagedPlugin(pluginPaths, availablePlugins)
+		if err != nil {
+			mlog.Error("Failed to install prepackaged plugin %s", mlog.Err(err), mlog.String("path", pluginPaths.path))
+		}
+		if plugin != nil {
+			plugins = append(plugins, plugin)
+		}
+	}
+
+	return plugins
 }
 
 func (a *App) installPrepackagedPlugin(pluginPaths *pluginSignaturePaths, avaliablePlugins []*model.BundleInfo) (*plugin.PrepackagedPlugin, error) {
