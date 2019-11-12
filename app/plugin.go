@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/blang/semver"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -628,7 +630,14 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.PrepackagedPlugin {
 	prepackagedPluginsDir, found := fileutils.FindDir(pluginsDir)
 	if found {
-		fileStorePaths := []string{}
+		pluginsEnvironment := a.GetPluginsEnvironment()
+		availablePlugins, err := pluginsEnvironment.Available()
+		if err != nil {
+			mlog.Error("Failed to get avaliable plugins", mlog.Err(err))
+			return nil
+		}
+
+		var fileStorePaths []string
 		if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
 			fileStorePaths = append(fileStorePaths, walkPath)
 			return nil
@@ -638,19 +647,20 @@ func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
 		plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
 		for _, pluginPaths := range pluginSignaturePathMap {
-			plugin, err := a.installPrepackagedPlugin(pluginPaths)
+			plugin, err := a.installPrepackagedPlugin(pluginPaths, availablePlugins)
 			if err != nil {
 				mlog.Error("Failed to install prepackaged plugin %s", mlog.Err(err), mlog.String("path", pluginPaths.path))
-				continue
 			}
-			plugins = append(plugins, plugin)
+			if plugin != nil {
+				plugins = append(plugins, plugin)
+			}
 		}
 		return plugins
 	}
 	return nil
 }
 
-func (a *App) installPrepackagedPlugin(pluginPaths *pluginSignaturePaths) (*plugin.PrepackagedPlugin, error) {
+func (a *App) installPrepackagedPlugin(pluginPaths *pluginSignaturePaths, avaliablePlugins []*model.BundleInfo) (*plugin.PrepackagedPlugin, error) {
 	fileReader, err := os.Open(pluginPaths.path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPaths.path)
@@ -661,16 +671,53 @@ func (a *App) installPrepackagedPlugin(pluginPaths *pluginSignaturePaths) (*plug
 	}
 	defer os.RemoveAll(tmpDir)
 
-	plug, pluginDir, err := getPrepackagedPlugin(pluginPaths, fileReader, tmpDir)
+	plugin, pluginDir, err := getPrepackagedPlugin(pluginPaths, fileReader, tmpDir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPaths.path)
 	}
 
-	if _, err := a.installExtractedPlugin(plug.Manifest, pluginDir, true); err != nil {
-		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPaths.path)
+	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
+		return plugin, nil
 	}
 
-	return plug, nil
+	if state, ok := a.Config().PluginSettings.PluginStates[plugin.Manifest.Id]; ok && state.Enable {
+		newVersion, err := isNewVersion(plugin.Manifest, avaliablePlugins)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Failed to parse plugin version %s for prepackaged plugin %s", plugin.Manifest.Version, plugin.Manifest.Id)
+		}
+		if newVersion {
+			signatures, err := a.readSignaturesFromPath(pluginPaths)
+			if err != nil {
+				return nil, errors.Wrapf(err, "Failed to open plugin signatures for plugin %s", pluginPaths.pluginId)
+			}
+			fileReader.Seek(0, 0)
+			if err := a.VerifyPluginWithSignatures(fileReader, signatures); err != nil {
+				return nil, errors.Wrapf(err, "Failed to verify prepackaged plugin %s", pluginPaths.pluginId)
+			}
+			if _, err := a.installExtractedPlugin(plugin.Manifest, pluginDir, true); err != nil {
+				return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPaths.pluginId)
+			}
+		}
+	}
+
+	return plugin, nil
+}
+
+// isNewVersion checks if plugin manifest has newer version of the plugin.
+func isNewVersion(manifest *model.Manifest, avaliablePlugins []*model.BundleInfo) (bool, error) {
+	for _, plugin := range avaliablePlugins {
+		if plugin.Manifest.Id == manifest.Id {
+			curVersion := semver.MustParse(plugin.Manifest.Version)
+			newVersion, err := semver.Parse(manifest.Version)
+			if err != nil {
+				return false, errors.Errorf("failed to parse version %s for plugin %s", manifest.Version, manifest.Id)
+			}
+			if newVersion.GT(curVersion) {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 
 func getPrepackagedPlugin(pluginPaths *pluginSignaturePaths, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {
@@ -722,6 +769,20 @@ func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) (signatur
 		}
 	}
 	return signatures, closeFunc, nil
+}
+
+func (a *App) readSignaturesFromPath(plugin *pluginSignaturePaths) ([]io.ReadSeeker, error) {
+	signatures := make([]io.ReadSeeker, 0, len(plugin.signaturePaths))
+	for _, signaturePath := range plugin.signaturePaths {
+		sigBytes, err := ioutil.ReadFile(signaturePath)
+		if err != nil {
+			mlog.Debug("Can't read signature file.", mlog.String("path", signaturePath), mlog.Err(err))
+			return nil, errors.Wrapf(err, "can't read signature file with path %s", signaturePath)
+		}
+		sigReader := bytes.NewReader(sigBytes)
+		signatures = append(signatures, sigReader)
+	}
+	return signatures, nil
 }
 
 func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.AppError) {

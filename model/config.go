@@ -2240,18 +2240,19 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable                   *bool
-	EnableUploads            *bool   `restricted:"true"`
-	AllowInsecureDownloadUrl *bool   `restricted:"true"`
-	EnableHealthCheck        *bool   `restricted:"true"`
-	Directory                *string `restricted:"true"`
-	ClientDirectory          *string `restricted:"true"`
-	Plugins                  map[string]map[string]interface{}
-	PluginStates             map[string]*PluginState
-	EnableMarketplace        *bool
-	RequirePluginSignature   *bool
-	MarketplaceUrl           *string
-	SignaturePublicKeyFiles  []string
+	Enable                      *bool
+	EnableUploads               *bool   `restricted:"true"`
+	AllowInsecureDownloadUrl    *bool   `restricted:"true"`
+	EnableHealthCheck           *bool   `restricted:"true"`
+	Directory                   *string `restricted:"true"`
+	ClientDirectory             *string `restricted:"true"`
+	Plugins                     map[string]map[string]interface{}
+	PluginStates                map[string]*PluginState
+	EnableMarketplace           *bool
+	RequirePluginSignature      *bool
+	MarketplaceUrl              *string
+	SignaturePublicKeyFiles     []string
+	AutomaticPrepackagedPlugins *bool
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
