@@ -7159,6 +7159,14 @@
     "translation": "This username is already taken. Please choose another."
   },
   {
+    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
+    "translation": "Unable to get the list of deactivate guests ids"
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Unable to deactivate guests"
+  },
+  {
     "id": "store.sql_user.update_auth_data.app_error",
     "translation": "Unable to update the auth data"
   },
