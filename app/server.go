@@ -20,7 +20,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
-	analytics "github.com/segmentio/analytics-go"
+
+	//analytcis "./Desktop/rudderGoSDK/analytics-go"
+	analytics "github.com/rudderlabs/analytics-go"
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
@@ -752,26 +754,31 @@ func (s *Server) StartElasticsearch() {
 func (s *Server) initDiagnostics(endpoint string) {
 	if s.diagnosticClient == nil {
 		config := analytics.Config{}
-		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "segment")))
+		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "Rudder")))
+
+		fmt.Println("endpoint:=============== ", endpoint)
 		// For testing
 		if endpoint != "" {
+
 			config.Endpoint = endpoint
 			config.Verbose = true
-			config.BatchSize = 1
+			config.BatchSize = 35
 		}
-		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
+		client, _ := analytics.NewWithConfig(WRITE_KEY, config)
 		client.Enqueue(analytics.Identify{
 			UserId: s.diagnosticId,
 		})
 
 		s.diagnosticClient = client
 	}
+
 }
 
 // shutdownDiagnostics closes the diagnostic client.
 func (s *Server) shutdownDiagnostics() error {
 	if s.diagnosticClient != nil {
 		return s.diagnosticClient.Close()
+
 	}
 
 	return nil

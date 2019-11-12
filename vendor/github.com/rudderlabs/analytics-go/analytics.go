@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"sync"
 
 	"bytes"
@@ -111,31 +112,37 @@ func dereferenceMessage(msg Message) Message {
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	case *Group:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	case *Identify:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	case *Page:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	case *Screen:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	case *Track:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	}
 
@@ -143,6 +150,7 @@ func dereferenceMessage(msg Message) Message {
 }
 
 func (c *client) Enqueue(msg Message) (err error) {
+
 	msg = dereferenceMessage(msg)
 	if err = msg.Validate(); err != nil {
 		return
@@ -156,36 +164,66 @@ func (c *client) Enqueue(msg Message) (err error) {
 		m.Type = "alias"
 		m.MessageId = makeMessageId(m.MessageId, id)
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		m.Context = &Context{}
+		m.Context.Library = LibraryInfo{
+			Name:    "analytics-go",
+			Version: "1.0.0",
+		}
 		msg = m
 
 	case Group:
 		m.Type = "group"
 		m.MessageId = makeMessageId(m.MessageId, id)
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		m.Context = &Context{}
+		m.Context.Library = LibraryInfo{
+			Name:    "analytics-go",
+			Version: "1.0.0",
+		}
 		msg = m
 
 	case Identify:
 		m.Type = "identify"
 		m.MessageId = makeMessageId(m.MessageId, id)
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		m.Context = &Context{}
+		m.Context.Library = LibraryInfo{
+			Name:    "analytics-go",
+			Version: "1.0.0",
+		}
 		msg = m
 
 	case Page:
 		m.Type = "page"
 		m.MessageId = makeMessageId(m.MessageId, id)
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		m.Context = &Context{}
+		m.Context.Library = LibraryInfo{
+			Name:    "analytics-go",
+			Version: "1.0.0",
+		}
 		msg = m
 
 	case Screen:
 		m.Type = "screen"
 		m.MessageId = makeMessageId(m.MessageId, id)
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		m.Context = &Context{}
+		m.Context.Library = LibraryInfo{
+			Name:    "analytics-go",
+			Version: "1.0.0",
+		}
 		msg = m
 
 	case Track:
 		m.Type = "track"
 		m.MessageId = makeMessageId(m.MessageId, id)
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		m.Context = &Context{}
+		m.Context.Library = LibraryInfo{
+			Name:    "analytics-go",
+			Version: "1.0.0",
+		}
 		msg = m
 
 	default:
@@ -282,7 +320,11 @@ func (c *client) send(msgs []message) {
 
 // Upload serialized batch message.
 func (c *client) upload(b []byte) error {
+	var jsons map[string]interface{}
+	json.Unmarshal(b, &jsons)
+	fmt.Print(string(b))
 	url := c.Endpoint + "/v1/batch"
+	log.Printf("URL %v", url)
 	req, err := http.NewRequest("POST", url, bytes.NewReader(b))
 	if err != nil {
 		c.errorf("creating request - %s", err)
@@ -308,6 +350,8 @@ func (c *client) upload(b []byte) error {
 // Report on response body.
 func (c *client) report(res *http.Response) (err error) {
 	var body []byte
+
+	log.Printf("Response %d %s", res.StatusCode, res.Status)
 
 	if res.StatusCode < 300 {
 		c.debugf("response %s", res.Status)

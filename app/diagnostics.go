@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/segmentio/analytics-go"
+	"github.com/rudderlabs/analytics-go"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -16,8 +16,7 @@ import (
 )
 
 const (
-	SEGMENT_KEY = "placeholder_segment_key"
-
+	WRITE_KEY                       = "placeholder_rudder_key"
 	TRACK_CONFIG_SERVICE            = "config_service"
 	TRACK_CONFIG_TEAM               = "config_team"
 	TRACK_CONFIG_CLIENT_REQ         = "config_client_requirements"
@@ -63,10 +62,11 @@ func (a *App) SendDailyDiagnostics() {
 }
 
 func (a *App) sendDailyDiagnostics(override bool) {
-	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(WRITE_KEY, "placeholder") || override) {
 		a.Srv.initDiagnostics("")
 		a.trackActivity()
 		a.trackConfig()
+
 		a.trackLicense()
 		a.trackPlugins()
 		a.trackServer()
@@ -80,6 +80,7 @@ func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
 		UserId:     a.DiagnosticId(),
 		Properties: properties,
 	})
+
 }
 
 func isDefault(setting interface{}, defaultValue interface{}) bool {

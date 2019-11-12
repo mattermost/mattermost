@@ -43,5 +43,5 @@ func (l stdLogger) Errorf(format string, args ...interface{}) {
 }
 
 func newDefaultLogger() Logger {
-	return StdLogger(log.New(os.Stderr, "segment ", log.LstdFlags))
+	return StdLogger(log.New(os.Stderr, "rudder ", log.LstdFlags))
 }

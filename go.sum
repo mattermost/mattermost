@@ -361,6 +361,12 @@ github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqn
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rs/cors v1.7.0 h1:+88SsELBHx5r+hZ8TCkggzSstaWNbDvThkVK8H6f9ik=
 github.com/rs/cors v1.7.0/go.mod h1:gFx+x8UowdsKA9AchylcLynDq+nNFfI8FkUZdN/jGCU=
+github.com/rudderlabs/analytics-go v1.2.1-0.20191016122728-a0674285d809 h1:L1DuTAMmY/eBIC2IsQ4C3iF05MDSwiumBP0HNVfoh7w=
+github.com/rudderlabs/analytics-go v1.2.1-0.20191016122728-a0674285d809/go.mod h1:G9/+iYTu6CkVOe32Zop9qYbVrJbis0PWYPmhSPQ9/9Y=
+github.com/rudderlabs/analytics-go v1.2.1-0.20191016124303-704dd2444a76 h1:CKharBSqNjGR0dHKw5lc8lRCmwaOi1DIpybX1jrPE80=
+github.com/rudderlabs/analytics-go v1.2.1-0.20191016124303-704dd2444a76/go.mod h1:G9/+iYTu6CkVOe32Zop9qYbVrJbis0PWYPmhSPQ9/9Y=
+github.com/rudderlabs/analytics-go v3.1.0+incompatible h1:raJgBJMxxnCe9CWHL1zJq4rccap4yG7lvk4Fs6B7v+o=
+github.com/rudderlabs/analytics-go v3.1.0+incompatible/go.mod h1:LF8/ty9kUX4PTY3l5c97K3nZZaX5Hwsvt+NBaRL/f30=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/rwcarlsen/goexif v0.0.0-20190318171057-76e3344f7516 h1:unvLzUrgn54Nhn5yJB8qUBr/a7wiZHQaJ/8Y4yTGAjE=
 github.com/rwcarlsen/goexif v0.0.0-20190318171057-76e3344f7516/go.mod h1:hPqNNc0+uJM6H+SuU8sEs5K5IQeKccPqeSjfgcKGgPk=
