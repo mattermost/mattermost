@@ -4,12 +4,14 @@
 package plugin
 
 import (
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/pkg/errors"
 )
 
-func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) {
+// EnsureBot implements Helpers.EnsureBot
+func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotID string, retErr error) {
 	err := p.ensureServerVersion("5.10.0")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to ensure bot")
@@ -23,34 +25,34 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) 
 	// If we fail for any reason, this could be a race between creation of bot and
 	// retrieval from another EnsureBot. Just try the basic retrieve existing again.
 	defer func() {
-		if retBotId == "" || retErr != nil {
+		if retBotID == "" || retErr != nil {
 			var err error
-			var botIdBytes []byte
+			var botIDBytes []byte
 
 			err = utils.ProgressiveRetry(func() error {
-				botIdBytes, err = p.API.KVGet(BOT_USER_KEY)
+				botIDBytes, err = p.API.KVGet(BOT_USER_KEY)
 				if err != nil {
 					return err
 				}
 				return nil
 			})
 
-			if err == nil && botIdBytes != nil {
-				retBotId = string(botIdBytes)
+			if err == nil && botIDBytes != nil {
+				retBotID = string(botIDBytes)
 				retErr = nil
 			}
 		}
 	}()
 
-	botIdBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
+	botIDBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
 	if kvGetErr != nil {
 		return "", errors.Wrap(kvGetErr, "failed to get bot")
 	}
 
 	// If the bot has already been created, there is nothing to do.
-	if botIdBytes != nil {
-		botId := string(botIdBytes)
-		return botId, nil
+	if botIDBytes != nil {
+		botID := string(botIDBytes)
+		return botID, nil
 	}
 
 	// Check for an existing bot user with that username. If one exists, then use that.
