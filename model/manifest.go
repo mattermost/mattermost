@@ -91,6 +91,9 @@ type PluginSettingsSchema struct {
 //      "id": "com.mycompany.myplugin",
 //      "name": "My Plugin",
 //      "description": "This is my plugin",
+//      "homepage_url": "https://example.com",
+//      "support_url": "https://example.com/support",
+//      "icon_path": "assets/logo.svg",
 //      "version": "0.1.0",
 //      "min_server_version": "5.6.0",
 //      "server": {
@@ -129,6 +132,12 @@ type Manifest struct {
 
 	// A description of what your plugin is and does.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+
+	// HomepageURL is an optional link to learn more about the plugin.
+	HomepageURL string `json:"homepage_url,omitempty" yaml:"homepage_url,omitempty"`
+
+	// SupportURL is an optional URL where plugin issues can be reported.
+	SupportURL string `json:"support_url,omitempty" yaml:"support_url,omitempty"`
 
 	// A relative file path in the bundle that points to the plugins svg icon for use with the Plugin Marketplace.
 	// This should be relative to the root of your bundle and the location of the manifest file. Bitmap image formats are not supported.

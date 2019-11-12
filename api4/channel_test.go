@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -677,9 +678,6 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	Client := th.Client
 	team := th.BasicTeam
 
-	_, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
-	CheckForbiddenStatus(t, resp)
-
 	th.LoginTeamAdmin()
 
 	channels, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
@@ -703,6 +701,31 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	if len(channels) != numInitialChannelsForTeam+2 {
 		t.Fatal("should be 2 deleted channels")
+	}
+
+	th.LoginBasic()
+
+	privateChannel1 := th.CreatePrivateChannel()
+	Client.DeleteChannel(privateChannel1.Id)
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(channels) != numInitialChannelsForTeam+3 {
+		t.Fatal("should be 3 deleted channels")
+	}
+
+	// Login as different user and create private channel
+	th.LoginBasic2()
+	privateChannel2 := th.CreatePrivateChannel()
+	Client.DeleteChannel(privateChannel2.Id)
+
+	// Log back in as first user
+	th.LoginBasic()
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(channels) != numInitialChannelsForTeam+3 {
+		t.Fatal("should still be 3 deleted channels", len(channels), numInitialChannelsForTeam+3)
 	}
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 1, "")
@@ -1056,6 +1079,100 @@ func TestSearchChannels(t *testing.T) {
 			channelNames = append(channelNames, c.Name)
 		}
 		require.NotContains(t, channelNames, th.BasicChannel.Name)
+	})
+}
+
+func TestSearchArchivedChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
+
+	Client.DeleteChannel(th.BasicChannel.Id)
+
+	channels, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	found := false
+	for _, c := range channels {
+		if c.Type != model.CHANNEL_OPEN {
+			t.Fatal("should only return public channels")
+		}
+
+		if c.Id == th.BasicChannel.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("didn't find channel")
+	}
+
+	search.Term = th.BasicPrivateChannel.Name
+	Client.DeleteChannel(th.BasicPrivateChannel.Id)
+
+	channels, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	found = false
+	for _, c := range channels {
+		if c.Id == th.BasicPrivateChannel.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("couldn't find private channel")
+	}
+
+	search.Term = ""
+	_, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	search.Term = th.BasicDeletedChannel.Name
+	_, resp = Client.SearchArchivedChannels(model.NewId(), search)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.SearchArchivedChannels("junk", search)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.SearchArchivedChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Remove list channels permission from the user
+	th.RemovePermissionFromRole(model.PERMISSION_LIST_TEAM_CHANNELS.Id, model.TEAM_USER_ROLE_ID)
+
+	t.Run("Search for a BasicDeletedChannel, which the user is a member of", func(t *testing.T) {
+		search.Term = th.BasicDeletedChannel.Name
+		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+		CheckNoError(t, resp)
+
+		channelNames := []string{}
+		for _, c := range channelList {
+			channelNames = append(channelNames, c.Name)
+		}
+		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
+	})
+
+	t.Run("Remove the user from BasicDeletedChannel and search again, should still return", func(t *testing.T) {
+		th.App.RemoveUserFromChannel(th.BasicUser.Id, th.BasicUser.Id, th.BasicDeletedChannel)
+
+		search.Term = th.BasicDeletedChannel.Name
+		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
+		CheckNoError(t, resp)
+
+		channelNames := []string{}
+		for _, c := range channelList {
+			channelNames = append(channelNames, c.Name)
+		}
+		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
 	})
 }
 
@@ -2502,15 +2619,80 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
-	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
-	CheckNoError(t, resp)
+	t.Run("success", func(t *testing.T) {
+		// Setup the system administrator to listen for websocket events from the channels.
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		_, err := th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+		require.Nil(t, err)
+		_, err = th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel2)
+		require.Nil(t, err)
+		props := map[string]string{}
+		props[model.DESKTOP_NOTIFY_PROP] = model.CHANNEL_NOTIFY_ALL
+		_, resp = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel.Id, th.SystemAdminUser.Id, props)
+		_, resp = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel2.Id, th.SystemAdminUser.Id, props)
+		CheckNoError(t, resp)
 
-	_, resp = Client.RemoveUserFromChannel(th.BasicChannel2.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+		wsClient, err := th.CreateWebSocketSystemAdminClient()
+		require.Nil(t, err)
+		wsClient.Listen()
+		var closeWsClient sync.Once
+		defer closeWsClient.Do(func() {
+			wsClient.Close()
+		})
 
-	_, resp = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+		wsr := <-wsClient.EventChannel
+		require.Equal(t, wsr.Event, model.WEBSOCKET_EVENT_HELLO)
+
+		// requirePost listens for websocket events and tries to find the post matching
+		// the expected post's channel and message.
+		requirePost := func(expectedPost *model.Post) {
+			t.Helper()
+			for {
+				select {
+				case event := <-wsClient.EventChannel:
+					postData, ok := event.Data["post"]
+					if !ok {
+						continue
+					}
+
+					post := model.PostFromJson(strings.NewReader(postData.(string)))
+					if post.ChannelId == expectedPost.ChannelId && post.Message == expectedPost.Message {
+						return
+					}
+				case <-time.After(5 * time.Second):
+					t.Fatal("failed to find expected post after 5 seconds")
+					return
+				}
+			}
+		}
+
+		th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+		_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
+		CheckNoError(t, resp)
+
+		requirePost(&model.Post{
+			Message:   fmt.Sprintf("@%s left the channel.", th.BasicUser2.Username),
+			ChannelId: th.BasicChannel.Id,
+		})
+
+		_, resp = Client.RemoveUserFromChannel(th.BasicChannel2.Id, th.BasicUser.Id)
+		CheckNoError(t, resp)
+		requirePost(&model.Post{
+			Message:   fmt.Sprintf("@%s removed from the channel.", th.BasicUser.Username),
+			ChannelId: th.BasicChannel2.Id,
+		})
+
+		_, resp = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+		CheckNoError(t, resp)
+		requirePost(&model.Post{
+			Message:   fmt.Sprintf("@%s removed from the channel.", th.BasicUser.Username),
+			ChannelId: th.BasicChannel.Id,
+		})
+
+		closeWsClient.Do(func() {
+			wsClient.Close()
+		})
+	})
 
 	// Leave deleted channel
 	th.LoginBasic()

@@ -86,7 +86,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.SanitizeInput()
+	user.SanitizeInput(c.IsSystemAdmin())
 
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
@@ -925,11 +925,6 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.Session.IsOAuth && patch.Email != nil {
-		if err != nil {
-			c.Err = err
-			return
-		}
-
 		if ouser.Email != *patch.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 			c.Err.DetailedError += ", attempted email update by oauth app"
@@ -1399,7 +1394,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	session, err := c.App.DoLogin(w, r, user, deviceId)
+	err = c.App.DoLogin(w, r, user, deviceId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1408,7 +1403,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
-		c.App.AttachSessionCookies(w, r, session)
+		c.App.AttachSessionCookies(w, r)
 	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
@@ -1421,8 +1416,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
 		user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
 	}
-
-	c.App.Session = *session
 
 	user.Sanitize(map[string]bool{})
 
