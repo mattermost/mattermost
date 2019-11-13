@@ -164,10 +164,17 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 				return nil
 			}
 
-			if fileReader, err := os.Open(walkPath); err != nil {
+			fileReader, err := os.Open(walkPath)
+			if err != nil {
 				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-			} else if _, err := a.installPluginLocally(fileReader, true); err != nil {
-				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
+				return nil
+			}
+
+			mlog.Debug("Installing prepackaged plugin", mlog.String("path", walkPath))
+
+			_, appErr := a.installPluginLocally(fileReader, installPluginLocallyOnlyIfUpgrade)
+			if appErr != nil {
+				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(appErr), mlog.String("path", walkPath))
 			}
 
 			return nil
@@ -250,7 +257,7 @@ func (a *App) SyncPlugins() *model.AppError {
 		defer reader.Close()
 
 		mlog.Info("Syncing plugin from file store", mlog.String("bundle", path))
-		if _, err := a.installPluginLocally(reader, true); err != nil {
+		if _, err := a.installPluginLocally(reader, installPluginLocallyAlways); err != nil {
 			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", path), mlog.Err(err))
 		}
 	}
