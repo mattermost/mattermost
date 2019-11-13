@@ -1274,7 +1274,7 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			notification := &postNotification{
+			notification := &PostNotification{
 				channel:    testCase.channel,
 				sender:     sender,
 				profileMap: profileMap,
@@ -1359,7 +1359,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 				post = testCase.post
 			}
 
-			notification := &postNotification{
+			notification := &PostNotification{
 				channel: channel,
 				post:    post,
 				sender:  sender,

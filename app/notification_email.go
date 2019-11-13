@@ -18,7 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func (a *App) sendNotificationEmail(notification *postNotification, user *model.User, team *model.Team) *model.AppError {
+func (a *App) sendNotificationEmail(notification *PostNotification, user *model.User, team *model.Team) *model.AppError {
 	channel := notification.channel
 	post := notification.post
 
