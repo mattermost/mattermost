@@ -283,6 +283,13 @@ func TestPostLog(t *testing.T) {
 	_, resp := Client.PostLog(message)
 	CheckNoError(t, resp)
 
+	*th.App.Config().ServiceSettings.EnableDeveloper = false
+
+	_, resp = Client.PostLog(message)
+	CheckNoError(t, resp)
+
+	*th.App.Config().ServiceSettings.EnableDeveloper = true
+
 	Client.Logout()
 
 	_, resp = Client.PostLog(message)
