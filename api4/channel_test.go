@@ -122,8 +122,7 @@ func TestCreateChannel(t *testing.T) {
 	rchannel, resp = Client.CreateChannel(groupConstrainedChannel)
 	CheckNoError(t, resp)
 
-	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained,
-		"GroupConstrained flags do not match")
+	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
 }
 
 func TestUpdateChannel(t *testing.T) {
@@ -235,10 +234,10 @@ func TestPatchChannel(t *testing.T) {
 	channel, resp := Client.PatchChannel(th.BasicChannel.Id, patch)
 	CheckNoError(t, resp)
 
-	require.Equal(t, channel.Name, *patch.Name, "do not match")
-	require.Equal(t, channel.DisplayName, *patch.DisplayName, "do not match")
-	require.Equal(t, channel.Header, *patch.Header, "do not match")
-	require.Equal(t, channel.Purpose, *patch.Purpose, "do not match")
+	require.Equal(t, *patch.Name, channel.Name, "do not match")
+	require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
+	require.Equal(t, *patch.Header, channel.Header, "do not match")
+	require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
 
 	patch.Name = nil
 	oldName := channel.Name
@@ -646,6 +645,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 		// check all channels included are open
 		require.Equal(t, model.CHANNEL_OPEN, c.Type, "should include open channel only")
 
+		// only check the created 2 public channels
 		require.False(t, i < 2 && !(c.DisplayName == publicChannel1.DisplayName || c.DisplayName == publicChannel2.DisplayName), "should match public channel display name")
 	}
 
@@ -1587,8 +1587,7 @@ func TestViewChannel(t *testing.T) {
 
 	channel, _ := th.App.GetChannel(th.BasicChannel.Id)
 
-	lastViewedAt := viewResp.LastViewedAtTimes[channel.Id]
-	require.Equal(t, channel.LastPostAt, lastViewedAt, "LastPostAt does not match returned LastViewedAt time")
+	require.Equal(t, channel.LastPostAt, viewResp.LastViewedAtTimes[channel.Id], "LastPostAt does not match returned LastViewedAt time")
 
 	view.PrevChannelId = th.BasicChannel.Id
 	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
