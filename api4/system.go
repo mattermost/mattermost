@@ -414,13 +414,12 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.App.NotificationsLog.Error("Notification ack not sent to push proxy",
 				mlog.String("ackId", ack.Id),
 				mlog.String("type", ack.NotificationType),
-				mlog.String("userId", ack.UserId),
 				mlog.String("postId", ack.PostId),
 				mlog.String("status", err.Error()),
 			)
 		}
 
-		msg, appErr := c.App.BuildFetchedPushNotificationMessage(ack.PostId, ack.UserId)
+		msg, appErr := c.App.BuildFetchedPushNotificationMessage(ack.PostId, c.App.Session.UserId)
 		if appErr != nil {
 			c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 			return
