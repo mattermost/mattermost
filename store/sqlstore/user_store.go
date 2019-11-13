@@ -409,10 +409,12 @@ func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.
 		return query
 	}
 
-	roleParam := fmt.Sprintf("%%%s%%", role)
 	if isPostgreSQL {
+		roleParam := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(role, "\\"))
 		return query.Where("u.Roles LIKE LOWER(?)", roleParam)
 	}
+
+	roleParam := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(role, "*"))
 
 	return query.Where("u.Roles LIKE ? ESCAPE '*'", roleParam)
 }
@@ -665,7 +667,8 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+func (us SqlUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	query := us.usersQuery.
 		Where(`(
 			SELECT
@@ -677,9 +680,15 @@ func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestric
 				AND TeamMembers.DeleteAt = 0
 		) = 0`).
 		OrderBy("u.Username ASC").
-		Offset(uint64(offset)).Limit(uint64(limit))
+		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
-	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
+
+	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+
+	if options.Inactive {
+		query = query.Where("u.DeleteAt != 0")
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1222,15 +1231,6 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options *m
 	return us.performSearch(query, term, options)
 }
 
-var escapeLikeSearchChar = []string{
-	"%",
-	"_",
-}
-
-var ignoreLikeSearchChar = []string{
-	"*",
-}
-
 var spaceFulltextSearchChar = []string{
 	"<",
 	">",
@@ -1265,17 +1265,9 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 }
 
 func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	// These chars must be removed from the like query.
-	for _, c := range ignoreLikeSearchChar {
-		term = strings.Replace(term, c, "", -1)
-	}
+	term = sanitizeSearchTerm(term, "*")
 
-	// These chars must be escaped in the like query.
-	for _, c := range escapeLikeSearchChar {
-		term = strings.Replace(term, c, "*"+c, -1)
-	}
-
-	searchType := USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+	var searchType []string
 	if options.AllowEmails {
 		if options.AllowFullNames {
 			searchType = USER_SEARCH_TYPE_ALL
@@ -1367,8 +1359,7 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool
 }
 
 func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) string {
-	var querystr string
-	querystr = `
+	querystr := `
 		SELECT
 			CONCAT(MAX(UpdateAt), '.', COUNT(Id)) as etag
 		FROM
@@ -1457,10 +1448,9 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		OrderBy("u.CreateAt").
 		Limit(uint64(limit)).
 		ToSql()
-	_, err1 := us.GetSearchReplica().Select(&users, usersQuery, args...)
-
-	if err1 != nil {
-		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_users.app_error", nil, err1.Error(), http.StatusInternalServerError)
+	_, err := us.GetSearchReplica().Select(&users, usersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	userIds := []string{}
@@ -1487,10 +1477,9 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"c.Type": "O", "cm.UserId": userIds}).
 		ToSql()
-	_, err2 := us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
-
-	if err2 != nil {
-		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error", nil, err2.Error(), http.StatusInternalServerError)
+	_, err = us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var teamMembers []*model.TeamMember
@@ -1499,10 +1488,9 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		From("TeamMembers").
 		Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
 		ToSql()
-	_, err3 := us.GetSearchReplica().Select(&teamMembers, teamMembersQuery, args...)
-
-	if err3 != nil {
-		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error", nil, err3.Error(), http.StatusInternalServerError)
+	_, err = us.GetSearchReplica().Select(&teamMembers, teamMembersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	userMap := map[string]*model.UserForIndexing{}
@@ -1635,8 +1623,10 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) *model.AppError {
 		}
 	}
 
+	curTime := model.GetMillis()
 	query := us.getQueryBuilder().Update("Users").
 		Set("Roles", strings.Join(roles, " ")).
+		Set("UpdateAt", curTime).
 		Where(sq.Eq{"Id": userId})
 
 	queryString, args, err := query.ToSql()
@@ -1705,8 +1695,10 @@ func (us SqlUserStore) DemoteUserToGuest(userId string) *model.AppError {
 		}
 	}
 
+	curTime := model.GetMillis()
 	query := us.getQueryBuilder().Update("Users").
 		Set("Roles", strings.Join(newRoles, " ")).
+		Set("UpdateAt", curTime).
 		Where(sq.Eq{"Id": userId})
 
 	queryString, args, err := query.ToSql()

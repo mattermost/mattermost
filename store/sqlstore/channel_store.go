@@ -35,6 +35,9 @@ const (
 	CHANNEL_GUESTS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
 	CHANNEL_GUESTS_COUNTS_CACHE_SEC  = 1800 // 30 mins
 
+	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
+	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC  = 1800 // 30 mins
+
 	CHANNEL_CACHE_SEC = 900 // 15 mins
 )
 
@@ -52,9 +55,9 @@ type channelMember struct {
 	MentionCount int64
 	NotifyProps  model.StringMap
 	LastUpdateAt int64
-	SchemeGuest  sql.NullBool
 	SchemeUser   sql.NullBool
 	SchemeAdmin  sql.NullBool
+	SchemeGuest  sql.NullBool
 }
 
 func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
@@ -281,6 +284,7 @@ type publicChannel struct {
 }
 
 var channelMemberCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
+var channelPinnedPostCountsCache = utils.NewLru(CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE)
 var channelGuestCountsCache = utils.NewLru(CHANNEL_GUESTS_COUNTS_CACHE_SIZE)
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
@@ -289,6 +293,7 @@ var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func (s SqlChannelStore) ClearCaches() {
 	channelMemberCountsCache.Purge()
+	channelPinnedPostCountsCache.Purge()
 	channelGuestCountsCache.Purge()
 	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
@@ -297,6 +302,7 @@ func (s SqlChannelStore) ClearCaches() {
 
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
+		s.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props for Channel - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
@@ -489,24 +495,26 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	return newChannel, nil
 }
 
-func (s SqlChannelStore) CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, *model.AppError) {
 	channel := new(model.Channel)
 
 	channel.DisplayName = ""
-	channel.Name = model.GetDMNameFromIds(otherUserId, userId)
+	channel.Name = model.GetDMNameFromIds(otherUser.Id, user.Id)
 
 	channel.Header = ""
 	channel.Type = model.CHANNEL_DIRECT
 
 	cm1 := &model.ChannelMember{
-		UserId:      userId,
+		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		SchemeUser:  true,
+		SchemeGuest: user.IsGuest(),
+		SchemeUser:  !user.IsGuest(),
 	}
 	cm2 := &model.ChannelMember{
-		UserId:      otherUserId,
+		UserId:      otherUser.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		SchemeUser:  true,
+		SchemeGuest: otherUser.IsGuest(),
+		SchemeUser:  !otherUser.IsGuest(),
 	}
 
 	return s.SaveDirectChannel(channel, cm1, cm2)
@@ -1028,7 +1036,7 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 			PublicChannels pc ON (pc.Id = Channels.Id)
 		WHERE
 			pc.TeamId = :TeamId
-		AND pc.DeleteAt = 0
+		AND pc.DeleteAt = 0 
 		ORDER BY pc.DisplayName
 		LIMIT :Limit
 		OFFSET :Offset
@@ -1234,10 +1242,24 @@ func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Ch
 	return &channel, nil
 }
 
-func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
 	channels := &model.ChannelList{}
 
-	if _, err := s.GetReplica().Select(channels, "SELECT * FROM Channels WHERE (TeamId = :TeamId OR TeamId = '') AND DeleteAt != 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
+	query := `
+		SELECT * FROM Channels 
+		WHERE (TeamId = :TeamId OR TeamId = '') 
+		AND DeleteAt != 0 
+		AND Type != 'P'
+		UNION
+			SELECT * FROM Channels 
+			WHERE (TeamId = :TeamId OR TeamId = '') 
+			AND DeleteAt != 0 
+			AND Type = 'P' 
+			AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
+		ORDER BY DisplayName LIMIT :Limit OFFSET :Offset
+	`
+
+	if _, err := s.GetReplica().Select(channels, query, map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset, "UserId": userId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlChannelStore.GetDeleted", "store.sql_channel.get_deleted.missing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusNotFound)
 		}
@@ -1411,7 +1433,7 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 
 	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
 	if err != nil {
-		mlog.Error("SqlChannelStore.IsUserInChannelUseCache: " + err.Error())
+		mlog.Error("Error getting all channel members for user", mlog.Err(err))
 		return false
 	}
 
@@ -1624,6 +1646,66 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 	return count, nil
 }
 
+func (s SqlChannelStore) InvalidatePinnedPostCount(channelId string) {
+	channelPinnedPostCountsCache.Remove(channelId)
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Remove by ChannelId")
+	}
+}
+
+func (s SqlChannelStore) GetPinnedPostCountFromCache(channelId string) int64 {
+	if cacheItem, ok := channelPinnedPostCountsCache.Get(channelId); ok {
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheHitCounter("Channel Pinned Post Counts")
+		}
+		return cacheItem.(int64)
+	}
+
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter("Channel Pinned Post Counts")
+	}
+
+	count, err := s.GetPinnedPostCount(channelId, true)
+	if err != nil {
+		return 0
+	}
+
+	return count
+}
+
+func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
+	if allowFromCache {
+		if cacheItem, ok := channelPinnedPostCountsCache.Get(channelId); ok {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter("Channel Pinned Post Counts")
+			}
+			return cacheItem.(int64), nil
+		}
+	}
+
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter("Channel Pinned Post Counts")
+	}
+
+	count, err := s.GetReplica().SelectInt(`
+		SELECT count(*)
+			FROM Posts
+		WHERE
+			IsPinned = true
+			AND ChannelId = :ChannelId 
+			AND DeleteAt = 0`, map[string]interface{}{"ChannelId": channelId})
+
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GetPinnedPostCount", "store.sql_channel.get_pinnedpost_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	if allowFromCache {
+		channelPinnedPostCountsCache.AddWithExpiresInSecs(channelId, count, CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC)
+	}
+
+	return count, nil
+}
+
 func (s SqlChannelStore) InvalidateGuestCount(channelId string) {
 	channelGuestCountsCache.Remove(channelId)
 	if s.metrics != nil {
@@ -1722,7 +1804,7 @@ func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) *model.Ap
 
 func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
 	if _, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-		return model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.permanent_delete_members_by_user.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlChannelStore.ChannelPermanentDeleteMembersByUser", "store.sql_channel.permanent_delete_members_by_user.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -1849,7 +1931,7 @@ func (s SqlChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel
 	_, err := s.GetReplica().Select(&channels, query, params)
 
 	if err != nil {
-		mlog.Error(fmt.Sprint(err))
+		mlog.Error("Query error getting channels by ids", mlog.Err(err))
 		return nil, model.NewAppError("SqlChannelStore.GetChannelsByIds", "store.sql_channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError)
 	}
 	return channels, nil
@@ -2086,6 +2168,57 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	})
 }
 
+func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
+	publicChannels, publicErr := s.performSearch(`
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			Channels c ON (c.Id = Channels.Id)
+		WHERE
+			c.TeamId = :TeamId
+			SEARCH_CLAUSE
+			AND c.DeleteAt != 0
+			AND c.Type != 'P'
+		ORDER BY c.DisplayName
+		LIMIT 100
+		`, term, map[string]interface{}{
+		"TeamId": teamId,
+		"UserId": userId,
+	})
+
+	privateChannels, privateErr := s.performSearch(`
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			Channels c ON (c.Id = Channels.Id)
+		WHERE
+			c.TeamId = :TeamId
+			SEARCH_CLAUSE
+			AND c.DeleteAt != 0
+			AND c.Type = 'P'
+			AND c.Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
+		ORDER BY c.DisplayName
+		LIMIT 100
+		`, term, map[string]interface{}{
+		"TeamId": teamId,
+		"UserId": userId,
+	})
+
+	output := *publicChannels
+	output = append(output, *privateChannels...)
+
+	outputErr := publicErr
+	if privateErr != nil {
+		outputErr = privateErr
+	}
+
+	return &output, outputErr
+}
+
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
 	deleteFilter := "AND c.DeleteAt = 0"
 	if includeDeleted {
@@ -2191,17 +2324,7 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (
 }
 
 func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (likeClause, likeTerm string) {
-	likeTerm = term
-
-	// These chars must be removed from the like query.
-	for _, c := range ignoreLikeSearchChar {
-		likeTerm = strings.Replace(likeTerm, c, "", -1)
-	}
-
-	// These chars must be escaped in the like query.
-	for _, c := range escapeLikeSearchChar {
-		likeTerm = strings.Replace(likeTerm, c, "*"+c, -1)
-	}
+	likeTerm = sanitizeSearchTerm(term, "*")
 
 	if likeTerm == "" {
 		return
@@ -2246,7 +2369,7 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 
 		fulltextTerm = strings.Join(splitTerm, " ")
 
-		fulltextClause = fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery(:FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
+		fulltextClause = fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', :FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {
@@ -2361,6 +2484,7 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
 
 	for idx, term := range terms {
 		argName := fmt.Sprintf("Term%v", idx)
+		term = sanitizeSearchTerm(term, "\\")
 		likeClauses = append(likeClauses, fmt.Sprintf(baseLikeClause, ":"+argName))
 		args[argName] = "%" + term + "%"
 	}

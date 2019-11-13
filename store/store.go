@@ -1,3 +1,5 @@
+//go:generate go run layer_generators/main.go
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -49,9 +51,11 @@ type Store interface {
 	LockToMaster()
 	UnlockFromMaster()
 	DropAllTables()
+	GetCurrentSchemaVersion() string
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
+	CheckIntegrity() <-chan IntegrityCheckResult
 }
 
 type TeamStore interface {
@@ -66,19 +70,22 @@ type TeamStore interface {
 	GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllPrivateTeamListing() ([]*model.Team, *model.AppError)
 	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
+	GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllTeamListing() ([]*model.Team, *model.AppError)
 	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError)
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
 	PermanentDelete(teamId string) *model.AppError
 	AnalyticsTeamCount() (int64, *model.AppError)
+	AnalyticsPublicTeamCount() (int64, *model.AppError)
+	AnalyticsPrivateTeamCount() (int64, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
 	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
 	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	GetTotalMemberCount(teamId string) (int64, *model.AppError)
-	GetActiveMemberCount(teamId string) (int64, *model.AppError)
+	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
+	GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
 	GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError)
 	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError)
@@ -102,7 +109,7 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError)
-	CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError)
+	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
@@ -118,7 +125,7 @@ type ChannelStore interface {
 	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError)
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
 	GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError)
-	GetDeleted(team_id string, offset int, limit int) (*model.ChannelList, *model.AppError)
+	GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError)
 	GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, *model.AppError)
@@ -144,6 +151,9 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
+	InvalidatePinnedPostCount(channelId string)
+	GetPinnedPostCountFromCache(channelId string) int64
+	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidateGuestCount(channelId string)
 	GetGuestCountFromCache(channelId string) int64
 	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)
@@ -160,6 +170,7 @@ type ChannelStore interface {
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
 	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, *model.AppError)
 	SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
@@ -190,18 +201,18 @@ type ChannelMemberHistoryStore interface {
 type PostStore interface {
 	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
-	Get(id string) (*model.PostList, *model.AppError)
+	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	PermanentDeleteByChannel(channelId string) *model.AppError
-	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError)
 	GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError)
@@ -243,7 +254,7 @@ type UserStore interface {
 	GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError)
 	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
+	GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
@@ -517,6 +528,8 @@ type UserAccessTokenStore interface {
 type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)
 	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
+	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
+	SetWithOptions(pluginId string, key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError)
 	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
 	Delete(pluginId, key string) *model.AppError
 	DeleteAllForPlugin(PluginId string) *model.AppError
@@ -558,9 +571,11 @@ type UserTermsOfServiceStore interface {
 type GroupStore interface {
 	Create(group *model.Group) (*model.Group, *model.AppError)
 	Get(groupID string) (*model.Group, *model.AppError)
+	GetByName(name string) (*model.Group, *model.AppError)
 	GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
+	GetByUser(userId string) ([]*model.Group, *model.AppError)
 	Update(group *model.Group) (*model.Group, *model.AppError)
 	Delete(groupID string) (*model.Group, *model.AppError)
 
@@ -569,6 +584,7 @@ type GroupStore interface {
 	GetMemberCount(groupID string) (int64, *model.AppError)
 	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
+	PermanentDeleteMembersByUser(userId string) *model.AppError
 
 	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
@@ -622,4 +638,22 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
+}
+
+type OrphanedRecord struct {
+	ParentId string
+	ChildId  string
+}
+
+type RelationalIntegrityCheckData struct {
+	ParentName   string
+	ChildName    string
+	ParentIdAttr string
+	ChildIdAttr  string
+	Records      []OrphanedRecord
+}
+
+type IntegrityCheckResult struct {
+	Data interface{}
+	Err  error
 }

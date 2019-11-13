@@ -27,6 +27,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.ApiSessionRequired(getDeletedChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.ApiSessionRequired(getPublicChannelsByIdsForTeam)).Methods("POST")
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.ApiSessionRequired(searchChannelsForTeam)).Methods("POST")
+	api.BaseRoutes.ChannelsForTeam.Handle("/search_archived", api.ApiSessionRequired(searchArchivedChannelsForTeam)).Methods("POST")
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.ApiSessionRequired(autocompleteChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.ApiSessionRequired(autocompleteChannelsForTeamForSearch)).Methods("GET")
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getChannelsForTeamForUser)).Methods("GET")
@@ -35,6 +36,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(updateChannel)).Methods("PUT")
 	api.BaseRoutes.Channel.Handle("/patch", api.ApiSessionRequired(patchChannel)).Methods("PUT")
 	api.BaseRoutes.Channel.Handle("/convert", api.ApiSessionRequired(convertChannelToPrivate)).Methods("POST")
+	api.BaseRoutes.Channel.Handle("/privacy", api.ApiSessionRequired(updateChannelPrivacy)).Methods("PUT")
 	api.BaseRoutes.Channel.Handle("/restore", api.ApiSessionRequired(restoreChannel)).Methods("POST")
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(deleteChannel)).Methods("DELETE")
 	api.BaseRoutes.Channel.Handle("/stats", api.ApiSessionRequired(getChannelStats)).Methods("GET")
@@ -229,6 +231,54 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 	w.Write([]byte(rchannel.ToJson()))
 }
 
+func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.StringInterfaceFromJson(r.Body)
+	privacy, ok := props["privacy"].(string)
+	if !ok || (privacy != model.CHANNEL_OPEN && privacy != model.CHANNEL_PRIVATE) {
+		c.SetInvalidParam("privacy")
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	if channel.Name == model.DEFAULT_CHANNEL && privacy == model.CHANNEL_PRIVATE {
+		c.Err = model.NewAppError("updateChannelPrivacy", "api.channel.update_channel_privacy.default_channel_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	user, err := c.App.GetUser(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	channel.Type = privacy
+
+	updatedChannel, err := c.App.UpdateChannelPrivacy(channel, user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("name=" + updatedChannel.Name)
+
+	w.Write([]byte(updatedChannel.ToJson()))
+}
+
 func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
@@ -347,6 +397,22 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	otherUserId := userIds[0]
+	if c.App.Session.UserId == otherUserId {
+		otherUserId = userIds[1]
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, otherUserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		return
+	}
+
 	sc, err := c.App.GetOrCreateDirectChannel(userIds[0], userIds[1])
 	if err != nil {
 		c.Err = err
@@ -398,6 +464,25 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_CREATE_GROUP_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_CREATE_GROUP_CHANNEL)
+		return
+	}
+
+	canSeeAll := true
+	for _, id := range userIds {
+		if c.App.Session.UserId != id {
+			canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, id)
+			if err != nil {
+				c.Err = err
+				return
+			}
+			if !canSee {
+				canSeeAll = false
+			}
+		}
+	}
+
+	if !canSeeAll {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
@@ -492,7 +577,13 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stats := model.ChannelStats{ChannelId: c.Params.ChannelId, MemberCount: memberCount, GuestCount: guestCount}
+	pinnedPostCount, err := c.App.GetChannelPinnedPostCount(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	stats := model.ChannelStats{ChannelId: c.Params.ChannelId, MemberCount: memberCount, GuestCount: guestCount, PinnedPostCount: pinnedPostCount}
 	w.Write([]byte(stats.ToJson()))
 }
 
@@ -591,12 +682,7 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
-		return
-	}
-
-	channels, err := c.App.GetDeletedChannels(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	channels, err := c.App.GetDeletedChannels(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -758,6 +844,42 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		channels, err = c.App.SearchChannelsForUser(c.App.Session.UserId, c.Params.TeamId, props.Term)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Don't fill in channels props, since unused by client and potentially expensive.
+
+	w.Write([]byte(channels.ToJson()))
+}
+
+func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.ChannelSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("channel_search")
+		return
+	}
+
+	var channels *model.ChannelList
+	var err *model.AppError
+	if c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
+		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.App.Session.UserId)
+	} else {
+		// If the user is not a team member, return a 404
+		if _, err = c.App.GetTeamMember(c.Params.TeamId, c.App.Session.UserId); err != nil {
+			c.Err = err
+			return
+		}
+
+		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.App.Session.UserId)
 	}
 
 	if err != nil {

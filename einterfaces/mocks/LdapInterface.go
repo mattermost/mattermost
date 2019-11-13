@@ -69,13 +69,13 @@ func (_m *LdapInterface) DoLogin(id string, password string) (*model.User, *mode
 	return r0, r1
 }
 
-// FirstLoginSync provides a mock function with given fields: userID, userAuthService, userAuthData
-func (_m *LdapInterface) FirstLoginSync(userID string, userAuthService string, userAuthData string) *model.AppError {
-	ret := _m.Called(userID, userAuthService, userAuthData)
+// FirstLoginSync provides a mock function with given fields: userID, userAuthService, userAuthData, email
+func (_m *LdapInterface) FirstLoginSync(userID string, userAuthService string, userAuthData string, email string) *model.AppError {
+	ret := _m.Called(userID, userAuthService, userAuthData, email)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
-		r0 = rf(userID, userAuthService, userAuthData)
+	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.AppError); ok {
+		r0 = rf(userID, userAuthService, userAuthData, email)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

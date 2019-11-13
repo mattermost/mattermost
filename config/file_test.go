@@ -198,6 +198,7 @@ func TestFileStoreGet(t *testing.T) {
 
 	newCfg := &model.Config{}
 	oldCfg, err := fs.Set(newCfg)
+	require.NoError(t, err)
 
 	assert.True(t, oldCfg == cfg, "returned config after set() changed original")
 	assert.False(t, newCfg == cfg, "returned config should have been different from original")
@@ -216,6 +217,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		assert.Empty(t, fs.GetEnvironmentOverrides())
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 		fs, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -237,6 +239,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		assert.Empty(t, fs.GetEnvironmentOverrides())
 
 		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLEUPLOADS")
 
 		fs, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -258,6 +261,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		assert.Empty(t, fs.GetEnvironmentOverrides())
 
 		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
+		defer os.Unsetenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM")
 
 		fs, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -279,6 +283,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		assert.Empty(t, fs.GetEnvironmentOverrides())
 
 		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
+		defer os.Unsetenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE")
 
 		fs, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -300,6 +305,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		assert.Empty(t, fs.GetEnvironmentOverrides())
 
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
+		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
 		fs, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -324,6 +330,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		assert.Empty(t, fs.GetEnvironmentOverrides())
 
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db user:pwd@db2:5433/test-db2 user:pwd@db3:5434/test-db3")
+		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
 		fs, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -470,11 +477,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 
 	t.Run("watcher restarted", func(t *testing.T) {
@@ -506,11 +509,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 }
 
@@ -541,6 +540,7 @@ func TestFileStoreLoad(t *testing.T) {
 		assert.Equal(t, "http://minimal", *fs.Get().ServiceSettings.SiteURL)
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 		err = fs.Load()
 		require.NoError(t, err)
@@ -553,6 +553,7 @@ func TestFileStoreLoad(t *testing.T) {
 		defer tearDown()
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridePersistEnvVariables")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -575,6 +576,7 @@ func TestFileStoreLoad(t *testing.T) {
 		defer tearDown()
 
 		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLEUPLOADS")
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -597,6 +599,7 @@ func TestFileStoreLoad(t *testing.T) {
 		defer tearDown()
 
 		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
+		defer os.Unsetenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM")
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -619,6 +622,7 @@ func TestFileStoreLoad(t *testing.T) {
 		defer tearDown()
 
 		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
+		defer os.Unsetenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE")
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -641,6 +645,7 @@ func TestFileStoreLoad(t *testing.T) {
 		defer tearDown()
 
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
+		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -665,6 +670,7 @@ func TestFileStoreLoad(t *testing.T) {
 		defer tearDown()
 
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
+		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
@@ -735,11 +741,7 @@ func TestFileStoreLoad(t *testing.T) {
 		err = fs.Load()
 		require.NoError(t, err)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config loaded")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config loaded")
 	})
 }
 
@@ -772,11 +774,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
-		select {
-		case <-called:
-			t.Fatal("callback should not have been called since watching disabled")
-		case <-time.After(1 * time.Second):
-		}
+		require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called since watching disabled")
 	})
 
 	t.Run("enabled", func(t *testing.T) {
@@ -795,11 +793,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 }
 
@@ -877,6 +871,17 @@ func TestFileGetFile(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []byte("test"), data)
 	})
+
+	t.Run("get via absolute path", func(t *testing.T) {
+		err := fs.SetFile("new", []byte("new file"))
+		require.NoError(t, err)
+
+		data, err := fs.GetFile(filepath.Join(filepath.Dir(path), "new"))
+
+		require.NoError(t, err)
+		require.Equal(t, []byte("new file"), data)
+	})
+
 }
 
 func TestFileSetFile(t *testing.T) {
@@ -907,6 +912,18 @@ func TestFileSetFile(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []byte("overwritten file"), data)
 	})
+
+	t.Run("set via absolute path", func(t *testing.T) {
+		absolutePath := filepath.Join(filepath.Dir(path), "new")
+		err := fs.SetFile(absolutePath, []byte("new file"))
+		require.NoError(t, err)
+
+		data, err := fs.GetFile("new")
+
+		require.NoError(t, err)
+		require.Equal(t, []byte("new file"), data)
+	})
+
 }
 
 func TestFileHasFile(t *testing.T) {
@@ -974,6 +991,23 @@ func TestFileHasFile(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, has)
 	})
+
+	t.Run("has via absolute path", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		err = fs.SetFile("existing", []byte("existing file"))
+		require.NoError(t, err)
+
+		has, err := fs.HasFile(filepath.Join(filepath.Dir(path), "existing"))
+		require.NoError(t, err)
+		require.True(t, has)
+	})
+
 }
 
 func TestFileRemoveFile(t *testing.T) {
@@ -1039,6 +1073,27 @@ func TestFileRemoveFile(t *testing.T) {
 		_, err = fs.GetFile("existing")
 		require.Error(t, err)
 	})
+
+	t.Run("don't remove via absolute path", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		err = fs.SetFile("existing", []byte("existing file"))
+		require.NoError(t, err)
+
+		filename := filepath.Join(filepath.Dir(path), "existing")
+		err = fs.RemoveFile(filename)
+		require.NoError(t, err)
+
+		has, err := fs.HasFile(filename)
+		require.NoError(t, err)
+		require.True(t, has)
+
+	})
 }
 
 func TestFileStoreString(t *testing.T) {
@@ -1050,4 +1105,15 @@ func TestFileStoreString(t *testing.T) {
 	defer fs.Close()
 
 	assert.Equal(t, "file://"+path, fs.String())
+}
+
+// wasCalled reports whether a given callback channel was called
+// within the specified time duration or not.
+func wasCalled(c chan bool, duration time.Duration) bool {
+	select {
+	case <-c:
+		return true
+	case <-time.After(duration):
+	}
+	return false
 }

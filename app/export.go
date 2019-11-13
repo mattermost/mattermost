@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/store"
+
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
@@ -410,6 +412,10 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 		var user *model.User
 		user, err = a.Srv.Store.User().Get(reaction.UserId)
 		if err != nil {
+			if err.Id == store.MISSING_ACCOUNT_ERROR { // this is a valid case, the user that reacted might've been deleted by now
+				mlog.Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.String("user_id", reaction.UserId))
+				continue
+			}
 			return nil, err
 		}
 		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))

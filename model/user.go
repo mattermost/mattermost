@@ -9,10 +9,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/services/timezones"
@@ -494,6 +496,20 @@ func (u *User) Sanitize(options map[string]bool) {
 	}
 }
 
+// Remove any input data from the user object that is not user controlled
+func (u *User) SanitizeInput(isAdmin bool) {
+	if !isAdmin {
+		u.AuthData = NewString("")
+		u.AuthService = ""
+	}
+	u.LastPasswordUpdate = 0
+	u.LastPictureUpdate = 0
+	u.FailedAttempts = 0
+	u.EmailVerified = false
+	u.MfaActive = false
+	u.MfaSecret = ""
+}
+
 func (u *User) ClearNonProfileFields() {
 	u.Password = ""
 	u.AuthData = NewString("")
@@ -539,8 +555,8 @@ func (u *User) GetFullName() string {
 	}
 }
 
-func (u *User) GetDisplayName(nameFormat string) string {
-	displayName := u.Username
+func (u *User) getDisplayName(baseName, nameFormat string) string {
+	displayName := baseName
 
 	if nameFormat == SHOW_NICKNAME_FULLNAME {
 		if len(u.Nickname) > 0 {
@@ -555,6 +571,18 @@ func (u *User) GetDisplayName(nameFormat string) string {
 	}
 
 	return displayName
+}
+
+func (u *User) GetDisplayName(nameFormat string) string {
+	displayName := u.Username
+
+	return u.getDisplayName(displayName, nameFormat)
+}
+
+func (u *User) GetDisplayNameWithPrefix(nameFormat, prefix string) string {
+	displayName := prefix + u.Username
+
+	return u.getDisplayName(displayName, nameFormat)
 }
 
 func (u *User) GetRoles() []string {
@@ -811,4 +839,28 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	bodyBytes, _ := ioutil.ReadAll(data)
 	json.Unmarshal(bodyBytes, uwg)
 	return uwg
+}
+
+var passwordRandomSource = rand.NewSource(time.Now().Unix())
+var passwordSpecialChars = "!$%^&*(),."
+var passwordNumbers = "0123456789"
+var passwordUpperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
+var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
+
+func GeneratePassword(minimumLength int) string {
+	r := rand.New(passwordRandomSource)
+
+	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
+	password := string([]rune(passwordUpperCaseLetters)[r.Intn(len(passwordUpperCaseLetters))]) +
+		string([]rune(passwordNumbers)[r.Intn(len(passwordNumbers))]) +
+		string([]rune(passwordLowerCaseLetters)[r.Intn(len(passwordLowerCaseLetters))]) +
+		string([]rune(passwordSpecialChars)[r.Intn(len(passwordSpecialChars))])
+
+	for len(password) < minimumLength {
+		i := r.Intn(len(passwordAllChars))
+		password = password + string([]rune(passwordAllChars)[i])
+	}
+
+	return password
 }

@@ -45,6 +45,20 @@ func TestCreateBot(t *testing.T) {
 			require.NotNil(t, err)
 			require.Equal(t, "model.bot.is_valid.description.app_error", err.Id)
 		})
+
+		t.Run("username contains . character", func(t *testing.T) {
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			bot, err := th.App.CreateBot(&model.Bot{
+				Username:    "username.",
+				Description: "a bot",
+				OwnerId:     th.BasicUser.Id,
+			})
+			require.NotNil(t, err)
+			require.Nil(t, bot)
+			require.Equal(t, "model.user.is_valid.email.app_error", err.Id)
+		})
 	})
 
 	t.Run("create bot", func(t *testing.T) {
@@ -157,6 +171,9 @@ func TestPatchBot(t *testing.T) {
 
 		patchedBot, err := th.App.PatchBot(createdBot.UserId, botPatch)
 		require.Nil(t, err)
+
+		// patchedBot should create a new .UpdateAt time
+		require.NotEqual(t, createdBot.UpdateAt, patchedBot.UpdateAt)
 
 		createdBot.Username = "username2"
 		createdBot.DisplayName = "updated bot"
@@ -632,6 +649,7 @@ func TestSetBotIconImage(t *testing.T) {
 			Username: "username",
 			Id:       th.BasicUser.Id,
 		})
+		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
 
 		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
@@ -683,6 +701,7 @@ func TestGetBotIconImage(t *testing.T) {
 			Username: "username",
 			Id:       th.BasicUser.Id,
 		})
+		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
 
 		svgFile.Seek(0, 0)
@@ -729,6 +748,7 @@ func TestDeleteBotIconImage(t *testing.T) {
 			Username: "username",
 			Id:       th.BasicUser.Id,
 		})
+		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
 
 		// Set icon

@@ -94,6 +94,7 @@ func TestMemoryStoreGetEnivironmentOverrides(t *testing.T) {
 	assert.Empty(t, ms.GetEnvironmentOverrides())
 
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 	ms, err = config.NewMemoryStore()
 	require.NoError(t, err)
@@ -214,11 +215,7 @@ func TestMemoryStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 }
 
@@ -231,6 +228,7 @@ func TestMemoryStoreLoad(t *testing.T) {
 		defer ms.Close()
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 		err = ms.Load()
 		require.NoError(t, err)
@@ -266,11 +264,7 @@ func TestMemoryStoreLoad(t *testing.T) {
 		err = ms.Load()
 		require.NoError(t, err)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config loaded")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config loaded")
 	})
 }
 
@@ -280,7 +274,7 @@ func TestMemoryGetFile(t *testing.T) {
 	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
 		InitialConfig: minimalConfig,
 		InitialFiles: map[string][]byte{
-			"empty-file": []byte{},
+			"empty-file": {},
 			"test-file":  []byte("test"),
 		},
 	})

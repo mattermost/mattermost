@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"html"
+	"html/template"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -73,12 +74,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 		useMilitaryTime = data.Value == "true"
 	}
 
-	var nameFormat string
-	if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); err != nil {
-		nameFormat = *a.Config().TeamSettings.TeammateNameDisplay
-	} else {
-		nameFormat = data.Value
-	}
+	nameFormat := a.GetNotificationNameFormat(user)
 
 	channelName := notification.GetChannelName(nameFormat, "")
 	senderName := notification.GetSenderName(nameFormat, *a.Config().ServiceSettings.EnablePostUsernameOverride)
@@ -104,7 +100,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 
 	a.Srv.Go(func() {
 		if err := a.SendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
-			mlog.Error(fmt.Sprint("Error to send the email", user.Email, err))
+			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(err))
 		}
 	})
 
@@ -171,7 +167,10 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 		bodyPage = a.NewEmailTemplate("post_body_full", recipient.Locale)
-		bodyPage.Props["PostMessage"] = a.GetMessageForNotification(post, translateFunc)
+		postMessage := a.GetMessageForNotification(post, translateFunc)
+		postMessage = html.EscapeString(postMessage)
+		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, teamURL)
+		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
 		bodyPage = a.NewEmailTemplate("post_body_generic", recipient.Locale)
 	}
@@ -283,6 +282,36 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 	}
 }
 
+func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) string {
+	team, err := a.GetTeamByName(teamName)
+	if err != nil {
+		mlog.Error("Encountered error while looking up team by name", mlog.String("team_name", teamName), mlog.Err(err))
+		return postMessage
+	}
+
+	channelNames := model.ChannelMentions(postMessage)
+	if len(channelNames) == 0 {
+		return postMessage
+	}
+
+	channels, err := a.GetChannelsByNames(channelNames, team.Id)
+	if err != nil {
+		mlog.Error("Encountered error while getting channels", mlog.Err(err))
+		return postMessage
+	}
+
+	visited := make(map[string]bool)
+	for _, ch := range channels {
+		if !visited[ch.Id] && ch.Type == model.CHANNEL_OPEN {
+			channelURL := teamURL + "/channels/" + ch.Name
+			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
+			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)
+			visited[ch.Id] = true
+		}
+	}
+	return postMessage
+}
+
 func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
 	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
 		return post.Message
@@ -291,7 +320,7 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 	// extract the filenames from their paths and determine what type of files are attached
 	infos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
 	if err != nil {
-		mlog.Warn(fmt.Sprintf("Encountered error when getting files for notification message, post_id=%v, err=%v", post.Id, err), mlog.String("post_id", post.Id))
+		mlog.Warn("Encountered error when getting files for notification message", mlog.String("post_id", post.Id), mlog.Err(err))
 	}
 
 	filenames := make([]string, len(infos))

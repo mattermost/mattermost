@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-ldap/ldap"
+	"github.com/mattermost/ldap"
 )
 
 const (
@@ -104,7 +104,7 @@ const (
 	TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT  = ""
 	TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT = 300
 
-	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"
+	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"
 
 	FILE_SETTINGS_DEFAULT_DIRECTORY = "./data/"
 
@@ -130,6 +130,7 @@ const (
 	LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE           = ""
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
+	SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE      = ""
 	SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
 	SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE      = ""
@@ -138,7 +139,16 @@ const (
 	SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE     = ""
 	SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE   = ""
 
-	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://about.mattermost.com/downloads/"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1    = "RSAwithSHA1"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256  = "RSAwithSHA256"
+	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512  = "RSAwithSHA512"
+	SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM = SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1
+
+	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N    = "Canonical1.0"
+	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11  = "Canonical1.1"
+	SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM = SAML_SETTINGS_CANONICAL_ALGORITHM_C14N
+
+	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://mattermost.com/download/#mattermostApps"
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
 	NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK     = "https://about.mattermost.com/mattermost-ios-app/"
 
@@ -151,7 +161,7 @@ const (
 
 	TEAM_SETTINGS_DEFAULT_TEAM_TEXT = "default"
 
-	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                    = "http://dockerhost:9200"
+	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                    = "http://localhost:9200"
 	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME                          = "elastic"
 	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                          = "changeme"
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS               = 1
@@ -171,8 +181,11 @@ const (
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
 
-	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
-	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
+	PLUGIN_SETTINGS_DEFAULT_DIRECTORY          = "./plugins"
+	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY   = "./client/plugins"
+	PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE = true
+	PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL    = "https://api.integrations.mattermost.com"
+	PLUGIN_SETTINGS_OLD_MARKETPLACE_URL        = "https://marketplace.integrations.mattermost.com"
 
 	COMPLIANCE_EXPORT_TYPE_CSV             = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE        = "actiance"
@@ -248,7 +261,7 @@ type ServiceSettings struct {
 	EnableIncomingWebhooks                            *bool
 	EnableOutgoingWebhooks                            *bool
 	EnableCommands                                    *bool
-	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool `json:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
 	EnablePostUsernameOverride                        *bool
 	EnablePostIconOverride                            *bool
 	EnableLinkPreviews                                *bool
@@ -278,9 +291,9 @@ type ServiceSettings struct {
 	EnableGifPicker                                   *bool
 	GfycatApiKey                                      *string
 	GfycatApiSecret                                   *string
-	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string `json:"RestrictCustomEmojiCreation"` // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string `json:"RestrictPostDelete"`          // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_AllowEditPost               *string `json:"AllowEditPost"`               // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_AllowEditPost               *string `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // This field is deprecated and must not be used.
 	PostEditTimeLimit                                 *int
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64 `restricted:"true"`
 	EnablePostSearch                                  *bool  `restricted:"true"`
@@ -304,9 +317,10 @@ type ServiceSettings struct {
 	DisableLegacyMFA                                  *bool `restricted:"true"`
 	ExperimentalStrictCSRFEnforcement                 *bool `restricted:"true"`
 	EnableEmailInvitations                            *bool
-	ExperimentalLdapGroupSync                         *bool
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 	EnableBotAccountCreation                          *bool
+	EnableSVGs                                        *bool
+	EnableLatex                                       *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -652,10 +666,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.DisableLegacyMFA = NewBool(!isUpdate)
 	}
 
-	if s.ExperimentalLdapGroupSync == nil {
-		s.ExperimentalLdapGroupSync = NewBool(false)
-	}
-
 	if s.ExperimentalStrictCSRFEnforcement == nil {
 		s.ExperimentalStrictCSRFEnforcement = NewBool(false)
 	}
@@ -666,6 +676,22 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableBotAccountCreation == nil {
 		s.EnableBotAccountCreation = NewBool(false)
+	}
+
+	if s.EnableSVGs == nil {
+		if isUpdate {
+			s.EnableSVGs = NewBool(true)
+		} else {
+			s.EnableSVGs = NewBool(false)
+		}
+	}
+
+	if s.EnableLatex == nil {
+		if isUpdate {
+			s.EnableLatex = NewBool(true)
+		} else {
+			s.EnableLatex = NewBool(false)
+		}
 	}
 }
 
@@ -1218,11 +1244,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SMTPServer == nil || len(*s.SMTPServer) == 0 {
-		s.SMTPServer = NewString("dockerhost")
+		s.SMTPServer = NewString("localhost")
 	}
 
 	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
-		s.SMTPPort = NewString("2500")
+		s.SMTPPort = NewString("10025")
 	}
 
 	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
@@ -1468,7 +1494,7 @@ func (s *ThemeSettings) SetDefaults() {
 type TeamSettings struct {
 	SiteName                                                  *string
 	MaxUsersPerTeam                                           *int
-	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool `json:"EnableTeamCreation"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // This field is deprecated and must not be used.
 	EnableUserCreation                                        *bool
 	EnableOpenServer                                          *bool
 	EnableUserDeactivation                                    *bool
@@ -1477,14 +1503,14 @@ type TeamSettings struct {
 	CustomBrandText                                           *string
 	CustomDescriptionText                                     *string
 	RestrictDirectMessage                                     *string
-	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string `json:"RestrictTeamInvite"`                  // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string `json:"RestrictPublicChannelManagement"`     // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string `json:"RestrictPrivateChannelManagement"`    // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation       *string `json:"RestrictPublicChannelCreation"`       // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation      *string `json:"RestrictPrivateChannelCreation"`      // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string `json:"RestrictPublicChannelDeletion"`       // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string `json:"RestrictPrivateChannelDeletion"`      // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string `json:"RestrictPrivateChannelManageMembers"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string `json:"RestrictTeamInvite" mapstructure:"RestrictTeamInvite"`                                   // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string `json:"RestrictPublicChannelManagement" mapstructure:"RestrictPublicChannelManagement"`         // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string `json:"RestrictPrivateChannelManagement" mapstructure:"RestrictPrivateChannelManagement"`       // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation       *string `json:"RestrictPublicChannelCreation" mapstructure:"RestrictPublicChannelCreation"`             // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation      *string `json:"RestrictPrivateChannelCreation" mapstructure:"RestrictPrivateChannelCreation"`           // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string `json:"RestrictPublicChannelDeletion" mapstructure:"RestrictPublicChannelDeletion"`             // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string `json:"RestrictPrivateChannelDeletion" mapstructure:"RestrictPrivateChannelDeletion"`           // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // This field is deprecated and must not be used.
 	EnableXToLeaveChannelsFromLHS                             *bool
 	UserStatusAwayTimeout                                     *int64
 	MaxChannelsPerTeam                                        *int64
@@ -1666,6 +1692,7 @@ type LdapSettings struct {
 	// Filtering
 	UserFilter  *string
 	GroupFilter *string
+	GuestFilter *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string
@@ -1735,6 +1762,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.UserFilter == nil {
 		s.UserFilter = NewString("")
+	}
+
+	if s.GuestFilter == nil {
+		s.GuestFilter = NewString("")
 	}
 
 	if s.GroupFilter == nil {
@@ -1874,6 +1905,9 @@ type SamlSettings struct {
 	IdpDescriptorUrl            *string
 	AssertionConsumerServiceURL *string
 
+	SignatureAlgorithm *string
+	CanonicalAlgorithm *string
+
 	ScopingIDPProviderId *string
 	ScopingIDPName       *string
 
@@ -1883,6 +1917,7 @@ type SamlSettings struct {
 
 	// User Mapping
 	IdAttribute        *string
+	GuestAttribute     *string
 	FirstNameAttribute *string
 	LastNameAttribute  *string
 	EmailAttribute     *string
@@ -1921,6 +1956,14 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.SignRequest == nil {
 		s.SignRequest = NewBool(false)
+	}
+
+	if s.SignatureAlgorithm == nil {
+		s.SignatureAlgorithm = NewString(SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM)
+	}
+
+	if s.CanonicalAlgorithm == nil {
+		s.CanonicalAlgorithm = NewString(SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM)
 	}
 
 	if s.IdpUrl == nil {
@@ -1963,6 +2006,9 @@ func (s *SamlSettings) SetDefaults() {
 		s.IdAttribute = NewString(SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE)
 	}
 
+	if s.GuestAttribute == nil {
+		s.GuestAttribute = NewString(SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE)
+	}
 	if s.FirstNameAttribute == nil {
 		s.FirstNameAttribute = NewString(SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE)
 	}
@@ -2187,10 +2233,13 @@ type PluginSettings struct {
 	Enable                   *bool
 	EnableUploads            *bool   `restricted:"true"`
 	AllowInsecureDownloadUrl *bool   `restricted:"true"`
+	EnableHealthCheck        *bool   `restricted:"true"`
 	Directory                *string `restricted:"true"`
 	ClientDirectory          *string `restricted:"true"`
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
+	EnableMarketplace        *bool
+	MarketplaceUrl           *string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2206,20 +2255,16 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.AllowInsecureDownloadUrl = NewBool(false)
 	}
 
-	if s.Directory == nil {
+	if s.EnableHealthCheck == nil {
+		s.EnableHealthCheck = NewBool(true)
+	}
+
+	if s.Directory == nil || *s.Directory == "" {
 		s.Directory = NewString(PLUGIN_SETTINGS_DEFAULT_DIRECTORY)
 	}
 
-	if *s.Directory == "" {
-		*s.Directory = PLUGIN_SETTINGS_DEFAULT_DIRECTORY
-	}
-
-	if s.ClientDirectory == nil {
+	if s.ClientDirectory == nil || *s.ClientDirectory == "" {
 		s.ClientDirectory = NewString(PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY)
-	}
-
-	if *s.ClientDirectory == "" {
-		*s.ClientDirectory = PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY
 	}
 
 	if s.Plugins == nil {
@@ -2233,6 +2278,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["com.mattermost.nps"] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
+	}
+
+	if s.EnableMarketplace == nil {
+		s.EnableMarketplace = NewBool(PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE)
+	}
+
+	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" || *s.MarketplaceUrl == PLUGIN_SETTINGS_OLD_MARKETPLACE_URL {
+		s.MarketplaceUrl = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 	}
 }
 
@@ -2736,6 +2789,12 @@ func (ls *LdapSettings) isValid() *AppError {
 				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
+
+		if *ls.GuestFilter != "" {
+			if _, err := ldap.CompileFilter(*ls.GuestFilter); err != nil {
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil
@@ -2782,6 +2841,22 @@ func (ss *SamlSettings) isValid() *AppError {
 		if len(*ss.EmailAttribute) == 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
+
+		if !(*ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_signature_algorithm.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !(*ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N || *ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if len(*ss.GuestAttribute) > 0 {
+			if !(strings.Contains(*ss.GuestAttribute, "=")) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+			if len(strings.Split(*ss.GuestAttribute, "=")) != 2 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil
@@ -2792,7 +2867,7 @@ func (ss *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *ss.ConnectionSecurity == CONN_SECURITY_TLS && *ss.UseLetsEncrypt == false {
+	if *ss.ConnectionSecurity == CONN_SECURITY_TLS && !*ss.UseLetsEncrypt {
 		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file.app_error", nil, "", http.StatusBadRequest)
 
 		if *ss.TLSCertFile == "" {
