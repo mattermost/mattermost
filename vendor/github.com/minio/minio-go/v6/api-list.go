@@ -1,6 +1,6 @@
 /*
  * MinIO Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2017 MinIO, Inc.
+ * Copyright 2015-2019 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -208,12 +208,10 @@ func (c Client) listObjectsV2Query(bucketName, objectPrefix, continuationToken s
 		urlValues.Set("fetch-owner", "true")
 	}
 
-	// maxkeys should default to 1000 or less.
-	if maxkeys == 0 || maxkeys > 1000 {
-		maxkeys = 1000
-	}
 	// Set max keys.
-	urlValues.Set("max-keys", fmt.Sprintf("%d", maxkeys))
+	if maxkeys > 0 {
+		urlValues.Set("max-keys", fmt.Sprintf("%d", maxkeys))
+	}
 
 	// Set start-after
 	if startAfter != "" {
@@ -248,15 +246,15 @@ func (c Client) listObjectsV2Query(bucketName, objectPrefix, continuationToken s
 		return listBucketResult, errors.New("Truncated response should have continuation token set")
 	}
 
-	for _, obj := range listBucketResult.Contents {
-		obj.Key, err = url.QueryUnescape(obj.Key)
+	for i, obj := range listBucketResult.Contents {
+		listBucketResult.Contents[i].Key, err = url.QueryUnescape(obj.Key)
 		if err != nil {
 			return listBucketResult, err
 		}
 	}
 
-	for _, obj := range listBucketResult.CommonPrefixes {
-		obj.Prefix, err = url.QueryUnescape(obj.Prefix)
+	for i, obj := range listBucketResult.CommonPrefixes {
+		listBucketResult.CommonPrefixes[i].Prefix, err = url.QueryUnescape(obj.Prefix)
 		if err != nil {
 			return listBucketResult, err
 		}
@@ -401,12 +399,10 @@ func (c Client) listObjectsQuery(bucketName, objectPrefix, objectMarker, delimit
 		urlValues.Set("marker", objectMarker)
 	}
 
-	// maxkeys should default to 1000 or less.
-	if maxkeys == 0 || maxkeys > 1000 {
-		maxkeys = 1000
-	}
 	// Set max keys.
-	urlValues.Set("max-keys", fmt.Sprintf("%d", maxkeys))
+	if maxkeys > 0 {
+		urlValues.Set("max-keys", fmt.Sprintf("%d", maxkeys))
+	}
 
 	// Always set encoding-type
 	urlValues.Set("encoding-type", "url")
@@ -433,15 +429,15 @@ func (c Client) listObjectsQuery(bucketName, objectPrefix, objectMarker, delimit
 		return listBucketResult, err
 	}
 
-	for _, obj := range listBucketResult.Contents {
-		obj.Key, err = url.QueryUnescape(obj.Key)
+	for i, obj := range listBucketResult.Contents {
+		listBucketResult.Contents[i].Key, err = url.QueryUnescape(obj.Key)
 		if err != nil {
 			return listBucketResult, err
 		}
 	}
 
-	for _, obj := range listBucketResult.CommonPrefixes {
-		obj.Prefix, err = url.QueryUnescape(obj.Prefix)
+	for i, obj := range listBucketResult.CommonPrefixes {
+		listBucketResult.CommonPrefixes[i].Prefix, err = url.QueryUnescape(obj.Prefix)
 		if err != nil {
 			return listBucketResult, err
 		}
@@ -642,15 +638,15 @@ func (c Client) listMultipartUploadsQuery(bucketName, keyMarker, uploadIDMarker,
 		return listMultipartUploadsResult, err
 	}
 
-	for _, obj := range listMultipartUploadsResult.Uploads {
-		obj.Key, err = url.QueryUnescape(obj.Key)
+	for i, obj := range listMultipartUploadsResult.Uploads {
+		listMultipartUploadsResult.Uploads[i].Key, err = url.QueryUnescape(obj.Key)
 		if err != nil {
 			return listMultipartUploadsResult, err
 		}
 	}
 
-	for _, obj := range listMultipartUploadsResult.CommonPrefixes {
-		obj.Prefix, err = url.QueryUnescape(obj.Prefix)
+	for i, obj := range listMultipartUploadsResult.CommonPrefixes {
+		listMultipartUploadsResult.CommonPrefixes[i].Prefix, err = url.QueryUnescape(obj.Prefix)
 		if err != nil {
 			return listMultipartUploadsResult, err
 		}
