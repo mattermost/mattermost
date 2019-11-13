@@ -13,11 +13,11 @@ import (
 // CheckRequiredServerConfiguration checks if the server is configured according to
 // plugin requirements.
 func (p *HelpersImpl) CheckRequiredServerConfiguration(req *model.Config) (bool, error) {
-	cfg := p.API.GetConfig()
-
 	if req == nil {
 		return true, nil
 	}
+
+	cfg := p.API.GetConfig()
 
 	mc, err := utils.Merge(req, cfg, nil)
 	if err != nil {

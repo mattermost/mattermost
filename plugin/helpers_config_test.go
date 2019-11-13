@@ -18,8 +18,6 @@ func TestCheckRequiredServerConfiguration(t *testing.T) {
 	}{
 		"no required config therefore it should be compatible": {
 			SetupAPI: func(api *plugintest.API) *plugintest.API {
-				api.On("GetConfig").Return(nil)
-
 				return api
 			},
 			Input:        nil,
@@ -44,7 +42,7 @@ func TestCheckRequiredServerConfiguration(t *testing.T) {
 			ShouldReturn: true,
 			ShouldError:  false,
 		},
-		"could not merge configurations": {
+		"different configurations": {
 			SetupAPI: func(api *plugintest.API) *plugintest.API {
 				api.On("GetConfig").Return(&model.Config{})
 
