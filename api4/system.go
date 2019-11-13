@@ -426,10 +426,10 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.Write([]byte(msg.ToJson()))
-	} else {
-		if err != nil {
-			c.Err = model.NewAppError("pushNotificationAck", "api.push_notifications_ack.forward.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	} else if err != nil {
+		c.Err = model.NewAppError("pushNotificationAck", "api.push_notifications_ack.forward.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
+	ReturnStatusOK(w)
 }
