@@ -133,8 +133,9 @@ func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, replace bool) (
 	}
 
 	if signature != nil {
-		if appErr = a.saveSignature(manifest.Id, signature); appErr != nil {
-			return nil, appErr
+		signature.Seek(0, 0)
+		if _, appErr = a.WriteFile(signature, a.getSignatureStorePath(manifest.Id)); appErr != nil {
+			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -334,15 +335,6 @@ func (a *App) removePluginLocally(id string) *model.AppError {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return nil
-}
-
-func (a *App) saveSignature(pluginId string, signature io.ReadSeeker) *model.AppError {
-	filePath := a.getSignatureStorePath(pluginId)
-	signature.Seek(0, 0)
-	if _, appErr := a.WriteFile(signature, filePath); appErr != nil {
-		return model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-	}
 	return nil
 }
 
