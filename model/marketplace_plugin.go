@@ -12,10 +12,11 @@ import (
 
 // BaseMarketplacePlugin is a Mattermost plugin received from the marketplace server.
 type BaseMarketplacePlugin struct {
-	HomepageURL string    `json:"homepage_url"`
-	DownloadURL string    `json:"download_url"`
-	IconData    string    `json:"icon_data"`
-	Manifest    *Manifest `json:"manifest"`
+	HomepageURL     string    `json:"homepage_url"`
+	DownloadURL     string    `json:"download_url"`
+	ReleaseNotesURL string    `json:"release_notes_url"`
+	IconData        string    `json:"icon_data"`
+	Manifest        *Manifest `json:"manifest"`
 }
 
 // MarketplacePlugin is a state aware marketplace plugin.
