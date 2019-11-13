@@ -34,4 +34,37 @@ func TestTeamStoreCache(t *testing.T) {
 		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
 		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 1)
 	})
+
+	t.Run("first call not cached, second force no cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		gotUserTeamIds, err := cachedStore.Team().GetUserTeamIds(fakeUserId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
+		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 1)
+
+		gotUserTeamIds, err = cachedStore.Team().GetUserTeamIds(fakeUserId, false)
+		require.Nil(t, err)
+		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
+		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 2)
+	})
+
+	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		gotUserTeamIds, err := cachedStore.Team().GetUserTeamIds(fakeUserId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
+		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 1)
+
+		cachedStore.Team().InvalidateAllTeamIdsForUser(fakeUserId)
+
+		gotUserTeamIds, err = cachedStore.Team().GetUserTeamIds(fakeUserId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
+		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 2)
+	})
+
 }
