@@ -114,6 +114,21 @@ func TestInstallPluginLocally(t *testing.T) {
 		require.Nil(t, actualManifest)
 	})
 
+	// The following tests fail mysteriously on CI due to an unexpected bundle being present.
+	// This exists to clean up manually until we figure out what test isn't cleaning up after
+	// itself.
+	cleanExistingBundles := func(t *testing.T, th *TestHelper) {
+		pluginsEnvironment := th.App.GetPluginsEnvironment()
+		require.NotNil(t, pluginsEnvironment)
+		bundleInfos, err := pluginsEnvironment.Available()
+		require.Nil(t, err)
+
+		for _, bundleInfo := range bundleInfos {
+			err := th.App.removePluginLocally(bundleInfo.Manifest.Id)
+			require.Nilf(t, err, "failed to remove existing plugin %s", bundleInfo.Manifest.Id)
+		}
+	}
+
 	assertBundleInfoManifests := func(t *testing.T, th *TestHelper, manifests []*model.Manifest) {
 		pluginsEnvironment := th.App.GetPluginsEnvironment()
 		require.NotNil(t, pluginsEnvironment)
@@ -133,6 +148,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	t.Run("no plugins already installed", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		cleanExistingBundles(t, th)
 
 		manifest, appErr := installPlugin(t, th, "valid", "0.0.1", installPluginLocallyOnlyIfNew)
 		require.Nil(t, appErr)
@@ -144,6 +160,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	t.Run("different plugin already installed", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		cleanExistingBundles(t, th)
 
 		otherManifest, appErr := installPlugin(t, th, "other", "0.0.1", installPluginLocallyOnlyIfNew)
 		require.Nil(t, appErr)
@@ -160,6 +177,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		t.Run("install only if new", func(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
+			cleanExistingBundles(t, th)
 
 			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.1", installPluginLocallyOnlyIfNew)
 			require.Nil(t, appErr)
@@ -176,6 +194,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		t.Run("install if upgrade, but older", func(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
+			cleanExistingBundles(t, th)
 
 			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfUpgrade)
 			require.Nil(t, appErr)
@@ -191,6 +210,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		t.Run("install if upgrade, but same version", func(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
+			cleanExistingBundles(t, th)
 
 			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfUpgrade)
 			require.Nil(t, appErr)
@@ -206,6 +226,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		t.Run("install if upgrade, newer version", func(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
+			cleanExistingBundles(t, th)
 
 			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfUpgrade)
 			require.Nil(t, appErr)
@@ -221,6 +242,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		t.Run("install always, old version", func(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
+			cleanExistingBundles(t, th)
 
 			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyAlways)
 			require.Nil(t, appErr)
