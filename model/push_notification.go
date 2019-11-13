@@ -38,7 +38,6 @@ type PushNotificationAck struct {
 	ClientPlatform   string `json:"platform"`
 	NotificationType string `json:"type"`
 	PostId           string `json:"post_id,omitempty"`
-	UserId           string `json:"user_id,omitempty"`
 }
 
 type PushNotification struct {
