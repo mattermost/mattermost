@@ -32,17 +32,11 @@ func TestCreateTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	if rteam.Name != team.Name {
-		t.Fatal("names did not match")
-	}
+	require.Equal(t, rteam.Name, team.Name, "names did not match")
 
-	if rteam.DisplayName != team.DisplayName {
-		t.Fatal("display names did not match")
-	}
+	require.Equal(t, rteam.DisplayName, team.DisplayName, "display names did not match")
 
-	if rteam.Type != team.Type {
-		t.Fatal("types did not match")
-	}
+	require.Equal(t, rteam.Type, team.Type, "types did not match")
 
 	_, resp = Client.CreateTeam(rteam)
 	CheckBadRequestStatus(t, resp)
@@ -57,15 +51,10 @@ func TestCreateTeam(t *testing.T) {
 	CheckErrorMessage(t, resp, "model.team.is_valid.characters.app_error")
 	CheckBadRequestStatus(t, resp)
 
-	if r, err := Client.DoApiPost("/teams", "garbage"); err == nil {
-		t.Fatal("should have errored")
-	} else {
-		if r.StatusCode != http.StatusBadRequest {
-			t.Log("actual: " + strconv.Itoa(r.StatusCode))
-			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
-			t.Fatal("wrong status code")
-		}
-	}
+	r, err := Client.DoApiPost("/teams", "garbage")
+	require.NotNil(t, err, "should have errored")
+
+	require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 
 	Client.Logout()
 
@@ -80,9 +69,7 @@ func TestCreateTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	if *rteam.GroupConstrained != *groupConstrainedTeam.GroupConstrained {
-		t.Fatal("GroupConstrained flags do not match")
-	}
+	assert.Equal(t, *rteam.GroupConstrained, *groupConstrainedTeam.GroupConstrained, "GroupConstrained flags do not match")
 
 	// Check the appropriate permissions are enforced.
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
@@ -114,9 +101,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 
 		rteam, resp := th.Client.CreateTeam(team)
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
@@ -130,9 +115,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 
 		rteam, resp := th.SystemAdminClient.CreateTeam(team)
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 }
 
@@ -145,9 +128,7 @@ func TestGetTeam(t *testing.T) {
 	rteam, resp := Client.GetTeam(team.Id, "")
 	CheckNoError(t, resp)
 
-	if rteam.Id != team.Id {
-		t.Fatal("wrong team")
-	}
+	require.Equal(t, rteam.Id, team.Id, "wrong team")
 
 	_, resp = Client.GetTeam("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -204,25 +185,20 @@ func TestGetTeamSanitization(t *testing.T) {
 
 		rteam, resp := client.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		if rteam.Email != "" {
-			t.Fatal("should've sanitized email")
-		}
+
+		require.Empty(t, rteam.Email, "should have sanitized email")
 	})
 
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 }
 
@@ -233,9 +209,7 @@ func TestGetTeamUnread(t *testing.T) {
 
 	teamUnread, resp := Client.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
-	if teamUnread.TeamId != th.BasicTeam.Id {
-		t.Fatal("wrong team id returned for regular user call")
-	}
+	require.Equal(t, teamUnread.TeamId, th.BasicTeam.Id, "wrong team id returned for regular user call")
 
 	_, resp = Client.GetTeamUnread("junk", th.BasicUser.Id)
 	CheckBadRequestStatus(t, resp)
@@ -255,9 +229,7 @@ func TestGetTeamUnread(t *testing.T) {
 
 	teamUnread, resp = th.SystemAdminClient.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
-	if teamUnread.TeamId != th.BasicTeam.Id {
-		t.Fatal("wrong team id returned")
-	}
+	require.Equal(t, teamUnread.TeamId, th.BasicTeam.Id, "wrong team id returned")
 }
 
 func TestUpdateTeam(t *testing.T) {
@@ -272,17 +244,13 @@ func TestUpdateTeam(t *testing.T) {
 	uteam, resp := Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.Description != "updated description" {
-		t.Fatal("Update failed")
-	}
+	require.Equal(t, uteam.Description, "updated description", "Update failed")
 
 	team.DisplayName = "Updated Name"
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.DisplayName != "Updated Name" {
-		t.Fatal("Update failed")
-	}
+	require.Equal(t, uteam.DisplayName, "Updated Name", "Update failed")
 
 	// Test GroupConstrained flag
 	team.GroupConstrained = model.NewBool(true)
@@ -290,58 +258,45 @@ func TestUpdateTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
-	if *rteam.GroupConstrained != *team.GroupConstrained {
-		t.Fatal("GroupConstrained flags do not match")
-	}
+	require.Equal(t, *rteam.GroupConstrained, *team.GroupConstrained, "GroupConstrained flags do not match")
+
 	team.GroupConstrained = nil
 
 	team.AllowOpenInvite = true
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if !uteam.AllowOpenInvite {
-		t.Fatal("Update failed")
-	}
+	require.True(t, uteam.AllowOpenInvite, "Update failed")
 
 	team.InviteId = "inviteid1"
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.InviteId == "inviteid1" {
-		t.Fatal("InviteID should not be updated")
-	}
+	require.NotEqual(t, uteam.InviteId, "inviteid1", "InviteID should not be updated")
 
 	team.AllowedDomains = "domain"
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.AllowedDomains != "domain" {
-		t.Fatal("Update failed")
-	}
+	require.Equal(t, uteam.AllowedDomains, "domain", "Update failed")
 
 	team.Name = "Updated name"
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.Name == "Updated name" {
-		t.Fatal("Should not update name")
-	}
+	require.NotEqual(t, uteam.Name, "Updated name", "Should not update name")
 
 	team.Email = "test@domain.com"
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.Email == "test@domain.com" {
-		t.Fatal("Should not update email")
-	}
+	require.NotEqual(t, uteam.Email, "test@domain.com", "Should not update email")
 
 	team.Type = model.TEAM_INVITE
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.Type == model.TEAM_INVITE {
-		t.Fatal("Should not update type")
-	}
+	require.NotEqual(t, uteam.Type, model.TEAM_INVITE, "Should not update type")
 
 	originalTeamId := team.Id
 	team.Id = model.NewId()
@@ -349,9 +304,7 @@ func TestUpdateTeam(t *testing.T) {
 	r, _ := Client.DoApiPut(Client.GetTeamRoute(originalTeamId), team.ToJson())
 	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
-	if uteam.Id != originalTeamId {
-		t.Fatal("wrong team id")
-	}
+	require.Equal(t, uteam.Id, originalTeamId, "wrong team id")
 
 	team.Id = "fake"
 	_, resp = Client.UpdateTeam(team)
@@ -384,17 +337,13 @@ func TestUpdateTeamSanitization(t *testing.T) {
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.UpdateTeam(team)
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email for admin")
-		}
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.UpdateTeam(team)
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email for admin")
-		}
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
 	})
 }
 
@@ -416,21 +365,11 @@ func TestPatchTeam(t *testing.T) {
 	rteam, resp := Client.PatchTeam(team.Id, patch)
 	CheckNoError(t, resp)
 
-	if rteam.DisplayName != "Other name" {
-		t.Fatal("DisplayName did not update properly")
-	}
-	if rteam.Description != "Other description" {
-		t.Fatal("Description did not update properly")
-	}
-	if rteam.CompanyName != "Other company name" {
-		t.Fatal("CompanyName did not update properly")
-	}
-	if rteam.InviteId == "inviteid1" {
-		t.Fatal("InviteId should not update")
-	}
-	if !rteam.AllowOpenInvite {
-		t.Fatal("AllowOpenInvite did not update properly")
-	}
+	require.Equal(t, rteam.DisplayName, "Other name", "DisplayName did not update properly")
+	require.Equal(t, rteam.Description, "Other description", "Description did not update properly")
+	require.Equal(t, rteam.CompanyName, "Other company name", "CompanyName did not update properly")
+	require.NotEqual(t, rteam.InviteId, "inviteid1", "InviteId should not update")
+	require.True(t, rteam.AllowOpenInvite, "AllowOpenInvite did not update properly")
 
 	// Test GroupConstrained flag
 	patch.GroupConstrained = model.NewBool(true)
@@ -438,9 +377,7 @@ func TestPatchTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
-	if *rteam.GroupConstrained != *patch.GroupConstrained {
-		t.Fatal("GroupConstrained flags do not match")
-	}
+	require.Equal(t, *rteam.GroupConstrained, *patch.GroupConstrained, "GroupConstrained flags do not match")
 	patch.GroupConstrained = nil
 
 	_, resp = Client.PatchTeam("junk", patch)
@@ -449,15 +386,10 @@ func TestPatchTeam(t *testing.T) {
 	_, resp = Client.PatchTeam(GenerateTestId(), patch)
 	CheckForbiddenStatus(t, resp)
 
-	if r, err := Client.DoApiPut("/teams/"+team.Id+"/patch", "garbage"); err == nil {
-		t.Fatal("should have errored")
-	} else {
-		if r.StatusCode != http.StatusBadRequest {
-			t.Log("actual: " + strconv.Itoa(r.StatusCode))
-			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
-			t.Fatal("wrong status code")
-		}
-	}
+	r, err := Client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
+	require.NotNil(t, err, "should have errored")
+
+	require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 
 	Client.Logout()
 	_, resp = Client.PatchTeam(team.Id, patch)
@@ -489,17 +421,13 @@ func TestPatchTeamSanitization(t *testing.T) {
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.PatchTeam(team.Id, &model.TeamPatch{})
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email for admin")
-		}
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.PatchTeam(team.Id, &model.TeamPatch{})
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email for admin")
-		}
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
 	})
 }
 
@@ -532,24 +460,16 @@ func TestSoftDeleteTeam(t *testing.T) {
 	ok, resp := Client.SoftDeleteTeam(team.Id)
 	CheckNoError(t, resp)
 
-	if !ok {
-		t.Fatal("should have returned true")
-	}
+	require.True(t, ok, "should have returned true")
 
 	rteam, err := th.App.GetTeam(team.Id)
-	if err != nil {
-		t.Fatal("should have returned archived team")
-	}
-	if rteam.DeleteAt == 0 {
-		t.Fatal("should have not set to zero")
-	}
+	require.Nil(t, err, "should have returned archived team")
+	require.NotEqual(t, rteam.DeleteAt, 0, "should have not set to zero")
 
 	ok, resp = Client.SoftDeleteTeam("junk")
 	CheckBadRequestStatus(t, resp)
 
-	if ok {
-		t.Fatal("should have returned false")
-	}
+	require.False(t, ok, "should have returned false")
 
 	otherTeam := th.BasicTeam
 	_, resp = Client.SoftDeleteTeam(otherTeam.Id)
@@ -599,9 +519,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	ok, resp = Client.PermanentDeleteTeam("junk")
 	CheckBadRequestStatus(t, resp)
 
-	if ok {
-		t.Fatal("should have returned false")
-	}
+	require.False(t, ok, "should have returned false")
 }
 
 func TestGetAllTeams(t *testing.T) {
@@ -783,20 +701,15 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		for _, rteam := range rteams {
 			if rteam.Id == team.Id {
 				teamFound = true
-				if rteam.Email == "" {
-					t.Fatal("should not have sanitized email for team admin")
-				}
+				require.NotEmpty(t, rteam.Email, "should not have sanitized email for team admin")
 			} else if rteam.Id == team2.Id {
 				team2Found = true
-				if rteam.Email != "" {
-					t.Fatal("should've sanitized email for non-admin")
-				}
+				require.Empty(t, rteam.Email, "should've sanitized email for non-admin")
 			}
 		}
 
-		if !teamFound || !team2Found {
-			t.Fatal("wasn't returned the expected teams so the test wasn't run correctly")
-		}
+		require.True(t, teamFound, "wasn't returned the expected teams so the test wasn't run correctly")
+		require.True(t, team2Found, "wasn't returned the expected teams so the test wasn't run correctly")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
@@ -807,9 +720,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 				continue
 			}
 
-			if rteam.Email == "" {
-				t.Fatal("should not have sanitized email")
-			}
+			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 		}
 	})
 }
@@ -823,9 +734,7 @@ func TestGetTeamByName(t *testing.T) {
 	rteam, resp := Client.GetTeamByName(team.Name, "")
 	CheckNoError(t, resp)
 
-	if rteam.Name != team.Name {
-		t.Fatal("wrong team")
-	}
+	require.Equal(t, rteam.Name, team.Name, "wrong team")
 
 	_, resp = Client.GetTeamByName("junk", "")
 	CheckNotFoundStatus(t, resp)
@@ -882,25 +791,19 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 
 		rteam, resp := client.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
-		if rteam.Email != "" {
-			t.Fatal("should've sanitized email")
-		}
+		require.Empty(t, rteam.Email, "should've sanitized email")
 	})
 
 	t.Run("team admin/non-admin", func(t *testing.T) {
 		rteam, resp := th.Client.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
-		if rteam.Email == "" {
-			t.Fatal("should not have sanitized email")
-		}
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	})
 }
 
@@ -911,11 +814,9 @@ func TestSearchAllTeams(t *testing.T) {
 	oTeam := th.BasicTeam
 	oTeam.AllowOpenInvite = true
 
-	if updatedTeam, err := th.App.UpdateTeam(oTeam); err != nil {
-		t.Fatal(err)
-	} else {
-		oTeam.UpdateAt = updatedTeam.UpdateAt
-	}
+	updatedTeam, err := th.App.UpdateTeam(oTeam)
+	require.Nil(t, err, err)
+	oTeam.UpdateAt = updatedTeam.UpdateAt
 
 	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_INVITE}
 	Client.CreateTeam(pTeam)
@@ -923,59 +824,41 @@ func TestSearchAllTeams(t *testing.T) {
 	rteams, resp := Client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
 	CheckNoError(t, resp)
 
-	if len(rteams) != 1 {
-		t.Fatal("should have returned 1 team")
-	}
+	require.Len(t, rteams, 1, "should have returned 1 team")
 
-	if oTeam.Id != rteams[0].Id {
-		t.Fatal("invalid team")
-	}
+	require.Equal(t, oTeam.Id, rteams[0].Id, "invalid team")
 
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: oTeam.DisplayName})
 	CheckNoError(t, resp)
 
-	if len(rteams) != 1 {
-		t.Fatal("should have returned 1 team")
-	}
+	require.Len(t, rteams, 1, "should have returned 1 team")
 
-	if rteams[0].Id != oTeam.Id {
-		t.Fatal("invalid team")
-	}
+	require.Equal(t, oTeam.Id, rteams[0].Id, "invalid team")
 
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
 	CheckNoError(t, resp)
 
-	if len(rteams) != 0 {
-		t.Fatal("should have not returned team")
-	}
+	require.Len(t, rteams, 0, "should have not returned team")
 
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 	CheckNoError(t, resp)
 
-	if len(rteams) != 0 {
-		t.Fatal("should have not returned team")
-	}
+	require.Len(t, rteams, 0, "should have not returned team")
 
 	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
 	CheckNoError(t, resp)
 
-	if len(rteams) != 1 {
-		t.Fatal("should have returned 1 team")
-	}
+	require.Len(t, rteams, 1, "should have returned 1 team")
 
 	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 	CheckNoError(t, resp)
 
-	if len(rteams) != 1 {
-		t.Fatal("should have returned 1 team")
-	}
+	require.Len(t, rteams, 1, "should have returned 1 team")
 
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: "junk"})
 	CheckNoError(t, resp)
 
-	if len(rteams) != 0 {
-		t.Fatal("should have not returned team")
-	}
+	require.Len(t, rteams, 0, "should have not returned team")
 
 	Client.Logout()
 
@@ -1014,11 +897,8 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		rteams, resp := client.SearchTeams(&model.TeamSearch{Term: t.Name()})
 		CheckNoError(t, resp)
 		for _, rteam := range rteams {
-			if rteam.Email != "" {
-				t.Fatal("should've sanitized email")
-			} else if rteam.AllowedDomains != "" {
-				t.Fatal("should've sanitized allowed domains")
-			}
+			require.Empty(t, rteam.Email, "should've sanitized email")
+			require.Empty(t, rteam.AllowedDomains, "should've sanitized allowed domains")
 		}
 	})
 
@@ -1031,11 +911,8 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		rteams, resp := client.SearchTeams(&model.TeamSearch{Term: t.Name()})
 		CheckNoError(t, resp)
 		for _, rteam := range rteams {
-			if rteam.Email != "" {
-				t.Fatal("should've sanitized email")
-			} else if rteam.AllowedDomains != "" {
-				t.Fatal("should've sanitized allowed domains")
-			}
+			require.Empty(t, rteam.Email, "should've sanitized email")
+			require.Empty(t, rteam.AllowedDomains, "should've sanitized allowed domains")
 		}
 	})
 
@@ -1044,9 +921,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		for _, rteam := range rteams {
 			if rteam.Id == team.Id || rteam.Id == team2.Id || rteam.Id == th.BasicTeam.Id {
-				if rteam.Email == "" {
-					t.Fatal("should not have sanitized email")
-				}
+				require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 			}
 		}
 	})
@@ -1055,9 +930,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		rteams, resp := th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: t.Name()})
 		CheckNoError(t, resp)
 		for _, rteam := range rteams {
-			if rteam.Email == "" {
-				t.Fatal("should not have sanitized email")
-			}
+			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 		}
 	})
 }
@@ -1073,9 +946,7 @@ func TestGetTeamsForUser(t *testing.T) {
 	teams, resp := Client.GetTeamsForUser(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
 
-	if len(teams) != 2 {
-		t.Fatal("wrong number of teams")
-	}
+	require.Len(t, teams, 2, "wrong number of teams")
 
 	found1 := false
 	found2 := false
@@ -1087,9 +958,8 @@ func TestGetTeamsForUser(t *testing.T) {
 		}
 	}
 
-	if !found1 || !found2 {
-		t.Fatal("missing team")
-	}
+	require.True(t, found1, "missing team")
+	require.True(t, found2, "missing team")
 
 	_, resp = Client.GetTeamsForUser("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -1139,9 +1009,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			if rteam.Email != "" {
-				t.Fatal("should've sanitized email")
-			}
+			require.Empty(t, rteam.Email, "should've sanitized email")
 		}
 	})
 
@@ -1153,9 +1021,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			if rteam.Email == "" {
-				t.Fatal("should not have sanitized email")
-			}
+			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 		}
 	})
 
@@ -1167,9 +1033,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			if rteam.Email == "" {
-				t.Fatal("should not have sanitized email")
-			}
+			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 		}
 	})
 }
@@ -1184,13 +1048,9 @@ func TestGetTeamMember(t *testing.T) {
 	rmember, resp := Client.GetTeamMember(team.Id, user.Id, "")
 	CheckNoError(t, resp)
 
-	if rmember.TeamId != team.Id {
-		t.Fatal("wrong team id")
-	}
+	require.Equal(t, rmember.TeamId, team.Id, "wrong team id")
 
-	if rmember.UserId != user.Id {
-		t.Fatal("wrong team id")
-	}
+	require.Equal(t, rmember.UserId, user.Id, "wrong user id")
 
 	_, resp = Client.GetTeamMember("junk", user.Id, "")
 	CheckBadRequestStatus(t, resp)
@@ -1223,33 +1083,24 @@ func TestGetTeamMembers(t *testing.T) {
 
 	t.Logf("rmembers count %v\n", len(rmembers))
 
-	if len(rmembers) == 0 {
-		t.Fatal("should have results")
-	}
+	require.NotEqual(t, len(rmembers), 0, "should have results")
 
 	for _, rmember := range rmembers {
-		if rmember.TeamId != team.Id || rmember.UserId == userNotMember.Id {
-			t.Fatal("user should be a member of team")
-		}
+		require.Equal(t, rmember.TeamId, team.Id, "user should be a member of team")
+		require.NotEqual(t, rmember.UserId, userNotMember.Id, "user should be a member of team")
 	}
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
-	if len(rmembers) != 1 {
-		t.Fatal("should be 1 per page")
-	}
+	require.Len(t, rmembers, 1, "should be 1 per page")
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 1, 1, "")
 	CheckNoError(t, resp)
-	if len(rmembers) != 1 {
-		t.Fatal("should be 1 per page")
-	}
+	require.Len(t, rmembers, 1, "should be 1 per page")
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 10000, 100, "")
 	CheckNoError(t, resp)
-	if len(rmembers) != 0 {
-		t.Fatal("should be no member")
-	}
+	require.Len(t, rmembers, 0, "should be no member")
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 2, "")
 	CheckNoError(t, resp)
@@ -1291,9 +1142,7 @@ func TestGetTeamMembersForUser(t *testing.T) {
 		}
 	}
 
-	if !found {
-		t.Fatal("missing team member")
-	}
+	require.True(t, found, "missing team member")
 
 	_, resp = Client.GetTeamMembersForUser("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -1322,24 +1171,18 @@ func TestGetTeamMembersByIds(t *testing.T) {
 	tm, resp := Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id})
 	CheckNoError(t, resp)
 
-	if tm[0].UserId != th.BasicUser.Id {
-		t.Fatal("returned wrong user")
-	}
+	require.Equal(t, tm[0].UserId, th.BasicUser.Id, "returned wrong user")
 
 	_, resp = Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{})
 	CheckBadRequestStatus(t, resp)
 
 	tm1, resp := Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{"junk"})
 	CheckNoError(t, resp)
-	if len(tm1) > 0 {
-		t.Fatal("no users should be returned")
-	}
+	require.False(t, len(tm1) > 0, "no users should be returned")
 
 	tm1, resp = Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{"junk", th.BasicUser.Id})
 	CheckNoError(t, resp)
-	if len(tm1) != 1 {
-		t.Fatal("1 user should be returned")
-	}
+	require.Len(t, tm1, 1, "1 user should be returned")
 
 	_, resp = Client.GetTeamMembersByIds("junk", []string{th.BasicUser.Id})
 	CheckBadRequestStatus(t, resp)
@@ -1372,17 +1215,16 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp := th.SystemAdminClient.DemoteUserToGuest(guest.Id)
 	CheckNoError(t, resp)
 
-	if err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, ""); err != nil {
-		t.Fatalf(err.Error())
+	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
+	if err != nil {
+		require.FailNow(t, err.Error())
 	}
 
 	// Regular user can't add a member to a team they don't belong to.
 	th.LoginBasic2()
 	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckForbiddenStatus(t, resp)
-	if resp.Error == nil {
-		t.Fatalf("Error is nil")
-	}
+	require.NotNil(t, resp.Error, "Error is nil")
 	Client.Logout()
 
 	// Regular user can add a member to a team they belong to.
@@ -1392,25 +1234,17 @@ func TestAddTeamMember(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 
 	// Check all the returned data.
-	if tm == nil {
-		t.Fatal("should have returned team member")
-	}
+	require.NotNil(t, tm, "should have returned team member")
 
-	if tm.UserId != otherUser.Id {
-		t.Fatal("user ids should have matched")
-	}
+	require.Equal(t, tm.UserId, otherUser.Id, "user ids should have matched")
 
-	if tm.TeamId != team.Id {
-		t.Fatal("team ids should have matched")
-	}
+	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
 	// Check with various invalid requests.
 	tm, resp = Client.AddTeamMember(team.Id, "junk")
 	CheckBadRequestStatus(t, resp)
 
-	if tm != nil {
-		t.Fatal("should have not returned team member")
-	}
+	require.Nil(t, tm, "should have not returned team member")
 
 	_, resp = Client.AddTeamMember("junk", otherUser.Id)
 	CheckBadRequestStatus(t, resp)
@@ -1476,27 +1310,19 @@ func TestAddTeamMember(t *testing.T) {
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
 
-	if tm == nil {
-		t.Fatal("should have returned team member")
-	}
+	require.NotNil(t, tm, "should have returned team member")
 
-	if tm.UserId != otherUser.Id {
-		t.Fatal("user ids should have matched")
-	}
+	require.Equal(t, tm.UserId, otherUser.Id, "user ids should have matched")
 
-	if tm.TeamId != team.Id {
-		t.Fatal("team ids should have matched")
-	}
+	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
-	_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+	_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
 	require.NotNil(t, err, "The token must be deleted after be used")
 
 	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
 
-	if tm != nil {
-		t.Fatal("should have not returned team member")
-	}
+	require.Nil(t, tm, "should have not returned team member")
 
 	// expired token of more than 50 hours
 	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
@@ -1534,24 +1360,16 @@ func TestAddTeamMember(t *testing.T) {
 	tm, resp = Client.AddTeamMemberFromInvite("", team.InviteId)
 	CheckNoError(t, resp)
 
-	if tm == nil {
-		t.Fatal("should have returned team member")
-	}
+	require.NotNil(t, tm, "should have returned team member")
 
-	if tm.UserId != otherUser.Id {
-		t.Fatal("user ids should have matched")
-	}
+	require.Equal(t, tm.UserId, otherUser.Id, "user ids should have matched")
 
-	if tm.TeamId != team.Id {
-		t.Fatal("team ids should have matched")
-	}
+	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
 	tm, resp = Client.AddTeamMemberFromInvite("", "junk")
 	CheckNotFoundStatus(t, resp)
 
-	if tm != nil {
-		t.Fatal("should have not returned team member")
-	}
+	require.Nil(t, tm, "should have not returned team member")
 
 	// Set a team to group-constrained
 	team.GroupConstrained = model.NewBool(true)
@@ -1691,9 +1509,8 @@ func TestAddTeamMembers(t *testing.T) {
 		otherUser.Id,
 	}
 
-	if err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, ""); err != nil {
-		t.Fatalf(err.Error())
-	}
+	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
+	require.Nil(t, err)
 
 	// Regular user can't add a member to a team they don't belong to.
 	th.LoginBasic2()
@@ -1708,17 +1525,11 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 
 	// Check all the returned data.
-	if tm[0] == nil {
-		t.Fatal("should have returned team member")
-	}
+	require.NotNil(t, tm[0], "should have returned team member")
 
-	if tm[0].UserId != otherUser.Id {
-		t.Fatal("user ids should have matched")
-	}
+	require.Equal(t, tm[0].UserId, otherUser.Id, "user ids should have matched")
 
-	if tm[0].TeamId != team.Id {
-		t.Fatal("team ids should have matched")
-	}
+	require.Equal(t, tm[0].TeamId, team.Id, "team ids should have matched")
 
 	// Check with various invalid requests.
 	_, resp = Client.AddTeamMembers("junk", userList)
@@ -1783,7 +1594,7 @@ func TestAddTeamMembers(t *testing.T) {
 
 	// Set a team to group-constrained
 	team.GroupConstrained = model.NewBool(true)
-	_, err := th.App.UpdateTeam(team)
+	_, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
 	// User is not in associated groups so shouldn't be allowed
@@ -1814,9 +1625,7 @@ func TestRemoveTeamMember(t *testing.T) {
 	pass, resp := Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
 
-	if !pass {
-		t.Fatal("should have passed")
-	}
+	require.True(t, pass, "should have passed")
 
 	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
@@ -1860,17 +1669,11 @@ func TestGetTeamStats(t *testing.T) {
 	rstats, resp := Client.GetTeamStats(team.Id, "")
 	CheckNoError(t, resp)
 
-	if rstats.TeamId != team.Id {
-		t.Fatal("wrong team id")
-	}
+	require.Equal(t, rstats.TeamId, team.Id, "wrong team id")
 
-	if rstats.TotalMemberCount != 3 {
-		t.Fatal("wrong count")
-	}
+	require.Equal(t, rstats.TotalMemberCount, int64(3), "wrong count")
 
-	if rstats.ActiveMemberCount != 3 {
-		t.Fatal("wrong count")
-	}
+	require.Equal(t, rstats.ActiveMemberCount, int64(3), "wrong count")
 
 	_, resp = Client.GetTeamStats("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -1887,13 +1690,9 @@ func TestGetTeamStats(t *testing.T) {
 	rstats, resp = th.SystemAdminClient.GetTeamStats(team.Id, "")
 	CheckNoError(t, resp)
 
-	if rstats.TotalMemberCount != 3 {
-		t.Fatal("wrong count")
-	}
+	require.Equal(t, rstats.TotalMemberCount, int64(3), "wrong count")
 
-	if rstats.ActiveMemberCount != 2 {
-		t.Fatal("wrong count")
-	}
+	require.Equal(t, rstats.ActiveMemberCount, int64(2), "wrong count")
 
 	// login with different user and test if forbidden
 	user := th.CreateUser()
@@ -1918,9 +1717,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	// user 1 tries to promote user 2
 	ok, resp := Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
 	CheckForbiddenStatus(t, resp)
-	if ok {
-		t.Fatal("should have returned false")
-	}
+	require.False(t, ok, "should have returned false")
 
 	// user 1 tries to promote himself
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
@@ -1933,9 +1730,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	// system admin promotes user 1
 	ok, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
 	CheckNoError(t, resp)
-	if !ok {
-		t.Fatal("should have returned true")
-	}
+	require.True(t, ok, "should have returned true")
 
 	// user 1 (team admin) promotes user 2
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
@@ -2099,15 +1894,11 @@ func TestGetMyTeamsUnread(t *testing.T) {
 
 	teams, resp := Client.GetTeamsUnreadForUser(user.Id, "")
 	CheckNoError(t, resp)
-	if len(teams) == 0 {
-		t.Fatal("should have results")
-	}
+	require.NotEqual(t, len(teams), 0, "should have results")
 
 	teams, resp = Client.GetTeamsUnreadForUser(user.Id, th.BasicTeam.Id)
 	CheckNoError(t, resp)
-	if len(teams) != 0 {
-		t.Fatal("should not have results")
-	}
+	require.Len(t, teams, 0, "should not have results")
 
 	_, resp = Client.GetTeamsUnreadForUser("fail", "")
 	CheckBadRequestStatus(t, resp)
@@ -2222,56 +2013,40 @@ func TestImportTeam(t *testing.T) {
 		var data []byte
 		var err error
 		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
-		if err != nil && len(data) == 0 {
-			t.Fatal("Error while reading the test file.")
-		}
+
+		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
 
 		// Import the channels/users/posts
 		fileResp, resp := th.SystemAdminClient.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
 		CheckNoError(t, resp)
 
 		fileData, err := base64.StdEncoding.DecodeString(fileResp["results"])
-		if err != nil {
-			t.Fatal("failed to decode base64 results data")
-		}
+		require.Nil(t, err, "failed to decode base64 results data")
 
 		fileReturned := fmt.Sprintf("%s", fileData)
-		if !strings.Contains(fileReturned, "darth.vader@stardeath.com") {
-			t.Log(fileReturned)
-			t.Fatal("failed to report the user was imported")
-		}
+		require.Truef(t, strings.Contains(fileReturned, "darth.vader@stardeath.com"), "failed to report the user was imported, fileReturned: %s", fileReturned)
 
 		// Checking the imported users
 		importedUser, resp := th.SystemAdminClient.GetUserByUsername("bot_test", "")
 		CheckNoError(t, resp)
-		if importedUser.Username != "bot_test" {
-			t.Fatal("username should match with the imported user")
-		}
+		require.Equal(t, importedUser.Username, "bot_test", "username should match with the imported user")
 
 		importedUser, resp = th.SystemAdminClient.GetUserByUsername("lordvader", "")
 		CheckNoError(t, resp)
-		if importedUser.Username != "lordvader" {
-			t.Fatal("username should match with the imported user")
-		}
+		require.Equal(t, importedUser.Username, "lordvader", "username should match with the imported user")
 
 		// Checking the imported Channels
 		importedChannel, resp := th.SystemAdminClient.GetChannelByName("testchannel", th.BasicTeam.Id, "")
 		CheckNoError(t, resp)
-		if importedChannel.Name != "testchannel" {
-			t.Fatal("names did not match expected: testchannel")
-		}
+		require.Equal(t, importedChannel.Name, "testchannel", "names did not match expected: testchannel")
 
 		importedChannel, resp = th.SystemAdminClient.GetChannelByName("general", th.BasicTeam.Id, "")
 		CheckNoError(t, resp)
-		if importedChannel.Name != "general" {
-			t.Fatal("names did not match expected: general")
-		}
+		require.Equal(t, importedChannel.Name, "general", "names did not match expected: general")
 
 		posts, resp := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "")
 		CheckNoError(t, resp)
-		if posts.Posts[posts.Order[3]].Message != "This is a test post to test the import process" {
-			t.Fatal("missing posts in the import process")
-		}
+		require.Equal(t, posts.Posts[posts.Order[3]].Message, "This is a test post to test the import process", "missing posts in the import process")
 	})
 
 	t.Run("MissingFile", func(t *testing.T) {
@@ -2283,9 +2058,7 @@ func TestImportTeam(t *testing.T) {
 		var data []byte
 		var err error
 		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
-		if err != nil && len(data) == 0 {
-			t.Fatal("Error while reading the test file.")
-		}
+		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
 
 		// Import the channels/users/posts
 		_, resp := th.Client.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
@@ -2315,16 +2088,12 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
 	_, resp := th.SystemAdminClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
-	if resp.Error == nil {
-		t.Fatal("Should be disabled")
-	}
+	require.NotNil(t, resp.Error, "Should be disabled")
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
 	okMsg, resp := th.SystemAdminClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 	CheckNoError(t, resp)
-	if !okMsg {
-		t.Fatal("should return true")
-	}
+	require.True(t, okMsg, "should return true")
 
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := utils.T("api.templates.invite_subject",
@@ -2345,16 +2114,10 @@ func TestInviteUsersToTeam(t *testing.T) {
 			t.Log("No email was received, maybe due load on the server. Disabling this verification")
 		}
 		if err == nil && len(resultsMailbox) > 0 {
-			if !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email) {
-				t.Fatal("Wrong To recipient")
-			} else {
-				if resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
-					if resultsEmail.Subject != expectedSubject {
-						t.Log(resultsEmail.Subject)
-						t.Log(expectedSubject)
-						t.Fatal("Wrong Subject")
-					}
-				}
+			require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email), "Wrong To recipient")
+			resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
+			if err == nil {
+				require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, actual: %s, expected: %s", resultsEmail.Subject, expectedSubject)
 			}
 		}
 	}
@@ -2364,42 +2127,30 @@ func TestInviteUsersToTeam(t *testing.T) {
 	t.Run("restricted domains", func(t *testing.T) {
 		err := th.App.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
 
-		if err == nil {
-			t.Fatal("Adding users with non-restricted domains was allowed")
-		}
-		if err.Where != "InviteNewUsersToTeam" || err.Id != "api.team.invite_members.invalid_email.app_error" {
-			t.Log(err)
-			t.Fatal("Got wrong error message!")
-		}
+		require.NotNil(t, err, "Adding users with non-restricted domains was allowed")
+
+		require.Equalf(t, err.Where, "InviteNewUsersToTeam", "%v, Got wrong error message!", err)
+		require.Equalf(t, err.Id, "api.team.invite_members.invalid_email.app_error", "%v, Got wrong error message!", err)
 	})
 
 	t.Run("override restricted domains", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "invalid.com,common.com"
-		if _, err := th.App.UpdateTeam(th.BasicTeam); err == nil {
-			t.Fatal("Should not update the team")
-		}
+		_, err := th.App.UpdateTeam(th.BasicTeam)
+		require.NotNil(t, err, "Should not update the team")
 
 		th.BasicTeam.AllowedDomains = "common.com"
-		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
-			t.Log(err)
-			t.Fatal("Should update the team")
-		}
+		_, err = th.App.UpdateTeam(th.BasicTeam)
+		require.Nilf(t, err, "%v, Should update the team", err)
 
-		if err := th.App.InviteNewUsersToTeam([]string{"test@global.com"}, th.BasicTeam.Id, th.BasicUser.Id); err == nil || err.Where != "InviteNewUsersToTeam" {
-			t.Log(err)
-			t.Fatal("Per team restriction should take precedence over the global restriction")
-		}
+		err = th.App.InviteNewUsersToTeam([]string{"test@global.com"}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.NotNilf(t, err, "%v, Per team restriction should take precedence over the global restriction", err)
+		require.Equalf(t, err.Where, "InviteNewUsersToTeam", "%v, Per team restriction should take precedence over the global restriction", err)
 
-		if err := th.App.InviteNewUsersToTeam([]string{"test@common.com"}, th.BasicTeam.Id, th.BasicUser.Id); err != nil {
-			t.Log(err)
-			t.Fatal("Failed to invite user which was common between team and global domain restriction")
-		}
+		err = th.App.InviteNewUsersToTeam([]string{"test@common.com"}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Nilf(t, err, "%v, Failed to invite user which was common between team and global domain restriction", err)
 
-		if err := th.App.InviteNewUsersToTeam([]string{"test@invalid.com"}, th.BasicTeam.Id, th.BasicUser.Id); err == nil {
-			t.Log(err)
-			t.Fatal("Should not invite user")
-		}
-
+		err = th.App.InviteNewUsersToTeam([]string{"test@invalid.com"}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.NotNilf(t, err, "%v, Should not invite user", err)
 	})
 }
 
@@ -2438,27 +2189,21 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
 	_, resp = th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
-	if resp.Error == nil {
-		t.Fatal("Should be disabled")
-	}
+	require.NotNil(t, resp.Error, "Should be disabled")
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
 
 	th.App.SetLicense(nil)
 
 	_, resp = th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
-	if resp.Error == nil {
-		t.Fatal("Should be disabled")
-	}
+	require.NotNil(t, resp.Error, "Should be disabled")
 
 	th.App.SetLicense(model.NewTestLicense(""))
 	defer th.App.SetLicense(nil)
 
 	okMsg, resp := th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
 	CheckNoError(t, resp)
-	if !okMsg {
-		t.Fatal("should return true")
-	}
+	require.True(t, okMsg, "should return true")
 
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := utils.T("api.templates.invite_guest_subject",
@@ -2479,16 +2224,10 @@ func TestInviteGuestsToTeam(t *testing.T) {
 			t.Log("No email was received, maybe due load on the server. Disabling this verification")
 		}
 		if err == nil && len(resultsMailbox) > 0 {
-			if !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email) {
-				t.Fatal("Wrong To recipient")
-			} else {
-				if resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
-					if resultsEmail.Subject != expectedSubject {
-						t.Log(resultsEmail.Subject)
-						t.Log(expectedSubject)
-						t.Fatal("Wrong Subject")
-					}
-				}
+			require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email), "Wrong To recipient")
+			resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
+			if err == nil {
+				require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, actual: %s, expected: %s", resultsEmail.Subject, expectedSubject)
 			}
 		}
 	}
@@ -2527,13 +2266,9 @@ func TestGetTeamInviteInfo(t *testing.T) {
 	team, resp := Client.GetTeamInviteInfo(team.InviteId)
 	CheckNoError(t, resp)
 
-	if team.DisplayName == "" {
-		t.Fatal("should not be empty")
-	}
+	require.NotEmpty(t, team.DisplayName, "should not be empty")
 
-	if team.Email != "" {
-		t.Fatal("should be empty")
-	}
+	require.Empty(t, team.Email, "should be empty")
 
 	team.InviteId = "12345678901234567890123456789012"
 	team, resp = th.SystemAdminClient.UpdateTeam(team)
@@ -2553,22 +2288,18 @@ func TestSetTeamIcon(t *testing.T) {
 	team := th.BasicTeam
 
 	data, err := testutils.ReadTestFile("test.png")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err, err)
 
 	th.LoginTeamAdmin()
 
 	ok, resp := Client.SetTeamIcon(team.Id, data)
-	if !ok {
-		t.Fatal(resp.Error)
-	}
+	require.True(t, ok, resp.Error)
+
 	CheckNoError(t, resp)
 
 	ok, resp = Client.SetTeamIcon(model.NewId(), data)
-	if ok {
-		t.Fatal("Should return false, set team icon not allowed")
-	}
+	require.False(t, ok, "Should return false, set team icon not allowed")
+
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginBasic()
@@ -2579,7 +2310,7 @@ func TestSetTeamIcon(t *testing.T) {
 	} else if resp.StatusCode == http.StatusUnauthorized {
 		CheckUnauthorizedStatus(t, resp)
 	} else {
-		t.Fatal("Should have failed either forbidden or unauthorized")
+		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
 	Client.Logout()
@@ -2590,7 +2321,7 @@ func TestSetTeamIcon(t *testing.T) {
 	} else if resp.StatusCode == http.StatusUnauthorized {
 		CheckUnauthorizedStatus(t, resp)
 	} else {
-		t.Fatal("Should have failed either forbidden or unauthorized")
+		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
 	teamBefore, err := th.App.GetTeam(team.Id)
@@ -2604,9 +2335,8 @@ func TestSetTeamIcon(t *testing.T) {
 	assert.True(t, teamBefore.LastTeamIconUpdate < teamAfter.LastTeamIconUpdate, "LastTeamIconUpdate should have been updated for team")
 
 	info := &model.FileInfo{Path: "teams/" + team.Id + "/teamIcon.png"}
-	if err := th.cleanupTestFile(info); err != nil {
-		t.Fatal(err)
-	}
+	err = th.cleanupTestFile(info)
+	require.Nil(t, err, err)
 }
 
 func TestGetTeamIcon(t *testing.T) {
@@ -2638,18 +2368,14 @@ func TestRemoveTeamIcon(t *testing.T) {
 	_, resp := Client.RemoveTeamIcon(team.Id)
 	CheckNoError(t, resp)
 	teamAfter, _ := th.App.GetTeam(team.Id)
-	if teamAfter.LastTeamIconUpdate != 0 {
-		t.Fatal("should update LastTeamIconUpdate to 0")
-	}
+	require.Equal(t, teamAfter.LastTeamIconUpdate, int64(0), "should update LastTeamIconUpdate to 0")
 
 	Client.SetTeamIcon(team.Id, data)
 
 	_, resp = th.SystemAdminClient.RemoveTeamIcon(team.Id)
 	CheckNoError(t, resp)
 	teamAfter, _ = th.App.GetTeam(team.Id)
-	if teamAfter.LastTeamIconUpdate != 0 {
-		t.Fatal("should update LastTeamIconUpdate to 0")
-	}
+	require.Equal(t, teamAfter.LastTeamIconUpdate, int64(0), "should update LastTeamIconUpdate to 0")
 
 	Client.SetTeamIcon(team.Id, data)
 	Client.Logout()

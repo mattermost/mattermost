@@ -3,10 +3,11 @@ run:
   modules-download-mode: vendor
 
 linters-settings:
-  govet:
-    check-shadowing: true
   gofmt:
     simplify: true
+  govet:
+    check-shadowing: true
+    enable-all: true
 
 linters:
   disable-all: true
