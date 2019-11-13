@@ -752,16 +752,13 @@ func TestInstallPlugin(t *testing.T) {
 	path, _ := fileutils.FindDir("tests")
 	ts := httptest.NewServer(http.FileServer(http.Dir(path)))
 	defer ts.Close()
-	downloadURL := ts.URL + "/testplugin.tar.gz"
-
-	var pluginJson map[string]interface{}
-	err := json.Unmarshal([]byte(fmt.Sprintf(`{"DownloadURL": "%s"}`, downloadURL)), &pluginJson)
-	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
-		cfg.PluginSettings.Plugins["testinstallplugin"] = pluginJson
+		cfg.PluginSettings.Plugins["testinstallplugin"] = map[string]interface{}{
+			"DownloadURL": ts.URL + "/testplugin.tar.gz",
+		}
 	})
 
 	tearDown, _ := setupPluginApiTest(t,
