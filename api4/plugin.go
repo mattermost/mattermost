@@ -142,13 +142,13 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = appErr
 		return
 	}
-	signatures, err := plugin.DecodeSignatures()
+	signature, err := plugin.DecodeSignature()
 	if err != nil {
 		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
 		return
 	}
 
-	manifest, appErr := c.App.InstallPluginWithSignatures(pluginFile, signatures)
+	manifest, appErr := c.App.InstallPluginWithSignature(pluginFile, signature)
 	if appErr != nil {
 		c.Err = appErr
 		return

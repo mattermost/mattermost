@@ -4,9 +4,6 @@
 package app
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -18,15 +15,14 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/services/marketplace"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/pkg/errors"
 )
 
-type pluginSignaturePaths struct {
-	pluginId       string
-	path           string
-	signaturePaths []string
+type pluginSignaturePath struct {
+	pluginId      string
+	path          string
+	signaturePath string
 }
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
@@ -248,18 +244,17 @@ func (a *App) SyncPlugins() *model.AppError {
 		}
 		defer reader.Close()
 
-		var signatures []io.ReadSeeker
+		var signature filesstore.ReadCloseSeeker
 		if *a.Config().PluginSettings.RequirePluginSignature {
-			sigs, closeFunc, appErr := a.signaturesFromPathToReader(plugin)
+			signature, appErr = a.FileReader(plugin.signaturePath)
 			if appErr != nil {
-				mlog.Error("Failed to open plugin signatures from file store.", mlog.Err(appErr))
+				mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
 				continue
 			}
-			defer closeFunc()
-			signatures = sigs
+			defer signature.Close()
 		}
 
-		if _, err := a.installPluginLocally(reader, signatures, true); err != nil {
+		if _, err := a.installPluginLocally(reader, signature, true); err != nil {
 			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 		}
 	}
@@ -416,60 +411,6 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	}
 
 	return resp, nil
-}
-
-// GetPluginPublicKeyFiles returns all public keys listed in the config.
-func (a *App) GetPluginPublicKeyFiles() ([]string, *model.AppError) {
-	return a.Config().PluginSettings.SignaturePublicKeyFiles, nil
-}
-
-// GetPublicKey will return the actual public key saved in the `name` file.
-func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
-	data, err := a.Srv.configStore.GetFile(name)
-	if err != nil {
-		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return data, nil
-}
-
-// AddPublicKey will add plugin public key to the config. Overwrites the previous file
-func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
-	if model.IsSamlFile(&a.Config().SamlSettings, name) {
-		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
-	}
-	data, err := ioutil.ReadAll(key)
-	if err != nil {
-		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	err = a.Srv.configStore.SetFile(name, data)
-	if err != nil {
-		return model.NewAppError("AddPublicKey", "app.plugin.write_file.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	a.UpdateConfig(func(cfg *model.Config) {
-		if !utils.StringInSlice(name, cfg.PluginSettings.SignaturePublicKeyFiles) {
-			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, name)
-		}
-	})
-
-	return nil
-}
-
-// DeletePublicKey will delete plugin public key from the config.
-func (a *App) DeletePublicKey(name string) *model.AppError {
-	if model.IsSamlFile(&a.Config().SamlSettings, name) {
-		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
-	}
-	filename := filepath.Base(name)
-	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
-		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	a.UpdateConfig(func(cfg *model.Config) {
-		cfg.PluginSettings.SignaturePublicKeyFiles = utils.RemoveStringFromSlice(filename, cfg.PluginSettings.SignaturePublicKeyFiles)
-	})
-
-	return nil
 }
 
 // GetMarketplacePlugin returns plugin from marketplace-server
@@ -638,56 +579,30 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	return nil
 }
 
-func (a *App) signaturesFromPathToReader(plugin *pluginSignaturePaths) (signatures []io.ReadSeeker, closeFunc func(), appErr *model.AppError) {
-	signatures = []io.ReadSeeker{}
-	for _, signaturePath := range plugin.signaturePaths {
-		sigReader, appErr := a.FileReader(signaturePath)
-		if appErr != nil {
-			mlog.Debug("Can't read signature file.", mlog.String("path", signaturePath), mlog.Err(appErr))
-			return nil, nil, appErr
-		}
-		signatures = append(signatures, sigReader)
-	}
-
-	closeFunc = func() {
-		for _, signature := range signatures {
-			readCloseSeeker, ok := signature.(filesstore.ReadCloseSeeker)
-			if !ok {
-				mlog.Debug("Failed to cast signature to ReadCloseSeeker.", mlog.String("paths", fmt.Sprint(plugin.signaturePaths)), mlog.String("pluginId", plugin.pluginId))
-			}
-			readCloseSeeker.Close()
-		}
-	}
-	return signatures, closeFunc, nil
-}
-
-func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePaths, *model.AppError) {
+func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.AppError) {
 	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
 	if appErr != nil {
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
-	pluginSignaturePathMap := make(map[string]*pluginSignaturePaths)
+	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
-			helper := &pluginSignaturePaths{
-				pluginId:       id,
-				path:           path,
-				signaturePaths: []string{},
+			helper := &pluginSignaturePath{
+				pluginId:      id,
+				path:          path,
+				signaturePath: "",
 			}
 			pluginSignaturePathMap[id] = helper
 		}
 	}
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".sig") {
-			// Parse plugin id from .sig files, that are stored using getSignatureStorePath
 			id := strings.TrimSuffix(filepath.Base(path), ".sig")
-			index := strings.LastIndex(id, ".")
-			id = id[:index]
 			if val, ok := pluginSignaturePathMap[id]; !ok {
 				mlog.Error("Unknown signature", mlog.String("path", path))
 			} else {
-				val.signaturePaths = append(val.signaturePaths, path)
+				val.signaturePath = path
 			}
 		}
 	}

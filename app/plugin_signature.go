@@ -8,23 +8,68 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 )
 
-// VerifyPluginWithSignatures verifies that at least one signature corresponds to some public key.
-func (a *App) VerifyPluginWithSignatures(plugin io.ReadSeeker, signatures []io.ReadSeeker) *model.AppError {
-	for _, signature := range signatures {
-		plugin.Seek(0, 0)
-		if appErr := a.VerifyPlugin(plugin, signature); appErr == nil {
-			return nil
-		}
+// GetPluginPublicKeyFiles returns all public keys listed in the config.
+func (a *App) GetPluginPublicKeyFiles() ([]string, *model.AppError) {
+	return a.Config().PluginSettings.SignaturePublicKeyFiles, nil
+}
+
+// GetPublicKey will return the actual public key saved in the `name` file.
+func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
+	data, err := a.Srv.configStore.GetFile(name)
+	if err != nil {
+		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return model.NewAppError("VerifyPluginWithSignatures", "api.plugin.install.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
+	return data, nil
+}
+
+// AddPublicKey will add plugin public key to the config. Overwrites the previous file
+func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
+	if model.IsSamlFile(&a.Config().SamlSettings, name) {
+		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
+	}
+	data, err := ioutil.ReadAll(key)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	err = a.Srv.configStore.SetFile(name, data)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "app.plugin.write_file.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	a.UpdateConfig(func(cfg *model.Config) {
+		if !utils.StringInSlice(name, cfg.PluginSettings.SignaturePublicKeyFiles) {
+			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, name)
+		}
+	})
+
+	return nil
+}
+
+// DeletePublicKey will delete plugin public key from the config.
+func (a *App) DeletePublicKey(name string) *model.AppError {
+	if model.IsSamlFile(&a.Config().SamlSettings, name) {
+		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
+	}
+	filename := filepath.Base(name)
+	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
+		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	a.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.SignaturePublicKeyFiles = utils.RemoveStringFromSlice(filename, cfg.PluginSettings.SignaturePublicKeyFiles)
+	})
+
+	return nil
 }
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.

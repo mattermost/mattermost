@@ -47,6 +47,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -78,18 +79,17 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 	}
 	defer reader.Close()
 
-	var signatures []io.ReadSeeker
+	var signature filesstore.ReadCloseSeeker
 	if *a.Config().PluginSettings.RequirePluginSignature {
-		sigs, closeFunc, err := a.signaturesFromPathToReader(plugin)
-		if err != nil {
-			mlog.Error("Failed to open plugin signatures from file store.", mlog.Err(err))
+		signature, appErr = a.FileReader(plugin.signaturePath)
+		if appErr != nil {
+			mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
 			return
 		}
-		defer closeFunc()
-		signatures = sigs
+		defer signature.Close()
 	}
 
-	manifest, appErr := a.installPluginLocally(reader, signatures, true)
+	manifest, appErr := a.installPluginLocally(reader, signature, true)
 	if appErr != nil {
 		mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 		return
@@ -116,9 +116,9 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 	}
 }
 
-// InstallPluginWithSignatures verifies and installs plugin.
-func (a *App) InstallPluginWithSignatures(pluginFile io.ReadSeeker, signatures []io.ReadSeeker) (*model.Manifest, *model.AppError) {
-	return a.installPlugin(pluginFile, signatures, true)
+// InstallPluginWithSignature verifies and installs plugin.
+func (a *App) InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
+	return a.installPlugin(pluginFile, signature, true)
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
@@ -126,14 +126,16 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 	return a.installPlugin(pluginFile, nil, replace)
 }
 
-func (a *App) installPlugin(pluginFile io.ReadSeeker, signatures []io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
-	manifest, appErr := a.installPluginLocally(pluginFile, signatures, replace)
+func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+	manifest, appErr := a.installPluginLocally(pluginFile, signature, replace)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if appErr = a.saveSignatures(manifest.Id, signatures); appErr != nil {
-		return nil, appErr
+	if signature != nil {
+		if appErr = a.saveSignature(manifest.Id, signature); appErr != nil {
+			return nil, appErr
+		}
 	}
 
 	// Store bundle in the file store to allow access from other servers.
@@ -160,14 +162,14 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, signatures []io.ReadSeeker
 	return manifest, nil
 }
 
-func (a *App) installPluginLocally(pluginFile io.ReadSeeker, signatures []io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) installPluginLocally(pluginFile, signature io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 	// verify signature
-	if signatures != nil {
-		if err := a.VerifyPluginWithSignatures(pluginFile, signatures); err != nil {
+	if signature != nil {
+		if err := a.VerifyPlugin(pluginFile, signature); err != nil {
 			return nil, err
 		}
 	}
@@ -281,8 +283,8 @@ func (a *App) removePlugin(id string) *model.AppError {
 	if err = a.RemoveFile(storePluginFileName); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if err = a.removeSignatures(id); err != nil {
-		mlog.Error("Can't remove signatures", mlog.Err(err))
+	if err = a.removeSignature(id); err != nil {
+		mlog.Error("Can't remove signature", mlog.Err(err))
 	}
 
 	a.notifyClusterPluginEvent(
@@ -335,37 +337,34 @@ func (a *App) removePluginLocally(id string) *model.AppError {
 	return nil
 }
 
-func (a *App) saveSignatures(pluginId string, signatures []io.ReadSeeker) *model.AppError {
-	for counter, signature := range signatures {
-		filePath := a.getSignatureStorePath(pluginId, counter)
-		signature.Seek(0, 0)
-		if _, appErr := a.WriteFile(signature, filePath); appErr != nil {
-			return model.NewAppError("saveSignatures", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-		}
+func (a *App) saveSignature(pluginId string, signature io.ReadSeeker) *model.AppError {
+	filePath := a.getSignatureStorePath(pluginId)
+	signature.Seek(0, 0)
+	if _, appErr := a.WriteFile(signature, filePath); appErr != nil {
+		return model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (a *App) removeSignatures(pluginId string) *model.AppError {
-	for counter := 0; ; counter++ {
-		filePath := a.getSignatureStorePath(pluginId, counter)
-		exists, err := a.FileExists(filePath)
-		if err != nil {
-			return model.NewAppError("removeSignatures", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		if !exists {
-			return nil
-		}
-		if err = a.RemoveFile(filePath); err != nil {
-			return model.NewAppError("removeSignatures", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+func (a *App) removeSignature(pluginId string) *model.AppError {
+	filePath := a.getSignatureStorePath(pluginId)
+	exists, err := a.FileExists(filePath)
+	if err != nil {
+		return model.NewAppError("removeSignature", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	if !exists {
+		return nil
+	}
+	if err = a.RemoveFile(filePath); err != nil {
+		return model.NewAppError("removeSignature", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (a *App) getBundleStorePath(id string) string {
 	return filepath.Join(fileStorePluginFolder, fmt.Sprintf("%s.tar.gz", id))
 }
 
-func (a *App) getSignatureStorePath(id string, index int) string {
-	return filepath.Join(fileStorePluginFolder, fmt.Sprintf("%s.%d.sig", id, index))
+func (a *App) getSignatureStorePath(id string) string {
+	return filepath.Join(fileStorePluginFolder, fmt.Sprintf("%s.sig", id))
 }
