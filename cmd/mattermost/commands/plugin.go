@@ -50,7 +50,7 @@ var PluginDisableCmd = &cobra.Command{
 var PluginListCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List plugins",
-	Long:    "List all enable and disabled plugins installed on your Mattermost server.",
+	Long:    "List all enabled and disabled plugins installed on your Mattermost server.",
 	Example: `  plugin list`,
 	RunE:    pluginListCmdF,
 }
