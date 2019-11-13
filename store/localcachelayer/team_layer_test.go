@@ -4,6 +4,8 @@
 package localcachelayer
 
 import (
+	"github.com/mattermost/mattermost-server/store/storetest/mocks"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/store/storetest"
@@ -16,13 +18,20 @@ func TestTeamStore(t *testing.T) {
 
 func TestTeamStoreCache(t *testing.T) {
 	fakeUserId := "123"
-	_ := []string{"1", "2", "3"}
+	fakeUserTeamIds := []string{"1", "2", "3"}
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 
-		_, err := cachedStore.Team().GetUserTeamIds(fakeUserId, true)
+		gotUserTeamIds, err := cachedStore.Team().GetUserTeamIds(fakeUserId, true)
 		require.Nil(t, err)
+		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
+		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 1)
+
+		gotUserTeamIds, err = cachedStore.Team().GetUserTeamIds(fakeUserId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
+		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 1)
 	})
 }

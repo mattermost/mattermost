@@ -43,8 +43,8 @@ func getMockStore() *mocks.Store {
 
 	fakeUserTeamIds := []string{"1", "2", "3"}
 	mockTeamStore := mocks.TeamStore{}
-	mockTeamStore.On("GetUserTeamIds", "123", true).Return(fakeUserTeamIds)
-	mockTeamStore.On("GetUserTeamIds", "123", false).Return(fakeUserTeamIds)
+	mockTeamStore.On("GetUserTeamIds", "123", true).Return(fakeUserTeamIds, nil)
+	mockTeamStore.On("GetUserTeamIds", "123", false).Return(fakeUserTeamIds, nil)
 	mockStore.On("Team").Return(&mockTeamStore)
 
 	return &mockStore
