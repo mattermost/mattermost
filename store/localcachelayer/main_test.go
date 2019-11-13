@@ -41,6 +41,12 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
+	fakeUserTeamIds := []string{"1", "2", "3"}
+	mockTeamStore := mocks.TeamStore{}
+	mockTeamStore.On("GetUserTeamIds", "123", true).Return(fakeUserTeamIds)
+	mockTeamStore.On("GetUserTeamIds", "123", false).Return(fakeUserTeamIds)
+	mockStore.On("Team").Return(&mockTeamStore)
+
 	return &mockStore
 }
 
