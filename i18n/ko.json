@@ -6436,7 +6436,7 @@
   },
   {
     "id": "store.sql_preference.save.missing_driver.app_error",
-    "translation": "We encountered an error while updating preferences"
+    "translation": "기본 설정을 업데이트하는 동안 오류가 발생함"
   },
   {
     "id": "store.sql_preference.save.open_transaction.app_error",
@@ -6452,11 +6452,11 @@
   },
   {
     "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Unable to get reactions for post"
+    "translation": "게시물에 댓글이 없습니다."
   },
   {
     "id": "store.sql_reaction.delete.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "삭제할 수 없음"
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
@@ -6476,7 +6476,7 @@
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Unable to get reactions for post"
+    "translation": "게시물에 댓글이 없습니다."
   },
   {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
