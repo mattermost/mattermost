@@ -22,9 +22,6 @@ type BaseMarketplacePlugin struct {
 	Manifest    *Manifest `json:"manifest"`
 	// Signature represents a signature of a plugin saved in base64 encoding.
 	Signature string `json:"signature"`
-	// SignaturePublicKeyHash represents first arbitrary number of symbols of the
-	// public key fingerprint, hashed using SHA-1 algorithm.
-	SignaturePublicKeyHash string `json:"signature_public_key_hash"`
 }
 
 // MarketplacePlugin is a state aware marketplace plugin.
