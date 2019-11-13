@@ -823,7 +823,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 					Version:          "1.2.3",
 					MinServerVersion: "",
 				},
-				Signatures: []*model.PluginSignature{{Signature: pluginSignature, PublicKeyHash: "F3FACE"}},
+				Signature: pluginSignature,
 			},
 			InstalledVersion: "",
 		},
@@ -934,7 +934,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Equal(t, "testplugin_v2", manifest.Id)
 		require.Equal(t, "1.2.3", manifest.Version)
 
-		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "testplugin_v2.0.sig")
+		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "testplugin_v2.sig")
 		savedSigFile, err := th.App.ReadFile(filePath)
 		require.Nil(t, err)
 		require.EqualValues(t, sigFile, savedSigFile)

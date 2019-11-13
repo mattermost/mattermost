@@ -1529,10 +1529,6 @@
     "translation": "An error ocurred reading the plugin file stream."
   },
   {
-    "id": "api.plugin.install.verify_plugin.app_error",
-    "translation": "Unable to verify plugin signature."
-  },
-  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request"
   },

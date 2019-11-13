@@ -566,7 +566,7 @@ func TestPluginSync(t *testing.T) {
 			signatureFileReader, err := os.Open(filepath.Join(path, "testpluginv2.tar.gz.sig"))
 			require.NoError(t, err)
 			defer signatureFileReader.Close()
-			filePath := fmt.Sprintf("%s.0.sig", th.App.getBundleStorePath("testplugin"))
+			filePath := fmt.Sprintf("%s.sig", th.App.getBundleStorePath("testplugin"))
 			_, appErr = th.App.WriteFile(signatureFileReader, filePath)
 			checkNoError(t, appErr)
 
@@ -581,7 +581,7 @@ func TestPluginSync(t *testing.T) {
 			signatureFileReader, err = os.Open(filepath.Join(path, "testplugin.tar.gz.sig"))
 			require.NoError(t, err)
 			defer signatureFileReader.Close()
-			filePath = fmt.Sprintf("%s.0.sig", th.App.getBundleStorePath("testplugin"))
+			filePath = fmt.Sprintf("%s.sig", th.App.getBundleStorePath("testplugin"))
 			_, appErr = th.App.WriteFile(signatureFileReader, filePath)
 			checkNoError(t, appErr)
 
@@ -594,35 +594,4 @@ func TestPluginSync(t *testing.T) {
 			require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 		})
 	}
-}
-
-func TestPluginPublicKeys(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	path, _ := fileutils.FindDir("tests")
-	publicKeyFilename := "test-public-key.plugin.gpg"
-	publicKey, err := ioutil.ReadFile(filepath.Join(path, publicKeyFilename))
-	require.Nil(t, err)
-	fileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
-	require.Nil(t, err)
-	defer fileReader.Close()
-	th.App.AddPublicKey(publicKeyFilename, fileReader)
-	file, err := th.App.GetPublicKey(publicKeyFilename)
-	require.Nil(t, err)
-	require.Equal(t, publicKey, file)
-	_, err = th.App.GetPublicKey("wrong file name")
-	require.NotNil(t, err)
-	_, err = th.App.GetPublicKey("wrong-file-name.plugin.gpg")
-	require.NotNil(t, err)
-
-	err = th.App.DeletePublicKey("wrong file name")
-	require.Nil(t, err)
-	err = th.App.DeletePublicKey("wrong-file-name.plugin.gpg")
-	require.Nil(t, err)
-
-	err = th.App.DeletePublicKey(publicKeyFilename)
-	require.Nil(t, err)
-	_, err = th.App.GetPublicKey(publicKeyFilename)
-	require.NotNil(t, err)
 }
