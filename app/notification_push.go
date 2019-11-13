@@ -487,8 +487,7 @@ func (a *App) BuildFetchedPushNotificationMessage(postId string, userId string) 
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
 
-	contentsConfig := *cfg.EmailSettings.PushNotificationContents
-	if contentsConfig != model.GENERIC_NO_CHANNEL_NOTIFICATION || channel.Type == model.CHANNEL_DIRECT {
+	if channel.Type == model.CHANNEL_DIRECT {
 		msg.ChannelName = channelName
 	}
 
