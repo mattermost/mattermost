@@ -3,8 +3,15 @@
 
 package plugin
 
-import "github.com/mattermost/mattermost-server/model"
+import (
+	"github.com/blang/semver"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
+)
 
+// Helpers provide a common patterns plugins use.
+//
+// Plugins obtain access to the Helpers by embedding MattermostPlugin.
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
 	// Returns the id of the resulting bot.
@@ -51,6 +58,18 @@ type Helpers interface {
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 }
 
+// HelpersImpl implements the helpers interface with an API that retrieves data on behalf of the plugin.
 type HelpersImpl struct {
 	API API
+}
+
+func (p *HelpersImpl) ensureServerVersion(required string) error {
+	serverVersion := p.API.GetServerVersion()
+	currentVersion := semver.MustParse(serverVersion)
+	requiredVersion := semver.MustParse(required)
+
+	if currentVersion.LT(requiredVersion) {
+		return errors.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
+	}
+	return nil
 }
