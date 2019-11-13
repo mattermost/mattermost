@@ -902,12 +902,9 @@ func (s SqlTeamStore) ResetAllTeamSchemes() *model.AppError {
 	return nil
 }
 
-func (s SqlTeamStore) ClearCaches() {
-}
+func (s SqlTeamStore) ClearCaches() {}
 
-func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {
-
-}
+func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
 
 func (s SqlTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 
