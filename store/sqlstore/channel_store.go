@@ -992,21 +992,12 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 			Channels
 		JOIN
 			PublicChannels c ON (c.Id = Channels.Id)
+		LEFT JOIN
+			ChannelMembers cm ON (cm.ChannelId = c.Id AND cm.UserId = :UserId)
 		WHERE
 			c.TeamId = :TeamId
 		AND c.DeleteAt = 0
-		AND c.Id NOT IN (
-			SELECT
-				c.Id
-			FROM
-				PublicChannels c
-			JOIN
-				ChannelMembers cm ON (cm.ChannelId = c.Id)
-			WHERE
-				c.TeamId = :TeamId
-			AND cm.UserId = :UserId
-			AND c.DeleteAt = 0
-		)
+		AND cm.UserId IS NULL
 		ORDER BY
 			c.DisplayName
 		LIMIT :Limit
@@ -2409,75 +2400,30 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
 	var query, baseLikeClause string
 	if isPostgreSQL {
 		baseLikeClause = "ARRAY_TO_STRING(ARRAY_AGG(u.Username), ', ') LIKE %s"
-		query = `
-            SELECT
-                *
-            FROM
-                Channels
-            WHERE
-                Id IN (
-                    SELECT
-                        cc.Id
-                    FROM (
-                        SELECT
-                            c.Id
-                        FROM
-                            Channels c
-                        JOIN
-                            ChannelMembers cm on c.Id = cm.ChannelId
-                        JOIN
-                            Users u on u.Id = cm.UserId
-                        WHERE
-                            c.Type = 'G'
-                        AND
-                            u.Id = :UserId
-                        GROUP BY
-                            c.Id
-                    ) cc
-                    JOIN
-                        ChannelMembers cm on cc.Id = cm.ChannelId
-                    JOIN
-                        Users u on u.Id = cm.UserId
-                    GROUP BY
-                        cc.Id
-                    HAVING
-                        %s
-                    LIMIT
-                        ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT) + `
-                )`
 	} else {
 		baseLikeClause = "GROUP_CONCAT(u.Username SEPARATOR ', ') LIKE %s"
-		query = `
-            SELECT
-                cc.*
-            FROM (
-                SELECT
-                    c.*
-                FROM
-                    Channels c
-                JOIN
-                    ChannelMembers cm on c.Id = cm.ChannelId
-                JOIN
-                    Users u on u.Id = cm.UserId
-                WHERE
-                    c.Type = 'G'
-                AND
-                    u.Id = :UserId
-                GROUP BY
-                    c.Id
-            ) cc
-            JOIN
-                ChannelMembers cm on cc.Id = cm.ChannelId
-            JOIN
-                Users u on u.Id = cm.UserId
-            GROUP BY
-                cc.Id
-            HAVING
-                %s
-            LIMIT
-                ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
 	}
-
+	query = `
+        SELECT
+            c.*
+        FROM
+            Channels c
+        JOIN
+            ChannelMembers cm on c.Id = cm.ChannelId
+        JOIN
+            ChannelMembers cm2 on c.Id = cm2.ChannelId
+        JOIN
+            Users u on u.Id = cm2.UserId
+        WHERE
+            c.Type = 'G'
+        AND
+            cm.UserId = :UserId
+        GROUP BY
+            c.Id
+        HAVING
+            %s
+        LIMIT
+            ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
 	var likeClauses []string
 	args := map[string]interface{}{"UserId": userId}
 	terms := strings.Split(strings.ToLower(strings.Trim(term, " ")), " ")
