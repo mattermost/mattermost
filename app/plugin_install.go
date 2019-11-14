@@ -136,8 +136,8 @@ type pluginInstallationStrategy int
 const (
 	// installPluginLocallyOnlyIfNew installs the given plugin locally only if no plugin with the same id has been unpacked.
 	installPluginLocallyOnlyIfNew pluginInstallationStrategy = iota
-	// installPluginLocallyOnlyIfUpgrade installs the given plugin locally only if no plugin with the same id has been unpacked, or if such a plugin is older.
-	installPluginLocallyOnlyIfUpgrade
+	// installPluginLocallyOnlyIfNewOrUpgrade installs the given plugin locally only if no plugin with the same id has been unpacked, or if such a plugin is older.
+	installPluginLocallyOnlyIfNewOrUpgrade
 	// installPluginLocallyAlways unconditionally installs the given plugin locally only, clobbering any existing plugin with the same id.
 	installPluginLocallyAlways
 )
@@ -183,18 +183,22 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, installationStrateg
 	}
 
 	// Check for plugins installed with the same ID.
+	var existingManifest *model.Manifest
 	for _, bundle := range bundles {
-		if bundle.Manifest != nil && bundle.Manifest.Id != manifest.Id {
-			continue
+		if bundle.Manifest != nil && bundle.Manifest.Id == manifest.Id {
+			existingManifest = bundle.Manifest
+			break
 		}
+	}
 
+	if existingManifest != nil {
 		// Return an error if already installed and strategy disallows installation.
 		if installationStrategy == installPluginLocallyOnlyIfNew {
 			return nil, model.NewAppError("installPluginLocally", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		// Skip installation if already installed and newer.
-		if installationStrategy == installPluginLocallyOnlyIfUpgrade {
+		if installationStrategy == installPluginLocallyOnlyIfNewOrUpgrade {
 			var version, existingVersion semver.Version
 
 			version, err = semver.Parse(manifest.Version)
@@ -202,7 +206,7 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, installationStrateg
 				return nil, model.NewAppError("installPluginLocally", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
 			}
 
-			existingVersion, err = semver.Parse(bundle.Manifest.Version)
+			existingVersion, err = semver.Parse(existingManifest.Version)
 			if err != nil {
 				return nil, model.NewAppError("installPluginLocally", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -214,12 +218,10 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, installationStrateg
 		}
 
 		// Otherwise remove the existing installation prior to install below.
-		mlog.Debug("Removing existing installation of plugin before local install", mlog.String("plugin_id", bundle.Manifest.Id), mlog.String("version", bundle.Manifest.Version))
-		if err := a.removePluginLocally(manifest.Id); err != nil {
+		mlog.Debug("Removing existing installation of plugin before local install", mlog.String("plugin_id", existingManifest.Id), mlog.String("version", existingManifest.Version))
+		if err := a.removePluginLocally(existingManifest.Id); err != nil {
 			return nil, model.NewAppError("installPluginLocally", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusBadRequest)
 		}
-
-		break
 	}
 
 	pluginPath := filepath.Join(*a.Config().PluginSettings.Directory, manifest.Id)
