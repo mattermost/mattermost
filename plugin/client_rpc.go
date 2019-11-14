@@ -525,8 +525,8 @@ func (s *hooksRPCServer) FileWillBeUploaded(args *Z_FileWillBeUploadedArgs, retu
 	return nil
 }
 
-// MessageWillBePosted is in this file because of the difficulty of identifying which fields need special behavior.
-// The special behavior needed is decoding the returned post into the original one to avoid the unintentional removal
+// MessageWillBePosted is in this file because of the difficulty of identifying which fields need special behaviour.
+// The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.
 func init() {
 	hookNameToId["MessageWillBePosted"] = MessageWillBePostedId
