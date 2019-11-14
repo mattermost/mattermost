@@ -42,14 +42,7 @@ func (s LocalCacheWebhookStore) GetIncoming(id string, allowFromCache bool) (*mo
 	}
 
 	if incomingWebhook := s.rootStore.doStandardReadCache(s.rootStore.webhookCache, id); incomingWebhook != nil {
-		if s.rootStore.metrics != nil {
-			s.rootStore.metrics.IncrementMemCacheHitCounter("Webhook")
-		}
 		return incomingWebhook.(*model.IncomingWebhook), nil
-	}
-
-	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheMissCounter("Webhook")
 	}
 
 	incomingWebhook, err := s.WebhookStore.GetIncoming(id, allowFromCache)
@@ -60,4 +53,34 @@ func (s LocalCacheWebhookStore) GetIncoming(id string, allowFromCache bool) (*mo
 	s.rootStore.doStandardAddToCache(s.rootStore.webhookCache, id, incomingWebhook)
 
 	return incomingWebhook, nil
+}
+
+func (s LocalCacheWebhookStore) DeleteIncoming(webhookId string, time int64) *model.AppError {
+	err := s.WebhookStore.DeleteIncoming(webhookId, time)
+	if err != nil {
+		return err
+	}
+
+	s.InvalidateWebhookCache(webhookId)
+	return nil
+}
+
+func (s LocalCacheWebhookStore) PermanentDeleteIncomingByUser(userId string) *model.AppError {
+	err := s.WebhookStore.PermanentDeleteIncomingByUser(userId)
+	if err != nil {
+		return err
+	}
+
+	s.ClearCaches()
+	return nil
+}
+
+func (s LocalCacheWebhookStore) PermanentDeleteIncomingByChannel(channelId string) *model.AppError {
+	err := s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
+	if err != nil {
+		return err
+	}
+
+	s.ClearCaches()
+	return nil
 }
