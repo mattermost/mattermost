@@ -7,26 +7,27 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/pkg/errors"
 )
 
-type EnsureBotOptions struct {
+type ensureBotOptions struct {
 	ProfileImagePath string
 	IconImagePath    string
 }
 
-type EnsureBotOption func(*EnsureBotOptions)
+type EnsureBotOption func(*ensureBotOptions)
 
 func ProfileImagePath(path string) EnsureBotOption {
-	return func(args *EnsureBotOptions) {
+	return func(args *ensureBotOptions) {
 		args.ProfileImagePath = path
 	}
 }
 
 func IconImagePath(path string) EnsureBotOption {
-	return func(args *EnsureBotOptions) {
+	return func(args *ensureBotOptions) {
 		args.IconImagePath = path
 	}
 }
@@ -44,15 +45,15 @@ func (p *HelpersImpl) readFile(path string) ([]byte, error) {
 	return imageBytes, nil
 }
 
-func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (retBotId string, retErr error) {
-
+// EnsureBot implements Helpers.EnsureBot
+func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (retBotID string, retErr error) {
 	err := p.ensureServerVersion("5.10.0")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to ensure bot")
 	}
 
 	// Default options
-	o := &EnsureBotOptions{
+	o := &ensureBotOptions{
 		ProfileImagePath: "",
 		IconImagePath:    "",
 	}
@@ -61,19 +62,19 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (ret
 		setter(o)
 	}
 
-	botId, err := p.ensureBot(bot)
+	botID, err := p.ensureBot(bot)
 	if err != nil {
 		return "", err
 	}
 
-	err = p.setBotImages(botId, o.ProfileImagePath, o.IconImagePath)
+	err = p.setBotImages(botID, o.ProfileImagePath, o.IconImagePath)
 	if err != nil {
 		return "", err
 	}
-	return botId, nil
+	return botID, nil
 }
 
-func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotId string, retErr error) {
+func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotID string, retErr error) {
 	// Must provide a bot with a username
 	if bot == nil || len(bot.Username) < 1 {
 		return "", errors.New("passed a bad bot, nil or no username")
@@ -82,34 +83,34 @@ func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotId string, retErr error) 
 	// If we fail for any reason, this could be a race between creation of bot and
 	// retrieval from another EnsureBot. Just try the basic retrieve existing again.
 	defer func() {
-		if retBotId == "" || retErr != nil {
+		if retBotID == "" || retErr != nil {
 			var err error
-			var botIdBytes []byte
+			var botIDBytes []byte
 
 			err = utils.ProgressiveRetry(func() error {
-				botIdBytes, err = p.API.KVGet(BOT_USER_KEY)
+				botIDBytes, err = p.API.KVGet(BOT_USER_KEY)
 				if err != nil {
 					return err
 				}
 				return nil
 			})
 
-			if err == nil && botIdBytes != nil {
-				retBotId = string(botIdBytes)
+			if err == nil && botIDBytes != nil {
+				retBotID = string(botIDBytes)
 				retErr = nil
 			}
 		}
 	}()
 
-	botIdBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
+	botIDBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
 	if kvGetErr != nil {
 		return "", errors.Wrap(kvGetErr, "failed to get bot")
 	}
 
 	// If the bot has already been created, there is nothing to do.
-	if botIdBytes != nil {
-		botId := string(botIdBytes)
-		return botId, nil
+	if botIDBytes != nil {
+		botID := string(botIDBytes)
+		return botID, nil
 	}
 
 	// Check for an existing bot user with that username. If one exists, then use that.
@@ -137,13 +138,13 @@ func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotId string, retErr error) 
 	return createdBot.UserId, nil
 }
 
-func (p *HelpersImpl) setBotImages(botId, profileImagePath, iconImagePath string) error {
+func (p *HelpersImpl) setBotImages(botID, profileImagePath, iconImagePath string) error {
 	if profileImagePath != "" {
 		imageBytes, err := p.readFile(profileImagePath)
 		if err != nil {
 			return errors.Wrap(err, "failed to read profile image")
 		}
-		appErr := p.API.SetProfileImage(botId, imageBytes)
+		appErr := p.API.SetProfileImage(botID, imageBytes)
 		if appErr != nil {
 			return errors.Wrap(appErr, "failed to set profile image")
 		}
@@ -153,7 +154,7 @@ func (p *HelpersImpl) setBotImages(botId, profileImagePath, iconImagePath string
 		if err != nil {
 			return errors.Wrap(err, "failed to read icon image")
 		}
-		appErr := p.API.SetBotIconImage(botId, imageBytes)
+		appErr := p.API.SetBotIconImage(botID, imageBytes)
 		if appErr != nil {
 			return errors.Wrap(appErr, "failed to set icon image")
 		}

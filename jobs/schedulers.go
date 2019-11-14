@@ -20,6 +20,7 @@ type Schedulers struct {
 	listenerId           string
 	startOnce            sync.Once
 	jobs                 *JobServer
+	isLeader             bool
 
 	schedulers   []model.Scheduler
 	nextRunTimes []*time.Time
@@ -34,6 +35,7 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		configChanged:        make(chan *model.Config),
 		clusterLeaderChanged: make(chan bool),
 		jobs:                 srv,
+		isLeader:             true,
 	}
 
 	if srv.DataRetentionJob != nil {
@@ -103,7 +105,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 						if time.Now().After(*nextTime) {
 							scheduler := schedulers.schedulers[idx]
 							if scheduler != nil {
-								if scheduler.Enabled(cfg) {
+								if schedulers.isLeader && scheduler.Enabled(cfg) {
 									if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
 										mlog.Error("Failed to schedule job", mlog.String("scheduler", scheduler.Name()), mlog.Err(err))
 									} else {
@@ -115,7 +117,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 					}
 				case newCfg := <-schedulers.configChanged:
 					for idx, scheduler := range schedulers.schedulers {
-						if !scheduler.Enabled(newCfg) {
+						if !schedulers.isLeader || !scheduler.Enabled(newCfg) {
 							schedulers.nextRunTimes[idx] = nil
 						} else {
 							schedulers.setNextRunTime(newCfg, idx, now, false)
@@ -123,6 +125,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 					}
 				case isLeader := <-schedulers.clusterLeaderChanged:
 					for idx := range schedulers.schedulers {
+						schedulers.isLeader = isLeader
 						if !isLeader {
 							schedulers.nextRunTimes[idx] = nil
 						} else {
