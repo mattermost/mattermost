@@ -168,7 +168,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.NotNil(t, err, "The token must be deleted after being used")
 
 		teams, err := th.App.GetTeamsForUser(ruser.Id)
-		require.NoError(t, err)
+		require.Nil(t, err)
 		require.NotEmpty(t, teams, "The user must have teams")
 		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
 	})
@@ -289,7 +289,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		th.BasicTeam.GroupConstrained = model.NewBool(true)
 		team, err := th.App.UpdateTeam(th.BasicTeam)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		defer func() {
 			th.BasicTeam.GroupConstrained = model.NewBool(false)
@@ -751,7 +751,7 @@ func TestSearchUsers(t *testing.T) {
 	require.True(t, findUserInList(th.BasicUser.Id, users), "should have found user")
 
 	_, err := th.App.UpdateActive(th.BasicUser2, false)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	search.Term = th.BasicUser2.Username
 	search.AllowInactive = false
@@ -1226,7 +1226,7 @@ func TestGetUsersByIdsWithOptions(t *testing.T) {
 
 		// Users before the timestamp shouldn't be returned
 		user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		user2, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		require.NoError(t, err)
@@ -1250,7 +1250,7 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 	defer th.TearDown()
 
 	gc1, err := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	usersByChannelId, resp := th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
 	CheckNoError(t, resp)
@@ -1418,7 +1418,7 @@ func TestPatchUser(t *testing.T) {
 
 	currentPassword := user.Password
 	user, err = th.App.GetUser(ruser.Id)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	err = th.App.CheckPasswordAndAllCriteria(user, currentPassword, "")
 	require.NoError(t, err, "Password should still match")
@@ -1482,7 +1482,7 @@ func TestUpdateUserAuth(t *testing.T) {
 
 	th.LinkUserToTeam(user, team)
 	_, err := th.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	userAuth := &model.UserAuth{}
 	userAuth.AuthData = user.AuthData
@@ -1668,7 +1668,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 		authData := model.NewId()
 		_, err := th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, false)
 		CheckNoError(t, resp)
@@ -1747,7 +1747,7 @@ func TestGetUsers(t *testing.T) {
 
 	// Check default params for page and per_page
 	_, err := th.Client.DoApiGet("/users", "")
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	th.Client.Logout()
 	_, resp = th.Client.GetUsers(0, 60, "")
@@ -2080,7 +2080,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 
 		// Fake user has MFA enabled
 		err = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		err = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
 		require.NoError(t, err)
@@ -2113,7 +2113,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 
 		// Fake user has MFA enabled
 		err = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
 		require.NoError(t, err)
@@ -2436,7 +2436,7 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	th.Client.Login(admin.Email, admin.Password)
 	sessions, err := th.Server.Store.Session().GetSessions(user.Id)
 	require.NotEmpty(t, sessions)
-	require.NoError(t, err)
+	require.Nil(t, err)
 	sessions, err = th.Server.Store.Session().GetSessions(admin.Id)
 	require.NotEmpty(t, sessions)
 	require.NoError(t, err)
@@ -2489,7 +2489,7 @@ func TestAttachDeviceId(t *testing.T) {
 				assert.True(t, pass)
 
 				sessions, err := th.App.GetSessions(th.BasicUser.Id)
-				require.NoError(t, err)
+				require.Nil(t, err)
 				assert.Equal(t, deviceId, sessions[0].DeviceId, "Missing device Id")
 			})
 		}
@@ -2540,7 +2540,7 @@ func TestVerifyUserEmail(t *testing.T) {
 	ruser, _ := th.Client.CreateUser(&user)
 
 	token, err := th.App.CreateVerifyEmailToken(ruser.Id, email)
-	require.NoError(t, err, "Unable to create email verify token")
+	require.Nil(t, err, "Unable to create email verify token")
 
 	_, resp := th.Client.VerifyUserEmail(token.Token)
 	CheckNoError(t, resp)
@@ -2602,7 +2602,7 @@ func TestSetProfileImage(t *testing.T) {
 	}
 
 	buser, err := th.App.GetUser(user.Id)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	_, resp = th.SystemAdminClient.SetProfileImage(user.Id, data)
 	CheckNoError(t, resp)
@@ -2697,7 +2697,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("login with terms_of_service set", func(t *testing.T) {
 		termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		success, resp := th.Client.RegisterTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
 		CheckNoError(t, resp)
@@ -2960,7 +2960,7 @@ func TestSwitchAccount(t *testing.T) {
 
 	fakeAuthData := model.NewId()
 	_, err := th.App.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	sr = &model.SwitchRequest{
 		CurrentService: model.USER_AUTH_SERVICE_GITLAB,
@@ -3988,7 +3988,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		Type:        model.TEAM_OPEN,
 	})
 
-	require.NoError(t, err, "failed to create team")
+	require.Nil(t, err, "failed to create team")
 
 	channel, err := th.App.CreateChannel(&model.Channel{
 		DisplayName: "dn_" + model.NewId(),
@@ -4093,7 +4093,7 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 	assert.Nil(t, success)
 
 	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	success, resp = th.Client.RegisterTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
 	CheckNoError(t, resp)
@@ -4111,7 +4111,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 	CheckErrorMessage(t, resp, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error")
 
 	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	success, resp := th.Client.RegisterTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
 	CheckNoError(t, resp)
@@ -4206,7 +4206,7 @@ func TestLoginLockout(t *testing.T) {
 
 	// Fake user has MFA enabled
 	err := th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, true)
-	require.NoError(t, err)
+	require.Nil(t, err)
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
 	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
