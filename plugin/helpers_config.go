@@ -11,7 +11,6 @@ import (
 )
 
 // CheckRequiredServerConfiguration implements Helpers.CheckRequiredServerConfiguration
-// plugin requirements.
 func (p *HelpersImpl) CheckRequiredServerConfiguration(req *model.Config) (bool, error) {
 	if req == nil {
 		return true, nil
