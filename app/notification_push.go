@@ -487,9 +487,7 @@ func (a *App) BuildFetchedPushNotificationMessage(postId string, userId string) 
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
 
-	if channel.Type == model.CHANNEL_DIRECT {
-		msg.ChannelName = channelName
-	}
+	msg.ChannelName = channelName
 
 	msg.SenderName = senderName
 	if ou, ok := post.Props["override_username"].(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
@@ -520,7 +518,6 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 
 	cfg := a.Config()
 	contentsConfig := *cfg.EmailSettings.PushNotificationContents
-
 	if contentsConfig == model.ID_LOADED_NOTIFICATION {
 		msg = a.buildIdLoadedPushNotificationMessage(post)
 	} else {
