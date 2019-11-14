@@ -18,7 +18,6 @@ func TestRunOnSingleNode(t *testing.T) {
 	lockKey := fmt.Sprintf("%s%s", plugin.RUN_SINGLE_NODE_KEY_PREFIX, uniqueId)
 
 	t.Run("should execute if there is no other node running the function", func(t *testing.T) {
-		var appError error
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
@@ -26,7 +25,7 @@ func TestRunOnSingleNode(t *testing.T) {
 		api.On("KVCompareAndSet", lockKey, []byte(nil), []byte("lock")).
 			Return(true, nil)
 		api.On("KVDelete", lockKey).
-			Return(appError)
+			Return(nil)
 		p.API = api
 
 		executed, err := p.RunOnSingleNode(uniqueId, func() {})
@@ -45,7 +44,7 @@ func TestRunOnSingleNode(t *testing.T) {
 		p.API = api
 
 		executed, err := p.RunOnSingleNode(uniqueId, func() {})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.False(t, executed)
 		api.AssertExpectations(t)
 	})
