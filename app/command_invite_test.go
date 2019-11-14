@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -41,6 +42,15 @@ func TestInviteProvider(t *testing.T) {
 	userAndDMChannel := "@" + basicUser3.Username + " ~" + dmChannel.Name
 	userAndInvalidPrivate := "@" + basicUser3.Username + " ~" + privateChannel2.Name
 	deactivatedUserPublicChannel := "@" + deactivatedUser.Username + " ~" + channel.Name
+
+	groupChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
+	var err *model.AppError
+	_, err = th.App.AddChannelMember(th.BasicUser.Id, groupChannel, "", "")
+	require.Nil(t, err)
+	groupChannel.GroupConstrained = model.NewBool(true)
+	groupChannel, _ = th.App.UpdateChannel(groupChannel)
+
+	groupChannelNonUser := "@" + th.BasicUser2.Username + " ~" + groupChannel.Name
 
 	tests := []struct {
 		desc     string
@@ -98,6 +108,11 @@ func TestInviteProvider(t *testing.T) {
 			msg:      basicUser4.Username,
 		},
 		{
+			desc:     "try to add a user not part of the group to a group channel",
+			expected: "api.command_invite.group_constrained_user_denied",
+			msg:      groupChannelNonUser,
+		},
+		{
 			desc:     "try to add a user to a private channel with no permission",
 			expected: "api.command_invite.private_channel.app_error",
 			msg:      userAndInvalidPrivate,
@@ -106,6 +121,62 @@ func TestInviteProvider(t *testing.T) {
 			desc:     "try to add a deleted user to a public channel",
 			expected: "api.command_invite.missing_user.app_error",
 			msg:      deactivatedUserPublicChannel,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			actual := InviteP.DoCommand(th.App, args, test.msg).Text
+			assert.Equal(t, test.expected, actual)
+		})
+	}
+}
+
+func TestInviteGroup(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.BasicTeam.GroupConstrained = model.NewBool(true)
+	var err *model.AppError
+	_, _ = th.App.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+	_, err = th.App.AddTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
+	require.Nil(t, err)
+	th.BasicTeam, _ = th.App.UpdateTeam(th.BasicTeam)
+
+	privateChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
+
+	groupChannelUser1 := "@" + th.BasicUser.Username + " ~" + privateChannel.Name
+	groupChannelUser2 := "@" + th.BasicUser2.Username + " ~" + privateChannel.Name
+	basicUser3 := th.CreateUser()
+	groupChannelUser3 := "@" + basicUser3.Username + " ~" + privateChannel.Name
+
+	InviteP := InviteProvider{}
+	args := &model.CommandArgs{
+		T:         func(s string, args ...interface{}) string { return s },
+		ChannelId: th.BasicChannel.Id,
+		TeamId:    th.BasicTeam.Id,
+		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
+	}
+
+	tests := []struct {
+		desc     string
+		expected string
+		msg      string
+	}{
+		{
+			desc:     "try to add an existing user part of the group to a group channel",
+			expected: "api.command_invite.user_already_in_channel.app_error",
+			msg:      groupChannelUser1,
+		},
+		{
+			desc:     "try to add a user part of the group to a group channel",
+			expected: "api.command_invite.success",
+			msg:      groupChannelUser2,
+		},
+		{
+			desc:     "try to add a user NOT part of the group to a group channel",
+			expected: "api.command_invite.user_not_in_team.app_error",
+			msg:      groupChannelUser3,
 		},
 	}
 

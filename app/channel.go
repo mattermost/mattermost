@@ -1260,8 +1260,8 @@ func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.A
 	return a.Srv.Store.Channel().GetAllChannelsCount(storeOpts)
 }
 
-func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	return a.Srv.Store.Channel().GetDeleted(teamId, offset, limit)
+func (a *App) GetDeletedChannels(teamId string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
+	return a.Srv.Store.Channel().GetDeleted(teamId, offset, limit, userId)
 }
 
 func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
@@ -1858,6 +1858,12 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 	term = strings.TrimSpace(term)
 
 	return a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
+}
+
+func (a *App) SearchArchivedChannels(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
+	term = strings.TrimSpace(term)
+
+	return a.Srv.Store.Channel().SearchArchivedInTeam(teamId, term, userId)
 }
 
 func (a *App) SearchChannelsForUser(userId, teamId, term string) (*model.ChannelList, *model.AppError) {
