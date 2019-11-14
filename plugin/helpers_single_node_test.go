@@ -4,6 +4,7 @@
 package plugin_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -13,19 +14,22 @@ import (
 )
 
 func TestRunOnSingleNode(t *testing.T) {
+	uniqueId := "unique_id"
+	lockKey := fmt.Sprintf("%s%s", plugin.RUN_SINGLE_NODE_KEY_PREFIX, uniqueId)
+
 	t.Run("should execute if there is no other node running the function", func(t *testing.T) {
 		var appError error
 		p := &plugin.HelpersImpl{}
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.12.0")
-		api.On("KVCompareAndSet", "runOnSingleNodeLock:unique_id", []byte(nil), []byte("lock")).
+		api.On("KVCompareAndSet", lockKey, []byte(nil), []byte("lock")).
 			Return(true, nil)
-		api.On("KVDelete", "runOnSingleNodeLock:unique_id").
+		api.On("KVDelete", lockKey).
 			Return(appError)
 		p.API = api
 
-		executed, err := p.RunOnSingleNode("unique_id", func() {})
+		executed, err := p.RunOnSingleNode(uniqueId, func() {})
 		assert.NoError(t, err)
 		assert.True(t, executed)
 		api.AssertExpectations(t)
@@ -36,11 +40,11 @@ func TestRunOnSingleNode(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.12.0")
-		api.On("KVCompareAndSet", "runOnSingleNodeLock:unique_id", []byte(nil), []byte("lock")).
+		api.On("KVCompareAndSet", lockKey, []byte(nil), []byte("lock")).
 			Return(false, nil)
 		p.API = api
 
-		executed, err := p.RunOnSingleNode("unique_id", func() {})
+		executed, err := p.RunOnSingleNode(uniqueId, func() {})
 		assert.Nil(t, err)
 		assert.False(t, executed)
 		api.AssertExpectations(t)
@@ -51,11 +55,11 @@ func TestRunOnSingleNode(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.12.0")
-		api.On("KVCompareAndSet", "runOnSingleNodeLock:unique_id", []byte(nil), []byte("lock")).
+		api.On("KVCompareAndSet", lockKey, []byte(nil), []byte("lock")).
 			Return(false, &model.AppError{})
 		p.API = api
 
-		executed, err := p.RunOnSingleNode("unique_id", func() {})
+		executed, err := p.RunOnSingleNode(uniqueId, func() {})
 		assert.Error(t, err)
 		assert.False(t, executed)
 		api.AssertExpectations(t)
@@ -66,13 +70,13 @@ func TestRunOnSingleNode(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.12.0")
-		api.On("KVCompareAndSet", "runOnSingleNodeLock:unique_id", []byte(nil), []byte("lock")).
+		api.On("KVCompareAndSet", lockKey, []byte(nil), []byte("lock")).
 			Return(true, nil)
-		api.On("KVDelete", "runOnSingleNodeLock:unique_id").
+		api.On("KVDelete", lockKey).
 			Return(&model.AppError{})
 		p.API = api
 
-		executed, err := p.RunOnSingleNode("unique_id", func() {})
+		executed, err := p.RunOnSingleNode(uniqueId, func() {})
 		assert.Error(t, err)
 		assert.True(t, executed)
 		api.AssertExpectations(t)

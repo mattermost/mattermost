@@ -5,16 +5,14 @@ package plugin
 
 import "fmt"
 
-// RunOnSingleNode is a wrapper function which should guarantee that only one plugin instance can run a function associated with the given id at a time
-// The id parameter is an identifier that uses for synchronization must be unique between each function.
+// RunOnSingleNode implements Helper.RunOnSingleNode
 func (p *HelpersImpl) RunOnSingleNode(id string, f func()) (bool, error) {
 	err := p.ensureServerVersion("5.12.0")
 	if err != nil {
 		return false, err
 	}
 
-	id = fmt.Sprintf("runOnSingleNodeLock:%s", id)
-
+	id = fmt.Sprintf("%s%s", RUN_SINGLE_NODE_KEY_PREFIX, id)
 	updated, appErr := p.API.KVCompareAndSet(id, nil, []byte("lock"))
 	if appErr != nil {
 		return false, appErr
