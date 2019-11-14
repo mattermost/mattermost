@@ -173,7 +173,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 			mlog.Debug("Installing prepackaged plugin", mlog.String("path", walkPath))
 
-			_, appErr := a.installPluginLocally(fileReader, installPluginLocallyOnlyIfUpgrade)
+			_, appErr := a.installPluginLocally(fileReader, installPluginLocallyOnlyIfNewOrUpgrade)
 			if appErr != nil {
 				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(appErr), mlog.String("path", walkPath))
 			}

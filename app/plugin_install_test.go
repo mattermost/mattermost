@@ -196,11 +196,11 @@ func TestInstallPluginLocally(t *testing.T) {
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
-			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfUpgrade)
+			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
 			require.Nil(t, appErr)
 			require.NotNil(t, existingManifest)
 
-			manifest, appErr := installPlugin(t, th, "valid", "0.0.1", installPluginLocallyOnlyIfUpgrade)
+			manifest, appErr := installPlugin(t, th, "valid", "0.0.1", installPluginLocallyOnlyIfNewOrUpgrade)
 			require.Nil(t, appErr)
 			require.Nil(t, manifest)
 
@@ -212,11 +212,11 @@ func TestInstallPluginLocally(t *testing.T) {
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
-			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfUpgrade)
+			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
 			require.Nil(t, appErr)
 			require.NotNil(t, existingManifest)
 
-			manifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfUpgrade)
+			manifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
 			require.Nil(t, appErr)
 			require.Nil(t, manifest)
 
@@ -228,11 +228,11 @@ func TestInstallPluginLocally(t *testing.T) {
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
-			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfUpgrade)
+			existingManifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
 			require.Nil(t, appErr)
 			require.NotNil(t, existingManifest)
 
-			manifest, appErr := installPlugin(t, th, "valid", "0.0.3", installPluginLocallyOnlyIfUpgrade)
+			manifest, appErr := installPlugin(t, th, "valid", "0.0.3", installPluginLocallyOnlyIfNewOrUpgrade)
 			require.Nil(t, appErr)
 			require.NotNil(t, manifest)
 
