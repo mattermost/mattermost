@@ -41,6 +41,12 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
+	fakeWebhook := model.IncomingWebhook{Id: "123"}
+	mockWebhookStore := mocks.WebhookStore{}
+	mockWebhookStore.On("GetIncoming", "123", true).Return(&fakeWebhook, nil)
+	mockWebhookStore.On("GetIncoming", "123", false).Return(&fakeWebhook, nil)
+	mockStore.On("Webhook").Return(&mockWebhookStore)
+
 	return &mockStore
 }
 
