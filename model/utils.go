@@ -146,8 +146,8 @@ func NewId() string {
 	return b.String()
 }
 
-// NewTeamName is a NewId that will be a valid team name.
-func NewTeamName() string {
+// NewRandomTeamName is a NewId that will be a valid team name.
+func NewRandomTeamName() string {
 	teamName := NewId()
 	for IsReservedTeamName(teamName) {
 		teamName = NewId()
