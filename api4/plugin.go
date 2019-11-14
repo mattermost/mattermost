@@ -44,7 +44,8 @@ func (api *API) InitPlugin() {
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable || !*c.App.Config().PluginSettings.EnableUploads || *c.App.Config().PluginSettings.RequirePluginSignature {
+	config := c.App.Config()
+	if !*config.PluginSettings.Enable || !*config.PluginSettings.EnableUploads || *config.PluginSettings.RequirePluginSignature {
 		c.Err = model.NewAppError("uploadPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
