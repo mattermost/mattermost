@@ -28,42 +28,6 @@ func TestFileInfoStoreCache(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})
 		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
-		require.Nil(t, err)
-		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})
-		cachedStore.FileInfo().GetForPost("123", true, true, true)
-		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
-	})
-
-	t.Run("first call not cached, second force no cached", func(t *testing.T) {
-		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
-
-		cachedStore.FileInfo().GetForPost("123", true, true, true)
-		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
-		cachedStore.FileInfo().GetForPost("123", true, true, false)
-		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 2)
-	})
-
-	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
-		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
-
-		cachedStore.FileInfo().GetForPost("123", true, true, true)
-		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
-		cachedStore.FileInfo().InvalidateFileInfosForPostCache("123", true)
-		cachedStore.FileInfo().GetForPost("123", true, true, true)
-		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 2)
-	})
-
-	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
-		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
-
-		fileInfos, err := cachedStore.FileInfo().GetForPost("123", true, true, true)
-		require.Nil(t, err)
-		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})
-		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
-		require.Nil(t, err)
 		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})
 		cachedStore.FileInfo().GetForPost("123", true, true, true)
 		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
