@@ -345,6 +345,7 @@ func (a *App) removeSignature(pluginId string) *model.AppError {
 		return model.NewAppError("removeSignature", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if !exists {
+		mlog.Debug("no plugin signature to remove", mlog.String("plugin_id", pluginId))
 		return nil
 	}
 	if err = a.RemoveFile(filePath); err != nil {
