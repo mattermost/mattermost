@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-// CheckRequiredServerConfiguration checks if the server is configured according to
+// CheckRequiredServerConfiguration implements Helpers.CheckRequiredServerConfiguration
 // plugin requirements.
 func (p *HelpersImpl) CheckRequiredServerConfiguration(req *model.Config) (bool, error) {
 	if req == nil {
