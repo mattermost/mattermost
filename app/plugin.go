@@ -169,6 +169,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
 				return nil
 			}
+			defer fileReader.Close()
 
 			mlog.Debug("Installing prepackaged plugin", mlog.String("path", walkPath))
 
