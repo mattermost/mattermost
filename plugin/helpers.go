@@ -14,10 +14,11 @@ import (
 // Plugins obtain access to the Helpers by embedding MattermostPlugin.
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
+	// A profile image or icon image may be optionally passed in to be set for the existing or newly created bot.
 	// Returns the id of the resulting bot.
 	//
 	// Minimum server version: 5.10
-	EnsureBot(bot *model.Bot) (string, error)
+	EnsureBot(bot *model.Bot, options ...EnsureBotOption) (string, error)
 
 	// KVSetJSON stores a key-value pair, unique per plugin, marshalling the given value as a JSON string.
 	//
