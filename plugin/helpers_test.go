@@ -19,51 +19,57 @@ func TestInstallPluginFromUrl(t *testing.T) {
 	replace := true
 	h := &plugin.HelpersImpl{}
 	api := &plugintest.API{}
-	config := &model.Config{}
-	api.On("GetConfig").Return(config)
 	h.API = api
 
-	t.Run("downloading from insecure url is not allowed", func(t *testing.T) {
-		config.PluginSettings.AllowInsecureDownloadUrl = model.NewBool(false)
-		url := "http://example.com/path"
+	t.Run("error while parsing the download url", func(t *testing.T) {
+		_, err := h.InstallPluginFromUrl("http://%41:8080/", replace)
 
-		manifest, appError := h.InstallPluginFromUrl(url, replace)
+		assert.NotNil(t, err)
+		assert.Equal(t, "download url is malformed: parse http://%41:8080/: invalid URL escape \"%41\"", err.Error())
+	})
 
-		assert.Nil(t, manifest)
-		assert.NotNil(t, appError)
+	t.Run("errors out while downloading file", func(t *testing.T) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			panic("something went wrong with server")
+		}))
+		defer testServer.Close()
+		url := testServer.URL
+
+		_, err := h.InstallPluginFromUrl(url, replace)
+
+		assert.NotNil(t, err)
 	})
 
 	t.Run("downloads the file successfully", func(t *testing.T) {
-		config.PluginSettings.AllowInsecureDownloadUrl = model.NewBool(true)
 		path, _ := fileutils.FindDir("tests")
 		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
 		expectedManifest := &model.Manifest{Id: "testplugin"}
-		api.On("InstallPlugin", mock.Anything, true).Return(expectedManifest, nil)
+		api.On("InstallPlugin", mock.Anything, false).Return(expectedManifest, nil)
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
 			_, _ = res.Write(tarData)
 		}))
-		defer func() { testServer.Close() }()
+		defer testServer.Close()
 		url := testServer.URL
 
-		manifest, appError := h.InstallPluginFromUrl(url, replace)
+		manifest, err := h.InstallPluginFromUrl(url, false)
 
+		assert.Nil(t, err)
 		assert.Equal(t, "testplugin", manifest.Id)
-		assert.Nil(t, appError)
 	})
 
-	t.Run("errors out while downloading file", func(t *testing.T) {
-		config.PluginSettings.AllowInsecureDownloadUrl = model.NewBool(true)
+	t.Run("the url pointing to server is incorrect", func(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			panic("something went wrong with server")
+			res.WriteHeader(http.StatusNotFound)
 		}))
-		defer func() { testServer.Close() }()
+		defer testServer.Close()
 		url := testServer.URL
 
-		_, appError := h.InstallPluginFromUrl(url, replace)
+		_, err := h.InstallPluginFromUrl(url, false)
 
-		assert.NotNil(t, appError)
+		assert.NotNil(t, err)
+		assert.Equal(t, "received 404 status code from the server", err.Error())
 	})
 }
