@@ -294,7 +294,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		defer func() {
 			th.BasicTeam.GroupConstrained = model.NewBool(false)
 			_, err = th.App.UpdateTeam(th.BasicTeam)
-			require.NoError(t, err)
+			require.Nil(t, err)
 		}()
 
 		inviteID := team.InviteId
@@ -850,7 +850,7 @@ func TestSearchUsers(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	_, err = th.App.UpdateActive(th.BasicUser2, true)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	search.InChannelId = ""
 	search.NotInTeamId = ""
@@ -1229,11 +1229,11 @@ func TestGetUsersByIdsWithOptions(t *testing.T) {
 		require.Nil(t, err)
 
 		user2, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		// Users not in the list of IDs shouldn't be returned
 		_, err = th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		users, resp := th.Client.GetUsersByIdsWithOptions([]string{user1.Id, user2.Id}, &model.UserGetByIdsOptions{
 			Since: user2.UpdateAt - 1,
@@ -1421,7 +1421,7 @@ func TestPatchUser(t *testing.T) {
 	require.Nil(t, err)
 
 	err = th.App.CheckPasswordAndAllCriteria(user, currentPassword, "")
-	require.NoError(t, err, "Password should still match")
+	require.Nil(t, err, "Password should still match")
 
 	patch = &model.UserPatch{}
 	patch.Email = model.NewString(th.GenerateTestEmail())
@@ -1515,7 +1515,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	user2 := th.CreateUser()
 	th.LinkUserToTeam(user2, team)
 	_, err = th.App.Srv.Store.User().VerifyEmail(user2.Id, user2.Email)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	th.SystemAdminClient.Login(user2.Email, "passwd1")
 
@@ -2083,10 +2083,10 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		require.Nil(t, err)
 
 		err = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 		CheckErrorMessage(t, resp, "mfa.validate_token.authenticate.app_error")
@@ -2116,7 +2116,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		require.Nil(t, err)
 
 		err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
 
@@ -2263,7 +2263,7 @@ func TestResetPassword(t *testing.T) {
 		recoveryTokenString = resultsEmail.Body.Text[loc : loc+model.TOKEN_SIZE]
 	}
 	recoveryToken, err := th.App.Srv.Store.Token().GetByToken(recoveryTokenString)
-	require.NoError(t, err, "Recovery token not found (%s)", recoveryTokenString)
+	require.Nil(t, err, "Recovery token not found (%s)", recoveryTokenString)
 
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "")
 	CheckBadRequestStatus(t, resp)
@@ -2288,7 +2288,7 @@ func TestResetPassword(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	authData := model.NewId()
 	_, err = th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
-	require.NoError(t, err)
+	require.Nil(t, err)
 	_, resp = th.Client.SendPasswordResetEmail(user.Email)
 	CheckBadRequestStatus(t, resp)
 }
@@ -2439,7 +2439,7 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	require.Nil(t, err)
 	sessions, err = th.Server.Store.Session().GetSessions(admin.Id)
 	require.NotEmpty(t, sessions)
-	require.NoError(t, err)
+	require.Nil(t, err)
 	_, resp = th.Client.RevokeSessionsFromAllUsers()
 	CheckNoError(t, resp)
 
@@ -2450,11 +2450,11 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 
 	sessions, err = th.Server.Store.Session().GetSessions(user.Id)
 	require.Empty(t, sessions)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	sessions, err = th.Server.Store.Session().GetSessions(admin.Id)
 	require.Empty(t, sessions)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 }
 
@@ -2608,12 +2608,12 @@ func TestSetProfileImage(t *testing.T) {
 	CheckNoError(t, resp)
 
 	ruser, err := th.App.GetUser(user.Id)
-	require.NoError(t, err)
+	require.Nil(t, err)
 	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
 	err = th.cleanupTestFile(info)
-	require.NoError(t, err)
+	require.Nil(t, err)
 }
 
 func TestSetDefaultProfileImage(t *testing.T) {
@@ -2645,12 +2645,12 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	CheckNoError(t, resp)
 
 	ruser, err := th.App.GetUser(user.Id)
-	require.NoError(t, err)
+	require.Nil(t, err)
 	assert.Equal(t, int64(0), ruser.LastPictureUpdate, "Picture should have resetted to default")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
 	cleanupErr := th.cleanupTestFile(info)
-	require.NoError(t, cleanupErr)
+	require.Nil(t, cleanupErr)
 }
 
 func TestLogin(t *testing.T) {
@@ -3997,7 +3997,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		TeamId:      team.Id,
 		CreatorId:   model.NewId(),
 	}, false)
-	require.NoError(t, err, "failed to create channel")
+	require.Nil(t, err, "failed to create channel")
 
 	createUserWithStatus := func(username string, status string) *model.User {
 		id := model.NewId()
@@ -4008,7 +4008,7 @@ func TestGetUsersByStatus(t *testing.T) {
 			Nickname: "nn_" + id,
 			Password: "Password1",
 		})
-		require.NoError(t, err, "failed to create user")
+		require.Nil(t, err, "failed to create user")
 
 		th.LinkUserToTeam(user, team)
 		th.AddUserToChannel(user, channel)
@@ -4034,11 +4034,11 @@ func TestGetUsersByStatus(t *testing.T) {
 
 	client := th.CreateClient()
 	_, resp := client.Login(onlineUser2.Username, "Password1")
-	require.NoError(t, resp.Error)
+	require.Nil(t, resp.Error)
 
 	t.Run("sorting by status then alphabetical", func(t *testing.T) {
 		usersByStatus, resp := client.GetUsersInChannelByStatus(channel.Id, 0, 8, "")
-		require.NoError(t, resp.Error)
+		require.Nil(t, resp.Error)
 
 		expectedUsersByStatus := []*model.User{
 			onlineUser1,
@@ -4059,21 +4059,21 @@ func TestGetUsersByStatus(t *testing.T) {
 
 	t.Run("paging", func(t *testing.T) {
 		usersByStatus, resp := client.GetUsersInChannelByStatus(channel.Id, 0, 3, "")
-		require.NoError(t, resp.Error)
+		require.Nil(t, resp.Error)
 		require.Len(t, usersByStatus, 3)
 		require.Equal(t, onlineUser1.Id, usersByStatus[0].Id, "online users first")
 		require.Equal(t, onlineUser2.Id, usersByStatus[1].Id, "online users first")
 		require.Equal(t, awayUser1.Id, usersByStatus[2].Id, "expected to receive away users second")
 
 		usersByStatus, resp = client.GetUsersInChannelByStatus(channel.Id, 1, 3, "")
-		require.NoError(t, resp.Error)
+		require.Nil(t, resp.Error)
 
 		require.Equal(t, awayUser2.Id, usersByStatus[0].Id, "expected to receive away users second")
 		require.Equal(t, dndUser1.Id, usersByStatus[1].Id, "expected to receive dnd users third")
 		require.Equal(t, dndUser2.Id, usersByStatus[2].Id, "expected to receive dnd users third")
 
 		usersByStatus, resp = client.GetUsersInChannelByStatus(channel.Id, 1, 4, "")
-		require.NoError(t, resp.Error)
+		require.Nil(t, resp.Error)
 
 		require.Len(t, usersByStatus, 4)
 		require.Equal(t, dndUser1.Id, usersByStatus[0].Id, "expected to receive dnd users third")
@@ -4100,7 +4100,7 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 
 	assert.True(t, *success)
 	_, err = th.App.GetUser(th.BasicUser.Id)
-	require.NoError(t, err)
+	require.Nil(t, err)
 }
 
 func TestGetUserTermsOfService(t *testing.T) {
@@ -4220,7 +4220,7 @@ func TestLoginLockout(t *testing.T) {
 
 	// Fake user has MFA disabled
 	err = th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, false)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	//Check if lock is active
 	_, resp = th.Client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
