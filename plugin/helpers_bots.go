@@ -4,19 +4,77 @@
 package plugin
 
 import (
+	"io/ioutil"
+	"path/filepath"
+
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+type ensureBotOptions struct {
+	ProfileImagePath string
+	IconImagePath    string
+}
+
+type EnsureBotOption func(*ensureBotOptions)
+
+func ProfileImagePath(path string) EnsureBotOption {
+	return func(args *ensureBotOptions) {
+		args.ProfileImagePath = path
+	}
+}
+
+func IconImagePath(path string) EnsureBotOption {
+	return func(args *ensureBotOptions) {
+		args.IconImagePath = path
+	}
+}
+
+func (p *HelpersImpl) readFile(path string) ([]byte, error) {
+	bundlePath, err := p.API.GetBundlePath()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get bundle path")
+	}
+
+	imageBytes, err := ioutil.ReadFile(filepath.Join(bundlePath, path))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read image")
+	}
+	return imageBytes, nil
+}
+
 // EnsureBot implements Helpers.EnsureBot
-func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotID string, retErr error) {
+func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (retBotID string, retErr error) {
 	err := p.ensureServerVersion("5.10.0")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to ensure bot")
 	}
 
+	// Default options
+	o := &ensureBotOptions{
+		ProfileImagePath: "",
+		IconImagePath:    "",
+	}
+
+	for _, setter := range options {
+		setter(o)
+	}
+
+	botID, err := p.ensureBot(bot)
+	if err != nil {
+		return "", err
+	}
+
+	err = p.setBotImages(botID, o.ProfileImagePath, o.IconImagePath)
+	if err != nil {
+		return "", err
+	}
+	return botID, nil
+}
+
+func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotID string, retErr error) {
 	// Must provide a bot with a username
 	if bot == nil || len(bot.Username) < 1 {
 		return "", errors.New("passed a bad bot, nil or no username")
@@ -78,4 +136,28 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotID string, retErr error) 
 	}
 
 	return createdBot.UserId, nil
+}
+
+func (p *HelpersImpl) setBotImages(botID, profileImagePath, iconImagePath string) error {
+	if profileImagePath != "" {
+		imageBytes, err := p.readFile(profileImagePath)
+		if err != nil {
+			return errors.Wrap(err, "failed to read profile image")
+		}
+		appErr := p.API.SetProfileImage(botID, imageBytes)
+		if appErr != nil {
+			return errors.Wrap(appErr, "failed to set profile image")
+		}
+	}
+	if iconImagePath != "" {
+		imageBytes, err := p.readFile(iconImagePath)
+		if err != nil {
+			return errors.Wrap(err, "failed to read icon image")
+		}
+		appErr := p.API.SetBotIconImage(botID, imageBytes)
+		if appErr != nil {
+			return errors.Wrap(appErr, "failed to set icon image")
+		}
+	}
+	return nil
 }
