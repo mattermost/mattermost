@@ -103,7 +103,7 @@ func (h *MainHelper) setupStore() {
 	h.ClusterInterface = &FakeClusterInterface{}
 	h.SqlSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = &TestStore{
-		store.NewLayeredStore(h.SqlSupplier, nil, h.ClusterInterface),
+		h.SqlSupplier,
 	}
 }
 

@@ -56,11 +56,13 @@ func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (interface
 }
 
 type apiRPCClient struct {
-	client *rpc.Client
+	client    *rpc.Client
+	muxBroker *plugin.MuxBroker
 }
 
 type apiRPCServer struct {
-	impl API
+	impl      API
+	muxBroker *plugin.MuxBroker
 }
 
 // ErrorString is a fallback for sending unregistered implementations of the error interface across
@@ -171,7 +173,8 @@ type Z_OnActivateReturns struct {
 func (g *hooksRPCClient) OnActivate() error {
 	muxId := g.muxBroker.NextId()
 	go g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
-		impl: g.apiImpl,
+		impl:      g.apiImpl,
+		muxBroker: g.muxBroker,
 	})
 
 	_args := &Z_OnActivateArgs{
@@ -192,7 +195,8 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 	}
 
 	s.apiRPCClient = &apiRPCClient{
-		client: rpc.NewClient(connection),
+		client:    rpc.NewClient(connection),
+		muxBroker: s.muxBroker,
 	}
 
 	if mmplugin, ok := s.impl.(interface {
@@ -363,6 +367,76 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 	return nil
 }
 
+type Z_PluginHTTPArgs struct {
+	Request     *http.Request
+	RequestBody []byte
+}
+
+type Z_PluginHTTPReturns struct {
+	Response     *http.Response
+	ResponseBody []byte
+}
+
+func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
+	forwardedRequest := &http.Request{
+		Method:     request.Method,
+		URL:        request.URL,
+		Proto:      request.Proto,
+		ProtoMajor: request.ProtoMajor,
+		ProtoMinor: request.ProtoMinor,
+		Header:     request.Header,
+		Host:       request.Host,
+		RemoteAddr: request.RemoteAddr,
+		RequestURI: request.RequestURI,
+	}
+
+	requestBody, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		log.Printf("RPC call to PluginHTTP API failed: %s", err.Error())
+		return nil
+	}
+	request.Body.Close()
+	request.Body = nil
+
+	_args := &Z_PluginHTTPArgs{
+		Request:     forwardedRequest,
+		RequestBody: requestBody,
+	}
+
+	_returns := &Z_PluginHTTPReturns{}
+	if err := g.client.Call("Plugin.PluginHTTP", _args, _returns); err != nil {
+		log.Printf("RPC call to PluginHTTP API failed: %s", err.Error())
+		return nil
+	}
+
+	_returns.Response.Body = ioutil.NopCloser(bytes.NewBuffer(_returns.ResponseBody))
+
+	return _returns.Response
+}
+
+func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPReturns) error {
+	args.Request.Body = ioutil.NopCloser(bytes.NewBuffer(args.RequestBody))
+
+	if hook, ok := s.impl.(interface {
+		PluginHTTP(request *http.Request) *http.Response
+	}); ok {
+		response := hook.PluginHTTP(args.Request)
+
+		responseBody, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return encodableError(fmt.Errorf("RPC call to PluginHTTP API failed: %s", err.Error()))
+		}
+		response.Body.Close()
+		response.Body = nil
+
+		returns.Response = response
+		returns.ResponseBody = responseBody
+	} else {
+		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented."))
+	}
+	return nil
+}
+
 func init() {
 	hookNameToId["FileWillBeUploaded"] = FileWillBeUploadedId
 }
@@ -451,7 +525,7 @@ func (s *hooksRPCServer) FileWillBeUploaded(args *Z_FileWillBeUploadedArgs, retu
 	return nil
 }
 
-// MessageWillBePosted is in this file because of the difficulty of identifiying which fields need special behaviour.
+// MessageWillBePosted is in this file because of the difficulty of identifying which fields need special behaviour.
 // The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.
 func init() {
@@ -491,8 +565,8 @@ func (s *hooksRPCServer) MessageWillBePosted(args *Z_MessageWillBePostedArgs, re
 	return nil
 }
 
-// MessageWillBeUpdated is in this file because of the difficulty of identifiying which fields need special behaviour.
-// The special behavour needed is decoding the returned post into the original one to avoid the unintentional removal
+// MessageWillBeUpdated is in this file because of the difficulty of identifying which fields need special behaviour.
+// The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.
 func init() {
 	hookNameToId["MessageWillBeUpdated"] = MessageWillBeUpdatedId

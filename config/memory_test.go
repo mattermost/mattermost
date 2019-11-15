@@ -215,11 +215,7 @@ func TestMemoryStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "callback should have been called when config written")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 }
 
@@ -268,11 +264,7 @@ func TestMemoryStoreLoad(t *testing.T) {
 		err = ms.Load()
 		require.NoError(t, err)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "callback should have been called when config loaded")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config loaded")
 	})
 }
 
