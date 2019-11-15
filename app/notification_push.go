@@ -20,6 +20,7 @@ type NotificationType string
 
 const NOTIFICATION_TYPE_CLEAR NotificationType = "clear"
 const NOTIFICATION_TYPE_MESSAGE NotificationType = "message"
+const ID_LOADED_DEFAULT_MESSAGE = "You've received a new message"
 
 const PUSH_NOTIFICATION_HUB_WORKERS = 1000
 const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 50
@@ -532,11 +533,12 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post) model.PushNotification {
 
 	msg := model.PushNotification{
-		PostId:   post.Id,
-		Category: model.CATEGORY_CAN_REPLY,
-		Version:  model.PUSH_MESSAGE_V2,
-		Type:     model.PUSH_TYPE_ID_LOADED,
-		Message:  "You've received a message",
+		PostId:    post.Id,
+		ChannelId: post.ChannelId,
+		Category:  model.CATEGORY_CAN_REPLY,
+		Version:   model.PUSH_MESSAGE_V2,
+		Type:      model.PUSH_TYPE_ID_LOADED,
+		Message:   ID_LOADED_DEFAULT_MESSAGE,
 	}
 
 	return msg
