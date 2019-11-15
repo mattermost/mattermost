@@ -57,9 +57,13 @@ func (s LocalCacheTeamStore) GetUserTeamIds(userID string, allowFromCache bool) 
 }
 
 func (s LocalCacheTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
-	oldTeam, err := s.TeamStore.Get(team.Id)
-	if err != nil {
-		return nil, err
+	var oldTeam *model.Team
+	var err *model.AppError
+	if team.DeleteAt != 0 {
+		oldTeam, err = s.TeamStore.Get(team.Id)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	tm, err := s.TeamStore.Update(team)
@@ -67,7 +71,7 @@ func (s LocalCacheTeamStore) Update(team *model.Team) (*model.Team, *model.AppEr
 		return nil, err
 	}
 
-	if oldTeam.DeleteAt == 0 && team.DeleteAt != 0 {
+	if oldTeam != nil && oldTeam.DeleteAt == 0 {
 		s.rootStore.teamCache.Purge()
 	}
 
