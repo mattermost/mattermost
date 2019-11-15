@@ -87,7 +87,7 @@ func (p *HelpersImpl) ensureServerVersion(required string) error {
 func (p *HelpersImpl) InstallPluginFromUrl(downloadUrl string, replace bool) (*model.Manifest, error) {
 	parsedUrl, err := url.Parse(downloadUrl)
 	if err != nil {
-		return nil, errors.Wrap(err, "download url is malformed")
+		return nil, errors.Wrap(err, "error while parsing url")
 	}
 
 	client := &http.Client{Timeout: time.Hour}
@@ -98,12 +98,12 @@ func (p *HelpersImpl) InstallPluginFromUrl(downloadUrl string, replace bool) (*m
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("received %d status code from the server", response.StatusCode)
+		return nil, errors.Errorf("received %d status code while downloading plugin from server", response.StatusCode)
 	}
 
 	manifest, installError := p.API.InstallPlugin(response.Body, replace)
 	if installError != nil {
-		return nil, errors.Wrap(err, "unable to install plugin")
+		return nil, errors.Wrap(err, "unable to install plugin on server")
 	}
 
 	return manifest, nil

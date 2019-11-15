@@ -1,6 +1,12 @@
 package plugin_test
 
 import (
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+	"testing"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
@@ -8,11 +14,6 @@ import (
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"path/filepath"
-	"testing"
 )
 
 func TestInstallPluginFromUrl(t *testing.T) {
@@ -25,12 +26,12 @@ func TestInstallPluginFromUrl(t *testing.T) {
 		_, err := h.InstallPluginFromUrl("http://%41:8080/", replace)
 
 		assert.NotNil(t, err)
-		assert.Equal(t, "download url is malformed: parse http://%41:8080/: invalid URL escape \"%41\"", err.Error())
+		assert.Equal(t, "error while parsing url: parse http://%41:8080/: invalid URL escape \"%41\"", err.Error())
 	})
 
 	t.Run("errors out while downloading file", func(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			panic("something went wrong with server")
+			res.WriteHeader(http.StatusInternalServerError)
 		}))
 		defer testServer.Close()
 		url := testServer.URL
@@ -38,6 +39,7 @@ func TestInstallPluginFromUrl(t *testing.T) {
 		_, err := h.InstallPluginFromUrl(url, replace)
 
 		assert.NotNil(t, err)
+		assert.Equal(t, "received 500 status code while downloading plugin from server", err.Error())
 	})
 
 	t.Run("downloads the file successfully", func(t *testing.T) {
@@ -70,6 +72,6 @@ func TestInstallPluginFromUrl(t *testing.T) {
 		_, err := h.InstallPluginFromUrl(url, false)
 
 		assert.NotNil(t, err)
-		assert.Equal(t, "received 404 status code from the server", err.Error())
+		assert.Equal(t, "received 404 status code while downloading plugin from server", err.Error())
 	})
 }
