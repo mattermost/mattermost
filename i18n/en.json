@@ -764,7 +764,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "User cannot be added to this channel because it is constrained to group members only."
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
   },
   {
     "id": "api.command_invite.hint",
@@ -797,6 +797,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} is already in the channel."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} is not a member of the team."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1321,10 +1325,6 @@
     "translation": "Unable to upload file. Image storage is not configured."
   },
   {
-    "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Unable to upload file. File is too large."
-  },
-  {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
@@ -1339,6 +1339,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Encountered an error writing to local server storage"
+  },
+  {
+    "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
+    "translation": "Invalid/Missing channel ID or Team ID."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1864,7 +1868,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1873,6 +1877,10 @@
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parameter required to add user to team."
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -2621,6 +2629,10 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Failed to send welcome email successfully"
+  },
+  {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -3951,6 +3963,10 @@
     "translation": "Invalid AD/LDAP Filter"
   },
   {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Invalid AD/LDAP Guest Filter"
+  },
+  {
     "id": "ent.ldap_groups.group_search_error",
     "translation": "error retrieving ldap group"
   },
@@ -4516,15 +4532,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elastic Search AutocompleteEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch AutocompleteEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch SearchEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4711,12 +4727,12 @@
     "translation": "Invalid Canonical Algorithm."
   },
   {
-    "id": "model.config.is_valid.saml_digest_algorithm.app_error",
-    "translation": "Invalid Digest Algorithm."
-  },
-  {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Invalid Email attribute. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -5141,6 +5157,14 @@
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
     "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+  },
+  {
+    "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
+    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+  },
+  {
+    "id": "model.plugin_kvset_options.serialize_value.app_error",
+    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -6113,6 +6137,10 @@
   {
     "id": "store.sql_group.no_rows_changed",
     "translation": "no rows changed"
+  },
+  {
+    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -7135,6 +7163,14 @@
     "translation": "This username is already taken. Please choose another."
   },
   {
+    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
+    "translation": "Unable to get the list of deactivate guests ids"
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Unable to deactivate guests"
+  },
+  {
     "id": "store.sql_user.update_auth_data.app_error",
     "translation": "Unable to update the auth data"
   },
@@ -7464,11 +7500,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "We no longer support this browser"
+    "translation": "This browser is no longer supported by Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "We no longer support this version of your browser"
+    "translation": "This version of your browser is no longer supported by Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",

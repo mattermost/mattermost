@@ -1036,7 +1036,7 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 			PublicChannels pc ON (pc.Id = Channels.Id)
 		WHERE
 			pc.TeamId = :TeamId
-		AND pc.DeleteAt = 0
+		AND pc.DeleteAt = 0 
 		ORDER BY pc.DisplayName
 		LIMIT :Limit
 		OFFSET :Offset
@@ -1242,10 +1242,24 @@ func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Ch
 	return &channel, nil
 }
 
-func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
 	channels := &model.ChannelList{}
 
-	if _, err := s.GetReplica().Select(channels, "SELECT * FROM Channels WHERE (TeamId = :TeamId OR TeamId = '') AND DeleteAt != 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
+	query := `
+		SELECT * FROM Channels 
+		WHERE (TeamId = :TeamId OR TeamId = '') 
+		AND DeleteAt != 0 
+		AND Type != 'P'
+		UNION
+			SELECT * FROM Channels 
+			WHERE (TeamId = :TeamId OR TeamId = '') 
+			AND DeleteAt != 0 
+			AND Type = 'P' 
+			AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
+		ORDER BY DisplayName LIMIT :Limit OFFSET :Offset
+	`
+
+	if _, err := s.GetReplica().Select(channels, query, map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset, "UserId": userId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlChannelStore.GetDeleted", "store.sql_channel.get_deleted.missing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusNotFound)
 		}
@@ -1790,7 +1804,7 @@ func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) *model.Ap
 
 func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
 	if _, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-		return model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.permanent_delete_members_by_user.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlChannelStore.ChannelPermanentDeleteMembersByUser", "store.sql_channel.permanent_delete_members_by_user.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -2152,6 +2166,57 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 		`, term, map[string]interface{}{
 		"TeamId": teamId,
 	})
+}
+
+func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
+	publicChannels, publicErr := s.performSearch(`
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			Channels c ON (c.Id = Channels.Id)
+		WHERE
+			c.TeamId = :TeamId
+			SEARCH_CLAUSE
+			AND c.DeleteAt != 0
+			AND c.Type != 'P'
+		ORDER BY c.DisplayName
+		LIMIT 100
+		`, term, map[string]interface{}{
+		"TeamId": teamId,
+		"UserId": userId,
+	})
+
+	privateChannels, privateErr := s.performSearch(`
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			Channels c ON (c.Id = Channels.Id)
+		WHERE
+			c.TeamId = :TeamId
+			SEARCH_CLAUSE
+			AND c.DeleteAt != 0
+			AND c.Type = 'P'
+			AND c.Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
+		ORDER BY c.DisplayName
+		LIMIT 100
+		`, term, map[string]interface{}{
+		"TeamId": teamId,
+		"UserId": userId,
+	})
+
+	output := *publicChannels
+	output = append(output, *privateChannels...)
+
+	outputErr := publicErr
+	if privateErr != nil {
+		outputErr = privateErr
+	}
+
+	return &output, outputErr
 }
 
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {

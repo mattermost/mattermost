@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/testlib"
-
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
@@ -97,11 +95,6 @@ func Setup() *TestHelper {
 }
 
 func (th *TestHelper) InitPlugins() *TestHelper {
-
-	if th.tempWorkspace == "" {
-		th.tempWorkspace, _ = testlib.SetupTestResources()
-	}
-
 	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
 	webappDir := filepath.Join(th.tempWorkspace, "webapp")
 
@@ -165,7 +158,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	func main() {
 		plugin.ClientMain(&MyPlugin{})
 	}
-	
+
 	`
 	// Compile and write the plugin
 	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
@@ -220,11 +213,8 @@ func TestStatic(t *testing.T) {
 
 	resp, err := http.Get(URL + "/static/root.html")
 
-	if err != nil {
-		t.Fatalf("got error while trying to get static files %v", err)
-	} else if resp.StatusCode != http.StatusOK {
-		t.Fatalf("couldn't get static files %v", resp.StatusCode)
-	}
+	assert.NoErrorf(t, err, "got error while trying to get static files %v", err)
+	assert.Equalf(t, resp.StatusCode, http.StatusOK, "couldn't get static files %v", resp.StatusCode)
 }
 */
 
@@ -248,15 +238,18 @@ func TestCheckClientCompatability(t *testing.T) {
 		{"Internet Explorer 11 2", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; Zoom 3.6.0; rv:11.0) like Gecko", false},
 		{"Internet Explorer 11 (Compatibility Mode) 1", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; .NET CLR 1.1.4322; InfoPath.3; Zoom 3.6.0)", false},
 		{"Internet Explorer 11 (Compatibility Mode) 2", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; Zoom 3.6.0)", false},
-		{"Safari 9", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Safari/604.1.38", true},
+		{"Safari 12", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15", true},
+		{"Safari 11", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Safari/604.1.38", false},
+		{"Safari 10", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/602.4.8 (KHTML, like Gecko) Version/10.0.3 Safari/602.4.8", false},
+		{"Safari 9", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4", false},
 		{"Safari 8", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/600.7.12 (KHTML, like Gecko) Version/8.0.7 Safari/600.7.12", false},
-		{"Safari Mobile", "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B137 Safari/601.1", true},
+		{"Safari Mobile 12", "Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like macOS) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/12.0 Mobile/14A5335d Safari/602.1.50", true},
+		{"Safari Mobile 9", "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B137 Safari/601.1", false},
 	}
 	for _, browser := range uaTestParameters {
 		t.Run(browser.Name, func(t *testing.T) {
-			if result := CheckClientCompatability(browser.UserAgent); result != browser.Result {
-				t.Fatalf("%s User Agent Test failed!", browser.Name)
-			}
+			result := CheckClientCompatability(browser.UserAgent)
+			require.Equalf(t, result, browser.Result, "user agent test failed for %s", browser.Name)
 		})
 	}
 }

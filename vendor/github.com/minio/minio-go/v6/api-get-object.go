@@ -92,7 +92,7 @@ func (c Client) getObjectWithContext(ctx context.Context, bucketName, objectName
 						} else if req.Offset > 0 {
 							opts.SetRange(req.Offset, 0)
 						}
-						httpReader, objectInfo, err = c.getObject(ctx, bucketName, objectName, opts)
+						httpReader, objectInfo, _, err = c.getObject(ctx, bucketName, objectName, opts)
 						if err != nil {
 							resCh <- getResponse{Error: err}
 							return
@@ -173,7 +173,7 @@ func (c Client) getObjectWithContext(ctx context.Context, bucketName, objectName
 						} else if req.Offset > 0 { // Range is set with respect to the offset.
 							opts.SetRange(req.Offset, 0)
 						}
-						httpReader, objectInfo, err = c.getObject(ctx, bucketName, objectName, opts)
+						httpReader, objectInfo, _, err = c.getObject(ctx, bucketName, objectName, opts)
 						if err != nil {
 							resCh <- getResponse{
 								Error: err,
@@ -596,13 +596,13 @@ func newObject(reqCh chan<- getRequest, resCh <-chan getResponse, doneCh chan<- 
 //
 // For more information about the HTTP Range header.
 // go to http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35.
-func (c Client) getObject(ctx context.Context, bucketName, objectName string, opts GetObjectOptions) (io.ReadCloser, ObjectInfo, error) {
+func (c Client) getObject(ctx context.Context, bucketName, objectName string, opts GetObjectOptions) (io.ReadCloser, ObjectInfo, http.Header, error) {
 	// Validate input arguments.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
-		return nil, ObjectInfo{}, err
+		return nil, ObjectInfo{}, nil, err
 	}
 	if err := s3utils.CheckValidObjectName(objectName); err != nil {
-		return nil, ObjectInfo{}, err
+		return nil, ObjectInfo{}, nil, err
 	}
 
 	// Execute GET on objectName.
@@ -613,11 +613,11 @@ func (c Client) getObject(ctx context.Context, bucketName, objectName string, op
 		contentSHA256Hex: emptySHA256Hex,
 	})
 	if err != nil {
-		return nil, ObjectInfo{}, err
+		return nil, ObjectInfo{}, nil, err
 	}
 	if resp != nil {
 		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusPartialContent {
-			return nil, ObjectInfo{}, httpRespToErrorResponse(resp, bucketName, objectName)
+			return nil, ObjectInfo{}, nil, httpRespToErrorResponse(resp, bucketName, objectName)
 		}
 	}
 
@@ -629,7 +629,7 @@ func (c Client) getObject(ctx context.Context, bucketName, objectName string, op
 	date, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
 	if err != nil {
 		msg := "Last-Modified time format not recognized. " + reportIssue
-		return nil, ObjectInfo{}, ErrorResponse{
+		return nil, ObjectInfo{}, nil, ErrorResponse{
 			Code:      "InternalError",
 			Message:   msg,
 			RequestID: resp.Header.Get("x-amz-request-id"),
@@ -657,5 +657,5 @@ func (c Client) getObject(ctx context.Context, bucketName, objectName string, op
 	}
 
 	// do not close body here, caller will close
-	return resp.Body, objectStat, nil
+	return resp.Body, objectStat, resp.Header, nil
 }

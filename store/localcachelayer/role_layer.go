@@ -55,11 +55,10 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, *model.A
 
 	roles, _ := s.RoleStore.GetByNames(rolesToQuery)
 
-	if roles != nil {
-		for _, role := range roles {
-			s.rootStore.doStandardAddToCache(s.rootStore.roleCache, role.Name, role)
-		}
+	for _, role := range roles {
+		s.rootStore.doStandardAddToCache(s.rootStore.roleCache, role.Name, role)
 	}
+
 	return append(foundRoles, roles...), nil
 }
 
