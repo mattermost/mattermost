@@ -20,7 +20,6 @@ type NotificationType string
 
 const NOTIFICATION_TYPE_CLEAR NotificationType = "clear"
 const NOTIFICATION_TYPE_MESSAGE NotificationType = "message"
-const ID_LOADED_DEFAULT_MESSAGE = "You've received a new message"
 
 const PUSH_NOTIFICATION_HUB_WORKERS = 1000
 const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 50
@@ -520,7 +519,7 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 	cfg := a.Config()
 	contentsConfig := *cfg.EmailSettings.PushNotificationContents
 	if contentsConfig == model.ID_LOADED_NOTIFICATION {
-		msg = a.buildIdLoadedPushNotificationMessage(post)
+		msg = a.buildIdLoadedPushNotificationMessage(post, user)
 	} else {
 		msg = a.buildFullPushNotificationMessage(post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
@@ -530,15 +529,15 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 	return msg
 }
 
-func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post) model.PushNotification {
-
+func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post, user *model.User) model.PushNotification {
+	userLocale := utils.GetUserTranslations(user.Locale)
 	msg := model.PushNotification{
 		PostId:    post.Id,
 		ChannelId: post.ChannelId,
 		Category:  model.CATEGORY_CAN_REPLY,
 		Version:   model.PUSH_MESSAGE_V2,
 		Type:      model.PUSH_TYPE_ID_LOADED,
-		Message:   ID_LOADED_DEFAULT_MESSAGE,
+		Message:   userLocale("api.push_notification.id_loaded.default_message"),
 	}
 
 	return msg

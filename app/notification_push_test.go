@@ -967,6 +967,8 @@ func TestBuildPushNotificationMessageContents(t *testing.T) {
 	channelWideMention := false
 	replyToThreadType := ""
 
+	receiverLocale := utils.GetUserTranslations(receiver.Locale)
+
 	for name, tc := range map[string]struct {
 		contentsConfig string
 		expectedMsg    model.PushNotification
@@ -979,7 +981,7 @@ func TestBuildPushNotificationMessageContents(t *testing.T) {
 				Category:  model.CATEGORY_CAN_REPLY,
 				Version:   model.PUSH_MESSAGE_V2,
 				Type:      model.PUSH_TYPE_ID_LOADED,
-				Message:   ID_LOADED_DEFAULT_MESSAGE,
+				Message:   receiverLocale("api.push_notification.id_loaded.default_message"),
 			},
 		},
 		"full contents included in push notification": {
