@@ -8,11 +8,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetGroup(t *testing.T) {
@@ -765,6 +763,20 @@ func TestGetGroups(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
+	_, response = th.SystemAdminClient.GetGroups(opts)
+	CheckBadRequestStatus(t, response)
+
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
+	require.Nil(t, response.Error)
+
+	opts.NotAssociatedToChannel = th.BasicChannel.Id
+
+	_, response = th.Client.GetGroups(opts)
+	CheckForbiddenStatus(t, response)
+
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
+	require.Nil(t, response.Error)
+
 	groups, response := th.SystemAdminClient.GetGroups(opts)
 	assert.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
@@ -787,7 +799,7 @@ func TestGetGroups(t *testing.T) {
 	_, response = th.Client.GetGroups(opts)
 	CheckForbiddenStatus(t, response)
 
-	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user")
+	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
 	require.Nil(t, response.Error)
 
 	_, response = th.Client.GetGroups(opts)
