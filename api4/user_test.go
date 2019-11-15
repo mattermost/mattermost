@@ -1718,6 +1718,49 @@ func TestUpdateUserActive(t *testing.T) {
 		assertWebsocketEventUserUpdatedWithEmail(t, webSocketClient, "")
 		assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
 	})
+
+	t.Run("activate guest should fail when guests feature is disable", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		id := model.NewId()
+		guest := &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		user, err := th.App.CreateGuest(guest)
+		require.Nil(t, err)
+		th.App.UpdateActive(user, false)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		_, resp := th.SystemAdminClient.UpdateUserActive(user.Id, true)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("activate guest should work when guests feature is enabled", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		id := model.NewId()
+		guest := &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		user, err := th.App.CreateGuest(guest)
+		require.Nil(t, err)
+		th.App.UpdateActive(user, false)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		_, resp := th.SystemAdminClient.UpdateUserActive(user.Id, true)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestGetUsers(t *testing.T) {
