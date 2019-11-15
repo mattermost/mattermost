@@ -15,21 +15,21 @@ type LocalCacheTeamStore struct {
 
 func (s *LocalCacheTeamStore) handleClusterInvalidateTeam(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
-		s.rootStore.teamCache.Purge()
+		s.rootStore.teamAllTeamIdsForUserCache.Purge()
 	} else {
-		s.rootStore.teamCache.Remove(msg.Data)
+		s.rootStore.teamAllTeamIdsForUserCache.Remove(msg.Data)
 	}
 }
 
 func (s LocalCacheTeamStore) ClearCaches() {
-	s.rootStore.teamCache.Purge()
+	s.rootStore.teamAllTeamIdsForUserCache.Purge()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("All Team Ids for User - Purge")
 	}
 }
 
 func (s LocalCacheTeamStore) InvalidateAllTeamIdsForUser(userId string) {
-	s.rootStore.teamCache.Remove(userId)
+	s.rootStore.teamAllTeamIdsForUserCache.Remove(userId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("All Team Ids for User - Remove by UserId")
 	}
@@ -40,7 +40,7 @@ func (s LocalCacheTeamStore) GetUserTeamIds(userID string, allowFromCache bool) 
 		return s.TeamStore.GetUserTeamIds(userID, allowFromCache)
 	}
 
-	if userTeamIds := s.rootStore.doStandardReadCache(s.rootStore.teamCache, userID); userTeamIds != nil {
+	if userTeamIds := s.rootStore.doStandardReadCache(s.rootStore.teamAllTeamIdsForUserCache, userID); userTeamIds != nil {
 		return userTeamIds.([]string), nil
 	}
 
@@ -50,7 +50,7 @@ func (s LocalCacheTeamStore) GetUserTeamIds(userID string, allowFromCache bool) 
 	}
 
 	if len(userTeamIds) > 0 {
-		s.rootStore.doStandardAddToCache(s.rootStore.teamCache, userID, userTeamIds)
+		s.rootStore.doStandardAddToCache(s.rootStore.teamAllTeamIdsForUserCache, userID, userTeamIds)
 	}
 
 	return userTeamIds, nil
@@ -72,7 +72,7 @@ func (s LocalCacheTeamStore) Update(team *model.Team) (*model.Team, *model.AppEr
 	}
 
 	if oldTeam != nil && oldTeam.DeleteAt == 0 {
-		s.rootStore.teamCache.Purge()
+		s.rootStore.teamAllTeamIdsForUserCache.Purge()
 	}
 
 	return tm, err

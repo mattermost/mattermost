@@ -28,16 +28,16 @@ const (
 
 type LocalCacheStore struct {
 	store.Store
-	metrics       einterfaces.MetricsInterface
-	cluster       einterfaces.ClusterInterface
-	reaction      LocalCacheReactionStore
-	reactionCache *utils.Cache
-	role          LocalCacheRoleStore
-	roleCache     *utils.Cache
-	scheme        LocalCacheSchemeStore
-	schemeCache   *utils.Cache
-	team          LocalCacheTeamStore
-	teamCache     *utils.Cache
+	metrics                    einterfaces.MetricsInterface
+	cluster                    einterfaces.ClusterInterface
+	reaction                   LocalCacheReactionStore
+	reactionCache              *utils.Cache
+	role                       LocalCacheRoleStore
+	roleCache                  *utils.Cache
+	scheme                     LocalCacheSchemeStore
+	schemeCache                *utils.Cache
+	team                       LocalCacheTeamStore
+	teamAllTeamIdsForUserCache *utils.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
@@ -52,7 +52,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
 	localCacheStore.schemeCache = utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
-	localCacheStore.teamCache = utils.NewLruWithParams(TEAM_CACHE_SIZE, "Team", TEAM_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS)
+	localCacheStore.teamAllTeamIdsForUserCache = utils.NewLruWithParams(TEAM_CACHE_SIZE, "Team", TEAM_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS)
 	localCacheStore.team = LocalCacheTeamStore{TeamStore: baseStore.Team(), rootStore: &localCacheStore}
 
 	if cluster != nil {
@@ -130,5 +130,5 @@ func (s *LocalCacheStore) doClearCacheCluster(cache *utils.Cache) {
 
 func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.reactionCache)
-	s.doClearCacheCluster(s.teamCache)
+	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
 }
