@@ -240,13 +240,6 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id, http.StatusInternalServerError)
 	}
 
-	if oldTeam.DeleteAt == 0 && team.DeleteAt != 0 {
-		// Invalidate this cache after any team deletion
-
-		//@todo What should I do with this?
-		//allTeamIdsForUserCache.Purge()
-	}
-
 	return team, nil
 }
 
