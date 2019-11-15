@@ -186,7 +186,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	err := s.RunOldAppInitalization()
+	err := s.RunOldAppInitialization()
 	if err != nil {
 		return nil, err
 	}
@@ -633,7 +633,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 func (s *Server) checkPushNotificationServerUrl() {
 	notificationServer := *s.Config().EmailSettings.PushNotificationServer
-	if strings.HasPrefix(notificationServer, "http://") == true {
+	if strings.HasPrefix(notificationServer, "http://") {
 		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
 	}
 }

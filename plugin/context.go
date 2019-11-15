@@ -12,4 +12,5 @@ type Context struct {
 	IpAddress      string
 	AcceptLanguage string
 	UserAgent      string
+	SourcePluginId string
 }

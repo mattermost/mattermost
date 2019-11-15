@@ -141,13 +141,8 @@ const (
 
 	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1    = "RSAwithSHA1"
 	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256  = "RSAwithSHA256"
-	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA384  = "RSAwithSHA384"
 	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512  = "RSAwithSHA512"
 	SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM = SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1
-
-	SAML_SETTINGS_DIGEST_ALGORITHM_SHA1    = "SHA1"
-	SAML_SETTINGS_DIGEST_ALGORITHM_SHA256  = "SHA256"
-	SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM = SAML_SETTINGS_DIGEST_ALGORITHM_SHA1
 
 	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N    = "Canonical1.0"
 	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11  = "Canonical1.1"
@@ -1526,6 +1521,7 @@ type TeamSettings struct {
 	ExperimentalEnableAutomaticReplies                        *bool
 	ExperimentalHideTownSquareinLHS                           *bool
 	ExperimentalTownSquareIsReadOnly                          *bool
+	LockTeammateNameDisplay                                   *bool
 	ExperimentalPrimaryTeam                                   *string
 	ExperimentalDefaultChannels                               []string
 }
@@ -1671,6 +1667,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.ExperimentalViewArchivedChannels == nil {
 		s.ExperimentalViewArchivedChannels = NewBool(false)
+	}
+
+	if s.LockTeammateNameDisplay == nil {
+		s.LockTeammateNameDisplay = NewBool(false)
 	}
 }
 
@@ -1911,7 +1911,6 @@ type SamlSettings struct {
 	AssertionConsumerServiceURL *string
 
 	SignatureAlgorithm *string
-	DigestAlgorithm    *string
 	CanonicalAlgorithm *string
 
 	ScopingIDPProviderId *string
@@ -1966,10 +1965,6 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.SignatureAlgorithm == nil {
 		s.SignatureAlgorithm = NewString(SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM)
-	}
-
-	if s.DigestAlgorithm == nil {
-		s.DigestAlgorithm = NewString(SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM)
 	}
 
 	if s.CanonicalAlgorithm == nil {
@@ -2852,11 +2847,8 @@ func (ss *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if !(*ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA384 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512) {
+		if !(*ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_signature_algorithm.app_error", nil, "", http.StatusBadRequest)
-		}
-		if !(*ss.DigestAlgorithm == SAML_SETTINGS_DIGEST_ALGORITHM_SHA1 || *ss.DigestAlgorithm == SAML_SETTINGS_DIGEST_ALGORITHM_SHA256) {
-			return NewAppError("Config.IsValid", "model.config.is_valid.saml_digest_algorithm.app_error", nil, "", http.StatusBadRequest)
 		}
 		if !(*ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N || *ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)
@@ -2880,7 +2872,7 @@ func (ss *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *ss.ConnectionSecurity == CONN_SECURITY_TLS && *ss.UseLetsEncrypt == false {
+	if *ss.ConnectionSecurity == CONN_SECURITY_TLS && !*ss.UseLetsEncrypt {
 		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file.app_error", nil, "", http.StatusBadRequest)
 
 		if *ss.TLSCertFile == "" {
