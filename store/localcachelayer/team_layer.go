@@ -62,7 +62,7 @@ func (s LocalCacheTeamStore) Update(team *model.Team) (*model.Team, *model.AppEr
 		return nil, err
 	}
 
-	team, err = s.TeamStore.Update(team)
+	tm, err := s.TeamStore.Update(team)
 	if err != nil {
 		return nil, err
 	}
@@ -71,5 +71,5 @@ func (s LocalCacheTeamStore) Update(team *model.Team) (*model.Team, *model.AppEr
 		s.rootStore.teamCache.Purge()
 	}
 
-	return team, err
+	return tm, err
 }
