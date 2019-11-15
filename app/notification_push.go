@@ -536,6 +536,7 @@ func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post) model.PushN
 		Category: model.CATEGORY_CAN_REPLY,
 		Version:  model.PUSH_MESSAGE_V2,
 		Type:     model.PUSH_TYPE_ID_LOADED,
+		Message:  "You've received a message",
 	}
 
 	return msg
