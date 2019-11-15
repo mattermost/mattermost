@@ -37,6 +37,7 @@ type PushNotificationAck struct {
 	ClientReceivedAt int64  `json:"received_at"`
 	ClientPlatform   string `json:"platform"`
 	NotificationType string `json:"type"`
+	PostId           string `json:"post_id,omitempty"`
 }
 
 type PushNotification struct {
