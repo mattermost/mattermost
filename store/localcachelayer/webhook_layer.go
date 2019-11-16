@@ -15,9 +15,9 @@ type LocalCacheWebhookStore struct {
 
 func (s *LocalCacheWebhookStore) handleClusterInvalidateWebhook(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
-		s.rootStore.doClearCacheCluster(s.rootStore.webhookCache)
+		s.rootStore.webhookCache.Purge()
 	} else {
-		s.rootStore.doInvalidateCacheCluster(s.rootStore.webhookCache, msg.Data)
+		s.rootStore.webhookCache.Remove(msg.Data)
 	}
 }
 
