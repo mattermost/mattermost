@@ -13,11 +13,11 @@ type LocalCacheChannelStore struct {
 	rootStore *LocalCacheStore
 }
 
-func (s *LocalCacheChannelStore) handleClusterInvalidateChannel(msg *model.ClusterMessage) {
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberCounts(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
-		s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
+		s.rootStore.channelMemberCountsCache.Purge()
 	} else {
-		s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberCountsCache, msg.Data)
+		s.rootStore.channelMemberCountsCache.Remove(msg.Data)
 	}
 }
 
