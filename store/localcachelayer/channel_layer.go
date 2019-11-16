@@ -15,14 +15,14 @@ type LocalCacheChannelStore struct {
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannel(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
-		s.rootStore.channelMemberCountsCache.Purge()
+		s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
 	} else {
-		s.rootStore.channelMemberCountsCache.Remove(msg.Data)
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberCountsCache, msg.Data)
 	}
 }
 
 func (s LocalCacheChannelStore) ClearCaches() {
-	s.rootStore.channelMemberCountsCache.Purge()
+	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
@@ -30,7 +30,7 @@ func (s LocalCacheChannelStore) ClearCaches() {
 }
 
 func (s LocalCacheChannelStore) InvalidateMemberCount(channelId string) {
-	s.rootStore.channelMemberCountsCache.Remove(channelId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberCountsCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Remove by ChannelId")
 	}
