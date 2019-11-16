@@ -15,11 +15,11 @@ type LocalCacheEmojiStore struct {
 
 func (es *LocalCacheEmojiStore) handleClusterInvalidateEmoji(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
-		es.rootStore.emojiCacheById.Purge()
-		es.rootStore.emojiIdCacheByName.Purge()
+		es.rootStore.doClearCacheCluster(es.rootStore.emojiCacheById)
+		es.rootStore.doClearCacheCluster(es.rootStore.emojiIdCacheByName)
 	} else {
-		es.rootStore.emojiCacheById.Remove(msg.Data)
-		es.rootStore.emojiIdCacheByName.Remove(msg.Data)
+		es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiCacheById, msg.Data)
+		es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiIdCacheByName, msg.Data)
 	}
 }
 
@@ -70,8 +70,8 @@ func (es LocalCacheEmojiStore) Delete(emoji *model.Emoji, time int64) *model.App
 }
 
 func (es LocalCacheEmojiStore) addToCache(emoji *model.Emoji) {
-	es.rootStore.emojiCacheById.AddWithExpiresInSecs(emoji.Id, emoji, EMOJI_CACHE_SEC)
-	es.rootStore.emojiIdCacheByName.AddWithExpiresInSecs(emoji.Name, emoji.Id, EMOJI_CACHE_SEC)
+	es.rootStore.doStandardAddToCache(es.rootStore.emojiCacheById, emoji.Id, emoji)
+	es.rootStore.doStandardAddToCache(es.rootStore.emojiIdCacheByName, emoji.Name, emoji.Id)
 }
 
 func (es LocalCacheEmojiStore) getFromCacheById(id string) (*model.Emoji, bool) {
@@ -89,6 +89,6 @@ func (es LocalCacheEmojiStore) getFromCacheByName(name string) (*model.Emoji, bo
 }
 
 func (es LocalCacheEmojiStore) removeFromCache(emoji *model.Emoji) {
-	es.rootStore.emojiCacheById.Remove(emoji.Id)
-	es.rootStore.emojiIdCacheByName.Remove(emoji.Name)
+	es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiCacheById, emoji.Id)
+	es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiIdCacheByName, emoji.Name)
 }
