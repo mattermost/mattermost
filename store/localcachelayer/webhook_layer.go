@@ -15,14 +15,14 @@ type LocalCacheWebhookStore struct {
 
 func (s *LocalCacheWebhookStore) handleClusterInvalidateWebhook(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
-		s.rootStore.webhookCache.Purge()
+		s.rootStore.doClearCacheCluster(s.rootStore.webhookCache)
 	} else {
-		s.rootStore.webhookCache.Remove(msg.Data)
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.webhookCache, msg.Data)
 	}
 }
 
 func (s LocalCacheWebhookStore) ClearCaches() {
-	s.rootStore.webhookCache.Purge()
+	s.rootStore.doClearCacheCluster(s.rootStore.webhookCache)
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Webhook - Purge")
@@ -30,7 +30,7 @@ func (s LocalCacheWebhookStore) ClearCaches() {
 }
 
 func (s LocalCacheWebhookStore) InvalidateWebhookCache(webhookId string) {
-	s.rootStore.webhookCache.Remove(webhookId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.webhookCache, webhookId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Webhook - Remove by WebhookId")
 	}
