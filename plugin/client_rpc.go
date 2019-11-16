@@ -754,6 +754,13 @@ func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manif
 }
 
 func (g *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_InstallPluginReturns) error {
+	hook, ok := g.impl.(interface {
+		InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
+	})
+	if !ok {
+		return encodableError(fmt.Errorf("API InstallPlugin called but not implemented."))
+	}
+
 	receivePluginConnection, err := g.muxBroker.Dial(args.PluginStreamID)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote plugin stream, error: %v", err.Error())
@@ -762,12 +769,6 @@ func (g *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_Insta
 	pluginReader := connectIOReader(receivePluginConnection)
 	defer pluginReader.Close()
 
-	if hook, ok := g.impl.(interface {
-		InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.InstallPlugin(pluginReader, args.B)
-	} else {
-		return encodableError(fmt.Errorf("API InstallPlugin called but not implemented."))
-	}
+	returns.A, returns.B = hook.InstallPlugin(pluginReader, args.B)
 	return nil
 }
