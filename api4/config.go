@@ -82,19 +82,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow plugin uploads to be toggled through the API
 	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
 
-	// If the Message Export feature has been toggled in the System Console, rewrite the ExportFromTimestamp field to an
-	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
-	// directly and not through the System Console UI.
-	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
-		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
-			// When the feature is toggled on, use the current timestamp as the start time for future exports.
-			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(model.GetMillis())
-		} else if !*cfg.MessageExportSettings.EnableExport {
-			// When the feature is disabled, reset the timestamp so that the timestamp will be set if
-			// the feature is re-enabled from the System Console in future.
-			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(0)
-		}
-	}
+	handleMessageExportConfig(cfg, appCfg)
 
 	err := cfg.IsValid()
 	if err != nil {
@@ -157,8 +145,64 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("config")
 		return
 	}
+
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
+	}
+
+	appCfg := c.App.Config()
+	var filterFn utils.StructFieldFilter
+	if *appCfg.ExperimentalSettings.RestrictSystemAdmin {
+		filterFn = func(structField reflect.StructField, base, patch reflect.Value) bool {
+			return !(structField.Tag.Get("restricted") == "true")
+		}
+	} else {
+		filterFn = func(structField reflect.StructField, base, patch reflect.Value) bool {
+			return true
+		}
+	}
+
+	if cfg.MessageExportSettings.EnableExport != nil {
+		handleMessageExportConfig(cfg, appCfg)
+	}
+
+	updatedCfg, mergeErr := config.Merge(appCfg, cfg, &utils.MergeConfig{
+		StructFieldFilter: filterFn,
+	})
+
+	if mergeErr != nil {
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err := updatedCfg.IsValid()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	err = c.App.SaveConfig(updatedCfg, true)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(c.App.GetSanitizedConfig().ToJson()))
+}
+
+func handleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
+	// If the Message Export feature has been toggled in the System Console, rewrite the ExportFromTimestamp field to an
+	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
+	// directly and not through the System Console UI.
+	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
+		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
+			// When the feature is toggled on, use the current timestamp as the start time for future exports.
+			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(model.GetMillis())
+		} else if !*cfg.MessageExportSettings.EnableExport {
+			// When the feature is disabled, reset the timestamp so that the timestamp will be set if
+			// the feature is re-enabled from the System Console in future.
+			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(0)
+		}
 	}
 }

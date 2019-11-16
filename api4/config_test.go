@@ -357,4 +357,61 @@ func TestPatchConfig(t *testing.T) {
 		_, response := client.PatchConfig(&model.Config{})
 		CheckForbiddenStatus(t, response)
 	})
+
+	t.Run("should not update the restricted fields when restrict toggle is on", func(t *testing.T) {
+		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = true
+
+		config := model.Config{LogSettings: model.LogSettings{
+			ConsoleLevel: model.NewString("INFO"),
+		}}
+
+		updatedConfig, _ := th.SystemAdminClient.PatchConfig(&config)
+
+		assert.Equal(t, "DEBUG", *updatedConfig.LogSettings.ConsoleLevel)
+	})
+
+	t.Run("check if config is valid", func(t *testing.T) {
+		config := model.Config{PasswordSettings: model.PasswordSettings{
+			MinimumLength: model.NewInt(4),
+		}}
+
+		_, response := th.SystemAdminClient.PatchConfig(&config)
+
+		assert.Equal(t, http.StatusBadRequest, response.StatusCode)
+		assert.NotNil(t, response.Error)
+		assert.Equal(t, "model.config.is_valid.password_length.app_error", response.Error.Id)
+	})
+
+	t.Run("should patch the config", func(t *testing.T) {
+		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = false
+
+		config := model.Config{PasswordSettings: model.PasswordSettings{
+			Lowercase: model.NewBool(true),
+			Number:    model.NewBool(true),
+			Uppercase: model.NewBool(true),
+			Symbol:    model.NewBool(true),
+		}, LogSettings: model.LogSettings{
+			ConsoleLevel: model.NewString("INFO"),
+		}}
+
+		th.SystemAdminClient.PatchConfig(&config)
+
+		updatedConfig, response := th.SystemAdminClient.GetConfig()
+		assert.True(t, *updatedConfig.PasswordSettings.Lowercase)
+		assert.True(t, *updatedConfig.PasswordSettings.Number)
+		assert.True(t, *updatedConfig.PasswordSettings.Uppercase)
+		assert.True(t, *updatedConfig.PasswordSettings.Symbol)
+		assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
+		assert.Equal(t, "no-cache, no-store, must-revalidate", response.Header.Get("Cache-Control"))
+	})
+
+	t.Run("should sanitize config", func(t *testing.T) {
+		config := model.Config{PasswordSettings: model.PasswordSettings{
+			Symbol: model.NewBool(true),
+		}}
+
+		updatedConfig, _ := th.SystemAdminClient.PatchConfig(&config)
+
+		assert.Equal(t, model.FAKE_SETTING, *updatedConfig.SqlSettings.DataSource)
+	})
 }
