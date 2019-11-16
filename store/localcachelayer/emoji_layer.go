@@ -13,13 +13,19 @@ type LocalCacheEmojiStore struct {
 	rootStore *LocalCacheStore
 }
 
-func (es *LocalCacheEmojiStore) handleClusterInvalidateEmoji(msg *model.ClusterMessage) {
+func (es *LocalCacheEmojiStore) handleClusterInvalidateEmojiById(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
-		es.rootStore.doClearCacheCluster(es.rootStore.emojiCacheById)
-		es.rootStore.doClearCacheCluster(es.rootStore.emojiIdCacheByName)
+		es.rootStore.emojiCacheById.Purge()
 	} else {
-		es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiCacheById, msg.Data)
-		es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiIdCacheByName, msg.Data)
+		es.rootStore.emojiCacheById.Remove(msg.Data)
+	}
+}
+
+func (es *LocalCacheEmojiStore) handleClusterInvalidateEmojiIdByName(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		es.rootStore.emojiIdCacheByName.Purge()
+	} else {
+		es.rootStore.emojiIdCacheByName.Remove(msg.Data)
 	}
 }
 
