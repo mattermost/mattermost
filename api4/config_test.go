@@ -394,9 +394,9 @@ func TestPatchConfig(t *testing.T) {
 			ConsoleLevel: model.NewString("INFO"),
 		}}
 
-		th.SystemAdminClient.PatchConfig(&config)
+		_, response := th.SystemAdminClient.PatchConfig(&config)
 
-		updatedConfig, response := th.SystemAdminClient.GetConfig()
+		updatedConfig, _ := th.SystemAdminClient.GetConfig()
 		assert.True(t, *updatedConfig.PasswordSettings.Lowercase)
 		assert.True(t, *updatedConfig.PasswordSettings.Number)
 		assert.True(t, *updatedConfig.PasswordSettings.Uppercase)
@@ -413,5 +413,15 @@ func TestPatchConfig(t *testing.T) {
 		updatedConfig, _ := th.SystemAdminClient.PatchConfig(&config)
 
 		assert.Equal(t, model.FAKE_SETTING, *updatedConfig.SqlSettings.DataSource)
+	})
+
+	t.Run("not allowing to toggle enable uploads for plugin via api", func(t *testing.T) {
+		config := model.Config{PluginSettings: model.PluginSettings{
+			EnableUploads: model.NewBool(true),
+		}}
+
+		updatedConfig, _ := th.SystemAdminClient.PatchConfig(&config)
+
+		assert.Equal(t, false, *updatedConfig.PluginSettings.EnableUploads)
 	})
 }

@@ -163,6 +163,9 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Do not allow plugin uploads to be toggled through the API
+	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
+
 	if cfg.MessageExportSettings.EnableExport != nil {
 		handleMessageExportConfig(cfg, appCfg)
 	}
@@ -188,6 +191,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(c.App.GetSanitizedConfig().ToJson()))
 }
 
