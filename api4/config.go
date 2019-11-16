@@ -172,7 +172,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 
 	if mergeErr != nil {
-		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
