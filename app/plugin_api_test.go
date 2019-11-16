@@ -59,8 +59,8 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 	}
 
 	return func() {
-		defer os.RemoveAll(pluginDir)
-		defer os.RemoveAll(webappPluginDir)
+		os.RemoveAll(pluginDir)
+		os.RemoveAll(webappPluginDir)
 	}, pluginDir
 }
 
