@@ -519,7 +519,7 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 	cfg := a.Config()
 	contentsConfig := *cfg.EmailSettings.PushNotificationContents
 	if contentsConfig == model.ID_LOADED_NOTIFICATION {
-		msg = a.buildIdLoadedPushNotificationMessage(post)
+		msg = a.buildIdLoadedPushNotificationMessage(post, user)
 	} else {
 		msg = a.buildFullPushNotificationMessage(post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
@@ -529,13 +529,15 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 	return msg
 }
 
-func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post) model.PushNotification {
-
+func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post, user *model.User) model.PushNotification {
+	userLocale := utils.GetUserTranslations(user.Locale)
 	msg := model.PushNotification{
-		PostId:   post.Id,
-		Category: model.CATEGORY_CAN_REPLY,
-		Version:  model.PUSH_MESSAGE_V2,
-		Type:     model.PUSH_TYPE_ID_LOADED,
+		PostId:    post.Id,
+		ChannelId: post.ChannelId,
+		Category:  model.CATEGORY_CAN_REPLY,
+		Version:   model.PUSH_MESSAGE_V2,
+		Type:      model.PUSH_TYPE_ID_LOADED,
+		Message:   userLocale("api.push_notification.id_loaded.default_message"),
 	}
 
 	return msg
