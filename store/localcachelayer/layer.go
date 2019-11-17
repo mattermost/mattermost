@@ -20,19 +20,24 @@ const (
 	SCHEME_CACHE_SIZE = 20000
 	SCHEME_CACHE_SEC  = 30 * 60
 
+	LAST_POST_TIME_CACHE_SIZE = 25000
+	LAST_POST_TIME_CACHE_SEC  = 15 * 60
+
 	CLEAR_CACHE_MESSAGE_DATA = ""
 )
 
 type LocalCacheStore struct {
 	store.Store
-	metrics       einterfaces.MetricsInterface
-	cluster       einterfaces.ClusterInterface
-	reaction      LocalCacheReactionStore
-	reactionCache *utils.Cache
-	role          LocalCacheRoleStore
-	roleCache     *utils.Cache
-	scheme        LocalCacheSchemeStore
-	schemeCache   *utils.Cache
+	metrics           einterfaces.MetricsInterface
+	cluster           einterfaces.ClusterInterface
+	reaction          LocalCacheReactionStore
+	reactionCache     *utils.Cache
+	role              LocalCacheRoleStore
+	roleCache         *utils.Cache
+	scheme            LocalCacheSchemeStore
+	schemeCache       *utils.Cache
+	post              LocalCachePostStore
+	lastPostTimeCache *utils.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
@@ -47,11 +52,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
 	localCacheStore.schemeCache = utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
+	localCacheStore.lastPostTimeCache = utils.NewLruWithParams(LAST_POST_TIME_CACHE_SIZE, "LastPostTime", LAST_POST_TIME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POST_TIME)
+	localCacheStore.post = LocalCachePostStore{PostStore: baseStore.Post(), rootStore: &localCacheStore}
 
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES, localCacheStore.role.handleClusterInvalidateRole)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES, localCacheStore.scheme.handleClusterInvalidateScheme)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POST_TIME, localCacheStore.post.handleClusterInvalidateLastPostTime)
 	}
 	return localCacheStore
 }
@@ -66,6 +74,10 @@ func (s LocalCacheStore) Role() store.RoleStore {
 
 func (s LocalCacheStore) Scheme() store.SchemeStore {
 	return s.scheme
+}
+
+func (s LocalCacheStore) Post() store.PostStore {
+	return s.post
 }
 
 func (s LocalCacheStore) DropAllTables() {
@@ -118,4 +130,5 @@ func (s *LocalCacheStore) doClearCacheCluster(cache *utils.Cache) {
 
 func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.reactionCache)
+	s.doClearCacheCluster(s.lastPostTimeCache)
 }

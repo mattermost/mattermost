@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -40,6 +41,22 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("Get", "123").Return(&fakeScheme, nil)
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
+
+	mockPostStore := mocks.PostStore{}
+	mockPostStoreOptions := model.GetPostsSinceOptions{
+		ChannelId:        "channelId",
+		Time:             1,
+		SkipFetchThreads: false,
+	}
+
+	mockPostStoreEtagResult := fmt.Sprintf("%v.%v", model.CurrentVersion, 1)
+	mockPostStore.On("ClearCaches")
+	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
+	mockPostStore.On("GetEtag", "channelId", true).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false).Return(model.NewPostList(), nil)
+	mockStore.On("Post").Return(&mockPostStore)
 
 	return &mockStore
 }
