@@ -137,6 +137,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Rate limit by UserID
 		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.App.Session.UserId, w) {
+			c.LogAudit(fmt.Sprintf("rate limiting threshold reached for userdId=%v", session.UserId))
 			return
 		}
 

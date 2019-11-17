@@ -951,8 +951,13 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if patch.Email != nil {
+		c.LogAudit(fmt.Sprintf("user email updated from %s to %v", ouser.Email, patch.Email))
+	} else {
+		c.LogAudit("")
+	}
+
 	c.App.SetAutoResponderStatus(ruser, ouser.NotifyProps)
-	c.LogAudit("")
 	w.Write([]byte(ruser.ToJson()))
 }
 
@@ -1013,7 +1018,10 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit(fmt.Sprintf("user=%s roles=%s", c.Params.UserId, newRoles))
+	if user, err := c.App.GetUser(c.App.Session.UserId); err != nil && user != nil  {
+		c.LogAudit(fmt.Sprintf("userId=%s - past roles=%s; new roles=%s", c.Params.UserId, user.GetRoles(), newRoles))
+	}
+
 	ReturnStatusOK(w)
 }
 
@@ -1381,8 +1389,14 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
 
 	if err != nil {
-		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		c.Err = err
+
+		if err.Id == "api.user.check_user_login_attempts.too_many.app_error" {
+			c.LogAuditWithUserId(id, fmt.Sprintf("account with userId=%s is locked - login_id=%s", id, loginId))
+			return
+		}
+
+		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		return
 	}
 
