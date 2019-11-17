@@ -88,8 +88,8 @@ func (es LocalCacheEmojiStore) getFromCacheById(id string) (*model.Emoji, bool) 
 }
 
 func (es LocalCacheEmojiStore) getFromCacheByName(name string) (*model.Emoji, bool) {
-	if emoji := es.rootStore.doStandardReadCache(es.rootStore.emojiIdCacheByName, name); emoji != nil {
-		return es.getFromCacheById(emoji.(string))
+	if emojiId := es.rootStore.doStandardReadCache(es.rootStore.emojiIdCacheByName, name); emojiId != nil {
+		return es.getFromCacheById(emojiId.(string))
 	}
 	return nil, false
 }
