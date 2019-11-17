@@ -279,6 +279,62 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, []byte(`{"val-a":30}`), ret)
 	})
+
+	t.Run("when new value is nil and old value matches with the current, it should delete the currently set value", func(t *testing.T) {
+		// first set a value.
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-2", "value-1", model.PluginKVSetOptions{
+			EncodeJSON: true,
+		})
+		require.Nil(t, err)
+		require.True(t, result)
+
+		// now it should delete the set value.
+		result, err = th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-2", nil, model.PluginKVSetOptions{
+			EncodeJSON: true,
+			Atomic:     true,
+			OldValue:   "value-1",
+		})
+		require.Nil(t, err)
+		require.True(t, result)
+
+		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-2")
+		require.Nil(t, err)
+		require.Nil(t, ret)
+	})
+
+	t.Run("when new value is nil and there is a value set for the key already, it should delete the currently set value", func(t *testing.T) {
+		// first set a value.
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-3", "value-1", model.PluginKVSetOptions{
+			EncodeJSON: true,
+		})
+		require.Nil(t, err)
+		require.True(t, result)
+
+		// now it should delete the set value.
+		result, err = th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-3", nil, model.PluginKVSetOptions{
+			EncodeJSON: true,
+		})
+		require.Nil(t, err)
+		require.True(t, result)
+
+		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-3")
+		require.Nil(t, err)
+		require.Nil(t, ret)
+	})
+
+	t.Run("when old value is nil and there is no value set for the key before, it should set the new value", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-4", "value-1", model.PluginKVSetOptions{
+			EncodeJSON: true,
+			Atomic:     true,
+			OldValue:   nil,
+		})
+		require.Nil(t, err)
+		require.True(t, result)
+
+		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-4")
+		require.Nil(t, err)
+		require.Equal(t, `"value-1"`, string(ret))
+	})
 }
 
 func TestPluginKeyValueStoreSetWithOptionsByteArray(t *testing.T) {
