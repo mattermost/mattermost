@@ -37,7 +37,7 @@ type LocalCacheStore struct {
 	scheme                LocalCacheSchemeStore
 	schemeCache           *utils.Cache
 	user                  LocalCacheUserStore
-	profileByIdsUserCache *utils.Cache
+	userProfileByIdsCache *utils.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
@@ -52,7 +52,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
 	localCacheStore.schemeCache = utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
-	localCacheStore.profileByIdsUserCache = utils.NewLruWithParams(USER_PROFILE_BY_ID_CACHE_SIZE, "UserProfileByIds", USER_PROFILE_BY_ID_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS)
+	localCacheStore.userProfileByIdsCache = utils.NewLruWithParams(USER_PROFILE_BY_ID_CACHE_SIZE, "UserProfileByIds", USER_PROFILE_BY_ID_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS)
 	localCacheStore.user = LocalCacheUserStore{UserStore: baseStore.User(), rootStore: &localCacheStore}
 
 	if cluster != nil {
@@ -130,5 +130,5 @@ func (s *LocalCacheStore) doClearCacheCluster(cache *utils.Cache) {
 
 func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.reactionCache)
-	s.doClearCacheCluster(s.profileByIdsUserCache)
+	s.doClearCacheCluster(s.userProfileByIdsCache)
 }

@@ -17,14 +17,14 @@ type LocalCacheUserStore struct {
 
 func (s *LocalCacheUserStore) handleClusterInvalidateScheme(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
-		s.rootStore.profileByIdsUserCache.Purge()
+		s.rootStore.userProfileByIdsCache.Purge()
 	} else {
-		s.rootStore.profileByIdsUserCache.Remove(msg.Data)
+		s.rootStore.userProfileByIdsCache.Remove(msg.Data)
 	}
 }
 
 func (s LocalCacheUserStore) ClearCaches() {
-	s.rootStore.profileByIdsUserCache.Purge()
+	s.rootStore.userProfileByIdsCache.Purge()
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Purge")
@@ -32,7 +32,7 @@ func (s LocalCacheUserStore) ClearCaches() {
 }
 
 func (s LocalCacheUserStore) InvalidatProfileCacheForUser(userId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.profileByIdsUserCache, userId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.userProfileByIdsCache, userId)
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Remove")
@@ -48,7 +48,7 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 	remainingUserIds := make([]string, 0)
 
 	for _, userId := range userIds {
-		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.profileByIdsUserCache, userId); cacheItem != nil {
+		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId); cacheItem != nil {
 			u := &model.User{}
 			*u = *cacheItem.(*model.User)
 
@@ -74,8 +74,10 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 		users = append(users, remainingUsers...)
 
 		for _, user := range remainingUsers {
-			s.rootStore.doStandardAddToCache(s.rootStore.profileByIdsUserCache, user.Id, user)
+			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
 		}
 
 	}
+
+	return users, nil
 }
