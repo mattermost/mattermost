@@ -6,6 +6,8 @@ package localcachelayer
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-server/store"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/testlib"
@@ -40,6 +42,12 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("Get", "123").Return(&fakeScheme, nil)
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
+
+	fakeUserIds := []string{"123"}
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("GetProfileByIds", "123", &store.UserGetByIdsOpts{}, true).Return(fakeUserIds, nil)
+	mockUserStore.On("GetProfileByIds", "123", &store.UserGetByIdsOpts{}, false).Return(fakeUserIds, nil)
+	mockStore.On("User").Return(&mockUserStore)
 
 	return &mockStore
 }
