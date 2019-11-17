@@ -243,6 +243,54 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		assert.Equal(t, []byte(`value-3`), ret)
 	})
 
+	t.Run("when new value is nil and old value matches with the current, it should delete the currently set value", func(t *testing.T) {
+		// first set a value.
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-2", []byte("value-1"), model.PluginKVSetOptions{})
+		require.Nil(t, err)
+		require.True(t, result)
+
+		// now it should delete the set value.
+		result, err = th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-2", nil, model.PluginKVSetOptions{
+			Atomic:   true,
+			OldValue: []byte("value-1"),
+		})
+		assert.Nil(t, err)
+		assert.True(t, result)
+
+		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-2")
+		assert.Nil(t, err)
+		assert.Nil(t, ret)
+	})
+
+	t.Run("when new value is nil and there is a value set for the key already, it should delete the currently set value", func(t *testing.T) {
+		// first set a value.
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-3", []byte("value-1"), model.PluginKVSetOptions{})
+		require.Nil(t, err)
+		require.True(t, result)
+
+		// now it should delete the set value.
+		result, err = th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-3", nil, model.PluginKVSetOptions{})
+		assert.Nil(t, err)
+		assert.True(t, result)
+
+		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-3")
+		assert.Nil(t, err)
+		assert.Nil(t, ret)
+	})
+
+	t.Run("when old value is nil and there is no value set for the key before, it should set the new value", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-4", []byte("value-1"), model.PluginKVSetOptions{
+			Atomic:   true,
+			OldValue: nil,
+		})
+		assert.Nil(t, err)
+		assert.True(t, result)
+
+		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-4")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("value-1"), ret)
+	})
+
 	t.Run("test that value is set and unset with ExpireInSeconds", func(t *testing.T) {
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{
 			ExpireInSeconds: 1,
