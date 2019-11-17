@@ -32,7 +32,7 @@ func (s LocalCacheUserStore) ClearCaches() {
 }
 
 func (s LocalCacheUserStore) InvalidatProfileCacheForUser(userId string) {
-	s.rootStore.profileByIdsUserCache.Remove(userId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.profileByIdsUserCache, userId)
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Remove")
