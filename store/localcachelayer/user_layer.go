@@ -44,6 +44,10 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 		return s.UserStore.GetProfileByIds(userIds, options, false)
 	}
 
+	if options == nil {
+		options = &store.UserGetByIdsOpts{}
+	}
+
 	users := []*model.User{}
 	remainingUserIds := make([]string, 0)
 
