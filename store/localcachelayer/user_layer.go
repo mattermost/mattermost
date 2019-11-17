@@ -4,9 +4,10 @@
 package localcachelayer
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"net/http"
 )
 
 type LocalCacheUserStore struct {
@@ -58,6 +59,7 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 			remainingUserIds = append(remainingUserIds, userId)
 		}
 	}
+
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(users)))
 		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
@@ -68,10 +70,12 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 		if err != nil {
 			return nil, model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		users = append(users, remainingUsers...)
-	}
 
-	for _, user := range users {
-		s.rootStore.doStandardAddToCache(s.rootStore.profileByIdsUserCache, user.Id, user)
+		users = append(users, remainingUsers...)
+
+		for _, user := range remainingUsers {
+			s.rootStore.doStandardAddToCache(s.rootStore.profileByIdsUserCache, user.Id, user)
+		}
+
 	}
 }
