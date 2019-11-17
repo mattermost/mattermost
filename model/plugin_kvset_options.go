@@ -39,6 +39,15 @@ func (opt *PluginKVSetOptions) GetOldValueSerialized() ([]byte, *AppError) {
 
 func (opt *PluginKVSetOptions) serializeValue(value interface{}) ([]byte, *AppError) {
 	if opt.EncodeJSON {
+		// When JSON encoding is enabled and value is nil, avoid inserting or querying
+		// `null` value in the DB.
+		// * if PluginKVSetOptions.OldValue=nil, it should be assumed that no inserts
+		//   made for the `key` before instead of querying for `null` value.
+		// * if newValuue=nil, `key` should be deleted, it shouldn't be updated with
+		//   `null` value.
+		if value == nil {
+			return nil, nil
+		}
 		data, err := json.Marshal(value)
 		if err != nil {
 			return nil, NewAppError("PluginKVSetOptions.serializeValue", "model.plugin_kvset_options.serialize_value.app_error", map[string]interface{}{"EncodeJSON": opt.EncodeJSON}, "Could not serialize JSON value", http.StatusBadRequest)
