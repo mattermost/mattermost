@@ -29,7 +29,7 @@ func (s LocalCacheTeamStore) ClearCaches() {
 }
 
 func (s LocalCacheTeamStore) InvalidateAllTeamIdsForUser(userId string) {
-	s.rootStore.teamAllTeamIdsForUserCache.Remove(userId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.teamAllTeamIdsForUserCache, userId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("All Team Ids for User - Remove by UserId")
 	}
