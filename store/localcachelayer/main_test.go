@@ -43,10 +43,10 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
-	fakeUserIds := []string{"123"}
+	fakeUser := []*model.User{{Id: "123"}}
 	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("GetProfileByIds", "123", &store.UserGetByIdsOpts{}, true).Return(fakeUserIds, nil)
-	mockUserStore.On("GetProfileByIds", "123", &store.UserGetByIdsOpts{}, false).Return(fakeUserIds, nil)
+	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
+	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
 	mockStore.On("User").Return(&mockUserStore)
 
 	return &mockStore
