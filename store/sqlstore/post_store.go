@@ -35,11 +35,9 @@ const (
 
 func (s *SqlPostStore) ClearCaches() {
 	s.lastPostTimeCache.Purge()
-	s.lastPostsCache.Purge()
 
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Purge")
-		s.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Purge")
 	}
 }
 
@@ -48,7 +46,6 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		SqlStore:          sqlStore,
 		metrics:           metrics,
 		lastPostTimeCache: utils.NewLru(LAST_POST_TIME_CACHE_SIZE),
-		lastPostsCache:    utils.NewLru(LAST_POSTS_CACHE_SIZE),
 		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
@@ -325,13 +322,8 @@ type etagPosts struct {
 func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 	s.lastPostTimeCache.Remove(channelId)
 
-	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
-	s.lastPostsCache.Remove(channelId + "30")
-	s.lastPostsCache.Remove(channelId + "60")
-
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Remove by Channel Id")
-		s.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Remove by Channel Id")
 	}
 }
 
