@@ -67,7 +67,7 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/rudderlabs/analytics-go v1.2.1-0.20191016124303-704dd2444a76
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
-	github.com/segmentio/analytics-go v3.1.0+incompatible // indirect
+	github.com/segmentio/analytics-go v3.1.0+incompatible
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect

@@ -21,7 +21,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 
-	analytics "github.com/rudderlabs/analytics-go"
+	rudderanalytics "github.com/rudderlabs/analytics-go"
+	analytics "github.com/segmentio/analytics-go"
+
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
@@ -36,6 +38,10 @@ import (
 	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
+)
+
+const (
+	ANALYTICS_DESTINATION = "placeholder_to_choose_destination"
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
@@ -103,8 +109,9 @@ type Server struct {
 	clientConfigHash    string
 	limitedClientConfig map[string]string
 
-	diagnosticId     string
-	diagnosticClient analytics.Client
+	diagnosticId           string
+	diagnosticClient       analytics.Client
+	rudderDiagnosticClient rudderanalytics.Client
 
 	phase2PermissionsMigrationComplete bool
 
@@ -751,24 +758,43 @@ func (s *Server) StartElasticsearch() {
 }
 
 func (s *Server) initDiagnostics(endpoint string) {
-	if s.diagnosticClient == nil {
-		config := analytics.Config{}
-		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "Rudder")))
+	if strings.Contains(ANALYTICS_DESTINATION, strings.ToLower("rudder")) {
+		if s.rudderDiagnosticClient == nil {
+			config := rudderanalytics.Config{}
+			config.Logger = rudderanalytics.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
 
-		fmt.Println("endpoint:=============== ", endpoint)
-		// For testing
-		if endpoint != "" {
+			// For testing
+			if endpoint != "" {
 
-			config.Endpoint = endpoint
-			config.Verbose = true
-			config.BatchSize = 35
+				config.Endpoint = endpoint
+				config.Verbose = true
+				config.BatchSize = 1
+			}
+			client, _ := rudderanalytics.NewWithConfig(RUDDER_KEY, config)
+			client.Enqueue(rudderanalytics.Identify{
+				UserId: s.diagnosticId,
+			})
+
+			s.rudderDiagnosticClient = client
 		}
-		client, _ := analytics.NewWithConfig(WRITE_KEY, config)
-		client.Enqueue(analytics.Identify{
-			UserId: s.diagnosticId,
-		})
+	} else {
+		if s.diagnosticClient == nil {
+			config := analytics.Config{}
+			config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "segment")))
 
-		s.diagnosticClient = client
+			// For testing
+			if endpoint != "" {
+				config.Endpoint = endpoint
+				config.Verbose = true
+				config.BatchSize = 35
+			}
+			client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
+			client.Enqueue(analytics.Identify{
+				UserId: s.diagnosticId,
+			})
+
+			s.diagnosticClient = client
+		}
 	}
 
 }
