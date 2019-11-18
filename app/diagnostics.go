@@ -70,7 +70,6 @@ func (a *App) sendDailyDiagnostics(override bool) {
 		a.Srv.initDiagnostics(RUDDER_DATAPLANE_URL)
 		a.trackActivity()
 		a.trackConfig()
-
 		a.trackLicense()
 		a.trackPlugins()
 		a.trackServer()
