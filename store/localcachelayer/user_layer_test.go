@@ -31,7 +31,7 @@ func TestUserStoreCache(t *testing.T) {
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 
-		gotUser, err = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		_, _ = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 	})
 
@@ -44,7 +44,7 @@ func TestUserStoreCache(t *testing.T) {
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 
-		gotUser, err = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, false)
+		_, _ = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, false)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 2)
 	})
 
@@ -59,7 +59,7 @@ func TestUserStoreCache(t *testing.T) {
 
 		cachedStore.User().InvalidateProfileCacheForUser("123")
 
-		gotUser, err = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		_, _ = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 2)
 	})
 }
