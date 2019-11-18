@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/markdown"
@@ -138,6 +139,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
 			}
 		}
+	}
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		pluginContext := a.PluginContext()
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			mentionedUserIds = hooks.NotificationWillBeSent(pluginContext, post, mentionedUserIds)
+			return true
+		}, plugin.NotificationWillBeSentId)
 	}
 
 	mentionedUsersList := make([]string, 0, len(mentionedUserIds))

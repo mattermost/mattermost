@@ -662,6 +662,49 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 }
 
+func TestHookNotificationWillBeSent(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tearDown, pluginIds, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) NotificationWillBeSent(c *plugin.Context, post *model.Post, userList map[string]bool) map[string]bool {
+			delete(userList, "user1")
+			userList["user3"] = false
+			return userList
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+
+	userList := map[string]bool{
+		"user1": true,
+		"user2": true,
+	}
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIds[0])
+	assert.NoError(t, err)
+	ret := hooks.NotificationWillBeSent(nil, nil, userList)
+	assert.Equal(t, 2, len(ret))
+	assert.NotContains(t, ret, "user1")
+	assert.Contains(t, ret, "user2")
+	assert.Contains(t, ret, "user3")
+}
+
 func TestUserWillLogIn_Blocked(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
