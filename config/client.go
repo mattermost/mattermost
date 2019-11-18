@@ -20,6 +20,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
+	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
 	props["ExperimentalViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ExperimentalViewArchivedChannels)
 

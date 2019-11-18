@@ -170,10 +170,18 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 				return nil
 			}
 
-			if fileReader, err := os.Open(walkPath); err != nil {
+			fileReader, err := os.Open(walkPath)
+			if err != nil {
 				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-			} else if _, err := a.installPluginLocally(fileReader, nil, true); err != nil {
-				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
+				return nil
+			}
+			defer fileReader.Close()
+
+			mlog.Debug("Installing prepackaged plugin", mlog.String("path", walkPath))
+
+			_, appErr := a.installPluginLocally(fileReader, nil, installPluginLocallyOnlyIfNewOrUpgrade)
+			if appErr != nil {
+				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(appErr), mlog.String("path", walkPath))
 			}
 
 			return nil
@@ -254,7 +262,8 @@ func (a *App) SyncPlugins() *model.AppError {
 			defer signature.Close()
 		}
 
-		if _, err := a.installPluginLocally(reader, signature, true); err != nil {
+		mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
+		if _, err := a.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
 			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 		}
 	}
@@ -367,7 +376,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	}
 
 	if manifest == nil {
-		return model.NewAppError("DisablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("DisablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {

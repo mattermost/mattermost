@@ -664,7 +664,7 @@ type API interface {
 	// Minimum server version: 5.6
 	GetFileLink(fileId string) (string, *model.AppError)
 
-	// ReadFileAtPath reads the file from the backend for a specific path
+	// ReadFile reads the file from the backend for a specific path
 	//
 	// @tag File
 	// Minimum server version: 5.3

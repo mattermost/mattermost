@@ -207,7 +207,7 @@ func TestPlugin(t *testing.T) {
 
 	// Deactivate error case
 	ok, resp = th.SystemAdminClient.DisablePlugin("junk")
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	assert.False(t, ok)
 
 	// Get error cases
@@ -242,7 +242,7 @@ func TestPlugin(t *testing.T) {
 
 	// Remove error cases
 	ok, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	assert.False(t, ok)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
@@ -254,7 +254,7 @@ func TestPlugin(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.RemovePlugin("bad.id")
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestNotifyClusterPluginEvent(t *testing.T) {
