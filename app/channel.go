@@ -1799,21 +1799,21 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		return nil, err
 	}
 
-	channel, updateErr := a.Srv.Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions)
+	channelUnread, updateErr := a.Srv.Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions)
 	if err != nil {
-		return channel, updateErr
+		return channelUnread, updateErr
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_UNREAD, channel.TeamId, channel.ChannelId, channel.UserId, nil)
-	message.Add("msg_count", channel.MsgCount)
-	message.Add("mention_count", channel.MentionCount)
-	message.Add("last_viewed_at", channel.LastViewedAt)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_UNREAD, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil)
+	message.Add("msg_count", channelUnread.MsgCount)
+	message.Add("mention_count", channelUnread.MentionCount)
+	message.Add("last_viewed_at", channelUnread.LastViewedAt)
 	message.Add("post_id", postID)
 	a.Publish(message)
 
 	a.UpdateMobileAppBadge(userID)
 
-	return channel, nil
+	return channelUnread, nil
 }
 
 func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
