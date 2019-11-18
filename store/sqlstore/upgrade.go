@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_16_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_17_0
+	VERSION_5_17_0           = "5.17.0"
 	VERSION_5_16_0           = "5.16.0"
 	VERSION_5_15_0           = "5.15.0"
 	VERSION_5_14_0           = "5.14.0"
@@ -163,6 +164,7 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion514(sqlStore)
 	upgradeDatabaseToVersion515(sqlStore)
 	upgradeDatabaseToVersion516(sqlStore)
+	upgradeDatabaseToVersion517(sqlStore)
 
 	return nil
 }
@@ -719,5 +721,11 @@ func upgradeDatabaseToVersion516(sqlStore SqlStore) {
 
 		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
 		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
+	}
+}
+
+func upgradeDatabaseToVersion517(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_16_0, VERSION_5_17_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_17_0)
 	}
 }

@@ -100,6 +100,8 @@ pipeline {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
+							echo "Installing golangci-lint"
+							curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.21.0
 							make config-reset
 							make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
 							make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'

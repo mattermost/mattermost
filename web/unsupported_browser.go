@@ -44,7 +44,7 @@ type SystemBrowser struct {
 	MakeDefaultString      string
 }
 
-func renderUnsuppportedBrowser(app *app.App, w http.ResponseWriter, r *http.Request) {
+func renderUnsupportedBrowser(app *app.App, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	page := utils.NewHTMLTemplate(app.HTMLTemplates(), "unsupported_browser")
 
