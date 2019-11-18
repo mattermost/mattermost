@@ -41,6 +41,14 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
+	fakePosts := &model.PostList{}
+	fakeOptions := model.GetPostsOptions{ChannelId: "123", PerPage: 30}
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetPosts", fakeOptions, true).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", fakeOptions, false).Return(fakePosts, nil)
+	mockPostStore.On("InvalidateLastPostTimeCache", "12360")
+	mockStore.On("Post").Return(&mockPostStore)
+
 	return &mockStore
 }
 
