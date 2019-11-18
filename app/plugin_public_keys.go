@@ -3,7 +3,7 @@
 
 package app
 
-var mattermostPublicKey []byte = []byte(`-----BEGIN PGP PUBLIC KEY BLOCK-----
+var mattermostPluginPublicKey []byte = []byte(`-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQGNBF2gen8BDADKQObdPa6PagvYYMHNGIswCU9mVjOxr5g6niGQ/AxMW7AaHpkk
 16/oAzJ+DSyJRRgJMlFbN0iKBrZ6pi1pO5eS4l1CWW3eATr+32gW40SuS/sgzVrS

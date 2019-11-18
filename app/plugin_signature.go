@@ -74,7 +74,7 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
-	if err := verifySignature(bytes.NewReader(mattermostPublicKey), plugin, signature); err == nil {
+	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
 		return nil
 	}
 	publicKeys, appErr := a.GetPluginPublicKeyFiles()
