@@ -24,7 +24,6 @@ type SqlPostStore struct {
 	SqlStore
 	metrics           einterfaces.MetricsInterface
 	lastPostTimeCache *utils.Cache
-	lastPostsCache    *utils.Cache
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
 }
@@ -32,9 +31,6 @@ type SqlPostStore struct {
 const (
 	LAST_POST_TIME_CACHE_SIZE = 25000
 	LAST_POST_TIME_CACHE_SEC  = 900 // 15 minutes
-
-	LAST_POSTS_CACHE_SIZE = 1000
-	LAST_POSTS_CACHE_SEC  = 900 // 15 minutes
 )
 
 func (s *SqlPostStore) ClearCaches() {
