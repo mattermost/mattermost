@@ -40,7 +40,9 @@ func (uuid *UUID) Scan(src interface{}) error {
 		// assumes a simple slice of bytes if 16 bytes
 		// otherwise attempts to parse
 		if len(b) == 16 {
-			*uuid = UUID(b)
+			parsed := make([]byte, 16)
+			copy(parsed, b)
+			*uuid = UUID(parsed)
 		} else {
 			u := Parse(string(b))
 

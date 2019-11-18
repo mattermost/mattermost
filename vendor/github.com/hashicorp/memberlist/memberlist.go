@@ -15,6 +15,7 @@ multiple routes.
 package memberlist
 
 import (
+	"container/list"
 	"fmt"
 	"log"
 	"net"
@@ -34,6 +35,7 @@ type Memberlist struct {
 	sequenceNum uint32 // Local sequence number
 	incarnation uint32 // Local incarnation number
 	numNodes    uint32 // Number of known nodes (estimate)
+	pushPullReq uint32 // Number of push/pull requests
 
 	config         *Config
 	shutdown       int32 // Used as an atomic boolean value
@@ -45,7 +47,11 @@ type Memberlist struct {
 	leaveLock    sync.Mutex // Serializes calls to Leave
 
 	transport Transport
-	handoff   chan msgHandoff
+
+	handoffCh            chan struct{}
+	highPriorityMsgQueue *list.List
+	lowPriorityMsgQueue  *list.List
+	msgQueueLock         sync.Mutex
 
 	nodeLock   sync.RWMutex
 	nodes      []*nodeState          // Known nodes
@@ -64,6 +70,15 @@ type Memberlist struct {
 	broadcasts *TransmitLimitedQueue
 
 	logger *log.Logger
+}
+
+// BuildVsnArray creates the array of Vsn
+func (conf *Config) BuildVsnArray() []uint8 {
+	return []uint8{
+		ProtocolVersionMin, ProtocolVersionMax, conf.ProtocolVersion,
+		conf.DelegateProtocolMin, conf.DelegateProtocolMax,
+		conf.DelegateProtocolVersion,
+	}
 }
 
 // newMemberlist creates the network listeners.
@@ -160,17 +175,19 @@ func newMemberlist(conf *Config) (*Memberlist, error) {
 	}
 
 	m := &Memberlist{
-		config:         conf,
-		shutdownCh:     make(chan struct{}),
-		leaveBroadcast: make(chan struct{}, 1),
-		transport:      transport,
-		handoff:        make(chan msgHandoff, conf.HandoffQueueDepth),
-		nodeMap:        make(map[string]*nodeState),
-		nodeTimers:     make(map[string]*suspicion),
-		awareness:      newAwareness(conf.AwarenessMaxMultiplier),
-		ackHandlers:    make(map[uint32]*ackHandler),
-		broadcasts:     &TransmitLimitedQueue{RetransmitMult: conf.RetransmitMult},
-		logger:         logger,
+		config:               conf,
+		shutdownCh:           make(chan struct{}),
+		leaveBroadcast:       make(chan struct{}, 1),
+		transport:            transport,
+		handoffCh:            make(chan struct{}, 1),
+		highPriorityMsgQueue: list.New(),
+		lowPriorityMsgQueue:  list.New(),
+		nodeMap:              make(map[string]*nodeState),
+		nodeTimers:           make(map[string]*suspicion),
+		awareness:            newAwareness(conf.AwarenessMaxMultiplier),
+		ackHandlers:          make(map[uint32]*ackHandler),
+		broadcasts:           &TransmitLimitedQueue{RetransmitMult: conf.RetransmitMult},
+		logger:               logger,
 	}
 	m.broadcasts.NumNodes = func() int {
 		return m.estNumNodes()
@@ -394,11 +411,7 @@ func (m *Memberlist) setAlive() error {
 		Addr:        addr,
 		Port:        uint16(port),
 		Meta:        meta,
-		Vsn: []uint8{
-			ProtocolVersionMin, ProtocolVersionMax, m.config.ProtocolVersion,
-			m.config.DelegateProtocolMin, m.config.DelegateProtocolMax,
-			m.config.DelegateProtocolVersion,
-		},
+		Vsn:         m.config.BuildVsnArray(),
 	}
 	m.aliveNode(&a, nil, true)
 	return nil
@@ -439,11 +452,7 @@ func (m *Memberlist) UpdateNode(timeout time.Duration) error {
 		Addr:        state.Addr,
 		Port:        state.Port,
 		Meta:        meta,
-		Vsn: []uint8{
-			ProtocolVersionMin, ProtocolVersionMax, m.config.ProtocolVersion,
-			m.config.DelegateProtocolMin, m.config.DelegateProtocolMax,
-			m.config.DelegateProtocolVersion,
-		},
+		Vsn:         m.config.BuildVsnArray(),
 	}
 	notifyCh := make(chan struct{})
 	m.aliveNode(&a, notifyCh, true)
@@ -656,4 +665,28 @@ func (m *Memberlist) hasShutdown() bool {
 
 func (m *Memberlist) hasLeft() bool {
 	return atomic.LoadInt32(&m.leave) == 1
+}
+
+func (m *Memberlist) getNodeState(addr string) nodeStateType {
+	m.nodeLock.RLock()
+	defer m.nodeLock.RUnlock()
+
+	n := m.nodeMap[addr]
+	return n.State
+}
+
+func (m *Memberlist) getNodeStateChange(addr string) time.Time {
+	m.nodeLock.RLock()
+	defer m.nodeLock.RUnlock()
+
+	n := m.nodeMap[addr]
+	return n.StateChange
+}
+
+func (m *Memberlist) changeNode(addr string, f func(*nodeState)) {
+	m.nodeLock.Lock()
+	defer m.nodeLock.Unlock()
+
+	n := m.nodeMap[addr]
+	f(n)
 }

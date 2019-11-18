@@ -156,6 +156,12 @@ func RenderInlineHTML(inline Inline) (result string) {
 			result += RenderInlineHTML(inline)
 		}
 		result += "</a>"
+	case *Autolink:
+		result += `<a href="` + htmlEscaper.Replace(escapeURL(v.Destination())) + `">`
+		for _, inline := range v.Children {
+			result += RenderInlineHTML(inline)
+		}
+		result += "</a>"
 	default:
 		panic(fmt.Sprintf("missing case for type %T", v))
 	}

@@ -10,22 +10,11 @@
 ## Docs
 
 For detailed documentation and basic usage examples, please see the package
-documentation at <http://godoc.org/github.com/lib/pq>.
+documentation at <https://godoc.org/github.com/lib/pq>.
 
 ## Tests
 
-`go test` is used for testing.  A running PostgreSQL server is
-required, with the ability to log in.  The default database to connect
-to test with is "pqgotest," but it can be overridden using environment
-variables.
-
-Example:
-
-	PGHOST=/run/postgresql go test github.com/lib/pq
-
-Optionally, a benchmark suite can be run as part of the tests:
-
-	PGHOST=/run/postgresql go test -bench .
+`go test` is used for testing.  See [TESTS.md](TESTS.md) for more details.
 
 ## Features
 

@@ -16,17 +16,18 @@ const (
 )
 
 type IncomingWebhook struct {
-	Id          string `json:"id"`
-	CreateAt    int64  `json:"create_at"`
-	UpdateAt    int64  `json:"update_at"`
-	DeleteAt    int64  `json:"delete_at"`
-	UserId      string `json:"user_id"`
-	ChannelId   string `json:"channel_id"`
-	TeamId      string `json:"team_id"`
-	DisplayName string `json:"display_name"`
-	Description string `json:"description"`
-	Username    string `json:"username"`
-	IconURL     string `json:"icon_url"`
+	Id            string `json:"id"`
+	CreateAt      int64  `json:"create_at"`
+	UpdateAt      int64  `json:"update_at"`
+	DeleteAt      int64  `json:"delete_at"`
+	UserId        string `json:"user_id"`
+	ChannelId     string `json:"channel_id"`
+	TeamId        string `json:"team_id"`
+	DisplayName   string `json:"display_name"`
+	Description   string `json:"description"`
+	Username      string `json:"username"`
+	IconURL       string `json:"icon_url"`
+	ChannelLocked bool   `json:"channel_locked"`
 }
 
 type IncomingWebhookRequest struct {
@@ -37,6 +38,7 @@ type IncomingWebhookRequest struct {
 	Props       StringInterface    `json:"props"`
 	Attachments []*SlackAttachment `json:"attachments"`
 	Type        string             `json:"type"`
+	IconEmoji   string             `json:"icon_emoji"`
 }
 
 func (o *IncomingWebhook) ToJson() string {
@@ -92,7 +94,7 @@ func (o *IncomingWebhook) IsValid() *AppError {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.display_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.Description) > 128 {
+	if len(o.Description) > 500 {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.description.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -196,7 +198,7 @@ func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *A
 	if err != nil {
 		o, err = decodeIncomingWebhookRequest(escapeControlCharsFromPayload(by))
 		if err != nil {
-			return nil, NewAppError("IncomingWebhookRequestFromJson", "Unable to parse incoming data", nil, err.Error(), http.StatusBadRequest)
+			return nil, NewAppError("IncomingWebhookRequestFromJson", "model.incoming_hook.parse_data.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 	}
 

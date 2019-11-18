@@ -6,9 +6,8 @@ package manualtesting
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 const LINK_POST_TEXT = `
@@ -23,7 +22,7 @@ https://medium.com/@slackhq/11-useful-tips-for-getting-the-most-of-slack-5dfb3d1
 `
 
 func testAutoLink(env TestEnvironment) *model.AppError {
-	l4g.Info(utils.T("manaultesting.test_autolink.info"))
+	mlog.Info("Manual Auto Link Test")
 	channelID, err := getChannelID(env.Context.App, model.DEFAULT_CHANNEL, env.CreatedTeamId, env.CreatedUserId)
 	if !err {
 		return model.NewAppError("/manualtest", "manaultesting.test_autolink.unable.app_error", nil, "", http.StatusInternalServerError)
@@ -32,6 +31,6 @@ func testAutoLink(env TestEnvironment) *model.AppError {
 	post := &model.Post{
 		ChannelId: channelID,
 		Message:   LINK_POST_TEXT}
-	_, err2 := env.Client.CreatePost(post)
-	return err2
+	_, resp := env.Client.CreatePost(post)
+	return resp.Error
 }

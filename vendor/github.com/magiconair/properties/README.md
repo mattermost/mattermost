@@ -1,5 +1,6 @@
 [![](https://img.shields.io/github/tag/magiconair/properties.svg?style=flat-square&label=release)](https://github.com/magiconair/properties/releases)
-[![Build Status](https://img.shields.io/travis/magiconair/properties.svg?branch=master&style=flat-square)](https://travis-ci.org/magiconair/properties)
+[![Travis CI Status](https://img.shields.io/travis/magiconair/properties.svg?branch=master&style=flat-square&label=travis)](https://travis-ci.org/magiconair/properties)
+[![CircleCI Status](https://img.shields.io/circleci/project/github/magiconair/properties.svg?label=circle+ci&style=flat-square)](https://circleci.com/gh/magiconair/properties)
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg?style=flat-square)](https://raw.githubusercontent.com/magiconair/properties/master/LICENSE)
 [![GoDoc](http://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square)](http://godoc.org/github.com/magiconair/properties)
 
@@ -29,7 +30,7 @@ changed from `panic` to `log.Fatal` but this is configurable and custom
 error handling functions can be provided. See the package documentation for
 details.
 
-Read the full documentation on [GoDoc](https://godoc.org/github.com/magiconair/properties)   [![GoDoc](https://godoc.org/github.com/magiconair/properties?status.png)](https://godoc.org/github.com/magiconair/properties)
+Read the full documentation on [![GoDoc](http://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square)](http://godoc.org/github.com/magiconair/properties)
 
 ## Getting Started
 

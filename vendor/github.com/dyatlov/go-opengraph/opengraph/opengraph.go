@@ -17,6 +17,7 @@ type Image struct {
 	Type      string `json:"type"`
 	Width     uint64 `json:"width"`
 	Height    uint64 `json:"height"`
+	draft     bool    `json:"-"`
 }
 
 // Video defines Open Graph Video type
@@ -26,6 +27,7 @@ type Video struct {
 	Type      string `json:"type"`
 	Width     uint64 `json:"width"`
 	Height    uint64 `json:"height"`
+	draft     bool    `json:"-"`
 }
 
 // Audio defines Open Graph Audio Type
@@ -33,6 +35,7 @@ type Audio struct {
 	URL       string `json:"url"`
 	SecureURL string `json:"secure_url"`
 	Type      string `json:"type"`
+	draft     bool    `json:"-"`
 }
 
 // Article contain Open Graph Article structure
@@ -133,6 +136,27 @@ func (og *OpenGraph) ProcessHTML(buffer io.Reader) error {
 	}
 }
 
+func (og *OpenGraph) ensureHasVideo() {
+	if len(og.Videos) > 0 {
+		return
+	}
+	og.Videos = append(og.Videos, &Video{draft: true})
+}
+
+func (og *OpenGraph) ensureHasImage() {
+	if len(og.Images) > 0 {
+		return
+	}
+	og.Images = append(og.Images, &Image{draft: true})
+}
+
+func (og *OpenGraph) ensureHasAudio() {
+	if len(og.Audios) > 0 {
+		return
+	}
+	og.Audios = append(og.Audios, &Audio{draft: true})
+}
+
 // ProcessMeta processes meta attributes and adds them to Open Graph structure if they are suitable for that
 func (og *OpenGraph) ProcessMeta(metaAttrs map[string]string) {
 	switch metaAttrs["property"] {
@@ -160,61 +184,74 @@ func (og *OpenGraph) ProcessMeta(metaAttrs map[string]string) {
 		og.Locale = metaAttrs["content"]
 	case "og:locale:alternate":
 		og.LocalesAlternate = append(og.LocalesAlternate, metaAttrs["content"])
+	case "og:audio":
+		if len(og.Audios)>0 && og.Audios[len(og.Audios)-1].draft {
+			og.Audios[len(og.Audios)-1].URL = metaAttrs["content"]
+			og.Audios[len(og.Audios)-1].draft = false
+		} else {
+			og.Audios = append(og.Audios, &Audio{URL: metaAttrs["content"]})
+		}
+	case "og:audio:secure_url":
+		og.ensureHasAudio()
+		og.Audios[len(og.Audios)-1].SecureURL = metaAttrs["content"]
+	case "og:audio:type":
+		og.ensureHasAudio()
+		og.Audios[len(og.Audios)-1].Type = metaAttrs["content"]
 	case "og:image":
-		og.Images = append(og.Images, &Image{URL: metaAttrs["content"]})
-	case "og:image:url":
-		if len(og.Images) > 0 {
+		if len(og.Images)>0 && og.Images[len(og.Images)-1].draft {
 			og.Images[len(og.Images)-1].URL = metaAttrs["content"]
+			og.Images[len(og.Images)-1].draft = false
+		} else {
+			og.Images = append(og.Images, &Image{URL: metaAttrs["content"]})
 		}
+	case "og:image:url":
+		og.ensureHasImage()
+		og.Images[len(og.Images)-1].URL = metaAttrs["content"]
 	case "og:image:secure_url":
-		if len(og.Images) > 0 {
-			og.Images[len(og.Images)-1].SecureURL = metaAttrs["content"]
-		}
+		og.ensureHasImage()
+		og.Images[len(og.Images)-1].SecureURL = metaAttrs["content"]
 	case "og:image:type":
-		if len(og.Images) > 0 {
-			og.Images[len(og.Images)-1].Type = metaAttrs["content"]
-		}
+		og.ensureHasImage()
+		og.Images[len(og.Images)-1].Type = metaAttrs["content"]
 	case "og:image:width":
-		if len(og.Images) > 0 {
-			w, err := strconv.ParseUint(metaAttrs["content"], 10, 64)
-			if err == nil {
-				og.Images[len(og.Images)-1].Width = w
-			}
+		w, err := strconv.ParseUint(metaAttrs["content"], 10, 64)
+		if err == nil {
+			og.ensureHasImage()
+			og.Images[len(og.Images)-1].Width = w
 		}
 	case "og:image:height":
-		if len(og.Images) > 0 {
-			h, err := strconv.ParseUint(metaAttrs["content"], 10, 64)
-			if err == nil {
-				og.Images[len(og.Images)-1].Height = h
-			}
+		h, err := strconv.ParseUint(metaAttrs["content"], 10, 64)
+		if err == nil {
+			og.ensureHasImage()
+			og.Images[len(og.Images)-1].Height = h
 		}
 	case "og:video":
-		og.Videos = append(og.Videos, &Video{URL: metaAttrs["content"]})
-	case "og:video:url":
-		if len(og.Videos) > 0 {
+		if len(og.Videos)>0 && og.Videos[len(og.Videos)-1].draft {
 			og.Videos[len(og.Videos)-1].URL = metaAttrs["content"]
+			og.Videos[len(og.Videos)-1].draft = false
+		} else {
+			og.Videos = append(og.Videos, &Video{URL: metaAttrs["content"]})
 		}
+	case "og:video:url":
+		og.ensureHasVideo()
+		og.Videos[len(og.Videos)-1].URL = metaAttrs["content"]
 	case "og:video:secure_url":
-		if len(og.Videos) > 0 {
-			og.Videos[len(og.Videos)-1].SecureURL = metaAttrs["content"]
-		}
+		og.ensureHasVideo()
+		og.Videos[len(og.Videos)-1].SecureURL = metaAttrs["content"]
 	case "og:video:type":
-		if len(og.Videos) > 0 {
-			og.Videos[len(og.Videos)-1].Type = metaAttrs["content"]
-		}
+		og.ensureHasVideo()
+		og.Videos[len(og.Videos)-1].Type = metaAttrs["content"]
 	case "og:video:width":
-		if len(og.Videos) > 0 {
-			w, err := strconv.ParseUint(metaAttrs["content"], 10, 64)
-			if err == nil {
-				og.Videos[len(og.Videos)-1].Width = w
-			}
+		w, err := strconv.ParseUint(metaAttrs["content"], 10, 64)
+		if err == nil {
+			og.ensureHasVideo()
+			og.Videos[len(og.Videos)-1].Width = w
 		}
 	case "og:video:height":
-		if len(og.Videos) > 0 {
-			h, err := strconv.ParseUint(metaAttrs["content"], 10, 64)
-			if err == nil {
-				og.Videos[len(og.Videos)-1].Height = h
-			}
+		h, err := strconv.ParseUint(metaAttrs["content"], 10, 64)
+		if err == nil {
+			og.ensureHasVideo()
+			og.Videos[len(og.Videos)-1].Height = h
 		}
 	default:
 		if og.isArticle {

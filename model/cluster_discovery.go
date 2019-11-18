@@ -46,10 +46,14 @@ func (o *ClusterDiscovery) AutoFillHostname() {
 	}
 }
 
-func (o *ClusterDiscovery) AutoFillIpAddress() {
+func (o *ClusterDiscovery) AutoFillIpAddress(iface string, ipAddress string) {
 	// attempt to set the hostname to the first non-local IP address
 	if len(o.Hostname) == 0 {
-		o.Hostname = GetServerIpAddress()
+		if len(ipAddress) > 0 {
+			o.Hostname = ipAddress
+		} else {
+			o.Hostname = GetServerIpAddress(iface)
+		}
 	}
 }
 
@@ -86,27 +90,27 @@ func FilterClusterDiscovery(vs []*ClusterDiscovery, f func(*ClusterDiscovery) bo
 
 func (o *ClusterDiscovery) IsValid() *AppError {
 	if len(o.Id) != 26 {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.ClusterName) == 0 {
-		return NewAppError("ClusterDiscovery.IsValid", "ClusterName must be set", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.name.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.Type) == 0 {
-		return NewAppError("ClusterDiscovery.IsValid", "Type must be set", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.Hostname) == 0 {
-		return NewAppError("ClusterDiscovery.IsValid", "Hostname must be set", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.hostname.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("ClusterDiscovery.IsValid", "CreateAt must be set", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if o.LastPingAt == 0 {
-		return NewAppError("ClusterDiscovery.IsValid", "LastPingAt must be set", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.last_ping_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

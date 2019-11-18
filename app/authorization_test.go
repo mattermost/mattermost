@@ -4,13 +4,14 @@
 package app
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestCheckIfRolesGrantPermission(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cases := []struct {
@@ -28,10 +29,8 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 		{[]string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID}, model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, true},
 	}
 
-	for testnum, testcase := range cases {
-		if th.App.RolesGrantPermission(testcase.roles, testcase.permissionId) != testcase.shouldGrant {
-			t.Fatal("Failed test case ", testnum)
-		}
+	for _, testcase := range cases {
+		assert.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionId), testcase.shouldGrant)
 	}
 
 }

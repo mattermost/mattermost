@@ -214,7 +214,7 @@ type DeleteResponse struct {
 	Id            string      `json:"_id,omitempty"`
 	Version       int64       `json:"_version,omitempty"`
 	Result        string      `json:"result,omitempty"`
-	Shards        *shardsInfo `json:"_shards,omitempty"`
+	Shards        *ShardsInfo `json:"_shards,omitempty"`
 	SeqNo         int64       `json:"_seq_no,omitempty"`
 	PrimaryTerm   int64       `json:"_primary_term,omitempty"`
 	Status        int         `json:"status,omitempty"`

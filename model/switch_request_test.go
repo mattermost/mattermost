@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSwitchRequestJson(t *testing.T) {
@@ -13,7 +15,5 @@ func TestSwitchRequestJson(t *testing.T) {
 	json := o.ToJson()
 	ro := SwitchRequestFromJson(strings.NewReader(json))
 
-	if o.Email != ro.Email {
-		t.Fatal("Emails do not match")
-	}
+	require.Equal(t, o.Email, ro.Email, "Emails do not match")
 }

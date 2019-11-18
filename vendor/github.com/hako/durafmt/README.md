@@ -33,7 +33,7 @@ The above seems very easy to read, unless your duration looks like this:
 package main
 
 import (
-	"fmt"	
+	"fmt"
 	"github.com/hako/durafmt"
 )
 
@@ -44,6 +44,28 @@ func main() {
 	}
 	fmt.Println(duration) // 2 weeks 18 hours 22 minutes 3 seconds
 	// duration.String() // String representation. "2 weeks 18 hours 22 minutes 3 seconds"
+}
+```
+
+### durafmt.ParseStringShort()
+
+Version of `durafmt.ParseString()` that only returns the first part of the duration string.
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/hako/durafmt"
+)
+
+func main() {
+	duration, err := durafmt.ParseStringShort("354h22m3.24s")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(duration) // 2 weeks
+	// duration.String() // String short representation. "2 weeks"
 }
 ```
 
@@ -62,6 +84,26 @@ func main() {
 	timeduration := (354 * time.Hour) + (22 * time.Minute) + (3 * time.Second)
 	duration := durafmt.Parse(timeduration).String()
 	fmt.Println(duration) // 2 weeks 18 hours 22 minutes 3 seconds
+}
+```
+
+### durafmt.ParseShort()
+
+Version of `durafmt.Parse()` that only returns the first part of the duration string.
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+	"github.com/hako/durafmt"
+)
+
+func main() {
+	timeduration := (354 * time.Hour) + (22 * time.Minute) + (3 * time.Second)
+	duration := durafmt.ParseShort(timeduration).String()
+	fmt.Println(duration) // 2 weeks
 }
 ```
 

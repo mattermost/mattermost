@@ -999,3 +999,46 @@ func TestCommonMarkReferenceStrings(t *testing.T) {
 		})
 	}
 }
+
+func TestCommonMarkReferenceAutolinks(t *testing.T) {
+	// These tests are adapted from the GitHub-flavoured CommonMark extension tests located at
+	// https://github.com/github/cmark/blob/master/test/extensions.txt
+	for name, tc := range map[string]struct {
+		Markdown     string
+		ExpectedHTML string
+	}{
+		"autolinks-1": {
+			Markdown: `: http://google.com https://google.com
+
+http://google.com/å
+
+www.github.com www.github.com/á
+
+www.google.com/a_b
+
+![http://inline.com/image](http://inline.com/image)
+
+Full stop outside parens shouldn't be included http://google.com/ok.
+
+(Full stop inside parens shouldn't be included http://google.com/ok.)
+
+"http://google.com"
+
+'http://google.com'
+
+http://🍄.ga/ http://x🍄.ga/`,
+			ExpectedHTML: `<p>: <a href="http://google.com">http://google.com</a> <a href="https://google.com">https://google.com</a></p><p><a href="http://google.com/%C3%A5">http://google.com/å</a></p><p><a href="http://www.github.com">www.github.com</a> <a href="http://www.github.com/%C3%A1">www.github.com/á</a></p><p><a href="http://www.google.com/a_b">www.google.com/a_b</a></p><p><img src="http://inline.com/image" alt="http://inline.com/image" /></p><p>Full stop outside parens shouldn't be included <a href="http://google.com/ok">http://google.com/ok</a>.</p><p>(Full stop inside parens shouldn't be included <a href="http://google.com/ok">http://google.com/ok</a>.)</p><p>&quot;<a href="http://google.com">http://google.com</a>&quot;</p><p>'<a href="http://google.com">http://google.com</a>'</p><p><a href="http://%F0%9F%8D%84.ga/">http://🍄.ga/</a> <a href="http://x%F0%9F%8D%84.ga/">http://x🍄.ga/</a></p>`,
+		},
+		"autolinks-2": {
+			Markdown: `These should not link:
+
+* @a.b.c@. x
+* n@.  b`,
+			ExpectedHTML: `<p>These should not link:</p><ul><li>@a.b.c@. x</li><li>n@.  b</li></ul>`,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.ExpectedHTML, RenderHTML(tc.Markdown))
+		})
+	}
+}

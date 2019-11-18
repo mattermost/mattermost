@@ -13,16 +13,17 @@ import (
 
 // Config represents an Elasticsearch configuration.
 type Config struct {
-	URL      string
-	Index    string
-	Username string
-	Password string
-	Shards   int
-	Replicas int
-	Sniff    *bool
-	Infolog  string
-	Errorlog string
-	Tracelog string
+	URL         string
+	Index       string
+	Username    string
+	Password    string
+	Shards      int
+	Replicas    int
+	Sniff       *bool
+	Healthcheck *bool
+	Infolog     string
+	Errorlog    string
+	Tracelog    string
 }
 
 // Parse returns the Elasticsearch configuration by extracting it
@@ -44,16 +45,7 @@ func Parse(elasticURL string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error parsing elastic parameter %q: %v", elasticURL, err)
 	}
-	index := uri.Path
-	if strings.HasPrefix(index, "/") {
-		index = index[1:]
-	}
-	if strings.HasSuffix(index, "/") {
-		index = index[:len(index)-1]
-	}
-	if index == "" {
-		return nil, fmt.Errorf("missing index in elastic parameter %q", elasticURL)
-	}
+	index := strings.TrimSuffix(strings.TrimPrefix(uri.Path, "/"), "/")
 	if uri.User != nil {
 		cfg.Username = uri.User.Username()
 		cfg.Password, _ = uri.User.Password()
@@ -69,6 +61,11 @@ func Parse(elasticURL string) (*Config, error) {
 	if s := uri.Query().Get("sniff"); s != "" {
 		if b, err := strconv.ParseBool(s); err == nil {
 			cfg.Sniff = &b
+		}
+	}
+	if s := uri.Query().Get("healthcheck"); s != "" {
+		if b, err := strconv.ParseBool(s); err == nil {
+			cfg.Healthcheck = &b
 		}
 	}
 	if s := uri.Query().Get("infolog"); s != "" {

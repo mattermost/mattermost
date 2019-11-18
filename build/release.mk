@@ -3,27 +3,15 @@ dist: | check-style test package
 
 build-linux:
 	@echo Build Linux amd64
-ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
-	env GOOS=linux GOARCH=amd64 $(GO) build -i -o $(GOPATH)/bin/platform $(GOFLAGS) $(GO_LINKER_FLAGS) ./
-else
-	env GOOS=linux GOARCH=amd64 $(GO) build -i -o $(GOPATH)/bin/linux_amd64/platform $(GOFLAGS) $(GO_LINKER_FLAGS) ./
-endif
+	env GOOS=linux GOARCH=amd64 $(GO) install -i $(GOFLAGS) -ldflags '$(LDFLAGS)' ./...
 
-build-osx: 
+build-osx:
 	@echo Build OSX amd64
-ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
-	env GOOS=darwin GOARCH=amd64 $(GO) build -i -o $(GOPATH)/bin/platform $(GOFLAGS) $(GO_LINKER_FLAGS) ./
-else
-	env GOOS=darwin GOARCH=amd64 $(GO) build -i -o $(GOPATH)/bin/darwin_amd64/platform $(GOFLAGS) $(GO_LINKER_FLAGS) ./
-endif
+	env GOOS=darwin GOARCH=amd64 $(GO) install -i $(GOFLAGS) -ldflags '$(LDFLAGS)' ./...
 
-build-windows: 
+build-windows:
 	@echo Build Windows amd64
-ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
-	env GOOS=windows GOARCH=amd64 $(GO) build -i -o $(GOPATH)/bin/platform.exe $(GOFLAGS) $(GO_LINKER_FLAGS) ./
-else
-	env GOOS=windows GOARCH=amd64 $(GO) build -i -o $(GOPATH)/bin/windows_amd64/platform.exe $(GOFLAGS) $(GO_LINKER_FLAGS) ./
-endif
+	env GOOS=windows GOARCH=amd64 $(GO) install -i $(GOFLAGS) -ldflags '$(LDFLAGS)' ./...
 
 build: build-linux build-windows build-osx
 
@@ -41,9 +29,12 @@ package:
 	@# Create needed directories
 	mkdir -p $(DIST_PATH)/bin
 	mkdir -p $(DIST_PATH)/logs
+	mkdir -p $(DIST_PATH)/prepackaged_plugins
 
 	@# Resource directories
-	cp -RL config $(DIST_PATH)
+	mkdir -p $(DIST_PATH)/config
+	cp -L config/README.md $(DIST_PATH)/config
+	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json go generate ./config
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
@@ -55,7 +46,8 @@ package:
 	@# Reset email sending to original configuration
 	sed -i'' -e 's|"SendEmailNotifications": true,|"SendEmailNotifications": false,|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"FeedbackEmail": "test@example.com",|"FeedbackEmail": "",|g' $(DIST_PATH)/config/config.json
-	sed -i'' -e 's|"SMTPServer": "dockerhost",|"SMTPServer": "",|g' $(DIST_PATH)/config/config.json
+	sed -i'' -e 's|"ReplyToAddress": "test@example.com",|"ReplyToAddress": "",|g' $(DIST_PATH)/config/config.json
+	sed -i'' -e 's|"SMTPServer": "localhost",|"SMTPServer": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
 
 	@# Package webapp
@@ -71,40 +63,70 @@ endif
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
+	@# Download prepackaged plugins
+	mkdir -p tmpprepackaged
+	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		curl -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
+	done
+
 	@# ----- PLATFORM SPECIFIC -----
 
 	@# Make osx package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
+	cp $(GOPATH)/bin/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
+	cp $(GOPATH)/bin/darwin_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOPATH)/bin/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	@# Strip and prepackage plugins
+	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*windows*" --delete "*linux*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
 	@# Cleanup
+	rm -f $(DIST_PATH)/bin/mattermost
 	rm -f $(DIST_PATH)/bin/platform
+	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
 	@# Make windows package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
+	cp $(GOPATH)/bin/mattermost.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 	cp $(GOPATH)/bin/platform.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
+	cp $(GOPATH)/bin/windows_amd64/mattermost.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOPATH)/bin/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	@# Strip and prepackage plugins
+	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*darwin*" --delete "*linux*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+	done
 	@# Package
 	cd $(DIST_ROOT) && zip -9 -r -q -l mattermost-$(BUILD_TYPE_NAME)-windows-amd64.zip mattermost && cd ..
 	@# Cleanup
+	rm -f $(DIST_PATH)/bin/mattermost.exe
 	rm -f $(DIST_PATH)/bin/platform.exe
+	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
 	@# Make linux package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
+	cp $(GOPATH)/bin/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
+	cp $(GOPATH)/bin/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOPATH)/bin/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	@# Strip and prepackage plugins
+	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*windows*" --delete "*darwin*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
 	@# Don't clean up native package so dev machines will have an unzipped package available
-	@#rm -f $(DIST_PATH)/bin/platform
+	@#rm -f $(DIST_PATH)/bin/mattermost
+
+	rm -rf tmpprepackaged

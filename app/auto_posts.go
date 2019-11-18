@@ -11,10 +11,11 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 type AutoPostCreator struct {
-	client         *model.Client
+	client         *model.Client4
 	channelid      string
 	Fuzzy          bool
 	TextLength     utils.Range
@@ -26,7 +27,7 @@ type AutoPostCreator struct {
 }
 
 // Automatic poster used for testing
-func NewAutoPostCreator(client *model.Client, channelid string) *AutoPostCreator {
+func NewAutoPostCreator(client *model.Client4, channelid string) *AutoPostCreator {
 	return &AutoPostCreator{
 		client:         client,
 		channelid:      channelid,
@@ -43,7 +44,7 @@ func NewAutoPostCreator(client *model.Client, channelid string) *AutoPostCreator
 func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 	filename := cfg.ImageFilenames[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(cfg.ImageFilenames) - 1})]
 
-	path, _ := utils.FindDir("web/static/images")
+	path, _ := fileutils.FindDir("web/static/images")
 	file, err := os.Open(filepath.Join(path, filename))
 	if err != nil {
 		return nil, false
@@ -56,7 +57,7 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 		return nil, false
 	}
 
-	resp, appErr := cfg.client.UploadPostAttachment(data.Bytes(), cfg.channelid, filename)
+	resp, appErr := cfg.client.UploadFile(data.Bytes(), cfg.channelid, filename)
 	if appErr != nil {
 		return nil, false
 	}
@@ -65,6 +66,10 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 }
 
 func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, bool) {
+	return cfg.CreateRandomPostNested("", "")
+}
+
+func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*model.Post, bool) {
 	var fileIds []string
 	if cfg.HasImage {
 		var err1 bool
@@ -83,11 +88,13 @@ func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, bool) {
 
 	post := &model.Post{
 		ChannelId: cfg.channelid,
+		ParentId:  parentId,
+		RootId:    rootId,
 		Message:   postText,
 		FileIds:   fileIds}
-	result, err2 := cfg.client.CreatePost(post)
-	if err2 != nil {
+	rpost, resp := cfg.client.CreatePost(post)
+	if resp != nil && resp.Error != nil {
 		return nil, false
 	}
-	return result.Data.(*model.Post), true
+	return rpost, true
 }

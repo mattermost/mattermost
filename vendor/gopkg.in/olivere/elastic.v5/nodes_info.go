@@ -150,6 +150,9 @@ type NodesInfoNode struct {
 	// HTTPSAddress, e.g. "127.0.0.1:9200"
 	HTTPSAddress string `json:"https_address"`
 
+	// Roles of the node, e.g. [master, ingest, data]
+	Roles []string `json:"roles"`
+
 	// Attributes of the node.
 	Attributes map[string]interface{} `json:"attributes"`
 

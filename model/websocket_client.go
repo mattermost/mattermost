@@ -6,24 +6,28 @@ package model
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 const (
-	SOCKET_MAX_MESSAGE_SIZE_KB = 8 * 1024 // 8KB
+	SOCKET_MAX_MESSAGE_SIZE_KB  = 8 * 1024 // 8KB
+	PING_TIMEOUT_BUFFER_SECONDS = 5
 )
 
 type WebSocketClient struct {
-	Url             string          // The location of the server like "ws://localhost:8065"
-	ApiUrl          string          // The api location of the server like "ws://localhost:8065/api/v3"
-	ConnectUrl      string          // The websocket URL to connect to like "ws://localhost:8065/api/v3/path/to/websocket"
-	Conn            *websocket.Conn // The WebSocket connection
-	AuthToken       string          // The token used to open the WebSocket
-	Sequence        int64           // The ever-incrementing sequence attached to each WebSocket action
-	EventChannel    chan *WebSocketEvent
-	ResponseChannel chan *WebSocketResponse
-	ListenError     *AppError
+	Url                string          // The location of the server like "ws://localhost:8065"
+	ApiUrl             string          // The api location of the server like "ws://localhost:8065/api/v3"
+	ConnectUrl         string          // The websocket URL to connect to like "ws://localhost:8065/api/v3/path/to/websocket"
+	Conn               *websocket.Conn // The WebSocket connection
+	AuthToken          string          // The token used to open the WebSocket
+	Sequence           int64           // The ever-incrementing sequence attached to each WebSocket action
+	PingTimeoutChannel chan bool       // The channel used to signal ping timeouts
+	EventChannel       chan *WebSocketEvent
+	ResponseChannel    chan *WebSocketResponse
+	ListenError        *AppError
+	pingTimeoutTimer   *time.Timer
 }
 
 // NewWebSocketClient constructs a new WebSocket client with convenience
@@ -35,22 +39,26 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 // NewWebSocketClientWithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer.
 func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, *AppError) {
-	conn, _, err := dialer.Dial(url+API_URL_SUFFIX_V3+"/users/websocket", nil)
+	conn, _, err := dialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)
 	if err != nil {
 		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	client := &WebSocketClient{
 		url,
-		url + API_URL_SUFFIX_V3,
-		url + API_URL_SUFFIX_V3 + "/users/websocket",
+		url + API_URL_SUFFIX,
+		url + API_URL_SUFFIX + "/websocket",
 		conn,
 		authToken,
 		1,
+		make(chan bool, 1),
 		make(chan *WebSocketEvent, 100),
 		make(chan *WebSocketResponse, 100),
 		nil,
+		nil,
 	}
+
+	client.configurePingHandling()
 
 	client.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": authToken})
 
@@ -66,26 +74,7 @@ func NewWebSocketClient4(url, authToken string) (*WebSocketClient, *AppError) {
 // NewWebSocketClient4WithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer. Uses the v4 endpoint.
 func NewWebSocketClient4WithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, *AppError) {
-	conn, _, err := dialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)
-	if err != nil {
-		return nil, NewAppError("NewWebSocketClient4", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	client := &WebSocketClient{
-		url,
-		url + API_URL_SUFFIX,
-		url + API_URL_SUFFIX + "/websocket",
-		conn,
-		authToken,
-		1,
-		make(chan *WebSocketEvent, 100),
-		make(chan *WebSocketResponse, 100),
-		nil,
-	}
-
-	client.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": authToken})
-
-	return client, nil
+	return NewWebSocketClientWithDialer(dialer, url, authToken)
 }
 
 func (wsc *WebSocketClient) Connect() *AppError {
@@ -98,6 +87,8 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	if err != nil {
 		return NewAppError("Connect", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	wsc.configurePingHandling()
 
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
 	wsc.ResponseChannel = make(chan *WebSocketResponse, 100)
@@ -180,4 +171,25 @@ func (wsc *WebSocketClient) GetStatusesByIds(userIds []string) {
 		"user_ids": userIds,
 	}
 	wsc.SendMessage("get_statuses_by_ids", data)
+}
+
+func (wsc *WebSocketClient) configurePingHandling() {
+	wsc.Conn.SetPingHandler(wsc.pingHandler)
+	wsc.pingTimeoutTimer = time.NewTimer(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+	go wsc.pingWatchdog()
+}
+
+func (wsc *WebSocketClient) pingHandler(appData string) error {
+	if !wsc.pingTimeoutTimer.Stop() {
+		<-wsc.pingTimeoutTimer.C
+	}
+
+	wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+	wsc.Conn.WriteMessage(websocket.PongMessage, []byte{})
+	return nil
+}
+
+func (wsc *WebSocketClient) pingWatchdog() {
+	<-wsc.pingTimeoutTimer.C
+	wsc.PingTimeoutChannel <- true
 }

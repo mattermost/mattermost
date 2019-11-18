@@ -11,6 +11,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -18,6 +19,10 @@ import (
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
 	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return true
+	}
+
 	if allowedOrigins == "*" {
 		return true
 	}
@@ -35,24 +40,26 @@ func OriginChecker(allowedOrigins string) func(*http.Request) bool {
 	}
 }
 
-func RenderWebAppError(w http.ResponseWriter, r *http.Request, err *model.AppError, s crypto.Signer) {
-	RenderWebError(w, r, err.StatusCode, url.Values{
+func RenderWebAppError(config *model.Config, w http.ResponseWriter, r *http.Request, err *model.AppError, s crypto.Signer) {
+	RenderWebError(config, w, r, err.StatusCode, url.Values{
 		"message": []string{err.Message},
 	}, s)
 }
 
-func RenderWebError(w http.ResponseWriter, r *http.Request, status int, params url.Values, s crypto.Signer) {
+func RenderWebError(config *model.Config, w http.ResponseWriter, r *http.Request, status int, params url.Values, s crypto.Signer) {
 	queryString := params.Encode()
+
+	subpath, _ := GetSubpathFromConfig(config)
 
 	h := crypto.SHA256
 	sum := h.New()
-	sum.Write([]byte("/error?" + queryString))
+	sum.Write([]byte(path.Join(subpath, "error") + "?" + queryString))
 	signature, err := s.Sign(rand.Reader, sum.Sum(nil), h)
 	if err != nil {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	destination := "/error?" + queryString + "&s=" + base64.URLEncoding.EncodeToString(signature)
+	destination := path.Join(subpath, "error") + "?" + queryString + "&s=" + base64.URLEncoding.EncodeToString(signature)
 
 	if status >= 300 && status < 400 {
 		http.Redirect(w, r, destination, status)

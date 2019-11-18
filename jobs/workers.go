@@ -6,13 +6,14 @@ package jobs
 import (
 	"sync"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/configservice"
 )
 
 type Workers struct {
 	startOnce     sync.Once
-	ConfigService ConfigService
+	ConfigService configservice.ConfigService
 	Watcher       *Watcher
 
 	DataRetention            model.Worker
@@ -20,6 +21,8 @@ type Workers struct {
 	ElasticsearchIndexing    model.Worker
 	ElasticsearchAggregation model.Worker
 	LdapSync                 model.Worker
+	Migrations               model.Worker
+	Plugins                  model.Worker
 
 	listenerId string
 }
@@ -50,11 +53,19 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.LdapSync = ldapSyncInterface.MakeWorker()
 	}
 
+	if migrationsInterface := srv.Migrations; migrationsInterface != nil {
+		workers.Migrations = migrationsInterface.MakeWorker()
+	}
+
+	if pluginsInterface := srv.Plugins; pluginsInterface != nil {
+		workers.Plugins = pluginsInterface.MakeWorker()
+	}
+
 	return workers
 }
 
 func (workers *Workers) Start() *Workers {
-	l4g.Info("Starting workers")
+	mlog.Info("Starting workers")
 
 	workers.startOnce.Do(func() {
 		if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
@@ -77,6 +88,14 @@ func (workers *Workers) Start() *Workers {
 			go workers.LdapSync.Run()
 		}
 
+		if workers.Migrations != nil {
+			go workers.Migrations.Run()
+		}
+
+		if workers.Plugins != nil {
+			go workers.Plugins.Run()
+		}
+
 		go workers.Watcher.Start()
 	})
 
@@ -86,6 +105,8 @@ func (workers *Workers) Start() *Workers {
 }
 
 func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
+	mlog.Debug("Workers received config change.")
+
 	if workers.DataRetention != nil {
 		if (!*oldConfig.DataRetentionSettings.EnableMessageDeletion && !*oldConfig.DataRetentionSettings.EnableFileDeletion) && (*newConfig.DataRetentionSettings.EnableMessageDeletion || *newConfig.DataRetentionSettings.EnableFileDeletion) {
 			go workers.DataRetention.Run()
@@ -152,7 +173,15 @@ func (workers *Workers) Stop() *Workers {
 		workers.LdapSync.Stop()
 	}
 
-	l4g.Info("Stopped workers")
+	if workers.Migrations != nil {
+		workers.Migrations.Stop()
+	}
+
+	if workers.Plugins != nil {
+		workers.Plugins.Stop()
+	}
+
+	mlog.Info("Stopped workers")
 
 	return workers
 }

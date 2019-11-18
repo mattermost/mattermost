@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSessionDeepCopy(t *testing.T) {
@@ -17,7 +18,7 @@ func TestSessionDeepCopy(t *testing.T) {
 	mapKey := "key"
 	mapValue := "val"
 
-	session := &Session{Id: sessionId, Props: map[string]string{mapKey: mapValue}, TeamMembers: []*TeamMember{&TeamMember{UserId: userId, TeamId: "someteamId"}}}
+	session := &Session{Id: sessionId, Props: map[string]string{mapKey: mapValue}, TeamMembers: []*TeamMember{{UserId: userId, TeamId: "someteamId"}}}
 
 	copySession := session.DeepCopy()
 	copySession.Id = "changed"
@@ -31,7 +32,7 @@ func TestSessionDeepCopy(t *testing.T) {
 	session = &Session{Id: sessionId}
 	copySession = session.DeepCopy()
 
-	assert.Equal(t, sessionId, session.Id)
+	assert.Equal(t, sessionId, copySession.Id)
 
 	session = &Session{TeamMembers: []*TeamMember{}}
 	copySession = session.DeepCopy()
@@ -45,21 +46,29 @@ func TestSessionJson(t *testing.T) {
 	json := session.ToJson()
 	rsession := SessionFromJson(strings.NewReader(json))
 
-	if rsession.Id != session.Id {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, rsession.Id, session.Id, "Ids do not match")
 
 	session.Sanitize()
 
-	if session.IsExpired() {
-		t.Fatal("Shouldn't expire")
-	}
+	require.False(t, session.IsExpired(), "Shouldn't expire")
 
 	session.ExpiresAt = GetMillis()
 	time.Sleep(10 * time.Millisecond)
-	if !session.IsExpired() {
-		t.Fatal("Should expire")
-	}
+
+	require.True(t, session.IsExpired(), "Should expire")
 
 	session.SetExpireInDays(10)
+}
+
+func TestSessionCSRF(t *testing.T) {
+	s := Session{}
+	token := s.GetCSRF()
+	assert.Empty(t, token)
+
+	token = s.GenerateCSRF()
+	assert.NotEmpty(t, token)
+
+	token2 := s.GetCSRF()
+	assert.NotEmpty(t, token2)
+	assert.Equal(t, token, token2)
 }

@@ -4,21 +4,22 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (a *App) SyncLdap() {
-	a.Go(func() {
+	a.Srv.Go(func() {
 
 		if license := a.License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
 			if ldapI := a.Ldap; ldapI != nil {
 				ldapI.StartSynchronizeJob(false)
 			} else {
-				l4g.Error("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error())
+				mlog.Error(fmt.Sprintf("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error()))
 			}
 		}
 	})
@@ -39,7 +40,47 @@ func (a *App) TestLdap() *model.AppError {
 	return nil
 }
 
-func (a *App) SwitchEmailToLdap(email, password, code, ldapId, ldapPassword string) (string, *model.AppError) {
+// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
+func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
+	var group *model.Group
+
+	if a.Ldap != nil {
+		var err *model.AppError
+		group, err = a.Ldap.GetGroup(ldapGroupID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
+		mlog.Error("Unable to use ldap", mlog.String("ldap_group_id", ldapGroupID), mlog.Err(ae))
+		return nil, ae
+	}
+
+	return group, nil
+}
+
+// GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
+// filter.
+func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+	var groups []*model.Group
+	var total int
+
+	if a.Ldap != nil {
+		var err *model.AppError
+		groups, total, err = a.Ldap.GetAllGroupsPage(page, perPage, opts)
+		if err != nil {
+			return nil, 0, err
+		}
+	} else {
+		ae := model.NewAppError("GetAllLdapGroupsPage", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
+		mlog.Error("Unable to use ldap", mlog.Err(ae))
+		return nil, 0, ae
+	}
+
+	return groups, total, nil
+}
+
+func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
 	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)
 	}
@@ -62,13 +103,13 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapId, ldapPassword stri
 		return "", model.NewAppError("SwitchEmailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := ldapInterface.SwitchToLdap(user.Id, ldapId, ldapPassword); err != nil {
+	if err := ldapInterface.SwitchToLdap(user.Id, ldapLoginId, ldapPassword); err != nil {
 		return "", err
 	}
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 
@@ -94,7 +135,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := ldapInterface.CheckPassword(*user.AuthData, ldapPassword); err != nil {
+	if err := ldapInterface.CheckPasswordAuthData(*user.AuthData, ldapPassword); err != nil {
 		return "", err
 	}
 
@@ -112,9 +153,9 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 
 	T := utils.GetUserTranslations(user.Locale)
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 

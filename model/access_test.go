@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestAccessJson(t *testing.T) {
@@ -18,80 +20,50 @@ func TestAccessJson(t *testing.T) {
 	json := a1.ToJson()
 	ra1 := AccessDataFromJson(strings.NewReader(json))
 
-	if a1.Token != ra1.Token {
-		t.Fatal("tokens didn't match")
-	}
+	require.Equal(t, a1.Token, ra1.Token)
 }
 
 func TestAccessIsValid(t *testing.T) {
 	ad := AccessData{}
 
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.ClientId = NewRandomString(28)
-	if err := ad.IsValid(); err == nil {
-		t.Fatal("Should have failed Client Id")
-	}
+	require.Error(t, ad.IsValid())
 
 	ad.ClientId = ""
-	if err := ad.IsValid(); err == nil {
-		t.Fatal("Should have failed Client Id")
-	}
+	require.Error(t, ad.IsValid())
 
 	ad.ClientId = NewId()
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.UserId = NewRandomString(28)
-	if err := ad.IsValid(); err == nil {
-		t.Fatal("Should have failed User Id")
-	}
+	require.Error(t, ad.IsValid())
 
 	ad.UserId = ""
-	if err := ad.IsValid(); err == nil {
-		t.Fatal("Should have failed User Id")
-	}
+	require.Error(t, ad.IsValid())
 
 	ad.UserId = NewId()
-	if err := ad.IsValid(); err == nil {
-		t.Fatal("should have failed")
-	}
+	require.Error(t, ad.IsValid())
 
 	ad.Token = NewRandomString(22)
-	if err := ad.IsValid(); err == nil {
-		t.Fatal("Should have failed Token")
-	}
+	require.Error(t, ad.IsValid())
 
 	ad.Token = NewId()
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.RefreshToken = NewRandomString(28)
-	if err := ad.IsValid(); err == nil {
-		t.Fatal("Should have failed Refresh Token")
-	}
+	require.Error(t, ad.IsValid())
 
 	ad.RefreshToken = NewId()
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.RedirectUri = ""
-	if err := ad.IsValid(); err == nil {
-		t.Fatal("Should have failed Redirect URI not set")
-	}
+	require.Error(t, ad.IsValid())
 
 	ad.RedirectUri = NewRandomString(28)
-	if err := ad.IsValid(); err == nil {
-		t.Fatal("Should have failed invalid URL")
-	}
+	require.Error(t, ad.IsValid())
 
 	ad.RedirectUri = "http://example.com"
-	if err := ad.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Error(t, ad.IsValid(), ad.IsValid())
 }

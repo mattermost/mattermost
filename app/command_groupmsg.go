@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type groupmsgProvider struct {
@@ -47,15 +47,26 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 	for _, username := range users {
 		username = strings.TrimSpace(username)
 		username = strings.TrimPrefix(username, "@")
-		if result := <-a.Srv.Store.User().GetByUsername(username); result.Err != nil {
+		targetUser, err := a.Srv.Store.User().GetByUsername(username)
+		if err != nil {
 			invalidUsernames = append(invalidUsernames, username)
-		} else {
-			targetUser := result.Data.(*model.User)
-			_, exists := targetUsers[targetUser.Id]
-			if !exists && targetUser.Id != args.UserId {
-				targetUsers[targetUser.Id] = targetUser
-				targetUsersSlice = append(targetUsersSlice, targetUser.Id)
-			}
+			continue
+		}
+
+		canSee, err := a.UserCanSeeOtherUser(args.UserId, targetUser.Id)
+		if err != nil {
+			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
+
+		if !canSee {
+			invalidUsernames = append(invalidUsernames, username)
+			continue
+		}
+
+		_, exists := targetUsers[targetUser.Id]
+		if !exists && targetUser.Id != args.UserId {
+			targetUsers[targetUser.Id] = targetUser
+			targetUsersSlice = append(targetUsersSlice, targetUser.Id)
 		}
 	}
 
@@ -93,10 +104,20 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 		}
 	}
 
-	groupChannel, channelErr := a.CreateGroupChannel(targetUsersSlice, args.UserId)
-	if channelErr != nil {
-		l4g.Error(channelErr.Error())
-		return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	var groupChannel *model.Channel
+	var channelErr *model.AppError
+
+	if a.SessionHasPermissionTo(args.Session, model.PERMISSION_CREATE_GROUP_CHANNEL) {
+		groupChannel, channelErr = a.CreateGroupChannel(targetUsersSlice, args.UserId)
+		if channelErr != nil {
+			mlog.Error(channelErr.Error())
+			return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
+	} else {
+		groupChannel, channelErr = a.GetGroupChannel(targetUsersSlice)
+		if channelErr != nil {
+			return &model.CommandResponse{Text: args.T("api.command_groupmsg.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
 	}
 
 	if len(parsedMessage) > 0 {

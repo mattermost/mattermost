@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"io"
 
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 )
 
 type CommandArgs struct {
@@ -16,6 +16,7 @@ type CommandArgs struct {
 	TeamId    string               `json:"team_id"`
 	RootId    string               `json:"root_id"`
 	ParentId  string               `json:"parent_id"`
+	TriggerId string               `json:"trigger_id,omitempty"`
 	Command   string               `json:"command"`
 	SiteURL   string               `json:"-"`
 	T         goi18n.TranslateFunc `json:"-"`

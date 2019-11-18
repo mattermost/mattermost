@@ -6,13 +6,13 @@ package api4
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/services/configservice"
+	"github.com/mattermost/mattermost-server/web"
 
-	_ "github.com/nicksnyder/go-i18n/i18n"
+	_ "github.com/mattermost/go-i18n/i18n"
 )
 
 type Routes struct {
@@ -23,6 +23,9 @@ type Routes struct {
 	User           *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}'
 	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9_-\.]+}'
 	UserByEmail    *mux.Router // 'api/v4/users/email/{email}'
+
+	Bots *mux.Router // 'api/v4/bots'
+	Bot  *mux.Router // 'api/v4/bots/{bot_user_id:[A-Za-z0-9]+}'
 
 	Teams              *mux.Router // 'api/v4/teams'
 	TeamsForUser       *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams'
@@ -98,7 +101,8 @@ type Routes struct {
 
 	Reactions *mux.Router // 'api/v4/reactions'
 
-	Roles *mux.Router // 'api/v4/roles'
+	Roles   *mux.Router // 'api/v4/roles'
+	Schemes *mux.Router // 'api/v4/schemes'
 
 	Emojis      *mux.Router // 'api/v4/emoji'
 	Emoji       *mux.Router // 'api/v4/emoji/{emoji_id:[A-Za-z0-9]+}'
@@ -106,18 +110,21 @@ type Routes struct {
 
 	ReactionByNameForPostForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}/reactions/{emoji_name:[A-Za-z0-9_-+]+}'
 
-	Webrtc *mux.Router // 'api/v4/webrtc'
+	TermsOfService *mux.Router // 'api/v4/terms_of_service
+	Groups         *mux.Router // 'api/v4/groups'
 }
 
 type API struct {
-	App        *app.App
-	BaseRoutes *Routes
+	ConfigService       configservice.ConfigService
+	GetGlobalAppOptions app.AppOptionCreator
+	BaseRoutes          *Routes
 }
 
-func Init(a *app.App, root *mux.Router, full bool) *API {
+func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
 	api := &API{
-		App:        a,
-		BaseRoutes: &Routes{},
+		ConfigService:       configservice,
+		GetGlobalAppOptions: globalOptionsFunc,
+		BaseRoutes:          &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -127,6 +134,9 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.BaseRoutes.User = api.BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email}").Subrouter()
+
+	api.BaseRoutes.Bots = api.BaseRoutes.ApiRoot.PathPrefix("/bots").Subrouter()
+	api.BaseRoutes.Bot = api.BaseRoutes.ApiRoot.PathPrefix("/bots/{bot_user_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.Teams = api.BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
 	api.BaseRoutes.TeamsForUser = api.BaseRoutes.User.PathPrefix("/teams").Subrouter()
@@ -194,20 +204,25 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 	api.BaseRoutes.ReactionByNameForPostForUser = api.BaseRoutes.PostForUser.PathPrefix("/reactions/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}").Subrouter()
 
-	api.BaseRoutes.Webrtc = api.BaseRoutes.ApiRoot.PathPrefix("/webrtc").Subrouter()
-
 	api.BaseRoutes.OpenGraph = api.BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
 
 	api.BaseRoutes.Roles = api.BaseRoutes.ApiRoot.PathPrefix("/roles").Subrouter()
+	api.BaseRoutes.Schemes = api.BaseRoutes.ApiRoot.PathPrefix("/schemes").Subrouter()
 
 	api.BaseRoutes.Image = api.BaseRoutes.ApiRoot.PathPrefix("/image").Subrouter()
 
+	api.BaseRoutes.TermsOfService = api.BaseRoutes.ApiRoot.PathPrefix("/terms_of_service").Subrouter()
+	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
+
 	api.InitUser()
+	api.InitBot()
 	api.InitTeam()
 	api.InitChannel()
 	api.InitPost()
 	api.InitFile()
 	api.InitSystem()
+	api.InitLicense()
+	api.InitConfig()
 	api.InitWebhook()
 	api.InitPreference()
 	api.InitSaml()
@@ -224,34 +239,22 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.InitEmoji()
 	api.InitOAuth()
 	api.InitReaction()
-	api.InitWebrtc()
 	api.InitOpenGraph()
 	api.InitPlugin()
 	api.InitRole()
+	api.InitScheme()
 	api.InitImage()
+	api.InitTermsOfService()
+	api.InitGroup()
+	api.InitAction()
 
-	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
-
-	// REMOVE CONDITION WHEN APIv3 REMOVED
-	if full {
-		a.InitEmailBatching()
-	}
+	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
 	return api
 }
 
-func Handle404(w http.ResponseWriter, r *http.Request) {
-	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-
-	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
-
-	w.WriteHeader(err.StatusCode)
-	err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'."
-	w.Write([]byte(err.ToJson()))
+func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
+	web.Handle404(api.ConfigService, w, r)
 }
 
-func ReturnStatusOK(w http.ResponseWriter) {
-	m := make(map[string]string)
-	m[model.STATUS] = model.STATUS_OK
-	w.Write([]byte(model.MapToJson(m)))
-}
+var ReturnStatusOK = web.ReturnStatusOK

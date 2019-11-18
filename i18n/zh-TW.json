@@ -48,6 +48,14 @@
     "translation": "九月"
   },
   {
+    "id": "actiance.export.marshalToXml.appError",
+    "translation": "無法轉換匯出至 XML"
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "要求中的 'certificate' 欄位沒有檔案"
+  },
+  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "要求中的 'certificate' 欄位沒有檔案"
   },
@@ -64,36 +72,24 @@
     "translation": "讀取記錄檔時遇到錯誤"
   },
   {
-    "id": "api.admin.get_brand_image.not_available.app_error",
-    "translation": "自訂品牌於此伺服器未設定或不支援"
-  },
-  {
     "id": "api.admin.get_brand_image.storage.app_error",
     "translation": "影像儲存位置尚未設定。"
   },
   {
-    "id": "api.admin.init.debug",
-    "translation": "初始化管理 API 路徑"
-  },
-  {
-    "id": "api.admin.recycle_db_end.warn",
-    "translation": "資料庫連線回收完成"
-  },
-  {
-    "id": "api.admin.recycle_db_start.warn",
-    "translation": "嘗試回收資料庫連線"
-  },
-  {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "嘗試刪除憑證時發生錯誤。請確定位於 config/{{.Filename}} 的檔案存在。"
+    "translation": "刪除 OAuth2 應用程式時發生錯誤"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
     "translation": "在建立服務提供者的中繼資料時發生錯誤。"
   },
   {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "本機不支援或未設定 SAML 2.0。"
+  },
+  {
     "id": "api.admin.test_email.body",
-    "translation": "<br/><br/><br/>看起來您的 Mattermost 電子郵件設定正確！"
+    "translation": "看起來您的 Mattermost 電子郵件設定正確！"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -112,24 +108,12 @@
     "translation": "需要 S3 儲存貯體"
   },
   {
-    "id": "api.admin.test_s3.missing_s3_endpoint",
-    "translation": "需要 S3 端點"
-  },
-  {
-    "id": "api.admin.test_s3.missing_s3_region",
-    "translation": "需要 S3 區域"
-  },
-  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "要求的 'image' 欄位為空陣列"
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
     "translation": "要求的 'image' 欄位沒有檔案"
-  },
-  {
-    "id": "api.admin.upload_brand_image.not_available.app_error",
-    "translation": "自訂品牌於此伺服器未設定或不支援"
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
@@ -144,36 +128,8 @@
     "translation": "無法上傳檔案。檔案過大。"
   },
   {
-    "id": "api.api.init.parsing_templates.error",
-    "translation": "解析伺服器樣板 %v 失敗"
-  },
-  {
-    "id": "api.api.render.error",
-    "translation": "樣板 %v 產生時遇到錯誤 err=%v"
-  },
-  {
-    "id": "api.auth.unable_to_get_user.app_error",
-    "translation": "無法取得使用者以檢查權限。"
-  },
-  {
-    "id": "api.brand.init.debug",
-    "translation": "正在初始化品牌 API 路徑"
-  },
-  {
     "id": "api.channel.add_member.added",
     "translation": "%v 已被 %v 加入頻道。"
-  },
-  {
-    "id": "api.channel.add_member.find_channel.app_error",
-    "translation": "尋找頻道失敗"
-  },
-  {
-    "id": "api.channel.add_member.find_user.app_error",
-    "translation": "尋找將被加入的使用者失敗"
-  },
-  {
-    "id": "api.channel.add_member.user_adding.app_error",
-    "translation": "尋找新增中的使用者失敗"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -184,28 +140,8 @@
     "translation": "無法將使用者新增到頻道。使用者已從團隊中移除。"
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "頻道已被封存或刪除"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "無法加入使用者至此類型頻道"
-  },
-  {
-    "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "只有系統管理員能建立與管理私人頻道。"
-  },
-  {
-    "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "只有團隊和系統管理員能建立與管理私人頻道。"
-  },
-  {
-    "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
-    "translation": "只有系統管理員能建立與管理公開頻道。"
-  },
-  {
-    "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
-    "translation": "只有團隊和系統管理員能建立與管理公開頻道。"
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
@@ -214,6 +150,14 @@
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
     "translation": "此頻道已轉為私人頻道。"
+  },
+  {
+    "id": "api.channel.convert_channel_to_private.default_channel_error",
+    "translation": "預設頻道不能轉換為私人頻道。"
+  },
+  {
+    "id": "api.channel.convert_channel_to_private.private_channel_error",
+    "translation": "要求轉換的頻道已為私人頻道。"
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -260,52 +204,8 @@
     "translation": "頻道已被封存或刪除"
   },
   {
-    "id": "api.channel.delete_channel.failed_post.error",
-    "translation": "張貼封存訊息失敗 %v"
-  },
-  {
-    "id": "api.channel.delete_channel.failed_send.app_error",
-    "translation": "傳送封存訊息失敗"
-  },
-  {
-    "id": "api.channel.delete_channel.incoming_webhook.error",
-    "translation": "刪除傳入的 Webhook 遇到錯誤 id=%v"
-  },
-  {
-    "id": "api.channel.delete_channel.outgoing_webhook.error",
-    "translation": "刪除傳出的 Webhook 遇到錯誤 id=%v"
-  },
-  {
-    "id": "api.channel.delete_channel.permissions.app_error",
-    "translation": "您沒有適當的權限"
-  },
-  {
-    "id": "api.channel.get_channel.wrong_team.app_error",
-    "translation": "在 team_id={{.TeamId}} 中不存在 channel_id={{.ChannelId}} 的頻道"
-  },
-  {
-    "id": "api.channel.get_channel_counts.app_error",
-    "translation": "無法從資料庫取得頻道數量"
-  },
-  {
-    "id": "api.channel.get_channel_extra_info.deleted.app_error",
-    "translation": "頻道已被封存或刪除"
-  },
-  {
-    "id": "api.channel.get_channel_extra_info.member_limit.app_error",
-    "translation": "解析成員限制失敗"
-  },
-  {
-    "id": "api.channel.get_channels.error",
-    "translation": "取得使用者 id=%v 資訊時遇到錯誤，強制登出"
-  },
-  {
-    "id": "api.channel.init.debug",
-    "translation": "正在初始化頻道 API 路徑"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "頻道已被刪除"
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "無法刪除直接或群組訊息頻道"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -332,16 +232,12 @@
     "translation": "%v 退出頻道。"
   },
   {
-    "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "將頻道對話發送至私人傳訊時失敗。"
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "更新頻道時失敗"
   },
   {
-    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "將頻道從公開轉換成私人時無法擷取使用者"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s 已將頻道從公開轉換成私人"
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "發布頻道隱私更新訊息時失敗"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -384,52 +280,52 @@
     "translation": "無法將使用者從預設的頻道移除 {{.Channel}}"
   },
   {
-    "id": "api.channel.remove_member.permissions.app_error",
-    "translation": "您沒有適當的權限 "
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "無法將使用者從頻道移除。"
   },
   {
     "id": "api.channel.remove_member.removed",
     "translation": "%v 已從頻道中移除。"
   },
   {
-    "id": "api.channel.remove_member.unable.app_error",
-    "translation": "無法刪除使用者。"
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "無法更改直接訊息頻道名稱。"
   },
   {
-    "id": "api.channel.remove_member.user.app_error",
-    "translation": "找不到要移除的使用者"
-  },
-  {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "頻道已被封存或刪除"
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "無法更改群組訊息頻道名稱。"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "頻道已被封存或刪除"
   },
   {
-    "id": "api.channel.update_channel.permission.app_error",
-    "translation": "您沒有適當的權限"
-  },
-  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "已對預設頻道 {{.Channel}} 嘗試執行無效的更新"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
-    "translation": "無法取得未讀訊息數量：user_id=%v, channel_id=%v, err=%v"
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "提供的角色受配置管理，無法直接套用於頻道成員"
   },
   {
-    "id": "api.cluster.init.debug",
-    "translation": "正在初始化叢集 API 路徑"
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "授權不支援更新頻道的配置"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "由於提供的配置不是頻道配置，無法設定頻道配置。"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "提供的角色受配置管理，無法直接套用於團隊成員"
   },
   {
     "id": "api.command.admin_only.app_error",
     "translation": "整合功能被限定為只有管理員可以設定。"
   },
   {
-    "id": "api.command.delete.app_error",
-    "translation": "沒有適當的權限刪除命令"
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "指定的使用者不是指定頻道的成員。"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -438,6 +334,10 @@
   {
     "id": "api.command.duplicate_trigger.app_error",
     "translation": "此觸發關鍵字已被使用。請選擇另外的關鍵字。"
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "指令 '{{.Trigger}}' 發布回應時失敗。請聯絡系統管理員。"
   },
   {
     "id": "api.command.execute_command.debug",
@@ -460,20 +360,16 @@
     "translation": "找不到觸發為'{{.Trigger}}'的指令。請在訊息開頭增加空白來發送以\"/\"起始的訊息。"
   },
   {
-    "id": "api.command.execute_command.save.app_error",
-    "translation": "儲存命令回傳值至頻道時發生錯誤"
-  },
-  {
     "id": "api.command.execute_command.start.app_error",
     "translation": "找不到附帶觸發器的命令"
   },
   {
-    "id": "api.command.init.debug",
-    "translation": "正在初始化命令 API 路徑"
-  },
-  {
     "id": "api.command.invite_people.desc",
     "translation": "送個邀請函給您的 Mattermost 團隊"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "電子郵件邀請已被停用，沒有送出任何邀請"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -504,16 +400,8 @@
     "translation": "邀請函已送出"
   },
   {
-    "id": "api.command.regen.app_error",
-    "translation": "沒有適當的權限重新產生命令 Token"
-  },
-  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "無法更新不同團隊的指令"
-  },
-  {
-    "id": "api.command.update.app_error",
-    "translation": "沒有適當的權限刪除命令"
   },
   {
     "id": "api.command_away.desc",
@@ -556,10 +444,6 @@
     "translation": "更新當前頻道時錯誤。"
   },
   {
-    "id": "api.command_channel_header.update_channel.success",
-    "translation": "成功更新頻道標題。"
-  },
-  {
     "id": "api.command_channel_purpose.channel.app_error",
     "translation": "取得當前頻道時錯誤。"
   },
@@ -590,6 +474,10 @@
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
     "translation": "更新當前頻道時錯誤。"
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "取得當前頻道時錯誤。"
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -630,10 +518,6 @@
   {
     "id": "api.command_channel_rename.update_channel.app_error",
     "translation": "更新當前頻道時錯誤。"
-  },
-  {
-    "id": "api.command_channel_rename.update_channel.success",
-    "translation": "成功更新頻道名稱。"
   },
   {
     "id": "api.command_code.desc",
@@ -682,10 +566,6 @@
   {
     "id": "api.command_dnd.success",
     "translation": "請勿打擾已啟用。在停用前您將不會收到桌面以及行動推播通知。"
-  },
-  {
-    "id": "api.command_echo.create.app_error",
-    "translation": "無法建立 /echo 訊息 err=%v"
   },
   {
     "id": "api.command_echo.delay.app_error",
@@ -751,14 +631,6 @@
     }
   },
   {
-    "id": "api.command_groupmsg.invalid_users.app_error",
-    "translation": "找不到使用者：%s"
-  },
-  {
-    "id": "api.command_groupmsg.list.app_error",
-    "translation": "列表使用者時遇到錯誤。"
-  },
-  {
     "id": "api.command_groupmsg.max_users.app_error",
     "translation": "群組訊息頻道最多只能發給 {{.MaxUsers}} 位使用者。"
   },
@@ -767,16 +639,12 @@
     "translation": "群組訊息頻道最少必須發給 {{.MaxUsers}} 位使用者。"
   },
   {
-    "id": "api.command_groupmsg.missing.app_error",
-    "translation": "找不到使用者"
-  },
-  {
     "id": "api.command_groupmsg.name",
     "translation": "訊息"
   },
   {
-    "id": "api.command_groupmsg.success",
-    "translation": "已傳訊給使用者。"
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "沒有適當的權限以建立群組訊。"
   },
   {
     "id": "api.command_help.desc",
@@ -785,6 +653,62 @@
   {
     "id": "api.command_help.name",
     "translation": "help"
+  },
+  {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "取得當前頻道時錯誤。"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "邀請使用者至頻道"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "無法新增成員至直接通訊頻道。"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "加入頻道時發生錯誤。"
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[使用者] ~[頻道]"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "缺少使用者名稱跟頻道。"
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "找不到使用者。可能已被系統管理員停用。"
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "邀請"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "沒有足夠的權限將 {{.User}} 新增至 {{.Channel}}。"
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "找不到頻道 {{.Channel}}。請用頻道識別以識別頻道。"
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "已將 {{.User}} 新增至 {{.Channel}} 頻道。"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} 已在頻道當中。"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "沒有權限以邀請新使用者加入此伺服器。"
   },
   {
     "id": "api.command_join.desc",
@@ -804,15 +728,11 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "找不到頻道"
+    "translation": "找不到頻道。"
   },
   {
     "id": "api.command_join.name",
     "translation": "加入"
-  },
-  {
-    "id": "api.command_join.success",
-    "translation": "已加入頻道。"
   },
   {
     "id": "api.command_kick.name",
@@ -827,20 +747,8 @@
     "translation": "離開頻道時發生錯誤。"
   },
   {
-    "id": "api.command_leave.list.app_error",
-    "translation": "表列頻道時發生錯誤。"
-  },
-  {
-    "id": "api.command_leave.missing.app_error",
-    "translation": "找不到頻道"
-  },
-  {
     "id": "api.command_leave.name",
     "translation": "離開"
-  },
-  {
-    "id": "api.command_leave.success",
-    "translation": "已離開頻道。"
   },
   {
     "id": "api.command_logout.desc",
@@ -883,20 +791,16 @@
     "translation": "@[使用者帳號] '訊息'"
   },
   {
-    "id": "api.command_msg.list.app_error",
-    "translation": "列表使用者時遇到錯誤。"
-  },
-  {
     "id": "api.command_msg.missing.app_error",
-    "translation": "找不到使用者"
+    "translation": "找不到使用者。"
   },
   {
     "id": "api.command_msg.name",
     "translation": "訊息"
   },
   {
-    "id": "api.command_msg.success",
-    "translation": "已傳訊給使用者。"
+    "id": "api.command_msg.permission.app_error",
+    "translation": "權限不足以直接傳訊給此使用者。"
   },
   {
     "id": "api.command_mute.desc",
@@ -913,6 +817,14 @@
   {
     "id": "api.command_mute.name",
     "translation": "靜音"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "找不到特定的頻道。 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "由於不是頻道成員，無法對頻道 {{.Channel}} 靜音。"
   },
   {
     "id": "api.command_mute.success_mute",
@@ -976,7 +888,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "找不到使用者"
+    "translation": "找不到使用者。可能已被系統管理員停用。"
   },
   {
     "id": "api.command_remove.name",
@@ -1043,10 +955,6 @@
     "translation": "聳肩"
   },
   {
-    "id": "api.compliance.init.debug",
-    "translation": "正在初始化規範 API 路徑"
-  },
-  {
     "id": "api.config.client.old_format.app_error",
     "translation": "尚未支援新格式的用戶端設定。請在查詢字串中指定 format=old 。"
   },
@@ -1063,14 +971,6 @@
     "translation": "無效的 {{.Name}} 參數"
   },
   {
-    "id": "api.context.invalid_session.error",
-    "translation": "無效工作階段 err=%v"
-  },
-  {
-    "id": "api.context.invalid_team_url.debug",
-    "translation": "團隊網址在不正確的時機被存取。團隊網址不應於在 API 函式或與團隊無關的用途中被使用"
-  },
-  {
     "id": "api.context.invalid_token.error",
     "translation": "無效工作階段 token={{.Token}}, err={{.Error}}"
   },
@@ -1079,24 +979,8 @@
     "translation": "要求網址中缺少 {{.Name}} 參數或是該值為無效 "
   },
   {
-    "id": "api.context.invalidate_all_caches",
-    "translation": "清除所有的快取"
-  },
-  {
-    "id": "api.context.last_activity_at.error",
-    "translation": "更新 user_id=%v 與 session_id=%v 的 LastActivityAt 失敗, 錯誤=%v"
-  },
-  {
-    "id": "api.context.log.error",
-    "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [細節: %v]"
-  },
-  {
     "id": "api.context.mfa_required.app_error",
     "translation": "此伺服器要求多重要素驗證。"
-  },
-  {
-    "id": "api.context.missing_teamid.app_error",
-    "translation": "找不到團隊 ID"
   },
   {
     "id": "api.context.permissions.app_error",
@@ -1107,24 +991,16 @@
     "translation": "無效或逾期的工作階段，請重新登入。"
   },
   {
-    "id": "api.context.system_permissions.app_error",
-    "translation": "您沒有適當的權限 (系統)"
-  },
-  {
     "id": "api.context.token_provided.app_error",
     "translation": "工作階段並非使用 OAuth 協定，查詢字串中卻出現了 Token"
   },
   {
-    "id": "api.context.unknown.app_error",
-    "translation": "發生未知的錯誤。請聯繫支援單位。"
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "已停用自訂服務條款"
   },
   {
-    "id": "api.context.v3_disabled.app_error",
-    "translation": "此伺服器已停用 API 版本 3，請用 API 版本 4。如需詳細資訊，請參閱 https://api.mattermost.com"
-  },
-  {
-    "id": "api.deprecated.init.debug",
-    "translation": "正在初始化已被取代的 API 路徑"
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "請輸入自訂服務條款的文字。"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1133,14 +1009,6 @@
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
     "translation": "批次郵件已被系統管理員停用"
-  },
-  {
-    "id": "api.email_batching.check_pending_emails.finished_running",
-    "translation": "完成批次郵件處理。尚有 %v 使用者的通知等待處理。"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.channel.app_error",
-    "translation": "找不到批次郵件通知文章的頻道"
   },
   {
     "id": "api.email_batching.render_batched_post.date",
@@ -1163,23 +1031,11 @@
     "translation": "通知，來自："
   },
   {
-    "id": "api.email_batching.render_batched_post.sender.app_error",
-    "translation": "找不到批次郵件通知文章的發文者"
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
       "one": "您有新通知。您有 {{.Count}} 個新通知。",
       "other": ""
     }
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
-    "translation": "找不到批次郵件通知收件人的顯示偏好"
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.send.app_error",
-    "translation": "無法寄送批次通知郵件給 %v: %v"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -1189,36 +1045,20 @@
     }
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.user.app_error",
-    "translation": "找不到批次郵件通知的收件人"
-  },
-  {
-    "id": "api.email_batching.start.starting",
-    "translation": "開始批次郵件處理。每 %v 秒檢查未處理郵件。"
-  },
-  {
     "id": "api.emoji.create.duplicate.app_error",
     "translation": "無法建立繪文字，已存在相同名稱的繪文字。"
+  },
+  {
+    "id": "api.emoji.create.other_user.app_error",
+    "translation": "無效的使用者 ID"
   },
   {
     "id": "api.emoji.create.parse.app_error",
     "translation": "無法新增繪文字。無法理解要求。"
   },
   {
-    "id": "api.emoji.create.permissions.app_error",
-    "translation": "沒有適當的權限建立繪文字。"
-  },
-  {
     "id": "api.emoji.create.too_large.app_error",
     "translation": "無法建立繪文字。圖片必須小於1 MB。"
-  },
-  {
-    "id": "api.emoji.delete.delete_reactions.app_error",
-    "translation": "刪除名為 %v 的繪文字時無法刪除互動"
-  },
-  {
-    "id": "api.emoji.delete.permissions.app_error",
-    "translation": "沒有適當的權限刪除繪文字。"
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -1231,14 +1071,6 @@
   {
     "id": "api.emoji.get_image.read.app_error",
     "translation": "無法讀取繪文字圖像檔案。"
-  },
-  {
-    "id": "api.emoji.init.debug",
-    "translation": "正在初始化繪文字 API 路徑"
-  },
-  {
-    "id": "api.emoji.init.debug",
-    "translation": "正在初始化繪文字 API 路徑"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -1265,12 +1097,24 @@
     "translation": "無法建立繪文字。嘗試編碼 gif 圖片時發生錯誤。"
   },
   {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "無法建立繪文字。圖片必須小於 {{.MaxWidth}} 乘 {{.MaxHeight}} 。"
+  },
+  {
+    "id": "api.emoji.upload.open.app_error",
+    "translation": "無法建立繪文字。嘗試開啟圖片時發生錯誤。"
+  },
+  {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "此伺服器已停用檔案附件功能。"
   },
   {
-    "id": "api.file.get_file.public_disabled.app_error",
-    "translation": "公開連結已被系統管理員停用"
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "無法確認檔案是否存在。"
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "無法確認檔案是否存在。"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1285,112 +1129,12 @@
     "translation": "檔案沒有縮圖"
   },
   {
-    "id": "api.file.get_info_for_request.no_post.app_error",
-    "translation": "無法取得檔案資料。檔案必須附加在可以被當前使用者讀取的發文。"
-  },
-  {
-    "id": "api.file.get_info_for_request.storage.app_error",
-    "translation": "無法取得檔案資料。尚未設定圖片儲存位置。"
-  },
-  {
-    "id": "api.file.get_public_file_old.storage.app_error",
-    "translation": "無法取得檔案。尚未設定圖片儲存位置。"
-  },
-  {
-    "id": "api.file.get_public_file_old.storage.app_error",
-    "translation": "無法取得檔案。尚未設定圖片儲存位置。"
-  },
-  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "公開連結已停用"
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
     "translation": "無法取得檔案公開連結。檔案必須附加在可以被當前使用者讀取的發文。"
-  },
-  {
-    "id": "api.file.handle_images_forget.decode.error",
-    "translation": "無法解碼圖片：err=%v"
-  },
-  {
-    "id": "api.file.handle_images_forget.encode_jpeg.error",
-    "translation": "無法將圖片編碼成 JPEG：path=%v err=%v"
-  },
-  {
-    "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "無法將圖片編碼成預覽 JPEG：path=%v err=%v"
-  },
-  {
-    "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "無法上傳預覽檔：path=%v err=%v"
-  },
-  {
-    "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "無法上傳縮圖：path=%v err=%v"
-  },
-  {
-    "id": "api.file.init.debug",
-    "translation": "正在初始化檔案 API 路徑"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
-    "translation": "將文章轉移成使用 FileInfos 時無法取得頻道：post_id=%v, channel_id=%v, err=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.file_not_found.warn",
-    "translation": "將文章轉移成使用 FileInfos 時無法搜尋到檔案：post_id=%v, filename=%v, path=%v, err=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.get_file_infos_again.warn",
-    "translation": "轉移成使用 FileInfos 後無法取得文章的 FileInfos：post_id=%v, err=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.get_post_again.warn",
-    "translation": "將文章轉移成使用 FileInfos 時無法取得文章：post_id=%v, err=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
-    "translation": "將文章轉移成使用 FileInfos 時無法解碼檔案資料：post_id=%v, filename=%v, err=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
-    "translation": "轉移文章為使用 FileInfos：post_id=%v, err=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
-    "translation": "將文章轉移成使用 FileInfos 時發現不尋常的檔案名稱：post_id=%v, channel_id=%v, user_id=%v, filename=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.no_filenames.warn",
-    "translation": "將文章轉移成使用 FileInfos 時發現欄位 Filenames 為空：post_id=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.not_migrating_post.debug",
-    "translation": "文章以轉移至使用 FileInfos：post_id=%v, err=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.save_file_info.warn",
-    "translation": "將文章轉移成使用 FileInfos 時無法儲存檔案：post_id=%v, file_id=%v, path=%v, err=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.save_post.warn",
-    "translation": "將文章轉移成使用 FileInfos 時無法儲存檔案：post_id=%v, file_id=%v, filename=%v, err=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.team_id.app_error",
-    "translation": "無法尋找團隊給 FileInfos 使用：post_id=%v, filenames=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.teams.app_error",
-    "translation": "將文章轉移成使用 FileInfos 時無法取得團隊：post_id=%v, err=%v"
-  },
-  {
-    "id": "api.file.migrate_filenames_to_file_infos.unexpected_filename.error",
-    "translation": "將文章轉移成使用 FileInfos 時無法解碼檔案名稱：post_id=%v, filename=%v"
-  },
-  {
-    "id": "api.file.move_file.configured.app_error",
-    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
   },
   {
     "id": "api.file.move_file.copy_within_s3.app_error",
@@ -1401,28 +1145,48 @@
     "translation": "無法從 S3 刪除檔案。"
   },
   {
-    "id": "api.file.move_file.get_from_s3.app_error",
-    "translation": "無法從 S3 取得檔案。"
-  },
-  {
     "id": "api.file.move_file.rename.app_error",
     "translation": "無法移動本地端的檔案。"
   },
   {
-    "id": "api.file.read_file.configured.app_error",
-    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
-  },
-  {
-    "id": "api.file.read_file.get.app_error",
-    "translation": "無法從 S3 取得檔案"
+    "id": "api.file.no_driver.app_error",
+    "translation": "沒有選取任何檔案驅動。"
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "從本地儲存讀取時遇到錯誤"
   },
   {
-    "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "無法上傳檔案。無法解析標頭。"
+    "id": "api.file.read_file.s3.app_error",
+    "translation": "從 S3 儲存讀取時遇到錯誤"
+  },
+  {
+    "id": "api.file.reader.reading_local.app_error",
+    "translation": "從本地伺服器儲存空間開啟讀取器時遇到錯誤"
+  },
+  {
+    "id": "api.file.reader.s3.app_error",
+    "translation": "從 S3 儲存開啟讀取器時遇到錯誤"
+  },
+  {
+    "id": "api.file.test_connection.local.connection.app_error",
+    "translation": "沒有寫入指定本地路徑的權限或是其他錯誤。"
+  },
+  {
+    "id": "api.file.test_connection.s3.bucked_create.app_error",
+    "translation": "無法建立儲存貯體。"
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_exists.app_error",
+    "translation": "檢查儲存貯體是否存在時發生錯誤。"
+  },
+  {
+    "id": "api.file.test_connection.s3.connection.app_error",
+    "translation": "與 S3 或 minio 之間的連線異常。"
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "無法上傳檔案。有{{.NumClientIds}}個 client_ids 與 {{.NumFiles}}個檔案。"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1433,6 +1197,22 @@
     "translation": "無法上傳超過最大尺寸的檔案：{{.Filename}}"
   },
   {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "{{.Filename}} 尺寸超過限制 ({{.Width}}x{{.Height}} 像素)。"
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "無法上傳檔案。多個衝突的 channel_id。"
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "無法上傳檔案。讀取{{.Formname}}的值時錯誤。"
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "無法上傳檔案。讀取或解析請求資料時錯誤。"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "無法上傳檔案。尚未設定圖片儲存位置。"
   },
@@ -1441,8 +1221,8 @@
     "translation": "檔案太大無法上傳。"
   },
   {
-    "id": "api.file.write_file.configured.app_error",
-    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "無法上傳檔案 {{.Filename}}。{{.Length}} 位元組超過最大限制 {{.Limit}} 位元組。"
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1457,44 +1237,24 @@
     "translation": "寫入本地儲存時遇到錯誤"
   },
   {
-    "id": "api.general.init.debug",
-    "translation": "正在初始化一般 API 路徑"
-  },
-  {
-    "id": "api.import.import_post.attach_files.error",
-    "translation": "附加檔案於文章時錯誤：postId=%v, fileIds=%v, message=%v"
-  },
-  {
-    "id": "api.import.import_post.saving.debug",
-    "translation": "儲存訊息時遇到錯誤。user=%v, message=%v"
-  },
-  {
-    "id": "api.import.import_user.join_team.error",
-    "translation": "匯入過程於加入團隊時失敗 err=%v"
-  },
-  {
-    "id": "api.import.import_user.joining_default.error",
-    "translation": "加入預設頻道時遇到錯誤 user_id=%s, team_id=%s, err=%v"
-  },
-  {
-    "id": "api.import.import_user.saving.error",
-    "translation": "儲存使用者時遇到錯誤 err=%v"
-  },
-  {
-    "id": "api.import.import_user.set_email.error",
-    "translation": "設定電子郵件為已驗證時失敗 err=%v"
-  },
-  {
     "id": "api.incoming_webhook.disabled.app_error",
-    "translation": "傳入的 Webhook 已被系統管理員停用。"
+    "translation": "內送 Webhook 已被系統管理員停用。"
   },
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "無效的使用者名稱。"
   },
   {
-    "id": "api.ldap.init.debug",
-    "translation": "正在初始化 LDAP API 路徑"
+    "id": "api.io_error",
+    "translation": "輸出入錯誤"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "找不到 LDAP 群組"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "授權不支援 LDAP 群組"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1537,28 +1297,8 @@
     "translation": "尚未支援新格式的用戶端授權。請在查詢字串中指定 format=old 。"
   },
   {
-    "id": "api.license.init.debug",
-    "translation": "正在初始化授權 API 路徑"
-  },
-  {
-    "id": "api.license.remove_license.remove.app_error",
-    "translation": "授權沒有正確的移除。"
-  },
-  {
-    "id": "api.oauth.allow_oauth.bad_client.app_error",
-    "translation": "invalid_request: 錯誤的 client_id"
-  },
-  {
-    "id": "api.oauth.allow_oauth.bad_redirect.app_error",
-    "translation": "invalid_request: 遺漏或錯誤的 redirect_uri"
-  },
-  {
-    "id": "api.oauth.allow_oauth.bad_response.app_error",
-    "translation": "invalid_request: 錯誤的 response_type"
-  },
-  {
-    "id": "api.oauth.allow_oauth.database.app_error",
-    "translation": "server_error: 存取資料庫時發生錯誤"
+    "id": "api.marshal_error",
+    "translation": "封送處理錯誤"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1571,14 +1311,6 @@
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
     "translation": "系統管理員已關閉 OAuth2 服務提供者。"
-  },
-  {
-    "id": "api.oauth.authorize_oauth.missing.app_error",
-    "translation": "response_type、client_id 或 redirect_uri 中缺少一個以上"
-  },
-  {
-    "id": "api.oauth.delete.permissions.app_error",
-    "translation": "權限不足以刪除 OAuth2 應用程式"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1637,20 +1369,8 @@
     "translation": "invalid_grant：無效的 refresh_token"
   },
   {
-    "id": "api.oauth.get_auth_data.find.error",
-    "translation": "找不到 code=%s 的認證碼"
-  },
-  {
-    "id": "api.oauth.init.debug",
-    "translation": "正在初始化 OAuth API 路徑"
-  },
-  {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "無效的狀態 Token"
-  },
-  {
-    "id": "api.oauth.regenerate_secret.app_error",
-    "translation": "權限不足以重新產生 OAuth2 應用程式密碼"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1681,8 +1401,8 @@
     "translation": "此註冊連結不是有效連結"
   },
   {
-    "id": "api.opengraph.init.debug",
-    "translation": "初始化 Open Graph 協定 API 路徑"
+    "id": "api.outgoing_webhook.disabled.app_error",
+    "translation": "外寄 Webhook 已被系統管理員停用。"
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1705,24 +1425,12 @@
     "translation": "無法傳送通知給未加入此頻道的 @{{.Username}}。"
   },
   {
-    "id": "api.post.create_post.attach_files.error",
-    "translation": "附加檔案於文章時遭遇錯誤：post_id=%s, user_id=%s, file_ids=%v, err=%v"
-  },
-  {
-    "id": "api.post.create_post.bad_filename.error",
-    "translation": "無效的檔名，filename=%v"
-  },
-  {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "無法發文至已刪除的頻道。"
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "RootId 參數的 ChannelId 無效"
-  },
-  {
-    "id": "api.post.create_post.last_viewed.error",
-    "translation": "更新最新的訊息檢視遇到錯誤 channel_id=%s, user_id=%s, err=%v"
   },
   {
     "id": "api.post.create_post.parent_id.app_error",
@@ -1741,16 +1449,16 @@
     "translation": "建立訊息時遇到錯誤"
   },
   {
-    "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "刪除發文時無法刪除發文的標記設定：err=%v"
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "在去重複用戶端重複的請求後取得原始訊息失敗。"
   },
   {
-    "id": "api.post.delete_post.permissions.app_error",
-    "translation": "您沒有適當的權限"
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "由於另一用戶端正在發送同樣的請求，發訊被拒。"
   },
   {
-    "id": "api.post.delete_post_files.app_error.warn",
-    "translation": "刪除文章的檔案時遭遇錯誤：post_id=%v, err=%v"
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
   },
   {
     "id": "api.post.disabled_all",
@@ -1780,10 +1488,6 @@
     }
   },
   {
-    "id": "api.post.get_message_for_notification.get_files.error",
-    "translation": "為通知訊息取得檔案於文章時遭遇錯誤：post_id=%v, err=%v"
-  },
-  {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "one": "已送出 {{.Count}} 個圖片：{{.Filenames}}已送出 {{.Count}} 個圖片：{{.Filenames}}",
@@ -1791,132 +1495,52 @@
     }
   },
   {
-    "id": "api.post.get_out_of_channel_mentions.regex.error",
-    "translation": "編譯 @mention 正規表示式失敗 user_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.get_post.permissions.app_error",
-    "translation": "您沒有適當的權限"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.members.error",
-    "translation": "取得頻道成員失敗 channel_id=%v err=%v"
-  },
-  {
-    "id": "api.post.handle_webhook_events_and_forget.create_post.error",
-    "translation": "建立回應貼文失敗 err=%v"
-  },
-  {
-    "id": "api.post.handle_webhook_events_and_forget.event_post.error",
-    "translation": "POST 事件失敗 err=%s"
-  },
-  {
-    "id": "api.post.init.debug",
-    "translation": "正在初始化貼文 API 路徑"
-  },
-  {
     "id": "api.post.link_preview_disabled.app_error",
     "translation": "連結預覽已被系統管理員停用"
   },
   {
-    "id": "api.post.make_direct_channel_visible.get_2_members.error",
-    "translation": "取得直接訊息頻道的兩位成員失敗 channel_id={{.ChannelId}}"
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
-    "id": "api.post.make_direct_channel_visible.get_members.error",
-    "translation": "取得頻道成員失敗 channel_id=%v err=%v"
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "此頻道唯讀。只有具有權限的成員能在此釘選或取消釘選訊息。"
   },
   {
-    "id": "api.post.make_direct_channel_visible.save_pref.error",
-    "translation": "儲存直接訊息頻道的偏好設定失敗 user_id=%v other_user_id=%v err=%v"
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": " 頻道已通知。"
   },
   {
-    "id": "api.post.make_direct_channel_visible.update_pref.error",
-    "translation": "更新直接訊息頻道的偏好設定失敗 user_id=%v other_user_id=%v err=%v"
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": " 已在您的訊息上註記。"
   },
   {
-    "id": "api.post.notification.member_profile.warn",
-    "translation": "無法取得頻道成員資訊 user_id=%v"
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": " 已在您參與的討論串註記。"
   },
   {
-    "id": "api.post.send_notifications.user_id.debug",
-    "translation": "此訊息的發起人不在頻道，將不發送通知 post_id=%v channel_id=%v user_id=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "正在清除至 %v 的推播通知，channel_id %v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.files.error",
-    "translation": "無法為貼文通知取得檔案： post_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.get_teams.error",
-    "translation": "發送跨團隊直接訊移時無法取得團隊：user_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.mention_subject",
-    "translation": "新的提及"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": "已上傳一個或更多檔案至"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": "在直接傳訊中已上傳一個或更多檔案"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
-    "translation": "已上傳一個或更多檔案"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_in",
-    "translation": " 於 "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_mention",
-    "translation": " 提及您於 "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
     "translation": " 提及您 "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": " 已傳送直接訊息給您"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_non_mention",
-    "translation": " 張貼於 "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_non_mention_no_channel",
+    "id": "api.post.send_notifications_and_forget.push_general_message",
     "translation": " 發布了訊息"
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "發送推播失敗 device_id={{.DeviceId}}, err={{.Error}}"
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " 檔案已附加。"
   },
   {
-    "id": "api.post.send_notifications_and_forget.sent",
-    "translation": "{{.Prefix}} {{.Filenames}} 已送出"
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": "送出一個訊息給您"
   },
   {
-    "id": "api.post.update_mention_count_and_forget.update_error",
-    "translation": "更新提及的計數失敗 post_id=%v channel_id=%v err=%v"
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
     "translation": "找不到可更新的訊息或註解。"
-  },
-  {
-    "id": "api.post.update_post.permissions.app_error",
-    "translation": "您沒有適當的權限"
-  },
-  {
-    "id": "api.post.update_post.permissions_denied.app_error",
-    "translation": "編輯訊息已被停用。請洽詢系統管理員了解詳情。"
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -1924,7 +1548,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "僅在 {{.timeLimit}} 秒內可以編輯訊息。請洽詢系統管理員了解詳情。 "
+    "translation": "僅在 {{.timeLimit}} 秒內可以編輯訊息。請洽詢系統管理員了解詳情。"
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1935,64 +1559,64 @@
     "translation": "無法取得訊息"
   },
   {
-    "id": "api.preference.delete_preferences.decode.app_error",
-    "translation": "無法從要求中解碼出偏好設定"
+    "id": "api.preference.delete_preferences.delete.app_error",
+    "translation": "無法刪除使用者偏好設定。"
   },
   {
-    "id": "api.preference.delete_preferences.user_id.app_error",
-    "translation": "無法為其他使用者刪除偏好設定"
+    "id": "api.preference.preferences_category.get.app_error",
+    "translation": "無法取得使用者偏好設定。"
   },
   {
-    "id": "api.preference.init.debug",
-    "translation": "正在初始化偏好設定 API 路徑"
+    "id": "api.preference.update_preferences.set.app_error",
+    "translation": "無法設定使用者偏好設定。"
   },
   {
-    "id": "api.preference.save_preferences.decode.app_error",
-    "translation": "無法從上傳表單中解碼出偏好設定"
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "在已封存的頻道中無法移除互動。"
   },
   {
-    "id": "api.preference.save_preferences.set.app_error",
-    "translation": "無法為其他使用調整偏好設定"
-  },
-  {
-    "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "由於URL中的頻道 ID 與文章 ID 不相符，刪除互動失敗"
-  },
-  {
-    "id": "api.reaction.init.debug",
-    "translation": "初始化互動 API 路徑"
-  },
-  {
-    "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
-    "translation": "由於URL中的頻道 ID 與文章 ID 不相符，讀取互動失敗"
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "無法在已封存的頻道互動。"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "無效的互動。"
   },
   {
-    "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
-    "translation": "由於URL中的頻道 ID 與文章 ID 不相符，儲存互動失敗"
-  },
-  {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "無法為其他使用者儲存互動。"
   },
   {
-    "id": "api.reaction.send_reaction_event.post.app_error",
-    "translation": "為了反應發送 Websocket 事件時，無法取得文章"
+    "id": "api.reaction.town_square_read_only",
+    "translation": "唯讀頻道無法跟訊息互動。"
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "This action is forbidden to a restricted system admin."
   },
   {
     "id": "api.roles.patch_roles.license.error",
     "translation": "目前授權不支援進階權限。"
   },
   {
-    "id": "api.saml.save_certificate.app_error",
-    "translation": "憑證沒有正確的儲存。"
+    "id": "api.scheme.create_scheme.license.error",
+    "translation": "授權不支援建立權限的配置"
   },
   {
-    "id": "api.server.new_server.init.info",
-    "translation": "伺服器正在初始化..."
+    "id": "api.scheme.delete_scheme.license.error",
+    "translation": "授權不支援刪除權限的配置"
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "由於提供的配置不是頻道配置，無法取得配置的頻道。"
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "由於提供的配置不是團隊配置，無法取得配置的團隊。"
+  },
+  {
+    "id": "api.scheme.patch_scheme.license.error",
+    "translation": "授權不支援更新權限的配置"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -2001,18 +1625,6 @@
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
     "translation": "當在監聽通訊埠 %s 時無法從 80 轉發至 443：如果正在使用代理伺服器請停用 Forward80To443 "
-  },
-  {
-    "id": "api.server.start_server.listening.info",
-    "translation": "伺服器正在監聽於 %v"
-  },
-  {
-    "id": "api.server.start_server.rate.info",
-    "translation": "張貼速率限制已啟用"
-  },
-  {
-    "id": "api.server.start_server.rate.warn",
-    "translation": "張貼速率限制沒有正確的設定，請使用 VaryByHeader 並停用 VaryByRemoteAddr"
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
@@ -2025,22 +1637,6 @@
   {
     "id": "api.server.start_server.starting.critical",
     "translation": "啟動伺服器時遇到錯誤 err:%v"
-  },
-  {
-    "id": "api.server.start_server.starting.info",
-    "translation": "正在啟動伺服器..."
-  },
-  {
-    "id": "api.server.start_server.starting.panic",
-    "translation": "啟動伺服器時遇到錯誤 "
-  },
-  {
-    "id": "api.server.stop_server.stopped.info",
-    "translation": "伺服器已停止"
-  },
-  {
-    "id": "api.server.stop_server.stopping.info",
-    "translation": "正在停止伺服器..."
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -2063,64 +1659,8 @@
     "translation": "無法匯入 Slack 頻道 {{.DisplayName}}。\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "匯入 Slack：無法匯入 Slack 頻道：%s。"
-  },
-  {
     "id": "api.slackimport.slack_add_channels.merge",
     "translation": "Slack 頻道 {{.DisplayName}} 以存在於現行 Mattermost 中。已合併兩邊頻道。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "匯入 Slack：附加檔案到訊息上時發生錯誤，post_id=%s, file_ids=%v, err=%v。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.bot.warn",
-    "translation": "匯入 Slack：還不能匯入Slack 機器人訊息。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "匯入 Slack：機器人帳號不存在，無法匯入機器人訊息。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "匯入 Slack：訊息無註解，無法匯入。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
-    "translation": "匯入 Slack：缺少使用者欄位，無法匯入訊息。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
-    "translation": "匯入 Slack：缺少 BotId 欄位，無法匯入機器人訊息。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.unsupported.warn",
-    "translation": "匯入 Slack：訊息類別不支援，無法匯入訊息：post_type=%v, post_subtype=%v。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "匯入 Slack：Slack 匯出的 zip 檔案中缺少檔案，無法匯入檔案 {{.Field}}。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
-    "translation": "匯入 Slack：Slack 匯出資訊中該訊息缺少\"檔案\"欄位，無法附加檔案於訊息上。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "匯入 Slack：無法開啟 Slack 匯出中的檔案 {{.Field}}：{{.Error}}。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
-    "translation": "匯入 Slack：上傳檔案 {{.Field}} 時發生錯誤：{{.Error}}。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
-    "translation": "匯入 Slack：Mattermost 不存在 Slack 使用者 %v，無法新增訊息。"
-  },
-  {
-    "id": "api.slackimport.slack_add_posts.without_user.debug",
-    "translation": "匯入 Slack：缺少使用者欄位，無法匯入訊息。"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
@@ -2143,28 +1683,8 @@
     "translation": "使用者{{.Username}}在 Slack 匯出資料中沒有電子郵件地址。{{.Email}}將會被用作預留地址。使用者在登入系統後應更新電子郵件地址。\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.missing_email_address.warn",
-    "translation": "匯入 Slack：使用者{{.Username}}在 Slack 匯出資料中沒有電子郵件地址。{{.Email}}將會被用作預留地址。使用者在登入系統後應更新電子郵件地址。"
-  },
-  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "無法匯入 Slack 使用者： {{.Username}}\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "匯入 Slack：無法編譯 !channel，比對Slack 頻道 {{.ChannelName}}的正規表示式 (id={{.ChannelID}})。"
-  },
-  {
-    "id": "api.slackimport.slack_convert_timestamp.bad.warn",
-    "translation": "匯入 Slack：偵測到不正確的時間戳記。"
-  },
-  {
-    "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "匯入 Slack：無法編譯 @mention，比對Slack 使用者 {{.Username}}的正規表示式 (id={{.UserID}})。"
-  },
-  {
-    "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
-    "translation": "匯入 Slack：無法停用作為機器人的使用者帳號。"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -2199,52 +1719,8 @@
     "translation": "無法開啟 Slack 匯出 zip 檔。\r\n"
   },
   {
-    "id": "api.slackimport.slack_parse_channels.error",
-    "translation": "匯入 Slack：剖析部份 Slack 頻道時發生錯誤。匯入可能可以繼續運行。"
-  },
-  {
-    "id": "api.slackimport.slack_parse_posts.error",
-    "translation": "匯入 Slack：剖析部份 Slack 訊息時發生錯誤。匯入可能可以繼續運行。"
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack 匯入：頻道 {{.ChannelName}} 的顯示名稱過長，將會在匯入時被截短。"
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack 匯入：頻道 {{.ChannelName}} 的標題過長，將會在匯入時被截短。"
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack 匯入：頻道 {{.ChannelName}} 的 Handle 過長，將會在匯入時被截短。"
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack 匯入：頻道 {{.ChannelName}} 的用途過長，將會在匯入時被截短。"
-  },
-  {
-    "id": "api.status.init.debug",
-    "translation": "正在初始化狀態 API 路徑"
-  },
-  {
-    "id": "api.status.init.debug",
-    "translation": "正在初始化狀態 API 路徑"
-  },
-  {
-    "id": "api.status.last_activity.error",
-    "translation": "更新 user_id=%v 與 session_id=%v 的 LastActivityAt 失敗 err=%v"
-  },
-  {
-    "id": "api.status.save_status.error",
-    "translation": "儲存使用者狀態失敗 user_id=%v err=%v"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "找不到使用者"
-  },
-  {
-    "id": "api.system.go_routines",
-    "translation": "執行中的 Goroutine 數量超過健康界線 %v (%v)"
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -2255,32 +1731,16 @@
     "translation": "需要參數以新增團隊成員。"
   },
   {
-    "id": "api.team.create_team.email_disabled.app_error",
-    "translation": "使用電子郵件註冊團隊已被停用。"
-  },
-  {
-    "id": "api.team.create_team_from_signup.email_disabled.app_error",
-    "translation": "使用電子郵件註冊團隊已被停用。"
-  },
-  {
-    "id": "api.team.create_team_from_signup.expired_link.app_error",
-    "translation": "註冊連結已過期"
-  },
-  {
-    "id": "api.team.create_team_from_signup.unavailable.app_error",
-    "translation": "這個網址不存在。請嘗試其他的。"
-  },
-  {
-    "id": "api.team.email_teams.sending.error",
-    "translation": "在 emailTeams 中寄送一封電子郵件時發生錯誤 err=%v"
-  },
-  {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "無法在非公開的團隊使用邀請。"
   },
   {
-    "id": "api.team.import_team.admin.app_error",
-    "translation": "僅有團隊管理員能匯入資料。"
+    "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
+    "translation": "檔案設定中的驅動名稱無效。必須為 'local' 或 'amazons3'"
+  },
+  {
+    "id": "api.team.get_team_icon.read_file.app_error",
+    "translation": "無法讀取團隊圖示檔案。"
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -2311,16 +1771,8 @@
     "translation": "要求格式錯誤：沒有檔案大小欄位。"
   },
   {
-    "id": "api.team.init.debug",
-    "translation": "正在初始化團隊 API 路徑"
-  },
-  {
-    "id": "api.team.invite_members.admin",
-    "translation": "管理員"
-  },
-  {
-    "id": "api.team.invite_members.already.app_error",
-    "translation": "此人已在您的團隊中"
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "電子郵件邀請已被停用。"
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -2335,32 +1787,20 @@
     "translation": "無人可邀請。"
   },
   {
-    "id": "api.team.invite_members.restricted_system_admin.app_error",
-    "translation": "只有系統管理能邀請新使用者至團隊"
-  },
-  {
-    "id": "api.team.invite_members.restricted_team_admin.app_error",
-    "translation": "只有系統管理以及團隊管理能邀請新使用者至團隊"
-  },
-  {
-    "id": "api.team.invite_members.send.error",
-    "translation": "邀請電子郵件傳送失敗 err=%v"
-  },
-  {
-    "id": "api.team.invite_members.sending.info",
-    "translation": "正在向 %v %v 寄送邀請"
-  },
-  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "建立團隊已被停用。請洽詢系統管理員了解詳情。"
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "電子郵件地址必須來自一個指定的網域 (例如 @example.com)。請洽詢系統管理員了解詳情。"
+    "translation": "電子郵件地址必須來自特定的網域 (例如 @example.com)。請洽詢系統管理員了解詳情。"
   },
   {
     "id": "api.team.join_team.post_and_forget",
     "translation": "%v 已加入團隊。"
+  },
+  {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "電子郵件地址必須來自一個指定的網域 (例如 @example.com)。請洽詢系統管理員了解詳情。"
   },
   {
     "id": "api.team.leave.left",
@@ -2375,12 +1815,8 @@
     "translation": "此頻道已從 %v 移動至此團隊。"
   },
   {
-    "id": "api.team.permanent_delete_team.attempting.warn",
-    "translation": "正在嘗試永久刪除團隊 %v id=%v"
-  },
-  {
-    "id": "api.team.permanent_delete_team.deleted.warn",
-    "translation": "已永久刪除團隊 %v id=%v"
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "取得團隊時發生錯誤"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2435,24 +1871,44 @@
     "translation": "無法儲存團隊標誌"
   },
   {
-    "id": "api.team.signup_team.email_disabled.app_error",
-    "translation": "使用電子郵件註冊團隊已被停用。"
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "更新團隊時發生錯誤"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "指定的使用者不是指定團隊的成員。"
   },
   {
-    "id": "api.team.update_team.permissions.app_error",
-    "translation": "您沒有適當的權限"
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "系統設定不允許限制團隊為 {{ .Domain }}。請聯絡系統管理員。"
   },
   {
-    "id": "api.templates.channel_name.group",
-    "translation": "群組訊息"
+    "id": "api.team.update_team_scheme.license.error",
+    "translation": "授權不支援更新團隊的配置"
+  },
+  {
+    "id": "api.team.update_team_scheme.scheme_scope.error",
+    "translation": "由於提供的配置不是團隊配置，無法設定團隊配置。"
+  },
+  {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "您已停用在 {{ .SiteURL }} 的帳號。"
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "您在 {{.ServerURL }} 的帳號已被停用"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "如果這不是您做出的更動或是想要重新啟用帳號，請聯絡系統管理員。"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] 您在 {{.ServerURL }} 的帳號已被停用"
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "您在 {{.TeamDisplayName}} 上的電子郵件地址已經變更為 {{.NewEmail}}。<br>如果這不是您所變更的，請聯繫系統管理員。"
+    "translation": "在 {{.TeamDisplayName}} 的電子郵件地址已改為 {{.NewEmail}} 。"
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -2483,28 +1939,24 @@
     "translation": "要更改通知偏好設定，請登入團隊網站並且至 帳號設定 > 通知。"
   },
   {
-    "id": "api.templates.email_info",
-    "translation": "不論有任何問題，請隨時寫信給我們：<a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>。<br>祝您萬事如意，<br> {{.SiteName}} 團隊<br>"
+    "id": "api.templates.email_info1",
+    "translation": "如果有任何問題，隨時寄信給我們："
+  },
+  {
+    "id": "api.templates.email_info2",
+    "translation": "祝心想事成"
+  },
+  {
+    "id": "api.templates.email_info3",
+    "translation": "{{.SiteName}} 團隊"
   },
   {
     "id": "api.templates.email_organization",
     "translation": "寄件者："
   },
   {
-    "id": "api.templates.find_teams_body.found",
-    "translation": "尋找到與您的電子信箱有關聯的團隊如下列："
-  },
-  {
-    "id": "api.templates.find_teams_body.not_found",
-    "translation": "無法經由提供的電子郵件地址尋找到任何團隊。"
-  },
-  {
-    "id": "api.templates.find_teams_body.title",
-    "translation": "正在尋找團隊"
-  },
-  {
-    "id": "api.templates.find_teams_subject",
-    "translation": "您的 {{ .SiteName }} 團隊"
+    "id": "api.templates.email_warning",
+    "translation": "如果您沒有做此更動，請聯絡系統管理員。"
   },
   {
     "id": "api.templates.invite_body.button",
@@ -2512,11 +1964,11 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost 能讓您透過個人電腦與手機分享訊息與檔案，包括快速搜尋以及封存功能。當加入 <strong>{{.TeamDisplayName}}</strong> 後，您能夠透過下列網址隨時登入到新團隊來使用這些功能：<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermost 能讓您透過個人電腦與手機分享訊息與檔案，包括快速搜尋以及封存功能。當加入 [[{{.TeamDisplayName}}]] 後，您能夠透過下列網址隨時登入到新團隊來使用這些功能："
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "團隊 {{.SenderStatus}} <strong>{{.SenderName}}</strong>，已經邀請您加入 <strong>{{.TeamDisplayName}}</strong>。"
+    "translation": "團隊 {{.SenderStatus}} [[{{.SenderName}}]] 邀請您加入 [[{{.TeamDisplayName}}]]。"
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2528,7 +1980,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "您的{{ .SiteURL }}帳號已增加多重要素驗證。<br>如果此項變更不是由您改動的，請聯絡系統管理員。"
+    "translation": "您在 {{.SiteURL}} 上的帳號已增加多重要素驗證。"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -2540,7 +1992,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "您的{{ .SiteURL }}帳號已移除多重要素驗證。<br>如果此項變更不是由您改動的，請聯絡系統管理員。"
+    "translation": "您在 {{.SiteURL}} 上面帳號的多重要素驗證已被移除。"
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -2548,7 +2000,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "您在 {{ .TeamURL }} 上的 {{.TeamDisplayName}} 密碼已經由  {{.Method}} 更新。<br>如果這不是您所變更的，請聯繫系統管理員。"
+    "translation": "{{ .TeamURL }} 上 {{.TeamDisplayName}} 的密碼已被 {{.Method}} 更新。"
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -2567,8 +2019,12 @@
     "translation": "重設密碼"
   },
   {
-    "id": "api.templates.reset_body.info",
-    "translation": "按下方的 \"重設密碼\"來更改您的密碼。<br>如果您並沒有想要重設密碼，請不要理會這封郵件，密碼依然維持不變。密碼重設的連結將在 24 小時之後過期。"
+    "id": "api.templates.reset_body.info1",
+    "translation": "要變更密碼，請按下面的\"重設密碼\"。"
+  },
+  {
+    "id": "api.templates.reset_body.info2",
+    "translation": "如果不需要重置密碼，請忽略本電子郵件，密碼將保持不變。密碼重置連結將在 24 小時後失效。"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2580,7 +2036,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "您已經將 {{ .SiteName }} 上的登入方式變更為 {{.Method}}。<br>如果這項變更不是您做的，請聯繫系統管理員。"
+    "translation": "您已經將 {{ .SiteName }} 上的登入方式變更為 {{.Method}}"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -2595,32 +2051,8 @@
     "translation": "[{{ .SiteName }}]  登入方式已更新"
   },
   {
-    "id": "api.templates.signup_team_body.button",
-    "translation": "設定團隊"
-  },
-  {
-    "id": "api.templates.signup_team_body.info",
-    "translation": "{{ .SiteName }} 是一個讓所有團隊隨時隨地都能溝通、搜尋與取用的地方。<br>當團隊持續不斷的溝通時, 善用 {{ .SiteName }} 能讓您獲益良多--讓我們呼朋引伴吧。"
-  },
-  {
-    "id": "api.templates.signup_team_body.title",
-    "translation": "感謝您建立了一個團隊！"
-  },
-  {
-    "id": "api.templates.signup_team_subject",
-    "translation": "{{ .SiteName }} 團隊設定"
-  },
-  {
-    "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>您的多重帳號已更新</h3> Mattermost 伺服器已升級到版本3.0，從此可以在多個團隊中使用同一帳號。<br/><br/>升級程式發現伺服器上有其他帳號與您的帳號使用同樣的電子郵件或使用者名稱所以寄信給您。<br/><br/>更新如下：<br/><br/>{{if .EmailChanged }}- `/{{.TeamName}}`團隊裡重覆電子郵件帳號的電子郵件已變更為`{{.Email}}`。您必須使用電子郵件與密碼登入，可用此新的電子郵件進行登入。<br/><br/>{{end}}{{if .UsernameChanged }}- `/{{.TeamName}}`團隊站台重覆使用者名稱帳號的使用者名稱已變更為`{{.Username}}`以避免與其它的帳號混淆。<br/><br/>{{end}} 建議動作：<br/><br/>建議您用重覆的帳號登入並把主要帳號加到要繼續使用的團隊、公開頻道與私有群組。<br/><br/>這樣方可使用主要帳號存取所有公開頻道與私有群組的歷史。可以用其它重覆的帳號登入存取之前的直接傳送訊息。<br/><br/>詳細訊息：<br/><br/>如需關於升到到 Mattermost 3.0 的詳細資訊，請參閱：<a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
-  },
-  {
-    "id": "api.templates.upgrade_30_subject.info",
-    "translation": "[MATTERMOST] 升級至 Mattermost 3.0 後帳號的變更"
-  },
-  {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "{{ .SiteURL }} 已新增個人存取 Token 至帳號。Token 可用於以您的帳號存取 {{.SiteName}}。<br>如果此變更並非來自您，請聯絡系統管理員。"
+    "translation": "在 {{.SiteURL}} 上的帳號已增加個人存取 Token。它們可用來以您的帳號名義存取 {{.SiteName}}。"
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -2632,7 +2064,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "您在{{.TeamDisplayName}}的使用者名稱已變更為{{.NewUsername}}。<br>如果您未進行此變更，請速聯繫系統管理員。"
+    "translation": "在 {{.TeamDisplayName}} 的使用者名稱已變更為 {{.NewUsername}}。"
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -2707,12 +2139,12 @@
     "translation": "無效的狀態"
   },
   {
-    "id": "api.user.authorize_oauth_user.invalid_state_team.app_error",
-    "translation": "無效的狀態；沒有團隊名稱"
-  },
-  {
     "id": "api.user.authorize_oauth_user.missing.app_error",
     "translation": "沒有存取 Token"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "收到來自 OAuth 服務提供者無效的回應"
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",
@@ -2727,16 +2159,16 @@
     "translation": "不支援的 OAuth 服務供應者"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "無效的團隊 ID"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "您的帳號已經因為嘗試太多次的錯誤密碼而被鎖定。請重設密碼。"
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
     "translation": "無效的多重要素驗證 Token。"
-  },
-  {
-    "id": "api.user.check_user_mfa.not_available.app_error",
-    "translation": "本機不支援或未設定多重要素驗證"
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -2755,12 +2187,12 @@
     "translation": "本伺服器不支援經由 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
-    "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "此電子郵件位址已有帳號使用且設定使用{{.Service}}以外的登入方法。請用{{.Auth}}登入。"
+    "id": "api.user.create_email_token.error",
+    "translation": "建立電子郵件驗證的 Token 資料失敗"
   },
   {
-    "id": "api.user.create_oauth_user.already_used.app_error",
-    "translation": "這個 {{.Service}} 帳號已被用於註冊過了"
+    "id": "api.user.create_oauth_user.already_attached.app_error",
+    "translation": "此電子郵件位址已有帳號使用且設定使用{{.Service}}以外的登入方法。請用{{.Auth}}登入。"
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
@@ -2791,24 +2223,16 @@
     "translation": "建立使用者已被停用"
   },
   {
-    "id": "api.user.create_user.joining.error",
-    "translation": "加入預設頻道時遇到錯誤 user_id=%s, team_id=%s, err=%v"
-  },
-  {
-    "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "缺少雜湊或 URL 查詢資料。"
-  },
-  {
     "id": "api.user.create_user.missing_invite_id.app_error",
     "translation": "缺少邀請 ID。"
   },
   {
-    "id": "api.user.create_user.no_open_server",
-    "translation": "本機不開放自由註冊，請從管理員處取得邀請。"
+    "id": "api.user.create_user.missing_token.app_error",
+    "translation": "缺少 Token。"
   },
   {
-    "id": "api.user.create_user.save.error",
-    "translation": "無法儲存使用者 err=%v"
+    "id": "api.user.create_user.no_open_server",
+    "translation": "本機不開放自由註冊，請從管理員處取得邀請。"
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -2823,36 +2247,24 @@
     "translation": "此註冊連結不是有效連結"
   },
   {
-    "id": "api.user.create_user.team_name.app_error",
-    "translation": "無效的團隊名稱"
-  },
-  {
-    "id": "api.user.create_user.tutorial.error",
-    "translation": "儲存教學偏好設定時遇到錯誤 err=%v"
-  },
-  {
-    "id": "api.user.create_user.verified.error",
-    "translation": "設定電子郵件為已驗證時失敗 err=%v"
-  },
-  {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "此伺服器不支援 AD/LDAP"
   },
   {
-    "id": "api.user.generate_mfa_qr.not_available.app_error",
-    "translation": "本機不支援或尚未設定多重要素驗證"
+    "id": "api.user.email_to_oauth.not_available.app_error",
+    "translation": "此伺服器尚未設定或不支援認證轉移。"
   },
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "不支援的 OAuth 服務供應者"
   },
   {
-    "id": "api.user.get_me.getting.error",
-    "translation": "取得使用者 id=%v 資訊時遇到錯誤，強制登出"
+    "id": "api.user.get_profile_image.not_found.app_error",
+    "translation": "無法取得個人圖像，找不到使用者。"
   },
   {
-    "id": "api.user.init.debug",
-    "translation": "正在初始化使用者 API 路徑"
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "無法根據電子郵件取得使用者。"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2867,6 +2279,18 @@
     "translation": "密碼欄位不得空白"
   },
   {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
+  },
+  {
+    "id": "api.user.login.client_side_cert.certificate.app_error",
+    "translation": "嘗試使用實驗性功能 ClientSideCert 登入，但未提供有效的憑證"
+  },
+  {
+    "id": "api.user.login.client_side_cert.license.app_error",
+    "translation": "嘗試使用實驗性功能 ClientSideCertEnable，但沒有有效的企業授權"
+  },
+  {
     "id": "api.user.login.inactive.app_error",
     "translation": "登入失敗，您的帳號已被設定為停用。請向系統管理員聯繫。"
   },
@@ -2875,20 +2299,16 @@
     "translation": "使用者 ID 或密碼錯誤。"
   },
   {
-    "id": "api.user.login.not_provided.app_error",
-    "translation": "必須提供使用者 ID 或團隊名稱與使用者電子郵件"
-  },
-  {
     "id": "api.user.login.not_verified.app_error",
     "translation": "登入失敗，電子郵件地址尚未經驗証"
   },
   {
-    "id": "api.user.login.revoking.app_error",
-    "translation": "sessionId=%v 已被取消，屬於 userId=%v。請用同樣的設備 ID 再次登入。"
-  },
-  {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "請用 {{.AuthService}} 登入"
+  },
+  {
+    "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -2899,18 +2319,6 @@
     "translation": "無法解析 {{.Service}} 使用者物件的認證資料"
   },
   {
-    "id": "api.user.login_ldap.blank_pwd.app_error",
-    "translation": "密碼欄位不得空白"
-  },
-  {
-    "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "此伺服器未啟用 AD/LDAP"
-  },
-  {
-    "id": "api.user.login_ldap.need_id.app_error",
-    "translation": "需要一個 ID"
-  },
-  {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "此伺服器不支援 AD/LDAP"
   },
@@ -2919,16 +2327,16 @@
     "translation": "更新密碼失敗，目前的 user_id 與要變更的使用者 ID 不符"
   },
   {
-    "id": "api.user.permanent_delete_user.attempting.warn",
-    "translation": "試圖將 %v id=%v 帳號永久刪除"
+    "id": "api.user.oauth_to_email.not_available.app_error",
+    "translation": "此伺服器尚未設定或不支援認證轉移。"
   },
   {
-    "id": "api.user.permanent_delete_user.deleted.warn",
-    "translation": "已永久刪除帳號 %v id=%v"
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
+    "translation": "已接收的值有問題"
   },
   {
-    "id": "api.user.permanent_delete_user.system_admin.warn",
-    "translation": "正在刪除系統管理員 %v。刪除後您可能需要用命令列工具將另一個帳號設定為系統管理員。"
+    "id": "api.user.reset_password.broken_token.app_error",
+    "translation": "此密碼重設金鑰不是有效金鑰"
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
@@ -2947,12 +2355,28 @@
     "translation": "SSO 帳號無法重設密碼"
   },
   {
-    "id": "api.user.reset_password.wrong_team.app_error",
-    "translation": "正在嘗試將錯誤團隊中的使用者重設密碼。"
+    "id": "api.user.saml.app_error",
+    "translation": "無法處理 SAML 登入請求。"
+  },
+  {
+    "id": "api.user.saml.extension_id.app_error",
+    "translation": "無效的擴充 ID"
+  },
+  {
+    "id": "api.user.saml.extension_unsupported",
+    "translation": "不支援擴充。"
+  },
+  {
+    "id": "api.user.saml.invalid_extension",
+    "translation": "不支援 extension_id 為 {{.ExtensionId}} 的擴充。"
   },
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "本機不支援或未設定 SAML 2.0。"
+  },
+  {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "發送停用帳號郵件時失敗"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2967,12 +2391,12 @@
     "translation": "更改驗證電子郵件傳送失敗"
   },
   {
-    "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "更新密碼電子郵件傳送失敗"
+    "id": "api.user.send_mfa_change_email.error",
+    "translation": "無法發送多重要素驗證變更的電子郵件通知。"
   },
   {
-    "id": "api.user.send_password_reset.find.app_error",
-    "translation": "無法找到該地址相對應的帳號"
+    "id": "api.user.send_password_change_email_and_forget.error",
+    "translation": "更新密碼電子郵件傳送失敗"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2999,16 +2423,12 @@
     "translation": "歡迎電子郵件傳送失敗"
   },
   {
-    "id": "api.user.update_active.no_deactivate_sso.app_error",
-    "translation": "不能變更 SSO 帳號的啟用狀態。請透過 SSO 伺服器變更。"
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "由於此功能沒有啟用，無法停用您的帳號。請聯絡系統管理員。"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
     "translation": "您沒有適當的權限"
-  },
-  {
-    "id": "api.user.update_mfa.not_available.app_error",
-    "translation": "本機不支援或尚未設定多重要素驗證"
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -3037,26 +2457,6 @@
   {
     "id": "api.user.update_password.valid_account.app_error",
     "translation": "更新密碼失敗，無法找到有效的帳號"
-  },
-  {
-    "id": "api.user.update_roles.one_admin.app_error",
-    "translation": "至少要有一個啟用的管理員"
-  },
-  {
-    "id": "api.user.update_roles.permissions.app_error",
-    "translation": "您沒有適當的權限"
-  },
-  {
-    "id": "api.user.update_roles.system_admin_needed.app_error",
-    "translation": "限系統管理員方可進行本項作業"
-  },
-  {
-    "id": "api.user.update_roles.system_admin_set.app_error",
-    "translation": "僅有系統管理員才能設定另一位系統管理員的角色"
-  },
-  {
-    "id": "api.user.update_roles.team_admin_needed.app_error",
-    "translation": "限團隊管理員方可進行本項作業"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -3103,144 +2503,72 @@
     "translation": "錯誤的驗證電子郵件連結。"
   },
   {
-    "id": "api.web_hub.start.starting.debug",
-    "translation": "啟動 %v Websocket 中樞"
+    "id": "api.user.verify_email.broken_token.app_error",
+    "translation": "無效的驗證郵件 Token 類型。"
   },
   {
-    "id": "api.web_hub.start.stopping.debug",
-    "translation": "停止 Websocket 中樞連線"
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "電子郵件驗證連結已過期。"
   },
   {
-    "id": "api.web_socket.connect.error",
-    "translation": "Websocket 連接錯誤：%v"
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "解析電子郵件驗證的 Token 資料失敗"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "更新 Websocket 連線失敗"
   },
   {
-    "id": "api.web_socket.init.debug",
-    "translation": "正在初始化 web socket API 路徑"
+    "id": "api.web_socket_router.bad_action.app_error",
+    "translation": "未知的 WebSocket 動作。"
   },
   {
-    "id": "api.web_socket_handler.log.error",
-    "translation": "%v：%v seq=%v uid=%v %v [詳細：%v]"
+    "id": "api.web_socket_router.bad_seq.app_error",
+    "translation": "無效的 WebSocket 訊息序列。"
   },
   {
-    "id": "api.web_socket_router.log.error",
-    "translation": "Websocket 路由錯誤：seq=%v uid=%v %v [詳細：%v]"
+    "id": "api.web_socket_router.no_action.app_error",
+    "translation": "沒有 WebSocket 動作。"
   },
   {
-    "id": "api.web_team_hun.start.debug",
-    "translation": "正在停止團隊中心 teamId=%v"
-  },
-  {
-    "id": "api.webhook.create_outgoing.disabled.app_error",
-    "translation": "傳出的 Webhook 已被系統管理員停用。"
+    "id": "api.web_socket_router.not_authenticated.app_error",
+    "translation": "WebSocket 連線未被驗證。請登入後再次嘗試。"
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "同一頻道的傳出的 Webhook 不可以使用相同的觸發關鍵字/回呼網址。"
+    "translation": "同一頻道的外寄 Webhook 不可以使用相同的觸發關鍵字/回呼網址。"
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "只有公開頻道可以建立傳出的 Webhook。"
+    "translation": "只有公開頻道可以建立外寄 Webhook。"
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "沒有適當的權限建立傳出的 Webhook。"
+    "translation": "沒有適當的權限建立外寄 Webhook。"
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "必須設定觸發詞或者頻道 ID"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_error",
-    "translation": "傳入的 Webhook 已被系統管理員停用。"
-  },
-  {
-    "id": "api.webhook.delete_incoming.permissions.app_error",
-    "translation": "沒有權限刪除傳入的 Webhook"
-  },
-  {
-    "id": "api.webhook.delete_outgoing.disabled.app_error",
-    "translation": "傳出的 Webhook 已被系統管理員停用"
-  },
-  {
-    "id": "api.webhook.delete_outgoing.permissions.app_error",
-    "translation": "沒有適當的權限刪除傳出的 Webhook"
-  },
-  {
-    "id": "api.webhook.incoming.debug",
-    "translation": "收到傳入的 Webhook。內容="
-  },
-  {
-    "id": "api.webhook.incoming.debug.error",
-    "translation": "無法讀取傳入的 Webhook 的內容。"
-  },
-  {
     "id": "api.webhook.incoming.error",
-    "translation": "無法解碼 Incoming Webhook 的 multipart 內容。"
-  },
-  {
-    "id": "api.webhook.init.debug",
-    "translation": "正在初始化 Webhook API 路徑"
-  },
-  {
-    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "沒有適當的權限重新產生傳出的 Webhook Token"
+    "translation": "無法解碼內送 Webhook 的 multipart 內容。"
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "無法更新不同團隊的 Webhook"
   },
   {
-    "id": "api.webhook.update_incoming.disabled.app_error",
-    "translation": "傳入的 Webhook 已被系統管理員停用。"
-  },
-  {
-    "id": "api.webhook.update_incoming.permissions.app_error",
-    "translation": "沒有適當的權限更新傳入的 Webhook"
-  },
-  {
-    "id": "api.webhook.update_outgoing.disabled.app_error",
-    "translation": "傳出的 Webhook 已被系統管理員停用。"
-  },
-  {
     "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "同一頻道的傳出的 Webhook 不可以使用相同的觸發關鍵字/回呼網址。"
-  },
-  {
-    "id": "api.webhook.update_outgoing.not_open.app_error",
-    "translation": "只有公開頻道可以更新傳出的 Webhook。"
-  },
-  {
-    "id": "api.webhook.update_outgoing.permissions.app_error",
-    "translation": "沒有適當的權限更新傳出的 Webhook。"
-  },
-  {
-    "id": "api.webhook.update_outgoing.triggers.app_error",
-    "translation": "必須設定觸發詞或者頻道 ID"
-  },
-  {
-    "id": "api.webrtc.disabled.app_error",
-    "translation": "此伺服器未啟用 WebRTC。"
-  },
-  {
-    "id": "api.webrtc.init.debug",
-    "translation": "正在初始化 WebRTC API 路徑"
-  },
-  {
-    "id": "api.webrtc.register_token.app_error",
-    "translation": "嘗試註冊 WebRTC Token時發生錯誤"
-  },
-  {
-    "id": "api.websocket.invalid_session.error",
-    "translation": "無效的工作階段 err=%v"
+    "translation": "同一頻道的外寄 Webhook 不可以使用相同的觸發關鍵字/回呼網址。"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "無效的參數 {{.Name}}"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "連線失敗：{{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3271,12 +2599,48 @@
     "translation": "%s 已更新頻道用途為：%s"
   },
   {
+    "id": "app.cluster.404.app_error",
+    "translation": "找不到叢集 API 端點。"
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "寫入匯出資料時發生錯誤"
+  },
+  {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "封裝 JSON 資料以匯出時發生錯誤"
+  },
+  {
+    "id": "app.import.attachment.bad_file.error",
+    "translation": "讀取檔案時錯誤：\"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_upload.error",
+    "translation": "上傳檔案時錯誤：\"{{.FilePath}}\""
+  },
+  {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "讀取匯入資料檔失敗。"
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
     "translation": "JSON 解碼失敗。"
+  },
+  {
+    "id": "app.import.bulk_import.unsupported_version.error",
+    "translation": "匯入檔案中的版本訊息不正確或是不存在。請確定版本是匯入檔案當中的第一個物件並重新嘗試。"
+  },
+  {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "匯入繪文字圖像時讀取檔案錯誤。繪文字名稱：\"{{.EmojiName}}\""
+  },
+  {
+    "id": "app.import.import_channel.scheme_deleted.error",
+    "translation": "無法設定頻道使用已被刪除的配置。"
+  },
+  {
+    "id": "app.import.import_channel.scheme_wrong_scope.error",
+    "translation": "頻道必須被指派給頻道範圍的配置。"
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
@@ -3331,8 +2695,16 @@
     "translation": "匯入資料行資料型別為\"直接訊息\"但直接訊息物件為 null"
   },
   {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "匯入資料行資料型別為\"繪文字\"但繪文字物件為 null"
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "匯入資料行資料型別為\"訊息\"但訊息物件為 null"
+  },
+  {
+    "id": "app.import.import_line.null_scheme.error",
+    "translation": "匯入資料行資料型別為\"配置\"但配置物件為 null"
   },
   {
     "id": "app.import.import_line.null_team.error",
@@ -3363,12 +2735,28 @@
     "translation": "匯入訊息失敗。不存在名字為 \"{{.Username}}\" 的使用者。"
   },
   {
+    "id": "app.import.import_scheme.scope_change.error",
+    "translation": "批次匯入不能改變已存在配置的範圍。"
+  },
+  {
+    "id": "app.import.import_team.scheme_deleted.error",
+    "translation": "無法設定團隊使用已被刪除的配置。"
+  },
+  {
+    "id": "app.import.import_team.scheme_wrong_scope.error",
+    "translation": "團隊必須被指派給團隊範圍的配置。"
+  },
+  {
+    "id": "app.import.import_user.save_preferences.error",
+    "translation": "匯入使用者頻道成員時失敗。無法儲存偏好。"
+  },
+  {
     "id": "app.import.import_user_channels.save_preferences.error",
     "translation": "匯入使用者頻道成員時失敗。無法儲存偏好。"
   },
   {
-    "id": "app.import.validate_channel_import_data.create_at_zero.error",
-    "translation": "如果有提供頻道建立時間，該值不能為 0。"
+    "id": "app.import.process_import_data_file_version_line.invalid_version.error",
+    "translation": "無法讀取資料匯入檔案的版本"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -3397,6 +2785,10 @@
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
     "translation": "頻道用途過長。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.scheme_invalid.error",
+    "translation": "無效的頻道配置名稱"
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
@@ -3465,6 +2857,18 @@
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
     "translation": "缺少必要的直接訊息屬性：使用者。"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "匯入繪文字資料為空。"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "匯入繪文字缺少圖像欄位或該欄位為空。"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "匯入繪文字缺少名稱欄位或該欄位為空。"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3543,12 +2947,44 @@
     "translation": "缺少必要的回應屬性：使用者。"
   },
   {
-    "id": "app.import.validate_team_import_data.allowed_domains_length.error",
-    "translation": "團隊允許網域過長。"
+    "id": "app.import.validate_role_import_data.description_invalid.error",
+    "translation": "無效的角色敘述"
   },
   {
-    "id": "app.import.validate_team_import_data.create_at_zero.error",
-    "translation": "如果有提供團隊建立時間，該值不能為 0。"
+    "id": "app.import.validate_role_import_data.display_name_invalid.error",
+    "translation": "無效的角色顯示名稱"
+  },
+  {
+    "id": "app.import.validate_role_import_data.invalid_permission.error",
+    "translation": "無效的角色權限。"
+  },
+  {
+    "id": "app.import.validate_role_import_data.name_invalid.error",
+    "translation": "無效的角色名稱。"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.description_invalid.error",
+    "translation": "無效的配置敘述"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
+    "translation": "無效的配置顯示名稱"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.name_invalid.error",
+    "translation": "無效的配置名稱。"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.null_scope.error",
+    "translation": "必須輸入配置範圍。"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
+    "translation": "未知的配置範圍。"
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
+    "translation": "錯誤的角色被分派給此範圍的配置。"
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -3577,6 +3013,10 @@
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
     "translation": "團隊名稱帶有保留字。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.scheme_invalid.error",
+    "translation": "無效的團隊配置名稱。"
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
@@ -3615,10 +3055,6 @@
     "translation": "使用者認證資料過長。"
   },
   {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "如果有提供使用者認證服務，該值不能為空。"
-  },
-  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "使用者電子郵件的長度無效。"
   },
@@ -3643,12 +3079,8 @@
     "translation": "使用者的頻道觸發 Notify Props 無效。"
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_comment_trigger_invalid.error",
-    "translation": "使用者的註解觸發 Notify Props 無效。"
-  },
-  {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "使用者的桌面期間 Notify Props 無效。"
+    "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
+    "translation": "使用者的 Comments Props 無效。"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
@@ -3671,7 +3103,7 @@
     "translation": "使用者的行動裝置推播狀態 Notify Props 無效。"
   },
   {
-    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "id": "app.import.validate_user_import_data.password_length.error",
     "translation": "使用者密碼長度無效。"
   },
   {
@@ -3708,7 +3140,15 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "您有 1 筆新的直接傳訊，來自{{.SenderName}}。"
+    "translation": "您有 1 筆新的直接傳訊，來自@{{.SenderName}}。"
+  },
+  {
+    "id": "app.notification.body.intro.group_message.full",
+    "translation": "您有 1 筆新的群組訊息。"
+  },
+  {
+    "id": "app.notification.body.intro.group_message.generic",
+    "translation": "您有 1 筆新的群組訊息，來自@{{.SenderName}}。"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3716,19 +3156,35 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "您有一筆新通知，來自 {{.SenderName}}。"
+    "translation": "您有一筆新通知，來自 @{{.SenderName}}。"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
     "translation": "{{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
+    "id": "app.notification.body.text.group_message.full",
+    "translation": "頻道：{{.ChannelName}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.full2",
+    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.generic",
+    "translation": "{{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+  },
+  {
     "id": "app.notification.body.text.notification.full",
-    "translation": "頻道：{{.ChannelName}}<br>{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "頻道：{{.ChannelName}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.full2",
+    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3736,15 +3192,19 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] 來自 {{.SenderDisplayName}} 的直接傳訊，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{.SiteName}}] 來自 @{{.SenderDisplayName}} 的新直接傳訊，發於 {{.Year}} {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{.SiteName}}] {{.ChannelName}} 的新群組訊息，發於 {{.Year}} {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{.SiteName}}] 發於 {{.Year}} {{.Month}} {{.Day}} 的新群組訊息"
   },
   {
     "id": "app.notification.subject.notification.full",
     "translation": "[{{.SiteName}}] 來自 {{.TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.plugin.activate.app_error",
-    "translation": "無法啟動已解開的模組。模組可能已存在並已啟動。"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3771,16 +3231,16 @@
     "translation": "遇到檔案系統錯誤"
   },
   {
-    "id": "app.plugin.get_plugins.app_error",
-    "translation": "無法取得啟用的模組"
+    "id": "app.plugin.get_cluster_plugin_statuses.app_error",
+    "translation": "無法從叢集取得模組狀態。"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "無法取得啟用的模組"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "模組 ID 必須少於 {{.Max}} 字元。"
+    "id": "app.plugin.get_statuses.app_error",
+    "translation": "無法取得模組狀態。"
   },
   {
     "id": "app.plugin.install.app_error",
@@ -3789,6 +3249,14 @@
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "無法安裝模組。已安裝了相同 ID 的模組。"
+  },
+  {
+    "id": "app.plugin.install_id_failed_remove.app_error",
+    "translation": "無法安裝模組。已安裝相同 ID 的模組且無法移除。"
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "模組 ID 至少需 {{.Min}} 字元，最多可為 {{.Max}} 且符合 {{.Regex}}。"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3815,20 +3283,28 @@
     "translation": "提供的角色不存在"
   },
   {
+    "id": "app.save_config.app_error",
+    "translation": "An error occurred saving the configuration"
+  },
+  {
+    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
+    "translation": "必須執行的資料移轉尚未完成，無法存取此 API 端點。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "編碼互動對話欄的 JSON 時發生錯誤。"
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "解析安裝日期失敗"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "此團隊已達最大使用者數量上限。請聯絡系統管理員調大數量限制。"
   },
   {
-    "id": "app.timezones.failed_deserialize.app_error",
-    "translation": "無法還原序列化時區設定 檔案={{.Filename}}，錯誤={{.Error}}"
-  },
-  {
-    "id": "app.timezones.load_config.app_error",
-    "translation": "時區設定檔不存在 檔案={{.Filename}}"
-  },
-  {
-    "id": "app.timezones.read_config.app_error",
-    "translation": "無法讀取時區設定 檔案={{.Filename}}，錯誤={{.Error}}"
+    "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "無法用空的電子郵件地址完成 SAML 登入。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3839,224 +3315,108 @@
     "translation": "無效或缺少 Token"
   },
   {
-    "id": "authentication.permissions.create_group_channel.description",
-    "translation": "允許建立新的群組訊息頻道"
+    "id": "brand.save_brand_image.decode.app_error",
+    "translation": "無法解碼圖片資料。"
   },
   {
-    "id": "authentication.permissions.create_group_channel.name",
-    "translation": "建立群組訊息"
+    "id": "brand.save_brand_image.decode_config.app_error",
+    "translation": "無法取得圖片的中繼資料。"
   },
   {
-    "id": "authentication.permissions.create_post_public.description",
-    "translation": "允許在公開頻道建立訊息"
+    "id": "brand.save_brand_image.encode.app_error",
+    "translation": "無法轉換圖片至 PNG 格式。請重新嘗試。"
   },
   {
-    "id": "authentication.permissions.create_post_public.name",
-    "translation": "在公開頻道建立訊息"
+    "id": "brand.save_brand_image.open.app_error",
+    "translation": "無法上傳自訂品牌圖片。請確定圖片大小小於 2MB 並重新嘗試。"
   },
   {
-    "id": "authentication.permissions.create_team_roles.description",
-    "translation": "允許建立團隊"
+    "id": "brand.save_brand_image.save_image.app_error",
+    "translation": "無法寫入圖片檔案至儲存空間。請檢查連線並重新嘗試。"
   },
   {
-    "id": "authentication.permissions.create_team_roles.name",
-    "translation": "建立團隊"
-  },
-  {
-    "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "允許建立個人存取 Token"
-  },
-  {
-    "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "建立個人存取 Token"
-  },
-  {
-    "id": "authentication.permissions.manage_jobs.description",
-    "translation": "允許管理工作"
-  },
-  {
-    "id": "authentication.permissions.manage_jobs.name",
-    "translation": "管理工作"
-  },
-  {
-    "id": "authentication.permissions.manage_team_roles.description",
-    "translation": "允許改變團隊成員的角色"
-  },
-  {
-    "id": "authentication.permissions.manage_team_roles.name",
-    "translation": "管理團隊角色"
-  },
-  {
-    "id": "authentication.permissions.read_public_channel.description",
-    "translation": "讀取公開頻道的權限"
-  },
-  {
-    "id": "authentication.permissions.read_public_channel.name",
-    "translation": "讀取公開頻道"
-  },
-  {
-    "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "允許讀取個人存取 Token 的 ID、描述與 user_id 欄位"
-  },
-  {
-    "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "讀取個人存取 Token"
-  },
-  {
-    "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "允許撤銷個人 Token"
-  },
-  {
-    "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "撤銷個人存取 Token"
-  },
-  {
-    "id": "authentication.permissions.team_invite_user.description",
-    "translation": "允許邀請使用者至團隊"
-  },
-  {
-    "id": "authentication.permissions.team_invite_user.name",
-    "translation": "邀請使用者"
-  },
-  {
-    "id": "authentication.permissions.team_use_slash_commands.description",
-    "translation": "允許使用斜線命令"
-  },
-  {
-    "id": "authentication.permissions.team_use_slash_commands.name",
-    "translation": "使用斜線命令"
-  },
-  {
-    "id": "authentication.roles.system_post_all.description",
-    "translation": "擁有在公開、私人與直接傳訊頻道發訊權限的角色"
-  },
-  {
-    "id": "authentication.roles.system_post_all.name",
-    "translation": "在公開、私人與直接傳訊頻道發訊"
-  },
-  {
-    "id": "authentication.roles.system_post_all_public.description",
-    "translation": "擁有在公開頻道發訊權限的角色"
-  },
-  {
-    "id": "authentication.roles.system_post_all_public.name",
-    "translation": "在公開頻道發訊"
-  },
-  {
-    "id": "authentication.roles.system_user_access_token.description",
-    "translation": "擁有建立、讀取與撤銷個人存取 Token 權限的角色"
-  },
-  {
-    "id": "authentication.roles.system_user_access_token.name",
-    "translation": "個人存取 Token"
-  },
-  {
-    "id": "authentication.roles.team_post_all.description",
-    "translation": "擁有在公開與私人頻道發訊權限的角色"
-  },
-  {
-    "id": "authentication.roles.team_post_all.name",
-    "translation": "在公開與私人頻道發訊"
-  },
-  {
-    "id": "authentication.roles.team_post_all_public.description",
-    "translation": "擁有在公開頻道發訊權限的角色"
-  },
-  {
-    "id": "authentication.roles.team_post_all_public.name",
-    "translation": "在公開頻道發訊"
+    "id": "brand.save_brand_image.too_large.app_error",
+    "translation": "無法讀取圖片檔案。請確定圖片大小小於 2MB 並重新嘗試。"
   },
   {
     "id": "cli.license.critical",
     "translation": "功能需要升級至企業版並加入授權碼。請聯絡系統管理員。"
   },
   {
-    "id": "ent.brand.save_brand_image.decode.app_error",
-    "translation": "無法解碼圖片。"
+    "id": "ent.account_migration.get_all_failed",
+    "translation": "無法取得使用者"
   },
   {
-    "id": "ent.brand.save_brand_image.decode_config.app_error",
-    "translation": "無法解碼圖片設定。"
-  },
-  {
-    "id": "ent.brand.save_brand_image.encode.app_error",
-    "translation": "無法將圖片編碼成 PNG。"
-  },
-  {
-    "id": "ent.brand.save_brand_image.open.app_error",
-    "translation": "無法開啟圖片。"
-  },
-  {
-    "id": "ent.brand.save_brand_image.save_image.app_error",
-    "translation": "無法儲存圖片"
-  },
-  {
-    "id": "ent.brand.save_brand_image.too_large.app_error",
-    "translation": "圖片過大無法開啟。"
+    "id": "ent.account_migration.get_saml_users_failed",
+    "translation": "無法取得 SAML 使用者"
   },
   {
     "id": "ent.cluster.config_changed.info",
     "translation": "叢集設定已改變 id={{ .id }}。此叢集可能不穩定，需要重新啟動。為了確保叢集被正確的設定，您應該馬上進行漸進式重啟。"
   },
   {
-    "id": "ent.cluster.debug_fail.debug",
-    "translation": "在 `%v` 叢集發送失敗：detail=%v extra=%v retry number=%v"
-  },
-  {
-    "id": "ent.cluster.final_fail.error",
-    "translation": "在 `%v` 叢集發送最終失敗：detail=%v extra=%v retry number=%v"
-  },
-  {
-    "id": "ent.cluster.incompatible.warn",
-    "translation": "偵測到叢集可能不相容的版本 %v"
-  },
-  {
-    "id": "ent.cluster.incompatible_config.warn",
-    "translation": "偵測到叢集可能不相容的設定 %v"
-  },
-  {
-    "id": "ent.cluster.licence_disable.app_error",
-    "translation": "目前授權不提供叢集功能，請聯繫系統管理員將系統升級為企業版授權。"
-  },
-  {
-    "id": "ent.cluster.ping_failed.info",
-    "translation": "叢集偵測失敗：hostname=%v on=%v id=%v"
-  },
-  {
-    "id": "ent.cluster.ping_success.info",
-    "translation": "叢集偵測成功：hostname=%v on=%v id=%v self=%v"
-  },
-  {
     "id": "ent.cluster.save_config.error",
     "translation": "啟用高可用性時系統控制台將被設定成唯讀模式，在設定檔當中停用 ReadOnlyConfig 以停止此行為。"
   },
   {
-    "id": "ent.cluster.starting.info",
-    "translation": "在 %v 上開始監聽叢集節點間通訊：hostname=%v id=%v"
+    "id": "ent.compliance.bad_export_type.appError",
+    "translation": "未知的輸出格式 {{.ExportType}}"
   },
   {
-    "id": "ent.cluster.stopping.info",
-    "translation": "在 %v 上的叢集節點間通訊正在停止：hostname=%v id=%v"
+    "id": "ent.compliance.csv.attachment.copy.appError",
+    "translation": "無法複製附加檔案至 zip 檔案中。"
+  },
+  {
+    "id": "ent.compliance.csv.attachment.export.appError",
+    "translation": "無法增加附加檔案至 CSV 匯出格式。"
+  },
+  {
+    "id": "ent.compliance.csv.file.creation.appError",
+    "translation": "無法建立暫存的 CSV 匯出檔案。"
+  },
+  {
+    "id": "ent.compliance.csv.header.export.appError",
+    "translation": "無法新增標頭至 CSV 匯出檔案。"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.export.appError",
+    "translation": "無法新增中繼資料至 zip 檔案中。"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
+    "translation": "無法轉換中繼資料成 json 格式。"
+  },
+  {
+    "id": "ent.compliance.csv.post.export.appError",
+    "translation": "無法匯出訊息。"
+  },
+  {
+    "id": "ent.compliance.csv.zip.creation.appError",
+    "translation": "無法建立 zip 匯出檔案。"
+  },
+  {
+    "id": "ent.compliance.global_relay.attachments_removed.appError",
+    "translation": "由於大小過大，上傳檔案已從 Global Relay 匯出檔案中被移除。"
+  },
+  {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "無法開啟暫存的匯出檔案。"
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "無法重新讀取 Global Relay 匯出暫存檔。"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "目前授權不提供規範功能，請聯繫系統管理員將系統升級為企業版授權。"
   },
   {
+    "id": "ent.compliance.run_export.template_watcher.appError",
+    "translation": "無法讀取匯出樣板。請重新嘗試。"
+  },
+  {
     "id": "ent.compliance.run_failed.error",
     "translation": "規範匯出作業'{{.JobName}}'失敗。路徑為'{{.FilePath}}'"
-  },
-  {
-    "id": "ent.compliance.run_finished.info",
-    "translation": "規範匯出作業'{{.JobName}}'完成。{{.Count}}筆紀錄已匯出至'{{.FilePath}}'"
-  },
-  {
-    "id": "ent.compliance.run_limit.warning",
-    "translation": "警告，規範匯出作業 '{{.JobName}}' 行數過多，將只會輸出到第3萬行至'{{.FilePath}}' "
-  },
-  {
-    "id": "ent.compliance.run_started.info",
-    "translation": "規範匯出作業 '{{.JobName}}' 開始，匯出到 '{{.FilePath}}'"
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -4085,14 +3445,6 @@
   {
     "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
     "translation": "建立 Elasticsearch 索引時失敗"
-  },
-  {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
-    "translation": "確認 Elasticsearch 索引是否存在時失敗"
-  },
-  {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
-    "translation": "設定 Elasticsearch 索引映射時失敗"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -4139,6 +3491,10 @@
     "translation": "Elasticsearch 搜尋在此伺服器上為停用"
   },
   {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "無法解析搜尋比對結果"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "無法完成搜尋"
   },
@@ -4147,24 +3503,20 @@
     "translation": "無法解碼搜尋結果"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "建立 Elasticsearch 批次處理器時失敗"
+    "id": "ent.elasticsearch.start.already_started.app_error",
+    "translation": "Elasticsearch 已啟動"
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "建立 Elasticsearch 批次處理器時失敗"
   },
   {
-    "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "設定 Elasticsearch 索引設定時失敗"
-  },
-  {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
     "translation": "啟動 Elasticsearch 批次處理器時失敗"
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "啟動 Elasticsearch 批次處理器時失敗"
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "Elasticsearch 已停止"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4183,8 +3535,8 @@
     "translation": "Elasticsearch 伺服器網址或使用者名稱有所變更。請重新輸入 Elasticsearch 密碼以測試連線。"
   },
   {
-    "id": "ent.emoji.licence_disable.app_error",
-    "translation": "目前授權不提供限制自訂繪文字，請聯繫系統管理員將系統升級為企業版授權。"
+    "id": "ent.ldap.app_error",
+    "translation": "LDAP 介面為 nil"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -4219,10 +3571,6 @@
     "translation": "無法連線到 AD/LDAP 伺服器"
   },
   {
-    "id": "ent.ldap.do_login.unable_to_create_user.app_error",
-    "translation": "認證有效，但無法建立使用者"
-  },
-  {
     "id": "ent.ldap.do_login.user_filtered.app_error",
     "translation": "您的 AD/LDAP 帳號沒有使用此 Mattermost 伺服器的權限。請向系統管理員詢問確認 AD/LDAP 使用者過濾條件。"
   },
@@ -4231,76 +3579,96 @@
     "translation": "使用者尚未於 AD/LDAP 伺服器註冊"
   },
   {
-    "id": "ent.ldap.mattermost_user_update",
-    "translation": "Mattermost 使用者已根據 AD/LDAP 伺服器更新。"
-  },
-  {
-    "id": "ent.ldap.sync.index_job_failed.error",
-    "translation": "由於同步工作失敗，LDAP 同步工作失敗。"
-  },
-  {
-    "id": "ent.ldap.sync_worker.create_index_job.error",
-    "translation": "LDAP 同步工作無法建立同步工作"
-  },
-  {
-    "id": "ent.ldap.syncdone.info",
-    "translation": "AD/LDAP 同步完成"
-  },
-  {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "無法用 AD/LDAP 取得所有使用者"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "取得群組時錯誤"
+  },
+  {
+    "id": "ent.ldap.syncronize.populate_syncables",
+    "translation": "填入同步資料時錯誤"
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "translation": "無法用 AD/LDAP 搜尋使用者。請測試 Mattermost 是否能連線至 AD/LDAP 伺服器並重新嘗試。"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "無效的 AD/LDAP Filter"
   },
   {
-    "id": "ent.message_export.generic.license.error",
-    "translation": "授權不支援匯出訊息。"
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "取得 LDAP 群組時錯誤"
   },
   {
-    "id": "ent.metrics.starting.info",
-    "translation": "計量與分析伺服器正在 %v 上監聽"
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "取得 LDAP 群組時錯誤"
   },
   {
-    "id": "ent.metrics.stopping.info",
-    "translation": "%v 上的計量與分析伺服器正在停止"
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "取得群組成員時錯誤"
   },
   {
-    "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "找不到對應 UID 的群組"
   },
   {
-    "id": "ent.mfa.activate.bad_token.app_error",
-    "translation": "無效的多重要素驗證 Token"
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "取得使用者群組時錯誤"
   },
   {
-    "id": "ent.mfa.activate.save_active.app_erro",
-    "translation": "無法為使用者更新多重要素驗證使用狀態"
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "無法增加附加檔案至 Global Relay 匯出格式。"
   },
   {
-    "id": "ent.mfa.deactivate.save_active.app_erro",
-    "translation": "無法為使用者更新多重要素驗證使用狀態"
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "無法關閉 zip 檔案。"
   },
   {
-    "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "清除多重要素驗證密碼時遇到錯誤"
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "無法建立 eml 檔案。"
   },
   {
-    "id": "ent.mfa.generate_qr_code.create_code.app_error",
-    "translation": "產生 QR code 時遇到錯誤"
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "無法產生 eml 檔案資料。"
   },
   {
-    "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "儲存多重要素驗證密碼時遇到錯誤"
+    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
+    "translation": "無法發送郵件至 Global Relay。"
   },
   {
-    "id": "ent.mfa.license_disable.app_error",
-    "translation": "您的授權不支援多重要素驗證"
+    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
+    "translation": "無法設定電子郵件寄件人地址。"
   },
   {
-    "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
+    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
+    "translation": "無法設定電子郵件訊息。"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
+    "translation": "無法寫入電子郵件訊息。"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
+    "translation": "無法讀取電子郵件資訊。"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
+    "translation": "無法設定電子郵件收件人地址。"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
+    "translation": "無法取得匯出暫存檔的資訊"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
+    "translation": "無法從暫存檔取得電子郵件"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
+    "translation": "無法開啟匯出暫存檔"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -4335,14 +3703,6 @@
     "translation": "對與身分識別提供者連接的要求編碼時發生錯誤。請聯繫系統管理員。"
   },
   {
-    "id": "ent.saml.build_request.encoding_signed.app_error",
-    "translation": "對與身分識別提供者連接的已簽章要求編碼時發生錯誤。請聯繫系統管理員。"
-  },
-  {
-    "id": "ent.saml.configure.app_error",
-    "translation": "設定 SAML 服務提供者時發生錯誤，err=%v"
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "由於沒有啟用加密，SAML 登入失敗。請聯繫系統管理員。"
   },
@@ -4353,10 +3713,6 @@
   {
     "id": "ent.saml.configure.load_private_key.app_error",
     "translation": "由於找不到服務提供者私鑰，SAML 登入失敗。請聯繫系統管理員。"
-  },
-  {
-    "id": "ent.saml.configure.load_public_cert.app_error",
-    "translation": "找不到服務提供者公開憑證檔案。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -4391,8 +3747,36 @@
     "translation": "本機不支援或未設定 SAML 2.0"
   },
   {
-    "id": "ent.saml.update_saml_user.unable_error",
-    "translation": "無法更新現有的 SAML 使用者。總之先允許登入。err=%v"
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Base64 編碼解碼互動對話欄的觸發 ID 時發生錯誤。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "互動對話欄的觸發 ID 已過期。觸發 ID 最多保留 {{.Seconds}} 秒。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "互動對話欄的觸發 ID 缺少必要資料。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Base64 編碼解碼互動對話欄觸發 ID 的簽名時發生錯誤。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "驗證互動對話欄觸發 ID 簽名失敗。"
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "簽名互動對話欄的觸發 ID 時發生錯誤。"
+  },
+  {
+    "id": "jobs.do_job.batch_size.parse_error",
+    "translation": "無法解析訊息匯出工作 BatchSize。"
+  },
+  {
+    "id": "jobs.do_job.batch_start_timestamp.parse_error",
+    "translation": "無法解析訊息匯出工作 ExportFromTimestamp。"
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -4403,32 +3787,12 @@
     "translation": "設定工作狀態為錯誤時失敗"
   },
   {
-    "id": "manaultesting.get_channel_id.no_found.debug",
-    "translation": "找不到: %v 頻道，已搜尋 %v 的可能性"
-  },
-  {
-    "id": "manaultesting.get_channel_id.unable.debug",
-    "translation": "無法取得頻道"
-  },
-  {
-    "id": "manaultesting.manual_test.create.info",
-    "translation": "建立使用者與團隊"
+    "id": "jobs.start_synchronize_job.timeout",
+    "translation": "AD/LDAP 同步工作逾時。"
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
     "translation": "無法解析網址"
-  },
-  {
-    "id": "manaultesting.manual_test.setup.info",
-    "translation": "正在進行手動測試的設定..."
-  },
-  {
-    "id": "manaultesting.manual_test.uid.debug",
-    "translation": "網址中找不到 uid"
-  },
-  {
-    "id": "manaultesting.test_autolink.info",
-    "translation": "手動自動連結測試"
   },
   {
     "id": "manaultesting.test_autolink.unable.app_error",
@@ -4439,48 +3803,48 @@
     "translation": "Mattermost 安全性公告"
   },
   {
-    "id": "mattermost.config_file",
-    "translation": "從 %v 讀取設定檔"
+    "id": "mfa.activate.authenticate.app_error",
+    "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
   },
   {
-    "id": "mattermost.current_version",
-    "translation": "目前的版本為 %v (%v/%v/%v/%v)"
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "無效的多重要素驗證 Token"
   },
   {
-    "id": "mattermost.entreprise_enabled",
-    "translation": "企業版已啟用: %v"
+    "id": "mfa.activate.save_active.app_error",
+    "translation": "無法為使用者更新多重要素驗證使用狀態"
   },
   {
-    "id": "mattermost.load_license.find.warn",
-    "translation": "需要來自 https://mattermost.com 的授權金鑰以解鎖企業功能。"
+    "id": "mfa.deactivate.save_active.app_error",
+    "translation": "無法為使用者更新多重要素驗證使用狀態"
   },
   {
-    "id": "mattermost.security_bulletin.error",
-    "translation": "取得安全性公告詳情失敗"
+    "id": "mfa.deactivate.save_secret.app_error",
+    "translation": "清除多重要素驗證密碼時遇到錯誤"
   },
   {
-    "id": "mattermost.security_bulletin_read.error",
-    "translation": "讀取安全性公告詳情失敗"
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "產生 QR code 時遇到錯誤"
   },
   {
-    "id": "mattermost.security_checks.debug",
-    "translation": "正在檢查來自 Mattermost 的安全性更新"
+    "id": "mfa.generate_qr_code.save_secret.app_error",
+    "translation": "儲存多重要素驗證密碼時遇到錯誤"
   },
   {
-    "id": "mattermost.security_info.error",
-    "translation": "從 Mattermost 抓取安全性更新資訊失敗"
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "此伺服器上的多重要素驗證已被停用。"
   },
   {
-    "id": "mattermost.send_bulletin.info",
-    "translation": "正在傳送 %v 至 %v 的安全性公告"
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
   },
   {
-    "id": "mattermost.system_admins.error",
-    "translation": "為抓取 Mattermost 上的安全性更新資訊獲取系統管理員失敗。"
+    "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
+    "translation": "由於無效的進度資料，移轉失敗"
   },
   {
-    "id": "mattermost.working_dir",
-    "translation": "目前的工作目錄為 %v"
+    "id": "migrations.worker.run_migration.unknown_key",
+    "translation": "由於未知的移轉索引碼，無法執行移轉工作。"
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -4539,6 +3903,30 @@
     "translation": "無效的使用者 ID"
   },
   {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "無效的建立者 ID"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "無效的建立者 ID"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "無效的敘述"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "Invalid update at"
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "無效的使用者 ID"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "無效的使用者名稱"
+  },
+  {
     "id": "model.channel.is_valid.2_or_more.app_error",
     "translation": "名稱必須是2個以上的小寫英數字元"
   },
@@ -4563,10 +3951,6 @@
     "translation": "無效的 ID"
   },
   {
-    "id": "model.channel.is_valid.name.app_error",
-    "translation": "無效的名稱"
-  },
-  {
     "id": "model.channel.is_valid.purpose.app_error",
     "translation": "無效的目的"
   },
@@ -4587,8 +3971,8 @@
     "translation": "無效的電子郵件通知值"
   },
   {
-    "id": "model.channel_member.is_valid.mute_value.app_error",
-    "translation": "無效的靜音值"
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "無效的忽略頻道提及狀態"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4599,35 +3983,11 @@
     "translation": "無效的推播通知等級"
   },
   {
-    "id": "model.channel_member.is_valid.role.app_error",
-    "translation": "無效的角色"
-  },
-  {
     "id": "model.channel_member.is_valid.unread_level.app_error",
     "translation": "無效的未讀標記等級"
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
-    "translation": "無效的使用者 ID"
-  },
-  {
-    "id": "model.channel_member_history.is_valid.channel_id.app_error",
-    "translation": "無效的頻道 ID"
-  },
-  {
-    "id": "model.channel_member_history.is_valid.join_time.app_error",
-    "translation": "無效的加入時間"
-  },
-  {
-    "id": "model.channel_member_history.is_valid.leave_time.app_error",
-    "translation": "無效的離開時間"
-  },
-  {
-    "id": "model.channel_member_history.is_valid.user_email.app_error",
-    "translation": "無效的使用者 ID"
-  },
-  {
-    "id": "model.channel_member_history.is_valid.user_id.app_error",
     "translation": "無效的使用者 ID"
   },
   {
@@ -4655,8 +4015,8 @@
     "translation": "缺少團隊參數"
   },
   {
-    "id": "model.client.login.app_error",
-    "translation": "認證 Token 不合"
+    "id": "model.client.get_team_icon.app_error",
+    "translation": "無法從回應中讀取團隊圖示。"
   },
   {
     "id": "model.client.read_file.app_error",
@@ -4668,6 +4028,14 @@
   },
   {
     "id": "model.client.set_profile_user.writer.app_error",
+    "translation": "無法寫入要求"
+  },
+  {
+    "id": "model.client.set_team_icon.no_file.app_error",
+    "translation": "要求的 'image' 欄位沒有檔案"
+  },
+  {
+    "id": "model.client.set_team_icon.writer.app_error",
     "translation": "無法寫入要求"
   },
   {
@@ -4697,6 +4065,30 @@
   {
     "id": "model.client.writer.app_error",
     "translation": "無法建立 multipart 要求"
+  },
+  {
+    "id": "model.cluster.is_valid.create_at.app_error",
+    "translation": "必須設定建立時間"
+  },
+  {
+    "id": "model.cluster.is_valid.hostname.app_error",
+    "translation": "必須設定主機名稱"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "無效的 ID"
+  },
+  {
+    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "translation": "必須設定最後偵測時間"
+  },
+  {
+    "id": "model.cluster.is_valid.name.app_error",
+    "translation": "必須設定叢集名稱"
+  },
+  {
+    "id": "model.cluster.is_valid.type.app_error",
+    "translation": "必須設定類型"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4799,8 +4191,16 @@
     "translation": "\"到\"必須大於\"起始\""
   },
   {
+    "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
+    "translation": "允許子網域的 Cookie 需要設定站台網址。"
+  },
+  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "服務設定中的 atmos/camo 圖片代理無效。必須設定為分享金鑰。"
+    "translation": "atmos/camo 的 RemoteImageProxyOptions 無效。必須設成共享金鑰。"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "atmos/camo 的 RemoteImageProxyURL 無效。必須設成共享金鑰。"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4817,6 +4217,10 @@
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
     "translation": "訊息保留需至少一天。"
+  },
+  {
+    "id": "model.config.is_valid.display.custom_url_schemes.app_error",
+    "translation": "自訂網址配置 {{.Scheme}} 無效。自訂網址配置必須以字母起始且只帶有字母、數字跟\"-\"。"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -4839,20 +4243,12 @@
     "translation": "Elasticsearch 即時索引的批次大小必須至少為 1 。"
   },
   {
-    "id": "model.config.is_valid.elastic_search.password.app_error",
-    "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch 密碼。"
-  },
-  {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "Elasticsearch 設定 PostsAggregatorJobStartTime 必須為 \"hh:mm\" 格式的時間"
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
     "translation": "Elasticsearch 回應逾期的時間必須至少為 1 秒。"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch 使用者名稱。"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4865,10 +4261,6 @@
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
     "translation": "郵件通知內容類型無效。必須是 \"full\" 或是 \"generic\"。"
-  },
-  {
-    "id": "model.config.is_valid.email_reset_salt.app_error",
-    "translation": "電子郵件設定中的密碼重設 Salt 無效。必須在32個字元以上。"
   },
   {
     "id": "model.config.is_valid.email_salt.app_error",
@@ -4887,32 +4279,8 @@
     "translation": "檔案設定中的驅動名稱無效。必須為 'local' 或 'amazons3'"
   },
   {
-    "id": "model.config.is_valid.file_preview_height.app_error",
-    "translation": "檔案設定中的預覽高度無效。必須為0或者正數。"
-  },
-  {
-    "id": "model.config.is_valid.file_preview_width.app_error",
-    "translation": "檔案設定中的預覽寬度無效。必須為正數。"
-  },
-  {
-    "id": "model.config.is_valid.file_profile_height.app_error",
-    "translation": "檔案設定中的個人資訊高度無效。必須為正數。"
-  },
-  {
-    "id": "model.config.is_valid.file_profile_width.app_error",
-    "translation": "檔案設定中的個人資訊寬度無效。必須為正數。"
-  },
-  {
     "id": "model.config.is_valid.file_salt.app_error",
     "translation": "檔案設定中的公開連結 Salt 無效。必須在32個字元以上。"
-  },
-  {
-    "id": "model.config.is_valid.file_thumb_height.app_error",
-    "translation": "檔案設定中縮圖高度無效。必須為正數。"
-  },
-  {
-    "id": "model.config.is_valid.file_thumb_width.app_error",
-    "translation": "檔案設定中縮圖寬度無效。必須為正數。"
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
@@ -4920,47 +4288,27 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "服務設定中的圖片代理類型無效。"
+    "translation": "無效的圖像代理類別。必須為 '本地' 或 'atmos/camo'。"
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
     "translation": "AD/LDAP 欄位 \"BaseDN\" 為必須欄位。"
   },
   {
-    "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "AD/LDAP 欄位 \"綁定使用者密碼\" 為必須欄位。"
-  },
-  {
-    "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "AD/LDAP 欄位 \"綁定使用者帳號\" 為必須欄位。"
-  },
-  {
     "id": "model.config.is_valid.ldap_email",
     "translation": "AD/LDAP 欄位 \"電子郵件位址屬性\" 為必須欄位。"
-  },
-  {
-    "id": "model.config.is_valid.ldap_firstname",
-    "translation": "AD/LDAP 欄位 \"名字屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_id",
     "translation": "AD/LDAP 欄位 \"ID 的屬性\" 為必須欄位。"
   },
   {
-    "id": "model.config.is_valid.ldap_lastname",
-    "translation": "AD/LDAP 欄位 \"姓氏屬性\" 為必須欄位。"
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "AD/LDAP 欄位 \"登入 ID 的屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "無效的最大分頁大小。"
-  },
-  {
-    "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "遺漏 AD/LDAP 必填欄位"
-  },
-  {
-    "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "遺漏 AD/LDAP 必填欄位"
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
@@ -5028,19 +4376,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "訊息匯出工作的 ExportFormat 必須為 'actiance' 或 'globalrelay'"
-  },
-  {
-    "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "訊息匯出工作的 ExportFormat 必須為 'actiance' 或 'globalrelay'"
-  },
-  {
-    "id": "model.config.is_valid.message_export.file_location.app_error",
-    "translation": "匯出訊息工作 FileLocation 設定必須為可寫入的目錄，匯出資料將寫入此處"
-  },
-  {
-    "id": "model.config.is_valid.message_export.file_location.relative",
-    "translation": "匯出訊息工作 FileLocation 設定必須為 FileSettings.Directory 的子目錄"
+    "translation": "訊息匯出工作的 ExportFormat 必須為 'actiance'、'csv' 或 'globalrelay'"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
@@ -5063,16 +4399,8 @@
     "translation": "訊息匯出工作 GlobalRelaySettings。SmtpUsername 必須有值"
   },
   {
-    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
-    "translation": "訊息匯出工作的 GlobalRelayEmailAddress 必須為 'actiance' 或 'globalrelay'"
-  },
-  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "密碼最小長度必須是一個整數且大於或等於{{.MinLength}}同時小於或等於{{.MaxLength}}。"
-  },
-  {
-    "id": "model.config.is_valid.password_length_max_min.app_error",
-    "translation": "密碼最大長度必須大於等於最小長度。"
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
@@ -5131,8 +4459,16 @@
     "translation": "站台網址設定完畢之前無法啟用批次郵件"
   },
   {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "站台名稱至多{{.MaxLength}}個字"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "SQL 設定中的最大連線時間無效，必須為正整數或零。"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -5156,39 +4492,23 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "團隊成員顯示設定值無效。必須為'full_name'、'nickname_full_name'或'username'"
+    "translation": "團隊成員顯示設定值無效。必須為'full_name'、'nickname_full_name' 或 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
     "translation": "使用者輸入更新間隔不應該設定為低於 1000 毫秒。"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "必須設定 WebRTC 閘道管理員密碼。"
+    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "translation": "TLS 憑證檔案的值無效：請用 LetsEncrypt 或是設定為現有憑證檔案的路徑"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTC 閘道管理員網址必須是以 http:// 或 https:// 起始的有效網址。"
+    "id": "model.config.is_valid.tls_key_file.app_error",
+    "translation": "TLS 金鑰檔案的值無效：請用 LetsEncrypt 或是設定為現有金鑰檔案的路徑"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC 閘道 Websocket 網址必須是以 ws:// 或 wss:// 起始的有效網址。"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN URI 必須是以 stun: 的有效 URI。"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "如果已設定 TURN URI，WebRTC TURN 共享金鑰不能為空。"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
-    "translation": "WebRTC TURN URI 必須是以 turn: 的有效 URI。"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "如果已設定 TURN URI，WebRTC TURN 使用者名稱不能為空。"
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "TLS 覆寫加密模式的值無效：請參閱文件查詢有效的值"
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -5207,10 +4527,6 @@
     "translation": "\"新增時間\"必須是一個有效時間"
   },
   {
-    "id": "model.emoji.creator_id.app_error",
-    "translation": "無效的建立者 ID"
-  },
-  {
     "id": "model.emoji.id.app_error",
     "translation": "無效的繪文字 ID"
   },
@@ -5223,8 +4539,96 @@
     "translation": "\"更新時間\"必須是一個有效的時間"
   },
   {
+    "id": "model.emoji.user_id.app_error",
+    "translation": "無效的建立者 ID"
+  },
+  {
     "id": "model.file_info.get.gif.app_error",
     "translation": "無法將 gif 解碼."
+  },
+  {
+    "id": "model.file_info.is_valid.create_at.app_error",
+    "translation": "無效的建立時間"
+  },
+  {
+    "id": "model.file_info.is_valid.id.app_error",
+    "translation": "無效的 ID"
+  },
+  {
+    "id": "model.file_info.is_valid.path.app_error",
+    "translation": "無效的路徑"
+  },
+  {
+    "id": "model.file_info.is_valid.post_id.app_error",
+    "translation": "無效的訊息 ID"
+  },
+  {
+    "id": "model.file_info.is_valid.update_at.app_error",
+    "translation": "無效的更新時間"
+  },
+  {
+    "id": "model.file_info.is_valid.user_id.app_error",
+    "translation": "無效的使用者 ID"
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "無效的群組建立時間"
+  },
+  {
+    "id": "model.group.delete_at.app_error",
+    "translation": "無效的群組刪除時間"
+  },
+  {
+    "id": "model.group.description.app_error",
+    "translation": "無效的群組描述"
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "無效的群組顯示名稱"
+  },
+  {
+    "id": "model.group.id.app_error",
+    "translation": "無效的群組 ID"
+  },
+  {
+    "id": "model.group.name.app_error",
+    "translation": "無效的群組名稱"
+  },
+  {
+    "id": "model.group.remote_id.app_error",
+    "translation": "無效的群組遠端 ID"
+  },
+  {
+    "id": "model.group.source.app_error",
+    "translation": "無效的群組來源"
+  },
+  {
+    "id": "model.group.update_at.app_error",
+    "translation": "無效的群組更新時間"
+  },
+  {
+    "id": "model.group_member.group_id.app_error",
+    "translation": "群組成員的群組 ID 無效"
+  },
+  {
+    "id": "model.group_member.user_id.app_error",
+    "translation": "群組成員的使用者 ID 無效"
+  },
+  {
+    "id": "model.group_syncable.group_id.app_error",
+    "translation": "群組同步資料的群組 ID 無效"
+  },
+  {
+    "id": "model.group_syncable.syncable_id.app_error",
+    "translation": "群組同步資料的同步資料 ID 無效"
+  },
+  {
+    "id": "model.group_syncable.type.app_error",
+    "translation": "無效的群組同步資料類別"
+  },
+  {
+    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
+    "translation": "類別識別碼已存在：或許 JSON 資料同時包含 'team_id' 與 'channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -5249,6 +4653,10 @@
   {
     "id": "model.incoming_hook.id.app_error",
     "translation": "無效的 ID"
+  },
+  {
+    "id": "model.incoming_hook.parse_data.app_error",
+    "translation": "無法解析流入的資料"
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
@@ -5281,6 +4689,38 @@
   {
     "id": "model.job.is_valid.type.app_error",
     "translation": "無效的工作類型"
+  },
+  {
+    "id": "model.license_record.is_valid.create_at.app_error",
+    "translation": "上傳授權時的建立時間無效"
+  },
+  {
+    "id": "model.license_record.is_valid.id.app_error",
+    "translation": "上傳授權時的 ID 無效"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "連結中繼資料不能為 nil"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "連結中繼資料不符給定類別"
+  },
+  {
+    "id": "model.link_metadata.is_valid.id.app_error",
+    "translation": "連結中繼資料 id 無效"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "連結中繼資料時間戳記不能為零且必須捨入至最近的小時"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "無效的連結中繼資料類別"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "必須設定連結中繼資料 URL"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5323,12 +4763,20 @@
     "translation": "\"更新時間\"必須是一個有效的時間"
   },
   {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "無效的圖示"
+  },
+  {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
     "translation": "無效的回呼網址"
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
     "translation": "無效的頻道 ID"
+  },
+  {
+    "id": "model.outgoing_hook.is_valid.content_type.app_error",
+    "translation": "內容類型無效"
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
@@ -5375,20 +4823,16 @@
     "translation": "無效的觸發關鍵字"
   },
   {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "無效的使用者名稱"
+  },
+  {
     "id": "model.plugin_command.error.app_error",
     "translation": "執行此指令時發生錯誤。"
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "無效的鍵值。字元長度必須介於 {{.Min}} 與 {{.Max}} 之間。 "
-  },
-  {
-    "id": "model.plugin_key_value.is_valid.key.app_error",
-    "translation": "無效的鍵值。字元長度必須介於 {{.Min}} 與 {{.Max}} 之間。 "
-  },
-  {
-    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "無效的模組 ID。字元長度必須介於 {{.Min}} 與 {{.Max}} 之間。"
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
@@ -5404,7 +4848,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "無效的檔名 ID"
+    "translation": "無效的檔案 ID。上傳限制至多五個檔案。需要更多檔案時請使用額外的訊息。"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5539,16 +4983,28 @@
     "translation": "無效的 URL 識別碼"
   },
   {
-    "id": "model.team_member.is_valid.role.app_error",
-    "translation": "無效的角色"
-  },
-  {
     "id": "model.team_member.is_valid.team_id.app_error",
     "translation": "無效的團隊 ID"
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "無效的使用者 ID"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "缺少必要的服務條款屬性：建立日期。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "無效的服務條款 ID。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "自訂使用條款文字過長。最多僅允許 {{.MaxLength}} 個字"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "缺少必要的服務條款屬性：使用者 ID。"
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5559,48 +5015,8 @@
     "translation": "無效的 Token。"
   },
   {
-    "id": "model.user.is_valid.auth_data.app_error",
-    "translation": "無效的驗證資料"
-  },
-  {
-    "id": "model.user.is_valid.auth_data_pwd.app_error",
-    "translation": "無效的使用者，密碼與認證資料不能同時被設定"
-  },
-  {
-    "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "無效的使用者，認證資料必須與認證類別一起被設定"
-  },
-  {
-    "id": "model.user.is_valid.create_at.app_error",
-    "translation": "\"新增時間\"必須是一個有效時間"
-  },
-  {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "無效的電子郵件地址"
-  },
-  {
-    "id": "model.user.is_valid.first_name.app_error",
-    "translation": "無效的名字"
-  },
-  {
-    "id": "model.user.is_valid.id.app_error",
-    "translation": "無效的使用者 ID"
-  },
-  {
-    "id": "model.user.is_valid.last_name.app_error",
-    "translation": "無效的姓氏"
-  },
-  {
-    "id": "model.user.is_valid.nickname.app_error",
-    "translation": "無效的暱稱"
-  },
-  {
-    "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "由於 bcrypt 的限制，無法設定超過72字元長度的密碼。"
-  },
-  {
-    "id": "model.user.is_valid.position.app_error",
-    "translation": "無效的位置：不能超過128個字元。"
+    "translation": "請輸入有效的電子郵件位址。"
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -5667,20 +5083,16 @@
     "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母和一個符號(\"~!@#$%^&*()\")。"
   },
   {
-    "id": "model.user.is_valid.team_id.app_error",
-    "translation": "無效的團隊 ID"
-  },
-  {
-    "id": "model.user.is_valid.update_at.app_error",
-    "translation": "\"更新時間\"必須是一個有效的時間"
-  },
-  {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "無效的使用者名稱"
+    "translation": "使用者名稱必須要以小寫英字母開頭，最少 3 個最多 22 個字，只能使用小寫英字母、數字、'.'、'-'跟'_'。"
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
     "translation": "無效的描述，必須少於 255 個字元"
+  },
+  {
+    "id": "model.user_access_token.is_valid.id.app_error",
+    "translation": "無效的 ID"
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
@@ -5691,36 +5103,60 @@
     "translation": "無效的使用者 ID"
   },
   {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "缺少必要的服務條款屬性：建立日期。"
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
+    "translation": "缺少必要的服務條款屬性：使用條款 ID。"
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "缺少必要的服務條款屬性：使用者 ID。"
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "無法解碼"
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "呼叫模組 RPC 時錯誤"
+    "id": "model.websocket_client.connect_fail.app_error",
+    "translation": "無法連線到 WebSocket 伺服器。"
   },
   {
-    "id": "store.sql.alter_column_type.critical",
-    "translation": "更動欄位類型 %v 失敗"
+    "id": "oauth.gitlab.tos.error",
+    "translation": "GitLab 的服務使用條款有更新。請前往 gitlab.com 接受新條款後重新嘗試登入 Mattermost。"
   },
   {
-    "id": "store.sql.check_index.critical",
-    "translation": "檢查索引 %v 失敗"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "無法設定使用者狀態。未知的使用者狀態。"
   },
   {
-    "id": "store.sql.closing.info",
-    "translation": "正在關閉 SqlStore"
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "公開連結已被停用"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "檢查欄位是否存在失敗 %v"
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "無法取得檔案公開連結。檔案必須附加在可以被當前使用者讀取的發文。"
   },
   {
-    "id": "store.sql.column_exists_missing_driver.critical",
-    "translation": "因為找不到驅動，檢查欄位是否存在失敗"
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "缺少 HTML Body。"
   },
   {
-    "id": "store.sql.convert_encrypt_string_map",
-    "translation": "FromDb: 無法將 EncryptStringMap 轉換為 *string"
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "缺少郵件主旨。"
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "缺少收件人位址。"
+  },
+  {
+    "id": "store.insert_error",
+    "translation": "插入失敗"
+  },
+  {
+    "id": "store.select_error",
+    "translation": "選取失敗"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5733,98 +5169,6 @@
   {
     "id": "store.sql.convert_string_map",
     "translation": "FromDb: 無法將 StringMap 轉換為 *string"
-  },
-  {
-    "id": "store.sql.create_column.critical",
-    "translation": "建立欄位 %v 失敗"
-  },
-  {
-    "id": "store.sql.create_column_missing_driver.critical",
-    "translation": "因為找不到驅動，建立欄位失敗"
-  },
-  {
-    "id": "store.sql.create_index.critical",
-    "translation": "建立索引 %v 失敗"
-  },
-  {
-    "id": "store.sql.create_index_missing_driver.critical",
-    "translation": "因為找不到驅動，建立索引失敗"
-  },
-  {
-    "id": "store.sql.creating_tables.critical",
-    "translation": "建立資料表時遇到錯誤: %v"
-  },
-  {
-    "id": "store.sql.dialect_driver.critical",
-    "translation": "建立 SQL 方言專屬驅動失敗"
-  },
-  {
-    "id": "store.sql.dialect_driver.panic",
-    "translation": "建立 SQL 方言專屬驅動 %v 失敗"
-  },
-  {
-    "id": "store.sql.incorrect_mac",
-    "translation": "密文對應的 MAC 不正確"
-  },
-  {
-    "id": "store.sql.maxlength_column.critical",
-    "translation": "取得欄位 %v 最大長度失敗"
-  },
-  {
-    "id": "store.sql.open_conn.critical",
-    "translation": "開啟 SQL 連線失敗 err:%v"
-  },
-  {
-    "id": "store.sql.open_conn.panic",
-    "translation": "開啟 SQL 連線失敗 %v"
-  },
-  {
-    "id": "store.sql.read_replicas_not_licensed.critical",
-    "translation": "目前授權不支援超過一個以上的讀取用複製機，請聯繫系統管理員升級到企業授權。"
-  },
-  {
-    "id": "store.sql.remove_index.critical",
-    "translation": "移除索引 %v 失敗"
-  },
-  {
-    "id": "store.sql.rename_column.critical",
-    "translation": "更名欄位 %v 失敗"
-  },
-  {
-    "id": "store.sql.schema_out_of_date.warn",
-    "translation": "%v 的資料庫結構描述版本似乎過期了"
-  },
-  {
-    "id": "store.sql.schema_set.info",
-    "translation": "資料庫結構描述已被設定為版本 %v"
-  },
-  {
-    "id": "store.sql.schema_upgrade_attempt.warn",
-    "translation": "正在嘗試將資料庫結構描述版本升級至 %v"
-  },
-  {
-    "id": "store.sql.schema_version.critical",
-    "translation": "不再支援資料庫結構版本 %v。此 Mattermost 伺服器對於結構版本 %v 到 %v 之間支援自動升級。不支援降級。在繼續之前請手動升級版本至最少為 %v 。"
-  },
-  {
-    "id": "store.sql.short_ciphertext",
-    "translation": "短密文"
-  },
-  {
-    "id": "store.sql.table_column_type.critical",
-    "translation": "取得資料類型失敗，欄位 %s 資料表 %s : %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "檢查資料表是否存在失敗 %v"
-  },
-  {
-    "id": "store.sql.too_short_ciphertext",
-    "translation": "密文太短"
-  },
-  {
-    "id": "store.sql.upgraded.warn",
-    "translation": "資料庫結構描述已被升級至版本 %v"
   },
   {
     "id": "store.sql_audit.get.finding.app_error",
@@ -5847,6 +5191,34 @@
     "translation": "儲存稽核紀錄時遇到錯誤"
   },
   {
+    "id": "store.sql_bot.delete.app_error",
+    "translation": "無法刪除訊息"
+  },
+  {
+    "id": "store.sql_bot.get.app_error",
+    "translation": "無法取得訊息"
+  },
+  {
+    "id": "store.sql_bot.get.missing.app_error",
+    "translation": "Bot does not exist"
+  },
+  {
+    "id": "store.sql_bot.get_all.app_error",
+    "translation": "無法取得訊息"
+  },
+  {
+    "id": "store.sql_bot.save.app_error",
+    "translation": "無法儲存訊息"
+  },
+  {
+    "id": "store.sql_bot.update.app_error",
+    "translation": "無法更新訊息"
+  },
+  {
+    "id": "store.sql_bot.update.updating.app_error",
+    "translation": "更新應用程式時遇到錯誤"
+  },
+  {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
     "translation": "無法取得已刪除的頻道類別數量"
   },
@@ -5855,24 +5227,28 @@
     "translation": "無法取得頻道類別數量"
   },
   {
-    "id": "store.sql_channel.check_open_channel_permissions.app_error",
-    "translation": "無法檢查權限"
+    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
+    "translation": "認可資料庫交易時失敗"
   },
   {
-    "id": "store.sql_channel.check_permissions.app_error",
-    "translation": "無法檢查權限"
+    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
+    "translation": "開啟資料庫交易時失敗"
   },
   {
-    "id": "store.sql_channel.check_permissions_by_name.app_error",
-    "translation": "無法檢查權限"
+    "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
+    "translation": "復原資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "取得頻道成員時失敗"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
+    "translation": "更新頻道成員時失敗"
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "無法刪除頻道"
-  },
-  {
-    "id": "store.sql_channel.extra_updated.app_error",
-    "translation": "更新成員的最後更新時間時遇到問題"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
@@ -5884,7 +5260,7 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "無法取得所有的頻道"
+    "translation": "無法取得頻道"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -5895,12 +5271,16 @@
     "translation": "頻道不存在"
   },
   {
+    "id": "store.sql_channel.get_by_scheme.app_error",
+    "translation": "無法取得提供的配置當中的頻道"
+  },
+  {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "無法取得頻道數"
+    "translation": "無法取得頻道類別數量"
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "無法取得這些頻道"
+    "translation": "無法取得頻道"
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
@@ -5915,6 +5295,14 @@
     "translation": "找不到頻道"
   },
   {
+    "id": "store.sql_channel.get_deleted.existing.app_error",
+    "translation": "找不到現有的已刪除頻道"
+  },
+  {
+    "id": "store.sql_channel.get_deleted.missing.app_error",
+    "translation": "沒有已刪除的頻道"
+  },
+  {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
     "translation": "找不到現有的已刪除頻道"
   },
@@ -5923,16 +5311,12 @@
     "translation": "沒有該名字的已刪除頻道"
   },
   {
-    "id": "store.sql_channel.get_extra_members.app_error",
-    "translation": "無法取得頻道成員的更多資訊"
-  },
-  {
     "id": "store.sql_channel.get_for_post.app_error",
     "translation": "無法取得此發文的頻道"
   },
   {
     "id": "store.sql_channel.get_member.app_error",
-    "translation": "無法取得頻道的成員"
+    "translation": "無法取得頻道成員"
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
@@ -5956,11 +5340,15 @@
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "無法取得這些頻道"
+    "translation": "無法取得頻道"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
     "translation": "無法取得公開頻道"
+  },
+  {
+    "id": "store.sql_channel.get_timezone.app_error",
+    "translation": "無法取得頻道成員時區"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -5968,15 +5356,59 @@
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "無法遞增提及計數"
+    "translation": "無法增加提及的計數"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
+    "translation": "認可資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
+    "translation": "開啟資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
+    "translation": "復原資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.select.app_error",
+    "translation": "批次選取頻道成員時失敗"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.update.app_error",
+    "translation": "更新頻道成員時失敗"
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
     "translation": "無法刪除頻道"
   },
   {
+    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
+    "translation": "無法提交交易"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
+    "translation": "無法刪除已實體化的公開頻道"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
+    "translation": "無法開啟交易"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "無法刪除這些頻道"
+    "translation": "無法刪除頻道"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
+    "translation": "無法提交交易"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
+    "translation": "無法刪除已實體化的公開頻道"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
+    "translation": "無法開啟交易"
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
@@ -5984,11 +5416,43 @@
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "無法找尋被釘選的訊息"
+    "translation": "找不到被釘選的訊息"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "無法將已被停用的使用者從頻道中移除"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
     "translation": "無法移除頻道成員"
+  },
+  {
+    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
+    "translation": "無法重置頻道配置"
+  },
+  {
+    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
+    "translation": "無法提交交易"
+  },
+  {
+    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
+    "translation": "無法開啟交易"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "無法重設頻道最新發文的時間"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
+    "translation": "無法提交交易"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
+    "translation": "無法開啟交易"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "不能修改已封存的頻道"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -6001,6 +5465,10 @@
   {
     "id": "store.sql_channel.save.open_transaction.app_error",
     "translation": "無法開啟交易"
+  },
+  {
+    "id": "store.sql_channel.save.upsert_public_channel.app_error",
+    "translation": "無法新增/更新已實體化的公開頻道"
   },
   {
     "id": "store.sql_channel.save_channel.current_count.app_error",
@@ -6063,16 +5531,36 @@
     "translation": "搜尋頻道時遇到錯誤"
   },
   {
-    "id": "store.sql_channel.set_last_viewed_at.app_error",
-    "translation": "無法更新最後瀏覽時間"
+    "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
+    "translation": "無法提交交易"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
+    "translation": "無法開啟交易"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
+    "translation": "無法更新已實體化的公開頻道"
   },
   {
     "id": "store.sql_channel.update.app_error",
-    "translation": "無法更新頻道"
+    "translation": "更新頻道時失敗"
+  },
+  {
+    "id": "store.sql_channel.update.archived_channel.app_error",
+    "translation": "不能修改已封存的頻道"
+  },
+  {
+    "id": "store.sql_channel.update.commit_transaction.app_error",
+    "translation": "無法提交交易"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
     "translation": "該識別名已經被其他頻道使用"
+  },
+  {
+    "id": "store.sql_channel.update.open_transaction.app_error",
+    "translation": "無法開啟交易"
   },
   {
     "id": "store.sql_channel.update.previously.app_error",
@@ -6083,20 +5571,16 @@
     "translation": "更新頻道時遇到錯誤"
   },
   {
+    "id": "store.sql_channel.update.upsert_public_channel.app_error",
+    "translation": "無法新增/更新已實體化的公開頻道"
+  },
+  {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "無法更新最後瀏覽時間"
   },
   {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "更新頻道成員時遇到錯誤"
-  },
-  {
-    "id": "store.sql_channel_member_history.get_all.app_error",
-    "translation": "無法取得紀錄"
-  },
-  {
-    "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
-    "translation": "無法取得特定時間時在頻道的使用者"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
@@ -6107,10 +5591,6 @@
     "translation": "無法紀錄頻道成員歷史"
   },
   {
-    "id": "store.sql_channel_member_history.log_leave_event.select_error",
-    "translation": "無法紀錄頻道成員歷史。找不到現存的加入紀錄"
-  },
-  {
     "id": "store.sql_channel_member_history.log_leave_event.update_error",
     "translation": "無法紀錄頻道成員歷史。無法更新現存的加入紀錄"
   },
@@ -6119,32 +5599,56 @@
     "translation": "無法清除紀錄"
   },
   {
+    "id": "store.sql_cluster_discovery.cleanup.app_error",
+    "translation": "儲存 ClusterDiscovery 資料列失敗"
+  },
+  {
+    "id": "store.sql_cluster_discovery.delete.app_error",
+    "translation": "刪除失敗"
+  },
+  {
+    "id": "store.sql_cluster_discovery.exists.app_error",
+    "translation": "檢查資料表是否存在失敗"
+  },
+  {
+    "id": "store.sql_cluster_discovery.get_all.app_error",
+    "translation": "取得所有探索資料列失敗"
+  },
+  {
+    "id": "store.sql_cluster_discovery.save.app_error",
+    "translation": "儲存 ClusterDiscovery 資料列失敗"
+  },
+  {
+    "id": "store.sql_cluster_discovery.set_last_ping.app_error",
+    "translation": "更新最後偵測時間失敗"
+  },
+  {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "無法計算命令數量"
+    "translation": "無法計算指令數量"
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "無法取得命令"
+    "translation": "無法取得指令"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
-    "translation": "無法刪除命令"
+    "translation": "無法刪除指令"
   },
   {
     "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "無法刪除命令"
+    "translation": "無法刪除指令"
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "無法取得命令"
+    "translation": "無法取得指令"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "無法取得命令"
+    "translation": "無法取得指令"
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "無法儲存命令"
+    "translation": "無法儲存指令"
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -6152,7 +5656,7 @@
   },
   {
     "id": "store.sql_command.save.update.app_error",
-    "translation": "無法更新命令"
+    "translation": "無法更新指令"
   },
   {
     "id": "store.sql_command_webhooks.get.app_error",
@@ -6160,7 +5664,7 @@
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "無法儲存命令 Webhook"
+    "translation": "無法儲存指令 Webhook"
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
@@ -6211,12 +5715,16 @@
     "translation": "無法儲存繪文字"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "無法刪除使用者的附件檔案"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "無法添加檔案訊息到發文上"
+    "translation": "無法添加檔案訊息到訊息上"
   },
   {
     "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "無法從發文刪除檔案訊息"
+    "translation": "無法刪除訊息的檔案訊息"
   },
   {
     "id": "store.sql_file_info.get.app_error",
@@ -6228,7 +5736,11 @@
   },
   {
     "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "無法取得發文的檔案訊息"
+    "translation": "無法取得訊息的檔案訊息"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
+    "translation": "無法取得使用者的檔案訊息"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -6243,8 +5755,28 @@
     "translation": "無法儲存檔案訊息"
   },
   {
-    "id": "store.sql_file_info.save_or_update.app_error",
-    "translation": "無法儲存或更新檔案訊息"
+    "id": "store.sql_group.group_syncable_already_deleted",
+    "translation": "群組同步資料已被刪除"
+  },
+  {
+    "id": "store.sql_group.no_rows",
+    "translation": "找不到對應的群組"
+  },
+  {
+    "id": "store.sql_group.no_rows_changed",
+    "translation": "沒有資料列被變更"
+  },
+  {
+    "id": "store.sql_group.nothing_to_update",
+    "translation": "群組同步資料不需要更新"
+  },
+  {
+    "id": "store.sql_group.unique_constraint",
+    "translation": "已經存在相同名稱的團隊"
+  },
+  {
+    "id": "store.sql_group.uniqueness_error",
+    "translation": "群組成員已存在"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -6259,7 +5791,7 @@
     "translation": "無法取得工作"
   },
   {
-    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "id": "store.sql_job.get_count_by_status_and_type.app_error",
     "translation": "無法根據狀態與類型取得工作數量"
   },
   {
@@ -6320,7 +5852,7 @@
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "找不到任何已存在的應用程式"
+    "translation": "找不到已存在的應用程式"
   },
   {
     "id": "store.sql_oauth.get_apps.find.app_error",
@@ -6328,7 +5860,7 @@
   },
   {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
-    "translation": "找不到授權碼"
+    "translation": "找不到已存在的授權碼"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
@@ -6344,7 +5876,7 @@
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "無法移除存取 Token"
+    "translation": "無法儲存存取 Token"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
@@ -6352,7 +5884,7 @@
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "無法儲存存取 Token。"
+    "translation": "無法儲存存取 Token"
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
@@ -6360,7 +5892,7 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "無法儲存應用程式。"
+    "translation": "無法儲存應用程式"
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
@@ -6399,20 +5931,20 @@
     "translation": "無法儲存或更新模組鍵值"
   },
   {
-    "id": "store.sql_plugin_store.save_unique.app_error",
-    "translation": "由於唯一性限制，無法儲存或更新模組鍵值"
-  },
-  {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "無法取得訊息數量"
+    "translation": "無法取得訊息計數"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "無法取得以日期為依據的訊息計數"
+    "translation": "無法取得每日訊息計數"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "無法取得訊息的使用者數量"
+    "translation": "無法取得使用者訊息計數"
+  },
+  {
+    "id": "store.sql_post.compliance_export.app_error",
+    "translation": "無法取得合規匯出訊息。"
   },
   {
     "id": "store.sql_post.delete.app_error",
@@ -6421,6 +5953,10 @@
   {
     "id": "store.sql_post.get.app_error",
     "translation": "無法取得訊息"
+  },
+  {
+    "id": "store.sql_post.get_flagged_posts.app_error",
+    "translation": "無法新增被標記的訊息"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -6475,10 +6011,6 @@
     "translation": "永久批次刪除訊息時遇到錯誤"
   },
   {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "永久批次刪除訊息時遇到錯誤"
-  },
-  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "無法根據頻道刪除訊息"
   },
@@ -6489,18 +6021,6 @@
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
     "translation": "無法選擇該使用者的訊息以刪除 (數量太多)，請重新執行"
-  },
-  {
-    "id": "store.sql_post.query_max_post_size.error",
-    "translation": "無法判定最大支援的訊息大小"
-  },
-  {
-    "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message 支援最多 %d 字元 (%d 位元)"
-  },
-  {
-    "id": "store.sql_post.query_max_post_size.unrecognized_driver",
-    "translation": "找不到實作以判定最大支援的訊息大小"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -6515,10 +6035,6 @@
     "translation": "此伺服器已停用搜尋功能。請向系統管理員聯繫。"
   },
   {
-    "id": "store.sql_post.search.warn",
-    "translation": "搜尋訊息查詢錯誤：%v"
-  },
-  {
     "id": "store.sql_post.update.app_error",
     "translation": "無法更新訊息"
   },
@@ -6529,10 +6045,6 @@
   {
     "id": "store.sql_preference.delete.app_error",
     "translation": "刪除偏好設定時遇到錯誤"
-  },
-  {
-    "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "正在刪除所有沒有使用的預先發佈功能"
   },
   {
     "id": "store.sql_preference.get.app_error",
@@ -6552,7 +6064,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "無法儲存偏好設定"
+    "translation": "無法儲存偏好"
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
@@ -6584,7 +6096,15 @@
   },
   {
     "id": "store.sql_preference.update.app_error",
-    "translation": "無法更新偏好設定"
+    "translation": "無法更新偏好"
+  },
+  {
+    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
+    "translation": "無法取得對於文章的互動"
+  },
+  {
+    "id": "store.sql_reaction.delete.app_error",
+    "translation": "無法刪除互動"
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
@@ -6595,20 +6115,12 @@
     "translation": "刪除互動時無法交付交易"
   },
   {
-    "id": "store.sql_reaction.delete.save.app_error",
-    "translation": "無法刪除互動"
+    "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
+    "translation": "無法刪除此繪文字名稱的互動"
   },
   {
-    "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
-    "translation": "無法刪除指定繪文字名稱的互動"
-  },
-  {
-    "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
-    "translation": "無法取得指定繪文字名稱的互動"
-  },
-  {
-    "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
-    "translation": "刪除互動時無法更新 Post.HasReactions：post_id=%v, error=%v"
+    "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
+    "translation": "無法取得此繪文字名稱的互動"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
@@ -6631,6 +6143,22 @@
     "translation": "無法儲存互動"
   },
   {
+    "id": "store.sql_recover.delete.app_error",
+    "translation": "無法刪除 Token"
+  },
+  {
+    "id": "store.sql_recover.get_by_code.app_error",
+    "translation": "無法根據此代碼取得 Token"
+  },
+  {
+    "id": "store.sql_recover.save.app_error",
+    "translation": "無法儲存 Token"
+  },
+  {
+    "id": "store.sql_role.delete.update.app_error",
+    "translation": "無法刪除角色"
+  },
+  {
     "id": "store.sql_role.get.app_error",
     "translation": "無法取得角色"
   },
@@ -6643,6 +6171,10 @@
     "translation": "無法取得角色"
   },
   {
+    "id": "store.sql_role.permanent_delete_all.app_error",
+    "translation": "無法永久刪除所有的角色"
+  },
+  {
     "id": "store.sql_role.save.insert.app_error",
     "translation": "無法儲存新角色"
   },
@@ -6651,16 +6183,68 @@
     "translation": "該角色無效"
   },
   {
+    "id": "store.sql_role.save.open_transaction.app_error",
+    "translation": "開啟交易以儲存角色時失敗"
+  },
+  {
     "id": "store.sql_role.save.update.app_error",
     "translation": "無法更新角色"
   },
   {
-    "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "無法計算有多少工作階段"
+    "id": "store.sql_role.save_role.commit_transaction.app_error",
+    "translation": "認可交易以儲存角色時失敗"
   },
   {
-    "id": "store.sql_session.cleanup_expired_sessions.app_error",
-    "translation": "刪除過期的使用者工作階段時遇到錯誤"
+    "id": "store.sql_scheme.delete.role_update.app_error",
+    "translation": "無法刪除屬於此配置的角色"
+  },
+  {
+    "id": "store.sql_scheme.delete.update.app_error",
+    "translation": "無法刪除配置"
+  },
+  {
+    "id": "store.sql_scheme.get.app_error",
+    "translation": "無法取得配置"
+  },
+  {
+    "id": "store.sql_scheme.permanent_delete_all.app_error",
+    "translation": "無法永久刪除配置"
+  },
+  {
+    "id": "store.sql_scheme.reset_channels.app_error",
+    "translation": "無法將使用此配置的所有頻道重置成預設配置"
+  },
+  {
+    "id": "store.sql_scheme.reset_teams.app_error",
+    "translation": "無法將使用此配置的所有團隊重置成預設配置"
+  },
+  {
+    "id": "store.sql_scheme.save.insert.app_error",
+    "translation": "無法建立配置"
+  },
+  {
+    "id": "store.sql_scheme.save.invalid_scheme.app_error",
+    "translation": "提供的配置無效"
+  },
+  {
+    "id": "store.sql_scheme.save.open_transaction.app_error",
+    "translation": "開啟交易以儲存配置時失敗"
+  },
+  {
+    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
+    "translation": "無法取得預設配置角色"
+  },
+  {
+    "id": "store.sql_scheme.save.update.app_error",
+    "translation": "無法更新配置"
+  },
+  {
+    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
+    "translation": "認可交易以儲存配置時失敗"
+  },
+  {
+    "id": "store.sql_session.analytics_session_count.app_error",
+    "translation": "無法計算工作階段數量"
   },
   {
     "id": "store.sql_session.get.app_error",
@@ -6669,10 +6253,6 @@
   {
     "id": "store.sql_session.get_sessions.app_error",
     "translation": "尋找使用者工作階段時遇到錯誤"
-  },
-  {
-    "id": "store.sql_session.get_sessions.error",
-    "translation": "於 getSessions 清除工作階段失敗 err=%v"
   },
   {
     "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
@@ -6691,10 +6271,6 @@
     "translation": "無法儲存工作階段"
   },
   {
-    "id": "store.sql_session.save.cleanup.error",
-    "translation": "儲存過程中清理工作階段失敗 err=%v"
-  },
-  {
     "id": "store.sql_session.save.existing.app_error",
     "translation": "無法更新已存在的工作階段"
   },
@@ -6704,7 +6280,7 @@
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "無法更新 last_activity_at"
+    "translation": "無法更新最新活動時間"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
@@ -6747,16 +6323,20 @@
     "translation": "更新狀態時遇到錯誤"
   },
   {
+    "id": "store.sql_status.update_last_activity_at.app_error",
+    "translation": "無法更新使用者的最後活動時間"
+  },
+  {
     "id": "store.sql_system.get.app_error",
     "translation": "尋找系統參數時遇到錯誤"
   },
   {
     "id": "store.sql_system.get_by_name.app_error",
-    "translation": "找不到該系統參數。"
+    "translation": "找不到系統變數"
   },
   {
-    "id": "store.sql_system.get_version.app_error",
-    "translation": "無法取得資料庫版本"
+    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "translation": "無法永久刪除系統表單當中的項目"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -6767,12 +6347,36 @@
     "translation": "更新系統參數時遇到錯誤"
   },
   {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "無法取得配置的頻道數量。"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "無法計算團隊數"
+    "translation": "無法計算團隊數量"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
+    "translation": "認可資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
+    "translation": "開啟資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
+    "translation": "復原資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "取得團隊成員時失敗"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
+    "translation": "更新團隊成員時失敗"
   },
   {
     "id": "store.sql_team.get.find.app_error",
-    "translation": "找不到已存在的團隊"
+    "translation": "找不到已存在的團隊來更新"
   },
   {
     "id": "store.sql_team.get.finding.app_error",
@@ -6788,15 +6392,19 @@
   },
   {
     "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "找不到已存在的團隊"
+    "translation": "找不到已存在的團隊來更新"
   },
   {
     "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "找不到已存在的團隊"
+    "translation": "找不到已存在的團隊來更新"
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
-    "translation": "找不到已存在的團隊"
+    "translation": "找不到已存在的團隊來更新"
+  },
+  {
+    "id": "store.sql_team.get_by_scheme.app_error",
+    "translation": "無法取得提供的配置當中的頻道"
   },
   {
     "id": "store.sql_team.get_member.app_error",
@@ -6819,12 +6427,28 @@
     "translation": "無法取得團隊成員"
   },
   {
-    "id": "store.sql_team.get_teams_for_email.app_error",
-    "translation": "查詢團隊時遇到錯誤"
-  },
-  {
     "id": "store.sql_team.get_unread.app_error",
     "translation": "無法取得團隊未讀訊息"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
+    "translation": "認可資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
+    "translation": "開啟資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
+    "translation": "復原資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.select.app_error",
+    "translation": " 批次選取頻道成員時失敗"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.update.app_error",
+    "translation": "更新團隊成員時失敗"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
@@ -6833,6 +6457,10 @@
   {
     "id": "store.sql_team.remove_member.app_error",
     "translation": "無法移除團隊成員"
+  },
+  {
+    "id": "store.sql_team.reset_all_team_schemes.app_error",
+    "translation": "無法重置團隊配置"
   },
   {
     "id": "store.sql_team.save.app_error",
@@ -6852,7 +6480,7 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "無法儲存該團隊成員"
+    "translation": "無法儲存團隊成員"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
@@ -6883,24 +6511,68 @@
     "translation": "無法更新團隊名稱"
   },
   {
+    "id": "store.sql_team.update_last_team_icon_update.app_error",
+    "translation": "無法更新最後一次團隊圖示更新的日期"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "無法儲存使用條款"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "無法取得使用條款"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "找不到使用條款"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "不能對現有的使用條款呼叫儲存"
+  },
+  {
+    "id": "store.sql_user.analytics_daily_active_users.app_error",
+    "translation": "在要求的時間範圍內無法取得活躍使用者清單"
+  },
+  {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
     "translation": "無法計算非活躍使用者的數量"
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "無法計算系統管理員的數量"
+    "translation": "無法取得系統管理員計數"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "無法取得不重複的帳戶數量"
+    "translation": "無法取得使用者計數"
+  },
+  {
+    "id": "store.sql_user.app_error",
+    "translation": "Failed to build query"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
+    "translation": "認可資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
+    "translation": "開啟資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
+    "translation": "復原資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
+    "translation": "無法取得使用者"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
+    "translation": "無法更新使用者"
   },
   {
     "id": "store.sql_user.get.app_error",
     "translation": "尋找帳號時遇到錯誤"
-  },
-  {
-    "id": "store.sql_user.get_all_using_auth_service.other.app_error",
-    "translation": "尋找全部使用特定認證方式的帳號時遇到錯誤。"
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
@@ -6939,6 +6611,10 @@
     "translation": "尋找使用者資訊時遇到錯誤"
   },
   {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "無法根據第一個使用者建立的日期推斷系統日期。"
+  },
+  {
     "id": "store.sql_user.get_total_users_count.app_error",
     "translation": "無法計算使用者數量"
   },
@@ -6951,20 +6627,16 @@
     "translation": "無法取得使用者跟頻道的未讀訊息數量"
   },
   {
-    "id": "store.sql_user.migrate_theme.critical",
-    "translation": "轉移 User.ThemeProps 到偏好設定表格 %v 時失敗"
-  },
-  {
     "id": "store.sql_user.missing_account.const",
-    "translation": "找不到使用者"
+    "translation": "找不到使用者。"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "無法刪除已存在的帳戶"
+    "translation": "無法刪除已存在的帳號"
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "無法儲存帳號."
+    "translation": "無法儲存帳號"
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -7003,8 +6675,12 @@
     "translation": "有帳號已經使用這個使用者名稱，請聯繫系統管理員。"
   },
   {
+    "id": "store.sql_user.search.app_error",
+    "translation": "無法找到與搜尋條件相符的使用者"
+  },
+  {
     "id": "store.sql_user.update.app_error",
-    "translation": "無法更新這個帳號"
+    "translation": "無法更新帳號"
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
@@ -7040,19 +6716,11 @@
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "無法更新 failed_attempts"
-  },
-  {
-    "id": "store.sql_user.update_last_activity.app_error",
-    "translation": "無法更新 last_activity_at"
+    "translation": "無法更新失敗嘗試"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "無法更新 update_at"
-  },
-  {
-    "id": "store.sql_user.update_last_ping.app_error",
-    "translation": "無法更新 last_ping_at"
+    "translation": "無法更新更新時間"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -7065,6 +6733,10 @@
   {
     "id": "store.sql_user.update_password.app_error",
     "translation": "無法更新使用者密碼"
+  },
+  {
+    "id": "store.sql_user.update_update.app_error",
+    "translation": "無法更新最後一次使用者更新的日期"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -7099,12 +6771,36 @@
     "translation": "尋找存取 Token 時遇到錯誤"
   },
   {
+    "id": "store.sql_user_access_token.update_token_disable.app_error",
+    "translation": "無法停用存取 Token"
+  },
+  {
+    "id": "store.sql_user_access_token.update_token_enable.app_error",
+    "translation": "無法啟用存取 Token"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "無法刪除使用條款"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "無法取得使用條款"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "找不到使用條款"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "無法儲存使用條款"
+  },
+  {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "無法計算傳入的 Webhook"
+    "translation": "無法計算內送 Webhook 數量"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "無法計算傳出的 Webhook"
+    "translation": "無法計算外寄 Webhook 數量"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
@@ -7156,27 +6852,31 @@
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "無法儲存傳入的 Webhook"
+    "translation": "無法儲存內送 Webhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
-    "translation": "無法覆蓋一個已存在的傳入的 Webhook"
+    "translation": "無法覆蓋一個已存在的內送 Webhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "無法儲存傳出的 Webhook"
+    "translation": "無法儲存外寄 Webhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
-    "translation": "無法複蓋一個已存在的傳出的 Webhook"
+    "translation": "無法複蓋一個已存在的外寄 Webhook"
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "無法更新傳入的 Webhook"
+    "translation": "無法更新內送 Webhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "無法更新 Webhook"
+  },
+  {
+    "id": "store.update_error",
+    "translation": "更新失敗"
   },
   {
     "id": "system.message.name",
@@ -7191,16 +6891,8 @@
     "translation": "解碼設定時遇到錯誤 file={{.Filename}}, err={{.Error}}"
   },
   {
-    "id": "utils.config.load_config.getting.panic",
-    "translation": "取得設定資訊時遇到錯誤 file={{.Filename}}, err={{.Error}}"
-  },
-  {
     "id": "utils.config.load_config.opening.panic",
     "translation": "開啟設定時遇到錯誤 file={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.load_config.validating.panic",
-    "translation": "驗證設定時遇到錯誤 file={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "utils.config.save_config.saving.app_error",
@@ -7219,28 +6911,12 @@
     "translation": "無法讀取 Mattermost 設定檔：  DefaultServerLocale 必須為支援的語系。設定 DefaultServerLocale 為 en 當作預設值。"
   },
   {
-    "id": "utils.config.validate_locale.app_error",
-    "translation": "無法讀入 Mattermost 設定檔： AvaiableLocales 必須為包含 DefaultClientLocale"
-  },
-  {
-    "id": "utils.diagnostic.analytics_not_found.app_error",
-    "translation": "分析尚未初始化"
-  },
-  {
-    "id": "utils.file.list_directory.configured.app_error",
-    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地伺服器檔案儲存空間。"
-  },
-  {
     "id": "utils.file.list_directory.local.app_error",
     "translation": "從本地伺服器儲存空間表列目錄時遇到錯誤"
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
     "translation": "從 S3 表列目錄時遇到錯誤"
-  },
-  {
-    "id": "utils.file.remove_directory.configured.app_error",
-    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
   },
   {
     "id": "utils.file.remove_directory.local.app_error",
@@ -7251,48 +6927,12 @@
     "translation": "從 S3 刪除目錄時遇到錯誤"
   },
   {
-    "id": "utils.file.remove_file.configured.app_error",
-    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
-  },
-  {
     "id": "utils.file.remove_file.local.app_error",
     "translation": "從本地儲存刪除檔案時遇到錯誤"
   },
   {
     "id": "utils.file.remove_file.s3.app_error",
     "translation": "從 S3 刪除檔案時遇到錯誤"
-  },
-  {
-    "id": "utils.i18n.loaded",
-    "translation": "已載入系統翻譯 '%v' 來自 '%v'"
-  },
-  {
-    "id": "utils.iru.with_evict",
-    "translation": "必須提供正數的大小"
-  },
-  {
-    "id": "utils.license.load_license.invalid.warn",
-    "translation": "找不到有效的企業版授權"
-  },
-  {
-    "id": "utils.license.remove_license.unable.error",
-    "translation": "無法移除授權檔案, err=%v"
-  },
-  {
-    "id": "utils.license.validate_license.decode.error",
-    "translation": "解碼授權時遇到錯誤, err=%v"
-  },
-  {
-    "id": "utils.license.validate_license.invalid.error",
-    "translation": "無效的簽章, err=%v"
-  },
-  {
-    "id": "utils.license.validate_license.not_long.error",
-    "translation": "簽章授權長度不夠"
-  },
-  {
-    "id": "utils.license.validate_license.signing.error",
-    "translation": "簽章授權時遇到錯誤, err=%v"
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
@@ -7311,14 +6951,6 @@
     "translation": "SMTP 伺服器驗證失敗"
   },
   {
-    "id": "utils.mail.new_client.helo.error",
-    "translation": "對 SMTP 伺服器 %v 設定 HELO時失敗"
-  },
-  {
-    "id": "utils.mail.new_client.open.error",
-    "translation": "開啟對 SMTP 伺服器 %v 的連線時失敗"
-  },
-  {
     "id": "utils.mail.sendMail.attachments.write_error",
     "translation": "無法寫入附加檔案到電子郵件"
   },
@@ -7328,7 +6960,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "缺少通知信寄件人地址設定或是該設定無效。"
+    "translation": "無法設定寄件人地址"
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7339,40 +6971,8 @@
     "translation": "新增電子郵件訊息失敗"
   },
   {
-    "id": "utils.mail.send_mail.sending.debug",
-    "translation": "發送電子郵件到 %v 標題為 '%v'"
-  },
-  {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "缺少通知信收件人地址設定或是該設定無效。"
-  },
-  {
-    "id": "utils.mail.test.configured.error",
-    "translation": "SMTP 伺服器並未設定正確 err=%v details=%v"
-  },
-  {
-    "id": "utils.mail.test.configured.error",
-    "translation": "SMTP 伺服器並未設定正確 err=%v details=%v"
-  },
-  {
-    "id": "web.admin_console.title",
-    "translation": "管理控制台"
-  },
-  {
-    "id": "web.authorize_oauth.title",
-    "translation": "授權應用程式"
-  },
-  {
-    "id": "web.claim_account.team.error",
-    "translation": "找不到團隊 name=%v, err=%v"
-  },
-  {
-    "id": "web.claim_account.title",
-    "translation": "宣告帳戶"
-  },
-  {
-    "id": "web.claim_account.user.error",
-    "translation": "找不到使用者 teamid=%v, email=%v, err=%v"
+    "translation": "無法設定收件人地址"
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -7387,42 +6987,6 @@
     "translation": "無法解析流入的資料"
   },
   {
-    "id": "web.create_dir.error",
-    "translation": "建立目錄監控 %v 失敗"
-  },
-  {
-    "id": "web.do_load_channel.error",
-    "translation": "取得使用者 id=%v 資訊時遇到錯誤，強制登出"
-  },
-  {
-    "id": "web.doc.title",
-    "translation": "文件"
-  },
-  {
-    "id": "web.email_verified.title",
-    "translation": "電子郵件地址已驗證"
-  },
-  {
-    "id": "web.error.unsupported_browser.help1",
-    "translation": "Google Chrome 43+"
-  },
-  {
-    "id": "web.error.unsupported_browser.help2",
-    "translation": "Mozilla Firefox 52+"
-  },
-  {
-    "id": "web.error.unsupported_browser.help3",
-    "translation": "Microsoft Internet Explorer 11+"
-  },
-  {
-    "id": "web.error.unsupported_browser.help4",
-    "translation": "Microsoft Edge 40+"
-  },
-  {
-    "id": "web.error.unsupported_browser.help5",
-    "translation": "Apple Safari 9+"
-  },
-  {
     "id": "web.error.unsupported_browser.message",
     "translation": "當前的瀏覽器不被支援。請升級至下列瀏覽器之一："
   },
@@ -7431,20 +6995,20 @@
     "translation": "不支援的瀏覽器"
   },
   {
-    "id": "web.find_team.title",
-    "translation": "尋找團隊"
-  },
-  {
-    "id": "web.header.back",
-    "translation": "回上一步"
+    "id": "web.get_access_token.internal_saving.app_error",
+    "translation": "無法更新使用者存取紀錄"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "找不到頻道"
   },
   {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "此 Webhook 不被允許發布消息至指定的頻道"
+  },
+  {
     "id": "web.incoming_webhook.disabled.app_error",
-    "translation": "傳入的 Webhook已被系統管理員停用"
+    "translation": "內送 Webhook已被系統管理員停用"
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
@@ -7467,99 +7031,7 @@
     "translation": "沒有指定文字"
   },
   {
-    "id": "web.incoming_webhook.text.length.app_error",
-    "translation": "文字最長可為 {{.Max}} 字元，已接收大小為 {{.Actual}}"
-  },
-  {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "找不到使用者"
-  },
-  {
-    "id": "web.init.debug",
-    "translation": "正在初始化網站路徑"
-  },
-  {
-    "id": "web.login.error",
-    "translation": "找不到團隊 name=%v, err=%v"
-  },
-  {
-    "id": "web.login.login_title",
-    "translation": "登入"
-  },
-  {
-    "id": "web.login_with_oauth.invalid_team.app_error",
-    "translation": "無效的團隊名稱"
-  },
-  {
-    "id": "web.parsing_templates.debug",
-    "translation": "於 %v 解析樣板"
-  },
-  {
-    "id": "web.post_permalink.app_error",
-    "translation": "無效的張貼 ID"
-  },
-  {
-    "id": "web.reset_password.expired_link.app_error",
-    "translation": "密碼重設連結已過期"
-  },
-  {
-    "id": "web.reset_password.invalid_link.app_error",
-    "translation": "此密碼重設連結不是有效連結"
-  },
-  {
-    "id": "web.root.home_title",
-    "translation": "首頁"
-  },
-  {
-    "id": "web.root.singup_title",
-    "translation": "註冊"
-  },
-  {
-    "id": "web.signup_team_complete.link_expired.app_error",
-    "translation": "註冊連結已過期"
-  },
-  {
-    "id": "web.signup_team_complete.title",
-    "translation": "完成團隊註冊"
-  },
-  {
-    "id": "web.signup_team_confirm.title",
-    "translation": "註冊電子郵件已寄出"
-  },
-  {
-    "id": "web.signup_user_complete.link_expired.app_error",
-    "translation": "註冊連結已過期"
-  },
-  {
-    "id": "web.signup_user_complete.no_invites.app_error",
-    "translation": "此團隊類型不允許自由加入"
-  },
-  {
-    "id": "web.signup_user_complete.title",
-    "translation": "完成使用者註冊"
-  },
-  {
-    "id": "web.singup_with_oauth.invalid_team.app_error",
-    "translation": "無效的團隊名稱"
-  },
-  {
-    "id": "web.watcher_fail.error",
-    "translation": "新增目錄至監控 %v 失敗"
-  },
-  {
-    "id": "wsapi.status.init.debug",
-    "translation": "正在初始化狀態 WebSocket API 路徑"
-  },
-  {
-    "id": "wsapi.system.init.debug",
-    "translation": "正在初始化系統 WebSocket API 路徑"
-  },
-  {
-    "id": "wsapi.user.init.debug",
-    "translation": "正在初始化使用者 WebSocket API 路徑"
-  },
-  {
-    "id": "wsapi.webrtc.init.debug",
-    "translation": "正在初始化 WebRTC WebSocket API 路徑"
   }
 ]

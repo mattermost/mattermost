@@ -4,16 +4,16 @@
 package model
 
 import (
-	"strings"
+	"bytes"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUserSearchJson(t *testing.T) {
 	userSearch := UserSearch{Term: NewId(), TeamId: NewId()}
 	json := userSearch.ToJson()
-	ruserSearch := UserSearchFromJson(strings.NewReader(json))
+	ruserSearch := UserSearchFromJson(bytes.NewReader(json))
 
-	if userSearch.Term != ruserSearch.Term {
-		t.Fatal("Terms do not match")
-	}
+	assert.Equal(t, userSearch.Term, ruserSearch.Term, "Terms do not match")
 }

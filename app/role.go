@@ -4,34 +4,27 @@
 package app
 
 import (
+	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
-	"net/http"
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
-	if result := <-a.Srv.Store.Role().Get(id); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.Role), nil
-	}
+	return a.Srv.Store.Role().Get(id)
+}
+
+func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
+	return a.Srv.Store.Role().GetAll()
 }
 
 func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	if result := <-a.Srv.Store.Role().GetByName(name); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.Role), nil
-	}
+	return a.Srv.Store.Role().GetByName(name)
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
-	if result := <-a.Srv.Store.Role().GetByNames(names); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Role), nil
-	}
+	return a.Srv.Store.Role().GetByNames(names)
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
@@ -49,14 +42,27 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 	return role, err
 }
 
-func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
-		return nil, result.Err
-	} else {
-		a.sendUpdatedRoleEvent(role)
+func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
+	role.Id = ""
+	role.CreateAt = 0
+	role.UpdateAt = 0
+	role.DeleteAt = 0
+	role.BuiltIn = false
+	role.SchemeManaged = false
 
-		return role, nil
+	return a.Srv.Store.Role().Save(role)
+
+}
+
+func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
+	savedRole, err := a.Srv.Store.Role().Save(role)
+	if err != nil {
+		return nil, err
 	}
+	a.sendUpdatedRoleEvent(savedRole)
+
+	return savedRole, nil
+
 }
 
 func (a *App) CheckRolesExist(roleNames []string) *model.AppError {
@@ -85,7 +91,27 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ROLE_UPDATED, "", "", "", nil)
 	message.Add("role", role.ToJson())
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		a.Publish(message)
 	})
+}
+
+func RemoveRoles(rolesToRemove []string, roles string) string {
+	roleList := strings.Fields(roles)
+	newRoles := make([]string, 0)
+
+	for _, role := range roleList {
+		shouldRemove := false
+		for _, roleToRemove := range rolesToRemove {
+			if role == roleToRemove {
+				shouldRemove = true
+				break
+			}
+		}
+		if !shouldRemove {
+			newRoles = append(newRoles, role)
+		}
+	}
+
+	return strings.Join(newRoles, " ")
 }

@@ -17,6 +17,7 @@ type PluginKeyValue struct {
 	PluginId string `json:"plugin_id"`
 	Key      string `json:"key" db:"PKey"`
 	Value    []byte `json:"value" db:"PValue"`
+	ExpireAt int64  `json:"expire_at"`
 }
 
 func (kv *PluginKeyValue) IsValid() *AppError {

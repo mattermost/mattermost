@@ -28,6 +28,8 @@ type OutgoingWebhook struct {
 	DisplayName  string      `json:"display_name"`
 	Description  string      `json:"description"`
 	ContentType  string      `json:"content_type"`
+	Username     string      `json:"username"`
+	IconURL      string      `json:"icon_url"`
 }
 
 type OutgoingWebhookPayload struct {
@@ -107,10 +109,10 @@ func (o *OutgoingWebhookResponse) ToJson() string {
 	return string(b)
 }
 
-func OutgoingWebhookResponseFromJson(data io.Reader) *OutgoingWebhookResponse {
+func OutgoingWebhookResponseFromJson(data io.Reader) (*OutgoingWebhookResponse, error) {
 	var o *OutgoingWebhookResponse
-	json.NewDecoder(data).Decode(&o)
-	return o
+	err := json.NewDecoder(data).Decode(&o)
+	return o, err
 }
 
 func (o *OutgoingWebhook) IsValid() *AppError {
@@ -169,7 +171,7 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.display_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.Description) > 128 {
+	if len(o.Description) > 500 {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.description.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -179,6 +181,14 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 
 	if o.TriggerWhen > 1 {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.content_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.Username) > 64 {
+		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.username.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.IconURL) > 1024 {
+		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.icon_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

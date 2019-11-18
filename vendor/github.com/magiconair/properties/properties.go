@@ -1,4 +1,4 @@
-// Copyright 2017 Frank Schroeder. All rights reserved.
+// Copyright 2018 Frank Schroeder. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -81,6 +81,17 @@ func NewProperties() *Properties {
 		c:       map[string][]string{},
 		k:       []string{},
 	}
+}
+
+// Load reads a buffer into the given Properties struct.
+func (p *Properties) Load(buf []byte, enc Encoding) error {
+	l := &Loader{Encoding: enc, DisableExpansion: p.DisableExpansion}
+	newProperties, err := l.LoadBytes(buf)
+	if err != nil {
+		return err
+	}
+	p.Merge(newProperties)
+	return nil
 }
 
 // Get returns the expanded value for the given key if exists.

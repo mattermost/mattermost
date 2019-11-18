@@ -12,6 +12,7 @@ import (
 const (
 	AUTHCODE_EXPIRE_TIME   = 60 * 10 // 10 minutes
 	AUTHCODE_RESPONSE_TYPE = "code"
+	IMPLICIT_RESPONSE_TYPE = "token"
 	DEFAULT_SCOPE          = "user"
 )
 
@@ -58,7 +59,7 @@ func (ad *AuthData) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.create_at.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
-	if len(ad.RedirectUri) == 0 || len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
+	if len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
@@ -89,7 +90,7 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ar.ClientId, http.StatusBadRequest)
 	}
 
-	if len(ar.State) > 128 {
+	if len(ar.State) > 1024 {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.state.app_error", nil, "client_id="+ar.ClientId, http.StatusBadRequest)
 	}
 

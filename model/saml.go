@@ -10,7 +10,7 @@ import (
 
 const (
 	USER_AUTH_SERVICE_SAML      = "saml"
-	USER_AUTH_SERVICE_SAML_TEXT = "With SAML"
+	USER_AUTH_SERVICE_SAML_TEXT = "SAML"
 )
 
 type SamlAuthRequest struct {

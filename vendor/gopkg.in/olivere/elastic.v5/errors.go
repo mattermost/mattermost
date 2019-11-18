@@ -5,10 +5,12 @@
 package elastic
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 
 	"github.com/pkg/errors"
 )
@@ -86,9 +88,24 @@ type ErrorDetails struct {
 func (e *Error) Error() string {
 	if e.Details != nil && e.Details.Reason != "" {
 		return fmt.Sprintf("elastic: Error %d (%s): %s [type=%s]", e.Status, http.StatusText(e.Status), e.Details.Reason, e.Details.Type)
-	} else {
-		return fmt.Sprintf("elastic: Error %d (%s)", e.Status, http.StatusText(e.Status))
 	}
+	return fmt.Sprintf("elastic: Error %d (%s)", e.Status, http.StatusText(e.Status))
+}
+
+// IsContextErr returns true if the error is from a context that was canceled or deadline exceeded
+func IsContextErr(err error) bool {
+	if err == context.Canceled || err == context.DeadlineExceeded {
+		return true
+	}
+	// This happens e.g. on redirect errors, see https://golang.org/src/net/http/client_test.go#L329
+	if ue, ok := err.(*url.Error); ok {
+		if ue.Temporary() {
+			return true
+		}
+		// Use of an AWS Signing Transport can result in a wrapped url.Error
+		return IsContextErr(ue.Err)
+	}
+	return false
 }
 
 // IsConnErr returns true if the error indicates that Elastic could not
@@ -139,17 +156,20 @@ func IsStatusCode(err interface{}, code int) bool {
 
 // -- General errors --
 
-// shardsInfo represents information from a shard.
-type shardsInfo struct {
-	Total      int `json:"total"`
-	Successful int `json:"successful"`
-	Failed     int `json:"failed"`
+// ShardsInfo represents information from a shard.
+type ShardsInfo struct {
+	Total      int             `json:"total"`
+	Successful int             `json:"successful"`
+	Failed     int             `json:"failed"`
+	Failures   []*ShardFailure `json:"failures,omitempty"`
 }
 
-// shardOperationFailure represents a shard failure.
-type shardOperationFailure struct {
-	Shard  int    `json:"shard"`
-	Index  string `json:"index"`
-	Status string `json:"status"`
-	// "reason"
+// ShardFailure represents details about a failure.
+type ShardFailure struct {
+	Index   string                 `json:"_index,omitempty"`
+	Shard   int                    `json:"_shard,omitempty"`
+	Node    string                 `json:"_node,omitempty"`
+	Reason  map[string]interface{} `json:"reason,omitempty"`
+	Status  string                 `json:"status,omitempty"`
+	Primary bool                   `json:"primary,omitempty"`
 }

@@ -4,10 +4,8 @@
 package app
 
 import (
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -28,7 +26,7 @@ func (a *App) AddStatusCache(status *model.Status) {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_UPDATE_STATUS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     status.ToJson(),
+			Data:     status.ToClusterJson(),
 		}
 		a.Cluster.SendClusterMessage(msg)
 	}
@@ -43,9 +41,7 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 	statusMap := map[string]*model.Status{}
 
 	for _, userId := range userIds {
-		if id, ok := userId.(string); !ok {
-			continue
-		} else {
+		if id, ok := userId.(string); ok {
 			status := GetStatusFromCache(id)
 			if status != nil {
 				statusMap[id] = status
@@ -80,16 +76,16 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	if len(missingUserIds) > 0 {
-		if result := <-a.Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
-			return nil, result.Err
-		} else {
-			statuses := result.Data.([]*model.Status)
-
-			for _, s := range statuses {
-				a.AddStatusCache(s)
-				statusMap[s.UserId] = s.Status
-			}
+		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
+
+		for _, s := range statuses {
+			a.AddStatusCacheSkipClusterSend(s)
+			statusMap[s.UserId] = s.Status
+		}
+
 	}
 
 	// For the case where the user does not have a row in the Status table and cache
@@ -127,17 +123,17 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	if len(missingUserIds) > 0 {
-		if result := <-a.Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
-			return nil, result.Err
-		} else {
-			statuses := result.Data.([]*model.Status)
-
-			for _, s := range statuses {
-				a.AddStatusCache(s)
-			}
-
-			statusMap = append(statusMap, statuses...)
+		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
+
+		for _, s := range statuses {
+			a.AddStatusCacheSkipClusterSend(s)
+		}
+
+		statusMap = append(statusMap, statuses...)
+
 	}
 
 	// For the case where the user does not have a row in the Status table and cache
@@ -160,7 +156,23 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	return statusMap, nil
 }
 
-func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
+// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
+// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
+// while an 'away' device is still connected
+func (a *App) SetStatusLastActivityAt(userId string, activityAt int64) {
+	var status *model.Status
+	var err *model.AppError
+	if status, err = a.GetStatus(userId); err != nil {
+		return
+	}
+
+	status.LastActivityAt = activityAt
+
+	a.AddStatusCacheSkipClusterSend(status)
+	a.SetStatusAwayIfNeeded(userId, false)
+}
+
+func (a *App) SetStatusOnline(userId string, manual bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -168,8 +180,8 @@ func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
 	broadcast := false
 
 	var oldStatus string = model.STATUS_OFFLINE
-	var oldTime int64 = 0
-	var oldManual bool = false
+	var oldTime int64
+	var oldManual bool
 	var status *model.Status
 	var err *model.AppError
 
@@ -199,16 +211,14 @@ func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
 	// Only update the database if the status has changed, the status has been manually set,
 	// or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
-
-		var schan store.StoreChannel
 		if broadcast {
-			schan = a.Srv.Store.Status().SaveOrUpdate(status)
+			if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
+				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
+			}
 		} else {
-			schan = a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
-		}
-
-		if result := <-schan; result.Err != nil {
-			l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
+			if err := a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
+				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
+			}
 		}
 	}
 
@@ -288,19 +298,14 @@ func (a *App) SetStatusDoNotDisturb(userId string) {
 	a.SaveAndBroadcastStatus(status)
 }
 
-func (a *App) SaveAndBroadcastStatus(status *model.Status) *model.AppError {
+func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
-	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), status.UserId, result.Err)
+	if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
+		mlog.Error("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-	event.Add("status", status.Status)
-	event.Add("user_id", status.UserId)
-	a.Publish(event)
-
-	return nil
+	a.BroadcastStatus(status)
 }
 
 func (a *App) SetStatusOutOfOffice(userId string) {
@@ -317,16 +322,7 @@ func (a *App) SetStatusOutOfOffice(userId string) {
 	status.Status = model.STATUS_OUT_OF_OFFICE
 	status.Manual = true
 
-	a.AddStatusCache(status)
-
-	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
-	}
-
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-	event.Add("status", model.STATUS_OUT_OF_OFFICE)
-	event.Add("user_id", status.UserId)
-	a.Publish(event)
+	a.SaveAndBroadcastStatus(status)
 }
 
 func GetStatusFromCache(userId string) *model.Status {
@@ -350,11 +346,7 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 		return status, nil
 	}
 
-	if result := <-a.Srv.Store.Status().Get(userId); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.Status), nil
-	}
+	return a.Srv.Store.Status().Get(userId)
 }
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {

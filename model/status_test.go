@@ -7,32 +7,29 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStatus(t *testing.T) {
-	status := Status{NewId(), STATUS_ONLINE, true, 0, ""}
+	status := Status{NewId(), STATUS_ONLINE, true, 0, "123"}
 	json := status.ToJson()
 	status2 := StatusFromJson(strings.NewReader(json))
 
-	if status.UserId != status2.UserId {
-		t.Fatal("UserId should have matched")
-	}
+	assert.Equal(t, status.UserId, status2.UserId, "UserId should have matched")
+	assert.Equal(t, status.Status, status2.Status, "Status should have matched")
+	assert.Equal(t, status.LastActivityAt, status2.LastActivityAt, "LastActivityAt should have matched")
+	assert.Equal(t, status.Manual, status2.Manual, "Manual should have matched")
+	assert.Equal(t, "", status2.ActiveChannel)
 
-	if status.Status != status2.Status {
-		t.Fatal("Status should have matched")
-	}
+	json = status.ToClusterJson()
+	status2 = StatusFromJson(strings.NewReader(json))
 
-	if status.LastActivityAt != status2.LastActivityAt {
-		t.Fatal("LastActivityAt should have matched")
-	}
-
-	if status.Manual != status2.Manual {
-		t.Fatal("Manual should have matched")
-	}
+	assert.Equal(t, status.ActiveChannel, status2.ActiveChannel)
 }
 
 func TestStatusListToJson(t *testing.T) {
-	statuses := []*Status{{NewId(), STATUS_ONLINE, true, 0, ""}, {NewId(), STATUS_OFFLINE, true, 0, ""}}
+	statuses := []*Status{{NewId(), STATUS_ONLINE, true, 0, "123"}, {NewId(), STATUS_OFFLINE, true, 0, ""}}
 	jsonStatuses := StatusListToJson(statuses)
 
 	var dat []map[string]interface{}
@@ -40,15 +37,13 @@ func TestStatusListToJson(t *testing.T) {
 		panic(err)
 	}
 
-	if len(dat) != 2 {
-		t.Fatal("Status array should contain 2 elements")
-	}
-	if statuses[0].UserId != dat[0]["user_id"] {
-		t.Fatal("UserId should be equal")
-	}
-	if statuses[1].UserId != dat[1]["user_id"] {
-		t.Fatal("UserId should be equal")
-	}
+	assert.Equal(t, len(dat), 2)
+
+	_, ok := dat[0]["active_channel"]
+	assert.False(t, ok)
+	assert.Equal(t, statuses[0].ActiveChannel, "123")
+	assert.Equal(t, statuses[0].UserId, dat[0]["user_id"])
+	assert.Equal(t, statuses[1].UserId, dat[1]["user_id"])
 }
 
 func TestStatusListFromJson(t *testing.T) {
@@ -63,10 +58,6 @@ func TestStatusListFromJson(t *testing.T) {
 	toDec := strings.NewReader(jsonStream)
 	statusesFromJson := StatusListFromJson(toDec)
 
-	if statusesFromJson[0].UserId != dat[0]["user_id"] {
-		t.Fatal("UserId should be equal")
-	}
-	if statusesFromJson[1].UserId != dat[1]["user_id"] {
-		t.Fatal("UserId should be equal")
-	}
+	assert.Equal(t, statusesFromJson[0].UserId, dat[0]["user_id"], "UserId should be equal")
+	assert.Equal(t, statusesFromJson[1].UserId, dat[1]["user_id"], "UserId should be equal")
 }

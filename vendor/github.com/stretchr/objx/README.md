@@ -1,6 +1,8 @@
 # Objx
 [![Build Status](https://travis-ci.org/stretchr/objx.svg?branch=master)](https://travis-ci.org/stretchr/objx)
 [![Go Report Card](https://goreportcard.com/badge/github.com/stretchr/objx)](https://goreportcard.com/report/github.com/stretchr/objx)
+[![Maintainability](https://api.codeclimate.com/v1/badges/1d64bc6c8474c2074f2b/maintainability)](https://codeclimate.com/github/stretchr/objx/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/1d64bc6c8474c2074f2b/test_coverage)](https://codeclimate.com/github/stretchr/objx/test_coverage)
 [![Sourcegraph](https://sourcegraph.com/github.com/stretchr/objx/-/badge.svg)](https://sourcegraph.com/github.com/stretchr/objx)
 [![GoDoc](https://godoc.org/github.com/stretchr/objx?status.svg)](https://godoc.org/github.com/stretchr/objx)
 
@@ -72,7 +74,7 @@ To update Objx to the latest version, run:
     go get -u github.com/stretchr/objx
 
 ### Supported go versions
-We support the lastest two major Go versions, which are 1.8 and 1.9 at the moment.
+We support the lastest three major Go versions, which are 1.10, 1.11 and 1.12 at the moment.
 
 ## Contributing
 Please feel free to submit issues, fork the repository and send pull requests!

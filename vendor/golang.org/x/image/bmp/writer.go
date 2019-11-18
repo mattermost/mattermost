@@ -49,20 +49,91 @@ func encodePaletted(w io.Writer, pix []uint8, dx, dy, stride, step int) error {
 	return nil
 }
 
-func encodeRGBA(w io.Writer, pix []uint8, dx, dy, stride, step int) error {
+func encodeRGBA(w io.Writer, pix []uint8, dx, dy, stride, step int, opaque bool) error {
 	buf := make([]byte, step)
-	for y := dy - 1; y >= 0; y-- {
-		min := y*stride + 0
-		max := y*stride + dx*4
-		off := 0
-		for i := min; i < max; i += 4 {
-			buf[off+2] = pix[i+0]
-			buf[off+1] = pix[i+1]
-			buf[off+0] = pix[i+2]
-			off += 3
+	if opaque {
+		for y := dy - 1; y >= 0; y-- {
+			min := y*stride + 0
+			max := y*stride + dx*4
+			off := 0
+			for i := min; i < max; i += 4 {
+				buf[off+2] = pix[i+0]
+				buf[off+1] = pix[i+1]
+				buf[off+0] = pix[i+2]
+				off += 3
+			}
+			if _, err := w.Write(buf); err != nil {
+				return err
+			}
 		}
-		if _, err := w.Write(buf); err != nil {
-			return err
+	} else {
+		for y := dy - 1; y >= 0; y-- {
+			min := y*stride + 0
+			max := y*stride + dx*4
+			off := 0
+			for i := min; i < max; i += 4 {
+				a := uint32(pix[i+3])
+				if a == 0 {
+					buf[off+2] = 0
+					buf[off+1] = 0
+					buf[off+0] = 0
+					buf[off+3] = 0
+					off += 4
+					continue
+				} else if a == 0xff {
+					buf[off+2] = pix[i+0]
+					buf[off+1] = pix[i+1]
+					buf[off+0] = pix[i+2]
+					buf[off+3] = 0xff
+					off += 4
+					continue
+				}
+				buf[off+2] = uint8(((uint32(pix[i+0]) * 0xffff) / a) >> 8)
+				buf[off+1] = uint8(((uint32(pix[i+1]) * 0xffff) / a) >> 8)
+				buf[off+0] = uint8(((uint32(pix[i+2]) * 0xffff) / a) >> 8)
+				buf[off+3] = uint8(a)
+				off += 4
+			}
+			if _, err := w.Write(buf); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func encodeNRGBA(w io.Writer, pix []uint8, dx, dy, stride, step int, opaque bool) error {
+	buf := make([]byte, step)
+	if opaque {
+		for y := dy - 1; y >= 0; y-- {
+			min := y*stride + 0
+			max := y*stride + dx*4
+			off := 0
+			for i := min; i < max; i += 4 {
+				buf[off+2] = pix[i+0]
+				buf[off+1] = pix[i+1]
+				buf[off+0] = pix[i+2]
+				off += 3
+			}
+			if _, err := w.Write(buf); err != nil {
+				return err
+			}
+		}
+	} else {
+		for y := dy - 1; y >= 0; y-- {
+			min := y*stride + 0
+			max := y*stride + dx*4
+			off := 0
+			for i := min; i < max; i += 4 {
+				buf[off+2] = pix[i+0]
+				buf[off+1] = pix[i+1]
+				buf[off+0] = pix[i+2]
+				buf[off+3] = pix[i+3]
+				off += 4
+			}
+			if _, err := w.Write(buf); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -105,6 +176,7 @@ func Encode(w io.Writer, m image.Image) error {
 
 	var step int
 	var palette []byte
+	var opaque bool
 	switch m := m.(type) {
 	case *image.Gray:
 		step = (d.X + 3) &^ 3
@@ -134,6 +206,28 @@ func Encode(w io.Writer, m image.Image) error {
 		h.fileSize += uint32(len(palette)) + h.imageSize
 		h.pixOffset += uint32(len(palette))
 		h.bpp = 8
+	case *image.RGBA:
+		opaque = m.Opaque()
+		if opaque {
+			step = (3*d.X + 3) &^ 3
+			h.bpp = 24
+		} else {
+			step = 4 * d.X
+			h.bpp = 32
+		}
+		h.imageSize = uint32(d.Y * step)
+		h.fileSize += h.imageSize
+	case *image.NRGBA:
+		opaque = m.Opaque()
+		if opaque {
+			step = (3*d.X + 3) &^ 3
+			h.bpp = 24
+		} else {
+			step = 4 * d.X
+			h.bpp = 32
+		}
+		h.imageSize = uint32(d.Y * step)
+		h.fileSize += h.imageSize
 	default:
 		step = (3*d.X + 3) &^ 3
 		h.imageSize = uint32(d.Y * step)
@@ -160,7 +254,9 @@ func Encode(w io.Writer, m image.Image) error {
 	case *image.Paletted:
 		return encodePaletted(w, m.Pix, d.X, d.Y, m.Stride, step)
 	case *image.RGBA:
-		return encodeRGBA(w, m.Pix, d.X, d.Y, m.Stride, step)
+		return encodeRGBA(w, m.Pix, d.X, d.Y, m.Stride, step, opaque)
+	case *image.NRGBA:
+		return encodeNRGBA(w, m.Pix, d.X, d.Y, m.Stride, step, opaque)
 	}
 	return encode(w, m, step)
 }

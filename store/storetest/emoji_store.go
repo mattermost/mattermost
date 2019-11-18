@@ -11,14 +11,17 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEmojiStore(t *testing.T, ss store.Store) {
 	t.Run("EmojiSaveDelete", func(t *testing.T) { testEmojiSaveDelete(t, ss) })
 	t.Run("EmojiGet", func(t *testing.T) { testEmojiGet(t, ss) })
 	t.Run("EmojiGetByName", func(t *testing.T) { testEmojiGetByName(t, ss) })
+	t.Run("EmojiGetMultipleByName", func(t *testing.T) { testEmojiGetMultipleByName(t, ss) })
 	t.Run("EmojiGetList", func(t *testing.T) { testEmojiGetList(t, ss) })
 	t.Run("EmojiSearch", func(t *testing.T) { testEmojiSearch(t, ss) })
+	t.Run("EmojiCaching", func(t *testing.T) { testEmojiCaching(t, ss) })
 }
 
 func testEmojiSaveDelete(t *testing.T, ss store.Store) {
@@ -27,33 +30,26 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 		Name:      model.NewId(),
 	}
 
-	if result := <-ss.Emoji().Save(emoji1); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err := ss.Emoji().Save(emoji1)
+	require.Nil(t, err)
 
-	if len(emoji1.Id) != 26 {
-		t.Fatal("should've set id for emoji")
-	}
+	assert.Len(t, emoji1.Id, 26, "should've set id for emoji")
 
 	emoji2 := model.Emoji{
 		CreatorId: model.NewId(),
 		Name:      emoji1.Name,
 	}
-	if result := <-ss.Emoji().Save(&emoji2); result.Err == nil {
-		t.Fatal("shouldn't be able to save emoji with duplicate name")
-	}
+	_, err = ss.Emoji().Save(&emoji2)
+	require.NotNil(t, err, "shouldn't be able to save emoji with duplicate name")
 
-	if result := <-ss.Emoji().Delete(emoji1.Id, time.Now().Unix()); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	err = ss.Emoji().Delete(emoji1, time.Now().Unix())
+	require.Nil(t, err)
 
-	if result := <-ss.Emoji().Save(&emoji2); result.Err != nil {
-		t.Fatal("should be able to save emoji with duplicate name now that original has been deleted", result.Err)
-	}
+	_, err = ss.Emoji().Save(&emoji2)
+	require.Nil(t, err, "should be able to save emoji with duplicate name now that original has been deleted")
 
-	if result := <-ss.Emoji().Delete(emoji2.Id, time.Now().Unix()+1); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	err = ss.Emoji().Delete(&emoji2, time.Now().Unix()+1)
+	require.Nil(t, err)
 }
 
 func testEmojiGet(t *testing.T, ss store.Store) {
@@ -73,31 +69,81 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 	}
 
 	for i, emoji := range emojis {
-		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+		data, err := ss.Emoji().Save(&emoji)
+		require.Nil(t, err)
+		emojis[i] = *data
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
+			require.Nil(t, err)
 		}
 	}()
 
 	for _, emoji := range emojis {
-		if result := <-ss.Emoji().Get(emoji.Id, false); result.Err != nil {
-			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, result.Err)
+		_, err := ss.Emoji().Get(emoji.Id, false)
+		require.Nilf(t, err, "failed to get emoji with id %v", emoji.Id)
+	}
+
+	for _, emoji := range emojis {
+		_, err := ss.Emoji().Get(emoji.Id, true)
+		require.Nilf(t, err, "failed to get emoji with id %v", emoji.Id)
+	}
+}
+
+func testEmojiCaching(t *testing.T, ss store.Store) {
+	emojis := make([]*model.Emoji, 3)
+	for i := range emojis {
+		emojis[i] = &model.Emoji{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
 		}
 	}
 
 	for _, emoji := range emojis {
-		if result := <-ss.Emoji().Get(emoji.Id, true); result.Err != nil {
-			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, result.Err)
+		_, err := ss.Emoji().Save(emoji)
+		require.Nil(t, err)
+	}
+	defer func() {
+		for _, emoji := range emojis {
+			err := ss.Emoji().Delete(emoji, time.Now().Unix())
+			require.Nil(t, err)
+		}
+	}()
+
+	var retrievedEmoji *model.Emoji
+	var cachedEmoji *model.Emoji
+	var err *model.AppError
+
+	for _, emoji := range emojis {
+		cachedEmoji, err = ss.Emoji().Get(emoji.Id, true)
+		assert.Nilf(t, err, "should be able to retrieve emoji with id %v", emoji.Id)
+
+		retrievedEmoji, err = ss.Emoji().Get(emoji.Id, false)
+		if assert.Nilf(t, err, "should be able to retrieve emoji with id %v", emoji.Id) {
+			assert.Falsef(t, retrievedEmoji == cachedEmoji, "should not be the same as cached with id %v", emoji.Id)
+		}
+
+		retrievedEmoji, err = ss.Emoji().Get(emoji.Id, true)
+		if assert.Nilf(t, err, "should be able to retrieve emoji with id %v", emoji.Id) {
+			assert.Truef(t, retrievedEmoji == cachedEmoji, "should be the cached emoji with id %v", emoji.Id)
+		}
+
+		retrievedEmoji, err = ss.Emoji().GetByName(emoji.Name, false)
+		if assert.Nilf(t, err, "should be able to retrieve emoji with name %v", emoji.Name) {
+			assert.Falsef(t, retrievedEmoji == cachedEmoji, "should not be the same as cached with name %v", emoji.Name)
+		}
+
+		retrievedEmoji, _ = ss.Emoji().GetByName(emoji.Name, true)
+		if assert.Nilf(t, err, "should be able to retrieve emoji with name %v", emoji.Name) {
+			assert.Truef(t, retrievedEmoji == cachedEmoji, "should be the cached emoji with name %v", emoji.Name)
 		}
 	}
 
-	for _, emoji := range emojis {
-		if result := <-ss.Emoji().Get(emoji.Id, true); result.Err != nil {
-			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, result.Err)
-		}
-	}
+	_, err = ss.Emoji().Get(model.NewId(), false)
+	assert.NotNilf(t, err, "should not retrieve emoji with unsaved ID")
+	_, err = ss.Emoji().GetByName(model.NewId(), false)
+	assert.NotNilf(t, err, "should not retrieve emoji with unsaved name")
 }
 
 func testEmojiGetByName(t *testing.T, ss store.Store) {
@@ -117,19 +163,75 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 	}
 
 	for i, emoji := range emojis {
-		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+		data, err := ss.Emoji().Save(&emoji)
+		require.Nil(t, err)
+		emojis[i] = *data
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
+			require.Nil(t, err)
 		}
 	}()
 
 	for _, emoji := range emojis {
-		if result := <-ss.Emoji().GetByName(emoji.Name); result.Err != nil {
-			t.Fatalf("failed to get emoji with name %v: %v", emoji.Name, result.Err)
-		}
+		_, err := ss.Emoji().GetByName(emoji.Name, true)
+		require.Nilf(t, err, "failed to get emoji with name %v", emoji.Name)
 	}
+}
+
+func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
+	emojis := []model.Emoji{
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
+		},
+	}
+
+	for i, emoji := range emojis {
+		data, err := ss.Emoji().Save(&emoji)
+		require.Nil(t, err)
+		emojis[i] = *data
+	}
+	defer func() {
+		for _, emoji := range emojis {
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
+			require.Nil(t, err)
+		}
+	}()
+
+	t.Run("one emoji", func(t *testing.T) {
+		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name})
+		require.Nilf(t, err, "could not get emoji")
+		require.Len(t, received, 1, "got incorrect emoji")
+		require.Equal(t, *received[0], emojis[0], "got incorrect emoji")
+	})
+
+	t.Run("multiple emojis", func(t *testing.T) {
+		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name})
+		require.Nil(t, err, "could not get emojis")
+		require.Len(t, received, 3, "got incorrect emojis")
+	})
+
+	t.Run("one nonexistent emoji", func(t *testing.T) {
+		received, err := ss.Emoji().GetMultipleByName([]string{"ab"})
+		require.Nilf(t, err, "%v, could not get emoji", err)
+		require.Len(t, received, 0, "got incorrect emoji")
+	})
+
+	t.Run("multiple emojis with nonexistent names", func(t *testing.T) {
+		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name, "abcd", "1234"})
+		require.Nil(t, err, "could not get emojis")
+		require.Len(t, received, 3, "got incorrect emojis")
+	})
 }
 
 func testEmojiGetList(t *testing.T, ss store.Store) {
@@ -149,44 +251,43 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 	}
 
 	for i, emoji := range emojis {
-		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+		data, err := ss.Emoji().Save(&emoji)
+		require.Nil(t, err)
+		emojis[i] = *data
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
+			require.Nil(t, err)
 		}
 	}()
 
-	if result := <-ss.Emoji().GetList(0, 100, ""); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Emoji().GetList(0, 100, ""); err != nil {
+		t.Fatal(err)
 	} else {
 		for _, emoji := range emojis {
 			found := false
 
-			for _, savedEmoji := range result.Data.([]*model.Emoji) {
+			for _, savedEmoji := range result {
 				if emoji.Id == savedEmoji.Id {
 					found = true
 					break
 				}
 			}
 
-			if !found {
-				t.Fatalf("failed to get emoji with id %v", emoji.Id)
-			}
+			require.Truef(t, found, "failed to get emoji with id %v", emoji.Id)
 		}
 	}
 
-	result := <-ss.Emoji().GetList(0, 3, model.EMOJI_SORT_BY_NAME)
-	assert.Nil(t, result.Err)
-	remojis := result.Data.([]*model.Emoji)
+	remojis, err := ss.Emoji().GetList(0, 3, model.EMOJI_SORT_BY_NAME)
+	assert.Nil(t, err)
 	assert.Equal(t, 3, len(remojis))
 	assert.Equal(t, emojis[0].Name, remojis[0].Name)
 	assert.Equal(t, emojis[1].Name, remojis[1].Name)
 	assert.Equal(t, emojis[2].Name, remojis[2].Name)
 
-	result = <-ss.Emoji().GetList(1, 2, model.EMOJI_SORT_BY_NAME)
-	assert.Nil(t, result.Err)
-	remojis = result.Data.([]*model.Emoji)
+	remojis, err = ss.Emoji().GetList(1, 2, model.EMOJI_SORT_BY_NAME)
+	assert.Nil(t, err)
 	assert.Equal(t, 2, len(remojis))
 	assert.Equal(t, emojis[1].Name, remojis[0].Name)
 	assert.Equal(t, emojis[2].Name, remojis[1].Name)
@@ -214,48 +315,47 @@ func testEmojiSearch(t *testing.T, ss store.Store) {
 	}
 
 	for i, emoji := range emojis {
-		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+		data, err := ss.Emoji().Save(&emoji)
+		require.Nil(t, err)
+		emojis[i] = *data
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
+			require.Nil(t, err)
 		}
 	}()
 
 	shouldFind := []bool{true, false, false, false}
 
-	if result := <-ss.Emoji().Search("blargh", true, 100); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		for i, emoji := range emojis {
-			found := false
+	result, err := ss.Emoji().Search("blargh", true, 100)
+	require.Nil(t, err)
+	for i, emoji := range emojis {
+		found := false
 
-			for _, savedEmoji := range result.Data.([]*model.Emoji) {
-				if emoji.Id == savedEmoji.Id {
-					found = true
-					break
-				}
+		for _, savedEmoji := range result {
+			if emoji.Id == savedEmoji.Id {
+				found = true
+				break
 			}
-
-			assert.Equal(t, shouldFind[i], found, emoji.Name)
 		}
+
+		assert.Equal(t, shouldFind[i], found, emoji.Name)
 	}
 
 	shouldFind = []bool{true, true, true, false}
-	if result := <-ss.Emoji().Search("blargh", false, 100); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		for i, emoji := range emojis {
-			found := false
+	result, err = ss.Emoji().Search("blargh", false, 100)
+	require.Nil(t, err)
+	for i, emoji := range emojis {
+		found := false
 
-			for _, savedEmoji := range result.Data.([]*model.Emoji) {
-				if emoji.Id == savedEmoji.Id {
-					found = true
-					break
-				}
+		for _, savedEmoji := range result {
+			if emoji.Id == savedEmoji.Id {
+				found = true
+				break
 			}
-
-			assert.Equal(t, shouldFind[i], found, emoji.Name)
 		}
+
+		assert.Equal(t, shouldFind[i], found, emoji.Name)
 	}
 }

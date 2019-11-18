@@ -21,7 +21,6 @@ func Init(a *app.App, router *app.WebSocketRouter) {
 	api.InitUser()
 	api.InitSystem()
 	api.InitStatus()
-	api.InitWebrtc()
 
 	a.HubStart()
 }

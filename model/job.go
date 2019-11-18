@@ -16,6 +16,8 @@ const (
 	JOB_TYPE_ELASTICSEARCH_POST_INDEXING    = "elasticsearch_post_indexing"
 	JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION = "elasticsearch_post_aggregation"
 	JOB_TYPE_LDAP_SYNC                      = "ldap_sync"
+	JOB_TYPE_MIGRATIONS                     = "migrations"
+	JOB_TYPE_PLUGINS                        = "plugins"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
@@ -52,6 +54,8 @@ func (j *Job) IsValid() *AppError {
 	case JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
 	case JOB_TYPE_LDAP_SYNC:
 	case JOB_TYPE_MESSAGE_EXPORT:
+	case JOB_TYPE_MIGRATIONS:
+	case JOB_TYPE_PLUGINS:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}

@@ -10,7 +10,6 @@ import (
 
 type PluginInfo struct {
 	Manifest
-	Prepackaged bool `json:"prepackaged"`
 }
 
 type PluginsResponse struct {

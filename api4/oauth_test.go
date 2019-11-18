@@ -4,50 +4,46 @@
 package api4
 
 import (
+	"io/ioutil"
 	"net/http"
-	"net/url"
-	"strconv"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
 
 	rapp, resp := AdminClient.CreateOAuthApp(oapp)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
-
-	if rapp.Name != oapp.Name {
-		t.Fatal("names did not match")
-	}
-
-	if rapp.IsTrusted != oapp.IsTrusted {
-		t.Fatal("trusted did no match")
-	}
+	assert.Equal(t, oapp.Name, rapp.Name, "names did not match")
+	assert.Equal(t, oapp.IsTrusted, rapp.IsTrusted, "trusted did no match")
 
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
 	_, resp = Client.CreateOAuthApp(oapp)
 	CheckForbiddenStatus(t, resp)
-
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
@@ -55,48 +51,42 @@ func TestCreateOAuthApp(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	if rapp.IsTrusted {
-		t.Fatal("trusted should be false - created by non admin")
-	}
+	assert.False(t, rapp.IsTrusted, "trusted should be false - created by non admin")
 
 	oapp.Name = ""
 	_, resp = AdminClient.CreateOAuthApp(oapp)
 	CheckBadRequestStatus(t, resp)
 
-	if r, err := Client.DoApiPost("/oauth/apps", "garbage"); err == nil {
-		t.Fatal("should have failed")
-	} else {
-		if r.StatusCode != http.StatusBadRequest {
-			t.Log("actual: " + strconv.Itoa(r.StatusCode))
-			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
-			t.Fatal("wrong status code")
-		}
-	}
+	r, err := Client.DoApiPost("/oauth/apps", "garbage")
+	require.Error(t, err, "expected error from garbage post")
+	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	Client.Logout()
 	_, resp = Client.CreateOAuthApp(oapp)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	oapp.Name = GenerateTestAppName()
 	_, resp = AdminClient.CreateOAuthApp(oapp)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestUpdateOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{
 		Name:         "oapp",
@@ -118,54 +108,22 @@ func TestUpdateOAuthApp(t *testing.T) {
 
 	updatedApp, resp := AdminClient.UpdateOAuthApp(oapp)
 	CheckNoError(t, resp)
-
-	if updatedApp.Id != oapp.Id {
-		t.Fatal("Id should have not updated")
-	}
-
-	if updatedApp.CreatorId != oapp.CreatorId {
-		t.Fatal("CreatorId should have not updated")
-	}
-
-	if updatedApp.CreateAt != oapp.CreateAt {
-		t.Fatal("CreateAt should have not updated")
-	}
-
-	if updatedApp.UpdateAt == oapp.UpdateAt {
-		t.Fatal("UpdateAt should have updated")
-	}
-
-	if updatedApp.ClientSecret != oapp.ClientSecret {
-		t.Fatal("ClientSecret should have not updated")
-	}
-
-	if updatedApp.Name != oapp.Name {
-		t.Fatal("Name should have updated")
-	}
-
-	if updatedApp.Description != oapp.Description {
-		t.Fatal("Description should have updated")
-	}
-
-	if updatedApp.IconURL != oapp.IconURL {
-		t.Fatal("IconURL should have updated")
-	}
+	assert.Equal(t, oapp.Id, updatedApp.Id, "Id should have not updated")
+	assert.Equal(t, oapp.CreatorId, updatedApp.CreatorId, "CreatorId should have not updated")
+	assert.Equal(t, oapp.CreateAt, updatedApp.CreateAt, "CreateAt should have not updated")
+	assert.NotEqual(t, oapp.UpdateAt, updatedApp.UpdateAt, "UpdateAt should have updated")
+	assert.Equal(t, oapp.ClientSecret, updatedApp.ClientSecret, "ClientSecret should have not updated")
+	assert.Equal(t, oapp.Name, updatedApp.Name, "Name should have updated")
+	assert.Equal(t, oapp.Description, updatedApp.Description, "Description should have updated")
+	assert.Equal(t, oapp.IconURL, updatedApp.IconURL, "IconURL should have updated")
 
 	if len(updatedApp.CallbackUrls) == len(oapp.CallbackUrls) {
 		for i, callbackUrl := range updatedApp.CallbackUrls {
-			if callbackUrl != oapp.CallbackUrls[i] {
-				t.Fatal("Description should have updated")
-			}
+			assert.Equal(t, oapp.CallbackUrls[i], callbackUrl, "Description should have updated")
 		}
 	}
-
-	if updatedApp.Homepage != oapp.Homepage {
-		t.Fatal("Homepage should have updated")
-	}
-
-	if updatedApp.IsTrusted != oapp.IsTrusted {
-		t.Fatal("IsTrusted should have updated")
-	}
+	assert.Equal(t, oapp.Homepage, updatedApp.Homepage, "Homepage should have updated")
+	assert.Equal(t, oapp.IsTrusted, updatedApp.IsTrusted, "IsTrusted should have updated")
 
 	th.LoginBasic2()
 	updatedApp.CreatorId = th.BasicUser2.Id
@@ -184,7 +142,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
 	CheckNotFoundStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
 	CheckNotImplementedStatus(t, resp)
@@ -199,19 +157,21 @@ func TestUpdateOAuthApp(t *testing.T) {
 }
 
 func TestGetOAuthApps(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -235,24 +195,16 @@ func TestGetOAuthApps(t *testing.T) {
 			found2 = true
 		}
 	}
-
-	if !found1 || !found2 {
-		t.Fatal("missing oauth app")
-	}
+	assert.Truef(t, found1, "missing oauth app %v", rapp.Id)
+	assert.Truef(t, found2, "missing oauth app %v", rapp2.Id)
 
 	apps, resp = AdminClient.GetOAuthApps(1, 1)
 	CheckNoError(t, resp)
-
-	if len(apps) != 1 {
-		t.Fatal("paging failed")
-	}
+	require.Equal(t, 1, len(apps), "paging failed")
 
 	apps, resp = Client.GetOAuthApps(0, 1000)
 	CheckNoError(t, resp)
-
-	if len(apps) != 1 && apps[0].Id != rapp2.Id {
-		t.Fatal("wrong apps returned")
-	}
+	require.True(t, len(apps) == 1 || apps[0].Id == rapp2.Id, "wrong apps returned")
 
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
@@ -265,25 +217,27 @@ func TestGetOAuthApps(t *testing.T) {
 	_, resp = Client.GetOAuthApps(0, 1000)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.GetOAuthApps(0, 1000)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -296,25 +250,13 @@ func TestGetOAuthApp(t *testing.T) {
 
 	rrapp, resp := AdminClient.GetOAuthApp(rapp.Id)
 	CheckNoError(t, resp)
-
-	if rapp.Id != rrapp.Id {
-		t.Fatal("wrong app")
-	}
-
-	if rrapp.ClientSecret == "" {
-		t.Fatal("should not be sanitized")
-	}
+	assert.Equal(t, rapp.Id, rrapp.Id, "wrong app")
+	assert.NotEqual(t, "", rrapp.ClientSecret, "should not be sanitized")
 
 	rrapp2, resp := AdminClient.GetOAuthApp(rapp2.Id)
 	CheckNoError(t, resp)
-
-	if rapp2.Id != rrapp2.Id {
-		t.Fatal("wrong app")
-	}
-
-	if rrapp2.ClientSecret == "" {
-		t.Fatal("should not be sanitized")
-	}
+	assert.Equal(t, rapp2.Id, rrapp2.Id, "wrong app")
+	assert.NotEqual(t, "", rrapp2.ClientSecret, "should not be sanitized")
 
 	_, resp = Client.GetOAuthApp(rapp2.Id)
 	CheckNoError(t, resp)
@@ -339,25 +281,27 @@ func TestGetOAuthApp(t *testing.T) {
 	_, resp = AdminClient.GetOAuthApp(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.GetOAuthApp(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetOAuthAppInfo(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -370,25 +314,13 @@ func TestGetOAuthAppInfo(t *testing.T) {
 
 	rrapp, resp := AdminClient.GetOAuthAppInfo(rapp.Id)
 	CheckNoError(t, resp)
-
-	if rapp.Id != rrapp.Id {
-		t.Fatal("wrong app")
-	}
-
-	if rrapp.ClientSecret != "" {
-		t.Fatal("should be sanitized")
-	}
+	assert.Equal(t, rapp.Id, rrapp.Id, "wrong app")
+	assert.Equal(t, "", rrapp.ClientSecret, "should be sanitized")
 
 	rrapp2, resp := AdminClient.GetOAuthAppInfo(rapp2.Id)
 	CheckNoError(t, resp)
-
-	if rapp2.Id != rrapp2.Id {
-		t.Fatal("wrong app")
-	}
-
-	if rrapp2.ClientSecret != "" {
-		t.Fatal("should be sanitized")
-	}
+	assert.Equal(t, rapp2.Id, rrapp2.Id, "wrong app")
+	assert.Equal(t, "", rrapp2.ClientSecret, "should be sanitized")
 
 	_, resp = Client.GetOAuthAppInfo(rapp2.Id)
 	CheckNoError(t, resp)
@@ -413,25 +345,27 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	_, resp = AdminClient.GetOAuthAppInfo(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.GetOAuthAppInfo(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestDeleteOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -444,10 +378,7 @@ func TestDeleteOAuthApp(t *testing.T) {
 
 	pass, resp := AdminClient.DeleteOAuthApp(rapp.Id)
 	CheckNoError(t, resp)
-
-	if !pass {
-		t.Fatal("should have passed")
-	}
+	assert.True(t, pass, "should have passed")
 
 	_, resp = AdminClient.DeleteOAuthApp(rapp2.Id)
 	CheckNoError(t, resp)
@@ -481,25 +412,27 @@ func TestDeleteOAuthApp(t *testing.T) {
 	_, resp = AdminClient.DeleteOAuthApp(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.DeleteOAuthApp(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestRegenerateOAuthAppSecret(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -512,14 +445,8 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 
 	rrapp, resp := AdminClient.RegenerateOAuthAppSecret(rapp.Id)
 	CheckNoError(t, resp)
-
-	if rrapp.Id != rapp.Id {
-		t.Fatal("wrong app")
-	}
-
-	if rrapp.ClientSecret == rapp.ClientSecret {
-		t.Fatal("secret didn't change")
-	}
+	assert.Equal(t, rrapp.Id, rapp.Id, "wrong app")
+	assert.NotEqual(t, rapp.ClientSecret, rrapp.ClientSecret, "secret didn't change")
 
 	_, resp = AdminClient.RegenerateOAuthAppSecret(rapp2.Id)
 	CheckNoError(t, resp)
@@ -553,13 +480,13 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	_, resp = AdminClient.RegenerateOAuthAppSecret(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.RegenerateOAuthAppSecret(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -568,7 +495,7 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -594,15 +521,9 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 		if a.Id == rapp.Id {
 			found = true
 		}
-
-		if a.ClientSecret != "" {
-			t.Fatal("not sanitized")
-		}
+		assert.Equal(t, "", a.ClientSecret, "not sanitized")
 	}
-
-	if !found {
-		t.Fatal("missing app")
-	}
+	require.True(t, found, "missing app")
 
 	_, resp = Client.GetAuthorizedOAuthAppsForUser(th.BasicUser2.Id, 0, 1000)
 	CheckForbiddenStatus(t, resp)
@@ -618,111 +539,9 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
-func TestAuthorizeOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
-	Client := th.Client
-	AdminClient := th.SystemAdminClient
-
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-
-	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
-
-	rapp, resp := AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
-
-	authRequest := &model.AuthorizeRequest{
-		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
-		ClientId:     rapp.Id,
-		RedirectUri:  rapp.CallbackUrls[0],
-		Scope:        "",
-		State:        "123",
+func closeBody(r *http.Response) {
+	if r != nil && r.Body != nil {
+		ioutil.ReadAll(r.Body)
+		r.Body.Close()
 	}
-
-	ruri, resp := Client.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
-
-	if len(ruri) == 0 {
-		t.Fatal("redirect url should be set")
-	}
-
-	ru, _ := url.Parse(ruri)
-	if ru == nil {
-		t.Fatal("redirect url unparseable")
-	} else {
-		if len(ru.Query().Get("code")) == 0 {
-			t.Fatal("authorization code not returned")
-		}
-		if ru.Query().Get("state") != authRequest.State {
-			t.Fatal("returned state doesn't match")
-		}
-	}
-
-	authRequest.RedirectUri = ""
-	_, resp = Client.AuthorizeOAuthApp(authRequest)
-	CheckBadRequestStatus(t, resp)
-
-	authRequest.RedirectUri = "http://somewhereelse.com"
-	_, resp = Client.AuthorizeOAuthApp(authRequest)
-	CheckBadRequestStatus(t, resp)
-
-	authRequest.RedirectUri = rapp.CallbackUrls[0]
-	authRequest.ResponseType = ""
-	_, resp = Client.AuthorizeOAuthApp(authRequest)
-	CheckBadRequestStatus(t, resp)
-
-	authRequest.ResponseType = model.AUTHCODE_RESPONSE_TYPE
-	authRequest.ClientId = ""
-	_, resp = Client.AuthorizeOAuthApp(authRequest)
-	CheckBadRequestStatus(t, resp)
-
-	authRequest.ClientId = model.NewId()
-	_, resp = Client.AuthorizeOAuthApp(authRequest)
-	CheckNotFoundStatus(t, resp)
-}
-
-func TestDeauthorizeOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
-	Client := th.Client
-	AdminClient := th.SystemAdminClient
-
-	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-
-	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
-
-	rapp, resp := AdminClient.CreateOAuthApp(oapp)
-	CheckNoError(t, resp)
-
-	authRequest := &model.AuthorizeRequest{
-		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
-		ClientId:     rapp.Id,
-		RedirectUri:  rapp.CallbackUrls[0],
-		Scope:        "",
-		State:        "123",
-	}
-
-	_, resp = Client.AuthorizeOAuthApp(authRequest)
-	CheckNoError(t, resp)
-
-	pass, resp := Client.DeauthorizeOAuthApp(rapp.Id)
-	CheckNoError(t, resp)
-
-	if !pass {
-		t.Fatal("should have passed")
-	}
-
-	_, resp = Client.DeauthorizeOAuthApp("junk")
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = Client.DeauthorizeOAuthApp(model.NewId())
-	CheckNoError(t, resp)
-
-	Client.Logout()
-	_, resp = Client.DeauthorizeOAuthApp(rapp.Id)
-	CheckUnauthorizedStatus(t, resp)
 }

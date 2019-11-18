@@ -4,52 +4,277 @@
 package app
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"strings"
-	"sync/atomic"
+	"sync"
 	"testing"
 	"time"
 
-	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
+func TestCreatePostDeduplicate(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("duplicate create post is idempotent", func(t *testing.T) {
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.Nil(t, err)
+		require.Equal(t, "message", post.Message)
+
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.Nil(t, err)
+		require.Equal(t, post.Id, duplicatePost.Id, "should have returned previously created post id")
+		require.Equal(t, "message", duplicatePost.Message)
+	})
+
+	t.Run("post rejected by plugin leaves cache ready for non-deduplicated try", func(t *testing.T) {
+		setupPluginApiTest(t, `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+				allow bool
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				if !p.allow {
+					p.allow = true
+					return nil, "rejected"
+				}
+
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`, `{"id": "testrejectfirstpost", "backend": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App)
+
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.NotNil(t, err)
+		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
+		require.Nil(t, post)
+
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.Nil(t, err)
+		require.Equal(t, "message", duplicatePost.Message)
+	})
+
+	t.Run("slow posting after cache entry blocks duplicate request", func(t *testing.T) {
+		setupPluginApiTest(t, `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+				"time"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+				instant bool
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				if !p.instant {
+					p.instant = true
+					time.Sleep(3 * time.Second)
+				}
+
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`, `{"id": "testdelayfirstpost", "backend": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App)
+
+		var post *model.Post
+		pendingPostId := model.NewId()
+
+		wg := sync.WaitGroup{}
+
+		// Launch a goroutine to make the first CreatePost call that will get delayed
+		// by the plugin above.
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var err error
+			post, err = th.App.CreatePostAsUser(&model.Post{
+				UserId:        th.BasicUser.Id,
+				ChannelId:     th.BasicChannel.Id,
+				Message:       "plugin delayed",
+				PendingPostId: pendingPostId,
+			}, "")
+			require.Nil(t, err)
+			require.Equal(t, post.Message, "plugin delayed")
+		}()
+
+		// Give the goroutine above a chance to start and get delayed by the plugin.
+		time.Sleep(2 * time.Second)
+
+		// Try creating a duplicate post
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "plugin delayed",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.NotNil(t, err)
+		require.Equal(t, "api.post.deduplicate_create_post.pending", err.Id)
+		require.Nil(t, duplicatePost)
+
+		// Wait for the first CreatePost to finish to ensure assertions are made.
+		wg.Wait()
+	})
+
+	t.Run("duplicate create post after cache expires is not idempotent", func(t *testing.T) {
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.Nil(t, err)
+		require.Equal(t, "message", post.Message)
+
+		time.Sleep(PENDING_POST_IDS_CACHE_TTL)
+
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.Nil(t, err)
+		require.NotEqual(t, post.Id, duplicatePost.Id, "should have created new post id")
+		require.Equal(t, "message", duplicatePost.Message)
+	})
+}
+
+func TestAttachFilesToPost(t *testing.T) {
+	t.Run("should attach files", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})
+		require.Nil(t, err)
+
+		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})
+		require.Nil(t, err)
+
+		post := th.BasicPost
+		post.FileIds = []string{info1.Id, info2.Id}
+
+		err = th.App.attachFilesToPost(post)
+		assert.Nil(t, err)
+
+		infos, err := th.App.GetFileInfosForPost(post.Id, false)
+		assert.Nil(t, err)
+		assert.Len(t, infos, 2)
+	})
+
+	t.Run("should update File.PostIds after failing to add files", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+			PostId:    model.NewId(),
+		})
+		require.Nil(t, err)
+
+		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})
+		require.Nil(t, err)
+
+		post := th.BasicPost
+		post.FileIds = []string{info1.Id, info2.Id}
+
+		err = th.App.attachFilesToPost(post)
+		assert.Nil(t, err)
+
+		infos, err := th.App.GetFileInfosForPost(post.Id, false)
+		assert.Nil(t, err)
+		assert.Len(t, infos, 1)
+		assert.Equal(t, info2.Id, infos[0].Id)
+
+		updated, err := th.App.GetSinglePost(post.Id)
+		require.Nil(t, err)
+		assert.Len(t, updated.FileIds, 1)
+		assert.Contains(t, updated.FileIds, info2.Id)
+	})
+}
+
 func TestUpdatePostEditAt(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{}
 	*post = *th.BasicPost
 
 	post.IsPinned = true
-	if saved, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal(err)
-	} else if saved.EditAt != post.EditAt {
-		t.Fatal("shouldn't have updated post.EditAt when pinning post")
-
-		*post = *saved
-	}
+	saved, err := th.App.UpdatePost(post, true)
+	require.Nil(t, err)
+	assert.Equal(t, saved.EditAt, post.EditAt, "shouldn't have updated post.EditAt when pinning post")
+	*post = *saved
 
 	time.Sleep(time.Millisecond * 100)
 
 	post.Message = model.NewId()
-	if saved, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal(err)
-	} else if saved.EditAt == post.EditAt {
-		t.Fatal("should have updated post.EditAt when updating post message")
-	}
+	saved, err = th.App.UpdatePost(post, true)
+	require.Nil(t, err)
+	assert.NotEqual(t, saved.EditAt, post.EditAt, "should have updated post.EditAt when updating post message")
+
+	time.Sleep(time.Millisecond * 200)
 }
 
 func TestUpdatePostTimeLimit(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{}
@@ -60,35 +285,46 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
 	})
-	if _, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal(err)
-	}
+	_, err := th.App.UpdatePost(post, true)
+	require.Nil(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = 1000000000
 	})
 	post.Message = model.NewId()
-	if _, err := th.App.UpdatePost(post, true); err != nil {
-		t.Fatal("should allow you to edit the post")
-	}
+
+	_, err = th.App.UpdatePost(post, true)
+	require.Nil(t, err, "should allow you to edit the post")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = 1
 	})
 	post.Message = model.NewId()
-	if _, err := th.App.UpdatePost(post, true); err == nil {
-		t.Fatal("should fail on update old post")
-	}
+	_, err = th.App.UpdatePost(post, true)
+	require.NotNil(t, err, "should fail on update old post")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
 	})
 }
 
+func TestUpdatePostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.UpdatePost(post, true)
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", err.Id)
+}
+
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -96,14 +332,11 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	userNotInChannel := th.BasicUser
 	rootPost := th.BasicPost
 
-	if _, err := th.App.AddUserToChannel(userInChannel, channel); err != nil {
-		t.Fatal(err)
-	}
+	_, err := th.App.AddUserToChannel(userInChannel, channel)
+	require.Nil(t, err)
 
-	if err := th.App.RemoveUserFromChannel(userNotInChannel.Id, "", channel); err != nil {
-		t.Fatal(err)
-	}
-
+	err = th.App.RemoveUserFromChannel(userNotInChannel.Id, "", channel)
+	require.Nil(t, err)
 	replyPost := model.Post{
 		Message:       "asd",
 		ChannelId:     channel.Id,
@@ -114,75 +347,60 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := th.App.CreatePostAsUser(&replyPost); err != nil {
-		t.Fatal(err)
-	}
+	_, err = th.App.CreatePostAsUser(&replyPost, "")
+	require.Nil(t, err)
 }
 
-func TestPostAction(t *testing.T) {
-	th := Setup().InitBasic()
+func TestPostAttachPostToChildPost(t *testing.T) {
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
-	})
+	channel := th.BasicChannel
+	user := th.BasicUser
+	rootPost := th.BasicPost
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var request model.PostActionIntegrationRequest
-		err := json.NewDecoder(r.Body).Decode(&request)
-		assert.NoError(t, err)
-		assert.Equal(t, request.UserId, th.BasicUser.Id)
-		assert.Equal(t, "foo", request.Context["s"])
-		assert.EqualValues(t, 3, request.Context["n"])
-		fmt.Fprintf(w, `{"update": {"message": "updated"}, "ephemeral_text": "foo"}`)
-	}))
-	defer ts.Close()
-
-	interactivePost := model.Post{
-		Message:       "Interactive post",
-		ChannelId:     th.BasicChannel.Id,
+	replyPost1 := model.Post{
+		Message:       "reply one",
+		ChannelId:     channel.Id,
+		RootId:        rootPost.Id,
+		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
-		UserId:        th.BasicUser.Id,
-		Props: model.StringInterface{
-			"attachments": []*model.SlackAttachment{
-				{
-					Text: "hello",
-					Actions: []*model.PostAction{
-						{
-							Integration: &model.PostActionIntegration{
-								Context: model.StringInterface{
-									"s": "foo",
-									"n": 3,
-								},
-								URL: ts.URL,
-							},
-							Name: "action",
-						},
-					},
-				},
-			},
-		},
+		UserId:        user.Id,
+		CreateAt:      0,
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost)
+	res1, err := th.App.CreatePostAsUser(&replyPost1, "")
 	require.Nil(t, err)
 
-	attachments, ok := post.Props["attachments"].([]*model.SlackAttachment)
-	require.True(t, ok)
+	replyPost2 := model.Post{
+		Message:       "reply two",
+		ChannelId:     channel.Id,
+		RootId:        res1.Id,
+		ParentId:      res1.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
 
-	require.NotEmpty(t, attachments[0].Actions)
-	require.NotEmpty(t, attachments[0].Actions[0].Id)
+	_, err = th.App.CreatePostAsUser(&replyPost2, "")
+	assert.Equalf(t, err.StatusCode, http.StatusBadRequest, "Expected BadRequest error, got %v", err)
 
-	err = th.App.DoPostAction(post.Id, "notavalidid", th.BasicUser.Id)
-	require.NotNil(t, err)
-	assert.Equal(t, http.StatusNotFound, err.StatusCode)
+	replyPost3 := model.Post{
+		Message:       "reply three",
+		ChannelId:     channel.Id,
+		RootId:        rootPost.Id,
+		ParentId:      rootPost.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
 
-	err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	_, err = th.App.CreatePostAsUser(&replyPost3, "")
+	assert.Nil(t, err)
 }
 
 func TestPostChannelMentions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -194,9 +412,7 @@ func TestPostChannelMentions(t *testing.T) {
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
 	}, false)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
+	require.Nil(t, err)
 	defer th.App.PermanentDeleteChannel(channelToMention)
 
 	_, err = th.App.AddUserToChannel(user, channel)
@@ -210,7 +426,7 @@ func TestPostChannelMentions(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	result, err := th.App.CreatePostAsUser(post)
+	result, err := th.App.CreatePostAsUser(post, "")
 	require.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
@@ -229,7 +445,7 @@ func TestPostChannelMentions(t *testing.T) {
 }
 
 func TestImageProxy(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -244,39 +460,60 @@ func TestImageProxy(t *testing.T) {
 		ProxiedImageURL string
 	}{
 		"atmos/camo": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765",
+			ProxiedImageURL: "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
 		},
 		"atmos/camo_SameSite": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "http://mymattermost.com/myimage",
 			ProxiedImageURL: "http://mymattermost.com/myimage",
 		},
 		"atmos/camo_PathOnly": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "/myimage",
 			ProxiedImageURL: "/myimage",
 		},
 		"atmos/camo_EmptyImageURL": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
+			ImageURL:        "",
+			ProxiedImageURL: "",
+		},
+		"local": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:        "http://mydomain.com/myimage",
+			ProxiedImageURL: "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
+		},
+		"local_SameSite": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:        "http://mymattermost.com/myimage",
+			ProxiedImageURL: "http://mymattermost.com/myimage",
+		},
+		"local_PathOnly": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:        "/myimage",
+			ProxiedImageURL: "/myimage",
+		},
+		"local_EmptyImageURL": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
 			ImageURL:        "",
 			ProxiedImageURL: "",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.ServiceSettings.ImageProxyType = model.NewString(tc.ProxyType)
-				cfg.ServiceSettings.ImageProxyOptions = model.NewString(tc.ProxyOptions)
-				cfg.ServiceSettings.ImageProxyURL = model.NewString(tc.ProxyURL)
+				cfg.ImageProxySettings.Enable = model.NewBool(true)
+				cfg.ImageProxySettings.ImageProxyType = model.NewString(tc.ProxyType)
+				cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewString(tc.ProxyOptions)
+				cfg.ImageProxySettings.RemoteImageProxyURL = model.NewString(tc.ProxyURL)
 			})
 
 			post := &model.Post{
@@ -287,101 +524,18 @@ func TestImageProxy(t *testing.T) {
 			list := model.NewPostList()
 			list.Posts[post.Id] = post
 
-			assert.Equal(t, "![foo]("+tc.ProxiedImageURL+")", th.App.PostListWithProxyAddedToImageURLs(list).Posts[post.Id].Message)
 			assert.Equal(t, "![foo]("+tc.ProxiedImageURL+")", th.App.PostWithProxyAddedToImageURLs(post).Message)
 
 			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 			post.Message = "![foo](" + tc.ProxiedImageURL + ")"
 			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
-		})
-	}
-}
 
-func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
-	for name, tc := range map[string]struct {
-		HTML       string
-		RequestURL string
-		URL        string
-		ImageURL   string
-	}{
-		"absolute URLs": {
-			HTML: `
-				<html>
-					<head>
-						<meta property="og:url" content="https://example.com/apps/mattermost">
-						<meta property="og:image" content="https://images.example.com/image.png">
-					</head>
-				</html>`,
-			RequestURL: "https://example.com",
-			URL:        "https://example.com/apps/mattermost",
-			ImageURL:   "https://images.example.com/image.png",
-		},
-		"URLs starting with /": {
-			HTML: `
-				<html>
-					<head>
-						<meta property="og:url" content="/apps/mattermost">
-						<meta property="og:image" content="/image.png">
-					</head>
-				</html>`,
-			RequestURL: "http://example.com",
-			URL:        "http://example.com/apps/mattermost",
-			ImageURL:   "http://example.com/image.png",
-		},
-		"HTTPS URLs starting with /": {
-			HTML: `
-				<html>
-					<head>
-						<meta property="og:url" content="/apps/mattermost">
-						<meta property="og:image" content="/image.png">
-					</head>
-				</html>`,
-			RequestURL: "https://example.com",
-			URL:        "https://example.com/apps/mattermost",
-			ImageURL:   "https://example.com/image.png",
-		},
-		"missing image URL": {
-			HTML: `
-				<html>
-					<head>
-						<meta property="og:url" content="/apps/mattermost">
-					</head>
-				</html>`,
-			RequestURL: "http://example.com",
-			URL:        "http://example.com/apps/mattermost",
-			ImageURL:   "",
-		},
-		"relative URLs": {
-			HTML: `
-				<html>
-					<head>
-						<meta property="og:url" content="index.html">
-						<meta property="og:image" content="../resources/image.png">
-					</head>
-				</html>`,
-			RequestURL: "http://example.com/content/index.html",
-			URL:        "http://example.com/content/index.html",
-			ImageURL:   "http://example.com/resources/image.png",
-		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			og := opengraph.NewOpenGraph()
-			if err := og.ProcessHTML(strings.NewReader(tc.HTML)); err != nil {
-				t.Fatal(err)
-			}
-
-			makeOpenGraphURLsAbsolute(og, tc.RequestURL)
-
-			if og.URL != tc.URL {
-				t.Fatalf("incorrect url, expected %v, got %v", tc.URL, og.URL)
-			}
-
-			if len(og.Images) > 0 {
-				if og.Images[0].URL != tc.ImageURL {
-					t.Fatalf("incorrect image url, expected %v, got %v", tc.ImageURL, og.Images[0].URL)
-				}
-			} else if tc.ImageURL != "" {
-				t.Fatalf("missing image url, expected %v, got nothing", tc.ImageURL)
+			if tc.ImageURL != "" {
+				post.Message = "![foo](" + tc.ImageURL + " =500x200)"
+				assert.Equal(t, "![foo]("+tc.ProxiedImageURL+" =500x200)", th.App.PostWithProxyAddedToImageURLs(post).Message)
+				assert.Equal(t, "![foo]("+tc.ImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
+				post.Message = "![foo](" + tc.ProxiedImageURL + " =500x200)"
+				assert.Equal(t, "![foo]("+tc.ImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 			}
 		})
 	}
@@ -394,25 +548,21 @@ func TestMaxPostSize(t *testing.T) {
 		Description         string
 		StoreMaxPostSize    int
 		ExpectedMaxPostSize int
-		ExpectedError       *model.AppError
 	}{
 		{
-			"error fetching max post size",
+			"Max post size less than model.model.POST_MESSAGE_MAX_RUNES_V1 ",
 			0,
 			model.POST_MESSAGE_MAX_RUNES_V1,
-			model.NewAppError("TestMaxPostSize", "this is an error", nil, "", http.StatusBadRequest),
 		},
 		{
 			"4000 rune limit",
 			4000,
 			4000,
-			nil,
 		},
 		{
 			"16383 rune limit",
 			16383,
 			16383,
-			nil,
 		},
 	}
 
@@ -424,21 +574,338 @@ func TestMaxPostSize(t *testing.T) {
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
 
-			mockStore.PostStore.On("GetMaxPostSize").Return(
-				storetest.NewStoreChannel(store.StoreResult{
-					Data: testCase.StoreMaxPostSize,
-					Err:  testCase.ExpectedError,
-				}),
-			)
+			mockStore.PostStore.On("GetMaxPostSize").Return(testCase.StoreMaxPostSize)
 
 			app := App{
 				Srv: &Server{
 					Store: mockStore,
 				},
-				config: atomic.Value{},
 			}
 
 			assert.Equal(t, testCase.ExpectedMaxPostSize, app.MaxPostSize())
 		})
 	}
+}
+
+func TestDeletePostWithFileAttachments(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Create a post with a file attachment.
+	teamId := th.BasicTeam.Id
+	channelId := th.BasicChannel.Id
+	userId := th.BasicUser.Id
+	filename := "test"
+	data := []byte("abcd")
+
+	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	require.Nil(t, err)
+	defer func() {
+		th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.RemoveFile(info1.Path)
+	}()
+
+	post := &model.Post{
+		Message:       "asd",
+		ChannelId:     channelId,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        userId,
+		CreateAt:      0,
+		FileIds:       []string{info1.Id},
+	}
+
+	post, err = th.App.CreatePost(post, th.BasicChannel, false)
+	assert.Nil(t, err)
+
+	// Delete the post.
+	post, err = th.App.DeletePost(post.Id, userId)
+	assert.Nil(t, err)
+
+	// Wait for the cleanup routine to finish.
+	time.Sleep(time.Millisecond * 100)
+
+	// Check that the file can no longer be reached.
+	_, err = th.App.GetFileInfo(info1.Id)
+	assert.NotNil(t, err)
+}
+
+func TestDeletePostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.DeletePost(post.Id, "")
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.delete_post.can_not_delete_post_in_deleted.error", err.Id)
+}
+
+func TestCreatePost(t *testing.T) {
+	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+		})
+
+		imageURL := "http://mydomain.com/myimage"
+		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "![image](" + imageURL + ")",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+}
+
+func TestPatchPost(t *testing.T) {
+	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+		})
+
+		imageURL := "http://mydomain.com/myimage"
+		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "![image](http://mydomain/anotherimage)",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.NotEqual(t, "![image]("+proxiedImageURL+")", rpost.Message)
+
+		patch := &model.PostPatch{
+			Message: model.NewString("![image](" + imageURL + ")"),
+		}
+
+		rpost, err = th.App.PatchPost(rpost.Id, patch)
+		require.Nil(t, err)
+		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+}
+
+func TestPatchPostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.PatchPost(post.Id, &model.PostPatch{IsPinned: model.NewBool(true)})
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.patch_post.can_not_update_post_in_deleted.error", err.Id)
+}
+
+func TestUpdatePost(t *testing.T) {
+	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+		})
+
+		imageURL := "http://mydomain.com/myimage"
+		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "![image](http://mydomain/anotherimage)",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.NotEqual(t, "![image]("+proxiedImageURL+")", rpost.Message)
+
+		post.Id = rpost.Id
+		post.Message = "![image](" + imageURL + ")"
+
+		rpost, err = th.App.UpdatePost(post, false)
+		require.Nil(t, err)
+		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+}
+
+func TestSearchPostsInTeamForUser(t *testing.T) {
+	perPage := 5
+	searchTerm := "searchTerm"
+
+	setup := func(t *testing.T, enableElasticsearch bool) (*TestHelper, []*model.Post) {
+		th := Setup(t).InitBasic()
+
+		posts := make([]*model.Post, 7)
+		for i := 0; i < cap(posts); i++ {
+			post, err := th.App.CreatePost(&model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   searchTerm,
+			}, th.BasicChannel, false)
+
+			require.Nil(t, err)
+
+			posts[i] = post
+		}
+
+		if enableElasticsearch {
+			th.App.SetLicense(model.NewTestLicense("elastic_search"))
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableIndexing = true
+				*cfg.ElasticsearchSettings.EnableSearching = true
+			})
+		} else {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableSearching = false
+			})
+		}
+
+		return th, posts
+	}
+
+	t.Run("should return everything as first page of posts from database", func(t *testing.T) {
+		th, posts := setup(t, false)
+		defer th.TearDown()
+
+		page := 0
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{
+			posts[6].Id,
+			posts[5].Id,
+			posts[4].Id,
+			posts[3].Id,
+			posts[2].Id,
+			posts[1].Id,
+			posts[0].Id,
+		}, results.Order)
+	})
+
+	t.Run("should not return later pages of posts from database", func(t *testing.T) {
+		th, _ := setup(t, false)
+		defer th.TearDown()
+
+		page := 1
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{}, results.Order)
+	})
+
+	t.Run("should return first page of posts from ElasticSearch", func(t *testing.T) {
+		th, posts := setup(t, true)
+		defer th.TearDown()
+
+		page := 0
+		resultsPage := []string{
+			posts[6].Id,
+			posts[5].Id,
+			posts[4].Id,
+			posts[3].Id,
+			posts[2].Id,
+		}
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, resultsPage, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should return later pages of posts from ElasticSearch", func(t *testing.T) {
+		th, posts := setup(t, true)
+		defer th.TearDown()
+
+		page := 1
+		resultsPage := []string{
+			posts[1].Id,
+			posts[0].Id,
+		}
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, resultsPage, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should fall back to database if ElasticSearch fails on first page", func(t *testing.T) {
+		th, posts := setup(t, true)
+		defer th.TearDown()
+
+		page := 0
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{
+			posts[6].Id,
+			posts[5].Id,
+			posts[4].Id,
+			posts[3].Id,
+			posts[2].Id,
+			posts[1].Id,
+			posts[0].Id,
+		}, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should return nothing if ElasticSearch fails on later pages", func(t *testing.T) {
+		th, _ := setup(t, true)
+		defer th.TearDown()
+
+		page := 1
+
+		es := &mocks.ElasticsearchInterface{}
+		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
+		th.App.Elasticsearch = es
+
+		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{}, results.Order)
+		es.AssertExpectations(t)
+	})
 }

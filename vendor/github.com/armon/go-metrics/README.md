@@ -7,7 +7,7 @@ expose application metrics, and profile runtime performance in a flexible manner
 Current API: [![GoDoc](https://godoc.org/github.com/armon/go-metrics?status.svg)](https://godoc.org/github.com/armon/go-metrics)
 
 Sinks
-=====
+-----
 
 The `metrics` package makes use of a `MetricSink` interface to support delivery
 to any type of backend. Currently the following sinks are provided:
@@ -23,8 +23,26 @@ In addition to the sinks, the `InmemSignal` can be used to catch a signal,
 and dump a formatted output of recent metrics. For example, when a process gets
 a SIGUSR1, it can dump to stderr recent performance metrics for debugging.
 
+Labels
+------
+
+Most metrics do have an equivalent ending with `WithLabels`, such methods
+allow to push metrics with labels and use some features of underlying Sinks
+(ex: translated into Prometheus labels).
+
+Since some of these labels may increase greatly cardinality of metrics, the
+library allow to filter labels using a blacklist/whitelist filtering system
+which is global to all metrics.
+
+* If `Config.AllowedLabels` is not nil, then only labels specified in this value will be sent to underlying Sink, otherwise, all labels are sent by default.
+* If `Config.BlockedLabels` is not nil, any label specified in this value will not be sent to underlying Sinks.
+
+By default, both `Config.AllowedLabels` and `Config.BlockedLabels` are nil, meaning that
+no tags are filetered at all, but it allow to a user to globally block some tags with high
+cardinality at application level.
+
 Examples
-========
+--------
 
 Here is an example of using the package:
 
@@ -71,4 +89,3 @@ When a signal comes in, output like the following will be dumped to stderr:
     [2014-01-28 14:57:33.04 -0800 PST][P] 'bar': 30.000
     [2014-01-28 14:57:33.04 -0800 PST][C] 'baz': Count: 3 Min: 1.000 Mean: 41.000 Max: 80.000 Stddev: 39.509
     [2014-01-28 14:57:33.04 -0800 PST][S] 'method.wow': Count: 3 Min: 22.000 Mean: 54.667 Max: 100.000 Stddev: 40.513
-

@@ -18,12 +18,12 @@ func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
 		}
 	}
 
-	if esI := a.Elasticsearch; esI != nil {
-		if err := esI.TestConfig(cfg); err != nil {
-			return err
-		}
-	} else {
+	esI := a.Elasticsearch
+	if esI == nil {
 		err := model.NewAppError("TestElasticsearch", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
+		return err
+	}
+	if err := esI.TestConfig(cfg); err != nil {
 		return err
 	}
 
@@ -31,12 +31,13 @@ func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
 }
 
 func (a *App) PurgeElasticsearchIndexes() *model.AppError {
-	if esI := a.Elasticsearch; esI != nil {
-		if err := esI.PurgeIndexes(); err != nil {
-			return err
-		}
-	} else {
+	esI := a.Elasticsearch
+	if esI == nil {
 		err := model.NewAppError("PurgeElasticsearchIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
+		return err
+	}
+
+	if err := esI.PurgeIndexes(); err != nil {
 		return err
 	}
 

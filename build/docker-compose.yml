@@ -1,0 +1,47 @@
+version: '2.4'
+services:
+  mysql:
+    extends:
+        file: docker-compose.common.yml
+        service: mysql
+    tmpfs: /var/lib/mysql
+    volumes:
+     - "./docker/mysql.conf.d:/etc/mysql/conf.d"
+  postgres:
+    extends:
+        file: docker-compose.common.yml
+        service: postgres
+    tmpfs: /var/lib/postgresql/data
+  minio:
+    extends:
+        file: docker-compose.common.yml
+        service: minio
+  inbucket:
+    extends:
+        file: docker-compose.common.yml
+        service: inbucket
+  openldap:
+    extends:
+        file: docker-compose.common.yml
+        service: openldap
+  elasticsearch:
+    extends:
+        file: docker-compose.common.yml
+        service: elasticsearch
+
+  start_dependencies:
+    image: mattermost/mattermost-wait-for-dep:latest
+    networks:
+      - mm-test
+    depends_on:
+      - mysql
+      - postgres
+      - minio
+      - inbucket
+      - openldap
+      - elasticsearch
+    command: postgres:5432 mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200
+
+networks:
+  mm-test:
+    driver: bridge

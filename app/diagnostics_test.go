@@ -4,36 +4,23 @@
 package app
 
 import (
-	"bytes"
-	"io"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func newTestServer() (chan string, *httptest.Server) {
-	result := make(chan string, 100)
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		buf := bytes.NewBuffer(nil)
-		io.Copy(buf, r.Body)
-
-		result <- buf.String()
-	}))
-
-	return result, server
-}
-
 func TestPluginSetting(t *testing.T) {
 	settings := &model.PluginSettings{
-		Plugins: map[string]interface{}{
-			"test": map[string]string{
+		Plugins: map[string]map[string]interface{}{
+			"test": {
 				"foo": "bar",
 			},
 		},
@@ -44,10 +31,10 @@ func TestPluginSetting(t *testing.T) {
 
 func TestPluginActivated(t *testing.T) {
 	states := map[string]*model.PluginState{
-		"foo": &model.PluginState{
+		"foo": {
 			Enable: true,
 		},
-		"bar": &model.PluginState{
+		"bar": {
 			Enable: false,
 		},
 	}
@@ -57,75 +44,111 @@ func TestPluginActivated(t *testing.T) {
 }
 
 func TestDiagnostics(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
 	if testing.Short() {
 		t.SkipNow()
 	}
 
-	data, server := newTestServer()
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	type payload struct {
+		MessageId string
+		SentAt    time.Time
+		Batch     []struct {
+			MessageId  string
+			UserId     string
+			Event      string
+			Timestamp  time.Time
+			Properties map[string]interface{}
+		}
+		Context struct {
+			Library struct {
+				Name    string
+				Version string
+			}
+		}
+	}
+
+	data := make(chan payload, 100)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := ioutil.ReadAll(r.Body)
+		require.NoError(t, err)
+
+		var p payload
+		err = json.Unmarshal(body, &p)
+		require.NoError(t, err)
+
+		data <- p
+	}))
 	defer server.Close()
 
-	diagnosticId := "i am not real"
-	th.App.SetDiagnosticId(diagnosticId)
-	th.App.initDiagnostics(server.URL)
+	diagnosticID := "test-diagnostic-id-12345"
+	th.App.SetDiagnosticId(diagnosticID)
+	th.Server.initDiagnostics(server.URL)
+
+	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
+		assert.NotEmpty(t, actual.MessageId)
+		assert.False(t, actual.SentAt.IsZero())
+		if assert.Len(t, actual.Batch, 1) {
+			assert.NotEmpty(t, actual.Batch[0].MessageId, "message id should not be empty")
+			assert.Equal(t, diagnosticID, actual.Batch[0].UserId)
+			if event != "" {
+				assert.Equal(t, event, actual.Batch[0].Event)
+			}
+			assert.False(t, actual.Batch[0].Timestamp.IsZero(), "batch timestamp should not be the zero value")
+			if properties != nil {
+				assert.Equal(t, properties, actual.Batch[0].Properties)
+			}
+		}
+		assert.Equal(t, "analytics-go", actual.Context.Library.Name)
+		assert.Equal(t, "3.0.0", actual.Context.Library.Version)
+	}
 
 	// Should send a client identify message
 	select {
 	case identifyMessage := <-data:
-		t.Log("Got idmessage:\n" + identifyMessage)
-		if !strings.Contains(identifyMessage, diagnosticId) {
-			t.Fail()
-		}
+		assertPayload(t, identifyMessage, "", nil)
 	case <-time.After(time.Second * 1):
-		t.Fatal("Did not receive ID message")
+		require.Fail(t, "Did not receive ID message")
 	}
 
 	t.Run("Send", func(t *testing.T) {
-		const TEST_VALUE = "stuff548959847"
+		testValue := "test-send-value-6789"
 		th.App.SendDiagnostic("Testing Diagnostic", map[string]interface{}{
-			"hey": TEST_VALUE,
+			"hey": testValue,
 		})
 		select {
 		case result := <-data:
-			t.Log("Got diagnostic:\n" + result)
-			if !strings.Contains(result, TEST_VALUE) {
-				t.Fail()
-			}
+			assertPayload(t, result, "Testing Diagnostic", map[string]interface{}{
+				"hey": testValue,
+			})
 		case <-time.After(time.Second * 1):
-			t.Fatal("Did not receive diagnostic")
+			require.Fail(t, "Did not receive diagnostic")
 		}
 	})
 
 	t.Run("SendDailyDiagnostics", func(t *testing.T) {
-		th.App.SendDailyDiagnostics()
+		th.App.sendDailyDiagnostics(true)
 
-		info := ""
+		var info []string
 		// Collect the info sent.
+	Loop:
 		for {
-			done := false
 			select {
 			case result := <-data:
-				info += result
+				assertPayload(t, result, "", nil)
+				info = append(info, result.Batch[0].Event)
 			case <-time.After(time.Second * 1):
-				// Done recieving
-				done = true
-				break
-			}
-
-			if done {
-				break
+				break Loop
 			}
 		}
 
 		for _, item := range []string{
 			TRACK_CONFIG_SERVICE,
 			TRACK_CONFIG_TEAM,
-			TRACK_CONFIG_SERVICE,
-			TRACK_CONFIG_TEAM,
 			TRACK_CONFIG_SQL,
 			TRACK_CONFIG_LOG,
+			TRACK_CONFIG_NOTIFICATION_LOG,
 			TRACK_CONFIG_FILE,
 			TRACK_CONFIG_RATE,
 			TRACK_CONFIG_EMAIL,
@@ -138,7 +161,6 @@ func TestDiagnostics(t *testing.T) {
 			TRACK_CONFIG_PASSWORD,
 			TRACK_CONFIG_CLUSTER,
 			TRACK_CONFIG_METRICS,
-			TRACK_CONFIG_WEBRTC,
 			TRACK_CONFIG_SUPPORT,
 			TRACK_CONFIG_NATIVEAPP,
 			TRACK_CONFIG_ANALYTICS,
@@ -148,20 +170,29 @@ func TestDiagnostics(t *testing.T) {
 			TRACK_CONFIG_MESSAGE_EXPORT,
 			TRACK_PLUGINS,
 		} {
-			if !strings.Contains(info, item) {
-				t.Fatal("Sent diagnostics missing item: " + item)
-			}
+			require.Contains(t, info, item)
+		}
+	})
+
+	t.Run("SendDailyDiagnosticsNoSegmentKey", func(t *testing.T) {
+		th.App.SendDailyDiagnostics()
+
+		select {
+		case <-data:
+			require.Fail(t, "Should not send diagnostics when the segment key is not set")
+		case <-time.After(time.Second * 1):
+			// Did not receive diagnostics
 		}
 	})
 
 	t.Run("SendDailyDiagnosticsDisabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableDiagnostics = false })
 
-		th.App.SendDailyDiagnostics()
+		th.App.sendDailyDiagnostics(true)
 
 		select {
 		case <-data:
-			t.Fatal("Should not send diagnostics when they are disabled")
+			require.Fail(t, "Should not send diagnostics when they are disabled")
 		case <-time.After(time.Second * 1):
 			// Did not receive diagnostics
 		}

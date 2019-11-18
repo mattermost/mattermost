@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"io"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -12,21 +14,26 @@ import (
 func (api *API) InitBrand() {
 	api.BaseRoutes.Brand.Handle("/image", api.ApiHandlerTrustRequester(getBrandImage)).Methods("GET")
 	api.BaseRoutes.Brand.Handle("/image", api.ApiSessionRequired(uploadBrandImage)).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/image", api.ApiSessionRequired(deleteBrandImage)).Methods("DELETE")
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// No permission check required
 
-	if img, err := c.App.GetBrandImage(); err != nil {
+	img, err := c.App.GetBrandImage()
+	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(nil)
-	} else {
-		w.Header().Set("Content-Type", "image/png")
-		w.Write(img)
+		return
 	}
+
+	w.Header().Set("Content-Type", "image/png")
+	w.Write(img)
 }
 
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
 	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
 		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
@@ -50,7 +57,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -63,5 +70,19 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	w.WriteHeader(http.StatusCreated)
+	ReturnStatusOK(w)
+}
+
+func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := c.App.DeleteBrandImage(); err != nil {
+		c.Err = err
+		return
+	}
+
 	ReturnStatusOK(w)
 }

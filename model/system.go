@@ -10,12 +10,14 @@ import (
 )
 
 const (
-	SYSTEM_DIAGNOSTIC_ID          = "DiagnosticId"
-	SYSTEM_RAN_UNIT_TESTS         = "RanUnitTests"
-	SYSTEM_LAST_SECURITY_TIME     = "LastSecurityTime"
-	SYSTEM_ACTIVE_LICENSE_ID      = "ActiveLicenseId"
-	SYSTEM_LAST_COMPLIANCE_TIME   = "LastComplianceTime"
-	SYSTEM_ASYMMETRIC_SIGNING_KEY = "AsymmetricSigningKey"
+	SYSTEM_DIAGNOSTIC_ID             = "DiagnosticId"
+	SYSTEM_RAN_UNIT_TESTS            = "RanUnitTests"
+	SYSTEM_LAST_SECURITY_TIME        = "LastSecurityTime"
+	SYSTEM_ACTIVE_LICENSE_ID         = "ActiveLicenseId"
+	SYSTEM_LAST_COMPLIANCE_TIME      = "LastComplianceTime"
+	SYSTEM_ASYMMETRIC_SIGNING_KEY    = "AsymmetricSigningKey"
+	SYSTEM_POST_ACTION_COOKIE_SECRET = "PostActionCookieSecret"
+	SYSTEM_INSTALLATION_DATE_KEY     = "InstallationDate"
 )
 
 type System struct {
@@ -32,6 +34,10 @@ func SystemFromJson(data io.Reader) *System {
 	var o *System
 	json.NewDecoder(data).Decode(&o)
 	return o
+}
+
+type SystemPostActionCookieSecret struct {
+	Secret []byte `json:"key,omitempty"`
 }
 
 type SystemAsymmetricSigningKey struct {

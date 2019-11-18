@@ -6,9 +6,9 @@ package app
 import (
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type msgProvider struct {
@@ -48,15 +48,22 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 	targetUsername = strings.SplitN(message, " ", 2)[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	var userProfile *model.User
-	if result := <-a.Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
-		l4g.Error(result.Err.Error())
+	userProfile, err := a.Srv.Store.User().GetByUsername(targetUsername)
+	if err != nil {
+		mlog.Error(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		userProfile = result.Data.(*model.User)
 	}
 
 	if userProfile.Id == args.UserId {
+		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	canSee, err := a.UserCanSeeOtherUser(args.UserId, userProfile.Id)
+	if err != nil {
+		mlog.Error(err.Error())
+		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+	if !canSee {
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
@@ -64,20 +71,24 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 	channelName := model.GetDMNameFromIds(args.UserId, userProfile.Id)
 
 	targetChannelId := ""
-	if channel := <-a.Srv.Store.Channel().GetByName(args.TeamId, channelName, true); channel.Err != nil {
-		if channel.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-			if directChannel, err := a.CreateDirectChannel(args.UserId, userProfile.Id); err != nil {
-				l4g.Error(err.Error())
+	if channel, channelErr := a.Srv.Store.Channel().GetByName(args.TeamId, channelName, true); channelErr != nil {
+		if channelErr.Id == "store.sql_channel.get_by_name.missing.app_error" {
+			if !a.SessionHasPermissionTo(args.Session, model.PERMISSION_CREATE_DIRECT_CHANNEL) {
+				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			}
+
+			var directChannel *model.Channel
+			if directChannel, err = a.GetOrCreateDirectChannel(args.UserId, userProfile.Id); err != nil {
+				mlog.Error(err.Error())
 				return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			} else {
 				targetChannelId = directChannel.Id
 			}
 		} else {
-			l4g.Error(channel.Err.Error())
+			mlog.Error(channelErr.Error())
 			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	} else {
-		channel := channel.Data.(*model.Channel)
 		targetChannelId = channel.Id
 	}
 
@@ -86,7 +97,7 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelId
 		post.UserId = args.UserId
-		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
+		if _, err = a.CreatePostMissingChannel(post, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}

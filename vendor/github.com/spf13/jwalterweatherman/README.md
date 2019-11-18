@@ -18,7 +18,7 @@ provides a few advantages over using the standard log library alone.
 I really wanted a very straightforward library that could seamlessly do
 the following things.
 
-1. Replace all the println, printf, etc statements thought my code with
+1. Replace all the println, printf, etc statements thoughout my code with
    something more useful
 2. Allow the user to easily control what levels are printed to stdout
 3. Allow the user to easily control what levels are logged

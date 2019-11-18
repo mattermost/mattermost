@@ -174,7 +174,7 @@ func (s *IndicesSegmentsService) Do(ctx context.Context) (*IndicesSegmentsRespon
 // IndicesSegmentsResponse is the response of IndicesSegmentsService.Do.
 type IndicesSegmentsResponse struct {
 	// Shards provides information returned from shards.
-	Shards shardsInfo `json:"_shards"`
+	Shards *ShardsInfo `json:"_shards"`
 
 	// Indices provides a map into the stats of an index.
 	// The key of the map is the index name.

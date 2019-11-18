@@ -53,6 +53,8 @@ Usage of easyjson:
         use lowerCamelCase instead of CamelCase by default
   -stubs
     	only generate stubs for marshaler/unmarshaler funcs
+  -disallow_unknown_fields
+        return error if some unknown field in json appeared
 ```
 
 Using `-all` will generate marshalers/unmarshalers for all Go structs in the
@@ -171,6 +173,9 @@ for more information.
   typically for many uses/protocols the final, marshaled length of the JSON
   needs to be known prior to sending the data. Currently this is not possible
   with easyjson's architecture.
+  
+* easyjson parser and codegen based on reflection, so it wont works on `package main` 
+  files, because they cant be imported by parser.
 
 ## Benchmarks
 

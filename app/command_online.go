@@ -4,8 +4,8 @@
 package app
 
 import (
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/model"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type OnlineProvider struct {
@@ -33,7 +33,7 @@ func (me *OnlineProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Comm
 }
 
 func (me *OnlineProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
-	a.SetStatusOnline(args.UserId, args.Session.Id, true)
+	a.SetStatusOnline(args.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_online.success")}
 }

@@ -11,7 +11,7 @@ Package gorilla/schema converts structs to and from form values.
 Here's a quick example: we parse POST form values and then decode them into a struct:
 
 ```go
-// Set a Decoder instance as a package global, because it caches 
+// Set a Decoder instance as a package global, because it caches
 // meta-data about structs, and an instance can be shared safely.
 var decoder = schema.NewDecoder()
 
@@ -27,9 +27,9 @@ func MyHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     var person Person
-    
+
     // r.PostForm is a map of our POST form values
-    err := decoder.Decode(&person, r.PostForm)
+    err = decoder.Decode(&person, r.PostForm)
     if err != nil {
         // Handle error
     }
@@ -64,9 +64,9 @@ To define custom names for fields, use a struct tag "schema". To not populate ce
 
 ```go
 type Person struct {
-    Name  string `schema:"name"`  // custom name
-    Phone string `schema:"phone"` // custom name
-    Admin bool   `schema:"-"`     // this field is never set
+    Name  string `schema:"name,required"`  // custom name, must be supplied
+    Phone string `schema:"phone"`          // custom name
+    Admin bool   `schema:"-"`              // this field is never set
 }
 ```
 
@@ -83,8 +83,8 @@ The supported field types in the struct are:
 
 Unsupported types are simply ignored, however custom types can be registered to be converted.
 
-More examples are available on the Gorilla website: http://www.gorillatoolkit.org/pkg/schema
+More examples are available on the Gorilla website: https://www.gorillatoolkit.org/pkg/schema
 
-## License 
+## License
 
 BSD licensed. See the LICENSE file for details.

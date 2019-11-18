@@ -10,9 +10,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 var T i18n.TranslateFunc
@@ -20,19 +21,18 @@ var TDefault i18n.TranslateFunc
 var locales map[string]string = make(map[string]string)
 var settings model.LocalizationSettings
 
-// this functions loads translations from filesystem
-// and assign english while loading server config
+// this functions loads translations from filesystem if they are not
+// loaded already and assigns english while loading server config
 func TranslationsPreInit() error {
+	if T != nil {
+		return nil
+	}
+
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = TfuncWithFallback("en")
 	TDefault = TfuncWithFallback("en")
-
-	if err := InitTranslationsWithDir("i18n"); err != nil {
-		return err
-	}
-
-	return nil
+	return InitTranslationsWithDir("i18n")
 }
 
 func InitTranslations(localizationSettings model.LocalizationSettings) error {
@@ -44,7 +44,7 @@ func InitTranslations(localizationSettings model.LocalizationSettings) error {
 }
 
 func InitTranslationsWithDir(dir string) error {
-	i18nDirectory, found := FindDir(dir)
+	i18nDirectory, found := fileutils.FindDir(dir)
 	if !found {
 		return fmt.Errorf("Unable to find i18n directory")
 	}
@@ -67,7 +67,7 @@ func InitTranslationsWithDir(dir string) error {
 func GetTranslationsBySystemLocale() (i18n.TranslateFunc, error) {
 	locale := *settings.DefaultServerLocale
 	if _, ok := locales[locale]; !ok {
-		l4g.Error("Failed to load system translations for '%v' attempting to fall back to '%v'", locale, model.DEFAULT_LOCALE)
+		mlog.Error("Failed to load system translations for", mlog.String("locale", locale), mlog.String("attempting to fall back to default locale", model.DEFAULT_LOCALE))
 		locale = model.DEFAULT_LOCALE
 	}
 
@@ -80,7 +80,7 @@ func GetTranslationsBySystemLocale() (i18n.TranslateFunc, error) {
 		return nil, fmt.Errorf("Failed to load system translations")
 	}
 
-	l4g.Info(translations("utils.i18n.loaded"), locale, locales[locale])
+	mlog.Info("Loaded system translations", mlog.String("for locale", locale), mlog.String("from locale", locales[locale]))
 	return translations, nil
 }
 

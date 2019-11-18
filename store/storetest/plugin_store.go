@@ -6,6 +6,8 @@ package storetest
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +15,10 @@ import (
 
 func TestPluginStore(t *testing.T, ss store.Store) {
 	t.Run("PluginSaveGet", func(t *testing.T) { testPluginSaveGet(t, ss) })
+	t.Run("PluginSaveGetExpiry", func(t *testing.T) { testPluginSaveGetExpiry(t, ss) })
 	t.Run("PluginDelete", func(t *testing.T) { testPluginDelete(t, ss) })
+	t.Run("PluginDeleteAll", func(t *testing.T) { testPluginDeleteAll(t, ss) })
+	t.Run("PluginDeleteExpired", func(t *testing.T) { testPluginDeleteExpired(t, ss) })
 }
 
 func testPluginSaveGet(t *testing.T, ss store.Store) {
@@ -21,49 +26,143 @@ func testPluginSaveGet(t *testing.T, ss store.Store) {
 		PluginId: model.NewId(),
 		Key:      model.NewId(),
 		Value:    []byte(model.NewId()),
+		ExpireAt: 0,
 	}
 
-	if result := <-ss.Plugin().SaveOrUpdate(kv); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err := ss.Plugin().SaveOrUpdate(kv)
+	require.Nil(t, err)
 
 	defer func() {
-		<-ss.Plugin().Delete(kv.PluginId, kv.Key)
+		_ = ss.Plugin().Delete(kv.PluginId, kv.Key)
 	}()
 
-	if result := <-ss.Plugin().Get(kv.PluginId, kv.Key); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		received := result.Data.(*model.PluginKeyValue)
-		assert.Equal(t, kv.PluginId, received.PluginId)
-		assert.Equal(t, kv.Key, received.Key)
-		assert.Equal(t, kv.Value, received.Value)
-	}
+	received, err := ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.Nil(t, err)
+	assert.Equal(t, kv.PluginId, received.PluginId)
+	assert.Equal(t, kv.Key, received.Key)
+	assert.Equal(t, kv.Value, received.Value)
+	assert.Equal(t, kv.ExpireAt, received.ExpireAt)
 
 	// Try inserting when already exists
 	kv.Value = []byte(model.NewId())
-	if result := <-ss.Plugin().SaveOrUpdate(kv); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err = ss.Plugin().SaveOrUpdate(kv)
+	require.Nil(t, err)
 
-	if result := <-ss.Plugin().Get(kv.PluginId, kv.Key); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		received := result.Data.(*model.PluginKeyValue)
-		assert.Equal(t, kv.PluginId, received.PluginId)
-		assert.Equal(t, kv.Key, received.Key)
-		assert.Equal(t, kv.Value, received.Value)
-	}
+	received, err = ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.Nil(t, err)
+	assert.Equal(t, kv.PluginId, received.PluginId)
+	assert.Equal(t, kv.Key, received.Key)
+	assert.Equal(t, kv.Value, received.Value)
 }
 
-func testPluginDelete(t *testing.T, ss store.Store) {
-	kv := store.Must(ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+func testPluginSaveGetExpiry(t *testing.T, ss store.Store) {
+	kv := &model.PluginKeyValue{
 		PluginId: model.NewId(),
 		Key:      model.NewId(),
 		Value:    []byte(model.NewId()),
-	})).(*model.PluginKeyValue)
-
-	if result := <-ss.Plugin().Delete(kv.PluginId, kv.Key); result.Err != nil {
-		t.Fatal(result.Err)
+		ExpireAt: model.GetMillis() + 30000,
 	}
+
+	_, err := ss.Plugin().SaveOrUpdate(kv)
+	require.Nil(t, err)
+
+	defer func() {
+		_ = ss.Plugin().Delete(kv.PluginId, kv.Key)
+	}()
+
+	received, err := ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.Nil(t, err)
+	assert.Equal(t, kv.PluginId, received.PluginId)
+	assert.Equal(t, kv.Key, received.Key)
+	assert.Equal(t, kv.Value, received.Value)
+	assert.Equal(t, kv.ExpireAt, received.ExpireAt)
+
+	kv = &model.PluginKeyValue{
+		PluginId: model.NewId(),
+		Key:      model.NewId(),
+		Value:    []byte(model.NewId()),
+		ExpireAt: model.GetMillis() - 5000,
+	}
+
+	_, err = ss.Plugin().SaveOrUpdate(kv)
+	require.Nil(t, err)
+
+	defer func() {
+		_ = ss.Plugin().Delete(kv.PluginId, kv.Key)
+	}()
+
+	_, err = ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.NotNil(t, err)
+}
+
+func testPluginDelete(t *testing.T, ss store.Store) {
+	kv, err := ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+		PluginId: model.NewId(),
+		Key:      model.NewId(),
+		Value:    []byte(model.NewId()),
+	})
+	require.Nil(t, err)
+
+	err = ss.Plugin().Delete(kv.PluginId, kv.Key)
+	require.Nil(t, err)
+}
+
+func testPluginDeleteAll(t *testing.T, ss store.Store) {
+	pluginId := model.NewId()
+
+	kv, err := ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+		PluginId: pluginId,
+		Key:      model.NewId(),
+		Value:    []byte(model.NewId()),
+	})
+	require.Nil(t, err)
+
+	kv2, err := ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+		PluginId: pluginId,
+		Key:      model.NewId(),
+		Value:    []byte(model.NewId()),
+	})
+	require.Nil(t, err)
+
+	err = ss.Plugin().DeleteAllForPlugin(pluginId)
+	require.Nil(t, err)
+
+	_, err = ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.NotNil(t, err)
+
+	_, err = ss.Plugin().Get(kv.PluginId, kv2.Key)
+	require.NotNil(t, err)
+}
+
+func testPluginDeleteExpired(t *testing.T, ss store.Store) {
+	pluginId := model.NewId()
+
+	kv, err := ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+		PluginId: pluginId,
+		Key:      model.NewId(),
+		Value:    []byte(model.NewId()),
+		ExpireAt: model.GetMillis() - 6000,
+	})
+	require.Nil(t, err)
+
+	kv2, err := ss.Plugin().SaveOrUpdate(&model.PluginKeyValue{
+		PluginId: pluginId,
+		Key:      model.NewId(),
+		Value:    []byte(model.NewId()),
+		ExpireAt: 0,
+	})
+	require.Nil(t, err)
+
+	err = ss.Plugin().DeleteAllExpired()
+	require.Nil(t, err)
+
+	_, err = ss.Plugin().Get(kv.PluginId, kv.Key)
+	require.NotNil(t, err)
+
+	received, err := ss.Plugin().Get(kv2.PluginId, kv2.Key)
+	require.Nil(t, err)
+	assert.Equal(t, kv2.PluginId, received.PluginId)
+	assert.Equal(t, kv2.Key, received.Key)
+	assert.Equal(t, kv2.Value, received.Value)
+	assert.Equal(t, kv2.ExpireAt, received.ExpireAt)
 }

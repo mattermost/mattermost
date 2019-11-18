@@ -5,15 +5,14 @@ package app
 
 import (
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 const (
@@ -34,33 +33,36 @@ type WebConn struct {
 	Send                      chan model.WebSocketMessage
 	sessionToken              atomic.Value
 	session                   atomic.Value
+	LastUserActivityAt        int64
 	UserId                    string
 	T                         goi18n.TranslateFunc
 	Locale                    string
 	AllChannelMembers         map[string]string
 	LastAllChannelMembersTime int64
 	Sequence                  int64
+	closeOnce                 sync.Once
 	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
 }
 
 func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
 	if len(session.UserId) > 0 {
-		a.Go(func() {
-			a.SetStatusOnline(session.UserId, session.Id, false)
+		a.Srv.Go(func() {
+			a.SetStatusOnline(session.UserId, false)
 			a.UpdateLastActivityAtIfNeeded(session)
 		})
 	}
 
 	wc := &WebConn{
-		App:          a,
-		Send:         make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
-		WebSocket:    ws,
-		UserId:       session.UserId,
-		T:            t,
-		Locale:       locale,
-		endWritePump: make(chan struct{}, 2),
-		pumpFinished: make(chan struct{}, 1),
+		App:                a,
+		Send:               make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
+		WebSocket:          ws,
+		LastUserActivityAt: model.GetMillis(),
+		UserId:             session.UserId,
+		T:                  t,
+		Locale:             locale,
+		endWritePump:       make(chan struct{}),
+		pumpFinished:       make(chan struct{}),
 	}
 
 	wc.SetSession(&session)
@@ -72,7 +74,9 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 
 func (wc *WebConn) Close() {
 	wc.WebSocket.Close()
-	wc.endWritePump <- struct{}{}
+	wc.closeOnce.Do(func() {
+		close(wc.endWritePump)
+	})
 	<-wc.pumpFinished
 }
 
@@ -105,16 +109,18 @@ func (c *WebConn) SetSession(v *model.Session) {
 }
 
 func (c *WebConn) Pump() {
-	ch := make(chan struct{}, 1)
+	ch := make(chan struct{})
 	go func() {
 		c.writePump()
-		ch <- struct{}{}
+		close(ch)
 	}()
 	c.readPump()
-	c.endWritePump <- struct{}{}
+	c.closeOnce.Do(func() {
+		close(c.endWritePump)
+	})
 	<-ch
 	c.App.HubUnregister(c)
-	c.pumpFinished <- struct{}{}
+	close(c.pumpFinished)
 }
 
 func (c *WebConn) readPump() {
@@ -126,7 +132,7 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 		if c.IsAuthenticated() {
-			c.App.Go(func() {
+			c.App.Srv.Go(func() {
 				c.App.SetStatusAwayIfNeeded(c.UserId, false)
 			})
 		}
@@ -138,15 +144,13 @@ func (c *WebConn) readPump() {
 		if err := c.WebSocket.ReadJSON(&req); err != nil {
 			// browsers will appear as CloseNoStatusReceived
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-				l4g.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v", c.UserId))
+				mlog.Debug("websocket.read: client side closed socket", mlog.String("user_id", c.UserId))
 			} else {
-				l4g.Debug(fmt.Sprintf("websocket.read: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
+				mlog.Debug("websocket.read: closing websocket", mlog.String("user_id", c.UserId), mlog.Err(err))
 			}
-
 			return
-		} else {
-			c.App.Srv.WebSocketRouter.ServeWebSocket(c, &req)
 		}
+		c.App.Srv.WebSocketRouter.ServeWebSocket(c, &req)
 	}
 }
 
@@ -177,7 +181,12 @@ func (c *WebConn) writePump() {
 				if msg.EventType() == model.WEBSOCKET_EVENT_TYPING ||
 					msg.EventType() == model.WEBSOCKET_EVENT_STATUS_CHANGE ||
 					msg.EventType() == model.WEBSOCKET_EVENT_CHANNEL_VIEWED {
-					l4g.Info(fmt.Sprintf("websocket.slow: dropping message userId=%v type=%v channelId=%v", c.UserId, msg.EventType(), evt.Broadcast.ChannelId))
+					mlog.Info(
+						"websocket.slow: dropping message",
+						mlog.String("user_id", c.UserId),
+						mlog.String("type", msg.EventType()),
+						mlog.String("channel_id", evt.Broadcast.ChannelId),
+					)
 					skipSend = true
 				}
 			}
@@ -196,9 +205,20 @@ func (c *WebConn) writePump() {
 
 				if len(c.Send) >= SEND_DEADLOCK_WARN {
 					if evtOk {
-						l4g.Error(fmt.Sprintf("websocket.full: message userId=%v type=%v channelId=%v size=%v", c.UserId, msg.EventType(), evt.Broadcast.ChannelId, len(msg.ToJson())))
+						mlog.Warn(
+							"websocket.full",
+							mlog.String("user_id", c.UserId),
+							mlog.String("type", msg.EventType()),
+							mlog.String("channel_id", evt.Broadcast.ChannelId),
+							mlog.Int("size", len(msg.ToJson())),
+						)
 					} else {
-						l4g.Error(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), len(msg.ToJson())))
+						mlog.Warn(
+							"websocket.full",
+							mlog.String("user_id", c.UserId),
+							mlog.String("type", msg.EventType()),
+							mlog.Int("size", len(msg.ToJson())),
+						)
 					}
 				}
 
@@ -206,38 +226,38 @@ func (c *WebConn) writePump() {
 				if err := c.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
 					// browsers will appear as CloseNoStatusReceived
 					if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-						l4g.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))
+						mlog.Debug("websocket.send: client side closed socket", mlog.String("user_id", c.UserId))
 					} else {
-						l4g.Debug(fmt.Sprintf("websocket.send: closing websocket for userId=%v, error=%v", c.UserId, err.Error()))
+						mlog.Debug("websocket.send: closing websocket", mlog.String("user_id", c.UserId), mlog.Err(err))
 					}
-
 					return
 				}
 
 				if c.App.Metrics != nil {
-					c.App.Go(func() {
+					c.App.Srv.Go(func() {
 						c.App.Metrics.IncrementWebSocketBroadcast(msg.EventType())
 					})
 				}
-
 			}
+
 		case <-ticker.C:
 			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 			if err := c.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				// browsers will appear as CloseNoStatusReceived
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-					l4g.Debug(fmt.Sprintf("websocket.ticker: client side closed socket userId=%v", c.UserId))
+					mlog.Debug("websocket.ticker: client side closed socket", mlog.String("user_id", c.UserId))
 				} else {
-					l4g.Debug(fmt.Sprintf("websocket.ticker: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
+					mlog.Debug("websocket.ticker: closing websocket", mlog.String("user_id", c.UserId), mlog.Err(err))
 				}
-
 				return
 			}
+
 		case <-c.endWritePump:
 			return
+
 		case <-authTicker.C:
 			if c.GetSessionToken() == "" {
-				l4g.Debug(fmt.Sprintf("websocket.authTicker: did not authenticate ip=%v", c.WebSocket.RemoteAddr()))
+				mlog.Debug("websocket.authTicker: did not authenticate", mlog.Any("ip_address", c.WebSocket.RemoteAddr()))
 				return
 			}
 			authTicker.Stop()
@@ -261,7 +281,7 @@ func (webCon *WebConn) IsAuthenticated() bool {
 
 		session, err := webCon.App.GetSession(webCon.GetSessionToken())
 		if err != nil {
-			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
+			mlog.Error("Invalid session.", mlog.Err(err))
 			webCon.SetSessionToken("")
 			webCon.SetSession(nil)
 			webCon.SetSessionExpiresAt(0)
@@ -311,11 +331,7 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 	// If the event is destined to a specific user
 	if len(msg.Broadcast.UserId) > 0 {
-		if webCon.UserId == msg.Broadcast.UserId {
-			return true
-		} else {
-			return false
-		}
+		return webCon.UserId == msg.Broadcast.UserId
 	}
 
 	// if the user is omitted don't send the message
@@ -333,51 +349,50 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if webCon.AllChannelMembers == nil {
-			if result := <-webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true); result.Err != nil {
-				l4g.Error("webhub.shouldSendEvent: " + result.Err.Error())
+			result, err := webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false)
+			if err != nil {
+				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false
-			} else {
-				webCon.AllChannelMembers = result.Data.(map[string]string)
-				webCon.LastAllChannelMembersTime = model.GetMillis()
 			}
+			webCon.AllChannelMembers = result
+			webCon.LastAllChannelMembersTime = model.GetMillis()
 		}
 
 		if _, ok := webCon.AllChannelMembers[msg.Broadcast.ChannelId]; ok {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 
 	// Only report events to users who are in the team for the event
 	if len(msg.Broadcast.TeamId) > 0 {
 		return webCon.IsMemberOfTeam(msg.Broadcast.TeamId)
+	}
 
+	if msg.Event == model.WEBSOCKET_EVENT_USER_UPDATED && webCon.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
+		canSee, err := webCon.App.UserCanSeeOtherUser(webCon.UserId, msg.Data["user"].(*model.User).Id)
+		if err != nil {
+			mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
+			return false
+		}
+		return canSee
 	}
 
 	return true
 }
 
 func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
-
 	currentSession := webCon.GetSession()
 
 	if currentSession == nil || len(currentSession.Token) == 0 {
 		session, err := webCon.App.GetSession(webCon.GetSessionToken())
 		if err != nil {
-			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
+			mlog.Error("Invalid session.", mlog.Err(err))
 			return false
-		} else {
-			webCon.SetSession(session)
-			currentSession = session
 		}
+		webCon.SetSession(session)
+		currentSession = session
 	}
 
-	member := currentSession.GetTeamByTeamId(teamId)
-
-	if member != nil {
-		return true
-	} else {
-		return false
-	}
+	return currentSession.GetTeamByTeamId(teamId) != nil
 }

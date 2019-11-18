@@ -86,6 +86,18 @@ type Metrics struct {
 	// value is typically positive, even though a descender goes below the
 	// baseline.
 	Descent fixed.Int26_6
+
+	// XHeight is the distance from the top of non-ascending lowercase letters
+	// to the baseline.
+	XHeight fixed.Int26_6
+
+	// CapHeight is the distance from the top of uppercase letters to the
+	// baseline.
+	CapHeight fixed.Int26_6
+
+	// CaretSlope is the slope of a caret as a vector with the Y axis pointing up.
+	// The slope {0, 1} is the vertical caret.
+	CaretSlope image.Point
 }
 
 // Drawer draws text on a destination image.

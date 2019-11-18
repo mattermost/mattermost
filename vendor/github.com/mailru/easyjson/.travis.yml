@@ -2,8 +2,11 @@ language: go
 
 go:
   - tip
+  - stable
+
+matrix:
+  allow_failures:
+    - go: tip
+
 install:
-  - go get github.com/ugorji/go/codec
-  - go get github.com/pquerna/ffjson/fflib/v1
-  - go get github.com/json-iterator/go
-  - go get github.com/golang/lint/golint
+  - go get golang.org/x/lint/golint

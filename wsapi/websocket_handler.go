@@ -4,11 +4,11 @@
 package wsapi
 
 import (
-	l4g "github.com/alecthomas/log4go"
-
+	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -23,11 +23,11 @@ type webSocketHandler struct {
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
-	l4g.Debug("websocket: %s", r.Action)
+	mlog.Debug(fmt.Sprintf("websocket: %s", r.Action))
 
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
-		l4g.Error(utils.T("api.web_socket_handler.log.error"), "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error())
+		mlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error()))
 		sessionErr.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
 
@@ -43,7 +43,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	var err *model.AppError
 
 	if data, err = wh.handlerFunc(r); err != nil {
-		l4g.Error(utils.T("api.web_socket_handler.log.error"), "websocket", r.Action, r.Seq, r.Session.UserId, err.SystemMessage(utils.T), err.DetailedError)
+		mlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, r.Session.UserId, err.SystemMessage(utils.T), err.DetailedError))
 		err.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
 

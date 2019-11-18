@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLicenseFeaturesToMap(t *testing.T) {
@@ -15,19 +17,20 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	m := f.ToMap()
 
 	CheckTrue(t, m["ldap"].(bool))
+	CheckTrue(t, m["ldap_groups"].(bool))
 	CheckTrue(t, m["mfa"].(bool))
 	CheckTrue(t, m["google"].(bool))
 	CheckTrue(t, m["office365"].(bool))
 	CheckTrue(t, m["compliance"].(bool))
 	CheckTrue(t, m["cluster"].(bool))
 	CheckTrue(t, m["metrics"].(bool))
-	CheckTrue(t, m["custom_brand"].(bool))
 	CheckTrue(t, m["mhpns"].(bool))
 	CheckTrue(t, m["saml"].(bool))
-	CheckTrue(t, m["password"].(bool))
 	CheckTrue(t, m["elastic_search"].(bool))
 	CheckTrue(t, m["email_notification_contents"].(bool))
 	CheckTrue(t, m["data_retention"].(bool))
+	CheckTrue(t, m["message_export"].(bool))
+	CheckTrue(t, m["custom_permissions_schemes"].(bool))
 	CheckTrue(t, m["future"].(bool))
 }
 
@@ -37,19 +40,21 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 
 	CheckInt(t, *f.Users, 0)
 	CheckTrue(t, *f.LDAP)
+	CheckTrue(t, *f.LDAPGroups)
 	CheckTrue(t, *f.MFA)
 	CheckTrue(t, *f.GoogleOAuth)
 	CheckTrue(t, *f.Office365OAuth)
 	CheckTrue(t, *f.Compliance)
 	CheckTrue(t, *f.Cluster)
 	CheckTrue(t, *f.Metrics)
-	CheckTrue(t, *f.CustomBrand)
 	CheckTrue(t, *f.MHPNS)
 	CheckTrue(t, *f.SAML)
-	CheckTrue(t, *f.PasswordRequirements)
 	CheckTrue(t, *f.Elasticsearch)
 	CheckTrue(t, *f.EmailNotificationContents)
 	CheckTrue(t, *f.DataRetention)
+	CheckTrue(t, *f.MessageExport)
+	CheckTrue(t, *f.CustomPermissionsSchemes)
+	CheckTrue(t, *f.GuestAccountsPermissions)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}
@@ -58,64 +63,61 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.Users = 300
 	*f.FutureFeatures = false
 	*f.LDAP = true
+	*f.LDAPGroups = true
 	*f.MFA = true
 	*f.GoogleOAuth = true
 	*f.Office365OAuth = true
 	*f.Compliance = true
 	*f.Cluster = true
 	*f.Metrics = true
-	*f.CustomBrand = true
 	*f.MHPNS = true
 	*f.SAML = true
-	*f.PasswordRequirements = true
 	*f.Elasticsearch = true
 	*f.DataRetention = true
+	*f.MessageExport = true
+	*f.CustomPermissionsSchemes = true
+	*f.GuestAccountsPermissions = true
 	*f.EmailNotificationContents = true
 
 	f.SetDefaults()
 
 	CheckInt(t, *f.Users, 300)
 	CheckTrue(t, *f.LDAP)
+	CheckTrue(t, *f.LDAPGroups)
 	CheckTrue(t, *f.MFA)
 	CheckTrue(t, *f.GoogleOAuth)
 	CheckTrue(t, *f.Office365OAuth)
 	CheckTrue(t, *f.Compliance)
 	CheckTrue(t, *f.Cluster)
 	CheckTrue(t, *f.Metrics)
-	CheckTrue(t, *f.CustomBrand)
 	CheckTrue(t, *f.MHPNS)
 	CheckTrue(t, *f.SAML)
-	CheckTrue(t, *f.PasswordRequirements)
 	CheckTrue(t, *f.Elasticsearch)
 	CheckTrue(t, *f.EmailNotificationContents)
 	CheckTrue(t, *f.DataRetention)
+	CheckTrue(t, *f.MessageExport)
+	CheckTrue(t, *f.CustomPermissionsSchemes)
+	CheckTrue(t, *f.GuestAccountsPermissions)
 	CheckFalse(t, *f.FutureFeatures)
 }
 
 func TestLicenseIsExpired(t *testing.T) {
 	l1 := License{}
 	l1.ExpiresAt = GetMillis() - 1000
-	if !l1.IsExpired() {
-		t.Fatal("license should be expired")
-	}
+	assert.True(t, l1.IsExpired())
 
 	l1.ExpiresAt = GetMillis() + 10000
-	if l1.IsExpired() {
-		t.Fatal("license should not be expired")
-	}
+	assert.False(t, l1.IsExpired())
 }
 
 func TestLicenseIsStarted(t *testing.T) {
 	l1 := License{}
 	l1.StartsAt = GetMillis() - 1000
-	if !l1.IsStarted() {
-		t.Fatal("license should be started")
-	}
+
+	assert.True(t, l1.IsStarted())
 
 	l1.StartsAt = GetMillis() + 10000
-	if l1.IsStarted() {
-		t.Fatal("license should not be started")
-	}
+	assert.False(t, l1.IsStarted())
 }
 
 func TestLicenseToFromJson(t *testing.T) {
@@ -140,9 +142,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	j := l.ToJson()
 
 	l1 := LicenseFromJson(strings.NewReader(j))
-	if l1 == nil {
-		t.Fatalf("Decoding failed but should have passed.")
-	}
+	assert.NotNil(t, l1)
 
 	CheckString(t, l1.Id, l.Id)
 	CheckInt64(t, l1.IssuedAt, l.IssuedAt)
@@ -159,25 +159,25 @@ func TestLicenseToFromJson(t *testing.T) {
 
 	CheckInt(t, *f1.Users, *f.Users)
 	CheckBool(t, *f1.LDAP, *f.LDAP)
+	CheckBool(t, *f1.LDAPGroups, *f.LDAPGroups)
 	CheckBool(t, *f1.MFA, *f.MFA)
 	CheckBool(t, *f1.GoogleOAuth, *f.GoogleOAuth)
 	CheckBool(t, *f1.Office365OAuth, *f.Office365OAuth)
 	CheckBool(t, *f1.Compliance, *f.Compliance)
 	CheckBool(t, *f1.Cluster, *f.Cluster)
 	CheckBool(t, *f1.Metrics, *f.Metrics)
-	CheckBool(t, *f1.CustomBrand, *f.CustomBrand)
 	CheckBool(t, *f1.MHPNS, *f.MHPNS)
 	CheckBool(t, *f1.SAML, *f.SAML)
-	CheckBool(t, *f1.PasswordRequirements, *f.PasswordRequirements)
 	CheckBool(t, *f1.Elasticsearch, *f.Elasticsearch)
 	CheckBool(t, *f1.DataRetention, *f.DataRetention)
+	CheckBool(t, *f1.MessageExport, *f.MessageExport)
+	CheckBool(t, *f1.CustomPermissionsSchemes, *f.CustomPermissionsSchemes)
+	CheckBool(t, *f1.GuestAccountsPermissions, *f.GuestAccountsPermissions)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
 
 	invalid := `{"asdf`
 	l2 := LicenseFromJson(strings.NewReader(invalid))
-	if l2 != nil {
-		t.Fatalf("Should have failed but didn't")
-	}
+	assert.Nil(t, l2)
 }
 
 func TestLicenseRecordIsValid(t *testing.T) {
@@ -186,38 +186,31 @@ func TestLicenseRecordIsValid(t *testing.T) {
 		Bytes:    "asdfghjkl;",
 	}
 
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err := lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.Id = NewId()
 	lr.CreateAt = 0
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err = lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.CreateAt = GetMillis()
 	lr.Bytes = ""
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err = lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.Bytes = strings.Repeat("0123456789", 1001)
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err = lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.Bytes = "ASDFGHJKL;"
-	if err := lr.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	err = lr.IsValid()
+	assert.Nil(t, err)
 }
 
 func TestLicenseRecordPreSave(t *testing.T) {
 	lr := LicenseRecord{}
 	lr.PreSave()
 
-	if lr.CreateAt == 0 {
-		t.Fatal("CreateAt should not be zero")
-	}
+	assert.NotZero(t, lr.CreateAt)
 }

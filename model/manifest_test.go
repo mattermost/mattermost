@@ -27,9 +27,11 @@ func TestFindManifest(t *testing.T) {
 		{"foo", "bar", true, true},
 		{"plugin.json", "bar", true, false},
 		{"plugin.json", `{"id": "foo"}`, false, false},
+		{"plugin.json", `{"id": "FOO"}`, false, false},
 		{"plugin.yaml", `id: foo`, false, false},
 		{"plugin.yaml", "bar", true, false},
 		{"plugin.yml", `id: foo`, false, false},
+		{"plugin.yml", `id: FOO`, false, false},
 		{"plugin.yml", "bar", true, false},
 	} {
 		dir, err := ioutil.TempDir("", "mm-plugin-test")
@@ -54,15 +56,25 @@ func TestFindManifest(t *testing.T) {
 		if !tc.ExpectError {
 			require.NotNil(t, m, tc.Filename)
 			assert.NotEmpty(t, m.Id, tc.Filename)
+			assert.Equal(t, strings.ToLower(m.Id), m.Id)
 		}
 	}
 }
 
 func TestManifestUnmarshal(t *testing.T) {
 	expected := Manifest{
-		Id: "theid",
-		Backend: &ManifestBackend{
+		Id:               "theid",
+		HomepageURL:      "https://example.com",
+		SupportURL:       "https://example.com/support",
+		IconPath:         "assets/icon.svg",
+		MinServerVersion: "5.6.0",
+		Server: &ManifestServer{
 			Executable: "theexecutable",
+			Executables: &ManifestExecutables{
+				LinuxAmd64:   "theexecutable-linux-amd64",
+				DarwinAmd64:  "theexecutable-darwin-amd64",
+				WindowsAmd64: "theexecutable-windows-amd64",
+			},
 		},
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
@@ -71,7 +83,7 @@ func TestManifestUnmarshal(t *testing.T) {
 			Header: "theheadertext",
 			Footer: "thefootertext",
 			Settings: []*PluginSetting{
-				&PluginSetting{
+				{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               "dropdown",
@@ -79,7 +91,7 @@ func TestManifestUnmarshal(t *testing.T) {
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
-						&PluginOption{
+						{
 							DisplayName: "theoptiondisplayname",
 							Value:       "thevalue",
 						},
@@ -93,8 +105,16 @@ func TestManifestUnmarshal(t *testing.T) {
 	var yamlResult Manifest
 	require.NoError(t, yaml.Unmarshal([]byte(`
 id: theid
-backend:
+homepage_url: https://example.com
+support_url: https://example.com/support
+icon_path: assets/icon.svg
+min_server_version: 5.6.0
+server:
     executable: theexecutable
+    executables:
+          linux-amd64: theexecutable-linux-amd64
+          darwin-amd64: theexecutable-darwin-amd64
+          windows-amd64: theexecutable-windows-amd64
 webapp:
     bundle_path: thebundlepath
 settings_schema:
@@ -117,8 +137,17 @@ settings_schema:
 	var jsonResult Manifest
 	require.NoError(t, json.Unmarshal([]byte(`{
 	"id": "theid",
-	"backend": {
-		"executable": "theexecutable"
+	"homepage_url": "https://example.com",
+	"support_url": "https://example.com/support",
+	"icon_path": "assets/icon.svg",
+	"min_server_version": "5.6.0",
+	"server": {
+		"executable": "theexecutable",
+		"executables": {
+			"linux-amd64": "theexecutable-linux-amd64",
+			"darwin-amd64": "theexecutable-darwin-amd64",
+			"windows-amd64": "theexecutable-windows-amd64"
+		}
 	},
 	"webapp": {
 		"bundle_path": "thebundlepath"
@@ -165,10 +194,35 @@ func TestFindManifest_FileErrors(t *testing.T) {
 	}
 }
 
+func TestFindManifest_FolderPermission(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("skipping test while running as root: can't effectively remove permissions")
+	}
+
+	for _, tc := range []string{"plugin.yaml", "plugin.json"} {
+		dir, err := ioutil.TempDir("", "mm-plugin-test")
+		require.NoError(t, err)
+		defer os.RemoveAll(dir)
+
+		path := filepath.Join(dir, tc)
+		require.NoError(t, os.Mkdir(path, 0700))
+
+		// User does not have permission in the plugin folder
+		err = os.Chmod(dir, 0066)
+		require.NoError(t, err)
+
+		m, mpath, err := FindManifest(dir)
+		assert.Nil(t, m)
+		assert.Equal(t, "", mpath)
+		assert.Error(t, err, tc)
+		assert.False(t, os.IsNotExist(err), tc)
+	}
+}
+
 func TestManifestJson(t *testing.T) {
 	manifest := &Manifest{
 		Id: "theid",
-		Backend: &ManifestBackend{
+		Server: &ManifestServer{
 			Executable: "theexecutable",
 		},
 		Webapp: &ManifestWebapp{
@@ -178,7 +232,7 @@ func TestManifestJson(t *testing.T) {
 			Header: "theheadertext",
 			Footer: "thefootertext",
 			Settings: []*PluginSetting{
-				&PluginSetting{
+				{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               "dropdown",
@@ -186,7 +240,7 @@ func TestManifestJson(t *testing.T) {
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
-						&PluginOption{
+						{
 							DisplayName: "theoptiondisplayname",
 							Value:       "thevalue",
 						},
@@ -213,7 +267,7 @@ func TestManifestJson(t *testing.T) {
 func TestManifestHasClient(t *testing.T) {
 	manifest := &Manifest{
 		Id: "theid",
-		Backend: &ManifestBackend{
+		Server: &ManifestServer{
 			Executable: "theexecutable",
 		},
 		Webapp: &ManifestWebapp{
@@ -229,21 +283,23 @@ func TestManifestHasClient(t *testing.T) {
 
 func TestManifestClientManifest(t *testing.T) {
 	manifest := &Manifest{
-		Id:          "theid",
-		Name:        "thename",
-		Description: "thedescription",
-		Version:     "0.0.1",
-		Backend: &ManifestBackend{
+		Id:               "theid",
+		Name:             "thename",
+		Description:      "thedescription",
+		Version:          "0.0.1",
+		MinServerVersion: "5.6.0",
+		Server: &ManifestServer{
 			Executable: "theexecutable",
 		},
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
+			BundleHash: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 		},
 		SettingsSchema: &PluginSettingsSchema{
 			Header: "theheadertext",
 			Footer: "thefootertext",
 			Settings: []*PluginSetting{
-				&PluginSetting{
+				{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               "dropdown",
@@ -251,7 +307,7 @@ func TestManifestClientManifest(t *testing.T) {
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
-						&PluginOption{
+						{
 							DisplayName: "theoptiondisplayname",
 							Value:       "thevalue",
 						},
@@ -264,19 +320,367 @@ func TestManifestClientManifest(t *testing.T) {
 
 	sanitized := manifest.ClientManifest()
 
-	assert.NotEmpty(t, sanitized.Id)
-	assert.NotEmpty(t, sanitized.Version)
-	assert.NotEmpty(t, sanitized.Webapp)
-	assert.NotEmpty(t, sanitized.SettingsSchema)
+	assert.Equal(t, manifest.Id, sanitized.Id)
+	assert.Equal(t, manifest.Version, sanitized.Version)
+	assert.Equal(t, manifest.MinServerVersion, sanitized.MinServerVersion)
+	assert.Equal(t, "/static/theid/theid_000102030405060708090a0b0c0d0e0f_bundle.js", sanitized.Webapp.BundlePath)
+	assert.Equal(t, manifest.Webapp.BundleHash, sanitized.Webapp.BundleHash)
+	assert.Equal(t, manifest.SettingsSchema, sanitized.SettingsSchema)
 	assert.Empty(t, sanitized.Name)
 	assert.Empty(t, sanitized.Description)
-	assert.Empty(t, sanitized.Backend)
+	assert.Empty(t, sanitized.Server)
 
 	assert.NotEmpty(t, manifest.Id)
 	assert.NotEmpty(t, manifest.Version)
+	assert.NotEmpty(t, manifest.MinServerVersion)
 	assert.NotEmpty(t, manifest.Webapp)
 	assert.NotEmpty(t, manifest.Name)
 	assert.NotEmpty(t, manifest.Description)
-	assert.NotEmpty(t, manifest.Backend)
+	assert.NotEmpty(t, manifest.Server)
 	assert.NotEmpty(t, manifest.SettingsSchema)
+}
+
+func TestManifestGetExecutableForRuntime(t *testing.T) {
+	testCases := []struct {
+		Description        string
+		Manifest           *Manifest
+		GoOs               string
+		GoArch             string
+		ExpectedExecutable string
+	}{
+		{
+			"no server",
+			&Manifest{},
+			"linux",
+			"amd64",
+			"",
+		},
+		{
+			"no executable",
+			&Manifest{
+				Server: &ManifestServer{},
+			},
+			"linux",
+			"amd64",
+			"",
+		},
+		{
+			"single executable",
+			&Manifest{
+				Server: &ManifestServer{
+					Executable: "path/to/executable",
+				},
+			},
+			"linux",
+			"amd64",
+			"path/to/executable",
+		},
+		{
+			"single executable, different runtime",
+			&Manifest{
+				Server: &ManifestServer{
+					Executable: "path/to/executable",
+				},
+			},
+			"darwin",
+			"amd64",
+			"path/to/executable",
+		},
+		{
+			"multiple executables, no match",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			"other",
+			"amd64",
+			"",
+		},
+		{
+			"multiple executables, linux-amd64 match",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			"linux",
+			"amd64",
+			"linux-amd64/path/to/executable",
+		},
+		{
+			"multiple executables, linux-amd64 match, single executable ignored",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+					Executable: "path/to/executable",
+				},
+			},
+			"linux",
+			"amd64",
+			"linux-amd64/path/to/executable",
+		},
+		{
+			"multiple executables, darwin-amd64 match",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			"darwin",
+			"amd64",
+			"darwin-amd64/path/to/executable",
+		},
+		{
+			"multiple executables, windows-amd64 match",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			"windows",
+			"amd64",
+			"windows-amd64/path/to/executable",
+		},
+		{
+			"multiple executables, no match, single executable fallback",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+					Executable: "path/to/executable",
+				},
+			},
+			"other",
+			"amd64",
+			"path/to/executable",
+		},
+		{
+			"deprecated backend field, ignored since server present",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+				Backend: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable/backend",
+						DarwinAmd64:  "darwin-amd64/path/to/executable/backend",
+						WindowsAmd64: "windows-amd64/path/to/executable/backend",
+					},
+				},
+			},
+			"linux",
+			"amd64",
+			"linux-amd64/path/to/executable",
+		},
+		{
+			"deprecated backend field used, since no server present",
+			&Manifest{
+				Backend: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable/backend",
+						DarwinAmd64:  "darwin-amd64/path/to/executable/backend",
+						WindowsAmd64: "windows-amd64/path/to/executable/backend",
+					},
+				},
+			},
+			"linux",
+			"amd64",
+			"linux-amd64/path/to/executable/backend",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			assert.Equal(
+				t,
+				testCase.ExpectedExecutable,
+				testCase.Manifest.GetExecutableForRuntime(testCase.GoOs, testCase.GoArch),
+			)
+		})
+	}
+}
+
+func TestManifestHasServer(t *testing.T) {
+	testCases := []struct {
+		Description string
+		Manifest    *Manifest
+		Expected    bool
+	}{
+		{
+			"no server",
+			&Manifest{},
+			false,
+		},
+		{
+			"no executable, but server still considered present",
+			&Manifest{
+				Server: &ManifestServer{},
+			},
+			true,
+		},
+		{
+			"single executable",
+			&Manifest{
+				Server: &ManifestServer{
+					Executable: "path/to/executable",
+				},
+			},
+			true,
+		},
+		{
+			"multiple executables",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			true,
+		},
+		{
+			"single executable defined via deprecated backend",
+			&Manifest{
+				Backend: &ManifestServer{
+					Executable: "path/to/executable",
+				},
+			},
+			true,
+		},
+		{
+			"multiple executables defined via deprecated backend",
+			&Manifest{
+				Backend: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			assert.Equal(t, testCase.Expected, testCase.Manifest.HasServer())
+		})
+	}
+}
+
+func TestManifestHasWebapp(t *testing.T) {
+	testCases := []struct {
+		Description string
+		Manifest    *Manifest
+		Expected    bool
+	}{
+		{
+			"no webapp",
+			&Manifest{},
+			false,
+		},
+		{
+			"no bundle path, but webapp still considered present",
+			&Manifest{
+				Webapp: &ManifestWebapp{},
+			},
+			true,
+		},
+		{
+			"bundle path defined",
+			&Manifest{
+				Webapp: &ManifestWebapp{
+					BundlePath: "path/to/bundle",
+				},
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			assert.Equal(t, testCase.Expected, testCase.Manifest.HasWebapp())
+		})
+	}
+}
+
+func TestManifestMeetMinServerVersion(t *testing.T) {
+	for name, test := range map[string]struct {
+		MinServerVersion string
+		ServerVersion    string
+		ShouldError      bool
+		ShouldFulfill    bool
+	}{
+		"generously fulfilled": {
+			MinServerVersion: "5.5.0",
+			ServerVersion:    "5.6.0",
+			ShouldError:      false,
+			ShouldFulfill:    true,
+		},
+		"exactly fulfilled": {
+			MinServerVersion: "5.6.0",
+			ServerVersion:    "5.6.0",
+			ShouldError:      false,
+			ShouldFulfill:    true,
+		},
+		"not fulfilled": {
+			MinServerVersion: "5.6.0",
+			ServerVersion:    "5.5.0",
+			ShouldError:      false,
+			ShouldFulfill:    false,
+		},
+		"fail to parse MinServerVersion": {
+			MinServerVersion: "abc",
+			ServerVersion:    "5.5.0",
+			ShouldError:      true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+
+			manifest := Manifest{
+				MinServerVersion: test.MinServerVersion,
+			}
+			fulfilled, err := manifest.MeetMinServerVersion(test.ServerVersion)
+
+			if test.ShouldError {
+				assert.NotNil(err)
+				assert.False(fulfilled)
+				return
+			}
+			assert.Nil(err)
+			assert.Equal(test.ShouldFulfill, fulfilled)
+		})
+	}
 }

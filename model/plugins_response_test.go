@@ -10,7 +10,7 @@ import (
 func TestPluginsResponseJson(t *testing.T) {
 	manifest := &Manifest{
 		Id: "theid",
-		Backend: &ManifestBackend{
+		Server: &ManifestServer{
 			Executable: "theexecutable",
 		},
 		Webapp: &ManifestWebapp{

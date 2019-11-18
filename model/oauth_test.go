@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestOAuthAppJson(t *testing.T) {
@@ -20,9 +22,7 @@ func TestOAuthAppJson(t *testing.T) {
 	json := a1.ToJson()
 	ra1 := OAuthAppFromJson(strings.NewReader(json))
 
-	if a1.Id != ra1.Id {
-		t.Fatal("ids did not match")
-	}
+	require.Equal(t, a1.Id, ra1.Id, "ids did not match")
 }
 
 func TestOAuthAppPreSave(t *testing.T) {
@@ -52,52 +52,32 @@ func TestOAuthAppPreUpdate(t *testing.T) {
 func TestOAuthAppIsValid(t *testing.T) {
 	app := OAuthApp{}
 
-	if err := app.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, app.IsValid())
 
 	app.Id = NewId()
-	if err := app.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, app.IsValid())
 
 	app.CreateAt = 1
-	if err := app.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, app.IsValid())
 
 	app.UpdateAt = 1
-	if err := app.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, app.IsValid())
 
 	app.CreatorId = NewId()
-	if err := app.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, app.IsValid())
 
 	app.ClientSecret = NewId()
-	if err := app.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, app.IsValid())
 
 	app.Name = "TestOAuthApp"
-	if err := app.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, app.IsValid())
 
 	app.CallbackUrls = []string{"https://nowhere.com"}
-	if err := app.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, app.IsValid())
 
 	app.Homepage = "https://nowhere.com"
-	if err := app.IsValid(); err != nil {
-		t.Fatal()
-	}
+	require.Nil(t, app.IsValid())
 
 	app.IconURL = "https://nowhere.com/icon_image.png"
-	if err := app.IsValid(); err != nil {
-		t.Fatal()
-	}
+	require.Nil(t, app.IsValid())
 }
