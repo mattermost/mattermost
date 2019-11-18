@@ -2631,6 +2631,10 @@
     "translation": "Failed to send welcome email successfully"
   },
   {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+  },
+  {
     "id": "api.user.update_active.not_enable.app_error",
     "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
@@ -7157,6 +7161,14 @@
   {
     "id": "store.sql_user.update.username_taken.app_error",
     "translation": "This username is already taken. Please choose another."
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
+    "translation": "Unable to get the list of deactivate guests ids"
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Unable to deactivate guests"
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",

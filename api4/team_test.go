@@ -101,6 +101,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 		rteam, resp := th.Client.CreateTeam(team)
 		CheckNoError(t, resp)
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
@@ -115,6 +116,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.CreateTeam(team)
 		CheckNoError(t, resp)
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 	})
 }
 
@@ -186,18 +188,37 @@ func TestGetTeamSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 
 		require.Empty(t, rteam.Email, "should have sanitized email")
+		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
+	})
+
+	t.Run("team user without invite permissions", func(t *testing.T) {
+		th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+		th.LinkUserToTeam(th.BasicUser2, team)
+
+		client := th.CreateClient()
+		th.LoginBasic2WithClient(client)
+
+		rteam, resp := client.GetTeam(team.Id, "")
+		CheckNoError(t, resp)
+
+		require.Empty(t, rteam.Email, "should have sanitized email")
+		require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
 	})
 
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
+
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.GetTeam(team.Id, "")
 		CheckNoError(t, resp)
+
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 	})
 }
 
@@ -336,13 +357,17 @@ func TestUpdateTeamSanitization(t *testing.T) {
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.UpdateTeam(team)
 		CheckNoError(t, resp)
+
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
+		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.UpdateTeam(team)
 		CheckNoError(t, resp)
+
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
+		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 	})
 }
 
@@ -420,13 +445,17 @@ func TestPatchTeamSanitization(t *testing.T) {
 	t.Run("team admin", func(t *testing.T) {
 		rteam, resp := th.Client.PatchTeam(team.Id, &model.TeamPatch{})
 		CheckNoError(t, resp)
+
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
+		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.PatchTeam(team.Id, &model.TeamPatch{})
 		CheckNoError(t, resp)
+
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
+		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 	})
 }
 
@@ -701,9 +730,11 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 			if rteam.Id == team.Id {
 				teamFound = true
 				require.NotEmpty(t, rteam.Email, "should not have sanitized email for team admin")
+				require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 			} else if rteam.Id == team2.Id {
 				team2Found = true
-				require.Empty(t, rteam.Email, "should've sanitized email for non-admin")
+				require.Empty(t, rteam.Email, "should have sanitized email for team admin")
+				require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
 			}
 		}
 
@@ -720,6 +751,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 			}
 
 			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+			require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 		}
 	})
 }
@@ -790,19 +822,40 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 
 		rteam, resp := client.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
+
 		require.Empty(t, rteam.Email, "should've sanitized email")
+		require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
+	})
+
+	t.Run("team user without invite permissions", func(t *testing.T) {
+		th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+		th.LinkUserToTeam(th.BasicUser2, team)
+
+		client := th.CreateClient()
+
+		th.LoginBasic2WithClient(client)
+
+		rteam, resp := client.GetTeam(team.Id, "")
+		CheckNoError(t, resp)
+
+		require.Empty(t, rteam.Email, "should have sanitized email")
+		require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
 	})
 
 	t.Run("team admin/non-admin", func(t *testing.T) {
 		rteam, resp := th.Client.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
+
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+		require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 	})
 
 	t.Run("system admin", func(t *testing.T) {
 		rteam, resp := th.SystemAdminClient.GetTeamByName(team.Name, "")
 		CheckNoError(t, resp)
+
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+		require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 	})
 }
 
@@ -898,6 +951,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		for _, rteam := range rteams {
 			require.Empty(t, rteam.Email, "should've sanitized email")
 			require.Empty(t, rteam.AllowedDomains, "should've sanitized allowed domains")
+			require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
 		}
 	})
 
@@ -912,6 +966,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		for _, rteam := range rteams {
 			require.Empty(t, rteam.Email, "should've sanitized email")
 			require.Empty(t, rteam.AllowedDomains, "should've sanitized allowed domains")
+			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
 	})
 
@@ -921,6 +976,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		for _, rteam := range rteams {
 			if rteam.Id == team.Id || rteam.Id == team2.Id || rteam.Id == th.BasicTeam.Id {
 				require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+				require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 			}
 		}
 	})
@@ -930,6 +986,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		for _, rteam := range rteams {
 			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
 	})
 }
@@ -1009,6 +1066,27 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 			}
 
 			require.Empty(t, rteam.Email, "should've sanitized email")
+			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
+		}
+	})
+
+	t.Run("team user without invite permissions", func(t *testing.T) {
+		th.LinkUserToTeam(th.BasicUser2, team)
+		th.LinkUserToTeam(th.BasicUser2, team2)
+
+		client := th.CreateClient()
+		th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+		th.LoginBasic2WithClient(client)
+
+		rteams, resp := client.GetTeamsForUser(th.BasicUser2.Id, "")
+		CheckNoError(t, resp)
+		for _, rteam := range rteams {
+			if rteam.Id != team.Id && rteam.Id != team2.Id {
+				continue
+			}
+
+			require.Empty(t, rteam.Email, "should have sanitized email")
+			require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
 		}
 	})
 
@@ -1021,6 +1099,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 			}
 
 			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
 	})
 
@@ -1033,6 +1112,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 			}
 
 			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
 	})
 }
