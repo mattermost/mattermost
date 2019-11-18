@@ -161,6 +161,9 @@ golangci-lint: ## Run golangci-lint on codebase
 
 	@echo Running golangci-lint
 	golangci-lint run
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	golangci-lint run ./enterprise/...
+endif
 
 megacheck: ## Run megacheck on codebasis
 	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
