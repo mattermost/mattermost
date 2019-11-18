@@ -103,9 +103,6 @@ func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
 		t.Fatal("SamlSettings.SignatureAlgorithm default not set")
 	}
 
-	if *c1.SamlSettings.DigestAlgorithm != SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM {
-		t.Fatal("SamlSettings.DigestAlgorithm default not set")
-	}
 	if *c1.SamlSettings.CanonicalAlgorithm != SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM {
 		t.Fatal("SamlSettings.CanonicalAlgorithm default not set")
 	}
@@ -117,7 +114,6 @@ func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
 		SamlSettings: SamlSettings{
 			CanonicalAlgorithm: NewString(testAlgorithm),
 			SignatureAlgorithm: NewString(testAlgorithm),
-			DigestAlgorithm:    NewString(testAlgorithm),
 		},
 	}
 
@@ -125,9 +121,6 @@ func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
 
 	if *c1.SamlSettings.SignatureAlgorithm != testAlgorithm {
 		t.Fatal("SamlSettings.SignatureAlgorithm should be overwritten")
-	}
-	if *c1.SamlSettings.DigestAlgorithm != testAlgorithm {
-		t.Fatal("SamlSettings.DigestAlgorithm should be overwritten")
 	}
 	if *c1.SamlSettings.CanonicalAlgorithm != testAlgorithm {
 		t.Fatal("SamlSettings.CanonicalAlgorithm should be overwritten")
@@ -177,15 +170,7 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 	require.Equal(t, "model.config.is_valid.saml_canonical_algorithm.app_error", err.Message)
 	*c1.SamlSettings.CanonicalAlgorithm = temp
 
-	temp = *c1.SamlSettings.DigestAlgorithm
-	*c1.SamlSettings.DigestAlgorithm = "Fake Algorithm"
-	err = c1.SamlSettings.isValid()
-	if err == nil {
-		t.Fatal("SAMLSettings validation should pass fake digest Algorithm")
-	}
-	require.Equal(t, "model.config.is_valid.saml_digest_algorithm.app_error", err.Message)
-	*c1.SamlSettings.DigestAlgorithm = temp
-
+	temp = *c1.SamlSettings.SignatureAlgorithm
 	*c1.SamlSettings.SignatureAlgorithm = "Fake Algorithm"
 	err = c1.SamlSettings.isValid()
 	if err == nil {
