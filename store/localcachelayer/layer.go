@@ -20,8 +20,8 @@ const (
 	SCHEME_CACHE_SIZE = 20000
 	SCHEME_CACHE_SEC  = 30 * 60
 
-	CHANNEL_GUESTS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
-	CHANNEL_GUESTS_COUNTS_CACHE_SEC  = 30 * 60	// 30 minutes
+	CHANNEL_GUESTS_COUNT_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
+	CHANNEL_GUESTS_COUNT_CACHE_SEC  = 30 * 60	// 30 minutes
 
 	CLEAR_CACHE_MESSAGE_DATA = ""
 )
@@ -32,8 +32,8 @@ type LocalCacheStore struct {
 	cluster       einterfaces.ClusterInterface
 	reaction      LocalCacheReactionStore
 	reactionCache *utils.Cache
-	channelGuestCount      		LocalCacheChannelGuestNumberStore
-	channelGuestCountCache		*utils.Cache
+	channelGuestsCount      		LocalCacheChannelGuestCountStore
+	channelGuestsCountCache		*utils.Cache
 	role          LocalCacheRoleStore
 	roleCache     *utils.Cache
 	scheme        LocalCacheSchemeStore
@@ -52,8 +52,8 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
 	localCacheStore.schemeCache = utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
-	localCacheStore.channelGuestCount = utils.NewLruWithParams(CHANNEL_GUESTS_COUNTS_CACHE_SIZE, "ChannelGuestCount", CHANNEL_GUESTS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL)
-	localCacheStore.scheme = LocalCacheSchemeStore{ChannelStore: baseStore.Scheme(), rootStore: &localCacheStore}
+	localCacheStore.channelGuestsCountCache = utils.NewLruWithParams(CHANNEL_GUESTS_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUESTS_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL)
+	localCacheStore.channelGuestsCount = LocalCacheChannelGuestCountStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, localCacheStore.reaction.handleClusterInvalidateReaction)
