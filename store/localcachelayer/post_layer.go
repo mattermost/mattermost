@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"fmt"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -40,4 +41,30 @@ func (s LocalCachePostStore) InvalidateLastPostTimeCache(channelId string) {
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Remove by Channel Id")
 	}
+}
+
+func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+	if !allowFromCache {
+		return s.PostStore.GetPosts(options, allowFromCache)
+	}
+
+	offset := options.PerPage * options.Page
+	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
+	if offset == 0 && (options.PerPage == 60 || options.PerPage == 30) {
+		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.postLastPostsCache, fmt.Sprintf("%s%v", options.ChannelId, options.PerPage)); cacheItem != nil {
+			return cacheItem.(*model.PostList), nil
+		}
+	}
+
+	list, err := s.PostStore.GetPosts(options, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
+	if offset == 0 && (options.PerPage == 60 || options.PerPage == 30) {
+		s.rootStore.doStandardAddToCache(s.rootStore.postLastPostsCache, fmt.Sprintf("%s%v", options.ChannelId, options.PerPage), list)
+	}
+
+	return list, err
 }
