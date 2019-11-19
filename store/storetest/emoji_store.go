@@ -21,7 +21,6 @@ func TestEmojiStore(t *testing.T, ss store.Store) {
 	t.Run("EmojiGetMultipleByName", func(t *testing.T) { testEmojiGetMultipleByName(t, ss) })
 	t.Run("EmojiGetList", func(t *testing.T) { testEmojiGetList(t, ss) })
 	t.Run("EmojiSearch", func(t *testing.T) { testEmojiSearch(t, ss) })
-	t.Run("EmojiCaching", func(t *testing.T) { testEmojiCaching(t, ss) })
 }
 
 func testEmojiSaveDelete(t *testing.T, ss store.Store) {
@@ -89,61 +88,6 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 		_, err := ss.Emoji().Get(emoji.Id, true)
 		require.Nilf(t, err, "failed to get emoji with id %v", emoji.Id)
 	}
-}
-
-func testEmojiCaching(t *testing.T, ss store.Store) {
-	emojis := make([]*model.Emoji, 3)
-	for i := range emojis {
-		emojis[i] = &model.Emoji{
-			CreatorId: model.NewId(),
-			Name:      model.NewId(),
-		}
-	}
-
-	for _, emoji := range emojis {
-		_, err := ss.Emoji().Save(emoji)
-		require.Nil(t, err)
-	}
-	defer func() {
-		for _, emoji := range emojis {
-			err := ss.Emoji().Delete(emoji, time.Now().Unix())
-			require.Nil(t, err)
-		}
-	}()
-
-	var retrievedEmoji *model.Emoji
-	var cachedEmoji *model.Emoji
-	var err *model.AppError
-
-	for _, emoji := range emojis {
-		cachedEmoji, err = ss.Emoji().Get(emoji.Id, true)
-		assert.Nilf(t, err, "should be able to retrieve emoji with id %v", emoji.Id)
-
-		retrievedEmoji, err = ss.Emoji().Get(emoji.Id, false)
-		if assert.Nilf(t, err, "should be able to retrieve emoji with id %v", emoji.Id) {
-			assert.Falsef(t, retrievedEmoji == cachedEmoji, "should not be the same as cached with id %v", emoji.Id)
-		}
-
-		retrievedEmoji, err = ss.Emoji().Get(emoji.Id, true)
-		if assert.Nilf(t, err, "should be able to retrieve emoji with id %v", emoji.Id) {
-			assert.Truef(t, retrievedEmoji == cachedEmoji, "should be the cached emoji with id %v", emoji.Id)
-		}
-
-		retrievedEmoji, err = ss.Emoji().GetByName(emoji.Name, false)
-		if assert.Nilf(t, err, "should be able to retrieve emoji with name %v", emoji.Name) {
-			assert.Falsef(t, retrievedEmoji == cachedEmoji, "should not be the same as cached with name %v", emoji.Name)
-		}
-
-		retrievedEmoji, _ = ss.Emoji().GetByName(emoji.Name, true)
-		if assert.Nilf(t, err, "should be able to retrieve emoji with name %v", emoji.Name) {
-			assert.Truef(t, retrievedEmoji == cachedEmoji, "should be the cached emoji with name %v", emoji.Name)
-		}
-	}
-
-	_, err = ss.Emoji().Get(model.NewId(), false)
-	assert.NotNilf(t, err, "should not retrieve emoji with unsaved ID")
-	_, err = ss.Emoji().GetByName(model.NewId(), false)
-	assert.NotNilf(t, err, "should not retrieve emoji with unsaved name")
 }
 
 func testEmojiGetByName(t *testing.T, ss store.Store) {
