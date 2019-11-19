@@ -31,8 +31,8 @@
 // Finally, in addition to managed plugins, note that there are unmanaged and prepackaged plugins.
 // Unmanaged plugins are plugins installed manually to the configured local directory (PluginSettings.Directory).
 // Prepackaged plugins are included with the server. They otherwise follow the above flow, except do not get uploaded
-// to the filestore. Prepackaged plugins override all other plugins with the same plugin id. Managed plugins
-// override unmanaged plugins with the same plugin id.
+// to the filestore. Prepackaged plugins override all other plugins with the same plugin id, but only when the prepackaged
+// plugin is newer. Managed plugins unconditionally override unmanaged plugins with the same plugin id.
 //
 package app
 
@@ -44,6 +44,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/blang/semver"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
@@ -67,7 +68,7 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 	}
 	defer reader.Close()
 
-	manifest, appErr := a.installPluginLocally(reader, true)
+	manifest, appErr := a.installPluginLocally(reader, installPluginLocallyAlways)
 	if appErr != nil {
 		mlog.Error("Failed to unpack plugin from filestore", mlog.Err(appErr), mlog.String("path", fileStorePath))
 	}
@@ -95,11 +96,12 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
-	return a.installPlugin(pluginFile, replace)
-}
+	installationStrategy := installPluginLocallyOnlyIfNew
+	if replace {
+		installationStrategy = installPluginLocallyAlways
+	}
 
-func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
-	manifest, appErr := a.installPluginLocally(pluginFile, replace)
+	manifest, appErr := a.installPluginLocally(pluginFile, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -129,7 +131,18 @@ func (a *App) installPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 	return manifest, nil
 }
 
-func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+type pluginInstallationStrategy int
+
+const (
+	// installPluginLocallyOnlyIfNew installs the given plugin locally only if no plugin with the same id has been unpacked.
+	installPluginLocallyOnlyIfNew pluginInstallationStrategy = iota
+	// installPluginLocallyOnlyIfNewOrUpgrade installs the given plugin locally only if no plugin with the same id has been unpacked, or if such a plugin is older.
+	installPluginLocallyOnlyIfNewOrUpgrade
+	// installPluginLocallyAlways unconditionally installs the given plugin locally only, clobbering any existing plugin with the same id.
+	installPluginLocallyAlways
+)
+
+func (a *App) installPluginLocally(pluginFile io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -169,16 +182,45 @@ func (a *App) installPluginLocally(pluginFile io.ReadSeeker, replace bool) (*mod
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.install.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// Check that there is no plugin with the same ID
+	// Check for plugins installed with the same ID.
+	var existingManifest *model.Manifest
 	for _, bundle := range bundles {
 		if bundle.Manifest != nil && bundle.Manifest.Id == manifest.Id {
-			if !replace {
-				return nil, model.NewAppError("installPluginLocally", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+			existingManifest = bundle.Manifest
+			break
+		}
+	}
+
+	if existingManifest != nil {
+		// Return an error if already installed and strategy disallows installation.
+		if installationStrategy == installPluginLocallyOnlyIfNew {
+			return nil, model.NewAppError("installPluginLocally", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		// Skip installation if already installed and newer.
+		if installationStrategy == installPluginLocallyOnlyIfNewOrUpgrade {
+			var version, existingVersion semver.Version
+
+			version, err = semver.Parse(manifest.Version)
+			if err != nil {
+				return nil, model.NewAppError("installPluginLocally", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
 			}
 
-			if err := a.removePluginLocally(manifest.Id); err != nil {
-				return nil, model.NewAppError("installPluginLocally", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusBadRequest)
+			existingVersion, err = semver.Parse(existingManifest.Version)
+			if err != nil {
+				return nil, model.NewAppError("installPluginLocally", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
 			}
+
+			if version.LTE(existingVersion) {
+				mlog.Debug("Skipping local installation of plugin since existing version is newer", mlog.String("plugin_id", manifest.Id))
+				return nil, nil
+			}
+		}
+
+		// Otherwise remove the existing installation prior to install below.
+		mlog.Debug("Removing existing installation of plugin before local install", mlog.String("plugin_id", existingManifest.Id), mlog.String("version", existingManifest.Version))
+		if err := a.removePluginLocally(existingManifest.Id); err != nil {
+			return nil, model.NewAppError("installPluginLocally", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -280,7 +322,7 @@ func (a *App) removePluginLocally(id string) *model.AppError {
 	}
 
 	if manifest == nil {
-		return model.NewAppError("removePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("removePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
 	pluginsEnvironment.Deactivate(id)
