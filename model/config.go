@@ -48,6 +48,7 @@ const (
 	GENERIC_NOTIFICATION            = "generic"
 	GENERIC_NOTIFICATION_SERVER     = "https://push-test.mattermost.com"
 	FULL_NOTIFICATION               = "full"
+	ID_LOADED_NOTIFICATION          = "id_loaded"
 
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
