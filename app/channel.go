@@ -1800,7 +1800,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 	}
 
 	channelUnread, updateErr := a.Srv.Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions)
-	if err != nil {
+	if updateErr != nil {
 		return channelUnread, updateErr
 	}
 
