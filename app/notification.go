@@ -151,7 +151,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		updateMentionChans = append(updateMentionChans, umc)
 	}
 
-	notification := &postNotification{
+	notification := &PostNotification{
 		post:       post,
 		channel:    channel,
 		profileMap: profileMap,
@@ -638,7 +638,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 }
 
 // Represents either an email or push notification and contains the fields required to send it to any user.
-type postNotification struct {
+type PostNotification struct {
 	channel    *model.Channel
 	post       *model.Post
 	profileMap map[string]*model.User
@@ -648,7 +648,7 @@ type postNotification struct {
 // Returns the name of the channel for this notification. For direct messages, this is the sender's name
 // preceeded by an at sign. For group messages, this is a comma-separated list of the members of the
 // channel, with an option to exclude the recipient of the message from that list.
-func (n *postNotification) GetChannelName(userNameFormat string, excludeId string) string {
+func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) string {
 	switch n.channel.Type {
 	case model.CHANNEL_DIRECT:
 		return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
@@ -670,7 +670,7 @@ func (n *postNotification) GetChannelName(userNameFormat string, excludeId strin
 
 // Returns the name of the sender of this notification, accounting for things like system messages
 // and whether or not the username has been overridden by an integration.
-func (n *postNotification) GetSenderName(userNameFormat string, overridesAllowed bool) string {
+func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed bool) string {
 	if n.post.IsSystemMessage() {
 		return utils.T("system.message.name")
 	}

@@ -508,6 +508,7 @@ func TestPluginSync(t *testing.T) {
 				*cfg.PluginSettings.Enable = true
 				*cfg.PluginSettings.Directory = "./test-plugins"
 				*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+				*cfg.PluginSettings.RequirePluginSignature = false
 			})
 			th.App.UpdateConfig(testCase.ConfigFunc)
 
@@ -530,7 +531,7 @@ func TestPluginSync(t *testing.T) {
 			// Check if installed
 			pluginStatus, err := env.Statuses()
 			require.Nil(t, err)
-			require.True(t, len(pluginStatus) == 1)
+			require.Len(t, pluginStatus, 1)
 			require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 
 			// Bundle removed from the file store case
@@ -543,7 +544,54 @@ func TestPluginSync(t *testing.T) {
 			// Check if removed
 			pluginStatus, err = env.Statuses()
 			require.Nil(t, err)
-			require.True(t, len(pluginStatus) == 0)
+			require.Len(t, pluginStatus, 0)
+
+			// RequirePluginSignature = true case
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.RequirePluginSignature = true
+			})
+			pluginFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+			require.NoError(t, err)
+			defer pluginFileReader.Close()
+			_, appErr = th.App.WriteFile(pluginFileReader, th.App.getBundleStorePath("testplugin.tar.gz"))
+			checkNoError(t, appErr)
+			// no signature
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+			pluginStatus, err = env.Statuses()
+			require.Nil(t, err)
+			require.Len(t, pluginStatus, 0)
+
+			// Wrong signature
+			signatureFileReader, err := os.Open(filepath.Join(path, "testpluginv2.tar.gz.sig"))
+			require.NoError(t, err)
+			defer signatureFileReader.Close()
+			filePath := fmt.Sprintf("%s.sig", th.App.getBundleStorePath("testplugin"))
+			_, appErr = th.App.WriteFile(signatureFileReader, filePath)
+			checkNoError(t, appErr)
+
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+
+			pluginStatus, err = env.Statuses()
+			require.Nil(t, err)
+			require.Len(t, pluginStatus, 0)
+
+			// Correct signature
+			signatureFileReader, err = os.Open(filepath.Join(path, "testplugin.tar.gz.sig"))
+			require.NoError(t, err)
+			defer signatureFileReader.Close()
+			filePath = fmt.Sprintf("%s.sig", th.App.getBundleStorePath("testplugin"))
+			_, appErr = th.App.WriteFile(signatureFileReader, filePath)
+			checkNoError(t, appErr)
+
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+
+			pluginStatus, err = env.Statuses()
+			require.Nil(t, err)
+			require.Len(t, pluginStatus, 1)
+			require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 		})
 	}
 }
