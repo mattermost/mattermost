@@ -109,7 +109,7 @@ func TestChangeUserEmail(t *testing.T) {
 
 }
 
-func TestDeleteUser(t *testing.T) {
+func TestDeleteUserBotUser(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
