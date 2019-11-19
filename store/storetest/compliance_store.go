@@ -14,6 +14,38 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func cleanupStoreState(t *testing.T, ss store.Store) {
+	//remove existing users
+	users, err := ss.User().GetAll()
+	require.Nilf(t, err, "error cleaning all test users: %v", err)
+
+	for _, u := range users {
+		err := ss.User().PermanentDelete(u.Id)
+		require.Nil(t, err, "failed cleaning up test user %s", u.Username)
+
+		//remove all posts by this user
+		if err2 := ss.Post().PermanentDeleteByUser(u.Id); err2 != nil {
+			t.Fatal(err2)
+		}
+	}
+	//remove existing channels
+	list, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nilf(t, err, "error cleaning all test channels: %v", err)
+	for _, channel := range *list {
+		err := ss.Channel().PermanentDelete(channel.Id)
+		require.Nil(t, err, "failed cleaning up test user %s", channel.Id)
+	}
+
+	//remove existing teams
+	allTeams, err := ss.Team().GetAll()
+	require.Nilf(t, err, "error cleaning all test teams: %v", err)
+
+	for _, team := range allTeams {
+		err := ss.Team().PermanentDelete(team.Id)
+		require.Nil(t, err, "failed cleaning up test team %s", team.Id)
+	}
+}
+
 func TestComplianceStore(t *testing.T, ss store.Store) {
 	t.Run("", func(t *testing.T) { testComplianceStore(t, ss) })
 	t.Run("ComplianceExport", func(t *testing.T) { testComplianceExport(t, ss) })
@@ -263,403 +295,13 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	assert.Equal(t, cposts[len(cposts)-1].PostId, o3.Id)
 }
 
-//post,edit,export
-func testEditExportMessage(t *testing.T, ss store.Store) {
-	// get the starting number of message export entries
-	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
-	require.Nil(t, err)
-	numMessageExports := len(messages)
-
-	// need a team
-	team := &model.Team{
-		DisplayName: "DisplayName",
-		Name:        "zz" + model.NewId() + "b",
-		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
-	}
-	team, err = ss.Team().Save(team)
-	require.Nil(t, err)
-
-	// need a user part of that team
-	user1 := &model.User{
-		Email:    MakeEmail(),
-		Username: model.NewId(),
-	}
-	user1, err = ss.User().Save(user1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
-		TeamId: team.Id,
-		UserId: user1.Id,
-	}, -1)
-	require.Nil(t, err)
-
-	// need a public channel
-	channel := &model.Channel{
-		TeamId:      team.Id,
-		Name:        model.NewId(),
-		DisplayName: "Public Channel",
-		Type:        model.CHANNEL_OPEN,
-	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
-
-	// user1 posts in the public channel
-	post1 := &model.Post{
-		ChannelId: channel.Id,
-		UserId:    user1.Id,
-		CreateAt:  startTime,
-		Message:   "zz" + model.NewId() + "a",
-	}
-	post1, err = ss.Post().Save(post1)
-	require.Nil(t, err)
-
-	//user 1 edits the previous post
-	post1e := &model.Post{}
-	*post1e = *post1
-	post1e.Message = "edit " + post1.Message
-
-	post1e, err = ss.Post().Update(post1e, post1)
-	require.Nil(t, err)
-
-	// fetch the message exports from the start
-	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
-	require.Nil(t, err)
-	assert.Equal(t, numMessageExports+2, len(messages))
-
-	for _, v := range messages {
-		if *v.PostDeleteAt > 0 {
-			// post1 was made by user1 in channel1 and team1
-			assert.Equal(t, post1.Id, *v.PostId)
-			assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
-			assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
-			assert.Equal(t, post1.UpdateAt, *v.PostUpdateAt)
-			assert.Equal(t, post1.Message, *v.PostMessage)
-			assert.Equal(t, channel.Id, *v.ChannelId)
-			assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
-			assert.Equal(t, user1.Id, *v.UserId)
-			assert.Equal(t, user1.Email, *v.UserEmail)
-			assert.Equal(t, user1.Username, *v.Username)
-		} else {
-			// post1e was made by user1 in channel1 and team1
-			assert.Equal(t, post1e.Id, *v.PostId)
-			assert.Equal(t, post1e.CreateAt, *v.PostCreateAt)
-			assert.Equal(t, post1e.UpdateAt, *v.PostUpdateAt)
-			assert.Equal(t, post1e.Message, *v.PostMessage)
-			assert.Equal(t, channel.Id, *v.ChannelId)
-			assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
-			assert.Equal(t, user1.Id, *v.UserId)
-			assert.Equal(t, user1.Email, *v.UserEmail)
-			assert.Equal(t, user1.Username, *v.Username)
-		}
-	}
-}
-
-//post, export, edit, export
-func testEditAfterExportMessage(t *testing.T, ss store.Store) {
-	// get the starting number of message export entries
-	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
-	require.Nil(t, err)
-	numMessageExports := len(messages)
-
-	// need a team
-	team := &model.Team{
-		DisplayName: "DisplayName",
-		Name:        "zz" + model.NewId() + "b",
-		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
-	}
-	team, err = ss.Team().Save(team)
-	require.Nil(t, err)
-
-	// need a user part of that team
-	user1 := &model.User{
-		Email:    MakeEmail(),
-		Username: model.NewId(),
-	}
-	user1, err = ss.User().Save(user1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
-		TeamId: team.Id,
-		UserId: user1.Id,
-	}, -1)
-	require.Nil(t, err)
-
-	// need a public channel
-	channel := &model.Channel{
-		TeamId:      team.Id,
-		Name:        model.NewId(),
-		DisplayName: "Public Channel",
-		Type:        model.CHANNEL_OPEN,
-	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
-
-	// user1 posts in the public channel
-	post1 := &model.Post{
-		ChannelId: channel.Id,
-		UserId:    user1.Id,
-		CreateAt:  startTime,
-		Message:   "zz" + model.NewId() + "a",
-	}
-	post1, err = ss.Post().Save(post1)
-	require.Nil(t, err)
-
-	// fetch the message exports from the start
-	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
-	require.Nil(t, err)
-	assert.Equal(t, numMessageExports+1, len(messages))
-	numMessageExports = len(messages)
-
-	v := messages[0]
-	// post1 was made by user1 in channel1 and team1
-	assert.Equal(t, post1.Id, *v.PostId)
-	assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
-	assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
-	assert.Equal(t, post1.UpdateAt, *v.PostUpdateAt)
-	assert.Equal(t, post1.Message, *v.PostMessage)
-	assert.Equal(t, channel.Id, *v.ChannelId)
-	assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
-	assert.Equal(t, user1.Id, *v.UserId)
-	assert.Equal(t, user1.Email, *v.UserEmail)
-	assert.Equal(t, user1.Username, *v.Username)
-
-	postEditTime := post1.UpdateAt + 1
-	//user 1 edits the previous post
-	post1e := &model.Post{}
-	*post1e = *post1
-	post1e.EditAt = postEditTime
-	post1e.Message = "edit " + post1.Message
-	post1e, err = ss.Post().Update(post1e, post1)
-	require.Nil(t, err)
-
-	// fetch the message exports after edit
-	messages, err = ss.Compliance().MessageExport(postEditTime-1, 10)
-	require.Nil(t, err)
-	assert.Equal(t, 2, len(messages))
-
-	for _, v := range messages {
-		if *v.PostDeleteAt > 0 {
-			// post1 was made by user1 in channel1 and team1
-			assert.Equal(t, post1.Id, *v.PostId)
-			assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
-			assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
-			assert.Equal(t, post1.UpdateAt, *v.PostUpdateAt)
-			assert.Equal(t, post1.Message, *v.PostMessage)
-			assert.Equal(t, channel.Id, *v.ChannelId)
-			assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
-			assert.Equal(t, user1.Id, *v.UserId)
-			assert.Equal(t, user1.Email, *v.UserEmail)
-			assert.Equal(t, user1.Username, *v.Username)
-		} else {
-			// post1e was made by user1 in channel1 and team1
-			assert.Equal(t, post1e.Id, *v.PostId)
-			assert.Equal(t, post1e.CreateAt, *v.PostCreateAt)
-			assert.Equal(t, post1e.UpdateAt, *v.PostUpdateAt)
-			assert.Equal(t, post1e.Message, *v.PostMessage)
-			assert.Equal(t, channel.Id, *v.ChannelId)
-			assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
-			assert.Equal(t, user1.Id, *v.UserId)
-			assert.Equal(t, user1.Email, *v.UserEmail)
-			assert.Equal(t, user1.Username, *v.Username)
-		}
-	}
-}
-
-//post, delete, export
-func testDeleteExportMessage(t *testing.T, ss store.Store) {
-	// get the starting number of message export entries
-	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
-	require.Nil(t, err)
-	numMessageExports := len(messages)
-
-	// need a team
-	team := &model.Team{
-		DisplayName: "DisplayName",
-		Name:        "zz" + model.NewId() + "b",
-		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
-	}
-	team, err = ss.Team().Save(team)
-	require.Nil(t, err)
-
-	// need a user part of that team
-	user1 := &model.User{
-		Email:    MakeEmail(),
-		Username: model.NewId(),
-	}
-	user1, err = ss.User().Save(user1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
-		TeamId: team.Id,
-		UserId: user1.Id,
-	}, -1)
-	require.Nil(t, err)
-
-	// need a public channel
-	channel := &model.Channel{
-		TeamId:      team.Id,
-		Name:        model.NewId(),
-		DisplayName: "Public Channel",
-		Type:        model.CHANNEL_OPEN,
-	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
-
-	// user1 posts in the public channel
-	post1 := &model.Post{
-		ChannelId: channel.Id,
-		UserId:    user1.Id,
-		CreateAt:  startTime,
-		Message:   "zz" + model.NewId() + "a",
-	}
-	post1, err = ss.Post().Save(post1)
-	require.Nil(t, err)
-
-	//user 1 deletes the previous post
-	postDeleteTime := post1.UpdateAt + 1
-	err = ss.Post().Delete(post1.Id, postDeleteTime, user1.Id)
-	require.Nil(t, err)
-
-	// fetch the message exports from the start
-	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
-	require.Nil(t, err)
-	assert.Equal(t, numMessageExports+1, len(messages))
-
-	v := messages[0]
-	// post1 was made and deleted by user1 in channel1 and team1
-	assert.Equal(t, post1.Id, *v.PostId)
-	assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
-	assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
-	assert.Equal(t, postDeleteTime, *v.PostUpdateAt)
-	assert.NotNil(t, v.PostProps)
-
-	props := map[string]interface{}{}
-	e := json.Unmarshal([]byte(*v.PostProps), &props)
-	require.Nil(t, e)
-
-	_, ok := props[model.POST_PROPS_DELETE_BY]
-	assert.True(t, ok)
-
-	assert.Equal(t, post1.Message, *v.PostMessage)
-	assert.Equal(t, channel.Id, *v.ChannelId)
-	assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
-	assert.Equal(t, user1.Id, *v.UserId)
-	assert.Equal(t, user1.Email, *v.UserEmail)
-	assert.Equal(t, user1.Username, *v.Username)
-}
-
-//post,export,delete,export
-func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
-	// get the starting number of message export entries
-	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
-	require.Nil(t, err)
-	numMessageExports := len(messages)
-
-	// need a team
-	team := &model.Team{
-		DisplayName: "DisplayName",
-		Name:        "zz" + model.NewId() + "b",
-		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
-	}
-	team, err = ss.Team().Save(team)
-	require.Nil(t, err)
-
-	// need a user part of that team
-	user1 := &model.User{
-		Email:    MakeEmail(),
-		Username: model.NewId(),
-	}
-	user1, err = ss.User().Save(user1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
-		TeamId: team.Id,
-		UserId: user1.Id,
-	}, -1)
-	require.Nil(t, err)
-
-	// need a public channel
-	channel := &model.Channel{
-		TeamId:      team.Id,
-		Name:        model.NewId(),
-		DisplayName: "Public Channel",
-		Type:        model.CHANNEL_OPEN,
-	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
-
-	// user1 posts in the public channel
-	post1 := &model.Post{
-		ChannelId: channel.Id,
-		UserId:    user1.Id,
-		CreateAt:  startTime,
-		Message:   "zz" + model.NewId() + "a",
-	}
-	post1, err = ss.Post().Save(post1)
-	require.Nil(t, err)
-
-	// fetch the message exports from the start
-	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
-	require.Nil(t, err)
-	assert.Equal(t, numMessageExports+1, len(messages))
-	numMessageExports = len(messages)
-
-	v := messages[0]
-	// post1 was created by user1 in channel1 and team1
-	assert.Equal(t, post1.Id, *v.PostId)
-	assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
-	assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
-	assert.Equal(t, post1.UpdateAt, *v.PostUpdateAt)
-	assert.Equal(t, post1.Message, *v.PostMessage)
-	assert.Equal(t, channel.Id, *v.ChannelId)
-	assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
-	assert.Equal(t, user1.Id, *v.UserId)
-	assert.Equal(t, user1.Email, *v.UserEmail)
-	assert.Equal(t, user1.Username, *v.Username)
-
-	//user 1 deletes the previous post
-	postDeleteTime := post1.UpdateAt + 1
-	err = ss.Post().Delete(post1.Id, postDeleteTime, user1.Id)
-	require.Nil(t, err)
-
-	// fetch the message exports after delete
-	messages, err = ss.Compliance().MessageExport(postDeleteTime-1, 10)
-	require.Nil(t, err)
-	assert.Equal(t, 1, len(messages))
-
-	v = messages[0]
-	// post1 was created and deleted by user1 in channel1 and team1
-	assert.Equal(t, post1.Id, *v.PostId)
-	assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
-	assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
-	assert.Equal(t, postDeleteTime, *v.PostUpdateAt)
-	assert.NotNil(t, v.PostProps)
-
-	props := map[string]interface{}{}
-	e := json.Unmarshal([]byte(*v.PostProps), &props)
-	require.Nil(t, e)
-
-	_, ok := props[model.POST_PROPS_DELETE_BY]
-	assert.True(t, ok)
-
-	assert.Equal(t, post1.Message, *v.PostMessage)
-	assert.Equal(t, channel.Id, *v.ChannelId)
-	assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
-	assert.Equal(t, user1.Id, *v.UserId)
-	assert.Equal(t, user1.Email, *v.UserEmail)
-	assert.Equal(t, user1.Username, *v.Username)
-}
-
 func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
+	defer cleanupStoreState(t, ss)
+
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
-	numMessageExports := len(messages)
 
 	// need a team
 	team := &model.Team{
@@ -729,7 +371,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 	messageExportMap := map[string]model.MessageExport{}
 	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
-	assert.Equal(t, numMessageExports+2, len(messages))
+	assert.Equal(t, 2, len(messages))
 
 	for _, v := range messages {
 		messageExportMap[*v.PostId] = *v
@@ -757,11 +399,12 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 }
 
 func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
+	defer cleanupStoreState(t, ss)
+
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
-	numMessageExports := len(messages)
 
 	// need a team
 	team := &model.Team{
@@ -831,7 +474,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 	messageExportMap := map[string]model.MessageExport{}
 	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
-	assert.Equal(t, numMessageExports+2, len(messages))
+	assert.Equal(t, 2, len(messages))
 
 	for _, v := range messages {
 		messageExportMap[*v.PostId] = *v
@@ -861,11 +504,12 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 }
 
 func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
+	defer cleanupStoreState(t, ss)
+
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
-	numMessageExports := len(messages)
 
 	// need a team
 	team := &model.Team{
@@ -921,7 +565,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
 
-	assert.Equal(t, numMessageExports+1, len(messages))
+	assert.Equal(t, 1, len(messages))
 
 	for _, v := range messages {
 		messageExportMap[*v.PostId] = *v
@@ -940,11 +584,12 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 }
 
 func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
+	defer cleanupStoreState(t, ss)
+
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
-	numMessageExports := len(messages)
 
 	// need a team
 	team := &model.Team{
@@ -1016,7 +661,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	messageExportMap := map[string]model.MessageExport{}
 	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
-	assert.Equal(t, numMessageExports+1, len(messages))
+	assert.Equal(t, 1, len(messages))
 
 	for _, v := range messages {
 		messageExportMap[*v.PostId] = *v
@@ -1032,4 +677,393 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	assert.Equal(t, user1.Id, *messageExportMap[post.Id].UserId)
 	assert.Equal(t, user1.Email, *messageExportMap[post.Id].UserEmail)
 	assert.Equal(t, user1.Username, *messageExportMap[post.Id].Username)
+}
+
+//post,edit,export
+func testEditExportMessage(t *testing.T, ss store.Store) {
+	defer cleanupStoreState(t, ss)
+	// get the starting number of message export entries
+	startTime := model.GetMillis()
+	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
+	require.Nil(t, err)
+
+	// need a team
+	team := &model.Team{
+		DisplayName: "DisplayName",
+		Name:        "zz" + model.NewId() + "b",
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+	}
+	team, err = ss.Team().Save(team)
+	require.Nil(t, err)
+
+	// need a user part of that team
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: user1.Id,
+	}, -1)
+	require.Nil(t, err)
+
+	// need a public channel
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		Name:        model.NewId(),
+		DisplayName: "Public Channel",
+		Type:        model.CHANNEL_OPEN,
+	}
+	channel, err = ss.Channel().Save(channel, -1)
+	require.Nil(t, err)
+
+	// user1 posts in the public channel
+	post1 := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user1.Id,
+		CreateAt:  startTime,
+		Message:   "zz" + model.NewId() + "a",
+	}
+	post1, err = ss.Post().Save(post1)
+	require.Nil(t, err)
+
+	//user 1 edits the previous post
+	post1e := &model.Post{}
+	*post1e = *post1
+	post1e.Message = "edit " + post1.Message
+
+	post1e, err = ss.Post().Update(post1e, post1)
+	require.Nil(t, err)
+
+	// fetch the message exports from the start
+	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
+	require.Nil(t, err)
+	assert.Equal(t, 2, len(messages))
+
+	for _, v := range messages {
+		if *v.PostDeleteAt > 0 {
+			// post1 was made by user1 in channel1 and team1
+			assert.Equal(t, post1.Id, *v.PostId)
+			assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
+			assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
+			assert.Equal(t, post1.UpdateAt, *v.PostUpdateAt)
+			assert.Equal(t, post1.Message, *v.PostMessage)
+			assert.Equal(t, channel.Id, *v.ChannelId)
+			assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
+			assert.Equal(t, user1.Id, *v.UserId)
+			assert.Equal(t, user1.Email, *v.UserEmail)
+			assert.Equal(t, user1.Username, *v.Username)
+		} else {
+			// post1e was made by user1 in channel1 and team1
+			assert.Equal(t, post1e.Id, *v.PostId)
+			assert.Equal(t, post1e.CreateAt, *v.PostCreateAt)
+			assert.Equal(t, post1e.UpdateAt, *v.PostUpdateAt)
+			assert.Equal(t, post1e.Message, *v.PostMessage)
+			assert.Equal(t, channel.Id, *v.ChannelId)
+			assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
+			assert.Equal(t, user1.Id, *v.UserId)
+			assert.Equal(t, user1.Email, *v.UserEmail)
+			assert.Equal(t, user1.Username, *v.Username)
+		}
+	}
+}
+
+//post, export, edit, export
+func testEditAfterExportMessage(t *testing.T, ss store.Store) {
+	defer cleanupStoreState(t, ss)
+	// get the starting number of message export entries
+	startTime := model.GetMillis()
+	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
+	require.Nil(t, err)
+
+	// need a team
+	team := &model.Team{
+		DisplayName: "DisplayName",
+		Name:        "zz" + model.NewId() + "b",
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+	}
+	team, err = ss.Team().Save(team)
+	require.Nil(t, err)
+
+	// need a user part of that team
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: user1.Id,
+	}, -1)
+	require.Nil(t, err)
+
+	// need a public channel
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		Name:        model.NewId(),
+		DisplayName: "Public Channel",
+		Type:        model.CHANNEL_OPEN,
+	}
+	channel, err = ss.Channel().Save(channel, -1)
+	require.Nil(t, err)
+
+	// user1 posts in the public channel
+	post1 := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user1.Id,
+		CreateAt:  startTime,
+		Message:   "zz" + model.NewId() + "a",
+	}
+	post1, err = ss.Post().Save(post1)
+	require.Nil(t, err)
+
+	// fetch the message exports from the start
+	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(messages))
+
+	v := messages[0]
+	// post1 was made by user1 in channel1 and team1
+	assert.Equal(t, post1.Id, *v.PostId)
+	assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
+	assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
+	assert.Equal(t, post1.UpdateAt, *v.PostUpdateAt)
+	assert.Equal(t, post1.Message, *v.PostMessage)
+	assert.Equal(t, channel.Id, *v.ChannelId)
+	assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
+	assert.Equal(t, user1.Id, *v.UserId)
+	assert.Equal(t, user1.Email, *v.UserEmail)
+	assert.Equal(t, user1.Username, *v.Username)
+
+	postEditTime := post1.UpdateAt + 1
+	//user 1 edits the previous post
+	post1e := &model.Post{}
+	*post1e = *post1
+	post1e.EditAt = postEditTime
+	post1e.Message = "edit " + post1.Message
+	post1e, err = ss.Post().Update(post1e, post1)
+	require.Nil(t, err)
+
+	// fetch the message exports after edit
+	messages, err = ss.Compliance().MessageExport(postEditTime-1, 10)
+	require.Nil(t, err)
+	assert.Equal(t, 2, len(messages))
+
+	for _, v := range messages {
+		if *v.PostDeleteAt > 0 {
+			// post1 was made by user1 in channel1 and team1
+			assert.Equal(t, post1.Id, *v.PostId)
+			assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
+			assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
+			assert.Equal(t, post1.UpdateAt, *v.PostUpdateAt)
+			assert.Equal(t, post1.Message, *v.PostMessage)
+			assert.Equal(t, channel.Id, *v.ChannelId)
+			assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
+			assert.Equal(t, user1.Id, *v.UserId)
+			assert.Equal(t, user1.Email, *v.UserEmail)
+			assert.Equal(t, user1.Username, *v.Username)
+		} else {
+			// post1e was made by user1 in channel1 and team1
+			assert.Equal(t, post1e.Id, *v.PostId)
+			assert.Equal(t, post1e.CreateAt, *v.PostCreateAt)
+			assert.Equal(t, post1e.UpdateAt, *v.PostUpdateAt)
+			assert.Equal(t, post1e.Message, *v.PostMessage)
+			assert.Equal(t, channel.Id, *v.ChannelId)
+			assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
+			assert.Equal(t, user1.Id, *v.UserId)
+			assert.Equal(t, user1.Email, *v.UserEmail)
+			assert.Equal(t, user1.Username, *v.Username)
+		}
+	}
+}
+
+//post, delete, export
+func testDeleteExportMessage(t *testing.T, ss store.Store) {
+	defer cleanupStoreState(t, ss)
+	// get the starting number of message export entries
+	startTime := model.GetMillis()
+	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
+	require.Nil(t, err)
+
+	// need a team
+	team := &model.Team{
+		DisplayName: "DisplayName",
+		Name:        "zz" + model.NewId() + "b",
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+	}
+	team, err = ss.Team().Save(team)
+	require.Nil(t, err)
+
+	// need a user part of that team
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: user1.Id,
+	}, -1)
+	require.Nil(t, err)
+
+	// need a public channel
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		Name:        model.NewId(),
+		DisplayName: "Public Channel",
+		Type:        model.CHANNEL_OPEN,
+	}
+	channel, err = ss.Channel().Save(channel, -1)
+	require.Nil(t, err)
+
+	// user1 posts in the public channel
+	post1 := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user1.Id,
+		CreateAt:  startTime,
+		Message:   "zz" + model.NewId() + "a",
+	}
+	post1, err = ss.Post().Save(post1)
+	require.Nil(t, err)
+
+	//user 1 deletes the previous post
+	postDeleteTime := post1.UpdateAt + 1
+	err = ss.Post().Delete(post1.Id, postDeleteTime, user1.Id)
+	require.Nil(t, err)
+
+	// fetch the message exports from the start
+	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(messages))
+
+	v := messages[0]
+	// post1 was made and deleted by user1 in channel1 and team1
+	assert.Equal(t, post1.Id, *v.PostId)
+	assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
+	assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
+	assert.Equal(t, postDeleteTime, *v.PostUpdateAt)
+	assert.NotNil(t, v.PostProps)
+
+	props := map[string]interface{}{}
+	e := json.Unmarshal([]byte(*v.PostProps), &props)
+	require.Nil(t, e)
+
+	_, ok := props[model.POST_PROPS_DELETE_BY]
+	assert.True(t, ok)
+
+	assert.Equal(t, post1.Message, *v.PostMessage)
+	assert.Equal(t, channel.Id, *v.ChannelId)
+	assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
+	assert.Equal(t, user1.Id, *v.UserId)
+	assert.Equal(t, user1.Email, *v.UserEmail)
+	assert.Equal(t, user1.Username, *v.Username)
+}
+
+//post,export,delete,export
+func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
+	defer cleanupStoreState(t, ss)
+	// get the starting number of message export entries
+	startTime := model.GetMillis()
+	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
+	require.Nil(t, err)
+
+	// need a team
+	team := &model.Team{
+		DisplayName: "DisplayName",
+		Name:        "zz" + model.NewId() + "b",
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+	}
+	team, err = ss.Team().Save(team)
+	require.Nil(t, err)
+
+	// need a user part of that team
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: user1.Id,
+	}, -1)
+	require.Nil(t, err)
+
+	// need a public channel
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		Name:        model.NewId(),
+		DisplayName: "Public Channel",
+		Type:        model.CHANNEL_OPEN,
+	}
+	channel, err = ss.Channel().Save(channel, -1)
+	require.Nil(t, err)
+
+	// user1 posts in the public channel
+	post1 := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user1.Id,
+		CreateAt:  startTime,
+		Message:   "zz" + model.NewId() + "a",
+	}
+	post1, err = ss.Post().Save(post1)
+	require.Nil(t, err)
+
+	// fetch the message exports from the start
+	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(messages))
+
+	v := messages[0]
+	// post1 was created by user1 in channel1 and team1
+	assert.Equal(t, post1.Id, *v.PostId)
+	assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
+	assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
+	assert.Equal(t, post1.UpdateAt, *v.PostUpdateAt)
+	assert.Equal(t, post1.Message, *v.PostMessage)
+	assert.Equal(t, channel.Id, *v.ChannelId)
+	assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
+	assert.Equal(t, user1.Id, *v.UserId)
+	assert.Equal(t, user1.Email, *v.UserEmail)
+	assert.Equal(t, user1.Username, *v.Username)
+
+	//user 1 deletes the previous post
+	postDeleteTime := post1.UpdateAt + 1
+	err = ss.Post().Delete(post1.Id, postDeleteTime, user1.Id)
+	require.Nil(t, err)
+
+	// fetch the message exports after delete
+	messages, err = ss.Compliance().MessageExport(postDeleteTime-1, 10)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(messages))
+
+	v = messages[0]
+	// post1 was created and deleted by user1 in channel1 and team1
+	assert.Equal(t, post1.Id, *v.PostId)
+	assert.Equal(t, post1.OriginalId, *v.PostOriginalId)
+	assert.Equal(t, post1.CreateAt, *v.PostCreateAt)
+	assert.Equal(t, postDeleteTime, *v.PostUpdateAt)
+	assert.NotNil(t, v.PostProps)
+
+	props := map[string]interface{}{}
+	e := json.Unmarshal([]byte(*v.PostProps), &props)
+	require.Nil(t, e)
+
+	_, ok := props[model.POST_PROPS_DELETE_BY]
+	assert.True(t, ok)
+
+	assert.Equal(t, post1.Message, *v.PostMessage)
+	assert.Equal(t, channel.Id, *v.ChannelId)
+	assert.Equal(t, channel.DisplayName, *v.ChannelDisplayName)
+	assert.Equal(t, user1.Id, *v.UserId)
+	assert.Equal(t, user1.Email, *v.UserEmail)
+	assert.Equal(t, user1.Username, *v.Username)
 }
