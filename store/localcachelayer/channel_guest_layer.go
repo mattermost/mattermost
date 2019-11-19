@@ -22,7 +22,7 @@ func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestsCountCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Counts - Purge")
 	}
 }
 
