@@ -44,6 +44,9 @@ type PostAction struct {
 	// The text on the button, or in the select placeholder.
 	Name string `json:"name,omitempty"`
 
+	// If the action is disabled.
+	Disabled bool `json:"disabled,omitempty"`
+
 	// DataSource indicates the data source for the select action. If left
 	// empty, the select is populated from Options. Other supported values
 	// are "users" and "channels".

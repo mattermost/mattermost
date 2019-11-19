@@ -41,6 +41,22 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
+	fakeEmoji := model.Emoji{Id: "123", Name: "name123"}
+	mockEmojiStore := mocks.EmojiStore{}
+	mockEmojiStore.On("Get", "123", true).Return(&fakeEmoji, nil)
+	mockEmojiStore.On("Get", "123", false).Return(&fakeEmoji, nil)
+	mockEmojiStore.On("GetByName", "name123", true).Return(&fakeEmoji, nil)
+	mockEmojiStore.On("GetByName", "name123", false).Return(&fakeEmoji, nil)
+	mockEmojiStore.On("Delete", &fakeEmoji, int64(0)).Return(nil)
+	mockStore.On("Emoji").Return(&mockEmojiStore)
+
+	mockCount := int64(10)
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("ClearCaches").Return()
+	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
+	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+
 	return &mockStore
 }
 
