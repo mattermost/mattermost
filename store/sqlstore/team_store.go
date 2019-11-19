@@ -982,8 +982,8 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.
 	return data, nil
 }
 
-// GetUserTeamIds get the team ids to which the user belongs to
-func (s SqlTeamStore) GetUserTeamIds(userID string, _ bool) ([]string, *model.AppError) {
+// GetUserTeamIds get the team ids to which the user belongs to. allowFromCache parameter is used by SqlTeamStore but LocalCacheLayer
+func (s SqlTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]string, *model.AppError) {
 	var teamIds []string
 	_, err := s.GetReplica().Select(&teamIds,
 		`SELECT
