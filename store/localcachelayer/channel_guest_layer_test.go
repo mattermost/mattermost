@@ -9,7 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/store/storetest/mocks"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/assert"
 )
 
