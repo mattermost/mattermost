@@ -2245,7 +2245,9 @@ type PluginSettings struct {
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
 	EnableMarketplace        *bool
+	RequirePluginSignature   *bool
 	MarketplaceUrl           *string
+	SignaturePublicKeyFiles  []string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2292,6 +2294,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" || *s.MarketplaceUrl == PLUGIN_SETTINGS_OLD_MARKETPLACE_URL {
 		s.MarketplaceUrl = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
+	}
+
+	if s.RequirePluginSignature == nil {
+		s.RequirePluginSignature = NewBool(false)
+	}
+
+	if s.SignaturePublicKeyFiles == nil {
+		s.SignaturePublicKeyFiles = []string{}
 	}
 }
 
