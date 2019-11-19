@@ -21,11 +21,28 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberCounts(msg 
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelPinnedPostCount(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		s.rootStore.channelPinnedPostCountsCache.Purge()
+	} else {
+		s.rootStore.channelPinnedPostCountsCache.Remove(msg.Data)
+	}
+}
+
 func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelPinnedPostCountsCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
+	}
+}
+
+func (s LocalCacheChannelStore) InvalidatePinnedPostCount(channelId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelPinnedPostCountsCache, channelId)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Remove by ChannelId")
 	}
 }
 
@@ -62,4 +79,37 @@ func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 
 	}
 
 	return count
+}
+
+func (s LocalCacheChannelStore) GetPinnedPostCountFromCache(channelId string) int64 {
+	if count := s.rootStore.doStandardReadCache(s.rootStore.channelPinnedPostCountsCache, channelId); count != nil {
+		return count.(int64)
+	}
+
+	count, err := s.GetPinnedPostCount(channelId, true)
+	if err != nil {
+		return 0
+	}
+
+	return count
+}
+
+func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
+	if allowFromCache {
+		if count := s.rootStore.doStandardReadCache(s.rootStore.channelPinnedPostCountsCache, channelId); count != nil {
+			return count.(int64), nil
+		}
+	}
+
+	count, err := s.ChannelStore.GetPinnedPostCount(channelId, allowFromCache)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if allowFromCache {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelPinnedPostCountsCache, channelId, count)
+	}
+
+	return count, nil
 }

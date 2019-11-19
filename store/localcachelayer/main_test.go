@@ -50,11 +50,16 @@ func getMockStore() *mocks.Store {
 	mockEmojiStore.On("Delete", &fakeEmoji, int64(0)).Return(nil)
 	mockStore.On("Emoji").Return(&mockEmojiStore)
 
-	mockCount := int64(10)
+	mockMemberCount := int64(10)
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
-	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
-	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
+	mockChannelStore.On("GetMemberCount", "id", true).Return(mockMemberCount, nil)
+	mockChannelStore.On("GetMemberCount", "id", false).Return(mockMemberCount, nil)
+
+	mockPinnedPostsCount := int64(10)
+	mockChannelStore.On("GetPinnedPostCount", "id", true).Return(mockPinnedPostsCount, nil)
+	mockChannelStore.On("GetPinnedPostCount", "id", false).Return(mockPinnedPostsCount, nil)
+
 	mockStore.On("Channel").Return(&mockChannelStore)
 
 	return &mockStore
