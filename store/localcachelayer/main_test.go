@@ -41,6 +41,13 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
+	mockCount := int64(10)
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("ClearCaches").Return()
+	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
+	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+
 	return &mockStore
 }
 
