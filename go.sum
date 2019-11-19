@@ -361,12 +361,8 @@ github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqn
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rs/cors v1.7.0 h1:+88SsELBHx5r+hZ8TCkggzSstaWNbDvThkVK8H6f9ik=
 github.com/rs/cors v1.7.0/go.mod h1:gFx+x8UowdsKA9AchylcLynDq+nNFfI8FkUZdN/jGCU=
-github.com/rudderlabs/analytics-go v1.2.1-0.20191016122728-a0674285d809 h1:L1DuTAMmY/eBIC2IsQ4C3iF05MDSwiumBP0HNVfoh7w=
-github.com/rudderlabs/analytics-go v1.2.1-0.20191016122728-a0674285d809/go.mod h1:G9/+iYTu6CkVOe32Zop9qYbVrJbis0PWYPmhSPQ9/9Y=
-github.com/rudderlabs/analytics-go v1.2.1-0.20191016124303-704dd2444a76 h1:CKharBSqNjGR0dHKw5lc8lRCmwaOi1DIpybX1jrPE80=
-github.com/rudderlabs/analytics-go v1.2.1-0.20191016124303-704dd2444a76/go.mod h1:G9/+iYTu6CkVOe32Zop9qYbVrJbis0PWYPmhSPQ9/9Y=
-github.com/rudderlabs/analytics-go v3.1.0+incompatible h1:raJgBJMxxnCe9CWHL1zJq4rccap4yG7lvk4Fs6B7v+o=
-github.com/rudderlabs/analytics-go v3.1.0+incompatible/go.mod h1:LF8/ty9kUX4PTY3l5c97K3nZZaX5Hwsvt+NBaRL/f30=
+github.com/rudderlabs/analytics-go v1.2.1-0.20191119065459-e60535b1896d h1:/gPZtpFbEk+761ibHCGmq7g15hJVvkmKT6np8Ydv89A=
+github.com/rudderlabs/analytics-go v1.2.1-0.20191119065459-e60535b1896d/go.mod h1:LeE27Re9DkS7oPShbg3DuPbVfqxjVv3H1ZHdHSXcHKw=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/rwcarlsen/goexif v0.0.0-20190318171057-76e3344f7516 h1:unvLzUrgn54Nhn5yJB8qUBr/a7wiZHQaJ/8Y4yTGAjE=
 github.com/rwcarlsen/goexif v0.0.0-20190318171057-76e3344f7516/go.mod h1:hPqNNc0+uJM6H+SuU8sEs5K5IQeKccPqeSjfgcKGgPk=
@@ -380,6 +376,9 @@ github.com/segmentio/analytics-go v3.1.0+incompatible h1:IyiOfUgQFVHvsykKKbdI7Zs
 github.com/segmentio/analytics-go v3.1.0+incompatible/go.mod h1:C7CYBtQWk4vRk2RyLu0qOcbHJ18E3F1HV2C/8JvKN48=
 github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c h1:rsRTAcCR5CeNLkvgBVSjQoDGRRt6kggsE6XYBqCv2KQ=
 github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c/go.mod h1:kJ9mm9YmoWSkk+oQ+5Cj8DEoRCX2JT6As4kEtIIOp1M=
+github.com/segmentio/conf v1.2.0/go.mod h1:Y3B9O/PqqWqjyxyWWseyj/quPEtMu1zDp/kVbSWWaB0=
+github.com/segmentio/go-snakecase v1.1.0/go.mod h1:jk1miR5MS7Na32PZUykG89Arm+1BUSYhuGR6b7+hJto=
+github.com/segmentio/objconv v1.0.1/go.mod h1:auayaH5k3137Cl4SoXTgrzQcuQDmvuVtZgS0fb1Ahys=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.2 h1:SPIRibHv4MatM3XXNO2BJeFLZwZ2LvZgfQ5+UNI2im4=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
@@ -587,6 +586,7 @@ gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 h1:qIbj1fsPNlZgppZ+VLlY7N33
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/fsnotify.v1 v1.4.7 h1:xOHLXZwVvI9hhs+cLKq5+I5onOuwQLhQwiu63xxlHs4=
 gopkg.in/fsnotify.v1 v1.4.7/go.mod h1:Tz8NjZHkW78fSQdbUxIjBTcgA1z1m8ZHf0WmKUhAMys=
+gopkg.in/go-playground/mold.v2 v2.2.0/go.mod h1:XMyyRsGtakkDPbxXbrA5VODo6bUXyvoDjLd5l3T0XoA=
 gopkg.in/inf.v0 v0.9.1/go.mod h1:cWUDdTG/fYaXco+Dcufb5Vnc6Gp2YChqWtbxRZE0mXw=
 gopkg.in/ini.v1 v1.42.0/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/ini.v1 v1.48.0 h1:URjZc+8ugRY5mL5uUeQH/a63JcHwdX9xZaWvmNWD7z8=
@@ -600,6 +600,7 @@ gopkg.in/olivere/elastic.v5 v5.0.82/go.mod h1:uhHoB4o3bvX5sorxBU29rPcmBQdV2Qfg0F
 gopkg.in/resty.v1 v1.12.0/go.mod h1:mDo4pnntr5jdWRML875a/NmxYqAlA73dVijT2AXvQQo=
 gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 h1:uRGJdciOHaEIrze2W8Q3AKkepLTh2hOroT7a+7czfdQ=
 gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7/go.mod h1:dt/ZhP58zS4L8KSrWDmTeBkI65Dw0HsyUHuEVlX15mw=
+gopkg.in/validator.v2 v2.0.0-20180514200540-135c24b11c19/go.mod h1:o4V0GXN9/CAmCsvJ0oXYZvrZOe7syiDZSN1GWGZTGzc=
 gopkg.in/yaml.v2 v2.0.0-20170812160011-eb3733d160e7/go.mod h1:JAlM8MvJe8wmxCU4Bli9HhUf9+ttbYbLASfIpnQbh74=
 gopkg.in/yaml.v2 v2.2.1/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=

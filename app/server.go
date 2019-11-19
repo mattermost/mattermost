@@ -40,10 +40,6 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-const (
-	ANALYTICS_DESTINATION = "placeholder_to_choose_destination"
-)
-
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
@@ -762,10 +758,8 @@ func (s *Server) initDiagnostics(endpoint string) {
 		if s.rudderDiagnosticClient == nil {
 			config := rudderanalytics.Config{}
 			config.Logger = rudderanalytics.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
-
 			// For testing
 			if endpoint != "" {
-
 				config.Endpoint = endpoint
 				config.Verbose = true
 				config.BatchSize = 1
@@ -786,7 +780,7 @@ func (s *Server) initDiagnostics(endpoint string) {
 			if endpoint != "" {
 				config.Endpoint = endpoint
 				config.Verbose = true
-				config.BatchSize = 35
+				config.BatchSize = 1
 			}
 			client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
 			client.Enqueue(analytics.Identify{

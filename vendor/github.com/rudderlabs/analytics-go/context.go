@@ -7,7 +7,7 @@ import (
 )
 
 // This type provides the representation of the `context` object as defined in
-// https://segment.com/docs/spec/common/#context
+
 type Context struct {
 	App       AppInfo      `json:"app,omitempty"`
 	Campaign  CampaignInfo `json:"campaign,omitempty"`
@@ -33,7 +33,7 @@ type Context struct {
 }
 
 // This type provides the representation of the `context.app` object as defined
-// in https://segment.com/docs/spec/common/#context
+
 type AppInfo struct {
 	Name      string `json:"name,omitempty"`
 	Version   string `json:"version,omitempty"`
@@ -42,7 +42,7 @@ type AppInfo struct {
 }
 
 // This type provides the representation of the `context.campaign` object as
-// defined in https://segment.com/docs/spec/common/#context
+
 type CampaignInfo struct {
 	Name    string `json:"name,omitempty"`
 	Source  string `json:"source,omitempty"`
@@ -52,7 +52,7 @@ type CampaignInfo struct {
 }
 
 // This type provides the representation of the `context.device` object as
-// defined in https://segment.com/docs/spec/common/#context
+
 type DeviceInfo struct {
 	Id            string `json:"id,omitempty"`
 	Manufacturer  string `json:"manufacturer,omitempty"`
@@ -64,14 +64,14 @@ type DeviceInfo struct {
 }
 
 // This type provides the representation of the `context.library` object as
-// defined in https://segment.com/docs/spec/common/#context
+
 type LibraryInfo struct {
 	Name    string `json:"name,omitempty"`
 	Version string `json:"version,omitempty"`
 }
 
 // This type provides the representation of the `context.location` object as
-// defined in https://segment.com/docs/spec/common/#context
+
 type LocationInfo struct {
 	City      string  `json:"city,omitempty"`
 	Country   string  `json:"country,omitempty"`
@@ -82,7 +82,7 @@ type LocationInfo struct {
 }
 
 // This type provides the representation of the `context.network` object as
-// defined in https://segment.com/docs/spec/common/#context
+
 type NetworkInfo struct {
 	Bluetooth bool   `json:"bluetooth,omitempty"`
 	Cellular  bool   `json:"cellular,omitempty"`
@@ -91,14 +91,14 @@ type NetworkInfo struct {
 }
 
 // This type provides the representation of the `context.os` object as defined
-// in https://segment.com/docs/spec/common/#context
+
 type OSInfo struct {
 	Name    string `json:"name,omitempty"`
 	Version string `json:"version,omitempty"`
 }
 
 // This type provides the representation of the `context.page` object as
-// defined in https://segment.com/docs/spec/common/#context
+
 type PageInfo struct {
 	Hash     string `json:"hash,omitempty"`
 	Path     string `json:"path,omitempty"`
@@ -109,7 +109,7 @@ type PageInfo struct {
 }
 
 // This type provides the representation of the `context.referrer` object as
-// defined in https://segment.com/docs/spec/common/#context
+
 type ReferrerInfo struct {
 	Type string `json:"type,omitempty"`
 	Name string `json:"name,omitempty"`
@@ -118,7 +118,7 @@ type ReferrerInfo struct {
 }
 
 // This type provides the representation of the `context.screen` object as
-// defined in https://segment.com/docs/spec/common/#context
+
 type ScreenInfo struct {
 	Density int `json:"density,omitempty"`
 	Width   int `json:"width,omitempty"`

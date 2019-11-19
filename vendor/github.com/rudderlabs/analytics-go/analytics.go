@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"sync"
 
 	"bytes"
@@ -106,6 +105,24 @@ func makeHttpClient(transport http.RoundTripper) http.Client {
 	return httpClient
 }
 
+func makeContext() *Context {
+	context := Context{}
+	context.Library = LibraryInfo{
+		Name:    "analytics-go",
+		Version: "1.0.0",
+	}
+
+	return &context
+}
+
+func makeAnonymousId(userId string) string {
+
+	if userId != "" {
+		return userId
+	}
+	return uid()
+}
+
 func dereferenceMessage(msg Message) Message {
 	switch m := msg.(type) {
 	case *Alias:
@@ -164,65 +181,68 @@ func (c *client) Enqueue(msg Message) (err error) {
 		m.Type = "alias"
 		m.MessageId = makeMessageId(m.MessageId, id)
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
-		m.Context = &Context{}
-		m.Context.Library = LibraryInfo{
-			Name:    "analytics-go",
-			Version: "1.0.0",
+		if m.Context == nil {
+			m.Context = makeContext()
 		}
 		msg = m
 
 	case Group:
 		m.Type = "group"
 		m.MessageId = makeMessageId(m.MessageId, id)
+		if m.AnonymousId == "" {
+			m.AnonymousId = makeAnonymousId(m.UserId)
+		}
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
-		m.Context = &Context{}
-		m.Context.Library = LibraryInfo{
-			Name:    "analytics-go",
-			Version: "1.0.0",
+		if m.Context == nil {
+			m.Context = makeContext()
 		}
 		msg = m
 
 	case Identify:
 		m.Type = "identify"
 		m.MessageId = makeMessageId(m.MessageId, id)
+		if m.AnonymousId == "" {
+			m.AnonymousId = makeAnonymousId(m.UserId)
+		}
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
-		m.Context = &Context{}
-		m.Context.Library = LibraryInfo{
-			Name:    "analytics-go",
-			Version: "1.0.0",
+		if m.Context == nil {
+			m.Context = makeContext()
 		}
 		msg = m
 
 	case Page:
 		m.Type = "page"
 		m.MessageId = makeMessageId(m.MessageId, id)
+		if m.AnonymousId == "" {
+			m.AnonymousId = makeAnonymousId(m.UserId)
+		}
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
-		m.Context = &Context{}
-		m.Context.Library = LibraryInfo{
-			Name:    "analytics-go",
-			Version: "1.0.0",
+		if m.Context == nil {
+			m.Context = makeContext()
 		}
 		msg = m
 
 	case Screen:
 		m.Type = "screen"
 		m.MessageId = makeMessageId(m.MessageId, id)
+		if m.AnonymousId == "" {
+			m.AnonymousId = makeAnonymousId(m.UserId)
+		}
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
-		m.Context = &Context{}
-		m.Context.Library = LibraryInfo{
-			Name:    "analytics-go",
-			Version: "1.0.0",
+		if m.Context == nil {
+			m.Context = makeContext()
 		}
 		msg = m
 
 	case Track:
 		m.Type = "track"
 		m.MessageId = makeMessageId(m.MessageId, id)
+		if m.AnonymousId == "" {
+			m.AnonymousId = makeAnonymousId(m.UserId)
+		}
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
-		m.Context = &Context{}
-		m.Context.Library = LibraryInfo{
-			Name:    "analytics-go",
-			Version: "1.0.0",
+		if m.Context == nil {
+			m.Context = makeContext()
 		}
 		msg = m
 
@@ -320,10 +340,7 @@ func (c *client) send(msgs []message) {
 
 // Upload serialized batch message.
 func (c *client) upload(b []byte) error {
-	var jsons map[string]interface{}
-	json.Unmarshal(b, &jsons)
-	fmt.Print(string(b))
-	url := c.Endpoint
+	url := c.Endpoint + "/v1/batch"
 	req, err := http.NewRequest("POST", url, bytes.NewReader(b))
 	if err != nil {
 		c.errorf("creating request - %s", err)
@@ -349,8 +366,6 @@ func (c *client) upload(b []byte) error {
 // Report on response body.
 func (c *client) report(res *http.Response) (err error) {
 	var body []byte
-
-	log.Printf("Response %d %s", res.StatusCode, res.Status)
 
 	if res.StatusCode < 300 {
 		c.debugf("response %s", res.Status)

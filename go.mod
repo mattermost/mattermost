@@ -65,7 +65,7 @@ require (
 	github.com/prometheus/common v0.7.0 // indirect
 	github.com/prometheus/procfs v0.0.5 // indirect
 	github.com/rs/cors v1.7.0
-	github.com/rudderlabs/analytics-go v1.2.1-0.20191016124303-704dd2444a76
+	github.com/rudderlabs/analytics-go v1.2.1-0.20191119065459-e60535b1896d
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/segmentio/analytics-go v3.1.0+incompatible
 	github.com/sirupsen/logrus v1.4.2

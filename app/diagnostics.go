@@ -17,9 +17,11 @@ import (
 )
 
 const (
-	SEGMENT_KEY                     = "placeholder_segment_key"
-	RUDDER_KEY                      = "placeholder_rudder_key"
-	RUDDER_DATAPLANE_URL            = "placeholder_for_dataplane_url"
+	SEGMENT_KEY = "placeholder_segment_key"
+	RUDDER_KEY  = "1SEo62PlrrzIwRinNRxWrNTBEqu"
+	//RUDDER_DATAPLANE_URL            = "placeholder_for_dataplane_url"
+	RUDDER_DATAPLANE_URL            = "http://localhost:8080"
+	ANALYTICS_DESTINATION           = "rudder"
 	TRACK_CONFIG_SERVICE            = "config_service"
 	TRACK_CONFIG_TEAM               = "config_team"
 	TRACK_CONFIG_CLIENT_REQ         = "config_client_requirements"
@@ -66,14 +68,14 @@ func (a *App) SendDailyDiagnostics() {
 
 func (a *App) sendDailyDiagnostics(override bool) {
 
-	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(RUDDER_KEY, "placeholder") && (!strings.Contains(RUDDER_DATAPLANE_URL, "placeholder") || override) {
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(RUDDER_KEY, "placeholder") || override) && (!strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) {
 		a.Srv.initDiagnostics(RUDDER_DATAPLANE_URL)
 		a.trackActivity()
-		a.trackConfig()
-		a.trackLicense()
-		a.trackPlugins()
-		a.trackServer()
-		a.trackPermissions()
+		// a.trackConfig()
+		// a.trackLicense()
+		// a.trackPlugins()
+		// a.trackServer()
+		// a.trackPermissions()
 	}
 
 	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
@@ -89,17 +91,20 @@ func (a *App) sendDailyDiagnostics(override bool) {
 }
 
 func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
-	a.Srv.diagnosticClient.Enqueue(analytics.Track{
-		Event:      event,
-		UserId:     a.DiagnosticId(),
-		Properties: properties,
-	})
-
-	a.Srv.rudderDiagnosticClient.Enqueue(rudderanalytics.Track{
-		Event:      event,
-		UserId:     a.DiagnosticId(),
-		Properties: properties,
-	})
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder")) {
+		a.Srv.diagnosticClient.Enqueue(analytics.Track{
+			Event:      event,
+			UserId:     a.DiagnosticId(),
+			Properties: properties,
+		})
+	}
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(RUDDER_KEY, "placeholder")) && (!strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) {
+		a.Srv.rudderDiagnosticClient.Enqueue(rudderanalytics.Track{
+			Event:      event,
+			UserId:     a.DiagnosticId(),
+			Properties: properties,
+		})
+	}
 
 }
 
