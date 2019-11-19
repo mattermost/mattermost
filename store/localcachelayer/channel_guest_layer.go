@@ -39,7 +39,7 @@ func (s LocalCacheChannelStore) GetGuestCount(channelId string, allowFromCache b
 			return count.(int64), nil
 		}
 	}
-	count, err := s.ChannelStore.GetMemberCount(channelId, allowFromCache)
+	count, err := s.ChannelStore.GetGuestCount(channelId, allowFromCache)
 
 	if allowFromCache && err == nil {
 		s.rootStore.doStandardAddToCache(s.rootStore.channelGuestsCountCache, channelId, count)
