@@ -31,7 +31,7 @@ func (s LocalCacheUserStore) ClearCaches() {
 	}
 }
 
-func (s LocalCacheUserStore) InvalidateProfileCacheForUser(userId string) {
+func (s LocalCacheUserStore) InvalidatProfileCacheForUser(userId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.userProfileByIdsCache, userId)
 
 	if s.rootStore.metrics != nil {

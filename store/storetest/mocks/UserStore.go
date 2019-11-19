@@ -927,7 +927,7 @@ func (_m *UserStore) InferSystemInstallDate() (int64, *model.AppError) {
 }
 
 // InvalidatProfileCacheForUser provides a mock function with given fields: userId
-func (_m *UserStore) InvalidateProfileCacheForUser(userId string) {
+func (_m *UserStore) InvalidatProfileCacheForUser(userId string) {
 	_m.Called(userId)
 }
 
