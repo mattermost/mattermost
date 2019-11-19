@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"net/http"
 	"strings"
 
@@ -150,7 +151,7 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func NewSqlTeamStore(sqlStore SqlStore) store.TeamStore {
+func NewSqlTeamStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TeamStore {
 	s := &SqlTeamStore{
 		sqlStore,
 	}
