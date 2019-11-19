@@ -24,6 +24,8 @@ func Migrate(from, to string) error {
 	files := []string{*sourceConfig.SamlSettings.IdpCertificateFile, *sourceConfig.SamlSettings.PublicCertificateFile,
 		*sourceConfig.SamlSettings.PrivateKeyFile}
 
+	files = append(files, sourceConfig.PluginSettings.SignaturePublicKeyFiles...)
+
 	for _, file := range files {
 		err = migrateFile(file, source, destination)
 
