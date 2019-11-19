@@ -19,7 +19,7 @@ func cleanupStoreState(t *testing.T, ss store.Store) {
 	allUsers, err := ss.User().GetAll()
 	require.Nilf(t, err, "error cleaning all test users: %v", err)
 	for _, u := range allUsers {
-		err := ss.User().PermanentDelete(u.Id)
+		err = ss.User().PermanentDelete(u.Id)
 		require.Nil(t, err, "failed cleaning up test user %s", u.Username)
 
 		//remove all posts by this user
@@ -31,7 +31,7 @@ func cleanupStoreState(t *testing.T, ss store.Store) {
 	allChannels, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.Nilf(t, err, "error cleaning all test channels: %v", err)
 	for _, channel := range *allChannels {
-		err := ss.Channel().PermanentDelete(channel.Id)
+		err = ss.Channel().PermanentDelete(channel.Id)
 		require.Nil(t, err, "failed cleaning up test channel %s", channel.Id)
 	}
 
@@ -300,6 +300,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
+	assert.Equal(t, 0, len(messages))
 
 	// need a team
 	team := &model.Team{
@@ -403,6 +404,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
+	assert.Equal(t, 0, len(messages))
 
 	// need a team
 	team := &model.Team{
@@ -508,6 +510,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
+	assert.Equal(t, 0, len(messages))
 
 	// need a team
 	team := &model.Team{
