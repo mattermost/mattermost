@@ -86,7 +86,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.SanitizeInput()
+	user.SanitizeInput(c.IsSystemAdmin())
 
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
@@ -1048,6 +1048,11 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if active && user.IsGuest() && !*c.App.Config().GuestAccountsSettings.Enable {
+		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		return
 	}
 

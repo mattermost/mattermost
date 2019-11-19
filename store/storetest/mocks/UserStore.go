@@ -128,6 +128,31 @@ func (_m *UserStore) Count(options model.UserCountOptions) (int64, *model.AppErr
 	return r0, r1
 }
 
+// DeactivateGuests provides a mock function with given fields:
+func (_m *UserStore) DeactivateGuests() ([]string, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // DemoteUserToGuest provides a mock function with given fields: userID
 func (_m *UserStore) DemoteUserToGuest(userID string) *model.AppError {
 	ret := _m.Called(userID)
@@ -810,7 +835,7 @@ func (_m *UserStore) GetTeamGroupUsers(teamID string) ([]*model.User, *model.App
 }
 
 // GetUnreadCount provides a mock function with given fields: userId
-func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
+func (_m *UserStore) GetUnreadCount(userId string) (int64, *model.AppError) {
 	ret := _m.Called(userId)
 
 	var r0 int64
@@ -820,11 +845,13 @@ func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(userId)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
 	}
 
 	return r0, r1
