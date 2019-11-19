@@ -1276,6 +1276,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test",
 		}, channel, false)
+		require.Nil(t, err)
 
 		count, err := th.App.countMentionsFromPost(user2, post1)
 
