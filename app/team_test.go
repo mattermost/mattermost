@@ -419,6 +419,7 @@ func TestSanitizeTeam(t *testing.T) {
 	team := &model.Team{
 		Id:             model.NewId(),
 		Email:          th.MakeEmail(),
+		InviteId:       model.NewId(),
 		AllowedDomains: "example.com",
 	}
 
@@ -443,6 +444,7 @@ func TestSanitizeTeam(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		require.Empty(t, sanitized.Email, "should've sanitized team")
+		require.Empty(t, sanitized.InviteId, "should've sanitized inviteid")
 	})
 
 	t.Run("user of the team", func(t *testing.T) {
@@ -460,6 +462,7 @@ func TestSanitizeTeam(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		require.Empty(t, sanitized.Email, "should've sanitized team")
+		require.NotEmpty(t, sanitized.InviteId, "should have not sanitized inviteid")
 	})
 
 	t.Run("team admin", func(t *testing.T) {
@@ -477,6 +480,7 @@ func TestSanitizeTeam(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		require.NotEmpty(t, sanitized.Email, "shouldn't have sanitized team")
+		require.NotEmpty(t, sanitized.InviteId, "shouldn't have sanitized inviteid")
 	})
 
 	t.Run("team admin of another team", func(t *testing.T) {
@@ -494,6 +498,7 @@ func TestSanitizeTeam(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		require.Empty(t, sanitized.Email, "should've sanitized team")
+		require.Empty(t, sanitized.InviteId, "should've sanitized inviteid")
 	})
 
 	t.Run("system admin, not a user of team", func(t *testing.T) {
@@ -511,6 +516,7 @@ func TestSanitizeTeam(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		require.NotEmpty(t, sanitized.Email, "shouldn't have sanitized team")
+		require.NotEmpty(t, sanitized.InviteId, "shouldn't have sanitized inviteid")
 	})
 
 	t.Run("system admin, user of team", func(t *testing.T) {
@@ -528,6 +534,7 @@ func TestSanitizeTeam(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		require.NotEmpty(t, sanitized.Email, "shouldn't have sanitized team")
+		require.NotEmpty(t, sanitized.InviteId, "shouldn't have sanitized inviteid")
 	})
 }
 
