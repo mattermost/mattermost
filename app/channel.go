@@ -1870,7 +1870,8 @@ func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term s
 	return a.Srv.Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
 }
 
-func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+// SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
+func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError) {
 	opts.IncludeDeleted = *a.Config().TeamSettings.ExperimentalViewArchivedChannels && opts.IncludeDeleted
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
@@ -1879,6 +1880,8 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 		ExcludeChannelNames:  opts.ExcludeChannelNames,
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
+		Page:                 opts.Page,
+		PerPage:              opts.PerPage,
 	}
 
 	term = strings.TrimSpace(term)
