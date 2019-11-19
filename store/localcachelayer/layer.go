@@ -28,16 +28,16 @@ const (
 
 type LocalCacheStore struct {
 	store.Store
-	metrics       einterfaces.MetricsInterface
-	cluster       einterfaces.ClusterInterface
-	reaction      LocalCacheReactionStore
-	reactionCache *utils.Cache
-	channelGuestsCount      		LocalCacheChannelStore
-	channelGuestsCountCache			*utils.Cache
-	role          LocalCacheRoleStore
-	roleCache     *utils.Cache
-	scheme        LocalCacheSchemeStore
-	schemeCache   *utils.Cache
+	metrics                 einterfaces.MetricsInterface
+	cluster                 einterfaces.ClusterInterface
+	reaction                LocalCacheReactionStore
+	reactionCache           *utils.Cache
+	channelGuestsCount      LocalCacheChannelStore
+	channelGuestsCountCache *utils.Cache
+	role                    LocalCacheRoleStore
+	roleCache               *utils.Cache
+	scheme                  LocalCacheSchemeStore
+	schemeCache             *utils.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
