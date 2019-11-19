@@ -2272,6 +2272,16 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeam
 	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
 }
 
+// SearchAllChannelsPaged searches all the channels and returns the results paged with the total count.
+func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCount, *Response) {
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelsWithCountFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
 func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsRoute()+"/group/search", search.ToJson())
@@ -2520,6 +2530,16 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 	}
 	defer closeBody(r)
 	return PostFromJson(r.Body), BuildResponse(r)
+}
+
+// SetPostUnread marks channel where post belongs as unread on the time of the provided post.
+func (c *Client4) SetPostUnread(userId string, postId string) *Response {
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", "")
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
 }
 
 // PinPost pin a post based on provided post id string.
@@ -4474,6 +4494,21 @@ func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifes
 	r, err := c.DoApiPost(url, "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ManifestFromJson(r.Body), BuildResponse(r)
+}
+
+// InstallMarketplacePlugin will install marketplace plugin.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) InstallMarketplacePlugin(request *InstallMarketplacePluginRequest) (*Manifest, *Response) {
+	json, err := request.ToJson()
+	if err != nil {
+		return nil, &Response{Error: NewAppError("InstallMarketplacePlugin", "model.client.plugin_request_to_json.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+	r, appErr := c.DoApiPost(c.GetPluginsRoute()+"/marketplace", json)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	return ManifestFromJson(r.Body), BuildResponse(r)
