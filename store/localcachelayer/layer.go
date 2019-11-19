@@ -32,7 +32,7 @@ type LocalCacheStore struct {
 	cluster       einterfaces.ClusterInterface
 	reaction      LocalCacheReactionStore
 	reactionCache *utils.Cache
-	channelGuestsCount      		LocalCacheChannelGuestCountStore
+	channelGuestsCount      		LocalCacheChannelStore
 	channelGuestsCountCache			*utils.Cache
 	role          LocalCacheRoleStore
 	roleCache     *utils.Cache
@@ -53,7 +53,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.schemeCache = utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
 	localCacheStore.channelGuestsCountCache = utils.NewLruWithParams(CHANNEL_GUESTS_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUESTS_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT)
-	localCacheStore.channelGuestsCount = LocalCacheChannelGuestCountStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
+	localCacheStore.channelGuestsCount = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, localCacheStore.reaction.handleClusterInvalidateReaction)
@@ -130,4 +130,5 @@ func (s *LocalCacheStore) doClearCacheCluster(cache *utils.Cache) {
 
 func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.reactionCache)
+	s.doClearCacheCluster(s.channelGuestsCountCache)
 }

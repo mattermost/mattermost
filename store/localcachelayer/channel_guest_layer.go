@@ -5,12 +5,12 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-type LocalCacheChannelGuestCountStore struct {
+type LocalCacheChannelStore struct {
 	store.ChannelStore
 	rootStore *LocalCacheStore
 }
 
-func (s *LocalCacheChannelGuestCountStore) handleClusterInvalidateChannelGuestCounts(msg *model.ClusterMessage) {
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelGuestCounts(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
 		s.rootStore.channelGuestsCountCache.Purge()
 	} else {
@@ -18,7 +18,7 @@ func (s *LocalCacheChannelGuestCountStore) handleClusterInvalidateChannelGuestCo
 	}
 }
 
-func (s LocalCacheChannelGuestCountStore) ClearCaches() {
+func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestsCountCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
@@ -26,14 +26,14 @@ func (s LocalCacheChannelGuestCountStore) ClearCaches() {
 	}
 }
 
-func (s LocalCacheChannelGuestCountStore) InvalidateGuestCount(channelId string) {
+func (s LocalCacheChannelStore) InvalidateGuestCount(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelGuestsCountCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guests Count - Remove by channelId")
 	}
 }
 
-func (s LocalCacheChannelGuestCountStore) GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
+func (s LocalCacheChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
 	if allowFromCache {
 		if count := s.rootStore.doStandardReadCache(s.rootStore.channelGuestsCountCache, channelId); count != nil {
 			return count.(int64), nil
@@ -48,7 +48,7 @@ func (s LocalCacheChannelGuestCountStore) GetGuestCount(channelId string, allowF
 	return count, err
 }
 
-func (s LocalCacheChannelGuestCountStore) GetGuestCountFromCache(channelId string) int64 {
+func (s LocalCacheChannelStore) GetGuestCountFromCache(channelId string) int64 {
 	if count := s.rootStore.doStandardReadCache(s.rootStore.channelGuestsCountCache, channelId); count != nil {
 		return count.(int64)
 	}
