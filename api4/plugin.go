@@ -8,6 +8,7 @@ package api4
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -31,6 +32,7 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(getPlugins)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("", api.ApiSessionRequired(removePlugin)).Methods("DELETE")
 	api.BaseRoutes.Plugins.Handle("/install_from_url", api.ApiSessionRequired(installPluginFromUrl)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(installMarketplacePlugin)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/statuses", api.ApiSessionRequired(getPluginStatuses)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("/enable", api.ApiSessionRequired(enablePlugin)).Methods("POST")
@@ -42,7 +44,8 @@ func (api *API) InitPlugin() {
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable || !*c.App.Config().PluginSettings.EnableUploads {
+	config := c.App.Config()
+	if !*config.PluginSettings.Enable || !*config.PluginSettings.EnableUploads || *config.PluginSettings.RequirePluginSignature {
 		c.Err = model.NewAppError("uploadPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -81,19 +84,12 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(m.Value["force"]) > 0 && m.Value["force"][0] == "true" {
 		force = true
 	}
-	manifest, unpackErr := c.App.InstallPlugin(file, force)
 
-	if unpackErr != nil {
-		c.Err = unpackErr
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(manifest.ToJson()))
+	installPlugin(c, w, file, force)
 }
 
 func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
+	if !*c.App.Config().PluginSettings.Enable || *c.App.Config().PluginSettings.RequirePluginSignature {
 		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -103,46 +99,57 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	force := r.URL.Query().Get("force") == "true"
 	downloadUrl := r.URL.Query().Get("plugin_download_url")
 
-	if !model.IsValidHttpUrl(downloadUrl) {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	u, err := url.ParseRequestURI(downloadUrl)
+	pluginFile, err := downloadFromUrl(c, downloadUrl)
 	if err != nil {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
+		c.Err = err
 		return
 	}
 
-	if !*c.App.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
+	installPlugin(c, w, pluginFile, force)
+}
+
+func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	client := c.App.HTTPService.MakeClient(true)
-	client.Timeout = INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT
+	if !*c.App.Config().PluginSettings.EnableMarketplace {
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
 
-	resp, err := client.Get(downloadUrl)
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	pluginRequest, err := model.PluginRequestFromReader(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	defer resp.Body.Close()
-
-	force := false
-	if r.URL.Query().Get("force") == "true" {
-		force = true
+	plugin, appErr := c.App.GetMarketplacePlugin(pluginRequest)
+	if appErr != nil {
+		c.Err = appErr
+		return
 	}
 
-	fileBytes, err := ioutil.ReadAll(resp.Body)
+	pluginFile, appErr := downloadFromUrl(c, plugin.DownloadURL)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	signature, err := plugin.DecodeSignature()
 	if err != nil {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
 		return
 	}
 
-	manifest, appErr := c.App.InstallPlugin(bytes.NewReader(fileBytes), force)
+	manifest, appErr := c.App.InstallPluginWithSignature(pluginFile, signature)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -347,4 +354,44 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 		Filter:        filter,
 		ServerVersion: serverVersion,
 	}, nil
+}
+
+func downloadFromUrl(c *Context, downloadUrl string) (io.ReadSeeker, *model.AppError) {
+	if !model.IsValidHttpUrl(downloadUrl) {
+		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	u, err := url.ParseRequestURI(downloadUrl)
+	if err != nil {
+		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !*c.App.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
+		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	client := c.App.HTTPService.MakeClient(true)
+	client.Timeout = INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT
+
+	resp, err := client.Get(downloadUrl)
+	if err != nil {
+		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	defer resp.Body.Close()
+
+	fileBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return bytes.NewReader(fileBytes), nil
+}
+
+func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {
+	manifest, appErr := c.App.InstallPlugin(plugin, force)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(manifest.ToJson()))
 }
