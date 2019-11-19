@@ -16,30 +16,28 @@ import (
 
 func cleanupStoreState(t *testing.T, ss store.Store) {
 	//remove existing users
-	users, err := ss.User().GetAll()
+	allUsers, err := ss.User().GetAll()
 	require.Nilf(t, err, "error cleaning all test users: %v", err)
-
-	for _, u := range users {
+	for _, u := range allUsers {
 		err := ss.User().PermanentDelete(u.Id)
 		require.Nil(t, err, "failed cleaning up test user %s", u.Username)
 
 		//remove all posts by this user
-		if err2 := ss.Post().PermanentDeleteByUser(u.Id); err2 != nil {
-			t.Fatal(err2)
-		}
+		err = ss.Post().PermanentDeleteByUser(u.Id)
+		require.Nil(t, err, "failed cleaning all posts of test user %s", u.Username)
 	}
+
 	//remove existing channels
-	list, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
+	allChannels, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.Nilf(t, err, "error cleaning all test channels: %v", err)
-	for _, channel := range *list {
+	for _, channel := range *allChannels {
 		err := ss.Channel().PermanentDelete(channel.Id)
-		require.Nil(t, err, "failed cleaning up test user %s", channel.Id)
+		require.Nil(t, err, "failed cleaning up test channel %s", channel.Id)
 	}
 
 	//remove existing teams
 	allTeams, err := ss.Team().GetAll()
 	require.Nilf(t, err, "error cleaning all test teams: %v", err)
-
 	for _, team := range allTeams {
 		err := ss.Team().PermanentDelete(team.Id)
 		require.Nil(t, err, "failed cleaning up test team %s", team.Id)
