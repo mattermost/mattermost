@@ -52,6 +52,7 @@ const (
 	WEBSOCKET_EVENT_LICENSE_CHANGED         = "license_changed"
 	WEBSOCKET_EVENT_CONFIG_CHANGED          = "config_changed"
 	WEBSOCKET_EVENT_OPEN_DIALOG             = "open_dialog"
+	WEBSOCKET_EVENT_GUESTS_DEACTIVATED      = "guests_deactivated"
 )
 
 type WebSocketMessage interface {

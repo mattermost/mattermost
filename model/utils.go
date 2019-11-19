@@ -624,3 +624,8 @@ func GetPreferredTimezone(timezone StringMap) string {
 
 	return timezone["manualTimezone"]
 }
+
+// IsSamlFile checks if filename is a SAML file.
+func IsSamlFile(saml *SamlSettings, filename string) bool {
+	return filename == *saml.PublicCertificateFile || filename == *saml.PrivateKeyFile || filename == *saml.IdpCertificateFile
+}

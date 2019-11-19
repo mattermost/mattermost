@@ -15,6 +15,7 @@ const (
 	PUSH_NOTIFY_APPLE_REACT_NATIVE   = "apple_rn"
 	PUSH_NOTIFY_ANDROID_REACT_NATIVE = "android_rn"
 
+	PUSH_TYPE_ID_LOADED    = "id_loaded"
 	PUSH_TYPE_MESSAGE      = "message"
 	PUSH_TYPE_CLEAR        = "clear"
 	PUSH_TYPE_UPDATE_BADGE = "update_badge"
@@ -39,6 +40,7 @@ type PushNotificationAck struct {
 	ClientReceivedAt int64  `json:"received_at"`
 	ClientPlatform   string `json:"platform"`
 	NotificationType string `json:"type"`
+	PostId           string `json:"post_id,omitempty"`
 }
 
 type PushNotification struct {
@@ -46,23 +48,23 @@ type PushNotification struct {
 	Platform         string `json:"platform"`
 	ServerId         string `json:"server_id"`
 	DeviceId         string `json:"device_id"`
-	Category         string `json:"category"`
-	Sound            string `json:"sound"`
-	Message          string `json:"message"`
-	Badge            int    `json:"badge"`
-	ContentAvailable int    `json:"cont_ava"`
-	TeamId           string `json:"team_id"`
-	ChannelId        string `json:"channel_id"`
 	PostId           string `json:"post_id"`
-	RootId           string `json:"root_id"`
-	ChannelName      string `json:"channel_name"`
-	Type             string `json:"type"`
-	SenderId         string `json:"sender_id"`
-	SenderName       string `json:"sender_name"`
-	OverrideUsername string `json:"override_username"`
-	OverrideIconUrl  string `json:"override_icon_url"`
-	FromWebhook      string `json:"from_webhook"`
-	Version          string `json:"version"`
+	Category         string `json:"category,omitempty"`
+	Sound            string `json:"sound,omitempty"`
+	Message          string `json:"message,omitempty"`
+	Badge            int    `json:"badge,omitempty"`
+	ContentAvailable int    `json:"cont_ava,omitempty"`
+	TeamId           string `json:"team_id,omitempty"`
+	ChannelId        string `json:"channel_id,omitempty"`
+	RootId           string `json:"root_id,omitempty"`
+	ChannelName      string `json:"channel_name,omitempty"`
+	Type             string `json:"type,omitempty"`
+	SenderId         string `json:"sender_id,omitempty"`
+	SenderName       string `json:"sender_name,omitempty"`
+	OverrideUsername string `json:"override_username,omitempty"`
+	OverrideIconUrl  string `json:"override_icon_url,omitempty"`
+	FromWebhook      string `json:"from_webhook,omitempty"`
+	Version          string `json:"version,omitempty"`
 }
 
 func (me *PushNotification) ToJson() string {

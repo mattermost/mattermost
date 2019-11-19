@@ -110,7 +110,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 	return nil
 }
 
-func (a *App) sendPushNotification(notification *postNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) {
+func (a *App) sendPushNotification(notification *PostNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) {
 	cfg := a.Config()
 	channel := notification.channel
 	post := notification.post
@@ -132,6 +132,22 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 		channelWideMention: channelWideMention,
 		replyToThreadType:  replyToThreadType,
 	}
+}
+
+func (a *App) getFetchedPushNotificationMessage(postMessage, senderName, channelType string, hasFiles bool, userLocale i18n.TranslateFunc) string {
+	// If the post only has images then push an appropriate message
+	if len(postMessage) == 0 && hasFiles {
+		if channelType == model.CHANNEL_DIRECT {
+			return strings.Trim(userLocale("api.post.send_notifications_and_forget.push_image_only"), " ")
+		}
+		return senderName + userLocale("api.post.send_notifications_and_forget.push_image_only")
+	}
+
+	if channelType == model.CHANNEL_DIRECT {
+		return model.ClearMentionTags(postMessage)
+	}
+
+	return senderName + ": " + model.ClearMentionTags(postMessage)
 }
 
 func (a *App) getPushNotificationMessage(postMessage string, explicitMention, channelWideMention, hasFiles bool,
@@ -428,8 +444,112 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 	return false
 }
 
+func (a *App) BuildFetchedPushNotificationMessage(postId string, userId string) (model.PushNotification, *model.AppError) {
+	msg := model.PushNotification{
+		Type:     model.PUSH_TYPE_ID_LOADED,
+		Category: model.CATEGORY_CAN_REPLY,
+		Version:  model.PUSH_MESSAGE_V2,
+	}
+
+	post, err := a.GetSinglePost(postId)
+	if err != nil {
+		return msg, err
+	}
+
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return msg, err
+	}
+
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return msg, err
+	}
+
+	sender, err := a.GetUser(post.UserId)
+	if err != nil {
+		return msg, err
+	}
+
+	msg.PostId = post.Id
+	msg.RootId = post.RootId
+	msg.SenderId = post.UserId
+	msg.ChannelId = channel.Id
+	msg.TeamId = channel.TeamId
+
+	notification := &PostNotification{
+		post:    post,
+		channel: channel,
+		sender:  sender,
+	}
+
+	cfg := a.Config()
+	nameFormat := a.GetNotificationNameFormat(user)
+	channelName := notification.GetChannelName(nameFormat, user.Id)
+	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
+
+	msg.ChannelName = channelName
+
+	msg.SenderName = senderName
+	if ou, ok := post.Props["override_username"].(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
+		msg.OverrideUsername = ou
+		msg.SenderName = ou
+	}
+
+	if oi, ok := post.Props["override_icon_url"].(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
+		msg.OverrideIconUrl = oi
+	}
+
+	if fw, ok := post.Props["from_webhook"].(string); ok {
+		msg.FromWebhook = fw
+	}
+
+	userLocale := utils.GetUserTranslations(user.Locale)
+	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
+
+	msg.Message = a.getFetchedPushNotificationMessage(post.Message, msg.SenderName, channel.Type, hasFiles, userLocale)
+
+	return msg, nil
+}
+
 func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
+
+	var msg *model.PushNotification
+
+	cfg := a.Config()
+	contentsConfig := *cfg.EmailSettings.PushNotificationContents
+	if contentsConfig == model.ID_LOADED_NOTIFICATION {
+		msg = a.buildIdLoadedPushNotificationMessage(post, user)
+	} else {
+		msg = a.buildFullPushNotificationMessage(post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+	}
+
+	badge, err := a.getPushNotificationBadge(user, channel)
+	if err != nil {
+		return nil, err
+	}
+	msg.Badge = badge
+
+	return msg, nil
+}
+
+func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post, user *model.User) *model.PushNotification {
+	userLocale := utils.GetUserTranslations(user.Locale)
+	msg := &model.PushNotification{
+		PostId:    post.Id,
+		ChannelId: post.ChannelId,
+		Category:  model.CATEGORY_CAN_REPLY,
+		Version:   model.PUSH_MESSAGE_V2,
+		Type:      model.PUSH_TYPE_ID_LOADED,
+		Message:   userLocale("api.push_notification.id_loaded.default_message"),
+	}
+
+	return msg
+}
+
+func (a *App) buildFullPushNotificationMessage(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
+	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.PushNotification {
 
 	msg := &model.PushNotification{
 		Category:  model.CATEGORY_CAN_REPLY,
@@ -440,22 +560,6 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 		PostId:    post.Id,
 		RootId:    post.RootId,
 		SenderId:  post.UserId,
-	}
-
-	if user.NotifyProps["push"] == "all" {
-		unreadCount, err := a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id)
-		if err != nil {
-			return nil, err
-		}
-
-		msg.Badge = int(unreadCount)
-	} else {
-		unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id)
-		if err != nil {
-			return nil, err
-		}
-
-		msg.Badge = int(unreadCount)
 	}
 
 	cfg := a.Config()
@@ -483,5 +587,18 @@ func (a *App) BuildPushNotificationMessage(post *model.Post, user *model.User, c
 
 	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
 
-	return msg, nil
+	return msg
+}
+
+func (a *App) getPushNotificationBadge(user *model.User, channel *model.Channel) (int, *model.AppError) {
+	var unreadCount int64
+	var err *model.AppError
+
+	if user.NotifyProps["push"] == "all" {
+		unreadCount, err = a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id)
+	} else {
+		unreadCount, err = a.Srv.Store.User().GetUnreadCount(user.Id)
+	}
+
+	return int(unreadCount), err
 }
