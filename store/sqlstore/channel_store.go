@@ -1708,7 +1708,7 @@ func (s SqlChannelStore) GetGuestCountFromCache(channelId string) int64 {
 	count, _ := s.GetGuestCount(channelId, true)
 	return count
 }
-//
+
 func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
 	count, err := s.GetReplica().SelectInt(`
 		SELECT

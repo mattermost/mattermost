@@ -32,25 +32,4 @@ func TestFileInfoStoreCache(t *testing.T) {
 		cachedStore.Channel().GetGuestCount("123", true)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetGuestCount", 1)
 	})
-
-	//t.Run("first call not cached, second force no cached", func(t *testing.T) {
-	//	mockStore := getMockStore()
-	//	cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
-	//
-	//	cachedStore.FileInfo().GetForPost("123", true, true, true)
-	//	mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
-	//	cachedStore.FileInfo().GetForPost("123", true, true, false)
-	//	mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 2)
-	//})
-	//
-	//t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
-	//	mockStore := getMockStore()
-	//	cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
-	//
-	//	cachedStore.FileInfo().GetForPost("123", true, true, true)
-	//	mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
-	//	cachedStore.FileInfo().InvalidateFileInfosForPostCache("123", true)
-	//	cachedStore.FileInfo().GetForPost("123", true, true, true)
-	//	mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 2)
-	//})
 }

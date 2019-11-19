@@ -76,7 +76,7 @@ func (s LocalCacheStore) Scheme() store.SchemeStore {
 	return s.scheme
 }
 
-func (s LocalCacheStore) Channel() store.ChannelStore  {
+func (s LocalCacheStore) Channel() store.ChannelStore {
 	return s.channelGuestsCount
 }
 
