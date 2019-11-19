@@ -52,14 +52,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
 	localCacheStore.schemeCache = utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
-	localCacheStore.channelGuestsCountCache = utils.NewLruWithParams(CHANNEL_GUESTS_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUESTS_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT)
+	localCacheStore.channelGuestsCountCache = utils.NewLruWithParams(CHANNEL_GUESTS_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUESTS_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT)
 	localCacheStore.channelGuestsCount = LocalCacheChannelGuestCountStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES, localCacheStore.role.handleClusterInvalidateRole)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES, localCacheStore.scheme.handleClusterInvalidateScheme)
-		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT, localCacheStore.channelGuestsCount.handleClusterInvalidateChannelGuestCounts)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT, localCacheStore.channelGuestsCount.handleClusterInvalidateChannelGuestCounts)
 	}
 	return localCacheStore
 }
@@ -74,6 +74,10 @@ func (s LocalCacheStore) Role() store.RoleStore {
 
 func (s LocalCacheStore) Scheme() store.SchemeStore {
 	return s.scheme
+}
+
+func (s LocalCacheStore) Channel() store.ChannelStore  {
+	return s.channelGuestsCount
 }
 
 func (s LocalCacheStore) DropAllTables() {

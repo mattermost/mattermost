@@ -26,14 +26,10 @@ func (s LocalCacheChannelGuestCountStore) ClearCaches() {
 	}
 }
 
-func (s LocalCacheChannelGuestCountStore) InvalidateGuestCount(channelId string, deleted bool) {
-	cacheKey := channelId
-	if deleted {
-		cacheKey += "_deleted"
-	}
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelGuestsCountCache, cacheKey)
+func (s LocalCacheChannelGuestCountStore) InvalidateGuestCount(channelId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelGuestsCountCache, channelId)
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("ChannelGuestCount - Remove by channelId")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guests Count - Remove by channelId")
 	}
 }
 
