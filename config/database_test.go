@@ -513,11 +513,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		id, _ := getActualDatabaseConfig(t)
 		assert.NotEqual(t, activeId, id, "new record should have been written")
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 }
 
@@ -754,17 +750,13 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		err = ds.Load()
 		require.NoError(t, err)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config loaded")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config loaded")
 	})
 }
 
 func TestDatabaseGetFile(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, minimalConfig, map[string][]byte{
-		"empty-file": []byte{},
+		"empty-file": {},
 		"test-file":  []byte("test"),
 	})
 	defer tearDown()

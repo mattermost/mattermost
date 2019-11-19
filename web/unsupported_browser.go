@@ -44,7 +44,7 @@ type SystemBrowser struct {
 	MakeDefaultString      string
 }
 
-func renderUnsuppportedBrowser(app *app.App, w http.ResponseWriter, r *http.Request) {
+func renderUnsupportedBrowser(app *app.App, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	page := utils.NewHTMLTemplate(app.HTMLTemplates(), "unsupported_browser")
 
@@ -127,7 +127,7 @@ func renderBrowserFirefox(app *app.App) Browser {
 		"/static/images/browser-icons/firefox.svg",
 		app.T("web.error.unsupported_browser.browser_title.firefox"),
 		app.T("web.error.unsupported_browser.min_browser_version.firefox"),
-		"https://www.mozilla.org/en-CA/firefox/new/",
+		"https://www.mozilla.org/firefox/new/",
 		app.T("web.error.unsupported_browser.browser_get_latest.firefox"),
 	}
 }

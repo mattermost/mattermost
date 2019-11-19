@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"net/mail"
 	"net/url"
 	"path"
 	"strings"
@@ -347,13 +346,13 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			data := model.MapToJson(props)
 
 			if err := a.Srv.Store.Token().Save(token); err != nil {
-				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
+				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if err := a.SendMail(invite, subject, bodyPage.Render()); err != nil {
-				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
+				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 			}
 		}
 	}
@@ -435,24 +434,26 @@ func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 			data := model.MapToJson(props)
 
 			if err := a.Srv.Store.Token().Save(token); err != nil {
-				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
+				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if !*a.Config().EmailSettings.SendEmailNotifications {
-				mlog.Info(fmt.Sprintf("sending invitation to %v %v", invite, bodyPage.Props["Link"]))
+				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", bodyPage.Props["Link"].(string)))
 			}
 
 			embeddedFiles := make(map[string]io.Reader)
-			if senderProfileImage != nil {
-				embeddedFiles = map[string]io.Reader{
-					"user-avatar.png": bytes.NewReader(senderProfileImage),
+			if message != "" {
+				if senderProfileImage != nil {
+					embeddedFiles = map[string]io.Reader{
+						"user-avatar.png": bytes.NewReader(senderProfileImage),
+					}
 				}
 			}
 
 			if err := a.SendMailWithEmbeddedFiles(invite, subject, bodyPage.Render(), embeddedFiles); err != nil {
-				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
+				mlog.Error("Failed to send invite email successfully", mlog.Err(err))
 			}
 		}
 	}
@@ -523,8 +524,6 @@ func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
 func (a *App) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
 	license := a.License()
 	config := a.Config()
-	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
-	replyTo := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.ReplyToAddress}
 
-	return mailservice.SendMailUsingConfigAdvanced(to, to, fromMail, replyTo, subject, htmlBody, nil, embeddedFiles, nil, config, license != nil && *license.Features.Compliance)
+	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance)
 }

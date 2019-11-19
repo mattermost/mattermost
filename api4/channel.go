@@ -27,6 +27,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.ApiSessionRequired(getDeletedChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.ApiSessionRequired(getPublicChannelsByIdsForTeam)).Methods("POST")
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.ApiSessionRequired(searchChannelsForTeam)).Methods("POST")
+	api.BaseRoutes.ChannelsForTeam.Handle("/search_archived", api.ApiSessionRequired(searchArchivedChannelsForTeam)).Methods("POST")
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.ApiSessionRequired(autocompleteChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.ApiSessionRequired(autocompleteChannelsForTeamForSearch)).Methods("GET")
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getChannelsForTeamForUser)).Methods("GET")
@@ -681,12 +682,7 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
-		return
-	}
-
-	channels, err := c.App.GetDeletedChannels(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	channels, err := c.App.GetDeletedChannels(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -860,6 +856,42 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(channels.ToJson()))
 }
 
+func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.ChannelSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("channel_search")
+		return
+	}
+
+	var channels *model.ChannelList
+	var err *model.AppError
+	if c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
+		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.App.Session.UserId)
+	} else {
+		// If the user is not a team member, return a 404
+		if _, err = c.App.GetTeamMember(c.Params.TeamId, c.App.Session.UserId); err != nil {
+			c.Err = err
+			return
+		}
+
+		channels, err = c.App.SearchArchivedChannels(c.Params.TeamId, props.Term, c.App.Session.UserId)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Don't fill in channels props, since unused by client and potentially expensive.
+
+	w.Write([]byte(channels.ToJson()))
+}
+
 func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.ChannelSearchFromJson(r.Body)
 	if props == nil {
@@ -876,9 +908,11 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		NotAssociatedToGroup:   props.NotAssociatedToGroup,
 		ExcludeDefaultChannels: props.ExcludeDefaultChannels,
 		IncludeDeleted:         r.URL.Query().Get("include_deleted") == "true",
+		Page:                   props.Page,
+		PerPage:                props.PerPage,
 	}
 
-	channels, err := c.App.SearchAllChannels(props.Term, opts)
+	channels, totalCount, err := c.App.SearchAllChannels(props.Term, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -886,7 +920,16 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
 
-	w.Write([]byte(channels.ToJson()))
+	var payload []byte
+
+	if props.Page != nil && props.PerPage != nil {
+		data := model.ChannelsWithCount{Channels: channels, TotalCount: totalCount}
+		payload = data.ToJson()
+	} else {
+		payload = []byte(channels.ToJson())
+	}
+
+	w.Write(payload)
 }
 
 func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {

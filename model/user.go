@@ -9,10 +9,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/services/timezones"
@@ -397,8 +399,7 @@ func (u *User) SetDefaultNotifications() {
 
 func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	nonUsernameKeys := []string{}
-	splitKeys := strings.Split(user.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",")
-	for _, key := range splitKeys {
+	for _, key := range user.GetMentionKeys() {
 		if key != oldUsername && key != "@"+oldUsername {
 			nonUsernameKeys = append(nonUsernameKeys, key)
 		}
@@ -408,6 +409,22 @@ func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	if len(nonUsernameKeys) > 0 {
 		user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
 	}
+}
+
+func (user *User) GetMentionKeys() []string {
+	var keys []string
+
+	for _, key := range strings.Split(user.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
+		trimmedKey := strings.TrimSpace(key)
+
+		if trimmedKey == "" {
+			continue
+		}
+
+		keys = append(keys, trimmedKey)
+	}
+
+	return keys
 }
 
 func (u *User) Patch(patch *UserPatch) {
@@ -495,9 +512,11 @@ func (u *User) Sanitize(options map[string]bool) {
 }
 
 // Remove any input data from the user object that is not user controlled
-func (u *User) SanitizeInput() {
-	u.AuthData = NewString("")
-	u.AuthService = ""
+func (u *User) SanitizeInput(isAdmin bool) {
+	if !isAdmin {
+		u.AuthData = NewString("")
+		u.AuthService = ""
+	}
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
 	u.FailedAttempts = 0
@@ -835,4 +854,28 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	bodyBytes, _ := ioutil.ReadAll(data)
 	json.Unmarshal(bodyBytes, uwg)
 	return uwg
+}
+
+var passwordRandomSource = rand.NewSource(time.Now().Unix())
+var passwordSpecialChars = "!$%^&*(),."
+var passwordNumbers = "0123456789"
+var passwordUpperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
+var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
+
+func GeneratePassword(minimumLength int) string {
+	r := rand.New(passwordRandomSource)
+
+	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
+	password := string([]rune(passwordUpperCaseLetters)[r.Intn(len(passwordUpperCaseLetters))]) +
+		string([]rune(passwordNumbers)[r.Intn(len(passwordNumbers))]) +
+		string([]rune(passwordLowerCaseLetters)[r.Intn(len(passwordLowerCaseLetters))]) +
+		string([]rune(passwordSpecialChars)[r.Intn(len(passwordSpecialChars))])
+
+	for len(password) < minimumLength {
+		i := r.Intn(len(passwordAllChars))
+		password = password + string([]rune(passwordAllChars)[i])
+	}
+
+	return password
 }

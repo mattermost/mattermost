@@ -764,7 +764,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "User cannot be added to this channel because it is constrained to group members only."
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
   },
   {
     "id": "api.command_invite.hint",
@@ -797,6 +797,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} is already in the channel."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} is not a member of the team."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1321,10 +1325,6 @@
     "translation": "Unable to upload file. Image storage is not configured."
   },
   {
-    "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Unable to upload file. File is too large."
-  },
-  {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
@@ -1339,6 +1339,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "Encountered an error writing to local server storage"
+  },
+  {
+    "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
+    "translation": "Invalid/Missing channel ID or Team ID."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1509,6 +1513,10 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "An error occurred while opening the public key file."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -1535,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Missing file in multipart/form request"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1703,6 +1715,14 @@
     "translation": "Push Notifications are disabled on this server."
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "You've received a new message."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "An error occurred fetching the ID-loaded push notification"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "An error occurred sending the receipt delivery to the push notification service"
   },
@@ -1864,7 +1884,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1873,6 +1893,10 @@
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parameter required to add user to team."
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -2621,6 +2645,10 @@
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
     "translation": "Failed to send welcome email successfully"
+  },
+  {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -3459,6 +3487,10 @@
     "translation": "Unable to deactivate plugin"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "An error occurred while deleting the public key."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Plugins have been disabled. Please check your logs for details."
   },
@@ -3483,6 +3515,10 @@
     "translation": "Unable to get active plugins"
   },
   {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "An error occurred while getting the public key from the store."
+  },
+  {
     "id": "app.plugin.get_statuses.app_error",
     "translation": "Unable to get plugin statuses"
   },
@@ -3503,6 +3539,10 @@
     "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
   {
+    "id": "app.plugin.invalid_version.app_error",
+    "translation": "Plugin version could not be parsed"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Unable to find manifest for extracted plugin"
   },
@@ -3515,12 +3555,24 @@
     "translation": "Marketplace has been disabled. Please check your logs for details."
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "Failed to get plugins from the marketplace server."
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Plugin not found."
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "Failed to marshal marketplace plugins."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3543,8 +3595,16 @@
     "translation": "Unable to restart plugin on upgrade."
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Unable to store the plugin to the configured file store."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Unable to store the plugin signature to the configured file store."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
@@ -3561,6 +3621,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "Unable to generate plugin webapp bundle."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "An error occurred while reading the file."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "An error occurred while saving the file."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3957,6 +4025,10 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Invalid AD/LDAP Filter"
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Invalid AD/LDAP Guest Filter"
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -4524,15 +4596,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elastic Search AutocompleteEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch AutocompleteEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch SearchEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4719,12 +4791,12 @@
     "translation": "Invalid Canonical Algorithm."
   },
   {
-    "id": "model.config.is_valid.saml_digest_algorithm.app_error",
-    "translation": "Invalid Digest Algorithm."
-  },
-  {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Invalid Email attribute. Must be set."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -5149,6 +5221,14 @@
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
     "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+  },
+  {
+    "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
+    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+  },
+  {
+    "id": "model.plugin_kvset_options.serialize_value.app_error",
+    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5591,6 +5671,10 @@
     "translation": "Failed to update the channel member"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Unable to delete the channel"
   },
@@ -5927,6 +6011,10 @@
     "translation": "Unable to update the last viewed at time"
   },
   {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread"
+  },
+  {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "We encountered an error updating the channel member"
   },
@@ -6121,6 +6209,10 @@
   {
     "id": "store.sql_group.no_rows_changed",
     "translation": "no rows changed"
+  },
+  {
+    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -7143,6 +7235,14 @@
     "translation": "This username is already taken. Please choose another."
   },
   {
+    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
+    "translation": "Unable to get the list of deactivate guests ids"
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Unable to deactivate guests"
+  },
+  {
     "id": "store.sql_user.update_auth_data.app_error",
     "translation": "Unable to update the auth data"
   },
@@ -7472,11 +7572,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "We no longer support this browser"
+    "translation": "This browser is no longer supported by Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "We no longer support this version of your browser"
+    "translation": "This version of your browser is no longer supported by Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",

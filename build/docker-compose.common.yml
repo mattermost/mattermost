@@ -21,7 +21,7 @@ services:
       POSTGRES_PASSWORD: mostest
       POSTGRES_DB: mattermost_test
   minio:
-    image: "minio/minio:RELEASE.2019-08-14T20-37-41Z"
+    image: "minio/minio:RELEASE.2019-10-11T00-38-09Z"
     command: "server /data"
     networks:
       - mm-test
@@ -52,7 +52,3 @@ services:
       http.host: "0.0.0.0"
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
-  redis:
-    image: redis
-    networks:
-      - mm-test

@@ -20,6 +20,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
+	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
 	props["ExperimentalViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ExperimentalViewArchivedChannels)
 
@@ -44,6 +45,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["ExperimentalGroupUnreadChannels"] = *c.ServiceSettings.ExperimentalGroupUnreadChannels
 	props["EnableSVGs"] = strconv.FormatBool(*c.ServiceSettings.EnableSVGs)
 	props["EnableMarketplace"] = strconv.FormatBool(*c.PluginSettings.EnableMarketplace)
+	props["EnableLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableLatex)
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"

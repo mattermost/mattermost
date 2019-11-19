@@ -204,7 +204,3 @@ func sToP(s string) *string {
 func bToP(b bool) *bool {
 	return &b
 }
-
-func iToP(i int) *int {
-	return &i
-}
