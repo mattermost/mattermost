@@ -591,6 +591,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
 	require.Nil(t, err)
+	assert.Equal(t, 0, len(messages))
 
 	// need a team
 	team := &model.Team{
@@ -687,6 +688,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
 	require.Nil(t, err)
+	assert.Equal(t, 0, len(messages))
 
 	// need a team
 	team := &model.Team{
@@ -779,6 +781,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
 	require.Nil(t, err)
+	assert.Equal(t, 0, len(messages))
 
 	// need a team
 	team := &model.Team{
@@ -890,6 +893,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
 	require.Nil(t, err)
+	assert.Equal(t, 0, len(messages))
 
 	// need a team
 	team := &model.Team{
@@ -974,6 +978,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 	startTime := model.GetMillis()
 	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
 	require.Nil(t, err)
+	assert.Equal(t, 0, len(messages))
 
 	// need a team
 	team := &model.Team{
