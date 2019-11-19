@@ -141,6 +141,40 @@ func (us SqlUserStore) Save(user *model.User) (*model.User, *model.AppError) {
 	return user, nil
 }
 
+func (us SqlUserStore) DeactivateGuests() ([]string, *model.AppError) {
+	curTime := model.GetMillis()
+	updateQuery := us.getQueryBuilder().Update("Users").
+		Set("UpdateAt", curTime).
+		Set("DeleteAt", curTime).
+		Where(sq.Eq{"Roles": "system_guest"}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	queryString, args, err := updateQuery.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.UpdateActiveForMultipleUsers", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	_, err = us.GetMaster().Exec(queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.UpdateActiveForMultipleUsers", "store.sql_user.update_active_for_multiple_users.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	selectQuery := us.getQueryBuilder().Select("Id").From("Users").Where(sq.Eq{"DeleteAt": curTime})
+
+	queryString, args, err = selectQuery.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.UpdateActiveForMultipleUsers", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	userIds := []string{}
+	_, err = us.GetMaster().Select(&userIds, queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.UpdateActiveForMultipleUsers", "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return userIds, nil
+}
+
 func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.UserUpdate, *model.AppError) {
 	user.PreUpdate()
 

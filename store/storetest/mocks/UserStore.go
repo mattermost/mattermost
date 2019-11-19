@@ -128,6 +128,31 @@ func (_m *UserStore) Count(options model.UserCountOptions) (int64, *model.AppErr
 	return r0, r1
 }
 
+// DeactivateGuests provides a mock function with given fields:
+func (_m *UserStore) DeactivateGuests() ([]string, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // DemoteUserToGuest provides a mock function with given fields: userID
 func (_m *UserStore) DemoteUserToGuest(userID string) *model.AppError {
 	ret := _m.Called(userID)

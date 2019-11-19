@@ -1341,6 +1341,10 @@
     "translation": "Encountered an error writing to local server storage"
   },
   {
+    "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
+    "translation": "Invalid/Missing channel ID or Team ID."
+  },
+  {
     "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
@@ -1509,6 +1513,10 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "An error occurred while opening the public key file."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -1535,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Missing file in multipart/form request"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1701,6 +1713,14 @@
   {
     "id": "api.push_notification.disabled.app_error",
     "translation": "Push Notifications are disabled on this server."
+  },
+  {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "You've received a new message."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "An error occurred fetching the ID-loaded push notification"
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -2627,6 +2647,10 @@
     "translation": "Failed to send welcome email successfully"
   },
   {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+  },
+  {
     "id": "api.user.update_active.not_enable.app_error",
     "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
@@ -3463,6 +3487,10 @@
     "translation": "Unable to deactivate plugin"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "An error occurred while deleting the public key."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Plugins have been disabled. Please check your logs for details."
   },
@@ -3487,6 +3515,10 @@
     "translation": "Unable to get active plugins"
   },
   {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "An error occurred while getting the public key from the store."
+  },
+  {
     "id": "app.plugin.get_statuses.app_error",
     "translation": "Unable to get plugin statuses"
   },
@@ -3507,6 +3539,10 @@
     "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
   {
+    "id": "app.plugin.invalid_version.app_error",
+    "translation": "Plugin version could not be parsed"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Unable to find manifest for extracted plugin"
   },
@@ -3519,12 +3555,24 @@
     "translation": "Marketplace has been disabled. Please check your logs for details."
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "Failed to get plugins from the marketplace server."
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Plugin not found."
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "Failed to marshal marketplace plugins."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3547,8 +3595,16 @@
     "translation": "Unable to restart plugin on upgrade."
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Unable to store the plugin to the configured file store."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Unable to store the plugin signature to the configured file store."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
@@ -3565,6 +3621,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "Unable to generate plugin webapp bundle."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "An error occurred while reading the file."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "An error occurred while saving the file."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -7161,6 +7225,14 @@
   {
     "id": "store.sql_user.update.username_taken.app_error",
     "translation": "This username is already taken. Please choose another."
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
+    "translation": "Unable to get the list of deactivate guests ids"
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Unable to deactivate guests"
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",

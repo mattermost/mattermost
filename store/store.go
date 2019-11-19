@@ -301,6 +301,7 @@ type UserStore interface {
 	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
 	PromoteGuestToUser(userID string) *model.AppError
 	DemoteUserToGuest(userID string) *model.AppError
+	DeactivateGuests() ([]string, *model.AppError)
 }
 
 type BotStore interface {
