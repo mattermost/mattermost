@@ -32,19 +32,6 @@ func IconImagePath(path string) EnsureBotOption {
 	}
 }
 
-func (p *HelpersImpl) readFile(path string) ([]byte, error) {
-	bundlePath, err := p.API.GetBundlePath()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get bundle path")
-	}
-
-	imageBytes, err := ioutil.ReadFile(filepath.Join(bundlePath, path))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read image")
-	}
-	return imageBytes, nil
-}
-
 // EnsureBot implements Helpers.EnsureBot
 func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (retBotID string, retErr error) {
 	err := p.ensureServerVersion("5.10.0")
@@ -72,6 +59,129 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (ret
 		return "", err
 	}
 	return botID, nil
+}
+
+type ShouldProcessMessageOption func(*shouldProcessMessageOptions)
+
+type shouldProcessMessageOptions struct {
+	AllowSystemMessages bool
+	AllowBots           bool
+	FilterChannelIDs    []string
+	FilterUserIDs       []string
+	OnlyBotDMs          bool
+}
+
+// AllowSystemMessages configures a call to ShouldProcessMessage to return true for system messages.
+//
+// As it is typically desirable only to consume messages from users of the system, ShouldProcessMessage ignores system messages by default.
+func AllowSystemMessages() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.AllowSystemMessages = true
+	}
+}
+
+// AllowBots configures a call to ShouldProcessMessage to return true for bot posts.
+//
+// As it is typically desirable only to consume messages from human users of the system, ShouldProcessMessage ignores bot messages by default. When allowing bots, take care to avoid a loop where two plugins respond to each others posts repeatedly.
+func AllowBots() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.AllowBots = true
+	}
+}
+
+// FilterChannelIDs configures a call to ShouldProcessMessage to return true only for the given channels.
+//
+// By default, posts from all channels are allowed to be processed.
+func FilterChannelIDs(filterChannelIDs []string) ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.FilterChannelIDs = filterChannelIDs
+	}
+}
+
+// FilterUserIDs configures a call to ShouldProcessMessage to return true only for the given users.
+//
+// By default, posts from all non-bot users are allowed.
+func FilterUserIDs(filterUserIDs []string) ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.FilterUserIDs = filterUserIDs
+	}
+}
+
+// OnlyBotDMs configures a call to ShouldProcessMessage to return true only for direct messages sent to the bot created by EnsureBot.
+//
+// By default, posts from all channels are allowed.
+func OnlyBotDMs() ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.OnlyBotDMs = true
+	}
+}
+
+// ShouldProcessMessage implements Helpers.ShouldProcessMessage
+func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error) {
+	messageProcessOptions := &shouldProcessMessageOptions{}
+	for _, option := range options {
+		option(messageProcessOptions)
+	}
+
+	botIdBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
+	if kvGetErr != nil {
+		return false, errors.Wrap(kvGetErr, "failed to get bot")
+	}
+
+	if botIdBytes != nil {
+		if post.UserId == string(botIdBytes) {
+			return false, nil
+		}
+	}
+
+	if post.IsSystemMessage() && !messageProcessOptions.AllowSystemMessages {
+		return false, nil
+	}
+
+	if !messageProcessOptions.AllowBots {
+		user, appErr := p.API.GetUser(post.UserId)
+		if appErr != nil {
+			return false, errors.Wrap(appErr, "unable to get user")
+		}
+
+		if user.IsBot {
+			return false, nil
+		}
+	}
+
+	if len(messageProcessOptions.FilterChannelIDs) != 0 && !utils.StringInSlice(post.ChannelId, messageProcessOptions.FilterChannelIDs) {
+		return false, nil
+	}
+
+	if len(messageProcessOptions.FilterUserIDs) != 0 && !utils.StringInSlice(post.UserId, messageProcessOptions.FilterUserIDs) {
+		return false, nil
+	}
+
+	if botIdBytes != nil && messageProcessOptions.OnlyBotDMs {
+		channel, appErr := p.API.GetChannel(post.ChannelId)
+		if appErr != nil {
+			return false, errors.Wrap(appErr, "unable to get channel")
+		}
+
+		if !model.IsBotDMChannel(channel, string(botIdBytes)) {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+func (p *HelpersImpl) readFile(path string) ([]byte, error) {
+	bundlePath, err := p.API.GetBundlePath()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get bundle path")
+	}
+
+	imageBytes, err := ioutil.ReadFile(filepath.Join(bundlePath, path))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read image")
+	}
+	return imageBytes, nil
 }
 
 func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotID string, retErr error) {

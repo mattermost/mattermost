@@ -9,6 +9,10 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+const (
+	MentionAllPosts = -1
+)
+
 type StoreResult struct {
 	Data interface{}
 	Err  *model.AppError
@@ -162,6 +166,7 @@ type ChannelStore interface {
 	PermanentDeleteMembersByUser(userId string) *model.AppError
 	PermanentDeleteMembersByChannel(channelId string) *model.AppError
 	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError)
+	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError)
 	IncrementMentionCount(channelId string, userId string) *model.AppError
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError)
@@ -273,7 +278,7 @@ type UserStore interface {
 	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
 	PermanentDelete(userId string) *model.AppError
 	AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError)
-	GetUnreadCount(userId string) (int64, error)
+	GetUnreadCount(userId string) (int64, *model.AppError)
 	GetUnreadCountForChannel(userId string, channelId string) (int64, *model.AppError)
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, *model.AppError)
 	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
