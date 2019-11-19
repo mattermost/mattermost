@@ -1164,3 +1164,27 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Len(t, *channelMembers, 3)
 	})
 }
+
+func TestDeactivateGuests(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	guest1 := th.CreateGuest()
+	guest2 := th.CreateGuest()
+	user := th.CreateUser()
+
+	err := th.App.DeactivateGuests()
+	require.Nil(t, err)
+
+	guest1, err = th.App.GetUser(guest1.Id)
+	assert.Nil(t, err)
+	assert.NotEqual(t, int64(0), guest1.DeleteAt)
+
+	guest2, err = th.App.GetUser(guest2.Id)
+	assert.Nil(t, err)
+	assert.NotEqual(t, int64(0), guest2.DeleteAt)
+
+	user, err = th.App.GetUser(user.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), user.DeleteAt)
+}
