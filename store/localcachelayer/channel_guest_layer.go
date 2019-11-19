@@ -11,6 +11,13 @@ type LocalCacheChannelGuestCountStore struct {
 	rootStore *LocalCacheStore
 }
 
+func (s *LocalCacheChannelGuestCountStore) handleClusterInvalidateChannelGuestCounts(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		s.rootStore.channelGuestsCountCache.Purge()
+	} else {
+		s.rootStore.channelGuestsCountCache.Remove(msg.Data)
+	}
+}
 
 func (s LocalCacheChannelGuestCountStore) InvalidateGuestCount(channelId string, deleted bool) {
 	cacheKey := channelId

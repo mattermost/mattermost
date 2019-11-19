@@ -1704,67 +1704,30 @@ func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache boo
 }
 
 func (s SqlChannelStore) InvalidateGuestCount(channelId string) {
-	//channelGuestCountsCache.Remove(channelId)
-	//if s.metrics != nil {
-	//	s.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Counts - Remove by ChannelId")
-	//}
 }
 
-//func (s SqlChannelStore) GetGuestCountFromCache(channelId string) int64 {
-//	if cacheItem, ok := channelGuestCountsCache.Get(channelId); ok {
-//		if s.metrics != nil {
-//			s.metrics.IncrementMemCacheHitCounter("Channel Guest Counts")
-//		}
-//		return cacheItem.(int64)
-//	}
+func (s SqlChannelStore) GetGuestCountFromCache(channelId string) int64 {
+	count, _ := s.GetGuestCount(channelId, true)
+	return count
+}
 //
-//	if s.metrics != nil {
-//		s.metrics.IncrementMemCacheMissCounter("Channel Guest Counts")
-//	}
-//
-//	count, err := s.GetGuestCount(channelId, true)
-//	if err != nil {
-//		return 0
-//	}
-//
-//	return count
-//}
-//
-//func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
-//	if allowFromCache {
-//		if cacheItem, ok := channelGuestCountsCache.Get(channelId); ok {
-//			if s.metrics != nil {
-//				s.metrics.IncrementMemCacheHitCounter("Channel Guest Counts")
-//			}
-//			return cacheItem.(int64), nil
-//		}
-//	}
-//
-//	if s.metrics != nil {
-//		s.metrics.IncrementMemCacheMissCounter("Channel Guest Counts")
-//	}
-//
-//	count, err := s.GetReplica().SelectInt(`
-//		SELECT
-//			count(*)
-//		FROM
-//			ChannelMembers,
-//			Users
-//		WHERE
-//			ChannelMembers.UserId = Users.Id
-//			AND ChannelMembers.ChannelId = :ChannelId
-//			AND ChannelMembers.SchemeGuest = TRUE
-//			AND Users.DeleteAt = 0`, map[string]interface{}{"ChannelId": channelId})
-//	if err != nil {
-//		return 0, model.NewAppError("SqlChannelStore.GetGuestCount", "store.sql_channel.get_member_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
-//	}
-//
-//	if allowFromCache {
-//		channelGuestCountsCache.AddWithExpiresInSecs(channelId, count, CHANNEL_GUESTS_COUNTS_CACHE_SEC)
-//	}
-//
-//	return count, nil
-//}
+func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
+	count, err := s.GetReplica().SelectInt(`
+		SELECT
+			count(*)
+		FROM
+			ChannelMembers,
+			Users
+		WHERE
+			ChannelMembers.UserId = Users.Id
+			AND ChannelMembers.ChannelId = :ChannelId
+			AND ChannelMembers.SchemeGuest = TRUE
+			AND Users.DeleteAt = 0`, map[string]interface{}{"ChannelId": channelId})
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GetGuestCount", "store.sql_channel.get_member_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return count, nil
+}
 
 func (s SqlChannelStore) RemoveMember(channelId string, userId string) *model.AppError {
 	_, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
