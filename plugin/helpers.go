@@ -4,13 +4,7 @@
 package plugin
 
 import (
-	"net/http"
-	"net/url"
-	"time"
-
-	"github.com/blang/semver"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/pkg/errors"
 )
 
 // Helpers provide a common patterns plugins use.
@@ -74,49 +68,13 @@ type Helpers interface {
 	// Minimum server version: 5.2
 	ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error)
 
-	// InstallPluginFromUrl installs the plugin from the provided url.
+	// InstallPluginFromURL installs the plugin from the provided url.
 	//
 	// Minimum server version: 5.18
-	InstallPluginFromUrl(url string, replace bool) (*model.Manifest, error)
+	InstallPluginFromURL(url string, replace bool) (*model.Manifest, error)
 }
 
 // HelpersImpl implements the helpers interface with an API that retrieves data on behalf of the plugin.
 type HelpersImpl struct {
 	API API
-}
-
-func (p *HelpersImpl) ensureServerVersion(required string) error {
-	serverVersion := p.API.GetServerVersion()
-	currentVersion := semver.MustParse(serverVersion)
-	requiredVersion := semver.MustParse(required)
-
-	if currentVersion.LT(requiredVersion) {
-		return errors.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
-	}
-	return nil
-}
-
-func (p *HelpersImpl) InstallPluginFromUrl(downloadUrl string, replace bool) (*model.Manifest, error) {
-	parsedUrl, err := url.Parse(downloadUrl)
-	if err != nil {
-		return nil, errors.Wrap(err, "error while parsing url")
-	}
-
-	client := &http.Client{Timeout: time.Hour}
-	response, err := client.Get(parsedUrl.String())
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to download the plugin")
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("received %d status code while downloading plugin from server", response.StatusCode)
-	}
-
-	manifest, installError := p.API.InstallPlugin(response.Body, replace)
-	if installError != nil {
-		return nil, errors.Wrap(err, "unable to install plugin on server")
-	}
-
-	return manifest, nil
 }

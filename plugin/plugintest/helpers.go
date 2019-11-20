@@ -43,8 +43,8 @@ func (_m *Helpers) EnsureBot(bot *model.Bot, options ...plugin.EnsureBotOption) 
 	return r0, r1
 }
 
-// InstallPluginFromUrl provides a mock function with given fields: url, replace
-func (_m *Helpers) InstallPluginFromUrl(url string, replace bool) (*model.Manifest, error) {
+// InstallPluginFromURL provides a mock function with given fields: url, replace
+func (_m *Helpers) InstallPluginFromURL(url string, replace bool) (*model.Manifest, error) {
 	ret := _m.Called(url, replace)
 
 	var r0 *model.Manifest
