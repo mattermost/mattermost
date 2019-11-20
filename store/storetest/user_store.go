@@ -80,6 +80,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetChannelGroupUsers(t, ss) })
 	t.Run("PromoteGuestToUser", func(t *testing.T) { testUserStorePromoteGuestToUser(t, ss) })
 	t.Run("DemoteUserToGuest", func(t *testing.T) { testUserStoreDemoteUserToGuest(t, ss) })
+	t.Run("DeactivateGuests", func(t *testing.T) { testDeactivateGuests(t, ss) })
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 }
 
@@ -4206,6 +4207,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			Roles:     "system_user",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		teamId := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
@@ -4251,6 +4253,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			Roles:     "system_user system_admin",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		teamId := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
@@ -4295,6 +4298,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			Roles:     "system_guest",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		err = ss.User().PromoteGuestToUser(user.Id)
 		assert.Nil(t, err)
@@ -4315,6 +4319,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			Roles:     "system_guest",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		teamId := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
@@ -4344,6 +4349,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			Roles:     "system_guest",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		teamId := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
@@ -4388,6 +4394,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			Roles:     "system_guest custom_role",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		teamId := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
@@ -4432,6 +4439,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			Roles:     "system_guest",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user1.Id)) }()
 
 		teamId1 := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: true, SchemeUser: false}, 999)
@@ -4459,6 +4467,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 			Roles:     "system_guest",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user2.Id)) }()
 
 		teamId2 := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: true, SchemeUser: false}, 999)
@@ -4513,6 +4522,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			Roles:     "system_guest",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		teamId := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
@@ -4558,6 +4568,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			Roles:     "system_user system_admin",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		teamId := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
@@ -4602,6 +4613,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			Roles:     "system_user",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		err = ss.User().DemoteUserToGuest(user.Id)
 		assert.Nil(t, err)
@@ -4622,6 +4634,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			Roles:     "system_user",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		teamId := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
@@ -4651,6 +4664,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			Roles:     "system_user",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		teamId := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
@@ -4695,6 +4709,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			Roles:     "system_user custom_role",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		teamId := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
@@ -4739,6 +4754,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			Roles:     "system_user",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user1.Id)) }()
 
 		teamId1 := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: false, SchemeUser: true}, 999)
@@ -4766,6 +4782,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 			Roles:     "system_user",
 		})
 		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user2.Id)) }()
 
 		teamId2 := model.NewId()
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: false, SchemeUser: true}, 999)
@@ -4803,6 +4820,84 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		assert.Nil(t, err)
 		require.False(t, notUpdatedChannelMember.SchemeGuest)
 		require.True(t, notUpdatedChannelMember.SchemeUser)
+	})
+}
+
+func testDeactivateGuests(t *testing.T, ss store.Store) {
+	// create users
+	t.Run("Must disable all guests and no regular user or already deactivated users", func(t *testing.T) {
+		guest1Random := model.NewId()
+		guest1, err := ss.User().Save(&model.User{
+			Email:     guest1Random + "@test.com",
+			Username:  "un_" + guest1Random,
+			Nickname:  "nn_" + guest1Random,
+			FirstName: "f_" + guest1Random,
+			LastName:  "l_" + guest1Random,
+			Password:  "Password1",
+			Roles:     "system_guest",
+		})
+		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(guest1.Id)) }()
+
+		guest2Random := model.NewId()
+		guest2, err := ss.User().Save(&model.User{
+			Email:     guest2Random + "@test.com",
+			Username:  "un_" + guest2Random,
+			Nickname:  "nn_" + guest2Random,
+			FirstName: "f_" + guest2Random,
+			LastName:  "l_" + guest2Random,
+			Password:  "Password1",
+			Roles:     "system_guest",
+		})
+		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(guest2.Id)) }()
+
+		guest3Random := model.NewId()
+		guest3, err := ss.User().Save(&model.User{
+			Email:     guest3Random + "@test.com",
+			Username:  "un_" + guest3Random,
+			Nickname:  "nn_" + guest3Random,
+			FirstName: "f_" + guest3Random,
+			LastName:  "l_" + guest3Random,
+			Password:  "Password1",
+			Roles:     "system_guest",
+			DeleteAt:  10,
+		})
+		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(guest3.Id)) }()
+
+		regularUserRandom := model.NewId()
+		regularUser, err := ss.User().Save(&model.User{
+			Email:     regularUserRandom + "@test.com",
+			Username:  "un_" + regularUserRandom,
+			Nickname:  "nn_" + regularUserRandom,
+			FirstName: "f_" + regularUserRandom,
+			LastName:  "l_" + regularUserRandom,
+			Password:  "Password1",
+			Roles:     "system_user",
+		})
+		require.Nil(t, err)
+		defer func() { require.Nil(t, ss.User().PermanentDelete(regularUser.Id)) }()
+
+		ids, err := ss.User().DeactivateGuests()
+		require.Nil(t, err)
+		assert.ElementsMatch(t, []string{guest1.Id, guest2.Id}, ids)
+
+		u, err := ss.User().Get(guest1.Id)
+		require.Nil(t, err)
+		assert.NotEqual(t, u.DeleteAt, int64(0))
+
+		u, err = ss.User().Get(guest2.Id)
+		require.Nil(t, err)
+		assert.NotEqual(t, u.DeleteAt, int64(0))
+
+		u, err = ss.User().Get(guest3.Id)
+		require.Nil(t, err)
+		assert.Equal(t, u.DeleteAt, int64(10))
+
+		u, err = ss.User().Get(regularUser.Id)
+		require.Nil(t, err)
+		assert.Equal(t, u.DeleteAt, int64(0))
 	})
 }
 
