@@ -87,7 +87,6 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 	})
 }
 
-
 func TestChannelStoreGuestCountCache(t *testing.T) {
 	countResult := int64(12)
 
