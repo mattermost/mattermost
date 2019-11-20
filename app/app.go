@@ -32,6 +32,7 @@ type App struct {
 	Path           string
 	UserAgent      string
 	AcceptLanguage string
+	HttpMethod     string
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
