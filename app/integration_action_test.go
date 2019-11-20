@@ -443,7 +443,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	tearDown, _ := setupPluginApiTest(t,
+	setupPluginApiTest(t,
 		`
 		package main
 	
@@ -469,7 +469,6 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
-	tearDown()
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.Nil(t, err2)
@@ -722,7 +721,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	tearDown, _ := setupPluginApiTest(t,
+	setupPluginApiTest(t,
 		`
 		package main
 	
@@ -746,7 +745,6 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
-	tearDown()
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.Nil(t, err2)

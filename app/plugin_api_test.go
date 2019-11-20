@@ -28,24 +28,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIds []string, app *App) (tearDown func(), pluginDir string) {
+func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIds []string, app *App) string {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	webappPluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
-
-	app.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Directory = pluginDir
-		*cfg.PluginSettings.ClientDirectory = webappPluginDir
-	})
+	defer os.RemoveAll(pluginDir)
+	defer os.RemoveAll(webappPluginDir)
 
 	env, err := plugin.NewEnvironment(app.NewPluginAPI, pluginDir, webappPluginDir, app.Log)
 	require.NoError(t, err)
 
 	require.Equal(t, len(pluginCodes), len(pluginIds))
 	require.Equal(t, len(pluginManifests), len(pluginIds))
-
-	app.SetPluginsEnvironment(env)
 
 	for i, pluginId := range pluginIds {
 		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
@@ -58,13 +53,12 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 		require.True(t, activated)
 	}
 
-	return func() {
-		os.RemoveAll(pluginDir)
-		os.RemoveAll(webappPluginDir)
-	}, pluginDir
+	app.SetPluginsEnvironment(env)
+
+	return pluginDir
 }
 
-func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginId string, app *App) (tearDown func(), pluginDir string) {
+func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginId string, app *App) string {
 	return setupMultiPluginApiTest(t, []string{pluginCode}, []string{pluginManifest}, []string{pluginId}, app)
 }
 
@@ -74,7 +68,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 
 	pluginID := "com.mattermost.sample"
 
-	tearDown, pluginDir := setupPluginApiTest(t,
+	pluginDir := setupPluginApiTest(t,
 		`
 		package main
 
@@ -91,7 +85,6 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		}
 	`,
 		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
-	tearDown()
 
 	publicFilesFolderInTest := filepath.Join(pluginDir, pluginID, "public")
 	publicFilesPath, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginID)
@@ -424,7 +417,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
-	tearDown, _ := setupPluginApiTest(t,
+	setupPluginApiTest(t,
 		`
 		package main
 
@@ -478,7 +471,6 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-	tearDown()
 
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
@@ -497,7 +489,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
-	tearDown, _ := setupPluginApiTest(t,
+	setupPluginApiTest(t,
 		`
 		package main
 
@@ -554,7 +546,6 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-	tearDown()
 
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
@@ -566,7 +557,7 @@ func TestPluginAPIGetBundlePath(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	tearDown, _ := setupPluginApiTest(t,
+	setupPluginApiTest(t,
 		`
 		package main
 
@@ -592,7 +583,6 @@ func TestPluginAPIGetBundlePath(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 		`, `{"id": "testplugin", "backend": {"executable": "backend.exe"}}`, "testplugin", th.App)
-	tearDown()
 
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugin")
 	require.Nil(t, err)
@@ -746,9 +736,46 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 }
 
 func TestInstallPlugin(t *testing.T) {
+	// TODO(ilgooz): remove this setup func to use existent setupPluginApiTest().
+	// following setupTest() func is a modified version of setupPluginApiTest().
+	// we need a modified version of setupPluginApiTest() because it wasn't possible to use it directly here
+	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
+	// dirs and this behavior tends to brake this test as a result.
+	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App) (func(), string) {
+		pluginDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+		webappPluginDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+
+		app.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = pluginDir
+			*cfg.PluginSettings.ClientDirectory = webappPluginDir
+		})
+
+		env, err := plugin.NewEnvironment(app.NewPluginAPI, pluginDir, webappPluginDir, app.Log)
+		require.NoError(t, err)
+
+		app.SetPluginsEnvironment(env)
+
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+		utils.CompileGo(t, pluginCode, backend)
+
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+		manifest, activated, reterr := env.Activate(pluginID)
+		require.Nil(t, reterr)
+		require.NotNil(t, manifest)
+		require.True(t, activated)
+
+		return func() {
+			os.RemoveAll(pluginDir)
+			os.RemoveAll(webappPluginDir)
+		}, pluginDir
+	}
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	// start an http server to serve plugin's tarball to the test.
 	path, _ := fileutils.FindDir("tests")
 	ts := httptest.NewServer(http.FileServer(http.Dir(path)))
 	defer ts.Close()
@@ -761,7 +788,7 @@ func TestInstallPlugin(t *testing.T) {
 		}
 	})
 
-	tearDown, _ := setupPluginApiTest(t,
+	tearDown, _ := setupTest(t,
 		`
 		package main
 
@@ -1101,7 +1128,7 @@ func TestPluginBots(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	tearDown, _ := setupPluginApiTest(t,
+	setupPluginApiTest(t,
 		`
 		package main
 
@@ -1235,7 +1262,6 @@ func TestPluginBots(t *testing.T) {
 		"testpluginbots",
 		th.App,
 	)
-	tearDown()
 
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testpluginbots")
 	assert.NoError(t, err)
@@ -1555,9 +1581,8 @@ func TestPluginCallLogAPI(t *testing.T) {
 	path, _ := fileutils.FindDir("mattermost-server/app/plugin_api_test")
 	pluginCode, err := ioutil.ReadFile(filepath.Join(path, "plugin_using_log_api.go"))
 	assert.NoError(t, err)
-	tearDown, _ := setupPluginApiTest(t, string(pluginCode),
+	setupPluginApiTest(t, string(pluginCode),
 		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
-	tearDown()
 }
 
 func TestPluginAddUserToChannel(t *testing.T) {

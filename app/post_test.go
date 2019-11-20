@@ -46,7 +46,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 
 	t.Run("post rejected by plugin leaves cache ready for non-deduplicated try", func(t *testing.T) {
-		tearDown, _ := setupPluginApiTest(t, `
+		setupPluginApiTest(t, `
 			package main
 
 			import (
@@ -72,7 +72,6 @@ func TestCreatePostDeduplicate(t *testing.T) {
 				plugin.ClientMain(&MyPlugin{})
 			}
 		`, `{"id": "testrejectfirstpost", "backend": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App)
-		tearDown()
 
 		pendingPostId := model.NewId()
 		post, err := th.App.CreatePostAsUser(&model.Post{
@@ -96,7 +95,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 
 	t.Run("slow posting after cache entry blocks duplicate request", func(t *testing.T) {
-		tearDown, _ := setupPluginApiTest(t, `
+		setupPluginApiTest(t, `
 			package main
 
 			import (
@@ -123,7 +122,6 @@ func TestCreatePostDeduplicate(t *testing.T) {
 				plugin.ClientMain(&MyPlugin{})
 			}
 		`, `{"id": "testdelayfirstpost", "backend": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App)
-		tearDown()
 
 		var post *model.Post
 		pendingPostId := model.NewId()
