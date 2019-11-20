@@ -101,7 +101,7 @@ func (s LocalCacheChannelStore) GetGuestCountFromCache(channelId string) int64 {
 		return count.(int64)
 	}
 
-	count, err := s.GetMemberCount(channelId, true)
+	count, err := s.GetGuestCount(channelId, true)
 	if err != nil {
 		return 0
 	}
