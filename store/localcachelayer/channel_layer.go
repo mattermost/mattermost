@@ -35,7 +35,7 @@ func (s LocalCacheChannelStore) ClearCaches() {
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guests Count - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Count - Purge")
 	}
 }
 
