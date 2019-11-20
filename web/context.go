@@ -195,6 +195,7 @@ func NewInvalidUrlParamError(parameter string) *model.AppError {
 }
 
 func (c *Context) SetPermissionError(permission *model.Permission) {
+	c.LogAudit("not enough permission to do the action")
 	c.Err = c.App.MakePermissionError(permission)
 }
 
