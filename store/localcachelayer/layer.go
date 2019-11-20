@@ -37,21 +37,21 @@ const (
 
 type LocalCacheStore struct {
 	store.Store
-	metrics                  einterfaces.MetricsInterface
-	cluster                  einterfaces.ClusterInterface
-	reaction                 LocalCacheReactionStore
-	reactionCache            *utils.Cache
-	role                     LocalCacheRoleStore
-	roleCache                *utils.Cache
-	scheme                   LocalCacheSchemeStore
-	schemeCache              *utils.Cache
-	emoji                    LocalCacheEmojiStore
-	emojiCacheById           *utils.Cache
-	emojiIdCacheByName       *utils.Cache
-	channel                  LocalCacheChannelStore
-	channelMemberCountsCache *utils.Cache
-	post                     LocalCachePostStore
-	postLastPostsCache       *utils.Cache
+	metrics                    einterfaces.MetricsInterface
+	cluster                    einterfaces.ClusterInterface
+	reaction                   LocalCacheReactionStore
+	reactionCache              *utils.Cache
+	role                       LocalCacheRoleStore
+	roleCache                  *utils.Cache
+	scheme                     LocalCacheSchemeStore
+	schemeCache                *utils.Cache
+	emoji                      LocalCacheEmojiStore
+	emojiCacheById             *utils.Cache
+	emojiIdCacheByName         *utils.Cache
+	channel                    LocalCacheChannelStore
+	channelMemberCountsCache   *utils.Cache
+	post                       LocalCachePostStore
+	postLastPostsCache         *utils.Cache
 	team                       LocalCacheTeamStore
 	teamAllTeamIdsForUserCache *utils.Cache
 }
