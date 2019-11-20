@@ -892,7 +892,7 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 	}
 	for _, fileID := range reply.FileIds {
 		if _, ok := fileIds[fileID]; !ok {
-			a.RemoveFile(fileID)
+			a.Srv.Store.FileInfo().PermanentDelete(fileID)
 		}
 	}
 	reply.FileIds = make([]string, 0)
@@ -1017,7 +1017,7 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	}
 	for _, fileID := range post.FileIds {
 		if _, ok := fileIds[fileID]; !ok {
-			a.RemoveFile(fileID)
+			a.Srv.Store.FileInfo().PermanentDelete(fileID)
 		}
 	}
 	post.FileIds = make([]string, 0)
@@ -1080,11 +1080,12 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	return nil
 }
 
+// uploadAttachments imports new attachments and returns current attachments of the post as a map
 func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model.Post, teamId string, dryRun bool) (map[string]bool, *model.AppError) {
-	fileIds := make(map[string]bool)
 	if attachments == nil {
 		return nil, nil
 	}
+	fileIds := make(map[string]bool)
 	for _, attachment := range *attachments {
 		fileInfo, err := a.ImportAttachment(&attachment, post, teamId, dryRun)
 		if err != nil {
@@ -1252,7 +1253,7 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	}
 	for _, fileID := range post.FileIds {
 		if _, ok := fileIds[fileID]; !ok {
-			a.RemoveFile(fileID)
+			a.Srv.Store.FileInfo().PermanentDelete(fileID)
 		}
 	}
 	post.FileIds = make([]string, 0)
