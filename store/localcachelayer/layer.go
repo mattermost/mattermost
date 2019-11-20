@@ -22,6 +22,12 @@ const (
 
 	CHANNEL_GUESTS_COUNT_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
 	CHANNEL_GUESTS_COUNT_CACHE_SEC  = 30 * 60 // 30 minutes
+	
+	EMOJI_CACHE_SIZE = 5000
+	EMOJI_CACHE_SEC  = 30 * 60
+
+	CHANNEL_MEMBERS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
+	CHANNEL_MEMBERS_COUNTS_CACHE_SEC  = 30 * 60
 
 	CLEAR_CACHE_MESSAGE_DATA = ""
 )
@@ -38,6 +44,19 @@ type LocalCacheStore struct {
 	roleCache               *utils.Cache
 	scheme                  LocalCacheSchemeStore
 	schemeCache             *utils.Cache
+	metrics                  einterfaces.MetricsInterface
+	cluster                  einterfaces.ClusterInterface
+	reaction                 LocalCacheReactionStore
+	reactionCache            *utils.Cache
+	role                     LocalCacheRoleStore
+	roleCache                *utils.Cache
+	scheme                   LocalCacheSchemeStore
+	schemeCache              *utils.Cache
+	emoji                    LocalCacheEmojiStore
+	emojiCacheById           *utils.Cache
+	emojiIdCacheByName       *utils.Cache
+	channel                  LocalCacheChannelStore
+	channelMemberCountsCache *utils.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
@@ -52,13 +71,21 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
 	localCacheStore.schemeCache = utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
+	localCacheStore.emojiCacheById = utils.NewLruWithParams(EMOJI_CACHE_SIZE, "EmojiById", EMOJI_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID)
+	localCacheStore.emojiIdCacheByName = utils.NewLruWithParams(EMOJI_CACHE_SIZE, "EmojiByName", EMOJI_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME)
+	localCacheStore.emoji = LocalCacheEmojiStore{EmojiStore: baseStore.Emoji(), rootStore: &localCacheStore}
+	localCacheStore.channelMemberCountsCache = utils.NewLruWithParams(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE, "ChannelMemberCounts", CHANNEL_MEMBERS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS)
+	localCacheStore.channel = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 	localCacheStore.channelGuestsCountCache = utils.NewLruWithParams(CHANNEL_GUESTS_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUESTS_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT)
 	localCacheStore.channelGuestsCount = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
-
+	
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES, localCacheStore.role.handleClusterInvalidateRole)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES, localCacheStore.scheme.handleClusterInvalidateScheme)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID, localCacheStore.emoji.handleClusterInvalidateEmojiById)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME, localCacheStore.emoji.handleClusterInvalidateEmojiIdByName)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS, localCacheStore.channel.handleClusterInvalidateChannelMemberCounts)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT, localCacheStore.channelGuestsCount.handleClusterInvalidateChannelGuestCounts)
 	}
 	return localCacheStore
@@ -78,6 +105,10 @@ func (s LocalCacheStore) Scheme() store.SchemeStore {
 
 func (s LocalCacheStore) Channel() store.ChannelStore {
 	return s.channelGuestsCount
+}
+	
+func (s LocalCacheStore) Emoji() store.EmojiStore {
+	return s.emoji
 }
 
 func (s LocalCacheStore) DropAllTables() {
@@ -130,5 +161,8 @@ func (s *LocalCacheStore) doClearCacheCluster(cache *utils.Cache) {
 
 func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.reactionCache)
+	s.doClearCacheCluster(s.emojiCacheById)
+	s.doClearCacheCluster(s.emojiIdCacheByName)
+	s.doClearCacheCluster(s.channelMemberCountsCache)
 	s.doClearCacheCluster(s.channelGuestsCountCache)
 }
