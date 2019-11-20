@@ -53,7 +53,6 @@ func (s LocalCacheChannelStore) InvalidateGuestCount(channelId string) {
 	}
 }
 
-
 func (s LocalCacheChannelStore) GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
 	if allowFromCache {
 		if count := s.rootStore.doStandardReadCache(s.rootStore.channelMemberCountsCache, channelId); count != nil {
