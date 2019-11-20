@@ -80,7 +80,7 @@ type TeamStore interface {
 	GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError)
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
 	PermanentDelete(teamId string) *model.AppError
-	AnalyticsTeamCount() (int64, *model.AppError)
+	AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError)
 	AnalyticsPublicTeamCount() (int64, *model.AppError)
 	AnalyticsPrivateTeamCount() (int64, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError)

@@ -5162,10 +5162,10 @@ func (s *TimerLayerTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTeamStore) AnalyticsTeamCount() (int64, *model.AppError) {
+func (s *TimerLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.TeamStore.AnalyticsTeamCount()
+	resultVar0, resultVar1 := s.TeamStore.AnalyticsTeamCount(includeDeleted)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
