@@ -105,7 +105,7 @@ func (s LocalCacheStore) Emoji() store.EmojiStore {
 func (s LocalCacheStore) DropAllTables() {
 	s.Invalidate()
 	s.Store.DropAllTables()
-}chann
+}
 
 func (s *LocalCacheStore) doInvalidateCacheCluster(cache *utils.Cache, key string) {
 	cache.Remove(key)
