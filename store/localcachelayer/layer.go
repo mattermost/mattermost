@@ -47,7 +47,6 @@ type LocalCacheStore struct {
 	emojiIdCacheByName       *utils.Cache
 	channel                  LocalCacheChannelStore
 	channelMemberCountsCache *utils.Cache
-	channelGuestsCount      LocalCacheChannelStore
 	channelGuestsCountCache *utils.Cache
 }
 
@@ -96,7 +95,7 @@ func (s LocalCacheStore) Scheme() store.SchemeStore {
 }
 
 func (s LocalCacheStore) Channel() store.ChannelStore {
-	return s.channelGuestsCount
+	return s.channel
 }
 
 func (s LocalCacheStore) Emoji() store.EmojiStore {
