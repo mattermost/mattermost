@@ -471,7 +471,6 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
@@ -546,7 +545,6 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
@@ -740,7 +738,7 @@ func TestInstallPlugin(t *testing.T) {
 	// following setupTest() func is a modified version of setupPluginApiTest().
 	// we need a modified version of setupPluginApiTest() because it wasn't possible to use it directly here
 	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
-	// dirs and this behavior tends to brake this test as a result.
+	// dirs and this behavior tends to break this test as a result.
 	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App) (func(), string) {
 		pluginDir, err := ioutil.TempDir("", "")
 		require.NoError(t, err)
