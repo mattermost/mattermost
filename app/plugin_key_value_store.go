@@ -23,30 +23,40 @@ func (a *App) SetPluginKey(pluginId string, key string, value []byte) *model.App
 }
 
 func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, expireInSeconds int64) *model.AppError {
-	options := model.PluginKVSetOptions{
-		ExpireInSeconds: expireInSeconds,
+	if expireInSeconds > 0 {
+		expireInSeconds = model.GetMillis() + (expireInSeconds * 1000)
 	}
-	_, err := a.SetPluginKeyWithOptions(pluginId, key, value, options)
-	return err
+
+	kv := &model.PluginKeyValue{
+		PluginId: pluginId,
+		Key:      key,
+		Value:    value,
+		ExpireAt: expireInSeconds,
+	}
+
+	if _, err := a.Srv.Store.Plugin().SaveOrUpdate(kv); err != nil {
+		mlog.Error("Failed to set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		return err
+	}
+
+	// Clean up a previous entry using the hashed key, if it exists.
+	if err := a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key)); err != nil {
+		mlog.Error("Failed to clean up previously hashed plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+	}
+
+	return nil
 }
 
 func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newValue []byte) (bool, *model.AppError) {
-	options := model.PluginKVSetOptions{
-		Atomic:   true,
-		OldValue: oldValue,
-	}
-	return a.SetPluginKeyWithOptions(pluginId, key, newValue, options)
-}
-
-func (a *App) SetPluginKeyWithOptions(pluginId string, key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
-	if err := options.IsValid(); err != nil {
-		mlog.Error("Failed to set plugin key value with options", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
-		return false, err
+	kv := &model.PluginKeyValue{
+		PluginId: pluginId,
+		Key:      key,
+		Value:    newValue,
 	}
 
-	updated, err := a.Srv.Store.Plugin().SetWithOptions(pluginId, key, value, options)
+	updated, err := a.Srv.Store.Plugin().CompareAndSet(kv, oldValue)
 	if err != nil {
-		mlog.Error("Failed to set plugin key value with options", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		mlog.Error("Failed to compare and set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 		return updated, err
 	}
 
