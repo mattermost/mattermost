@@ -95,16 +95,3 @@ func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 
 
 	return count
 }
-
-func (s LocalCacheChannelStore) GetGuestCountFromCache(channelId string) int64 {
-	if count := s.rootStore.doStandardReadCache(s.rootStore.channelGuestCountCache, channelId); count != nil {
-		return count.(int64)
-	}
-
-	count, err := s.GetGuestCount(channelId, true)
-	if err != nil {
-		return 0
-	}
-
-	return count
-}
