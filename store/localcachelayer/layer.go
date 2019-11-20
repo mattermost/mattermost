@@ -68,7 +68,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.emoji = LocalCacheEmojiStore{EmojiStore: baseStore.Emoji(), rootStore: &localCacheStore}
 	localCacheStore.channelMemberCountsCache = utils.NewLruWithParams(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE, "ChannelMemberCounts", CHANNEL_MEMBERS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS)
 	localCacheStore.channel = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
-	localCacheStore.channelGuestsCountCache = utils.NewLruWithParams(CHANNEL_GUEST_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUEST_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT)
+	localCacheStore.channelGuestsCountCache = utils.NewLruWithParams(CHANNEL_GUEST_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUEST_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT)
 	localCacheStore.channelGuestsCount = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 
 	if cluster != nil {
