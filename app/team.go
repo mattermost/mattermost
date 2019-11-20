@@ -1333,9 +1333,18 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 }
 
 func (a *App) SanitizeTeam(session model.Session, team *model.Team) *model.Team {
-	if !a.SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
-		team.Sanitize()
+	if a.SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
+		return team
 	}
+
+	if a.SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_INVITE_USER) {
+		inviteId := team.InviteId
+		team.Sanitize()
+		team.InviteId = inviteId
+		return team
+	}
+
+	team.Sanitize()
 
 	return team
 }
