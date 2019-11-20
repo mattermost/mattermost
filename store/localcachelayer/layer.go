@@ -22,7 +22,7 @@ const (
 
 	CHANNEL_GUESTS_COUNT_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
 	CHANNEL_GUESTS_COUNT_CACHE_SEC  = 30 * 60 // 30 minutes
-	
+
 	EMOJI_CACHE_SIZE = 5000
 	EMOJI_CACHE_SEC  = 30 * 60
 
@@ -34,16 +34,6 @@ const (
 
 type LocalCacheStore struct {
 	store.Store
-	metrics                 einterfaces.MetricsInterface
-	cluster                 einterfaces.ClusterInterface
-	reaction                LocalCacheReactionStore
-	reactionCache           *utils.Cache
-	channelGuestsCount      LocalCacheChannelStore
-	channelGuestsCountCache *utils.Cache
-	role                    LocalCacheRoleStore
-	roleCache               *utils.Cache
-	scheme                  LocalCacheSchemeStore
-	schemeCache             *utils.Cache
 	metrics                  einterfaces.MetricsInterface
 	cluster                  einterfaces.ClusterInterface
 	reaction                 LocalCacheReactionStore
@@ -57,6 +47,8 @@ type LocalCacheStore struct {
 	emojiIdCacheByName       *utils.Cache
 	channel                  LocalCacheChannelStore
 	channelMemberCountsCache *utils.Cache
+	channelGuestsCount      LocalCacheChannelStore
+	channelGuestsCountCache *utils.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
@@ -78,7 +70,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.channel = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 	localCacheStore.channelGuestsCountCache = utils.NewLruWithParams(CHANNEL_GUESTS_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUESTS_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT)
 	localCacheStore.channelGuestsCount = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
-	
+
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES, localCacheStore.role.handleClusterInvalidateRole)
@@ -86,7 +78,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID, localCacheStore.emoji.handleClusterInvalidateEmojiById)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME, localCacheStore.emoji.handleClusterInvalidateEmojiIdByName)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS, localCacheStore.channel.handleClusterInvalidateChannelMemberCounts)
-		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT, localCacheStore.channelGuestsCount.handleClusterInvalidateChannelGuestCounts)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT, localCacheStore.channelGuestsCount.handleClusterInvalidateChannelMemberCounts)
 	}
 	return localCacheStore
 }
@@ -106,7 +98,7 @@ func (s LocalCacheStore) Scheme() store.SchemeStore {
 func (s LocalCacheStore) Channel() store.ChannelStore {
 	return s.channelGuestsCount
 }
-	
+
 func (s LocalCacheStore) Emoji() store.EmojiStore {
 	return s.emoji
 }

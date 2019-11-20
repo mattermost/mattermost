@@ -63,3 +63,5 @@ func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 
 
 	return count
 }
+
+// Methods for
