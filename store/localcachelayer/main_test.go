@@ -57,6 +57,13 @@ func getMockStore() *mocks.Store {
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
+	mockGuestCount := int64(10)
+	mockChannelGuestStore := mocks.ChannelStore{}
+	mockChannelGuestStore.On("ClearCaches").Return()
+	mockChannelGuestStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
+	mockChannelGuestStore.On("GetGuestCount", "id", false).Return(mockGuestCount, nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+
 	return &mockStore
 }
 

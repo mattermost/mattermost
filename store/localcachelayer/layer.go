@@ -20,8 +20,8 @@ const (
 	SCHEME_CACHE_SIZE = 20000
 	SCHEME_CACHE_SEC  = 30 * 60
 
-	CHANNEL_GUESTS_COUNT_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
-	CHANNEL_GUESTS_COUNT_CACHE_SEC  = 30 * 60 // 30 minutes
+	CHANNEL_GUEST_COUNT_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
+	CHANNEL_GUEST_COUNT_CACHE_SEC  = 30 * 60 // 30 minutes
 
 	EMOJI_CACHE_SIZE = 5000
 	EMOJI_CACHE_SEC  = 30 * 60
@@ -68,7 +68,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.emoji = LocalCacheEmojiStore{EmojiStore: baseStore.Emoji(), rootStore: &localCacheStore}
 	localCacheStore.channelMemberCountsCache = utils.NewLruWithParams(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE, "ChannelMemberCounts", CHANNEL_MEMBERS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS)
 	localCacheStore.channel = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
-	localCacheStore.channelGuestsCountCache = utils.NewLruWithParams(CHANNEL_GUESTS_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUESTS_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT)
+	localCacheStore.channelGuestsCountCache = utils.NewLruWithParams(CHANNEL_GUEST_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUEST_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT)
 	localCacheStore.channelGuestsCount = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 
 	if cluster != nil {
@@ -78,7 +78,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID, localCacheStore.emoji.handleClusterInvalidateEmojiById)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME, localCacheStore.emoji.handleClusterInvalidateEmojiIdByName)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS, localCacheStore.channel.handleClusterInvalidateChannelMemberCounts)
-		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUESTS_COUNT, localCacheStore.channelGuestsCount.handleClusterInvalidateChannelMemberCounts)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT, localCacheStore.channelGuestsCount.handleClusterInvalidateChannelMemberCounts)
 	}
 	return localCacheStore
 }
