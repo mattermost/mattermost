@@ -89,7 +89,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 
 
 func TestChannelStoreGuestCountCache(t *testing.T) {
-	countResult := int64(10)
+	countResult := int64(12)
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
