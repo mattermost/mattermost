@@ -1156,9 +1156,7 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 		if _, err := s.GetReplica().Select(&dbChannels, query, props); err != nil && err != sql.ErrNoRows {
 			return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
 		}
-		for _, channel := range dbChannels {
-			channels = append(channels, channel)
-		}
+		channels = append(channels, dbChannels...)
 	}
 
 	return channels, nil
