@@ -42,22 +42,6 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
-	mockPostStore := mocks.PostStore{}
-	mockPostStoreOptions := model.GetPostsSinceOptions{
-		ChannelId:        "channelId",
-		Time:             1,
-		SkipFetchThreads: false,
-	}
-
-	mockPostStoreEtagResult := fmt.Sprintf("%v.%v", model.CurrentVersion, 1)
-	mockPostStore.On("ClearCaches")
-	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
-	mockPostStore.On("GetEtag", "channelId", true).Return(mockPostStoreEtagResult)
-	mockPostStore.On("GetEtag", "channelId", false).Return(mockPostStoreEtagResult)
-	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true).Return(model.NewPostList(), nil)
-	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false).Return(model.NewPostList(), nil)
-	mockStore.On("Post").Return(&mockPostStore)
-
 	fakeEmoji := model.Emoji{Id: "123", Name: "name123"}
 	mockEmojiStore := mocks.EmojiStore{}
 	mockEmojiStore.On("Get", "123", true).Return(&fakeEmoji, nil)
@@ -80,6 +64,20 @@ func getMockStore() *mocks.Store {
 	mockPostStore.On("GetPosts", fakeOptions, true).Return(fakePosts, nil)
 	mockPostStore.On("GetPosts", fakeOptions, false).Return(fakePosts, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "12360")
+
+	mockPostStoreOptions := model.GetPostsSinceOptions{
+		ChannelId:        "channelId",
+		Time:             1,
+		SkipFetchThreads: false,
+	}
+
+	mockPostStoreEtagResult := fmt.Sprintf("%v.%v", model.CurrentVersion, 1)
+	mockPostStore.On("ClearCaches")
+	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
+	mockPostStore.On("GetEtag", "channelId", true).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false).Return(model.NewPostList(), nil)
 	mockStore.On("Post").Return(&mockPostStore)
 
 	return &mockStore
