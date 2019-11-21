@@ -849,9 +849,6 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetB
 
 	for _, u := range users {
 		u.Sanitize(map[string]bool{})
-
-		cpy := &model.User{}
-		*cpy = *u
 	}
 
 	return users, nil
