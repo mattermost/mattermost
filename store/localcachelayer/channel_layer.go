@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"fmt"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -21,11 +22,21 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberCounts(msg 
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelByName(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		s.rootStore.channelByNameCache.Purge()
+	} else {
+		s.rootStore.channelByNameCache.Remove(msg.Data)
+	}
+}
+
 func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelByNameCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
 	}
 }
 
@@ -33,6 +44,13 @@ func (s LocalCacheChannelStore) InvalidateMemberCount(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberCountsCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Remove by ChannelId")
+	}
+}
+
+func (s LocalCacheChannelStore) InvalidateChannelByName(teamId, name string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByNameCache, teamId+name)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel by Name - Remove by TeamId and Name")
 	}
 }
 
@@ -62,4 +80,80 @@ func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 
 	}
 
 	return count
+}
+
+func (s LocalCacheChannelStore) GetByName(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+	return s.getByName(teamId, name, false, allowFromCache)
+}
+func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
+	var channels []*model.Channel
+
+	if allowFromCache {
+		var misses []string
+		visited := make(map[string]struct{})
+		for _, name := range names {
+			if _, ok := visited[name]; ok {
+				continue
+			}
+			visited[name] = struct{}{}
+			if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
+				if s.rootStore.metrics != nil {
+					s.rootStore.metrics.IncrementMemCacheHitCounter("Channel By Name")
+				}
+				channels = append(channels, cacheItem.(*model.Channel))
+			} else {
+				if s.rootStore.metrics != nil {
+					s.rootStore.metrics.IncrementMemCacheMissCounter("Channel By Name")
+				}
+				misses = append(misses, name)
+			}
+		}
+		names = misses
+	}
+
+	if len(names) > 0 {
+		props := map[string]interface{}{}
+		var namePlaceholders []string
+		for _, name := range names {
+			key := fmt.Sprintf("Name%v", len(namePlaceholders))
+			props[key] = name
+			namePlaceholders = append(namePlaceholders, ":"+key)
+		}
+
+		var dbChannels []*model.Channel
+		dbChannels, _ = s.ChannelStore.GetByNames(teamId, names, allowFromCache)
+
+		for _, channel := range dbChannels {
+			s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+channel.Name, channel)
+			channels = append(channels, channel) // add missing channels to the found ones
+		}
+	}
+
+	return channels, nil
+}
+
+func (s LocalCacheChannelStore) GetByNameIncludeDeleted(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+	return s.getByName(teamId, name, true, allowFromCache)
+}
+
+func (s LocalCacheChannelStore) getByName(teamId string, name string, includeDeleted bool, allowFromCache bool) (*model.Channel, *model.AppError) {
+	if allowFromCache {
+		if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
+			if s.rootStore.metrics != nil {
+				s.rootStore.metrics.IncrementMemCacheHitCounter("Channel By Name")
+			}
+			return cacheItem.(*model.Channel), nil
+		}
+		if s.rootStore.metrics != nil {
+			s.rootStore.metrics.IncrementMemCacheMissCounter("Channel By Name")
+		}
+	}
+
+	channel, err := s.ChannelStore.GetByName(teamId, name, allowFromCache)
+
+	if allowFromCache && err == nil {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+name, channel)
+	}
+
+	return channel, err
 }

@@ -285,7 +285,8 @@ var channelGuestCountsCache = utils.NewLru(CHANNEL_GUESTS_COUNTS_CACHE_SIZE)
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
 var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
-var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
+
+//var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func (s SqlChannelStore) ClearCaches() {
 	channelPinnedPostCountsCache.Purge()
@@ -293,14 +294,14 @@ func (s SqlChannelStore) ClearCaches() {
 	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
 	channelCache.Purge()
-	channelByNameCache.Purge()
+	//channelByNameCache.Purge()
 
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props for Channel - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
+		//s.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
 	}
 }
 
@@ -682,10 +683,10 @@ func (s SqlChannelStore) InvalidateChannel(id string) {
 }
 
 func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
-	channelByNameCache.Remove(teamId + name)
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel by Name - Remove by TeamId and Name")
-	}
+	//channelByNameCache.Remove(teamId + name)
+	//if s.metrics != nil {
+	//	s.metrics.IncrementMemCacheInvalidationCounter("Channel by Name - Remove by TeamId and Name")
+	//}
 }
 
 func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
@@ -1134,29 +1135,6 @@ func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bo
 func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
 	var channels []*model.Channel
 
-	if allowFromCache {
-		var misses []string
-		visited := make(map[string]struct{})
-		for _, name := range names {
-			if _, ok := visited[name]; ok {
-				continue
-			}
-			visited[name] = struct{}{}
-			if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Channel By Name")
-				}
-				channels = append(channels, cacheItem.(*model.Channel))
-			} else {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter("Channel By Name")
-				}
-				misses = append(misses, name)
-			}
-		}
-		names = misses
-	}
-
 	if len(names) > 0 {
 		props := map[string]interface{}{}
 		var namePlaceholders []string
@@ -1179,7 +1157,6 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 			return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
 		}
 		for _, channel := range dbChannels {
-			channelByNameCache.AddWithExpiresInSecs(teamId+channel.Name, channel, CHANNEL_CACHE_SEC)
 			channels = append(channels, channel)
 		}
 	}
@@ -1200,18 +1177,6 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 	}
 	channel := model.Channel{}
 
-	if allowFromCache {
-		if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Channel By Name")
-			}
-			return cacheItem.(*model.Channel), nil
-		}
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter("Channel By Name")
-		}
-	}
-
 	if err := s.GetReplica().SelectOne(&channel, query, map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlChannelStore.GetByName", store.MISSING_CHANNEL_ERROR, nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusNotFound)
@@ -1219,7 +1184,6 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 		return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	channelByNameCache.AddWithExpiresInSecs(teamId+name, &channel, CHANNEL_CACHE_SEC)
 	return &channel, nil
 }
 
