@@ -286,22 +286,18 @@ var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CA
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
 var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
-//var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
-
 func (s SqlChannelStore) ClearCaches() {
 	channelPinnedPostCountsCache.Purge()
 	channelGuestCountsCache.Purge()
 	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
 	channelCache.Purge()
-	//channelByNameCache.Purge()
 
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props for Channel - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
-		//s.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
 	}
 }
 
@@ -683,10 +679,6 @@ func (s SqlChannelStore) InvalidateChannel(id string) {
 }
 
 func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
-	//channelByNameCache.Remove(teamId + name)
-	//if s.metrics != nil {
-	//	s.metrics.IncrementMemCacheInvalidationCounter("Channel by Name - Remove by TeamId and Name")
-	//}
 }
 
 func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
