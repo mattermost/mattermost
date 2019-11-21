@@ -82,6 +82,7 @@ func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 
 	return count
 }
 
+// ChannelCacheByName methods
 func (s LocalCacheChannelStore) GetByName(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
 	return s.getByName(teamId, name, false, allowFromCache)
 }
@@ -120,12 +121,15 @@ func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowF
 			namePlaceholders = append(namePlaceholders, ":"+key)
 		}
 
-		var dbChannels []*model.Channel
-		dbChannels, _ = s.ChannelStore.GetByNames(teamId, names, allowFromCache)
+		dbChannels, err := s.ChannelStore.GetByNames(teamId, names, allowFromCache)
+
+		if err == nil {
+			return channels, err
+		}
 
 		for _, channel := range dbChannels {
 			s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+channel.Name, channel)
-			channels = append(channels, channel) // add missing channels to the found ones
+			channels = append(channels, channel) // add missing channels to the ones just found
 		}
 	}
 
