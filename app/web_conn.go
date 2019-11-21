@@ -309,7 +309,6 @@ func (webCon *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	case model.WEBSOCKET_EVENT_USER_UPDATED:
 		userId = msg.Data["user"].(*model.User).Id
 	case model.WEBSOCKET_EVENT_NEW_USER:
-		mlog.Error("RAWR")
 		userId = msg.Data["user_id"].(string)
 	default:
 		return true
