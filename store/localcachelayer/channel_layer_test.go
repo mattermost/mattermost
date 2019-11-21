@@ -90,7 +90,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 
 func TestChannelStoreChannelByNameCache(t *testing.T) {
 	teamIdString := "teamID123"
-	nameString := "teamID123"
+	nameString := "nameId987"
 	idString := "123"
 	fakeChannel := model.Channel{Id: idString, Name: nameString, TeamId: teamIdString}
 
