@@ -777,6 +777,11 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv.Busy.IsBusy() {
+		// this is considered a non-critical service and will be disabled when server busy.
+		c.SetServerBusy()
+		return
+	}
 	props := model.TeamSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("team_search")

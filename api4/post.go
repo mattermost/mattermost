@@ -430,6 +430,11 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv.Busy.IsBusy() {
+		// this is considered a non-critical service and will be disabled when server busy.
+		c.SetServerBusy()
+		return
+	}
 	c.RequireTeamId()
 	if c.Err != nil {
 		return

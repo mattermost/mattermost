@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -40,6 +41,10 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/redirect_location", api.ApiSessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 
 	api.BaseRoutes.ApiRoot.Handle("/notifications/ack", api.ApiSessionRequired(pushNotificationAck)).Methods("POST")
+
+	api.BaseRoutes.ApiRoot.Handle("/busy/set", api.ApiSessionRequired(setServerBusy)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/busy/clear", api.ApiSessionRequired(clearServerBusy)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/busy/expires", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -436,4 +441,48 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	// number of seconds to keep server marked busy
+	secs := r.URL.Query().Get("secs")
+	if secs == "" {
+		secs = "3600" // default 1 hour
+	}
+
+	i, err := strconv.ParseInt(secs, 10, 64)
+	if err != nil || i < 0 {
+		c.SetInvalidUrlParam("secs")
+		return
+	}
+
+	c.App.Srv.Busy.Set(time.Second * time.Duration(i))
+	mlog.Warn("server busy state activitated - non-critical services disabled", mlog.Field{Key: "seconds", Integer: i})
+	ReturnStatusOK(w)
+}
+
+func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+	c.App.Srv.Busy.Clear()
+	mlog.Info("server busy state cleared - non-critical services enabled")
+	ReturnStatusOK(w)
+}
+
+func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	m := make(map[string]int64)
+	m["expires"] = c.App.Srv.Busy.Expires().Unix()
+	w.Write([]byte(model.MapInt64ToJson(m)))
 }
