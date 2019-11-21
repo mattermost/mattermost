@@ -868,7 +868,7 @@ func (a *App) trackElasticsearch() {
 	data := map[string]interface{}{}
 
 	if a.Elasticsearch != nil && a.Elasticsearch.GetVersion() != 0 {
-		data["server_version"] = a.Elasticsearch.GetVersion()
+		data["elasticsearch_server_version"] = a.Elasticsearch.GetVersion()
 	}
 
 	a.SendDiagnostic(TRACK_ELASTICSEARCH, data)
