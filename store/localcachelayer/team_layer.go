@@ -72,7 +72,7 @@ func (s LocalCacheTeamStore) Update(team *model.Team) (*model.Team, *model.AppEr
 	}
 
 	if oldTeam != nil && oldTeam.DeleteAt == 0 {
-		s.rootStore.teamAllTeamIdsForUserCache.Purge()
+		s.rootStore.doClearCacheCluster(s.rootStore.teamAllTeamIdsForUserCache)
 	}
 
 	return tm, err
