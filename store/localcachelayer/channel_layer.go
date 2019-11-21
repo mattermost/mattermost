@@ -136,10 +136,6 @@ func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowF
 	return channels, nil
 }
 
-func (s LocalCacheChannelStore) GetByNameIncludeDeleted(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
-	return s.getByName(teamId, name, true, allowFromCache)
-}
-
 func (s LocalCacheChannelStore) getByName(teamId string, name string, includeDeleted bool, allowFromCache bool) (*model.Channel, *model.AppError) {
 	if allowFromCache {
 		if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
