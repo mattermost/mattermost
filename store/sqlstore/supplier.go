@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	sqltrace "log"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -112,6 +111,12 @@ type SqlSupplier struct {
 	stores         SqlSupplierStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
+}
+
+type TraceOnAdapter struct{}
+
+func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
+	mlog.Debug(fmt.Sprintf(format, v...))
 }
 
 func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlSupplier {
@@ -248,7 +253,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	}
 
 	if settings.Trace != nil && *settings.Trace {
-		dbmap.TraceOn("", sqltrace.New(os.Stdout, "sql-trace:", sqltrace.Lmicroseconds))
+		dbmap.TraceOn("", &TraceOnAdapter{})
 	}
 
 	return dbmap
