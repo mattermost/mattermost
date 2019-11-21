@@ -23,29 +23,17 @@ import (
 type SqlPostStore struct {
 	SqlStore
 	metrics           einterfaces.MetricsInterface
-	lastPostsCache    *utils.Cache
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
 }
 
-const (
-	LAST_POSTS_CACHE_SIZE = 1000
-	LAST_POSTS_CACHE_SEC  = 900 // 15 minutes
-)
-
 func (s *SqlPostStore) ClearCaches() {
-	s.lastPostsCache.Purge()
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Purge")
-	}
 }
 
 func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
-		lastPostsCache:    utils.NewLru(LAST_POSTS_CACHE_SIZE),
 		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
@@ -320,13 +308,6 @@ type etagPosts struct {
 }
 
 func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
-	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
-	s.lastPostsCache.Remove(channelId + "30")
-	s.lastPostsCache.Remove(channelId + "60")
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Remove by Channel Id")
-	}
 }
 
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
@@ -423,24 +404,11 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) *model.AppErro
 	return nil
 }
 
-func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.PostList, *model.AppError) {
 	if options.PerPage > 1000 {
 		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+options.ChannelId, http.StatusBadRequest)
 	}
 	offset := options.PerPage * options.Page
-	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-	if allowFromCache && offset == 0 && (options.PerPage == 60 || options.PerPage == 30) {
-		if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", options.ChannelId, options.PerPage)); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
-			}
-			return cacheItem.(*model.PostList), nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
-	}
 
 	rpc := make(chan store.StoreResult, 1)
 	go func() {
@@ -481,11 +449,6 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bo
 	}
 
 	list.MakeNonNil()
-
-	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-	if offset == 0 && (options.PerPage == 60 || options.PerPage == 30) {
-		s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", options.ChannelId, options.PerPage), list, LAST_POSTS_CACHE_SEC)
-	}
 
 	return list, err
 }
