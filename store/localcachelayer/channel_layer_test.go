@@ -126,18 +126,6 @@ func TestChannelStoreChannelPinnedPostsCountsCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetPinnedPostCount", 2)
 	})
 
-	t.Run("first call with GetPinnedPostCountFromCache not cached, second cached and returning same data", func(t *testing.T) {
-		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
-
-		count := cachedStore.Channel().GetPinnedPostCountFromCache("id")
-		assert.Equal(t, count, countResult)
-		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetPinnedPostCount", 1)
-		count = cachedStore.Channel().GetPinnedPostCountFromCache("id")
-		assert.Equal(t, count, countResult)
-		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetPinnedPostCount", 1)
-	})
-
 	t.Run("first call not cached, clear cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)

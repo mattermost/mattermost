@@ -81,19 +81,6 @@ func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 
 	return count
 }
 
-func (s LocalCacheChannelStore) GetPinnedPostCountFromCache(channelId string) int64 {
-	if count := s.rootStore.doStandardReadCache(s.rootStore.channelPinnedPostCountsCache, channelId); count != nil {
-		return count.(int64)
-	}
-
-	count, err := s.GetPinnedPostCount(channelId, true)
-	if err != nil {
-		return 0
-	}
-
-	return count
-}
-
 func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
 	if allowFromCache {
 		if count := s.rootStore.doStandardReadCache(s.rootStore.channelPinnedPostCountsCache, channelId); count != nil {

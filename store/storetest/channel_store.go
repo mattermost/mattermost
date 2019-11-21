@@ -3200,12 +3200,6 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 	require.Nil(t, errGet, errGet)
 	require.EqualValues(t, 2, count, "didn't return right count")
 
-	require.EqualValues(
-		t,
-		2,
-		ss.Channel().GetPinnedPostCountFromCache(o1.Id),
-		"should have saved 2 pinned post count")
-
 	ch2 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -3233,12 +3227,6 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 	count, errGet = ss.Channel().GetPinnedPostCount(o2.Id, true)
 	require.Nil(t, errGet, errGet)
 	require.EqualValues(t, 0, count, "should return 0")
-
-	require.EqualValues(
-		t,
-		0,
-		ss.Channel().GetPinnedPostCountFromCache(o2.Id),
-		"should have saved 0 pinned post count")
 }
 
 func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {

@@ -1601,10 +1601,6 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 func (s SqlChannelStore) InvalidatePinnedPostCount(channelId string) {
 }
 
-func (s SqlChannelStore) GetPinnedPostCountFromCache(channelId string) int64 {
-	return 0
-}
-
 func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
 	count, err := s.GetReplica().SelectInt(`
 		SELECT count(*)
