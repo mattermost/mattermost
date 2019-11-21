@@ -1440,7 +1440,7 @@ func (_m *ChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelM
 }
 
 // SearchAllChannels provides a mock function with given fields: term, opts
-func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError) {
 	ret := _m.Called(term, opts)
 
 	var r0 *model.ChannelListWithTeamData
@@ -1461,7 +1461,7 @@ func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchO
 		}
 	}
 
-	return r0, r1
+	return r0, 0, r1
 }
 
 // SearchForUserInTeam provides a mock function with given fields: userId, teamId, term, includeDeleted
