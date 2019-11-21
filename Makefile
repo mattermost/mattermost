@@ -161,14 +161,6 @@ golangci-lint: ## Run golangci-lint on codebase
 	@echo Running golangci-lint
 	golangci-lint run
 
-megacheck: ## Run megacheck on codebasis
-	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
-	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GOPATH)/bin/megacheck $(EE_PACKAGES) || exit 1
-endif
-
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off go get -u github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOPATH)/bin/mmgotool i18n extract
