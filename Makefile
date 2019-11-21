@@ -160,7 +160,7 @@ golangci-lint: ## Run golangci-lint on codebase
 	fi; \
 
 	@echo Running golangci-lint
-	golangci-lint run
+	golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	golangci-lint run ./enterprise/...
 endif
