@@ -515,7 +515,9 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 
 			acm, ok := wpost.Props[model.PROPS_ADD_CHANNEL_MEMBER].(map[string]interface{})
 			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
-			require.True(t, acm["post_id"] != nil && acm["user_ids"] != nil && acm["usernames"] != nil, "should not be nil")
+			require.True(t, acm["post_id"] != nil, "should not be nil")
+			require.True(t, acm["user_ids"] != nil, "should not be nil")
+			require.True(t, acm["usernames"] != nil, "should not be nil")
 			waiting = false
 		case <-timeout:
 			require.FailNow(t, "timed out waiting for ephemeral message event")
@@ -2142,7 +2144,7 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 	require.Len(t, posts.Order, 3, "wrong number of posts")
 
 	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "on:", false)
-	require.Len(t, posts.Order, 0 "wrong number of posts")
+	require.Len(t, posts.Order, 0, "wrong number of posts")
 
 	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "after:", false)
 	require.Len(t, posts.Order, 0, "wrong number of posts")
@@ -2163,7 +2165,7 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 	require.Equal(t, 2, resultCount, "wrong number of posts")
 
 	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-02", false)
-	require.Len(t,posts.Order, 1, "wrong number of posts")
+	require.Len(t, posts.Order, 1, "wrong number of posts")
 
 	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-03 after:2018-08-02", false)
 	require.Len(t, posts.Order, 0, "wrong number of posts")
