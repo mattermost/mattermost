@@ -46,6 +46,7 @@ else
 endif
 
 # Golang Flags
+export GO111MODULE=on
 GOPATH ?= $(shell go env GOPATH)
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
 GO=go
