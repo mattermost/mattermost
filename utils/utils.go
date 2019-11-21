@@ -19,6 +19,15 @@ func StringInSlice(a string, slice []string) bool {
 	return false
 }
 
+func RemoveStringFromSlice(a string, slice []string) []string {
+	for i, str := range slice {
+		if str == a {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
+}
+
 func StringArrayIntersection(arr1, arr2 []string) []string {
 	arrMap := map[string]bool{}
 	result := []string{}
