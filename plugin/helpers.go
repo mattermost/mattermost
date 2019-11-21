@@ -14,10 +14,11 @@ import (
 // Plugins obtain access to the Helpers by embedding MattermostPlugin.
 type Helpers interface {
 	// EnsureBot either returns an existing bot user matching the given bot, or creates a bot user from the given bot.
+	// A profile image or icon image may be optionally passed in to be set for the existing or newly created bot.
 	// Returns the id of the resulting bot.
 	//
 	// Minimum server version: 5.10
-	EnsureBot(bot *model.Bot) (string, error)
+	EnsureBot(bot *model.Bot, options ...EnsureBotOption) (string, error)
 
 	// KVSetJSON stores a key-value pair, unique per plugin, marshalling the given value as a JSON string.
 	//
@@ -56,6 +57,18 @@ type Helpers interface {
 	//
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
+
+	// ShouldProcessMessage returns if the message should be processed by a message hook.
+	//
+	// Use this method to avoid processing unnecessary messages in a MessageHasBeenPosted
+	// or MessageWillBePosted hook, and indeed in some cases avoid an infinite loop between
+	// two automated bots or plugins.
+	//
+	// The behaviour is customizable using the given options, since plugin needs may vary.
+	// By default, system messages and messages from bots will be skipped.
+	//
+	// Minimum server version: 5.2
+	ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error)
 }
 
 // HelpersImpl implements the helpers interface with an API that retrieves data on behalf of the plugin.
