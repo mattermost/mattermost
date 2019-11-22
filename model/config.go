@@ -2248,6 +2248,7 @@ type PluginSettings struct {
 	RequirePluginSignature   *bool
 	MarketplaceUrl           *string
 	SignaturePublicKeyFiles  []string
+	CanaryTag                *string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2302,6 +2303,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.SignaturePublicKeyFiles == nil {
 		s.SignaturePublicKeyFiles = []string{}
+	}
+
+	if s.CanaryTag == nil {
+		s.CanaryTag = NewString("")
 	}
 }
 
