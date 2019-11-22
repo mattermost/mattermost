@@ -92,5 +92,11 @@ func (s LocalCacheTermsOfServiceStore) Get(id string, allowFromCache bool) (*mod
 		s.rootStore.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
 	}
 
-	return s.TermsOfServiceStore.Get(id, allowFromCache)
+	termsOfService, err := s.TermsOfServiceStore.Get(id, allowFromCache)
+
+	if allowFromCache && err == nil {
+		s.rootStore.termsOfServiceCache.AddWithDefaultExpires(termsOfService.Id, termsOfService)
+	}
+
+	return termsOfService, err
 }
