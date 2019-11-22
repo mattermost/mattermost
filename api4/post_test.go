@@ -37,7 +37,7 @@ func TestCreatePost(t *testing.T) {
 	require.Equal(t, post.Message, rpost.Message, "message didn't match")
 	require.Equal(t, "#hashtag", rpost.Hashtags, "hashtag didn't match")
 	require.Len(t, rpost.FileIds, 0, "shouldn't have files")
-	require.Len(t, rpost.EditAt, 0, "newly created post shouldn't have EditAt set")
+	require.Equal(t, 0, int(rpost.EditAt), "newly created post shouldn't have EditAt set")
 	require.Nil(t, rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER], "newly created post shouldn't have Props['add_channel_member'] set")
 
 	post.RootId = rpost.Id
@@ -163,7 +163,7 @@ func TestCreatePostEphemeral(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 	require.Equal(t, ephemeralPost.Post.Message, rpost.Message, "message didn't match")
-	require.Len(t, rpost.EditAt, 0, "newly created ephemeral post shouldn't have EditAt set")
+	require.Equal(t, 0, int(rpost.EditAt), "newly created ephemeral post shouldn't have EditAt set")
 
 	r, err := Client.DoApiPost("/posts/ephemeral", "garbage")
 	require.Error(t, err)
@@ -919,7 +919,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
 	CheckNoError(t, resp)
-	require.Equal(t, posts.Order, 3, "wrong number returned")
+	require.Len(t, posts.Order, 3, "wrong number returned")
 
 	_, ok := posts.Posts[post3.Id]
 	require.True(t, ok, "missing comment")
@@ -1916,7 +1916,7 @@ func TestSearchPosts(t *testing.T) {
 	posts2, resp := Client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
 	CheckNoError(t, resp)
 	// We don't support paging for DB search yet, modify this when we do.
-	require.Len(t, posts2.Order, e, "Wrong number of posts")
+	require.Len(t, posts2.Order, 3, "Wrong number of posts")
 	assert.Equal(t, posts.Order[0], posts2.Order[0])
 	assert.Equal(t, posts.Order[1], posts2.Order[1])
 
