@@ -36,6 +36,7 @@ imports/imports.go
 _obj
 _test
 .vscode
+*.out
 
 # Architecture specific extensions/prefixes
 [568vq].out
