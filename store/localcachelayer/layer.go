@@ -29,6 +29,9 @@ const (
 	LAST_POSTS_CACHE_SIZE = 20000
 	LAST_POSTS_CACHE_SEC  = 30 * 60
 
+	TERMS_OF_SERVICE_CACHE_SIZE = 20000
+	TERMS_OF_SERVICE_CACHE_SEC  = 30 * 60
+
 	CLEAR_CACHE_MESSAGE_DATA = ""
 )
 
@@ -49,6 +52,8 @@ type LocalCacheStore struct {
 	channelMemberCountsCache *utils.Cache
 	post                     LocalCachePostStore
 	postLastPostsCache       *utils.Cache
+	termsOfService           LocalCacheTermsOfServiceStore
+	termsOfServiceCache      *utils.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
@@ -70,6 +75,8 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.channel = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 	localCacheStore.postLastPostsCache = utils.NewLruWithParams(LAST_POSTS_CACHE_SIZE, "LastPost", LAST_POSTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS)
 	localCacheStore.post = LocalCachePostStore{PostStore: baseStore.Post(), rootStore: &localCacheStore}
+	localCacheStore.termsOfServiceCache = utils.NewLruWithParams(TERMS_OF_SERVICE_CACHE_SIZE, "TermsOfService", TERMS_OF_SERVICE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TERMS_OF_SERVICE)
+	localCacheStore.termsOfService = LocalCacheTermsOfServiceStore{TermsOfServiceStore: baseStore.TermsOfService(), rootStore: &localCacheStore}
 
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, localCacheStore.reaction.handleClusterInvalidateReaction)
@@ -79,6 +86,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME, localCacheStore.emoji.handleClusterInvalidateEmojiIdByName)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS, localCacheStore.channel.handleClusterInvalidateChannelMemberCounts)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS, localCacheStore.post.handleClusterInvalidateLastPosts)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TERMS_OF_SERVICE, localCacheStore.termsOfService.handleClusterInvalidateTermsOfService)
 	}
 	return localCacheStore
 }
@@ -105,6 +113,10 @@ func (s LocalCacheStore) Channel() store.ChannelStore {
 
 func (s LocalCacheStore) Post() store.PostStore {
 	return s.post
+}
+
+func (s LocalCacheStore) TermsOfService() store.TermsOfServiceStore {
+	return s.termsOfService
 }
 
 func (s LocalCacheStore) DropAllTables() {
@@ -161,4 +173,5 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.emojiIdCacheByName)
 	s.doClearCacheCluster(s.channelMemberCountsCache)
 	s.doClearCacheCluster(s.postLastPostsCache)
+	s.doClearCacheCluster(s.termsOfServiceCache)
 }
