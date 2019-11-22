@@ -15,7 +15,6 @@ const (
 	PUSH_NOTIFY_APPLE_REACT_NATIVE   = "apple_rn"
 	PUSH_NOTIFY_ANDROID_REACT_NATIVE = "android_rn"
 
-	PUSH_TYPE_ID_LOADED    = "id_loaded"
 	PUSH_TYPE_MESSAGE      = "message"
 	PUSH_TYPE_CLEAR        = "clear"
 	PUSH_TYPE_UPDATE_BADGE = "update_badge"
@@ -41,6 +40,7 @@ type PushNotificationAck struct {
 	ClientPlatform   string `json:"platform"`
 	NotificationType string `json:"type"`
 	PostId           string `json:"post_id,omitempty"`
+	IsIdLoaded       bool   `json:"is_id_loaded"`
 }
 
 type PushNotification struct {
@@ -65,6 +65,7 @@ type PushNotification struct {
 	OverrideIconUrl  string `json:"override_icon_url,omitempty"`
 	FromWebhook      string `json:"from_webhook,omitempty"`
 	Version          string `json:"version,omitempty"`
+	IsIdLoaded       bool   `json:"is_id_loaded"`
 }
 
 func (me *PushNotification) ToJson() string {
