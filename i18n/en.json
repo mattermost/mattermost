@@ -3959,10 +3959,6 @@
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
-    "id": "ent.id_loaded.license_disable.app_error",
-    "translation": "Your license does not support ID Loaded Push Notifications."
-  },
-  {
     "id": "ent.ldap.app_error",
     "translation": "ldap interface was nil"
   },
