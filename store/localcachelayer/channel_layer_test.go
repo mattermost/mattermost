@@ -91,8 +91,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 func TestChannelStoreChannelByNameCache(t *testing.T) {
 	teamIdString := "teamID123"
 	nameString := "nameId987"
-	idString := "123"
-	fakeChannel := &model.Channel{Id: idString, Name: nameString, TeamId: teamIdString}
+	fakeChannel := model.Channel{Name: nameString, TeamId: teamIdString}
 
 	t.Run("first call by name not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
