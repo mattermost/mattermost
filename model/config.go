@@ -1493,7 +1493,7 @@ func (s *ThemeSettings) SetDefaults() {
 	}
 
 	if s.SystemThemes == nil {
-		s.SystemThemes = make(map[string]interface{})
+		s.SystemThemes = DefaultThemes
 	}
 }
 
