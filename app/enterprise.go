@@ -9,6 +9,7 @@ import (
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/searchengine"
 )
 
 var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
@@ -35,10 +36,10 @@ func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterf
 	dataRetentionInterface = f
 }
 
-var elasticsearchInterface func(*App) einterfaces.ElasticsearchInterface
+var searchEngineInterface func(*App) searchengine.SearchEngineInterface
 
-func RegisterElasticsearchInterface(f func(*App) einterfaces.ElasticsearchInterface) {
-	elasticsearchInterface = f
+func RegisterSearchEngineInterface(f func(*App) searchengine.SearchEngineInterface) {
+	searchEngineInterface = f
 }
 
 var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
@@ -53,16 +54,16 @@ func RegisterJobsMessageExportJobInterface(f func(*App) ejobs.MessageExportJobIn
 	jobsMessageExportJobInterface = f
 }
 
-var jobsElasticsearchAggregatorInterface func(*App) ejobs.ElasticsearchAggregatorInterface
+var jobsSearchEngineAggregatorInterface func(*App) tjobs.SearchEngineAggregatorInterface
 
-func RegisterJobsElasticsearchAggregatorInterface(f func(*App) ejobs.ElasticsearchAggregatorInterface) {
-	jobsElasticsearchAggregatorInterface = f
+func RegisterJobsSearchEngineAggregatorInterface(f func(*App) tjobs.SearchEngineAggregatorInterface) {
+	jobsSearchEngineAggregatorInterface = f
 }
 
-var jobsElasticsearchIndexerInterface func(*App) ejobs.ElasticsearchIndexerInterface
+var jobsSearchEngineIndexerInterface func(*App) tjobs.SearchEngineIndexerInterface
 
-func RegisterJobsElasticsearchIndexerInterface(f func(*App) ejobs.ElasticsearchIndexerInterface) {
-	jobsElasticsearchIndexerInterface = f
+func RegisterJobsSearchEngineIndexerInterface(f func(*App) tjobs.SearchEngineIndexerInterface) {
+	jobsSearchEngineIndexerInterface = f
 }
 
 var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
@@ -114,8 +115,8 @@ func (s *Server) initEnterprise() {
 	if complianceInterface != nil {
 		s.Compliance = complianceInterface(s.FakeApp())
 	}
-	if elasticsearchInterface != nil {
-		s.Elasticsearch = elasticsearchInterface(s.FakeApp())
+	if searchEngineInterface != nil {
+		s.SearchEngine = searchEngineInterface(s.FakeApp())
 	}
 	if ldapInterface != nil {
 		s.Ldap = ldapInterface(s.FakeApp())

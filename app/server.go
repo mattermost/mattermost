@@ -32,6 +32,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/services/imageproxy"
+	"github.com/mattermost/mattermost-server/services/searchengine"
 	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -114,15 +115,15 @@ type Server struct {
 	Log              *mlog.Logger
 	NotificationsLog *mlog.Logger
 
-	joinCluster        bool
-	startMetrics       bool
-	startElasticsearch bool
+	joinCluster       bool
+	startMetrics      bool
+	startSearchEngine bool
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
-	Elasticsearch    einterfaces.ElasticsearchInterface
+	SearchEngine     searchengine.SearchEngineInterface
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
@@ -257,8 +258,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Metrics.StartServer()
 	}
 
-	if s.startElasticsearch && s.Elasticsearch != nil {
-		s.StartElasticsearch()
+	if s.startSearchEngine && s.SearchEngine != nil {
+		s.StartSearchEngine()
 	}
 
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
@@ -714,9 +715,9 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func (s *Server) StartElasticsearch() {
+func (s *Server) StartSearchEngine() {
 	s.Go(func() {
-		if err := s.Elasticsearch.Start(); err != nil {
+		if err := s.SearchEngine.Start(); err != nil {
 			s.Log.Error(err.Error())
 		}
 	})
@@ -724,23 +725,23 @@ func (s *Server) StartElasticsearch() {
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
 			s.Go(func() {
-				if err := s.Elasticsearch.Start(); err != nil {
+				if err := s.SearchEngine.Start(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
 		} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
 			s.Go(func() {
-				if err := s.Elasticsearch.Stop(); err != nil {
+				if err := s.SearchEngine.Stop(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
 		} else if *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
 			s.Go(func() {
 				if *oldConfig.ElasticsearchSettings.EnableIndexing {
-					if err := s.Elasticsearch.Stop(); err != nil {
+					if err := s.SearchEngine.Stop(); err != nil {
 						mlog.Error(err.Error())
 					}
-					if err := s.Elasticsearch.Start(); err != nil {
+					if err := s.SearchEngine.Start(); err != nil {
 						mlog.Error(err.Error())
 					}
 				}
@@ -751,13 +752,13 @@ func (s *Server) StartElasticsearch() {
 	s.AddLicenseListener(func() {
 		if s.License() != nil {
 			s.Go(func() {
-				if err := s.Elasticsearch.Start(); err != nil {
+				if err := s.SearchEngine.Start(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
 		} else {
 			s.Go(func() {
-				if err := s.Elasticsearch.Stop(); err != nil {
+				if err := s.SearchEngine.Stop(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})

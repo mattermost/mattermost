@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/services/imageproxy"
+	"github.com/mattermost/mattermost-server/services/searchengine"
 	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -37,12 +38,11 @@ type App struct {
 	Cluster          einterfaces.ClusterInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
-	Elasticsearch    einterfaces.ElasticsearchInterface
+	SearchEngine     searchengine.SearchEngineInterface
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
 	Saml             einterfaces.SamlInterface
-	Bleve            einterfaces.ElasticsearchInterface
 
 	HTTPService httpservice.HTTPService
 	ImageProxy  *imageproxy.ImageProxy
@@ -79,11 +79,11 @@ func (s *Server) initJobs() {
 	if jobsMessageExportJobInterface != nil {
 		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s.FakeApp())
 	}
-	if jobsElasticsearchAggregatorInterface != nil {
-		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s.FakeApp())
+	if jobsSearchEngineAggregatorInterface != nil {
+		s.Jobs.ElasticsearchAggregator = jobsSearchEngineAggregatorInterface(s.FakeApp())
 	}
-	if jobsElasticsearchIndexerInterface != nil {
-		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s.FakeApp())
+	if jobsSearchEngineIndexerInterface != nil {
+		s.Jobs.ElasticsearchIndexer = jobsSearchEngineIndexerInterface(s.FakeApp())
 	}
 	if jobsLdapSyncInterface != nil {
 		s.Jobs.LdapSync = jobsLdapSyncInterface(s.FakeApp())

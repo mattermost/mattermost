@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/services/searchengine/mocks"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest"
 )
@@ -836,7 +836,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			posts[2].Id,
 		}
 
-		es := &mocks.ElasticsearchInterface{}
+		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
 		th.App.Elasticsearch = es
 
@@ -857,7 +857,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			posts[0].Id,
 		}
 
-		es := &mocks.ElasticsearchInterface{}
+		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
 		th.App.Elasticsearch = es
 
@@ -874,7 +874,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		page := 0
 
-		es := &mocks.ElasticsearchInterface{}
+		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
 		th.App.Elasticsearch = es
 
@@ -899,7 +899,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		page := 1
 
-		es := &mocks.ElasticsearchInterface{}
+		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
 		th.App.Elasticsearch = es
 

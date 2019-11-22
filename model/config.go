@@ -2189,7 +2189,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 }
 
 type BleveSettings struct {
-	Filename *string
+	Filename           *string
+	EnableIndexing     *bool `restricted:"true"`
+	EnableSearching    *bool `restricted:"true"`
+	EnableAutocomplete *bool `restricted:"true"`
 }
 
 func (s *BleveSettings) SetDefaults() {
@@ -3014,12 +3017,13 @@ func (ess *ElasticsearchSettings) isValid() *AppError {
 	return nil
 }
 
-func (ess *BleveSettings) isValid() *AppError {
-	if *ess.EnableIndexing {
-		if len(*ess.Filename) == 0 {
+func (bs *BleveSettings) isValid() *AppError {
+	if *bs.EnableIndexing {
+		if len(*bs.Filename) == 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
+	return nil
 }
 
 func (drs *DataRetentionSettings) isValid() *AppError {

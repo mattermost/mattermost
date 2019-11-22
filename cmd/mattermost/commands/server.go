@@ -58,7 +58,7 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 		app.ConfigStore(configStore),
 		app.RunJobs,
 		app.JoinCluster,
-		app.StartElasticsearch,
+		app.StartSearchEngine,
 		app.StartMetrics,
 	}
 	server, err := app.NewServer(options...)

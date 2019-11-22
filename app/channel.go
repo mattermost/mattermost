@@ -111,7 +111,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 
 	}
 
-	if a.IsESIndexingEnabled() {
+	if a.IsSEIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err = a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -188,7 +188,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
 
-	if a.IsESIndexingEnabled() {
+	if a.IsSEIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -265,10 +265,10 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		})
 	}
 
-	if a.IsESIndexingEnabled() {
+	if a.IsSEIndexingEnabled() {
 		if sc.Type == model.CHANNEL_OPEN {
 			a.Srv.Go(func() {
-				if err := a.Elasticsearch.IndexChannel(sc); err != nil {
+				if err := a.SearchEngine.IndexChannel(sc); err != nil {
 					mlog.Error("Encountered error indexing channel", mlog.String("channel_id", sc.Id), mlog.Err(err))
 				}
 			})
@@ -312,7 +312,7 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 				})
 			}
 
-			if a.IsESIndexingEnabled() {
+			if a.IsSEIndexingEnabled() {
 				a.Srv.Go(func() {
 					for _, id := range []string{userId, otherUserId} {
 						if indexUserErr := a.indexUserFromId(id); indexUserErr != nil {
@@ -425,7 +425,7 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 	message.Add("teammate_ids", model.ArrayToJson(userIds))
 	a.Publish(message)
 
-	if a.IsESIndexingEnabled() {
+	if a.IsSEIndexingEnabled() {
 		a.Srv.Go(func() {
 			for _, id := range userIds {
 				if err := a.indexUserFromId(id); err != nil {
@@ -520,9 +520,9 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	messageWs.Add("channel", channel.ToJson())
 	a.Publish(messageWs)
 
-	if a.IsESIndexingEnabled() && channel.Type == model.CHANNEL_OPEN {
+	if a.IsSEIndexingEnabled() && channel.Type == model.CHANNEL_OPEN {
 		a.Srv.Go(func() {
-			if err := a.Elasticsearch.IndexChannel(channel); err != nil {
+			if err := a.SearchEngine.IndexChannel(channel); err != nil {
 				mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 			}
 		})
@@ -1004,7 +1004,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		})
 	}
 
-	if a.IsESIndexingEnabled() {
+	if a.IsSEIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -1399,7 +1399,7 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 		})
 	}
 
-	if a.IsESIndexingEnabled() {
+	if a.IsSEIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -1687,7 +1687,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		})
 	}
 
-	if a.IsESIndexingEnabled() {
+	if a.IsSEIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUserFromId(userIdToRemove); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", userIdToRemove), mlog.Err(err))
@@ -1817,7 +1817,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 }
 
 func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	channelIds, err := a.Elasticsearch.SearchChannels(teamId, term)
+	channelIds, err := a.SearchEngine.SearchChannels(teamId, term)
 	if err != nil {
 		return nil, err
 	}
@@ -1845,14 +1845,14 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 	var err *model.AppError
 	term = strings.TrimSpace(term)
 
-	if a.IsESAutocompletionEnabled() {
+	if a.IsSEAutocompletionEnabled() {
 		channelList, err = a.esAutocompleteChannels(teamId, term, includeDeleted)
 		if err != nil {
-			mlog.Error("Encountered error on AutocompleteChannels through Elasticsearch. Falling back to default autocompletion.", mlog.Err(err))
+			mlog.Error("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.Err(err))
 		}
 	}
 
-	if !a.IsESAutocompletionEnabled() || err != nil {
+	if !a.IsSEAutocompletionEnabled() || err != nil {
 		channelList, err = a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
 		if err != nil {
 			return nil, err
@@ -2031,7 +2031,7 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return err
 	}
 
-	if a.IsESIndexingEnabled() {
+	if a.IsSEIndexingEnabled() {
 		a.Srv.Go(func() {
 			for _, user := range profiles {
 				if err := a.indexUser(user); err != nil {
@@ -2041,7 +2041,7 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		})
 		if channel.Type == model.CHANNEL_OPEN {
 			a.Srv.Go(func() {
-				if err := a.Elasticsearch.DeleteChannel(channel); err != nil {
+				if err := a.SearchEngine.DeleteChannel(channel); err != nil {
 					mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 				}
 			})
