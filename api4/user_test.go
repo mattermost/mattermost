@@ -300,11 +300,11 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 
 		guestWSClient, err := th.CreateWebSocketClientWithClient(guestClient)
 		require.Nil(t, err)
-
 		defer guestWSClient.Close()
 		guestWSClient.Listen()
 
 		userWSClient, err := th.CreateWebSocketClient()
+		require.Nil(t, err)
 		defer userWSClient.Close()
 		userWSClient.Listen()
 
@@ -322,11 +322,11 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		func() {
 			for {
 				select {
-				case ev, _ := <-userWSClient.EventChannel:
+				case ev := <-userWSClient.EventChannel:
 					if ev.Event == model.WEBSOCKET_EVENT_NEW_USER {
 						userHasReceived = true
 					}
-				case ev, _ := <-guestWSClient.EventChannel:
+				case ev := <-guestWSClient.EventChannel:
 					if ev.Event == model.WEBSOCKET_EVENT_NEW_USER {
 						guestHasReceived = true
 					}
