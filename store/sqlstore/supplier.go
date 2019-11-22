@@ -116,7 +116,11 @@ type SqlSupplier struct {
 type TraceOnAdapter struct{}
 
 func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
-	mlog.Debug(fmt.Sprintf(format, v...))
+	originalString := fmt.Sprintf(format, v...)
+	newString := strings.ReplaceAll(originalString, "\n", " ")
+	newString = strings.ReplaceAll(newString, "\t", "")
+	newString = strings.ReplaceAll(newString, "\"", "")
+	mlog.Debug(newString)
 }
 
 func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlSupplier {
@@ -253,7 +257,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	}
 
 	if settings.Trace != nil && *settings.Trace {
-		dbmap.TraceOn("", &TraceOnAdapter{})
+		dbmap.TraceOn("sql-trace:", &TraceOnAdapter{})
 	}
 
 	return dbmap
