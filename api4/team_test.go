@@ -1474,7 +1474,7 @@ func TestAddTeamMember(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
 
 	// Associate group to team
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -1682,7 +1682,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
 
 	// Associate group to team
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,

@@ -187,26 +187,16 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if groupSyncable == nil {
-		groupSyncable = &model.GroupSyncable{
-			GroupId:    c.Params.GroupId,
-			SyncableId: syncableID,
-			Type:       syncableType,
-		}
-		groupSyncable.Patch(patch)
-		groupSyncable, appErr = c.App.CreateGroupSyncable(groupSyncable)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-	} else {
-		groupSyncable.DeleteAt = 0
-		groupSyncable.Patch(patch)
-		groupSyncable, appErr = c.App.UpdateGroupSyncable(groupSyncable)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
+	groupSyncable = &model.GroupSyncable{
+		GroupId:    c.Params.GroupId,
+		SyncableId: syncableID,
+		Type:       syncableType,
+	}
+	groupSyncable.Patch(patch)
+	groupSyncable, appErr = c.App.UpsertGroupSyncable(groupSyncable)
+	if appErr != nil {
+		c.Err = appErr
+		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
