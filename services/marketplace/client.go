@@ -62,6 +62,19 @@ func (c *Client) GetPlugins(request *model.MarketplacePluginFilter) ([]*model.Ba
 	}
 }
 
+func (c *Client) GetPlugin(filter *model.MarketplacePluginFilter, pluginVersion string) (*model.BaseMarketplacePlugin, error) {
+	plugins, err := c.GetPlugins(filter)
+	if err != nil {
+		return nil, err
+	}
+	for _, plugin := range plugins {
+		if plugin.Manifest.Version == pluginVersion {
+			return plugin, nil
+		}
+	}
+	return nil, errors.New("plugin not found")
+}
+
 // closeBody ensures the Body of an http.Response is properly closed.
 func closeBody(r *http.Response) {
 	if r.Body != nil {

@@ -46,7 +46,6 @@ else
 endif
 
 # Golang Flags
-export GO111MODULE=on
 GOPATH ?= $(shell go env GOPATH)
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
 GO=go
@@ -161,14 +160,6 @@ golangci-lint: ## Run golangci-lint on codebase
 
 	@echo Running golangci-lint
 	golangci-lint run
-
-megacheck: ## Run megacheck on codebasis
-	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
-	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GOPATH)/bin/megacheck $(EE_PACKAGES) || exit 1
-endif
 
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off go get -u github.com/mattermost/mattermost-utilities/mmgotool
