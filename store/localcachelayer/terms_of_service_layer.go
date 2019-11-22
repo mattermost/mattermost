@@ -49,7 +49,7 @@ func (s LocalCacheTermsOfServiceStore) Save(termsOfService *model.TermsOfService
 func (s LocalCacheTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError) {
 	if allowFromCache {
 		if s.rootStore.termsOfServiceCache.Len() != 0 {
-			if cacheItem, ok := s.rootStore.termsOfServiceCache.Get(s.rootStore.termsOfServiceCache.Keys()[0]); ok {
+			if cacheItem, ok := s.rootStore.termsOfServiceCache.Get(s.rootStore.termsOfServiceCache.Keys()[len(s.rootStore.termsOfServiceCache.Keys())-1]); ok {
 				if s.rootStore.metrics != nil {
 					s.rootStore.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
 				}
