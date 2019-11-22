@@ -112,6 +112,8 @@ type Routes struct {
 
 	TermsOfService *mux.Router // 'api/v4/terms_of_service
 	Groups         *mux.Router // 'api/v4/groups'
+
+	Themes *mux.Router // 'api/v4/theme'
 }
 
 type API struct {
@@ -214,6 +216,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.TermsOfService = api.BaseRoutes.ApiRoot.PathPrefix("/terms_of_service").Subrouter()
 	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
 
+	api.BaseRoutes.Themes = api.BaseRoutes.ApiRoot.PathPrefix("/themes").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -247,6 +251,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitTermsOfService()
 	api.InitGroup()
 	api.InitAction()
+	api.InitThemes()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

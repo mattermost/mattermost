@@ -216,7 +216,8 @@
         "EnableThemeSelection": true,
         "DefaultTheme": "default",
         "AllowCustomThemes": true,
-        "AllowedThemes": []
+        "AllowedThemes": [],
+        "SystemThemes": {}
     },
     "GitLabSettings": {
         "Enable": false,

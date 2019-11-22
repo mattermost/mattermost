@@ -74,6 +74,7 @@ type Params struct {
 	LimitBefore            int
 	GroupIDs               string
 	IncludeTotalCount      bool
+	ThemeName              string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -294,6 +295,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, err := strconv.ParseBool(query.Get("include_total_count")); err == nil {
 		params.IncludeTotalCount = val
+	}
+
+	if val, ok := props["theme_name"]; ok {
+		params.ThemeName = val
 	}
 
 	return params

@@ -1472,6 +1472,7 @@ type ThemeSettings struct {
 	DefaultTheme         *string
 	AllowCustomThemes    *bool
 	AllowedThemes        []string
+	SystemThemes         map[string]interface{}
 }
 
 func (s *ThemeSettings) SetDefaults() {
@@ -1489,6 +1490,10 @@ func (s *ThemeSettings) SetDefaults() {
 
 	if s.AllowedThemes == nil {
 		s.AllowedThemes = []string{}
+	}
+
+	if s.SystemThemes == nil {
+		s.SystemThemes = make(map[string]interface{})
 	}
 }
 
