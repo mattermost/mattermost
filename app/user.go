@@ -2293,6 +2293,8 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 		}
 
 		for _, member := range *channelMembers {
+			a.InvalidateCacheForChannelMembers(member.ChannelId)
+
 			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
 			evt.Add("channelMember", member.ToJson())
 			a.Publish(evt)
@@ -2332,6 +2334,8 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		}
 
 		for _, member := range *channelMembers {
+			a.InvalidateCacheForChannelMembers(member.ChannelId)
+
 			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
 			evt.Add("channelMember", member.ToJson())
 			a.Publish(evt)

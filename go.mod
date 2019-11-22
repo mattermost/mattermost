@@ -54,6 +54,7 @@ require (
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.1 // indirect
+	github.com/olivere/elastic v6.2.23+incompatible // indirect
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/pborman/uuid v1.2.0
@@ -98,7 +99,7 @@ require (
 	gopkg.in/ini.v1 v1.48.0 // indirect
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gopkg.in/olivere/elastic.v5 v5.0.82
+	gopkg.in/olivere/elastic.v6 v6.2.23
 	gopkg.in/yaml.v2 v2.2.3
 	willnorris.com/go/imageproxy v0.9.0
 )

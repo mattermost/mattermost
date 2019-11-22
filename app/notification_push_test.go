@@ -883,6 +883,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			})
 
 			actualMessage := th.App.getPushNotificationMessage(
+				pushNotificationContents,
 				tc.Message,
 				tc.explicitMention,
 				tc.channelWideMention,
@@ -943,73 +944,9 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			receiver.NotifyProps["push"] = tc.pushNotifyProps
-			msg, err := th.App.BuildPushNotificationMessage(post, receiver, channel, channel.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			msg, err := th.App.BuildPushNotificationMessage(model.FULL_NOTIFICATION, post, receiver, channel, channel.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
 			require.Nil(t, err)
 			assert.Equal(t, tc.expectedBadge, msg.Badge)
-		})
-	}
-}
-
-func TestBuildPushNotificationMessageContents(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	team := th.CreateTeam()
-	sender := th.CreateUser()
-	receiver := th.CreateUser()
-	th.LinkUserToTeam(sender, team)
-	th.LinkUserToTeam(receiver, team)
-	channel := th.CreateChannel(team)
-	th.AddUserToChannel(sender, channel)
-	th.AddUserToChannel(receiver, channel)
-
-	post := th.CreatePost(channel)
-
-	explicitMention := false
-	channelWideMention := false
-	replyToThreadType := ""
-
-	receiverLocale := utils.GetUserTranslations(receiver.Locale)
-
-	for name, tc := range map[string]struct {
-		contentsConfig string
-		expectedMsg    *model.PushNotification
-	}{
-		"only post ID, channel ID, and message included in push notification": {
-			contentsConfig: model.ID_LOADED_NOTIFICATION,
-			expectedMsg: &model.PushNotification{
-				PostId:    post.Id,
-				ChannelId: post.ChannelId,
-				Category:  model.CATEGORY_CAN_REPLY,
-				Version:   model.PUSH_MESSAGE_V2,
-				Type:      model.PUSH_TYPE_ID_LOADED,
-				Message:   receiverLocale("api.push_notification.id_loaded.default_message"),
-			},
-		},
-		"full contents included in push notification": {
-			contentsConfig: model.GENERIC_NOTIFICATION,
-			expectedMsg: &model.PushNotification{
-				Category:    model.CATEGORY_CAN_REPLY,
-				Version:     model.PUSH_MESSAGE_V2,
-				Type:        model.PUSH_TYPE_MESSAGE,
-				PostId:      post.Id,
-				TeamId:      channel.TeamId,
-				ChannelId:   channel.Id,
-				ChannelName: channel.Name,
-				RootId:      post.RootId,
-				SenderId:    post.UserId,
-				SenderName:  sender.Username,
-				Message:     fmt.Sprintf("%s posted a message.", sender.Username),
-			},
-		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.PushNotificationContents = tc.contentsConfig })
-
-			msg, err := th.App.BuildPushNotificationMessage(post, receiver, channel, channel.Name, sender.Username, explicitMention, channelWideMention, replyToThreadType)
-
-			require.Nil(t, err)
-			assert.Equal(t, tc.expectedMsg, msg)
 		})
 	}
 }

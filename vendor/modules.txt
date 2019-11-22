@@ -157,6 +157,9 @@ github.com/nfnt/resize
 github.com/oklog/run
 # github.com/olekukonko/tablewriter v0.0.1
 github.com/olekukonko/tablewriter
+# github.com/olivere/elastic v6.2.23+incompatible
+github.com/olivere/elastic/config
+github.com/olivere/elastic/uritemplates
 # github.com/pborman/uuid v1.2.0
 github.com/pborman/uuid
 # github.com/pelletier/go-toml v1.4.0
@@ -359,10 +362,8 @@ gopkg.in/ini.v1
 gopkg.in/mail.v2
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 gopkg.in/natefinch/lumberjack.v2
-# gopkg.in/olivere/elastic.v5 v5.0.82
-gopkg.in/olivere/elastic.v5
-gopkg.in/olivere/elastic.v5/config
-gopkg.in/olivere/elastic.v5/uritemplates
+# gopkg.in/olivere/elastic.v6 v6.2.23
+gopkg.in/olivere/elastic.v6
 # gopkg.in/yaml.v2 v2.2.3
 gopkg.in/yaml.v2
 # willnorris.com/go/gifresize v1.0.0

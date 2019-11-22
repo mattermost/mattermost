@@ -140,10 +140,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	notification := &PostNotification{
-		post:       post,
-		channel:    channel,
-		profileMap: profileMap,
-		sender:     sender,
+		Post:       post,
+		Channel:    channel,
+		ProfileMap: profileMap,
+		Sender:     sender,
 	}
 
 	if *a.Config().EmailSettings.SendEmailNotifications {
@@ -692,22 +692,22 @@ func addMentionKeywordsForUser(keywords map[string][]string, profile *model.User
 
 // Represents either an email or push notification and contains the fields required to send it to any user.
 type PostNotification struct {
-	channel    *model.Channel
-	post       *model.Post
-	profileMap map[string]*model.User
-	sender     *model.User
+	Channel    *model.Channel
+	Post       *model.Post
+	ProfileMap map[string]*model.User
+	Sender     *model.User
 }
 
 // Returns the name of the channel for this notification. For direct messages, this is the sender's name
 // preceeded by an at sign. For group messages, this is a comma-separated list of the members of the
 // channel, with an option to exclude the recipient of the message from that list.
 func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) string {
-	switch n.channel.Type {
+	switch n.Channel.Type {
 	case model.CHANNEL_DIRECT:
-		return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
+		return n.Sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 	case model.CHANNEL_GROUP:
 		names := []string{}
-		for _, user := range n.profileMap {
+		for _, user := range n.ProfileMap {
 			if user.Id != excludeId {
 				names = append(names, user.GetDisplayName(userNameFormat))
 			}
@@ -717,24 +717,24 @@ func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) stri
 
 		return strings.Join(names, ", ")
 	default:
-		return n.channel.DisplayName
+		return n.Channel.DisplayName
 	}
 }
 
 // Returns the name of the sender of this notification, accounting for things like system messages
 // and whether or not the username has been overridden by an integration.
 func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed bool) string {
-	if n.post.IsSystemMessage() {
+	if n.Post.IsSystemMessage() {
 		return utils.T("system.message.name")
 	}
 
-	if overridesAllowed && n.channel.Type != model.CHANNEL_DIRECT {
-		if value, ok := n.post.Props["override_username"]; ok && n.post.Props["from_webhook"] == "true" {
+	if overridesAllowed && n.Channel.Type != model.CHANNEL_DIRECT {
+		if value, ok := n.Post.Props["override_username"]; ok && n.Post.Props["from_webhook"] == "true" {
 			return value.(string)
 		}
 	}
 
-	return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
+	return n.Sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 }
 
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all

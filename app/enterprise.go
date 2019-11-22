@@ -107,6 +107,12 @@ func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
 	samlInterface = f
 }
 
+var notificationInterface func(*App) einterfaces.NotificationInterface
+
+func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterface) {
+	notificationInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if accountMigrationInterface != nil {
 		s.AccountMigration = accountMigrationInterface(s)
@@ -125,6 +131,9 @@ func (s *Server) initEnterprise() {
 	}
 	if metricsInterface != nil {
 		s.Metrics = metricsInterface(s.FakeApp())
+	}
+	if notificationInterface != nil {
+		s.Notification = notificationInterface(s.FakeApp())
 	}
 	if samlInterface != nil {
 		s.Saml = samlInterface(s.FakeApp())
