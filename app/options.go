@@ -109,6 +109,7 @@ func ServerConnector(s *Server) AppOption {
 		a.Ldap = s.Ldap
 		a.MessageExport = s.MessageExport
 		a.Metrics = s.Metrics
+		a.Notification = s.Notification
 		a.Saml = s.Saml
 
 		a.HTTPService = s.HTTPService
