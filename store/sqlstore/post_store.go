@@ -24,8 +24,8 @@ type SqlPostStore struct {
 	SqlStore
 	metrics           einterfaces.MetricsInterface
 	lastPostTimeCache *utils.Cache
-	maxPostSizeOnce   sync.Once
-	maxPostSizeCached int
+	MaxPostSizeOnce   sync.Once
+	MaxPostSizeCached int
 }
 
 const (
@@ -46,7 +46,7 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		SqlStore:          sqlStore,
 		metrics:           metrics,
 		lastPostTimeCache: utils.NewLru(LAST_POST_TIME_CACHE_SIZE),
-		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
+		MaxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -1369,10 +1369,10 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 
 // GetMaxPostSize returns the maximum number of runes that may be stored in a post.
 func (s *SqlPostStore) GetMaxPostSize() int {
-	s.maxPostSizeOnce.Do(func() {
-		s.maxPostSizeCached = s.determineMaxPostSize()
+	s.MaxPostSizeOnce.Do(func() {
+		s.MaxPostSizeCached = s.determineMaxPostSize()
 	})
-	return s.maxPostSizeCached
+	return s.MaxPostSizeCached
 }
 
 func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
