@@ -11,7 +11,7 @@ import (
 )
 
 func TestTermsOfServiceStore(t *testing.T) {
-	StoreTest(t, storetest.TestReactionStore)
+	StoreTest(t, storetest.TestTermsOfServiceStore)
 }
 
 func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
@@ -108,5 +108,16 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "GetLatest", 1)
 		cachedStore.TermsOfService().Get("123", true)
 		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "Get", 0)
+	})
+
+	t.Run("first call by id not cached, save, and then not cached again", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		cachedStore.TermsOfService().Get("123", false)
+		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "Get", 1)
+		cachedStore.TermsOfService().Save(&fakeTermsOfService)
+		cachedStore.TermsOfService().Get("123", false)
+		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "Get", 2)
 	})
 }
