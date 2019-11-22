@@ -66,5 +66,11 @@ func deleteSystemTheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	appCfg := c.App.Config()
 	delete(appCfg.ThemeSettings.SystemThemes, c.Params.ThemeName)
 
+	appErr := c.App.SaveConfig(appCfg, true)
+	if appErr != nil {
+		c.Err = model.NewAppError("/themes", "", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	ReturnStatusOK(w)
 }
