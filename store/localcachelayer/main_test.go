@@ -51,10 +51,15 @@ func getMockStore() *mocks.Store {
 	mockStore.On("Emoji").Return(&mockEmojiStore)
 
 	mockCount := int64(10)
+	teamIdString := "teamID123"
+	nameString := "nameId987"
+	idString := "123"
+	fakeChannel := model.Channel{Id: idString, Name: nameString, TeamId: teamIdString}
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
+	mockChannelStore.On("GetByName", teamIdString, nameString, true).Return(fakeChannel, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
 	fakePosts := &model.PostList{}
