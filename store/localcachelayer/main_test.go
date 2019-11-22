@@ -68,7 +68,7 @@ func getMockStore() *mocks.Store {
 	fakeTermsOfService := model.TermsOfService{Id: "123", CreateAt: 11111, UserId: "321", Text: "Terms of service test"}
 	mockTermsOfServiceStore := mocks.TermsOfServiceStore{}
 	mockTermsOfServiceStore.On("InvalidateTermsOfService", "123")
-	mockTermsOfServiceStore.On("Save", fakeTermsOfService).Return(&fakeTermsOfService, nil)
+	mockTermsOfServiceStore.On("Save", &fakeTermsOfService).Return(&fakeTermsOfService, nil)
 	mockTermsOfServiceStore.On("GetLatest", true).Return(&fakeTermsOfService, nil)
 	mockTermsOfServiceStore.On("GetLatest", false).Return(&fakeTermsOfService, nil)
 	mockTermsOfServiceStore.On("Get", "123", true).Return(&fakeTermsOfService, nil)
