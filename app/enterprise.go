@@ -47,6 +47,18 @@ func RegisterJobsMessageExportJobInterface(f func(*App) ejobs.MessageExportJobIn
 	jobsMessageExportJobInterface = f
 }
 
+var jobsElasticsearchAggregatorInterface func(*App) ejobs.ElasticsearchAggregatorInterface
+
+func RegisterJobsElasticsearchAggregatorInterface(f func(*App) ejobs.ElasticsearchAggregatorInterface) {
+	jobsElasticsearchAggregatorInterface = f
+}
+
+var jobsElasticsearchIndexerInterface func(*App) ejobs.ElasticsearchIndexerInterface
+
+func RegisterJobsElasticsearchIndexerInterface(f func(*App) ejobs.ElasticsearchIndexerInterface) {
+	jobsElasticsearchIndexerInterface = f
+}
+
 var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
 
 func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
