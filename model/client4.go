@@ -420,6 +420,10 @@ func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
 }
 
+func (c *Client4) GetServerBusyRoute() string {
+	return fmt.Sprintf("/busy")
+}
+
 func (c *Client4) GetUserTermsOfServiceRoute(userId string) string {
 	return c.GetUserRoute(userId) + "/terms_of_service"
 }
@@ -4602,9 +4606,9 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	return MapFromJson(r.Body)["location"], BuildResponse(r)
 }
 
-// SetServerBusy will mark the server as busy, which will disable non-critical services.
-func (c *Client4) SetServerBusy(dur time.Duration) (bool, *Response) {
-	url := fmt.Sprintf("%s?secs=%d", "/busy/set", int64(dur.Seconds()))
+// SetServerBusy will mark the server as busy, which will disable non-critical services for `secs` seconds.
+func (c *Client4) SetServerBusy(secs string) (bool, *Response) {
+	url := fmt.Sprintf("%s%s?secs=%s", c.GetServerBusyRoute(), "/set", secs)
 	r, err := c.DoApiGet(url, "")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
@@ -4615,7 +4619,7 @@ func (c *Client4) SetServerBusy(dur time.Duration) (bool, *Response) {
 
 // ClearServerBusy will mark the server as not busy.
 func (c *Client4) ClearServerBusy() (bool, *Response) {
-	r, err := c.DoApiGet("/busy/clear", "")
+	r, err := c.DoApiGet(c.GetServerBusyRoute()+"/clear", "")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -4626,7 +4630,7 @@ func (c *Client4) ClearServerBusy() (bool, *Response) {
 // GetServerBusyExpires returns the time when a server marked busy
 // will automatically have the flag cleared.
 func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
-	r, err := c.DoApiGet("/busy/expires", "")
+	r, err := c.DoApiGet(c.GetServerBusyRoute()+"/expires", "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}

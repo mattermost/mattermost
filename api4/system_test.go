@@ -513,20 +513,36 @@ func TestSetServerBusy(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	dur := time.Second * 60
+	const secs = "30"
 
 	t.Run("as system user", func(t *testing.T) {
-		ok, resp := th.Client.SetServerBusy(dur)
+		ok, resp := th.Client.SetServerBusy(secs)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, ok, "should not set server busy due to no permission.")
+		require.False(t, ok, "should not set server busy due to no permission")
 		require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy")
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.SetServerBusy(dur)
+		ok, resp := th.SystemAdminClient.SetServerBusy(secs)
 		CheckNoError(t, resp)
 		require.True(t, ok, "should set server busy successfully")
 		require.True(t, th.App.Srv.Busy.IsBusy(), "server should be marked busy")
+	})
+}
+
+func TestSetServerBusyInvalidParam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	t.Run("as system admin, invalid param", func(t *testing.T) {
+		params := []string{"-1", "foo", "0"}
+		for _, p := range params {
+			ok, resp := th.SystemAdminClient.SetServerBusy(p)
+			CheckBadRequestStatus(t, resp)
+			require.Falsef(t, ok, "")
+			require.False(t, ok, "should not set server busy due to invalid param ", p)
+			require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
+		}
 	})
 }
 

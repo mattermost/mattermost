@@ -456,13 +456,13 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	i, err := strconv.ParseInt(secs, 10, 64)
-	if err != nil || i < 0 {
+	if err != nil || i <= 0 {
 		c.SetInvalidUrlParam("secs")
 		return
 	}
 
 	c.App.Srv.Busy.Set(time.Second * time.Duration(i))
-	mlog.Warn("server busy state activitated - non-critical services disabled", mlog.Field{Key: "seconds", Integer: i})
+	mlog.Warn("server busy state activitated - non-critical services disabled", mlog.Int64("seconds", i))
 	ReturnStatusOK(w)
 }
 
