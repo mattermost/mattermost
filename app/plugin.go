@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -603,6 +604,21 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 				signaturePath: "",
 			}
 			pluginSignaturePathMap[id] = helper
+		}
+	}
+	cannaryTag := a.Config().PluginSettings.CanaryTag
+	if cannaryTag != nil && *cannaryTag != "" {
+		canarySuffix := fmt.Sprintf(".tar.gz%s", *cannaryTag)
+		for _, path := range fileStorePaths {
+			if strings.HasSuffix(path, canarySuffix) {
+				id := strings.TrimSuffix(filepath.Base(path), canarySuffix)
+				helper := &pluginSignaturePath{
+					pluginId:      id,
+					path:          path,
+					signaturePath: "",
+				}
+				pluginSignaturePathMap[id] = helper
+			}
 		}
 	}
 	for _, path := range fileStorePaths {
