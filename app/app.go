@@ -80,11 +80,11 @@ func (s *Server) initJobs() {
 	if jobsMessageExportJobInterface != nil {
 		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s.FakeApp())
 	}
-	if jobsSearchEngineAggregatorInterface != nil {
-		s.Jobs.ElasticsearchAggregator = jobsSearchEngineAggregatorInterface(s.FakeApp())
+	if jobsElasticsearchAggregatorInterface != nil {
+		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s.FakeApp())
 	}
-	if jobsSearchEngineIndexerInterface != nil {
-		s.Jobs.ElasticsearchIndexer = jobsSearchEngineIndexerInterface(s.FakeApp())
+	if jobsElasticsearchIndexerInterface != nil {
+		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s.FakeApp())
 	}
 	if jobsLdapSyncInterface != nil {
 		s.Jobs.LdapSync = jobsLdapSyncInterface(s.FakeApp())

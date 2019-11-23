@@ -2199,6 +2199,18 @@ func (s *BleveSettings) SetDefaults() {
 	if s.Filename == nil {
 		s.Filename = NewString(BLEVE_SETTINGS_DEFAULT_FILENAME)
 	}
+
+	if s.EnableIndexing == nil {
+		s.EnableIndexing = NewBool(false)
+	}
+
+	if s.EnableSearching == nil {
+		s.EnableSearching = NewBool(false)
+	}
+
+	if s.EnableAutocomplete == nil {
+		s.EnableAutocomplete = NewBool(false)
+	}
 }
 
 type DataRetentionSettings struct {

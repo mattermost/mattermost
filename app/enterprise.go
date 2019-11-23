@@ -9,7 +9,6 @@ import (
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/searchengine"
 )
 
 var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
@@ -36,12 +35,6 @@ func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterf
 	dataRetentionInterface = f
 }
 
-var searchEngineInterface func(*App) searchengine.SearchEngineInterface
-
-func RegisterSearchEngineInterface(f func(*App) searchengine.SearchEngineInterface) {
-	searchEngineInterface = f
-}
-
 var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
 
 func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobInterface) {
@@ -52,18 +45,6 @@ var jobsMessageExportJobInterface func(*App) ejobs.MessageExportJobInterface
 
 func RegisterJobsMessageExportJobInterface(f func(*App) ejobs.MessageExportJobInterface) {
 	jobsMessageExportJobInterface = f
-}
-
-var jobsSearchEngineAggregatorInterface func(*App) tjobs.SearchEngineAggregatorInterface
-
-func RegisterJobsSearchEngineAggregatorInterface(f func(*App) tjobs.SearchEngineAggregatorInterface) {
-	jobsSearchEngineAggregatorInterface = f
-}
-
-var jobsSearchEngineIndexerInterface func(*App) tjobs.SearchEngineIndexerInterface
-
-func RegisterJobsSearchEngineIndexerInterface(f func(*App) tjobs.SearchEngineIndexerInterface) {
-	jobsSearchEngineIndexerInterface = f
 }
 
 var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
@@ -120,9 +101,6 @@ func (s *Server) initEnterprise() {
 	}
 	if complianceInterface != nil {
 		s.Compliance = complianceInterface(s.FakeApp())
-	}
-	if searchEngineInterface != nil {
-		s.SearchEngine = searchEngineInterface(s.FakeApp())
 	}
 	if ldapInterface != nil {
 		s.Ldap = ldapInterface(s.FakeApp())

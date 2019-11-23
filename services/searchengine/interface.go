@@ -11,6 +11,7 @@ type SearchEngineInterface interface {
 	Stop() *model.AppError
 	GetVersion() int
 	GetName() string
+	IsActive() bool
 	IndexPost(post *model.Post, teamId string) *model.AppError
 	SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError)
 	DeletePost(post *model.Post) *model.AppError
