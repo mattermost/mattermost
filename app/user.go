@@ -224,7 +224,7 @@ func (a *App) indexUser(user *model.User) *model.AppError {
 		userChannelsIds = append(userChannelsIds, channelId)
 	}
 
-	return a.SearchEngine.IndexUser(user, userTeamsIds, userChannelsIds)
+	return a.SearchEngine.GetActiveEngine().IndexUser(user, userTeamsIds, userChannelsIds)
 }
 
 func (a *App) indexUserFromId(userId string) *model.AppError {
@@ -1541,7 +1541,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 
 	if a.IsSEIndexingEnabled() {
 		a.Srv.Go(func() {
-			if err := a.SearchEngine.DeleteUser(user); err != nil {
+			if err := a.SearchEngine.GetActiveEngine().DeleteUser(user); err != nil {
 				mlog.Error("Encountered error deleting user", mlog.String("user_id", user.Id), mlog.Err(err))
 			}
 		})
@@ -1735,7 +1735,7 @@ func (a *App) esSearchUsersInTeam(teamId, term string, options *model.UserSearch
 		return []*model.User{}, nil
 	}
 
-	usersIds, err := a.SearchEngine.SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
+	usersIds, err := a.SearchEngine.GetActiveEngine().SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
 	if err != nil {
 		return nil, err
 	}
@@ -1817,9 +1817,9 @@ func (a *App) esAutocompleteUsersInChannel(teamId, channelId, term string, optio
 	uchanIds := []string{}
 	nuchanIds := []string{}
 	if !strings.Contains(strings.Join(listOfAllowedChannels, "."), channelId) {
-		nuchanIds, err = a.SearchEngine.SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
+		nuchanIds, err = a.SearchEngine.GetActiveEngine().SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
 	} else {
-		uchanIds, nuchanIds, err = a.SearchEngine.SearchUsersInChannel(teamId, channelId, listOfAllowedChannels, term, options)
+		uchanIds, nuchanIds, err = a.SearchEngine.GetActiveEngine().SearchUsersInChannel(teamId, channelId, listOfAllowedChannels, term, options)
 	}
 	if err != nil {
 		return nil, err
@@ -1935,7 +1935,7 @@ func (a *App) esAutocompleteUsersInTeam(teamId, term string, options *model.User
 		return &model.UserAutocompleteInTeam{}, nil
 	}
 
-	usersIds, err := a.SearchEngine.SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
+	usersIds, err := a.SearchEngine.GetActiveEngine().SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
 	if err != nil {
 		return nil, err
 	}

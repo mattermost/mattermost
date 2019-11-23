@@ -4,23 +4,8 @@ import (
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/services/searchengine/nullengine"
 )
-
-type SearchEngineFactory func(*model.Config, *model.License, *jobs.JobServer) (SearchEngineInterface, error)
-
-type SearchEnginesFactories struct {
-	Elasticsearch *SearchEngineFactory
-}
-
-var searchEngines SearchEnginesFactories
-
-func init() {
-	searchEngines = SearchEnginesFactories{}
-}
-
-func RegisterElasticsearchEngine(se *SearchEngineFactory) {
-	searchEngines.Elasticsearch = se
-}
 
 func NewSearchEngineBroker(cfg *model.Config, license *model.License, jobServer *jobs.JobServer) (*SearchEngineBroker, error) {
 	broker := &SearchEngineBroker{
@@ -35,16 +20,16 @@ func NewSearchEngineBroker(cfg *model.Config, license *model.License, jobServer 
 	}
 	broker.bleveEngine = bleveEngine
 
-	if searchEngines.Elasticsearch != nil {
-		elasticsearchEngine, err := (*searchEngines.Elasticsearch)(cfg, license, jobServer)
-		if err != nil {
-			return nil, err
-		}
-		broker.elasticsearchEngine = elasticsearchEngine
+	nullEngine, err := nullengine.NewNullEngine()
+	if err != nil {
+		return nil, err
 	}
-	// TODO: Create the null engine
-	broker.nullEngine = nil
+	broker.nullEngine = nullEngine
 	return broker, nil
+}
+
+func (seb *SearchEngineBroker) RegisterElasticsearchEngine(es SearchEngineInterface) {
+	seb.elasticsearchEngine = es
 }
 
 type SearchEngineBroker struct {
@@ -72,7 +57,7 @@ func (seb *SearchEngineBroker) UpdateLicense(license *model.License) *model.AppE
 	return nil
 }
 
-func (seb *SearchEngineBroker) GetActiveEngine(cfg *model.Config) SearchEngineInterface {
+func (seb *SearchEngineBroker) GetActiveEngine() SearchEngineInterface {
 	if seb.elasticsearchEngine != nil && seb.elasticsearchEngine.IsActive() {
 		return seb.elasticsearchEngine
 	}

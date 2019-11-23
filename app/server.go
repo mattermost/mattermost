@@ -306,11 +306,12 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	s.SearchEngine = searchengine.NewSearchEngineBroker(s.Config(), s.License(), s.Jobs)
-
-	if s.startSearchEngine && s.SearchEngine != nil {
-		s.StartSearchEngine()
+	searchEngineBroker, err := searchengine.NewSearchEngineBroker(s.Config(), s.License(), s.Jobs)
+	if err != nil {
+		return nil, err
 	}
+	s.SearchEngine = *searchEngineBroker
+	s.StartSearchEngine()
 
 	return s, nil
 }

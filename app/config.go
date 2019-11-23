@@ -405,17 +405,13 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 }
 
 func (a *App) IsSEIndexingEnabled() bool {
-	return a.SearchEngine != nil && *a.Config().ElasticsearchSettings.EnableIndexing || *a.Config().BleveSettings.EnableSearching
+	return a.SearchEngine.GetActiveEngine().IsIndexingEnabled()
 }
 
 func (a *App) IsSESearchEnabled() bool {
-	seInterface := a.SearchEngine
-	license := a.License()
-	return seInterface != nil && ((*a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch) || *a.Config().BleveSettings.EnableSearching)
+	return a.SearchEngine.GetActiveEngine().IsSearchEnabled()
 }
 
 func (a *App) IsSEAutocompletionEnabled() bool {
-	seInterface := a.SearchEngine
-	license := a.License()
-	return seInterface != nil && ((*a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch) || *a.Config().BleveSettings.EnableAutocomplete)
+	return a.SearchEngine.GetActiveEngine().IsAutocompletionEnabled()
 }

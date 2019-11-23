@@ -283,7 +283,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if a.IsSEIndexingEnabled() {
 		a.Srv.Go(func() {
-			if err = a.SearchEngine.IndexPost(rpost, channel.TeamId); err != nil {
+			if err = a.SearchEngine.GetActiveEngine().IndexPost(rpost, channel.TeamId); err != nil {
 				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
@@ -571,7 +571,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 				mlog.Error("Couldn't get channel for post for SearchEngine indexing.", mlog.String("channel_id", rpost.ChannelId), mlog.String("post_id", rpost.Id))
 				return
 			}
-			if err := a.SearchEngine.IndexPost(rpost, channel.TeamId); err != nil {
+			if err := a.SearchEngine.GetActiveEngine().IndexPost(rpost, channel.TeamId); err != nil {
 				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
@@ -847,7 +847,7 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 
 	if a.IsSEIndexingEnabled() {
 		a.Srv.Go(func() {
-			if err := a.SearchEngine.DeletePost(post); err != nil {
+			if err := a.SearchEngine.GetActiveEngine().DeletePost(post); err != nil {
 				mlog.Error("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
@@ -1013,7 +1013,7 @@ func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userI
 		return nil, err
 	}
 
-	postIds, matches, err := a.SearchEngine.SearchPosts(userChannels, finalParamsList, page, perPage)
+	postIds, matches, err := a.SearchEngine.GetActiveEngine().SearchPosts(userChannels, finalParamsList, page, perPage)
 	if err != nil {
 		return nil, err
 	}

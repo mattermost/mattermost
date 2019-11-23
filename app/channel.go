@@ -268,7 +268,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	if a.IsSEIndexingEnabled() {
 		if sc.Type == model.CHANNEL_OPEN {
 			a.Srv.Go(func() {
-				if err := a.SearchEngine.IndexChannel(sc); err != nil {
+				if err := a.SearchEngine.GetActiveEngine().IndexChannel(sc); err != nil {
 					mlog.Error("Encountered error indexing channel", mlog.String("channel_id", sc.Id), mlog.Err(err))
 				}
 			})
@@ -522,7 +522,7 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 
 	if a.IsSEIndexingEnabled() && channel.Type == model.CHANNEL_OPEN {
 		a.Srv.Go(func() {
-			if err := a.SearchEngine.IndexChannel(channel); err != nil {
+			if err := a.SearchEngine.GetActiveEngine().IndexChannel(channel); err != nil {
 				mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 			}
 		})
@@ -1817,7 +1817,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 }
 
 func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	channelIds, err := a.SearchEngine.SearchChannels(teamId, term)
+	channelIds, err := a.SearchEngine.GetActiveEngine().SearchChannels(teamId, term)
 	if err != nil {
 		return nil, err
 	}
@@ -2041,7 +2041,7 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		})
 		if channel.Type == model.CHANNEL_OPEN {
 			a.Srv.Go(func() {
-				if err := a.SearchEngine.DeleteChannel(channel); err != nil {
+				if err := a.SearchEngine.GetActiveEngine().DeleteChannel(channel); err != nil {
 					mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 				}
 			})

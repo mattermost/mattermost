@@ -909,7 +909,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 		})
 	}
 
-	seInterface := a.SearchEngine
+	seInterface := a.SearchEngine.GetActiveEngine()
 	if seInterface != nil && (*a.Config().ElasticsearchSettings.EnableIndexing || *a.Config().BleveSettings.EnableIndexing) {
 		a.Srv.Go(func() {
 			if err := a.indexUser(user); err != nil {

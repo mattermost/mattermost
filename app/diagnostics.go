@@ -872,8 +872,8 @@ func (a *App) trackPermissions() {
 func (a *App) trackElasticsearch() {
 	data := map[string]interface{}{}
 
-	if a.SearchEngine != nil && a.SearchEngine.GetVersion() != 0 && a.SearchEngine.GetName() == "elasticsearch" {
-		data["elasticsearch_server_version"] = a.SearchEngine.GetVersion()
+	if a.SearchEngine.GetActiveEngine().GetVersion() != 0 && a.SearchEngine.GetActiveEngine().GetName() == "elasticsearch" {
+		data["elasticsearch_server_version"] = a.SearchEngine.GetActiveEngine().GetVersion()
 	}
 
 	a.SendDiagnostic(TRACK_ELASTICSEARCH, data)

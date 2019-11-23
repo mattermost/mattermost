@@ -12,6 +12,9 @@ type SearchEngineInterface interface {
 	GetVersion() int
 	GetName() string
 	IsActive() bool
+	IsIndexingEnabled() bool
+	IsSearchEnabled() bool
+	IsAutocompletionEnabled() bool
 	IndexPost(post *model.Post, teamId string) *model.AppError
 	SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError)
 	DeletePost(post *model.Post) *model.AppError

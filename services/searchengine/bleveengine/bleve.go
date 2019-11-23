@@ -125,3 +125,15 @@ func (b *BleveEngine) PurgeIndexes() *model.AppError {
 func (b *BleveEngine) DataRetentionDeleteIndexes(cutoff time.Time) *model.AppError {
 	return nil
 }
+
+func (b *BleveEngine) IsAutocompletionEnabled() bool {
+	return false
+}
+
+func (b *BleveEngine) IsIndexingEnabled() bool {
+	return false
+}
+
+func (b *BleveEngine) IsSearchEnabled() bool {
+	return false
+}

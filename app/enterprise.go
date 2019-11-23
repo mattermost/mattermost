@@ -9,6 +9,7 @@ import (
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/searchengine"
 )
 
 var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
@@ -33,6 +34,12 @@ var dataRetentionInterface func(*App) einterfaces.DataRetentionInterface
 
 func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterface) {
 	dataRetentionInterface = f
+}
+
+var elasticsearchInterface func(*App) searchengine.SearchEngineInterface
+
+func RegisterElasticsearchInterface(f func(*App) searchengine.SearchEngineInterface) {
+	elasticsearchInterface = f
 }
 
 var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
@@ -139,5 +146,9 @@ func (s *Server) initEnterprise() {
 	}
 	if clusterInterface != nil {
 		s.Cluster = clusterInterface(s)
+	}
+
+	if elasticsearchInterface != nil {
+		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s.FakeApp()))
 	}
 }

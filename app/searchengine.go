@@ -18,7 +18,7 @@ func (a *App) TestSearchEngine(cfg *model.Config) *model.AppError {
 		}
 	}
 
-	seI := a.SearchEngine
+	seI := a.SearchEngine.GetActiveEngine()
 	if seI == nil {
 		err := model.NewAppError("TestElasticsearch", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 		return err
@@ -31,7 +31,7 @@ func (a *App) TestSearchEngine(cfg *model.Config) *model.AppError {
 }
 
 func (a *App) PurgeSearchEngineIndexes() *model.AppError {
-	seI := a.SearchEngine
+	seI := a.SearchEngine.GetActiveEngine()
 	if seI == nil {
 		err := model.NewAppError("PurgeElasticsearchIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 		return err
