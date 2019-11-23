@@ -721,20 +721,74 @@ func doSessionCleanup(s *Server) {
 }
 
 func (s *Server) StartSearchEngine() {
+	if s.SearchEngine.ElasticsearchEngine != nil {
+		s.Go(func() {
+			if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
+				s.Log.Error(err.Error())
+			}
+		})
+	}
 	s.Go(func() {
-		if err := s.SearchEngine.GetActiveEngine().Start(); err != nil {
+		if err := s.SearchEngine.BleveEngine.Start(); err != nil {
 			s.Log.Error(err.Error())
 		}
 	})
 
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-		if err := s.SearchEngine.UpdateConfig(newConfig); err != nil {
-			mlog.Error(err.Error())
+		if s.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
+			s.Go(func() {
+				if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		} else if s.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
+			s.Go(func() {
+				if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		} else if s.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
+			s.Go(func() {
+				if *oldConfig.ElasticsearchSettings.EnableIndexing {
+					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
+						mlog.Error(err.Error())
+					}
+					if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
+						mlog.Error(err.Error())
+					}
+				}
+			})
+		}
+
+		if s.SearchEngine.BleveEngine != nil && !*oldConfig.BleveSettings.EnableIndexing && *newConfig.BleveSettings.EnableIndexing {
+			s.Go(func() {
+				if err := s.SearchEngine.BleveEngine.Start(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		} else if s.SearchEngine.BleveEngine != nil && *oldConfig.BleveSettings.EnableIndexing && !*newConfig.BleveSettings.EnableIndexing {
+			s.Go(func() {
+				if err := s.SearchEngine.BleveEngine.Stop(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
 		}
 	})
 
 	s.AddLicenseListener(func() {
-		s.SearchEngine.UpdateLicense(s.License())
+		if s.License() != nil {
+			s.Go(func() {
+				if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		} else {
+			s.Go(func() {
+				if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		}
 	})
 }
 

@@ -18,27 +18,27 @@ func NewSearchEngineBroker(cfg *model.Config, license *model.License, jobServer 
 	if err != nil {
 		return nil, err
 	}
-	broker.bleveEngine = bleveEngine
+	broker.BleveEngine = bleveEngine
 
 	nullEngine, err := nullengine.NewNullEngine()
 	if err != nil {
 		return nil, err
 	}
-	broker.nullEngine = nullEngine
+	broker.NullEngine = nullEngine
 	return broker, nil
 }
 
 func (seb *SearchEngineBroker) RegisterElasticsearchEngine(es SearchEngineInterface) {
-	seb.elasticsearchEngine = es
+	seb.ElasticsearchEngine = es
 }
 
 type SearchEngineBroker struct {
 	cfg                 *model.Config
 	license             *model.License
 	jobServer           *jobs.JobServer
-	bleveEngine         SearchEngineInterface
-	elasticsearchEngine SearchEngineInterface
-	nullEngine          SearchEngineInterface
+	BleveEngine         SearchEngineInterface
+	ElasticsearchEngine SearchEngineInterface
+	NullEngine          SearchEngineInterface
 }
 
 func (seb *SearchEngineBroker) UpdateConfig(cfg *model.Config) *model.AppError {
@@ -47,22 +47,22 @@ func (seb *SearchEngineBroker) UpdateConfig(cfg *model.Config) *model.AppError {
 }
 
 func (seb *SearchEngineBroker) UpdateLicense(license *model.License) *model.AppError {
-	if license == nil && seb.elasticsearchEngine.IsActive() {
-		seb.elasticsearchEngine.Stop()
+	if license == nil && seb.ElasticsearchEngine.IsActive() {
+		seb.ElasticsearchEngine.Stop()
 	}
-	if license != nil && !seb.elasticsearchEngine.IsActive() {
-		seb.elasticsearchEngine.Stop()
+	if license != nil && !seb.ElasticsearchEngine.IsActive() {
+		seb.ElasticsearchEngine.Stop()
 	}
 	seb.license = license
 	return nil
 }
 
 func (seb *SearchEngineBroker) GetActiveEngine() SearchEngineInterface {
-	if seb.elasticsearchEngine != nil && seb.elasticsearchEngine.IsActive() {
-		return seb.elasticsearchEngine
+	if seb.ElasticsearchEngine != nil && seb.ElasticsearchEngine.IsActive() {
+		return seb.ElasticsearchEngine
 	}
-	if seb.bleveEngine != nil && seb.bleveEngine.IsActive() {
-		return seb.bleveEngine
+	if seb.BleveEngine != nil && seb.BleveEngine.IsActive() {
+		return seb.BleveEngine
 	}
-	return seb.nullEngine
+	return seb.NullEngine
 }
