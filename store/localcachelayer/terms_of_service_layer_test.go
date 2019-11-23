@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 // Copyright (c) 2019-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-=======
->>>>>>> e456a2aa2a4cacd504cc3a1d883a502f5fc51c31
 package localcachelayer
 
 import (
