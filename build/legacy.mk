@@ -4,6 +4,31 @@ test-te: test-server
 # test-ee used to just run the enterprise edition tests, but now runs whatever is available
 test-ee: test-server
 
+## Runs govet against all packages. This is now subsumed by make golangci-lint.
+govet:
+	@echo Running GOVET
+	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+	$(GO) vet $(GOFLAGS) $(ALL_PACKAGES) || exit 1
+	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GOFLAGS) $(ALL_PACKAGES) || exit 1
+	$(GO) run $(GOFLAGS) ./plugin/checker
+
+gofmt: ## Runs gofmt against all packages. This is now subsumed by make golangci-lint.
+	@echo Running GOFMT
+
+	@for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
+		 echo "Checking "$$package; \
+		 files=$$($(GO) list $(GOFLAGS) -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $$package); \
+		 if [ "$$files" ]; then \
+			 gofmt_output=$$(gofmt -d -s $$files 2>&1); \
+			 if [ "$$gofmt_output" ]; then \
+				 echo "$$gofmt_output"; \
+				 echo "gofmt failure"; \
+				 exit 1; \
+			 fi; \
+		 fi; \
+	done
+	@echo "gofmt success"; \
+
 # clean old docker images
 clean-old-docker:
 	@echo Removing docker containers
