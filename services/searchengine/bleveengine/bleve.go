@@ -6,6 +6,7 @@ import (
 
 	"github.com/blevesearch/bleve"
 	"github.com/mattermost/mattermost-server/jobs"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -42,10 +43,12 @@ func NewBleveEngine(cfg *model.Config, license *model.License, jobServer *jobs.J
 }
 
 func (b *BleveEngine) Start() *model.AppError {
+	mlog.Warn("Start Bleve")
 	return nil
 }
 
 func (b *BleveEngine) Stop() *model.AppError {
+	mlog.Warn("Stop Bleve")
 	return nil
 }
 
@@ -62,6 +65,7 @@ func (b *BleveEngine) GetName() string {
 }
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
+	mlog.Warn("IndexPost Bleve")
 	searchPost := BlevePost{
 		Id:        post.Id,
 		TeamId:    teamId,
@@ -77,48 +81,57 @@ func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError
 }
 
 func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
-	// b.idx.Search(post.id)
+	mlog.Warn("SearchPosts Bleve")
 	return nil, nil, nil
 }
 
 func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
-	// b.idx.Delete(post.id)
+	mlog.Warn("DeletePost Bleve")
 	return nil
 }
 
 func (b *BleveEngine) IndexChannel(channel *model.Channel) *model.AppError {
+	mlog.Warn("IndexChannel Bleve")
 	return nil
 }
 
 func (b *BleveEngine) SearchChannels(teamId, term string) ([]string, *model.AppError) {
+	mlog.Warn("SearchChannel Bleve")
 	return nil, nil
 }
 
 func (b *BleveEngine) DeleteChannel(channel *model.Channel) *model.AppError {
+	mlog.Warn("DeleteChannel Bleve")
 	return nil
 }
 
 func (b *BleveEngine) IndexUser(user *model.User, teamsIds, channelsIds []string) *model.AppError {
+	mlog.Warn("IndexUser Bleve")
 	return nil
 }
 
 func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError) {
+	mlog.Warn("SearchUsersInChannel Bleve")
 	return nil, nil, nil
 }
 
 func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, *model.AppError) {
+	mlog.Warn("SearchUsersInTeam Bleve")
 	return nil, nil
 }
 
 func (b *BleveEngine) DeleteUser(user *model.User) *model.AppError {
+	mlog.Warn("DeleteUser Bleve")
 	return nil
 }
 
 func (b *BleveEngine) TestConfig(cfg *model.Config) *model.AppError {
+	mlog.Warn("TestConfig Bleve")
 	return nil
 }
 
 func (b *BleveEngine) PurgeIndexes() *model.AppError {
+	mlog.Warn("PurgeIndexes Bleve")
 	return nil
 }
 
@@ -127,13 +140,13 @@ func (b *BleveEngine) DataRetentionDeleteIndexes(cutoff time.Time) *model.AppErr
 }
 
 func (b *BleveEngine) IsAutocompletionEnabled() bool {
-	return false
+	return *b.cfg.BleveSettings.EnableAutocomplete
 }
 
 func (b *BleveEngine) IsIndexingEnabled() bool {
-	return false
+	return *b.cfg.BleveSettings.EnableIndexing
 }
 
 func (b *BleveEngine) IsSearchEnabled() bool {
-	return false
+	return *b.cfg.BleveSettings.EnableSearching
 }

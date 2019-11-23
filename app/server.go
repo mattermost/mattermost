@@ -728,11 +728,13 @@ func (s *Server) StartSearchEngine() {
 			}
 		})
 	}
-	s.Go(func() {
-		if err := s.SearchEngine.BleveEngine.Start(); err != nil {
-			s.Log.Error(err.Error())
-		}
-	})
+	if s.SearchEngine.BleveEngine != nil {
+		s.Go(func() {
+			if err := s.SearchEngine.BleveEngine.Start(); err != nil {
+				s.Log.Error(err.Error())
+			}
+		})
+	}
 
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		if s.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {

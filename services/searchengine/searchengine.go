@@ -2,6 +2,7 @@ package searchengine
 
 import (
 	"github.com/mattermost/mattermost-server/jobs"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/services/searchengine/nullengine"
@@ -14,11 +15,13 @@ func NewSearchEngineBroker(cfg *model.Config, license *model.License, jobServer 
 		jobServer: jobServer,
 	}
 
-	bleveEngine, err := bleveengine.NewBleveEngine(cfg, license, jobServer)
-	if err != nil {
-		return nil, err
+	if *cfg.BleveSettings.EnableIndexing && *cfg.BleveSettings.Filename != "" {
+		bleveEngine, err := bleveengine.NewBleveEngine(cfg, license, jobServer)
+		if err != nil {
+			return nil, err
+		}
+		broker.BleveEngine = bleveEngine
 	}
-	broker.BleveEngine = bleveEngine
 
 	nullEngine, err := nullengine.NewNullEngine()
 	if err != nil {
@@ -59,10 +62,13 @@ func (seb *SearchEngineBroker) UpdateLicense(license *model.License) *model.AppE
 
 func (seb *SearchEngineBroker) GetActiveEngine() SearchEngineInterface {
 	if seb.ElasticsearchEngine != nil && seb.ElasticsearchEngine.IsActive() {
+		mlog.Warn("Elasticsearch is active")
 		return seb.ElasticsearchEngine
 	}
 	if seb.BleveEngine != nil && seb.BleveEngine.IsActive() {
+		mlog.Warn("Bleve is active")
 		return seb.BleveEngine
 	}
+	mlog.Warn("Null is active")
 	return seb.NullEngine
 }
