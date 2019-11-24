@@ -592,7 +592,7 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_BLEVE, map[string]interface{}{
-		"isdefault_filename": isDefault(*cfg.BleveSettings.Filename, model.BLEVE_SETTINGS_DEFAULT_FILENAME),
+		"isdefault_index_dir": isDefault(*cfg.BleveSettings.IndexDir, model.BLEVE_SETTINGS_DEFAULT_INDEX_DIR),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{

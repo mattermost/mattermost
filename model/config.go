@@ -178,7 +178,7 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS = 3600
 	ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS           = 30
 
-	BLEVE_SETTINGS_DEFAULT_FILENAME = ""
+	BLEVE_SETTINGS_DEFAULT_INDEX_DIR = ""
 
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
@@ -2189,15 +2189,15 @@ func (s *ElasticsearchSettings) SetDefaults() {
 }
 
 type BleveSettings struct {
-	Filename           *string
+	IndexDir           *string
 	EnableIndexing     *bool `restricted:"true"`
 	EnableSearching    *bool `restricted:"true"`
 	EnableAutocomplete *bool `restricted:"true"`
 }
 
 func (s *BleveSettings) SetDefaults() {
-	if s.Filename == nil {
-		s.Filename = NewString(BLEVE_SETTINGS_DEFAULT_FILENAME)
+	if s.IndexDir == nil {
+		s.IndexDir = NewString(BLEVE_SETTINGS_DEFAULT_INDEX_DIR)
 	}
 
 	if s.EnableIndexing == nil {
@@ -3031,7 +3031,7 @@ func (ess *ElasticsearchSettings) isValid() *AppError {
 
 func (bs *BleveSettings) isValid() *AppError {
 	if *bs.EnableIndexing {
-		if len(*bs.Filename) == 0 {
+		if len(*bs.IndexDir) == 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
 		}
 	}

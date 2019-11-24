@@ -15,7 +15,7 @@ func NewSearchEngineBroker(cfg *model.Config, license *model.License, jobServer 
 		jobServer: jobServer,
 	}
 
-	if *cfg.BleveSettings.EnableIndexing && *cfg.BleveSettings.Filename != "" {
+	if *cfg.BleveSettings.EnableIndexing && *cfg.BleveSettings.IndexDir != "" {
 		bleveEngine, err := bleveengine.NewBleveEngine(cfg, license, jobServer)
 		if err != nil {
 			return nil, err

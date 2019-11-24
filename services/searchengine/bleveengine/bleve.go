@@ -1,19 +1,26 @@
 package bleveengine
 
 import (
+	"net/http"
+	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/blevesearch/bleve"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+
+	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
+	"github.com/blevesearch/bleve/mapping"
 )
 
 type BleveEngine struct {
-	idx       bleve.Index
-	cfg       *model.Config
-	jobServer *jobs.JobServer
+	postIndex    bleve.Index
+	userIndex    bleve.Index
+	channelIndex bleve.Index
+	cfg          *model.Config
+	jobServer    *jobs.JobServer
 }
 
 type BlevePost struct {
@@ -27,18 +34,65 @@ type BlevePost struct {
 	Hashtags  []string `json:"hashtags"`
 }
 
-func NewBleveEngine(cfg *model.Config, license *model.License, jobServer *jobs.JobServer) (*BleveEngine, error) {
-	mapping := bleve.NewIndexMapping()
-	if cfg.BleveSettings.Filename != nil {
+func getChannelsIndexMapping() *mapping.IndexMappingImpl {
+	keywordMapping := bleve.NewTextFieldMapping()
+	keywordMapping.Analyzer = keyword.Name
+
+	channelMapping := bleve.NewDocumentMapping()
+	channelMapping.AddFieldMappingsAt("TeamId", keywordMapping)
+	channelMapping.AddFieldMappingsAt("NameSuggest", keywordMapping)
+
+	indexMapping := bleve.NewIndexMapping()
+	indexMapping.AddDocumentMapping("_default", channelMapping)
+
+	return indexMapping
+}
+
+func getPostsIndexMapping() *mapping.IndexMappingImpl {
+	return bleve.NewIndexMapping()
+}
+
+func getUsersIndexMapping() *mapping.IndexMappingImpl {
+	return bleve.NewIndexMapping()
+}
+
+func createOrOpenIndex(cfg *model.Config, indexName string, mapping *mapping.IndexMappingImpl) (bleve.Index, error) {
+	// ToDo: Check if indexDir exists and create it if it doesn't
+
+	indexPath := filepath.Join(*cfg.BleveSettings.IndexDir, indexName+".bleve")
+	if index, err := bleve.Open(indexPath); err == nil {
+		return index, nil
 	}
-	index, err := bleve.New(*cfg.BleveSettings.Filename, mapping)
+
+	index, err := bleve.New(indexPath, mapping)
 	if err != nil {
 		return nil, err
 	}
+	return index, nil
+}
+
+func NewBleveEngine(cfg *model.Config, license *model.License, jobServer *jobs.JobServer) (*BleveEngine, error) {
+	postIndex, err := createOrOpenIndex(cfg, "posts", getPostsIndexMapping())
+	if err != nil {
+		return nil, err
+	}
+
+	userIndex, err := createOrOpenIndex(cfg, "users", getUsersIndexMapping())
+	if err != nil {
+		return nil, err
+	}
+
+	channelIndex, err := createOrOpenIndex(cfg, "channels", getChannelsIndexMapping())
+	if err != nil {
+		return nil, err
+	}
+
 	return &BleveEngine{
-		idx:       index,
-		cfg:       cfg,
-		jobServer: jobServer,
+		postIndex:    postIndex,
+		userIndex:    userIndex,
+		channelIndex: channelIndex,
+		cfg:          cfg,
+		jobServer:    jobServer,
 	}, nil
 }
 
@@ -66,6 +120,7 @@ func (b *BleveEngine) GetName() string {
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
 	mlog.Warn("IndexPost Bleve")
+	// ToDo: Check what do we need to index
 	searchPost := BlevePost{
 		Id:        post.Id,
 		TeamId:    teamId,
@@ -76,7 +131,7 @@ func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError
 		Type:      post.Type,
 		Hashtags:  strings.Split(post.Hashtags, " "),
 	}
-	b.idx.Index(post.Id, searchPost)
+	b.postIndex.Index(post.Id, searchPost)
 	return nil
 }
 
@@ -92,12 +147,30 @@ func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
 
 func (b *BleveEngine) IndexChannel(channel *model.Channel) *model.AppError {
 	mlog.Warn("IndexChannel Bleve")
+	blvChannel := BLVChannelFromChannel(channel)
+	b.channelIndex.Index(blvChannel.Id, blvChannel) // ToDo: error control
 	return nil
 }
 
 func (b *BleveEngine) SearchChannels(teamId, term string) ([]string, *model.AppError) {
-	mlog.Warn("SearchChannel Bleve")
-	return nil, nil
+	teamIdQ := bleve.NewTermQuery(teamId)
+	teamIdQ.SetField("TeamId")
+
+	nameSuggestQ := bleve.NewPrefixQuery(term)
+	nameSuggestQ.SetField("NameSuggest")
+
+	query := bleve.NewSearchRequest(bleve.NewConjunctionQuery(teamIdQ, nameSuggestQ))
+	results, err := b.channelIndex.Search(query)
+	if err != nil {
+		return nil, model.NewAppError("Bleveengine.SearchChannels", "bleveengine.search_channels.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	channelIds := []string{}
+	for _, result := range results.Hits {
+		channelIds = append(channelIds, result.ID)
+	}
+
+	return channelIds, nil
 }
 
 func (b *BleveEngine) DeleteChannel(channel *model.Channel) *model.AppError {
@@ -107,11 +180,46 @@ func (b *BleveEngine) DeleteChannel(channel *model.Channel) *model.AppError {
 
 func (b *BleveEngine) IndexUser(user *model.User, teamsIds, channelsIds []string) *model.AppError {
 	mlog.Warn("IndexUser Bleve")
+	blvUser := BLVUserFromUserAndTeams(user, teamsIds, channelsIds)
+	b.userIndex.Index(blvUser.Id, blvUser) // ToDo: error control
 	return nil
 }
 
 func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError) {
 	mlog.Warn("SearchUsersInChannel Bleve")
+	query := bleve.NewPrefixQuery(term)
+	search := bleve.NewSearchRequest(query)
+	search.Fields = []string{"SuggestionsWithFullname"}
+	results, err := b.userIndex.Search(search)
+	if err != nil {
+		panic(err)
+		// return nil, nil, err
+	}
+
+	/*
+		       -------------------------------------
+			   - uchan
+			   -------------------------------------
+
+		       PrefixQuery term
+		       TermQuery channelId
+	*/
+
+	/*
+		       -------------------------------------
+			   - nuchan
+			   -------------------------------------
+
+		       PrefixQuery term
+		       negative TermQuery channelId
+		       one TermQuery for each restrictedInChannels
+	*/
+
+	// uchan and nuchan
+	for _, r := range results.Hits {
+		mlog.Warn(">>>>>>>>> Result: " + r.ID)
+	}
+
 	return nil, nil, nil
 }
 
