@@ -595,32 +595,14 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
-	for _, path := range fileStorePaths {
-		if strings.HasSuffix(path, ".tar.gz") {
-			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
-			helper := &pluginSignaturePath{
-				pluginId:      id,
-				path:          path,
-				signaturePath: "",
-			}
-			pluginSignaturePathMap[id] = helper
-		}
-	}
+	populatePluginSignatureMap(pluginSignaturePathMap, fileStorePaths, ".tar.gz")
+
 	cannaryTag := a.Config().PluginSettings.CanaryTag
 	if cannaryTag != nil && *cannaryTag != "" {
 		canarySuffix := fmt.Sprintf(".tar.gz%s", *cannaryTag)
-		for _, path := range fileStorePaths {
-			if strings.HasSuffix(path, canarySuffix) {
-				id := strings.TrimSuffix(filepath.Base(path), canarySuffix)
-				helper := &pluginSignaturePath{
-					pluginId:      id,
-					path:          path,
-					signaturePath: "",
-				}
-				pluginSignaturePathMap[id] = helper
-			}
-		}
+		populatePluginSignatureMap(pluginSignaturePathMap, fileStorePaths, canarySuffix)
 	}
+
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".sig") {
 			id := strings.TrimSuffix(filepath.Base(path), ".sig")
@@ -632,4 +614,18 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 		}
 	}
 	return pluginSignaturePathMap, nil
+}
+
+func populatePluginSignatureMap(pluginSignaturePathMap map[string]*pluginSignaturePath, fileStorePaths []string, suffix string) {
+	for _, path := range fileStorePaths {
+		if strings.HasSuffix(path, suffix) {
+			id := strings.TrimSuffix(filepath.Base(path), suffix)
+			helper := &pluginSignaturePath{
+				pluginId:      id,
+				path:          path,
+				signaturePath: "",
+			}
+			pluginSignaturePathMap[id] = helper
+		}
+	}
 }

@@ -401,7 +401,7 @@ func (a *App) removeSignature(pluginId string) *model.AppError {
 }
 
 func (a *App) getBundleStorePath(id string) string {
-	return filepath.Join(fileStorePluginFolder, fmt.Sprintf("%s.tar.gz%s", id, a.Config().PluginSettings.CanaryTag))
+	return filepath.Join(fileStorePluginFolder, fmt.Sprintf("%s.tar.gz%s", id, *a.Config().PluginSettings.CanaryTag))
 }
 
 func (a *App) getSignatureStorePath(id string) string {

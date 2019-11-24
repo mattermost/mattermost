@@ -595,3 +595,169 @@ func TestPluginSync(t *testing.T) {
 		})
 	}
 }
+
+func TestCanaryPlugins(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	os.MkdirAll("./test-plugins", os.ModePerm)
+	defer os.RemoveAll("./test-plugins")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.Directory = "./test-plugins"
+		*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+		*cfg.PluginSettings.RequirePluginSignature = false
+		*cfg.PluginSettings.CanaryTag = "daily"
+	})
+
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, "./test-plugins", "./test-client-plugins", th.App.Log)
+	require.NoError(t, err)
+	th.App.SetPluginsEnvironment(env)
+	// New bundle in the file store case
+	path, _ := fileutils.FindDir("tests")
+	fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+	defer fileReader.Close()
+
+	_, appErr := th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin"))
+	checkNoError(t, appErr)
+
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+
+	// Check if installed
+	pluginStatus, err := env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 1)
+	require.Equal(t, "testplugin", pluginStatus[0].PluginId)
+
+	// No canary tag
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.CanaryTag = ""
+	})
+	fileReader, err = os.Open(filepath.Join(path, "testplugin_v2.tar.gz"))
+	require.NoError(t, err)
+	defer fileReader.Close()
+
+	_, appErr = th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin_v2"))
+	checkNoError(t, appErr)
+
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+	// should be installed plugin with no canary flag
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 1)
+	require.Equal(t, "testplugin_v2", pluginStatus[0].PluginId)
+
+	// with canary tag set
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.CanaryTag = "daily"
+	})
+
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+	// should be installed both plugins
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 2)
+
+	// some other canary tag set
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.CanaryTag = "other tag"
+	})
+	fileReader, err = os.Open(filepath.Join(path, "testplugin_v2.tar.gz"))
+	require.NoError(t, err)
+	defer fileReader.Close()
+
+	_, appErr = th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin_v2"))
+	checkNoError(t, appErr)
+
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+	// should be installed plugin with other tag
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 1)
+	require.Equal(t, "testplugin_v2", pluginStatus[0].PluginId)
+
+	// same plugin with daily canary tag
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.CanaryTag = "daily"
+	})
+	fileReader, err = os.Open(filepath.Join(path, "testplugin_v2.tar.gz"))
+	require.NoError(t, err)
+	defer fileReader.Close()
+
+	_, appErr = th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin_v2"))
+	checkNoError(t, appErr)
+
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+	// should be installed both plugins
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 2)
+
+	// remove
+	appErr = th.App.RemovePlugin("testplugin_v2")
+	checkNoError(t, appErr)
+
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+	// should still be installed two plugins(removing plugin with canary tag should not remove plugin with no tag)
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 2)
+
+	appErr = th.App.RemovePlugin("testplugin")
+	checkNoError(t, appErr)
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+	// one plugin left
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 1)
+	require.Equal(t, "testplugin_v2", pluginStatus[0].PluginId)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.CanaryTag = "other tag"
+	})
+	appErr = th.App.RemovePlugin("testplugin_v2")
+	checkNoError(t, appErr)
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 1)
+	require.Equal(t, "testplugin_v2", pluginStatus[0].PluginId)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.CanaryTag = ""
+	})
+	appErr = th.App.RemovePlugin("testplugin_v2")
+	checkNoError(t, appErr)
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 0)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.CanaryTag = "daily"
+	})
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 0)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.CanaryTag = "other tag"
+	})
+	appErr = th.App.SyncPlugins()
+	checkNoError(t, appErr)
+	pluginStatus, err = env.Statuses()
+	require.Nil(t, err)
+	require.Len(t, pluginStatus, 0)
+}
