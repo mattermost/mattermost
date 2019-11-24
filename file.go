@@ -18,9 +18,9 @@ type FileService struct {
 //
 // @tag File minimum server version: 5.8
 func (f *FileService) Get(id string) (content io.Reader, err error) {
-	contentBytes, aerr := f.api.GetFile(id)
-	if aerr != nil {
-		return nil, normalizeAppErr(aerr)
+	contentBytes, appErr := f.api.GetFile(id)
+	if appErr != nil {
+		return nil, normalizeAppErr(appErr)
 	}
 	return bytes.NewReader(contentBytes), nil
 }
@@ -29,9 +29,9 @@ func (f *FileService) Get(id string) (content io.Reader, err error) {
 //
 // @tag File Minimum server version: 5.3
 func (f *FileService) GetByPath(path string) (content io.Reader, err error) {
-	contentBytes, aerr := f.api.ReadFile(path)
-	if aerr != nil {
-		return nil, normalizeAppErr(aerr)
+	contentBytes, appErr := f.api.ReadFile(path)
+	if appErr != nil {
+		return nil, normalizeAppErr(appErr)
 	}
 	return bytes.NewReader(contentBytes), nil
 }
@@ -40,16 +40,16 @@ func (f *FileService) GetByPath(path string) (content io.Reader, err error) {
 //
 // @tag File minimum server version: 5.3
 func (f *FileService) GetInfo(id string) (*model.FileInfo, error) {
-	info, aerr := f.api.GetFileInfo(id)
-	return info, normalizeAppErr(aerr)
+	info, appErr := f.api.GetFileInfo(id)
+	return info, normalizeAppErr(appErr)
 }
 
 // GetLink gets the public link of a file by id.
 //
 // @tag File minimum server version: 5.6
 func (f *FileService) GetLink(id string) (link string, err error) {
-	link, aerr := f.api.GetFileLink(id)
-	return link, normalizeAppErr(aerr)
+	link, appErr := f.api.GetFileLink(id)
+	return link, normalizeAppErr(appErr)
 }
 
 // Upload uploads a file to a channel to be later attached to a post.
@@ -60,8 +60,8 @@ func (f *FileService) Upload(content io.Reader, fileName, channelID string) (*mo
 	if err != nil {
 		return nil, err
 	}
-	info, aerr := f.api.UploadFile(contentBytes, channelID, fileName)
-	return info, normalizeAppErr(aerr)
+	info, appErr := f.api.UploadFile(contentBytes, channelID, fileName)
+	return info, normalizeAppErr(appErr)
 }
 
 // CopyInfos duplicates the FileInfo objects referenced by the given file ids, recording
@@ -74,6 +74,6 @@ func (f *FileService) Upload(content io.Reader, fileName, channelID string) (*mo
 //
 // @tag File @tag User minimum server version: 5.2
 func (f *FileService) CopyInfos(ids []string, userID string) (newIDs []string, err error) {
-	newIDs, aerr := f.api.CopyFileInfos(userID, ids)
-	return newIDs, normalizeAppErr(aerr)
+	newIDs, appErr := f.api.CopyFileInfos(userID, ids)
+	return newIDs, normalizeAppErr(appErr)
 }

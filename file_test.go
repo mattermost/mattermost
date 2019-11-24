@@ -33,12 +33,12 @@ func TestGetFile(t *testing.T) {
 
 		client := NewClient(api)
 
-		aerr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("GetFile", "1").Return(nil, aerr)
+		api.On("GetFile", "1").Return(nil, appErr)
 
 		content, err := client.File.Get("1")
-		require.Equal(t, aerr, err)
+		require.Equal(t, appErr, err)
 		require.Zero(t, content)
 	})
 }
@@ -65,12 +65,12 @@ func TestGetFileByPath(t *testing.T) {
 
 		client := NewClient(api)
 
-		aerr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("ReadFile", "1").Return(nil, aerr)
+		api.On("ReadFile", "1").Return(nil, appErr)
 
 		content, err := client.File.GetByPath("1")
-		require.Equal(t, aerr, err)
+		require.Equal(t, appErr, err)
 		require.Zero(t, content)
 	})
 }
@@ -95,12 +95,12 @@ func TestGetFileInfo(t *testing.T) {
 
 		client := NewClient(api)
 
-		aerr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("GetFileInfo", "1").Return(nil, aerr)
+		api.On("GetFileInfo", "1").Return(nil, appErr)
 
 		info, err := client.File.GetInfo("1")
-		require.Equal(t, aerr, err)
+		require.Equal(t, appErr, err)
 		require.Zero(t, info)
 	})
 }
@@ -125,12 +125,12 @@ func TestGetFileLink(t *testing.T) {
 
 		client := NewClient(api)
 
-		aerr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("GetFileLink", "1").Return("", aerr)
+		api.On("GetFileLink", "1").Return("", appErr)
 
 		link, err := client.File.GetLink("1")
-		require.Equal(t, aerr, err)
+		require.Equal(t, appErr, err)
 		require.Zero(t, link)
 	})
 }
@@ -155,12 +155,12 @@ func TestUploadFile(t *testing.T) {
 
 		client := NewClient(api)
 
-		aerr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("UploadFile", []byte{1}, "3", "2").Return(nil, aerr)
+		api.On("UploadFile", []byte{1}, "3", "2").Return(nil, appErr)
 
 		info, err := client.File.Upload(bytes.NewReader([]byte{1}), "2", "3")
-		require.Equal(t, aerr, err)
+		require.Equal(t, appErr, err)
 		require.Zero(t, info)
 	})
 }
@@ -185,12 +185,12 @@ func TestCopyFileInfos(t *testing.T) {
 
 		client := NewClient(api)
 
-		aerr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("CopyFileInfos", "3", []string{"1", "2"}).Return(nil, aerr)
+		api.On("CopyFileInfos", "3", []string{"1", "2"}).Return(nil, appErr)
 
 		newIDs, err := client.File.CopyInfos([]string{"1", "2"}, "3")
-		require.Equal(t, aerr, err)
+		require.Equal(t, appErr, err)
 		require.Zero(t, newIDs)
 	})
 }

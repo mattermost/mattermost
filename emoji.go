@@ -17,25 +17,25 @@ type EmojiService struct {
 //
 // @tag Emoji minimum server version: 5.6
 func (e *EmojiService) Get(id string) (*model.Emoji, error) {
-	emoji, aerr := e.api.GetEmoji(id)
-	return emoji, normalizeAppErr(aerr)
+	emoji, appErr := e.api.GetEmoji(id)
+	return emoji, normalizeAppErr(appErr)
 }
 
 // GetByName gets a custom emoji by its name.
 //
 // @tag Emoji minimum server version: 5.6
 func (e *EmojiService) GetByName(name string) (*model.Emoji, error) {
-	emoji, aerr := e.api.GetEmojiByName(name)
-	return emoji, normalizeAppErr(aerr)
+	emoji, appErr := e.api.GetEmojiByName(name)
+	return emoji, normalizeAppErr(appErr)
 }
 
 // GetImage gets a custom emoji's content and format by id.
 //
 // @tag Emoji minimum server version: 5.6
 func (e *EmojiService) GetImage(id string) (content io.Reader, format string, err error) {
-	contentBytes, format, aerr := e.api.GetEmojiImage(id)
-	if aerr != nil {
-		return nil, "", normalizeAppErr(aerr)
+	contentBytes, format, appErr := e.api.GetEmojiImage(id)
+	if appErr != nil {
+		return nil, "", normalizeAppErr(appErr)
 	}
 	return bytes.NewReader(contentBytes), format, nil
 }
@@ -45,6 +45,6 @@ func (e *EmojiService) GetImage(id string) (content io.Reader, format string, er
 //
 // @tag Emoji minimum server version: 5.6
 func (e *EmojiService) List(sortBy string, page, count int) ([]*model.Emoji, error) {
-	emojis, aerr := e.api.GetEmojiList(sortBy, page, count)
-	return emojis, normalizeAppErr(aerr)
+	emojis, appErr := e.api.GetEmojiList(sortBy, page, count)
+	return emojis, normalizeAppErr(appErr)
 }

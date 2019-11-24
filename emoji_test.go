@@ -30,12 +30,12 @@ func TestGetEmoji(t *testing.T) {
 
 		client := NewClient(api)
 
-		aerr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("GetEmoji", "1").Return(nil, aerr)
+		api.On("GetEmoji", "1").Return(nil, appErr)
 
 		emoji, err := client.Emoji.Get("1")
-		require.Equal(t, aerr, err)
+		require.Equal(t, appErr, err)
 		require.Zero(t, emoji)
 	})
 }
@@ -60,12 +60,12 @@ func TestGetEmojiByName(t *testing.T) {
 
 		client := NewClient(api)
 
-		aerr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("GetEmojiByName", "1").Return(nil, aerr)
+		api.On("GetEmojiByName", "1").Return(nil, appErr)
 
 		emoji, err := client.Emoji.GetByName("1")
-		require.Equal(t, aerr, err)
+		require.Equal(t, appErr, err)
 		require.Zero(t, emoji)
 	})
 }
@@ -93,12 +93,12 @@ func TestGetEmojiImage(t *testing.T) {
 
 		client := NewClient(api)
 
-		aerr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("GetEmojiImage", "1").Return(nil, "", aerr)
+		api.On("GetEmojiImage", "1").Return(nil, "", appErr)
 
 		content, format, err := client.Emoji.GetImage("1")
-		require.Equal(t, aerr, err)
+		require.Equal(t, appErr, err)
 		require.Zero(t, content)
 		require.Zero(t, format)
 	})
@@ -127,12 +127,12 @@ func TestListEmojis(t *testing.T) {
 
 		client := NewClient(api)
 
-		aerr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
-		api.On("GetEmojiList", "1", 2, 3).Return(nil, aerr)
+		api.On("GetEmojiList", "1", 2, 3).Return(nil, appErr)
 
 		emojis, err := client.Emoji.List("1", 2, 3)
-		require.Equal(t, aerr, err)
+		require.Equal(t, appErr, err)
 		require.Zero(t, emojis)
 	})
 }

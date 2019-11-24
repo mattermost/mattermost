@@ -57,8 +57,8 @@ func (k *KVService) Set(key string, value interface{}, options ...SetOption) (up
 	if isValueInBytes || isCurrentValueInBytes {
 		opts.EncodeJSON = false
 	}
-	updated, aerr := k.api.KVSetWithOptions(key, value, opts)
-	return updated, normalizeAppErr(aerr)
+	updated, appErr := k.api.KVSetWithOptions(key, value, opts)
+	return updated, normalizeAppErr(appErr)
 }
 
 // SetWithExpiry stores a key-value pair with an expiry time, unique per plugin.
@@ -95,9 +95,9 @@ func (k *KVService) CompareAndDelete(key string, currentValue interface{}) (dele
 //
 // @tag KeyValueStore minimum server version: 5.2
 func (k *KVService) Get(key string, o interface{}) error {
-	data, aerr := k.api.KVGet(key)
-	if aerr != nil {
-		return normalizeAppErr(aerr)
+	data, appErr := k.api.KVGet(key)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
 	}
 	bytesOut, ok := o.(*[]byte)
 	if !ok {
@@ -138,6 +138,6 @@ type listKeysOptions struct {
 //
 // @tag KeyValueStore minimum server version: 5.6
 func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) (keys []string, err error) {
-	keys, aerr := k.api.KVList(page, count)
-	return keys, normalizeAppErr(aerr)
+	keys, appErr := k.api.KVList(page, count)
+	return keys, normalizeAppErr(appErr)
 }
