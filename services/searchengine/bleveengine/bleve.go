@@ -13,6 +13,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
 	"github.com/blevesearch/bleve/mapping"
+	"github.com/blevesearch/bleve/search/query"
 )
 
 type BleveEngine struct {
@@ -39,6 +40,7 @@ func getChannelsIndexMapping() *mapping.IndexMappingImpl {
 	keywordMapping.Analyzer = keyword.Name
 
 	channelMapping := bleve.NewDocumentMapping()
+	channelMapping.AddFieldMappingsAt("Id", keywordMapping)
 	channelMapping.AddFieldMappingsAt("TeamId", keywordMapping)
 	channelMapping.AddFieldMappingsAt("NameSuggest", keywordMapping)
 
@@ -53,7 +55,20 @@ func getPostsIndexMapping() *mapping.IndexMappingImpl {
 }
 
 func getUsersIndexMapping() *mapping.IndexMappingImpl {
-	return bleve.NewIndexMapping()
+	keywordMapping := bleve.NewTextFieldMapping()
+	keywordMapping.Analyzer = keyword.Name
+
+	userMapping := bleve.NewDocumentMapping()
+	userMapping.AddFieldMappingsAt("Id", keywordMapping)
+	userMapping.AddFieldMappingsAt("SuggestionsWithFullname", keywordMapping)
+	userMapping.AddFieldMappingsAt("SuggestionsWithoutFullname", keywordMapping)
+	userMapping.AddFieldMappingsAt("TeamsIds", keywordMapping)
+	userMapping.AddFieldMappingsAt("ChannelsIds", keywordMapping)
+
+	indexMapping := bleve.NewIndexMapping()
+	indexMapping.AddDocumentMapping("_default", userMapping)
+
+	return indexMapping
 }
 
 func createOrOpenIndex(cfg *model.Config, indexName string, mapping *mapping.IndexMappingImpl) (bleve.Index, error) {
@@ -146,9 +161,10 @@ func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
 }
 
 func (b *BleveEngine) IndexChannel(channel *model.Channel) *model.AppError {
-	mlog.Warn("IndexChannel Bleve")
 	blvChannel := BLVChannelFromChannel(channel)
-	b.channelIndex.Index(blvChannel.Id, blvChannel) // ToDo: error control
+	if err := b.channelIndex.Index(blvChannel.Id, blvChannel); err != nil {
+		return model.NewAppError("Bleveengine.IndexChannel", "bleveengine.index_channel.error", nil, err.Error(), http.StatusInternalServerError)
+	}
 	return nil
 }
 
@@ -156,7 +172,7 @@ func (b *BleveEngine) SearchChannels(teamId, term string) ([]string, *model.AppE
 	teamIdQ := bleve.NewTermQuery(teamId)
 	teamIdQ.SetField("TeamId")
 
-	nameSuggestQ := bleve.NewPrefixQuery(term)
+	nameSuggestQ := bleve.NewPrefixQuery(strings.ToLower(term))
 	nameSuggestQ.SetField("NameSuggest")
 
 	query := bleve.NewSearchRequest(bleve.NewConjunctionQuery(teamIdQ, nameSuggestQ))
@@ -174,28 +190,24 @@ func (b *BleveEngine) SearchChannels(teamId, term string) ([]string, *model.AppE
 }
 
 func (b *BleveEngine) DeleteChannel(channel *model.Channel) *model.AppError {
-	mlog.Warn("DeleteChannel Bleve")
+	if err := b.channelIndex.Delete(channel.Id); err != nil {
+		return model.NewAppError("Bleveengine.DeleteChannel", "bleveengine.delete_channel.error", nil, err.Error(), http.StatusInternalServerError)
+	}
 	return nil
 }
 
 func (b *BleveEngine) IndexUser(user *model.User, teamsIds, channelsIds []string) *model.AppError {
-	mlog.Warn("IndexUser Bleve")
 	blvUser := BLVUserFromUserAndTeams(user, teamsIds, channelsIds)
-	b.userIndex.Index(blvUser.Id, blvUser) // ToDo: error control
+	if err := b.userIndex.Index(blvUser.Id, blvUser); err != nil {
+		return model.NewAppError("Bleveengine.IndexUser", "bleveengine.index_user.error", nil, err.Error(), http.StatusInternalServerError)
+	}
 	return nil
 }
 
 func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError) {
-	mlog.Warn("SearchUsersInChannel Bleve")
-	query := bleve.NewPrefixQuery(term)
-	search := bleve.NewSearchRequest(query)
-	search.Fields = []string{"SuggestionsWithFullname"}
-	results, err := b.userIndex.Search(search)
-	if err != nil {
-		panic(err)
-		// return nil, nil, err
+	if restrictedToChannels != nil && len(restrictedToChannels) == 0 {
+		return []string{}, []string{}, nil
 	}
-
 	/*
 		       -------------------------------------
 			   - uchan
@@ -204,6 +216,29 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 		       PrefixQuery term
 		       TermQuery channelId
 	*/
+
+	var queries []query.Query
+	if term != "" {
+		termQ := bleve.NewPrefixQuery(strings.ToLower(term))
+		if options.AllowFullNames {
+			termQ.SetField("SuggestionsWithFullname")
+		} else {
+			termQ.SetField("SuggestionsWithoutFullname")
+		}
+		queries = append(queries, termQ)
+	}
+
+	channelIdQ := bleve.NewTermQuery(channelId)
+	channelIdQ.SetField("ChannelsIds")
+	queries = append(queries, channelIdQ)
+
+	query := bleve.NewConjunctionQuery(queries...)
+
+	uchan, err := b.userIndex.Search(bleve.NewSearchRequest(query))
+	if err != nil {
+		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.uchan.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	// --------------- end uchan
 
 	/*
 		       -------------------------------------
@@ -215,21 +250,117 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 		       one TermQuery for each restrictedInChannels
 	*/
 
-	// uchan and nuchan
-	for _, r := range results.Hits {
-		mlog.Warn(">>>>>>>>> Result: " + r.ID)
+	boolQ := bleve.NewBooleanQuery()
+
+	if term != "" {
+		termQ := bleve.NewPrefixQuery(strings.ToLower(term))
+		if options.AllowFullNames {
+			termQ.SetField("SuggestionsWithFullname")
+		} else {
+			termQ.SetField("SuggestionsWithoutFullname")
+		}
+		boolQ.AddMust(termQ)
 	}
 
-	return nil, nil, nil
+	teamIdQ := bleve.NewTermQuery(teamId)
+	teamIdQ.SetField("TeamsIds")
+	boolQ.AddMust(teamIdQ)
+
+	// ToDo: here we reuse channelIdQ var
+	channelIdQ = bleve.NewTermQuery(channelId)
+	channelIdQ.SetField("ChannelsIds")
+	boolQ.AddMustNot(channelIdQ)
+
+	if len(restrictedToChannels) > 0 {
+		for _, channelId := range restrictedToChannels {
+			restrictedChannelQ := bleve.NewTermQuery(channelId)
+			boolQ.AddMust(restrictedChannelQ)
+		}
+	}
+
+	nuchan, err := b.userIndex.Search(bleve.NewSearchRequest(boolQ))
+	if err != nil {
+		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.nuchan.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// --------------- end nuchan
+
+	uchanIds := []string{}
+	for _, result := range uchan.Hits {
+		uchanIds = append(uchanIds, result.ID)
+	}
+
+	nuchanIds := []string{}
+	for _, result := range nuchan.Hits {
+		nuchanIds = append(nuchanIds, result.ID)
+	}
+
+	return uchanIds, nuchanIds, nil
 }
 
 func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, *model.AppError) {
-	mlog.Warn("SearchUsersInTeam Bleve")
-	return nil, nil
+	if restrictedToChannels != nil && len(restrictedToChannels) == 0 {
+		return []string{}, nil
+	}
+
+	// query
+	// if term, prefix term
+	// if restricted equals nil (search in team), teamTerm
+	// else, channel term for each restricted channel
+
+	var query query.Query
+	if term == "" && teamId == "" && restrictedToChannels == nil {
+		query = bleve.NewMatchAllQuery()
+	} else {
+		boolQ := bleve.NewBooleanQuery()
+
+		if term != "" {
+			termQ := bleve.NewPrefixQuery(strings.ToLower(term))
+			if options.AllowFullNames {
+				termQ.SetField("SuggestionsWithFullname")
+			} else {
+				termQ.SetField("SuggestionsWithoutFullname")
+			}
+			boolQ.AddMust(termQ)
+		}
+
+		if restrictedToChannels == nil {
+			// this means that we only need to restrict by team
+			if teamId != "" {
+				teamIdQ := bleve.NewTermQuery(teamId)
+				teamIdQ.SetField("TeamsIds")
+				boolQ.AddMust(teamIdQ)
+			}
+		} else {
+			// restricted channels are already filtered by team, so we
+			// can search only those matches
+			for _, channelId := range restrictedToChannels {
+				channelIdQ := bleve.NewTermQuery(channelId)
+				channelIdQ.SetField("ChannelsIds")
+				boolQ.AddMust(channelIdQ)
+			}
+		}
+
+		query = boolQ
+	}
+
+	result, err := b.userIndex.Search(bleve.NewSearchRequest(query))
+	if err != nil {
+		return nil, model.NewAppError("Bleveengine.SearchUsersInTeam", "bleveengine.search_users_in_team.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	usersIds := []string{}
+	for _, r := range result.Hits {
+		usersIds = append(usersIds, r.ID)
+	}
+
+	return usersIds, nil
 }
 
 func (b *BleveEngine) DeleteUser(user *model.User) *model.AppError {
-	mlog.Warn("DeleteUser Bleve")
+	if err := b.userIndex.Delete(user.Id); err != nil {
+		return model.NewAppError("Bleveengine.DeleteUser", "bleveengine.delete_user.error", nil, err.Error(), http.StatusInternalServerError)
+	}
 	return nil
 }
 

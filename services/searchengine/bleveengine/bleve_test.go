@@ -144,8 +144,7 @@ func (s *BleveEngineTestSuite) TestBleveSearchChannels() {
 
 	// Chech the channels are there
 	for _, cId := range []string{channel1.Id, channel2.Id, channel3.Id, channel4.Id} {
-		q := bleve.NewDocIDQuery([]string{cId})
-		result, err := s.engine.channelIndex.Search(bleve.NewSearchRequest(q))
+		result, err := s.engine.channelIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{cId})))
 		s.Require().Nil(err)
 		s.Len(result.Hits, 1)
 		s.Equal(cId, result.Hits[0].ID)
@@ -191,4 +190,322 @@ func (s *BleveEngineTestSuite) TestBleveSearchChannels() {
 			s.ElementsMatch(r, tc.Expected)
 		})
 	}
+}
+
+func (s *BleveEngineTestSuite) TestBleveDeleteChannel() {
+	// Create and index a channel.
+	channel := createChannel("team-id", "channel", "Test Channel")
+	s.Nil(s.engine.IndexChannel(channel))
+
+	// Check the channel is there.
+	result, err := s.engine.channelIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{channel.Id})))
+	s.Require().Nil(err)
+	s.Len(result.Hits, 1)
+	s.Equal(channel.Id, result.Hits[0].ID)
+
+	// Delete the post.
+	s.Nil(s.engine.DeleteChannel(channel))
+
+	// Check the post is not there.
+	result, err = s.engine.channelIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{channel.Id})))
+	s.Nil(err)
+	s.Len(result.Hits, 0)
+}
+
+func (s *BleveEngineTestSuite) TestBleveIndexUser() {
+	// Create and index a user
+	user := createUser("test.user", "testuser", "Test", "User")
+	s.Nil(s.engine.IndexUser(user, []string{}, []string{}))
+
+	// Check the user is there.
+	result, err := s.engine.userIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{user.Id})))
+	s.Require().Nil(err)
+	s.Len(result.Hits, 1)
+	s.Equal(user.Id, result.Hits[0].ID)
+}
+
+func (s *BleveEngineTestSuite) TestBleveSearchUsersInChannel() {
+	// Create and index some users
+	// Channels for team 1
+	teamId1 := model.NewId()
+	channelId1 := model.NewId()
+	channelId2 := model.NewId()
+
+	// Channels for team 2
+	teamId2 := model.NewId()
+	channelId3 := model.NewId()
+
+	// Users in team 1
+	user1 := createUser("test.one", "userone", "User", "One")
+	s.Nil(s.engine.IndexUser(user1, []string{teamId1}, []string{channelId1, channelId2}))
+
+	user2 := createUser("test.two", "usertwo", "User", "Special Two")
+	s.Nil(s.engine.IndexUser(user2, []string{teamId1}, []string{channelId1, channelId2}))
+
+	user3 := createUser("test.three", "userthree", "User", "Special Three")
+	s.Nil(s.engine.IndexUser(user3, []string{teamId1}, []string{channelId2}))
+
+	// Users in team 2
+	user4 := createUser("test.four", "userfour", "User", "Four")
+	s.Nil(s.engine.IndexUser(user4, []string{teamId2}, []string{channelId3}))
+
+	user5 := createUser("test.five_split", "userfive", "User", "Five")
+	s.Nil(s.engine.IndexUser(user5, []string{teamId2}, []string{channelId3}))
+
+	// Check that the users are there
+	for _, u := range []*model.User{user1, user2, user3, user4, user5} {
+		result, err := s.engine.userIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{u.Id})))
+		s.Require().Nil(err)
+		s.Len(result.Hits, 1)
+		s.Equal(u.Id, result.Hits[0].ID)
+	}
+
+	// Given the default search options
+	options := &model.UserSearchOptions{
+		AllowFullNames: true,
+		Limit:          100,
+	}
+
+	testCases := []struct {
+		Name               string
+		Team               string
+		Channel            string
+		RestrictedChannels []string
+		Term               string
+		RChan              []string
+		RNuchan            []string
+	}{
+		{
+			Name:               "All users in channel1",
+			Team:               teamId1,
+			Channel:            channelId1,
+			RestrictedChannels: nil,
+			Term:               "",
+			RChan:              []string{user1.Id, user2.Id},
+			RNuchan:            []string{user3.Id},
+		},
+		{
+			Name:               "All users in channel1 with channel restrictions",
+			Team:               teamId1,
+			Channel:            channelId1,
+			RestrictedChannels: []string{channelId1},
+			Term:               "",
+			RChan:              []string{user1.Id, user2.Id},
+			RNuchan:            []string{},
+		},
+		{
+			Name:               "All users in channel1 with channel all channels restricted",
+			Team:               teamId1,
+			Channel:            channelId1,
+			RestrictedChannels: []string{},
+			Term:               "",
+			RChan:              []string{},
+			RNuchan:            []string{},
+		},
+		{
+			Name:               "All users in channel2",
+			Team:               teamId1,
+			Channel:            channelId2,
+			RestrictedChannels: nil,
+			Term:               "",
+			RChan:              []string{user1.Id, user2.Id, user3.Id},
+			RNuchan:            []string{},
+		},
+		{
+			Name:               "All users in channel3",
+			Team:               teamId2,
+			Channel:            channelId3,
+			RestrictedChannels: nil,
+			Term:               "",
+			RChan:              []string{user4.Id, user5.Id},
+			RNuchan:            []string{},
+		},
+		{
+			Name:               "All users in channel1 with term \"spe\"",
+			Team:               teamId1,
+			Channel:            channelId1,
+			RestrictedChannels: nil,
+			Term:               "spe",
+			RChan:              []string{user2.Id},
+			RNuchan:            []string{user3.Id},
+		},
+		{
+			Name:               "All users in channel1 with term \"spe\" with channel restrictions",
+			Team:               teamId1,
+			Channel:            channelId1,
+			RestrictedChannels: []string{channelId1},
+			Term:               "spe",
+			RChan:              []string{user2.Id},
+			RNuchan:            []string{},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Name, func() {
+			rchan, rnuchan, err := s.engine.SearchUsersInChannel(tc.Team, tc.Channel, tc.RestrictedChannels, tc.Term, options)
+			s.Require().Nil(err)
+			s.Len(rchan, len(tc.RChan))
+			s.ElementsMatch(rchan, tc.RChan)
+			s.Len(rnuchan, len(tc.RNuchan))
+			s.ElementsMatch(rnuchan, tc.RNuchan)
+		})
+	}
+}
+
+func (s *BleveEngineTestSuite) TestBleveSearchUsersInTeam() {
+	// Create and index some users
+	// Channels for team 1
+	teamId1 := model.NewId()
+	channelId1 := model.NewId()
+	channelId2 := model.NewId()
+
+	// Channels for team 2
+	teamId2 := model.NewId()
+	channelId3 := model.NewId()
+
+	// Users in team 1
+	user1 := createUser("test.one.split", "userone", "User", "One")
+	s.Nil(s.engine.IndexUser(user1, []string{teamId1}, []string{channelId1, channelId2}))
+
+	user2 := createUser("test.two", "usertwo", "User", "Special Two")
+	s.Nil(s.engine.IndexUser(user2, []string{teamId1}, []string{channelId1, channelId2}))
+
+	user3 := createUser("test.three", "userthree", "User", "Special Three")
+	s.Nil(s.engine.IndexUser(user3, []string{teamId1}, []string{channelId2}))
+
+	// Users in team 2
+	user4 := createUser("test.four-slash", "userfour", "User", "Four")
+	s.Nil(s.engine.IndexUser(user4, []string{teamId2}, []string{channelId3}))
+
+	user5 := createUser("test.five.split", "userfive", "User", "Five")
+	s.Nil(s.engine.IndexUser(user5, []string{teamId2}, []string{channelId3}))
+
+	// Check that the users are there
+	for _, u := range []*model.User{user1, user2, user3, user4, user5} {
+		result, err := s.engine.userIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{u.Id})))
+		s.Require().Nil(err)
+		s.Len(result.Hits, 1)
+		s.Equal(u.Id, result.Hits[0].ID)
+	}
+
+	// Given the default search options
+	options := &model.UserSearchOptions{
+		AllowFullNames: true,
+		Limit:          100,
+	}
+
+	testCases := []struct {
+		Name               string
+		Team               string
+		RestrictedChannels []string
+		Term               string
+		Result             []string
+	}{
+		{
+			Name:               "All users",
+			Team:               "",
+			RestrictedChannels: nil,
+			Term:               "",
+			Result:             []string{user1.Id, user2.Id, user3.Id, user4.Id, user5.Id},
+		},
+		{
+			Name:               "All users with term \"split\"",
+			Team:               "",
+			RestrictedChannels: nil,
+			Term:               "split",
+			Result:             []string{user1.Id, user5.Id},
+		},
+		{
+			Name:               "All users in team1",
+			Team:               teamId1,
+			RestrictedChannels: nil,
+			Term:               "",
+			Result:             []string{user1.Id, user2.Id, user3.Id},
+		},
+		{
+			Name:               "All users in team1 with term \"spe\"",
+			Team:               teamId1,
+			RestrictedChannels: nil,
+			Term:               "spe",
+			Result:             []string{user2.Id, user3.Id},
+		},
+		{
+			Name:               "All users in team1 with term \"spe\" and channel restrictions",
+			Team:               teamId1,
+			RestrictedChannels: []string{channelId1},
+			Term:               "spe",
+			Result:             []string{user2.Id},
+		},
+		{
+			Name:               "All users in team1 with term \"spe\" and all channels restricted",
+			Team:               teamId1,
+			RestrictedChannels: []string{},
+			Term:               "spe",
+			Result:             []string{},
+		},
+		{
+			Name:               "All users in team2",
+			Team:               teamId2,
+			RestrictedChannels: nil,
+			Term:               "",
+			Result:             []string{user4.Id, user5.Id},
+		},
+		{
+			Name:               "All users in team2 with term FiV",
+			Team:               teamId2,
+			RestrictedChannels: nil,
+			Term:               "FiV",
+			Result:             []string{user5.Id},
+		},
+		{
+			Name:               "All users in team2 by split part of the username with a dot",
+			Team:               teamId2,
+			RestrictedChannels: []string{channelId3},
+			Term:               "split",
+			Result:             []string{user5.Id},
+		},
+		{
+			Name:               "All users in team2 by split part of the username with a slash",
+			Team:               teamId2,
+			RestrictedChannels: []string{channelId3},
+			Term:               "slash",
+			Result:             []string{user4.Id},
+		},
+		{
+			Name:               "All users in team2 by split part of the username with a -slash",
+			Team:               teamId2,
+			RestrictedChannels: []string{channelId3},
+			Term:               "-slash",
+			Result:             []string{user4.Id},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Name, func() {
+			r, err := s.engine.SearchUsersInTeam(tc.Team, tc.RestrictedChannels, tc.Term, options)
+			s.Nil(err)
+			s.Len(r, len(tc.Result))
+			s.ElementsMatch(r, tc.Result)
+		})
+	}
+}
+
+func (s *BleveEngineTestSuite) TestBleveDeleteUser() {
+	// Create and index a user
+	user := createUser("test.user", "testuser", "Test", "User")
+	s.Nil(s.engine.IndexUser(user, []string{}, []string{}))
+
+	// Check the user is there.
+	result, err := s.engine.userIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{user.Id})))
+	s.Require().Nil(err)
+	s.Len(result.Hits, 1)
+	s.Equal(user.Id, result.Hits[0].ID)
+
+	// Delete the user.
+	s.Nil(s.engine.DeleteUser(user))
+
+	// Check the user is not there.
+	result, err = s.engine.userIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{user.Id})))
+	s.Require().Nil(err)
+	s.Len(result.Hits, 0)
 }
