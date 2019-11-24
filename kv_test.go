@@ -19,7 +19,7 @@ func TestKVSet(t *testing.T) {
 		name            string
 		key             string
 		value           interface{}
-		options         []SetOption
+		options         []KVSetOption
 		expectedOptions model.PluginKVSetOptions
 		upserted        bool
 		err             error
@@ -28,7 +28,7 @@ func TestKVSet(t *testing.T) {
 			"[]byte value",
 			"1",
 			[]byte{2},
-			[]SetOption{},
+			[]KVSetOption{},
 			model.PluginKVSetOptions{},
 			true,
 			nil,
@@ -37,7 +37,7 @@ func TestKVSet(t *testing.T) {
 			"string value",
 			"1",
 			"2",
-			[]SetOption{},
+			[]KVSetOption{},
 			model.PluginKVSetOptions{EncodeJSON: true},
 			true,
 			nil,
@@ -45,7 +45,7 @@ func TestKVSet(t *testing.T) {
 		{
 			"struct value", "1",
 			struct{ a string }{"2"},
-			[]SetOption{},
+			[]KVSetOption{},
 			model.PluginKVSetOptions{
 				EncodeJSON: true,
 			},
@@ -56,7 +56,7 @@ func TestKVSet(t *testing.T) {
 			"compare and set []byte value",
 			"1",
 			[]byte{2},
-			[]SetOption{
+			[]KVSetOption{
 				SetAtomic([]byte{3}),
 			},
 			model.PluginKVSetOptions{
@@ -70,7 +70,7 @@ func TestKVSet(t *testing.T) {
 			"compare and set string value",
 			"1",
 			"2",
-			[]SetOption{
+			[]KVSetOption{
 				SetAtomic("3"),
 			},
 			model.PluginKVSetOptions{
@@ -84,7 +84,7 @@ func TestKVSet(t *testing.T) {
 			"value is nil",
 			"1",
 			nil,
-			[]SetOption{},
+			[]KVSetOption{},
 			model.PluginKVSetOptions{
 				EncodeJSON: true,
 			},
@@ -95,7 +95,7 @@ func TestKVSet(t *testing.T) {
 			"current value is nil",
 			"1",
 			"2",
-			[]SetOption{
+			[]KVSetOption{
 				SetAtomic(nil),
 			},
 			model.PluginKVSetOptions{
@@ -110,7 +110,7 @@ func TestKVSet(t *testing.T) {
 			"value is nil, current value is []byte",
 			"1",
 			nil,
-			[]SetOption{
+			[]KVSetOption{
 				SetAtomic([]byte{3}),
 			},
 			model.PluginKVSetOptions{
@@ -124,7 +124,7 @@ func TestKVSet(t *testing.T) {
 			"error",
 			"1",
 			[]byte{2},
-			[]SetOption{},
+			[]KVSetOption{},
 			model.PluginKVSetOptions{},
 			false,
 			appError,
