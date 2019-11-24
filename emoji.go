@@ -8,7 +8,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// EmojiService provides features to set, update and retrive emojies.
+// EmojiService provides features to set, update and retrieve emojis.
 type EmojiService struct {
 	api plugin.API
 }
@@ -40,11 +40,11 @@ func (e *EmojiService) GetImage(id string) (content io.Reader, format string, er
 	return bytes.NewReader(contentBytes), format, nil
 }
 
-// List retrieves a list of custom emojies.
+// List retrieves a list of custom emojis.
 // sortBy parameter can be: "name".
 //
 // @tag Emoji minimum server version: 5.6
 func (e *EmojiService) List(sortBy string, page, count int) ([]*model.Emoji, error) {
-	emojies, aerr := e.api.GetEmojiList(sortBy, page, count)
-	return emojies, normalizeAppErr(aerr)
+	emojis, aerr := e.api.GetEmojiList(sortBy, page, count)
+	return emojis, normalizeAppErr(aerr)
 }

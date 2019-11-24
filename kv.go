@@ -11,7 +11,7 @@ import (
 	perrors "github.com/pkg/errors"
 )
 
-// KVService provides features to set, update and retrive key-value pairs.
+// KVService provides features to set, update and retrieve key-value pairs.
 type KVService struct {
 	api plugin.API
 }
