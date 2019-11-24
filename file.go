@@ -16,7 +16,7 @@ type FileService struct {
 
 // Get gets content of a file by id.
 //
-// minimum server version: 5.8
+// Minimum server version: 5.8
 func (f *FileService) Get(id string) (content io.Reader, err error) {
 	contentBytes, appErr := f.api.GetFile(id)
 	if appErr != nil {
@@ -38,7 +38,7 @@ func (f *FileService) GetByPath(path string) (content io.Reader, err error) {
 
 // GetInfo gets a file's info by id.
 //
-// minimum server version: 5.3
+// Minimum server version: 5.3
 func (f *FileService) GetInfo(id string) (*model.FileInfo, error) {
 	info, appErr := f.api.GetFileInfo(id)
 	return info, normalizeAppErr(appErr)
@@ -46,7 +46,7 @@ func (f *FileService) GetInfo(id string) (*model.FileInfo, error) {
 
 // GetLink gets the public link of a file by id.
 //
-// minimum server version: 5.6
+// Minimum server version: 5.6
 func (f *FileService) GetLink(id string) (link string, err error) {
 	link, appErr := f.api.GetFileLink(id)
 	return link, normalizeAppErr(appErr)
@@ -54,7 +54,7 @@ func (f *FileService) GetLink(id string) (link string, err error) {
 
 // Upload uploads a file to a channel to be later attached to a post.
 //
-// minimum server version: 5.6
+// Minimum server version: 5.6
 func (f *FileService) Upload(content io.Reader, fileName, channelID string) (*model.FileInfo, error) {
 	contentBytes, err := ioutil.ReadAll(content)
 	if err != nil {
@@ -72,7 +72,7 @@ func (f *FileService) Upload(content io.Reader, fileName, channelID string) (*mo
 // use this API to duplicate a post and its file attachments without actually duplicating
 // the uploaded files.
 //
-// minimum server version: 5.2
+// Minimum server version: 5.2
 func (f *FileService) CopyInfos(ids []string, userID string) (newIDs []string, err error) {
 	newIDs, appErr := f.api.CopyFileInfos(userID, ids)
 	return newIDs, normalizeAppErr(appErr)

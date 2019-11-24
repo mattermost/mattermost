@@ -41,7 +41,7 @@ func SetExpiry(ttl time.Duration) KVSetOption {
 //
 // Keys prefixed with `mmi_` are reserved for use by this package and will fail to be set.
 //
-// minimum server version: 5.18
+// Minimum server version: 5.18
 func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (written bool, err error) {
 	if strings.HasPrefix(key, "mmi_") {
 		return false, errors.New("'mmi_' prefix is not allowed for keys")
@@ -73,7 +73,7 @@ func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (
 // This method is deprecated in favour of calling Set with the appropriate options, but exists
 // to streamline adoption of this package for existing plugins.
 //
-// minimum server version: 5.18
+// Minimum server version: 5.18
 func (k *KVService) SetWithExpiry(key string, value interface{}, ttl time.Duration) error {
 	_, err := k.Set(key, value, SetExpiry(ttl))
 	return err
@@ -84,7 +84,7 @@ func (k *KVService) SetWithExpiry(key string, value interface{}, ttl time.Durati
 // This method is deprecated in favour of calling Set with the appropriate options, but exists
 // to streamline adoption of this package for existing plugins.
 //
-// minimum server version: 5.18
+// Minimum server version: 5.18
 func (k *KVService) CompareAndSet(key string, oldValue, value interface{}) (upserted bool, err error) {
 	return k.Set(key, value, SetAtomic(oldValue))
 }
@@ -94,7 +94,7 @@ func (k *KVService) CompareAndSet(key string, oldValue, value interface{}) (upse
 // This method is deprecated in favour of calling Set with the appropriate options, but exists
 // to streamline adoption of this package for existing plugins.
 //
-// minimum server version: 5.18
+// Minimum server version: 5.18
 func (k *KVService) CompareAndDelete(key string, oldValue interface{}) (deleted bool, err error) {
 	return k.Set(key, nil, SetAtomic(oldValue))
 }
@@ -104,7 +104,7 @@ func (k *KVService) CompareAndDelete(key string, oldValue interface{}) (deleted 
 // An error is returned only if the value cannot be fetched. A non-existent key will return no
 // error, with nothing written to the given interface.
 //
-// minimum server version: 5.2
+// Minimum server version: 5.2
 func (k *KVService) Get(key string, o interface{}) error {
 	data, appErr := k.api.KVGet(key)
 	if appErr != nil {
@@ -128,7 +128,7 @@ func (k *KVService) Get(key string, o interface{}) error {
 // An error is returned only if the value failed to be deleted. A non-existent key will return
 // no error.
 //
-// minimum server version: 5.18
+// Minimum server version: 5.18
 func (k *KVService) Delete(key string) error {
 	_, err := k.Set(key, nil)
 	return err
@@ -136,7 +136,7 @@ func (k *KVService) Delete(key string) error {
 
 // DeleteAll removes all key-value pairs.
 //
-// minimum server version: 5.6
+// Minimum server version: 5.6
 func (k *KVService) DeleteAll() error {
 	return normalizeAppErr(k.api.KVDeleteAll())
 }
@@ -151,7 +151,7 @@ type listKeysOptions struct {
 
 // ListKeys lists all keys for the plugin.
 //
-// minimum server version: 5.6
+// Minimum server version: 5.6
 func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) (keys []string, err error) {
 	keys, appErr := k.api.KVList(page, count)
 	return keys, normalizeAppErr(appErr)
