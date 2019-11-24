@@ -112,5 +112,6 @@ func BLVUserFromUserAndTeams(user *model.User, teamsIds, channelsIds []string) *
 
 func BLVPostFromPost(post *model.Post) *BLVPost {
 	return &BLVPost{
+		Id: post.Id,
 	}
 }

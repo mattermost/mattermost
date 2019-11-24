@@ -113,12 +113,47 @@ func (s *BleveEngineTestSuite) SetupTest() {
 	}
 }
 
+func (s *BleveEngineTestSuite) TestBleveIndexPost() {
+	// Create and index a post
+	userId := model.NewId()
+	channelId := model.NewId()
+	teamId := model.NewId()
+	post := createPost(userId, channelId, "some message")
+	s.Nil(s.engine.IndexPost(post, teamId))
+
+	// Check the post is there.
+	result, err := s.engine.postIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{post.Id})))
+	s.Require().Nil(err)
+	s.Len(result.Hits, 1)
+	s.Equal(post.Id, result.Hits[0].ID)
+}
+
+func (s *BleveEngineTestSuite) TestBleveDeletePost() {
+	post := createPost("userId", "channelId", model.NewId())
+
+	// Index the post.
+	s.Nil(s.engine.IndexPost(post, "teamId"))
+
+	// Check the post is there.
+	result, err := s.engine.postIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{post.Id})))
+	s.Require().Nil(err)
+	s.Len(result.Hits, 1)
+	s.Equal(post.Id, result.Hits[0].ID)
+
+	// Delete the post.
+	s.Nil(s.engine.DeletePost(post))
+
+	// Check the post is not there.
+	result, err = s.engine.postIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{post.Id})))
+	s.Require().Nil(err)
+	s.Len(result.Hits, 0)
+}
+
 func (s *BleveEngineTestSuite) TestBleveIndexChannel() {
 	channel := createChannel("team-id", "channel", "test channel")
 	s.Require().Nil(s.engine.IndexChannel(channel))
 
-	q := bleve.NewDocIDQuery([]string{channel.Id})
-	result, err := s.engine.channelIndex.Search(bleve.NewSearchRequest(q))
+	result, err := s.engine.channelIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{channel.Id})))
 	s.Require().Nil(err)
 	s.Len(result.Hits, 1)
 	s.Equal(channel.Id, result.Hits[0].ID)

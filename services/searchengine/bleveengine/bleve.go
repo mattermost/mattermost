@@ -134,19 +134,10 @@ func (b *BleveEngine) GetName() string {
 }
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
-	mlog.Warn("IndexPost Bleve")
-	// ToDo: Check what do we need to index
-	searchPost := BlevePost{
-		Id:        post.Id,
-		TeamId:    teamId,
-		ChannelId: post.ChannelId,
-		UserId:    post.UserId,
-		CreateAt:  post.CreateAt,
-		Message:   post.Message,
-		Type:      post.Type,
-		Hashtags:  strings.Split(post.Hashtags, " "),
+	blvPost := BLVPostFromPost(post)
+	if err := b.postIndex.Index(blvPost.Id, blvPost); err != nil {
+		return model.NewAppError("Bleveengine.IndexPost", "bleveengine.index_post.error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	b.postIndex.Index(post.Id, searchPost)
 	return nil
 }
 
@@ -156,7 +147,9 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 }
 
 func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
-	mlog.Warn("DeletePost Bleve")
+	if err := b.postIndex.Delete(post.Id); err != nil {
+		return model.NewAppError("Bleveengine.DeletePost", "bleveengine.delete_post.error", nil, err.Error(), http.StatusInternalServerError)
+	}
 	return nil
 }
 
