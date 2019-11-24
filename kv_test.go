@@ -57,7 +57,7 @@ func TestKVSet(t *testing.T) {
 			"1",
 			[]byte{2},
 			[]SetOption{
-				SetCompareCurrentValueOption([]byte{3}),
+				SetAtomic([]byte{3}),
 			},
 			model.PluginKVSetOptions{
 				Atomic:   true,
@@ -71,7 +71,7 @@ func TestKVSet(t *testing.T) {
 			"1",
 			"2",
 			[]SetOption{
-				SetCompareCurrentValueOption("3"),
+				SetAtomic("3"),
 			},
 			model.PluginKVSetOptions{
 				EncodeJSON: true,
@@ -96,7 +96,7 @@ func TestKVSet(t *testing.T) {
 			"1",
 			"2",
 			[]SetOption{
-				SetCompareCurrentValueOption(nil),
+				SetAtomic(nil),
 			},
 			model.PluginKVSetOptions{
 				EncodeJSON: true,
@@ -111,7 +111,7 @@ func TestKVSet(t *testing.T) {
 			"1",
 			nil,
 			[]SetOption{
-				SetCompareCurrentValueOption([]byte{3}),
+				SetAtomic([]byte{3}),
 			},
 			model.PluginKVSetOptions{
 				Atomic:   true,

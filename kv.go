@@ -19,18 +19,18 @@ type KVService struct {
 // SetOption used to configure a Set() operation.
 type SetOption func(*model.PluginKVSetOptions)
 
-// SetCompareCurrentValueOption returns an option to conditionally update a key's
+// SetAtomic returns an option to conditionally update a key's
 // value by comparing given value to match with the currently set one.
 // this is an atomic operation.
-func SetCompareCurrentValueOption(value interface{}) SetOption {
+func SetAtomic(oldValue interface{}) SetOption {
 	return func(o *model.PluginKVSetOptions) {
 		o.Atomic = true
-		o.OldValue = value
+		o.OldValue = oldValue
 	}
 }
 
-// SetExpiryOption returns an option to set an expiration time for key's persistence.
-func SetExpiryOption(ttl time.Duration) SetOption {
+// SetExpiry returns an option to set an expiration time for key's persistence.
+func SetExpiry(ttl time.Duration) SetOption {
 	return func(o *model.PluginKVSetOptions) {
 		o.ExpireInSeconds = int64(ttl / time.Second)
 	}
@@ -67,7 +67,7 @@ func (k *KVService) Set(key string, value interface{}, options ...SetOption) (up
 //
 // minimum server version: 5.18
 func (k *KVService) SetWithExpiry(key string, value interface{}, ttl time.Duration) error {
-	_, err := k.Set(key, value, SetExpiryOption(ttl))
+	_, err := k.Set(key, value, SetExpiry(ttl))
 	return err
 }
 
@@ -79,7 +79,7 @@ func (k *KVService) SetWithExpiry(key string, value interface{}, ttl time.Durati
 //
 // minimum server version: 5.18
 func (k *KVService) CompareAndSet(key string, currentValue, value interface{}) (upserted bool, err error) {
-	return k.Set(key, value, SetCompareCurrentValueOption(currentValue))
+	return k.Set(key, value, SetAtomic(currentValue))
 }
 
 // CompareAndDelete deletes a key-value pair but only if the current value matches with
@@ -87,7 +87,7 @@ func (k *KVService) CompareAndSet(key string, currentValue, value interface{}) (
 //
 // minimum server version: 5.18
 func (k *KVService) CompareAndDelete(key string, currentValue interface{}) (deleted bool, err error) {
-	return k.Set(key, nil, SetCompareCurrentValueOption(currentValue))
+	return k.Set(key, nil, SetAtomic(currentValue))
 }
 
 // Get retrieves a value based on the key, unique per plugin.
