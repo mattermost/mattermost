@@ -7,6 +7,7 @@ type Client struct {
 	api plugin.API
 
 	User UserService
+	KV   *KVService
 }
 
 // NewClient creates a new instance of Client.
@@ -14,5 +15,6 @@ func NewClient(api plugin.API) *Client {
 	return &Client{
 		api:  api,
 		User: UserService{api},
+		KV:   &KVService{api},
 	}
 }
