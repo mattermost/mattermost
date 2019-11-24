@@ -2,8 +2,6 @@ package bleveengine
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -93,27 +91,25 @@ func createPostWithHashtags(userId string, channelId string, message string, has
 }
 
 func (s *BleveEngineTestSuite) SetupTest() {
-	dirname, err := ioutil.TempDir(os.TempDir(), "mm_bleveengine_")
+	postIndex, err := bleve.NewMemOnly(getPostIndexMapping())
 	if err != nil {
-		s.FailNow("Can't create temporal index directory: " + err.Error())
+		s.FailNow("Error creating in memory index for posts: " + err.Error())
 	}
 
-	cfg := &model.Config{
-		BleveSettings: model.BleveSettings{
-			IndexDir: model.NewString(dirname),
-		},
-	}
-	blvEngine, err := NewBleveEngine(cfg, nil, nil)
+	userIndex, err := bleve.NewMemOnly(getUserIndexMapping())
 	if err != nil {
-		s.FailNow("Can't create bleve engine instance: " + err.Error())
+		s.FailNow("Error creating in memory index for users: " + err.Error())
 	}
 
-	s.engine = blvEngine
-}
+	channelIndex, err := bleve.NewMemOnly(getChannelIndexMapping())
+	if err != nil {
+		s.FailNow("Error creating in memory index for channels: " + err.Error())
+	}
 
-func (s *BleveEngineTestSuite) TearDownTest() {
-	if err := os.RemoveAll(*s.engine.cfg.BleveSettings.IndexDir); err != nil {
-		s.FailNow("Can't remove temporal index directory: " + err.Error())
+	s.engine = &BleveEngine{
+		postIndex: postIndex,
+		userIndex: userIndex,
+		channelIndex: channelIndex,
 	}
 }
 

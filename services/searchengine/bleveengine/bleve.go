@@ -35,7 +35,7 @@ type BlevePost struct {
 	Hashtags  []string `json:"hashtags"`
 }
 
-func getChannelsIndexMapping() *mapping.IndexMappingImpl {
+func getChannelIndexMapping() *mapping.IndexMappingImpl {
 	keywordMapping := bleve.NewTextFieldMapping()
 	keywordMapping.Analyzer = keyword.Name
 
@@ -50,11 +50,11 @@ func getChannelsIndexMapping() *mapping.IndexMappingImpl {
 	return indexMapping
 }
 
-func getPostsIndexMapping() *mapping.IndexMappingImpl {
+func getPostIndexMapping() *mapping.IndexMappingImpl {
 	return bleve.NewIndexMapping()
 }
 
-func getUsersIndexMapping() *mapping.IndexMappingImpl {
+func getUserIndexMapping() *mapping.IndexMappingImpl {
 	keywordMapping := bleve.NewTextFieldMapping()
 	keywordMapping.Analyzer = keyword.Name
 
@@ -87,17 +87,17 @@ func createOrOpenIndex(cfg *model.Config, indexName string, mapping *mapping.Ind
 }
 
 func NewBleveEngine(cfg *model.Config, license *model.License, jobServer *jobs.JobServer) (*BleveEngine, error) {
-	postIndex, err := createOrOpenIndex(cfg, "posts", getPostsIndexMapping())
+	postIndex, err := createOrOpenIndex(cfg, "posts", getPostIndexMapping())
 	if err != nil {
 		return nil, err
 	}
 
-	userIndex, err := createOrOpenIndex(cfg, "users", getUsersIndexMapping())
+	userIndex, err := createOrOpenIndex(cfg, "users", getUserIndexMapping())
 	if err != nil {
 		return nil, err
 	}
 
-	channelIndex, err := createOrOpenIndex(cfg, "channels", getChannelsIndexMapping())
+	channelIndex, err := createOrOpenIndex(cfg, "channels", getChannelIndexMapping())
 	if err != nil {
 		return nil, err
 	}
@@ -302,11 +302,6 @@ func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []st
 	if restrictedToChannels != nil && len(restrictedToChannels) == 0 {
 		return []string{}, nil
 	}
-
-	// query
-	// if term, prefix term
-	// if restricted equals nil (search in team), teamTerm
-	// else, channel term for each restricted channel
 
 	var query query.Query
 	if term == "" && teamId == "" && restrictedToChannels == nil {

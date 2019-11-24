@@ -21,6 +21,18 @@ type BLVUser struct {
 	ChannelsIds                []string
 }
 
+type BLVPost struct {
+	Id          string
+	TeamId      string
+	ChannelId   string
+	UserId      string
+	CreateAt    int64
+	Message     string
+	Type        string
+	Hashtags    []string
+	Attachments string
+}
+
 // ToDo: this is a duplicate
 func getSuggestionInputsSplitBy(term, splitStr string) []string {
 	splitTerm := strings.Split(strings.ToLower(term), splitStr)
@@ -95,5 +107,10 @@ func BLVUserFromUserAndTeams(user *model.User, teamsIds, channelsIds []string) *
 		SuggestionsWithoutFullname: usernameAndNicknameSuggestions,
 		TeamsIds:                   teamsIds,
 		ChannelsIds:                channelsIds,
+	}
+}
+
+func BLVPostFromPost(post *model.Post) *BLVPost {
+	return &BLVPost{
 	}
 }
