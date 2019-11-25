@@ -38,7 +38,7 @@ func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newV
 	return a.SetPluginKeyWithOptions(pluginId, key, newValue, options)
 }
 
-func (a *App) SetPluginKeyWithOptions(pluginId string, key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
+func (a *App) SetPluginKeyWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	if err := options.IsValid(); err != nil {
 		mlog.Error("Failed to set plugin key value with options", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 		return false, err
