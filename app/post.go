@@ -1016,14 +1016,14 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
 	}
 
-	if a.IsSESearchEnabled() {
+	if a.SearchEngine.GetActiveEngine().IsSearchEnabled() {
 		postSearchResults, err = a.esSearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
 		if err != nil {
 			mlog.Error("Encountered error on SearchPostsInTeamForUser through SearchEngine. Falling back to default search.", mlog.Err(err))
 		}
 	}
 
-	if !a.IsSESearchEnabled() || err != nil {
+	if !a.SearchEngine.GetActiveEngine().IsSearchEnabled() || err != nil {
 		// Since we don't support paging for DB search, we just return nothing for later pages
 		if page > 0 {
 			return model.MakePostSearchResults(model.NewPostList(), nil), nil

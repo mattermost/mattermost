@@ -909,15 +909,6 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 		})
 	}
 
-	seInterface := a.SearchEngine.GetActiveEngine()
-	if seInterface != nil && (*a.Config().ElasticsearchSettings.EnableIndexing || *a.Config().BleveSettings.EnableIndexing) {
-		a.Srv.Go(func() {
-			if err := a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	if _, err := a.Srv.Store.User().UpdateUpdateAt(user.Id); err != nil {
 		return err
 	}

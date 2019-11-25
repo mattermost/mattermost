@@ -1673,6 +1673,16 @@ func (a *App) SearchUsersInTeam(teamId, term string, options *model.UserSearchOp
 	var err *model.AppError
 	term = strings.TrimSpace(term)
 
+	listOfAllowedChannels, err := a.GetViewUsersRestrictionsForTeam(a.Session.UserId, teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
+		return []*model.User{}, nil
+	}
+
+	options.ListOfAllowedChannels = listOfAllowedChannels
 	users, err = a.Srv.Store.User().Search(teamId, term, options)
 	if err != nil {
 		return nil, err
@@ -1764,14 +1774,14 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model
 
 	term = strings.TrimSpace(term)
 
-	if a.IsSEAutocompletionEnabled() {
+	if a.SearchEngine.GetActiveEngine().IsAutocompletionEnabled() {
 		autocomplete, err = a.esAutocompleteUsersInTeam(teamId, term, options)
 		if err != nil {
 			mlog.Error("Encountered error on AutocompleteUsersInTeam through SearchEngine. Falling back to default autocompletion.", mlog.Err(err))
 		}
 	}
 
-	if !a.IsSEAutocompletionEnabled() || err != nil {
+	if !a.SearchEngine.GetActiveEngine().IsAutocompletionEnabled() || err != nil {
 		autocomplete = &model.UserAutocompleteInTeam{}
 		users, err := a.Srv.Store.User().Search(teamId, term, options)
 		if err != nil {

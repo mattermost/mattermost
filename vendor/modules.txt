@@ -15,6 +15,7 @@ github.com/blang/semver
 # github.com/blevesearch/bleve v0.8.1
 github.com/blevesearch/bleve
 github.com/blevesearch/bleve/analysis
+github.com/blevesearch/bleve/analysis/analyzer/keyword
 github.com/blevesearch/bleve/analysis/analyzer/standard
 github.com/blevesearch/bleve/analysis/datetime/flexible
 github.com/blevesearch/bleve/analysis/datetime/optional
@@ -22,6 +23,7 @@ github.com/blevesearch/bleve/analysis/lang/en
 github.com/blevesearch/bleve/analysis/token/lowercase
 github.com/blevesearch/bleve/analysis/token/porter
 github.com/blevesearch/bleve/analysis/token/stop
+github.com/blevesearch/bleve/analysis/tokenizer/single
 github.com/blevesearch/bleve/analysis/tokenizer/unicode
 github.com/blevesearch/bleve/document
 github.com/blevesearch/bleve/geo
@@ -428,10 +430,6 @@ gopkg.in/ini.v1
 gopkg.in/mail.v2
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 gopkg.in/natefinch/lumberjack.v2
-# gopkg.in/olivere/elastic.v5 v5.0.82
-gopkg.in/olivere/elastic.v5
-gopkg.in/olivere/elastic.v5/config
-gopkg.in/olivere/elastic.v5/uritemplates
 # gopkg.in/olivere/elastic.v6 v6.2.23
 gopkg.in/olivere/elastic.v6
 # gopkg.in/yaml.v2 v2.2.3
