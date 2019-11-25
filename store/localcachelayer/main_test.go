@@ -6,6 +6,8 @@ package localcachelayer
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-server/store"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/testlib"
@@ -70,6 +72,12 @@ func getMockStore() *mocks.Store {
 	mockPostStore.On("GetPosts", fakeOptions, false).Return(fakePosts, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "12360")
 	mockStore.On("Post").Return(&mockPostStore)
+
+	fakeUser := []*model.User{{Id: "123"}}
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
+	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
+	mockStore.On("User").Return(&mockUserStore)
 
 	return &mockStore
 }
