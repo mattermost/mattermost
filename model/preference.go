@@ -107,7 +107,7 @@ func (o *Preference) PreUpdate() {
 
 		// blank out any invalid theme values
 		for name, value := range props {
-			if name == "image" || name == "type" || name == "codeTheme" {
+			if name == "id" || name == "display_name" || name == "create_at" || name == "update_at" || name == "delete_at" || name == "image" || name == "type" || name == "codeTheme" {
 				continue
 			}
 
