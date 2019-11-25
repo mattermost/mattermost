@@ -165,7 +165,7 @@ func (c *Context) SetInvalidUrlParam(parameter string) {
 	c.Err = NewInvalidUrlParamError(parameter)
 }
 
-func (c *Context) SetServerBusy() {
+func (c *Context) SetServerBusyError() {
 	c.Err = NewServerBusyError()
 }
 

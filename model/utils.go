@@ -213,12 +213,6 @@ func MapBoolToJson(objmap map[string]bool) string {
 	return string(b)
 }
 
-// MapInt64ToJson converts a map to a json string
-func MapInt64ToJson(objmap map[string]int64) string {
-	b, _ := json.Marshal(objmap)
-	return string(b)
-}
-
 // MapFromJson will decode the key/value pair map
 func MapFromJson(data io.Reader) map[string]string {
 	decoder := json.NewDecoder(data)
@@ -238,18 +232,6 @@ func MapBoolFromJson(data io.Reader) map[string]bool {
 	var objmap map[string]bool
 	if err := decoder.Decode(&objmap); err != nil {
 		return make(map[string]bool)
-	} else {
-		return objmap
-	}
-}
-
-// MapInt64FromJson will decode the key/value pair map
-func MapInt64FromJson(data io.Reader) map[string]int64 {
-	decoder := json.NewDecoder(data)
-
-	var objmap map[string]int64
-	if err := decoder.Decode(&objmap); err != nil {
-		return make(map[string]int64)
 	} else {
 		return objmap
 	}

@@ -421,7 +421,7 @@ func (c *Client4) GetRedirectLocationRoute() string {
 }
 
 func (c *Client4) GetServerBusyRoute() string {
-	return fmt.Sprintf("/busy")
+	return "/svrbusy"
 }
 
 func (c *Client4) GetUserTermsOfServiceRoute(userId string) string {
@@ -4626,10 +4626,10 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	return MapFromJson(r.Body)["location"], BuildResponse(r)
 }
 
-// SetServerBusy will mark the server as busy, which will disable non-critical services for `secs` seconds.
-func (c *Client4) SetServerBusy(secs string) (bool, *Response) {
-	url := fmt.Sprintf("%s%s?secs=%s", c.GetServerBusyRoute(), "/set", secs)
-	r, err := c.DoApiGet(url, "")
+// SetServerBusy will mark the server as busy, which disables non-critical services for `secs` seconds.
+func (c *Client4) SetServerBusy(secs int) (bool, *Response) {
+	url := fmt.Sprintf("%s?secs=%d", c.GetServerBusyRoute(), secs)
+	r, err := c.DoApiPost(url, "")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -4639,7 +4639,7 @@ func (c *Client4) SetServerBusy(secs string) (bool, *Response) {
 
 // ClearServerBusy will mark the server as not busy.
 func (c *Client4) ClearServerBusy() (bool, *Response) {
-	r, err := c.DoApiGet(c.GetServerBusyRoute()+"/clear", "")
+	r, err := c.DoApiPost(c.GetServerBusyRoute()+"/clear", "")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -4650,16 +4650,20 @@ func (c *Client4) ClearServerBusy() (bool, *Response) {
 // GetServerBusyExpires returns the time when a server marked busy
 // will automatically have the flag cleared.
 func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
-	r, err := c.DoApiGet(c.GetServerBusyRoute()+"/expires", "")
+	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
 
-	m := MapInt64FromJson(r.Body)
-	secs, ok := m["expires"]
-	if !ok || secs < 0 {
-		return nil, BuildErrorResponse(r, NewAppError("GetServerBusyExpires", "model.client.get_server_busy_expires.app_error", nil, "`expires` is invalid positive integer", http.StatusBadRequest))
+	m := MapFromJson(r.Body)
+	s, ok := m["expires"]
+	if !ok {
+		s = "-1"
+	}
+	secs, e := strconv.ParseInt(s, 10, 64)
+	if e != nil || secs < 0 {
+		return nil, BuildErrorResponse(r, NewAppError("GetServerBusyExpires", "model.client.get_server_busy_expires.app_error", nil, "`expires` must be a positive integer", http.StatusBadRequest))
 	}
 	expires := time.Unix(secs, 0)
 	return &expires, BuildResponse(r)

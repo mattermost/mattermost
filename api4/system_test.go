@@ -513,7 +513,7 @@ func TestSetServerBusy(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	const secs = "30"
+	const secs = 30
 
 	t.Run("as system user", func(t *testing.T) {
 		ok, resp := th.Client.SetServerBusy(secs)
@@ -535,7 +535,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system admin, invalid param", func(t *testing.T) {
-		params := []string{"-1", "foo", "0"}
+		params := []int{-1, 0}
 		for _, p := range params {
 			ok, resp := th.SystemAdminClient.SetServerBusy(p)
 			CheckBadRequestStatus(t, resp)

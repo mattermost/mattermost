@@ -42,9 +42,9 @@ func (api *API) InitSystem() {
 
 	api.BaseRoutes.ApiRoot.Handle("/notifications/ack", api.ApiSessionRequired(pushNotificationAck)).Methods("POST")
 
-	api.BaseRoutes.ApiRoot.Handle("/busy/set", api.ApiSessionRequired(setServerBusy)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/busy/clear", api.ApiSessionRequired(clearServerBusy)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/busy/expires", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/svrbusy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/svrbusy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/svrbusy/clear", api.ApiSessionRequired(clearServerBusy)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -489,7 +489,9 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := make(map[string]int64)
-	m["expires"] = c.App.Srv.Busy.Expires().Unix()
-	w.Write([]byte(model.MapInt64ToJson(m)))
+	m := make(map[string]string)
+	m["busy"] = fmt.Sprintf("%t", c.App.Srv.Busy.IsBusy())
+	m["expires"] = fmt.Sprintf("%d", c.App.Srv.Busy.Expires().Unix())
+	m["expires_ts"] = c.App.Srv.Busy.Expires().UTC().Format("Mon Jan 2 15:04:05 -0700 MST 2006")
+	w.Write([]byte(model.MapToJson(m)))
 }

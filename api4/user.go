@@ -695,7 +695,7 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv.Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusy()
+		c.SetServerBusyError()
 		return
 	}
 	props := model.UserSearchFromJson(r.Body)

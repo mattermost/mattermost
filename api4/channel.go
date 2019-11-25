@@ -426,7 +426,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv.Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusy()
+		c.SetServerBusyError()
 		return
 	}
 	props := model.ChannelSearchFromJson(r.Body)
@@ -828,7 +828,7 @@ func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *
 func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv.Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusy()
+		c.SetServerBusyError()
 		return
 	}
 	c.RequireTeamId()
@@ -869,7 +869,7 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv.Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusy()
+		c.SetServerBusyError()
 		return
 	}
 	c.RequireTeamId()
@@ -910,7 +910,7 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv.Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusy()
+		c.SetServerBusyError()
 		return
 	}
 	props := model.ChannelSearchFromJson(r.Body)
