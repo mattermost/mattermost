@@ -50,6 +50,7 @@ type Store interface {
 	Group() GroupStore
 	UserTermsOfService() UserTermsOfServiceStore
 	LinkMetadata() LinkMetadataStore
+	Theme() ThemeStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -621,6 +622,13 @@ type GroupStore interface {
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError)
 	Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError)
+}
+
+type ThemeStore interface {
+	Save(theme *model.Theme) (*model.Theme, *model.AppError)
+	Get(id string) (*model.Theme, *model.AppError)
+	GetAll() ([]*model.Theme, *model.AppError)
+	Delete(id string) *model.AppError
 }
 
 // ChannelSearchOpts contains options for searching channels.

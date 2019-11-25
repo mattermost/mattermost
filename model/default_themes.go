@@ -56,6 +56,7 @@ var DefaultThemes = map[string]*Theme{
 		ErrorTextColor:             "#a94442",
 		MentionHighlightBackground: "#f3e197",
 		MentionHighlightLink:       "#2f81b7",
+		CodeTheme:                  "github",
 	},
 	"mattermostDark": {
 		Id:                         "mattermostDark",

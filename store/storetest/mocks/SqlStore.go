@@ -733,6 +733,22 @@ func (_m *SqlStore) TermsOfService() store.TermsOfServiceStore {
 	return r0
 }
 
+// Theme provides a mock function with given fields:
+func (_m *SqlStore) Theme() store.ThemeStore {
+	ret := _m.Called()
+
+	var r0 store.ThemeStore
+	if rf, ok := ret.Get(0).(func() store.ThemeStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ThemeStore)
+		}
+	}
+
+	return r0
+}
+
 // Token provides a mock function with given fields:
 func (_m *SqlStore) Token() store.TokenStore {
 	ret := _m.Called()

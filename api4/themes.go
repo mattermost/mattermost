@@ -11,6 +11,7 @@ import (
 )
 
 // TODO add permissions
+// TODO errors
 
 func (api *API) InitThemes() {
 	api.BaseRoutes.Themes.Handle("", api.ApiSessionRequired(getAllThemes)).Methods("GET")
@@ -20,15 +21,35 @@ func (api *API) InitThemes() {
 }
 
 func getAllThemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	themes, _ := json.Marshal(c.App.Config().ThemeSettings.Themes)
-	w.Write(themes)
+	themes, appErr := c.App.Srv.Store.Theme().GetAll()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	themeMap := map[string]*model.Theme{}
+	for _, theme := range themes {
+		themeMap[theme.Id] = theme
+	}
+
+	b, err := json.Marshal(themes)
+	if err != nil {
+		c.Err = model.NewAppError("getAllThemes", "", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
 }
 
 func getTheme(c *Context, w http.ResponseWriter, r *http.Request) {
-	theme, ok := c.App.Config().ThemeSettings.Themes[c.Params.ThemeId]
+	if c.Params.ThemeId == "" {
+		c.SetInvalidParam("theme_id")
+		return
+	}
 
-	if !ok {
-		w.WriteHeader(http.StatusNotFound)
+	theme, appErr := c.App.Srv.Store.Theme().Get(c.Params.ThemeId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -49,14 +70,9 @@ func saveTheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	theme.PreSave()
-
-	appCfg := c.App.Config()
-	appCfg.ThemeSettings.Themes[theme.Id] = theme
-
-	appErr := c.App.SaveConfig(appCfg, true)
-	if appErr != nil {
-		c.Err = model.NewAppError("saveTheme", "", nil, appErr.Error(), http.StatusInternalServerError)
+	theme, appErr := c.App.Srv.Store.Theme().Save(theme)
+	if err != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -70,18 +86,14 @@ func saveTheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteTheme(c *Context, w http.ResponseWriter, r *http.Request) {
-	_, exists := c.App.Config().ThemeSettings.Themes[c.Params.ThemeId]
-	if !exists {
-		w.WriteHeader(http.StatusNotFound)
+	if c.Params.ThemeId == "" {
+		c.SetInvalidParam("theme_id")
 		return
 	}
 
-	appCfg := c.App.Config()
-	delete(appCfg.ThemeSettings.Themes, c.Params.ThemeId)
-
-	appErr := c.App.SaveConfig(appCfg, true)
-	if appErr != nil {
-		c.Err = model.NewAppError("deleteTheme", "", nil, appErr.Error(), http.StatusInternalServerError)
+	err := c.App.Srv.Store.Theme().Delete(c.Params.ThemeId)
+	if err != nil {
+		c.Err = err
 		return
 	}
 

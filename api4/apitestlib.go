@@ -136,6 +136,11 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 		th.tempWorkspace = dir
 	}
 
+	// TODO TOTAL HACK
+	for _, theme := range model.DefaultThemes {
+		th.App.Srv.Store.Theme().Save(theme)
+	}
+
 	return th
 }
 

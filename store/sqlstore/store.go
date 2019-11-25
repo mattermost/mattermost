@@ -98,5 +98,6 @@ type SqlStore interface {
 	TermsOfService() store.TermsOfServiceStore
 	UserTermsOfService() store.UserTermsOfServiceStore
 	LinkMetadata() store.LinkMetadataStore
+	Theme() store.ThemeStore
 	getQueryBuilder() sq.StatementBuilderType
 }

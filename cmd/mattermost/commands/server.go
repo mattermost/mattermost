@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/manualtesting"
 	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
@@ -75,6 +76,11 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 	api := api4.Init(server, server.AppOptions, server.Router)
 	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
 	web.New(server, server.AppOptions, server.Router)
+
+	// TODO TOTAL HACK
+	for _, theme := range model.DefaultThemes {
+		server.Store.Theme().Save(theme)
+	}
 
 	serverErr := server.Start()
 	if serverErr != nil {

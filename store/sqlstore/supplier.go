@@ -99,6 +99,7 @@ type SqlSupplierStores struct {
 	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
+	theme                store.ThemeStore
 }
 
 type SqlSupplier struct {
@@ -154,6 +155,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.role = NewSqlRoleStore(supplier)
 	supplier.stores.scheme = NewSqlSchemeStore(supplier)
 	supplier.stores.group = NewSqlGroupStore(supplier)
+	supplier.stores.theme = NewSqlThemeStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -195,6 +197,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
 	supplier.stores.linkMetadata.(*SqlLinkMetadataStore).CreateIndexesIfNotExists()
 	supplier.stores.group.(*SqlGroupStore).CreateIndexesIfNotExists()
+	supplier.stores.theme.(*SqlThemeStore).CreateIndexesIfNotExists()
 	supplier.stores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
 	return supplier
@@ -1041,6 +1044,10 @@ func (ss *SqlSupplier) Group() store.GroupStore {
 
 func (ss *SqlSupplier) LinkMetadata() store.LinkMetadataStore {
 	return ss.stores.linkMetadata
+}
+
+func (ss *SqlSupplier) Theme() store.ThemeStore {
+	return ss.stores.theme
 }
 
 func (ss *SqlSupplier) DropAllTables() {
