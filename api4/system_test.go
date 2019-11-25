@@ -539,7 +539,6 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 		for _, p := range params {
 			ok, resp := th.SystemAdminClient.SetServerBusy(p)
 			CheckBadRequestStatus(t, resp)
-			require.Falsef(t, ok, "")
 			require.False(t, ok, "should not set server busy due to invalid param ", p)
 			require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
 		}
