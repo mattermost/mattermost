@@ -111,14 +111,6 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 
 	}
 
-	if a.IsSEIndexingEnabled() {
-		a.Srv.Go(func() {
-			if err = a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	return err
 }
 
@@ -187,14 +179,6 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	message.Add("channel_id", channel.Id)
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
-
-	if a.IsSEIndexingEnabled() {
-		a.Srv.Go(func() {
-			if err := a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
-		})
-	}
 
 	return rchannel, nil
 }
@@ -959,14 +943,6 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		})
 	}
 
-	if a.IsSEIndexingEnabled() {
-		a.Srv.Go(func() {
-			if err := a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	if userRequestorId == "" || userId == userRequestorId {
 		a.postJoinChannelMessage(user, channel)
 	} else {
@@ -1351,14 +1327,6 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 				hooks.UserHasJoinedChannel(pluginContext, cm, nil)
 				return true
 			}, plugin.UserHasJoinedChannelId)
-		})
-	}
-
-	if a.IsSEIndexingEnabled() {
-		a.Srv.Go(func() {
-			if err := a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
 		})
 	}
 
