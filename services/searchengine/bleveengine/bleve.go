@@ -142,7 +142,14 @@ func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError
 }
 
 func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
-	mlog.Warn("SearchPosts Bleve")
+	// simple query string on both messages and attachments
+
+	// implement inChannels, excludedChannels, fromUser, excludedUsers, dateFilters
+
+	// hashtags
+
+	// highlighting
+
 	return nil, nil, nil
 }
 
