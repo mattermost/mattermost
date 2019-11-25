@@ -444,6 +444,10 @@ func (c *Client4) GetGroupSyncablesRoute(groupID string, syncableType GroupSynca
 	return fmt.Sprintf("%s/%ss", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()))
 }
 
+func (c *Client4) GetThemesRoute() string {
+	return "/themes"
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -4758,4 +4762,31 @@ func (c *Client4) ChannelMembersMinusGroupMembers(channelID string, groupIDs []s
 	defer closeBody(r)
 	ugc := UsersWithGroupsAndCountFromJson(r.Body)
 	return ugc.Users, ugc.Count, BuildResponse(r)
+}
+
+func (c *Client4) GetTheme(themeId string) (*Theme, *Response) {
+	r, err := c.DoApiGet(c.GetThemesRoute()+"/"+themeId, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ThemeFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) SaveTheme(theme *Theme) (*Theme, *Response) {
+	r, err := c.DoApiPut(c.GetThemesRoute(), theme.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ThemeFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) DeleteTheme(themeId string) (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetThemesRoute() + "/" + themeId)
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
 }

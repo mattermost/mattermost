@@ -448,7 +448,7 @@ func (a *App) trackConfig() {
 		"isdefault_default_theme": isDefault(*cfg.ThemeSettings.DefaultTheme, model.TEAM_SETTINGS_DEFAULT_TEAM_TEXT),
 		"allow_custom_themes":     *cfg.ThemeSettings.AllowCustomThemes,
 		"allowed_themes":          len(cfg.ThemeSettings.AllowedThemes),
-		"system_themes":           len(cfg.ThemeSettings.SystemThemes),
+		"themes":                  len(cfg.ThemeSettings.Themes),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_OAUTH, map[string]interface{}{

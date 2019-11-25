@@ -114,6 +114,7 @@ type Routes struct {
 	Groups         *mux.Router // 'api/v4/groups'
 
 	Themes *mux.Router // 'api/v4/theme'
+	Theme  *mux.Router // 'api/v4/theme/{theme_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
@@ -217,6 +218,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
 
 	api.BaseRoutes.Themes = api.BaseRoutes.ApiRoot.PathPrefix("/themes").Subrouter()
+	api.BaseRoutes.Theme = api.BaseRoutes.Themes.PathPrefix("/{theme_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.InitUser()
 	api.InitBot()

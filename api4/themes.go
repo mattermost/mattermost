@@ -1,3 +1,6 @@
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package api4
 
 import (
@@ -7,68 +10,78 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+// TODO add permissions
+
 func (api *API) InitThemes() {
-	api.BaseRoutes.Themes.Handle("", api.ApiSessionRequired(getAllSystemThemes)).Methods("GET")
-	api.BaseRoutes.Themes.Handle("/{theme_name:[A-Za-z0-9]+}", api.ApiSessionRequired(getSystemThemeByName)).Methods("GET")
-	api.BaseRoutes.Themes.Handle("/{theme_name:[A-Za-z0-9]+}", api.ApiSessionRequired(createOrUpdateSystemTheme)).Methods("PUT")
-	api.BaseRoutes.Themes.Handle("/{theme_name:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteSystemTheme)).Methods("DELETE")
+	api.BaseRoutes.Themes.Handle("", api.ApiSessionRequired(getAllThemes)).Methods("GET")
+	api.BaseRoutes.Themes.Handle("", api.ApiSessionRequired(saveTheme)).Methods("PUT")
+	api.BaseRoutes.Theme.Handle("", api.ApiSessionRequired(getTheme)).Methods("GET")
+	api.BaseRoutes.Theme.Handle("", api.ApiSessionRequired(deleteTheme)).Methods("DELETE")
 }
 
-func getAllSystemThemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	systemThemes, _ := json.Marshal(c.App.Config().ThemeSettings.SystemThemes)
-	w.Write(systemThemes)
+func getAllThemes(c *Context, w http.ResponseWriter, r *http.Request) {
+	themes, _ := json.Marshal(c.App.Config().ThemeSettings.Themes)
+	w.Write(themes)
 }
 
-func getSystemThemeByName(c *Context, w http.ResponseWriter, r *http.Request) {
-	systemTheme, ok := c.App.Config().ThemeSettings.SystemThemes[c.Params.ThemeName]
+func getTheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	theme, ok := c.App.Config().ThemeSettings.Themes[c.Params.ThemeId]
 
 	if !ok {
-		c.SetInvalidParam("theme_name")
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	b, err := json.Marshal(systemTheme)
+	b, err := json.Marshal(theme)
 	if err != nil {
-		c.Err = model.NewAppError("/themes", "", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getTheme", "", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Write(b)
 }
 
-func createOrUpdateSystemTheme(c *Context, w http.ResponseWriter, r *http.Request) {
-	theme := make(map[string]string)
+func saveTheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	var theme *model.Theme
 	err := json.NewDecoder(r.Body).Decode(&theme)
 	if err != nil {
 		c.SetInvalidParam("theme")
 		return
 	}
 
+	theme.PreSave()
+
 	appCfg := c.App.Config()
-	appCfg.ThemeSettings.SystemThemes[c.Params.ThemeName] = theme
+	appCfg.ThemeSettings.Themes[theme.Id] = theme
 
 	appErr := c.App.SaveConfig(appCfg, true)
 	if appErr != nil {
-		c.Err = model.NewAppError("/themes", "", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("saveTheme", "", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	ReturnStatusOK(w)
+	b, err := json.Marshal(theme)
+	if err != nil {
+		c.Err = model.NewAppError("getTheme", "", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
 }
 
-func deleteSystemTheme(c *Context, w http.ResponseWriter, r *http.Request) {
-	_, exists := c.App.Config().ThemeSettings.SystemThemes[c.Params.ThemeName]
+func deleteTheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	_, exists := c.App.Config().ThemeSettings.Themes[c.Params.ThemeId]
 	if !exists {
-		c.SetInvalidParam("theme_name")
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	appCfg := c.App.Config()
-	delete(appCfg.ThemeSettings.SystemThemes, c.Params.ThemeName)
+	delete(appCfg.ThemeSettings.Themes, c.Params.ThemeId)
 
 	appErr := c.App.SaveConfig(appCfg, true)
 	if appErr != nil {
-		c.Err = model.NewAppError("/themes", "", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("deleteTheme", "", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
