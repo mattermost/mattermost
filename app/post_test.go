@@ -838,7 +838,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
-		th.App.Elasticsearch = es
+		th.App.SearchEngine.ElasticsearchEngine = es
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -859,7 +859,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
-		th.App.Elasticsearch = es
+		th.App.SearchEngine.ElasticsearchEngine = es
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -876,7 +876,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
-		th.App.Elasticsearch = es
+		th.App.SearchEngine.ElasticsearchEngine = es
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -901,7 +901,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
-		th.App.Elasticsearch = es
+		th.App.SearchEngine.ElasticsearchEngine = es
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 

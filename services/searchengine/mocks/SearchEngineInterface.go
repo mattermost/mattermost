@@ -156,6 +156,62 @@ func (_m *SearchEngineInterface) IndexUser(user *model.User, teamsIds []string, 
 	return r0
 }
 
+// IsActive provides a mock function with given fields:
+func (_m *SearchEngineInterface) IsActive() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// IsAutocompletionEnabled provides a mock function with given fields:
+func (_m *SearchEngineInterface) IsAutocompletionEnabled() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// IsIndexingEnabled provides a mock function with given fields:
+func (_m *SearchEngineInterface) IsIndexingEnabled() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// IsSearchEnabled provides a mock function with given fields:
+func (_m *SearchEngineInterface) IsSearchEnabled() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // PurgeIndexes provides a mock function with given fields:
 func (_m *SearchEngineInterface) PurgeIndexes() *model.AppError {
 	ret := _m.Called()

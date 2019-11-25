@@ -136,6 +136,11 @@ func (_m *MetricsInterface) IncrementWebsocketEvent(eventType string) {
 	_m.Called(eventType)
 }
 
+// ObserveApiEndpointDuration provides a mock function with given fields: endpoint, elapsed
+func (_m *MetricsInterface) ObserveApiEndpointDuration(endpoint string, elapsed float64) {
+	_m.Called(endpoint, elapsed)
+}
+
 // ObserveClusterRequestDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObserveClusterRequestDuration(elapsed float64) {
 	_m.Called(elapsed)
@@ -149,6 +154,11 @@ func (_m *MetricsInterface) ObserveHttpRequestDuration(elapsed float64) {
 // ObservePostsSearchDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObservePostsSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
+}
+
+// ObserveStoreMethodDuration provides a mock function with given fields: method, success, elapsed
+func (_m *MetricsInterface) ObserveStoreMethodDuration(method string, success string, elapsed float64) {
+	_m.Called(method, success, elapsed)
 }
 
 // StartServer provides a mock function with given fields:

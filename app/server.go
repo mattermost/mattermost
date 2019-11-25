@@ -782,17 +782,21 @@ func (s *Server) StartSearchEngine() {
 
 	s.AddLicenseListener(func() {
 		if s.License() != nil {
-			s.Go(func() {
-				if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
+			if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
+				s.Go(func() {
+					if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
+						mlog.Error(err.Error())
+					}
+				})
+			}
 		} else {
-			s.Go(func() {
-				if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
+			if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
+				s.Go(func() {
+					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
+						mlog.Error(err.Error())
+					}
+				})
+			}
 		}
 	})
 }
