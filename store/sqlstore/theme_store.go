@@ -59,7 +59,8 @@ func (s SqlThemeStore) Save(theme *model.Theme) (*model.Theme, *model.AppError) 
 
 	insertErr := s.GetMaster().Insert(theme)
 	if insertErr != nil {
-		if !IsUniqueConstraintError(insertErr, []string{"Id", "themes_pkey"}) {
+		if !IsUniqueConstraintError(insertErr, []string{"Id", "themes_pkey", "PRIMARY"}) {
+			mlog.Debug(fmt.Sprint("insert", insertErr))
 			return nil, model.NewAppError("SqlThemeStore.Save", "store.sql_theme.save.app_error", nil, insertErr.Error(), http.StatusInternalServerError)
 		}
 
