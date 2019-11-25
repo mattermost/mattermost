@@ -476,6 +476,42 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 	return nil
 }
 
+func init() {
+	hookNameToId["ReceivePluginEvent"] = ReceivePluginEventId
+}
+
+type Z_ReceivePluginEventArgs struct {
+	A *Context
+	B string
+	C interface{}
+}
+
+type Z_ReceivePluginEventReturns struct {
+}
+
+func (g *hooksRPCClient) ReceivePluginEvent(c *Context, event string, payload interface{}) {
+	_args := &Z_ReceivePluginEventArgs{c, event, payload}
+	_returns := &Z_ReceivePluginEventReturns{}
+	if g.implemented[ReceivePluginEventId] {
+		if err := g.client.Call("Plugin.ReceivePluginEvent", _args, _returns); err != nil {
+			g.log.Error("RPC call ReceivePluginEvent to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) ReceivePluginEvent(args *Z_ReceivePluginEventArgs, returns *Z_ReceivePluginEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		ReceivePluginEvent(c *Context, event string, payload interface{})
+	}); ok {
+		hook.ReceivePluginEvent(args.A, args.B, args.C)
+
+	} else {
+		return encodableError(fmt.Errorf("Hook ReceivePluginEvent called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -4308,6 +4344,63 @@ func (s *apiRPCServer) DeleteBotIconImage(args *Z_DeleteBotIconImageArgs, return
 		returns.A = hook.DeleteBotIconImage(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeleteBotIconImage called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SendPluginEventArgs struct {
+	A string
+	B interface{}
+}
+
+type Z_SendPluginEventReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SendPluginEvent(event string, payload interface{}) *model.AppError {
+	_args := &Z_SendPluginEventArgs{event, payload}
+	_returns := &Z_SendPluginEventReturns{}
+	if err := g.client.Call("Plugin.SendPluginEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to SendPluginEvent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SendPluginEvent(args *Z_SendPluginEventArgs, returns *Z_SendPluginEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		SendPluginEvent(event string, payload interface{}) *model.AppError
+	}); ok {
+		returns.A = hook.SendPluginEvent(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SendPluginEvent called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SubscribePluginEventArgs struct {
+	A string
+}
+
+type Z_SubscribePluginEventReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SubscribePluginEvent(event string) *model.AppError {
+	_args := &Z_SubscribePluginEventArgs{event}
+	_returns := &Z_SubscribePluginEventReturns{}
+	if err := g.client.Call("Plugin.SubscribePluginEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to SubscribePluginEvent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SubscribePluginEvent(args *Z_SubscribePluginEventArgs, returns *Z_SubscribePluginEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		SubscribePluginEvent(event string) *model.AppError
+	}); ok {
+		returns.A = hook.SubscribePluginEvent(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API SubscribePluginEvent called but not implemented."))
 	}
 	return nil
 }

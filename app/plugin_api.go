@@ -852,3 +852,33 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
 	return responseTransfer.GenerateResponse()
 }
+
+func (api *PluginAPI) SendPluginEvent(event string, payload interface{}) *model.AppError {
+	pluginEnvironment := api.app.GetPluginsEnvironment()
+	subscriptionsForEvent := pluginEnvironment.GetPluginSubscriptionsForEvent(event)
+	errorList := []string{}
+
+	for _, subscribedPlugin := range subscriptionsForEvent {
+		error := api.app.servePluginEvent(event, payload, subscribedPlugin, api.manifest.Id)
+
+		if error != nil {
+			errorList = append(errorList, subscribedPlugin)
+		}
+	}
+
+	if len(errorList) > 0 {
+		return &model.AppError{
+			Message: "Event could not be delivered for plugins " + strings.Join(errorList, ", "),
+		}
+	}
+
+	return nil
+}
+
+func (api *PluginAPI) SubscribePluginEvent(event string) *model.AppError {
+	pluginEnvironment := api.app.GetPluginsEnvironment()
+
+	pluginEnvironment.AddPluginEventSubscription(event, api.manifest.Id)
+
+	return nil
+}

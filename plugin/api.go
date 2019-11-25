@@ -920,6 +920,10 @@ type API interface {
 	//
 	// Minimum server version: 5.18
 	PluginHTTP(request *http.Request) *http.Response
+
+	SendPluginEvent(event string, payload interface{}) *model.AppError
+
+	SubscribePluginEvent(event string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

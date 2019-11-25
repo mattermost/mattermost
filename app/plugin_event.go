@@ -5,6 +5,7 @@ package app
 
 import (
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 )
 
 // notifyClusterPluginEvent publishes `event` to other clusters.
@@ -17,4 +18,21 @@ func (a *App) notifyClusterPluginEvent(event string, data model.PluginEventData)
 			Data:             data.ToJson(),
 		})
 	}
+}
+
+func (a *App) servePluginEvent(event string, payload interface{}, destPlugin string, sourcePlugin string) *model.AppError {
+	hooks, error := a.GetPluginsEnvironment().HooksForPlugin(destPlugin)
+
+	if error != nil {
+		return &model.AppError{Message: "Hooks not found for plugin"}
+	}
+
+	context := &plugin.Context{
+		RequestId:      model.NewId(),
+		SourcePluginId: sourcePlugin,
+	}
+
+	hooks.ReceivePluginEvent(context, event, payload)
+
+	return nil
 }

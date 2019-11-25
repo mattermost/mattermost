@@ -33,6 +33,7 @@ const (
 	UserWillLogInId         = 15
 	UserHasLoggedInId       = 16
 	UserHasBeenCreatedId    = 17
+	ReceivePluginEventId    = 18
 	TotalHooksId            = iota
 )
 
@@ -155,4 +156,6 @@ type Hooks interface {
 	// Note that this method will be called for files uploaded by plugins, including the plugin that uploaded the post.
 	// FileInfo.Size will be automatically set properly if you modify the file.
 	FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
+
+	ReceivePluginEvent(c *Context, event string, payload interface{})
 }

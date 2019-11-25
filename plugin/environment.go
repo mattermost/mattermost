@@ -41,12 +41,13 @@ type registeredPlugin struct {
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	registeredPlugins    sync.Map
-	pluginHealthCheckJob *PluginHealthCheckJob
-	logger               *mlog.Logger
-	newAPIImpl           apiImplCreatorFunc
-	pluginDir            string
-	webappPluginDir      string
+	registeredPlugins        sync.Map
+	pluginHealthCheckJob     *PluginHealthCheckJob
+	logger                   *mlog.Logger
+	newAPIImpl               apiImplCreatorFunc
+	pluginDir                string
+	webappPluginDir          string
+	pluginEventSubscriptions sync.Map
 }
 
 func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
@@ -437,6 +438,31 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 
 		return true
 	})
+}
+
+func (env *Environment) AddPluginEventSubscription(event string, plugin string) {
+	pluginSubscription, ok := env.pluginEventSubscriptions.Load(event)
+
+	if ok {
+		pluginSubscriptionList := pluginSubscription.([]string)
+		pluginSubscription = append(pluginSubscriptionList, plugin)
+	} else {
+		pluginSubscription = []string{plugin}
+	}
+
+	env.pluginEventSubscriptions.Store(event, pluginSubscription)
+}
+
+func (env *Environment) GetPluginSubscriptionsForEvent(event string) []string {
+	pluginSubscriptions, ok := env.pluginEventSubscriptions.Load(event)
+
+	if !ok {
+		return []string{}
+	}
+
+	pluginSubscriptionsList := pluginSubscriptions.([]string)
+
+	return pluginSubscriptionsList
 }
 
 func newRegisteredPlugin(bundle *model.BundleInfo) *registeredPlugin {
