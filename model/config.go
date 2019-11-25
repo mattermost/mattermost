@@ -1472,7 +1472,6 @@ type ThemeSettings struct {
 	DefaultTheme         *string
 	AllowCustomThemes    *bool
 	AllowedThemes        []string
-	Themes               map[string]*Theme
 }
 
 func (s *ThemeSettings) SetDefaults() {
@@ -1490,10 +1489,6 @@ func (s *ThemeSettings) SetDefaults() {
 
 	if s.AllowedThemes == nil {
 		s.AllowedThemes = []string{}
-	}
-
-	if s.Themes == nil {
-		s.Themes = DefaultThemes
 	}
 }
 
