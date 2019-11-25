@@ -1052,11 +1052,63 @@ func TestPromoteGuestToUser(t *testing.T) {
 		require.Nil(t, err)
 		assert.Len(t, *channelMembers, 3)
 	})
+
+	t.Run("Must invalidate channel stats cache when promoting a guest", func(t *testing.T) {
+		guest := th.CreateGuest()
+		require.Equal(t, "system_guest", guest.Roles)
+		th.LinkUserToTeam(guest, th.BasicTeam)
+		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeGuest)
+		require.False(t, teamMember.SchemeUser)
+
+		guestCount, _ := th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(0), guestCount)
+
+		channelMember := th.AddUserToChannel(guest, th.BasicChannel)
+		require.True(t, channelMember.SchemeGuest)
+		require.False(t, channelMember.SchemeUser)
+
+		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(1), guestCount)
+
+		err = th.App.PromoteGuestToUser(guest, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(0), guestCount)
+	})
 }
 
 func TestDemoteUserToGuest(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	t.Run("Must invalidate channel stats cache when demoting a user", func(t *testing.T) {
+		user := th.CreateUser()
+		require.Equal(t, "system_user", user.Roles)
+		th.LinkUserToTeam(user, th.BasicTeam)
+		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeUser)
+		require.False(t, teamMember.SchemeGuest)
+
+		guestCount, _ := th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(0), guestCount)
+
+		channelMember := th.AddUserToChannel(user, th.BasicChannel)
+		require.True(t, channelMember.SchemeUser)
+		require.False(t, channelMember.SchemeGuest)
+
+		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(0), guestCount)
+
+		err = th.App.DemoteUserToGuest(user)
+		require.Nil(t, err)
+
+		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(1), guestCount)
+	})
 
 	t.Run("Must fail with guest user", func(t *testing.T) {
 		guest := th.CreateGuest()
@@ -1100,7 +1152,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.True(t, teamMember.SchemeGuest)
 	})
 
-	t.Run("Must work with user user with teams and channels", func(t *testing.T) {
+	t.Run("Must work with user with teams and channels", func(t *testing.T) {
 		user := th.CreateUser()
 		require.Equal(t, "system_user", user.Roles)
 		th.LinkUserToTeam(user, th.BasicTeam)

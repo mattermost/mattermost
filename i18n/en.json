@@ -1879,6 +1879,10 @@
     "translation": "User not found"
   },
   {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+  },
+  {
     "id": "api.team.add_members.error",
     "translation": "Error adding team member(s)."
   },
@@ -3923,6 +3927,14 @@
     "translation": "Failed to create Elasticsearch bulk processor"
   },
   {
+    "id": "ent.elasticsearch.start.get_server_version.app_error",
+    "translation": "Failed to get Elasticsearch server version"
+  },
+  {
+    "id": "ent.elasticsearch.start.parse_server_version.app_error",
+    "translation": "Failed to parse Elasticsearch server version"
+  },
+  {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
     "translation": "Failed to start Elasticsearch bulk processor"
   },
@@ -3945,6 +3957,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
     "id": "ent.ldap.app_error",
