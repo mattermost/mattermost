@@ -9,7 +9,30 @@ import (
 	"github.com/pkg/errors"
 )
 
-// KVSetJSON implements Helpers.KVSetJSON.
+// KVGetJSON is a wrapper around KVGet to simplify reading a JSON object from the key value store.
+func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
+	err := p.ensureServerVersion("5.2.0")
+	if err != nil {
+		return false, err
+	}
+
+	data, appErr := p.API.KVGet(key)
+	if appErr != nil {
+		return false, appErr
+	}
+	if data == nil {
+		return false, nil
+	}
+
+	err = json.Unmarshal(data, value)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// KVSetJSON is a wrapper around KVSet to simplify writing a JSON object to the key value store.
 func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 	err := p.ensureServerVersion("5.2.0")
 	if err != nil {
@@ -29,7 +52,7 @@ func (p *HelpersImpl) KVSetJSON(key string, value interface{}) error {
 	return nil
 }
 
-// KVCompareAndSetJSON implements Helpers.KVCompareAndSetJSON.
+// KVCompareAndSetJSON is a wrapper around KVCompareAndSet to simplify atomically writing a JSON object to the key value store.
 func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error) {
 	var err error
 
@@ -61,7 +84,7 @@ func (p *HelpersImpl) KVCompareAndSetJSON(key string, oldValue interface{}, newV
 	return set, nil
 }
 
-// KVCompareAndDeleteJSON implements Helpers.KVCompareAndDeleteJSON.
+// KVCompareAndDeleteJSON is a wrapper around KVCompareAndDelete to simplify atomically deleting a JSON object from the key value store.
 func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error) {
 	var err error
 
@@ -85,29 +108,6 @@ func (p *HelpersImpl) KVCompareAndDeleteJSON(key string, oldValue interface{}) (
 	}
 
 	return deleted, nil
-}
-
-// KVGetJSON implements Helpers.KVGetJSON.
-func (p *HelpersImpl) KVGetJSON(key string, value interface{}) (bool, error) {
-	err := p.ensureServerVersion("5.2.0")
-	if err != nil {
-		return false, err
-	}
-
-	data, appErr := p.API.KVGet(key)
-	if appErr != nil {
-		return false, appErr
-	}
-	if data == nil {
-		return false, nil
-	}
-
-	err = json.Unmarshal(data, value)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
 }
 
 // KVSetWithExpiryJSON is a wrapper around KVSetWithExpiry to simplify atomically writing a JSON object with expiry to the key value store.
