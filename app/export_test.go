@@ -284,7 +284,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	// Ensure no channels were imported
 	channels, err = th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
-	assert.Equal(t, 0, len(channels))
+	assert.Equal(t, 1, len(channels))
 }
 
 func TestExportGMChannel(t *testing.T) {
@@ -475,5 +475,5 @@ func TestExportDMPostWithSelf(t *testing.T) {
 
 	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)
-	assert.Equal(t, 0, len(posts))
+	assert.Equal(t, 1, len(posts))
 }
