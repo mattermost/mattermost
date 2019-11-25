@@ -189,7 +189,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	err := s.RunOldAppInitialization()
+	searchEngineBroker, err := searchengine.NewSearchEngineBroker(s.Config(), s.Jobs)
+	if err != nil {
+		return nil, err
+	}
+	s.SearchEngine = *searchEngineBroker
+
+	err = s.RunOldAppInitialization()
 	if err != nil {
 		return nil, err
 	}
@@ -306,11 +312,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	searchEngineBroker, err := searchengine.NewSearchEngineBroker(s.Config(), s.License(), s.Jobs)
-	if err != nil {
-		return nil, err
-	}
-	s.SearchEngine = *searchEngineBroker
+	s.SearchEngine.UpdateConfig(s.Config())
 	s.StartSearchEngine()
 
 	return s, nil
@@ -721,14 +723,15 @@ func doSessionCleanup(s *Server) {
 }
 
 func (s *Server) StartSearchEngine() {
-	if s.SearchEngine.ElasticsearchEngine != nil {
+	if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.Go(func() {
 			if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
 				s.Log.Error(err.Error())
 			}
 		})
 	}
-	if s.SearchEngine.BleveEngine != nil {
+
+	if s.SearchEngine.BleveEngine != nil && s.SearchEngine.BleveEngine.IsActive() {
 		s.Go(func() {
 			if err := s.SearchEngine.BleveEngine.Start(); err != nil {
 				s.Log.Error(err.Error())

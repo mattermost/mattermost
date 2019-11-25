@@ -86,7 +86,7 @@ func createOrOpenIndex(cfg *model.Config, indexName string, mapping *mapping.Ind
 	return index, nil
 }
 
-func NewBleveEngine(cfg *model.Config, license *model.License, jobServer *jobs.JobServer) (*BleveEngine, error) {
+func NewBleveEngine(cfg *model.Config, jobServer *jobs.JobServer) (*BleveEngine, error) {
 	postIndex, err := createOrOpenIndex(cfg, "posts", getPostIndexMapping())
 	if err != nil {
 		return nil, err

@@ -1726,7 +1726,20 @@ func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptio
 func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	term = strings.TrimSpace(term)
 
+	listOfAllowedChannels, err := a.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
+	if err != nil {
+		return nil, err
+	}
+	options.ListOfAllowedChannels = listOfAllowedChannels
+
+	if len(listOfAllowedChannels) == 0 {
+		return &model.UserAutocompleteInChannel{}, nil
+	}
+
 	autocomplete, err := a.Srv.Store.User().AutocompleteUsersInChannel(teamId, channelId, term, options)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, user := range autocomplete.InChannel {
 		a.SanitizeProfile(user, options.IsAdmin)
@@ -1739,21 +1752,23 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 	return autocomplete, nil
 }
 
-func (a *App) esAutocompleteUsersInTeam(teamId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
+func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
+	var err *model.AppError
+
+	term = strings.TrimSpace(term)
+
 	listOfAllowedChannels, err := a.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
 	if err != nil {
 		return nil, err
 	}
+
 	if len(listOfAllowedChannels) == 0 {
 		return &model.UserAutocompleteInTeam{}, nil
 	}
 
-	usersIds, err := a.SearchEngine.GetActiveEngine().SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
-	if err != nil {
-		return nil, err
-	}
+	options.ListOfAllowedChannels = listOfAllowedChannels
 
-	users, err := a.Srv.Store.User().GetProfileByIds(usersIds, nil, false)
+	users, err := a.Srv.Store.User().Search(teamId, term, options)
 	if err != nil {
 		return nil, err
 	}
@@ -1764,37 +1779,6 @@ func (a *App) esAutocompleteUsersInTeam(teamId, term string, options *model.User
 
 	autocomplete := &model.UserAutocompleteInTeam{}
 	autocomplete.InTeam = users
-
-	return autocomplete, nil
-}
-
-func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
-	var autocomplete *model.UserAutocompleteInTeam
-	var err *model.AppError
-
-	term = strings.TrimSpace(term)
-
-	if a.SearchEngine.GetActiveEngine().IsAutocompletionEnabled() {
-		autocomplete, err = a.esAutocompleteUsersInTeam(teamId, term, options)
-		if err != nil {
-			mlog.Error("Encountered error on AutocompleteUsersInTeam through SearchEngine. Falling back to default autocompletion.", mlog.Err(err))
-		}
-	}
-
-	if !a.SearchEngine.GetActiveEngine().IsAutocompletionEnabled() || err != nil {
-		autocomplete = &model.UserAutocompleteInTeam{}
-		users, err := a.Srv.Store.User().Search(teamId, term, options)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, user := range users {
-			a.SanitizeProfile(user, options.IsAdmin)
-		}
-
-		autocomplete.InTeam = users
-	}
-
 	return autocomplete, nil
 }
 

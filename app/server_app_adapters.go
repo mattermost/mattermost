@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/store/searchlayer"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
@@ -61,7 +62,17 @@ func (s *Server) RunOldAppInitialization() error {
 
 	if s.FakeApp().Srv.newStore == nil {
 		s.FakeApp().Srv.newStore = func() store.Store {
-			return store.NewTimerLayer(localcachelayer.NewLocalCacheLayer(sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics), s.Metrics, s.Cluster), s.Metrics)
+			return store.NewTimerLayer(
+				searchlayer.NewSearchLayer(
+					localcachelayer.NewLocalCacheLayer(
+						sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics),
+						s.Metrics,
+						s.Cluster,
+					),
+					&s.SearchEngine,
+				),
+				s.Metrics,
+			)
 		}
 	}
 
