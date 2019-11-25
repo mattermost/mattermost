@@ -18,9 +18,9 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func (a *App) sendNotificationEmail(notification *postNotification, user *model.User, team *model.Team) *model.AppError {
-	channel := notification.channel
-	post := notification.post
+func (a *App) sendNotificationEmail(notification *PostNotification, user *model.User, team *model.Team) *model.AppError {
+	channel := notification.Channel
+	post := notification.Post
 
 	if channel.IsGroupOrDirect() {
 		teams, err := a.Srv.Store.Team().GetTeamsByUserId(user.Id)

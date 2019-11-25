@@ -11,16 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
-
-const (
-	EMOJI_CACHE_SIZE = 5000
-	EMOJI_CACHE_SEC  = 1800 // 30 mins
-)
-
-var emojiCacheById = utils.NewLru(EMOJI_CACHE_SIZE)
-var emojiIdCacheByName = utils.NewLru(EMOJI_CACHE_SIZE)
 
 type SqlEmojiStore struct {
 	SqlStore
@@ -66,26 +57,10 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError)
 }
 
 func (es SqlEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError) {
-	if allowFromCache {
-		if emoji, ok := es.getFromCacheById(id); ok {
-			return emoji, nil
-		}
-	}
-
 	return es.getBy("Id", id, allowFromCache)
 }
 
 func (es SqlEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError) {
-	if id, ok := model.GetSystemEmojiId(name); ok {
-		return es.Get(id, allowFromCache)
-	}
-
-	if allowFromCache {
-		if emoji, ok := es.getFromCacheByName(name); ok {
-			return emoji, nil
-		}
-	}
-
 	return es.getBy("Name", name, allowFromCache)
 }
 
@@ -139,8 +114,6 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
 		return model.NewAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.no_results", nil, "id="+emoji.Id, http.StatusBadRequest)
 	}
 
-	es.removeFromCache(emoji)
-
 	return nil
 }
 
@@ -193,51 +166,5 @@ func (es SqlEmojiStore) getBy(what string, key interface{}, addToCache bool) (*m
 		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get.app_error", nil, "key="+fmt.Sprintf("%v", key)+", "+err.Error(), status)
 	}
 
-	if addToCache {
-		es.addToCache(emoji)
-	}
-
 	return emoji, nil
-}
-
-func (es SqlEmojiStore) addToCache(emoji *model.Emoji) {
-	emojiCacheById.AddWithExpiresInSecs(emoji.Id, emoji, EMOJI_CACHE_SEC)
-	emojiIdCacheByName.AddWithExpiresInSecs(emoji.Name, emoji.Id, EMOJI_CACHE_SEC)
-}
-
-func (es SqlEmojiStore) getFromCacheById(id string) (*model.Emoji, bool) {
-	if cacheItem, ok := emojiCacheById.Get(id); ok {
-		es.incrementMemCacheHitCounter("Emoji")
-		return cacheItem.(*model.Emoji), true
-	}
-	es.incrementMemCacheMissCounter("Emoji")
-	return nil, false
-}
-
-func (es SqlEmojiStore) getFromCacheByName(name string) (*model.Emoji, bool) {
-	if id, ok := emojiIdCacheByName.Get(name); ok {
-		return es.getFromCacheById(id.(string))
-	}
-
-	es.incrementMemCacheMissCounter("Emoji")
-	return nil, false
-}
-
-func (es SqlEmojiStore) incrementMemCacheHitCounter(cache string) {
-	if es.metrics == nil {
-		return
-	}
-	es.metrics.IncrementMemCacheHitCounter(cache)
-}
-
-func (es SqlEmojiStore) incrementMemCacheMissCounter(cache string) {
-	if es.metrics == nil {
-		return
-	}
-	es.metrics.IncrementMemCacheMissCounter(cache)
-}
-
-func (es SqlEmojiStore) removeFromCache(emoji *model.Emoji) {
-	emojiCacheById.Remove(emoji.Id)
-	emojiIdCacheByName.Remove(emoji.Name)
 }
