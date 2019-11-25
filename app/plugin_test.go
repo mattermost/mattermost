@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -197,60 +198,24 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
 	}()
 
-	t.Run("fails with a non-serializable object as the new value", func(t *testing.T) {
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", func() {}, model.PluginKVSetOptions{
-			EncodeJSON: true,
-		})
-		assert.False(t, result)
-		assert.NotNil(t, err)
-
-		// verify that after the failure it was not set
-		ret, err := th.App.GetPluginKey(pluginId, "key")
-		assert.Nil(t, err)
-		assert.Equal(t, []byte(nil), ret)
-	})
-
-	t.Run("fails with a non-serializable object as the old value", func(t *testing.T) {
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
-			"val-a": 10,
-		}, model.PluginKVSetOptions{
-			EncodeJSON: true,
-			Atomic:     true,
-			OldValue:   func() {},
-		})
-		assert.False(t, result)
-		assert.NotNil(t, err)
-
-		// verify that after the failure it was not set
-		ret, err := th.App.GetPluginKey(pluginId, "key")
-		assert.Nil(t, err)
-		assert.Equal(t, []byte(nil), ret)
-	})
-
-	t.Run("storing a value json encoded works", func(t *testing.T) {
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
-			"val-a": 10,
-		}, model.PluginKVSetOptions{
-			EncodeJSON: true,
-		})
+	t.Run("storing a value works without providing options works", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{})
 		assert.True(t, result)
 		assert.Nil(t, err)
 
 		// and I can get it back!
 		ret, err := th.App.GetPluginKey(pluginId, "key")
 		assert.Nil(t, err)
-		assert.Equal(t, []byte(`{"val-a":10}`), ret)
+		assert.Equal(t, []byte(`value-1`), ret)
 	})
 
 	t.Run("test that setting it atomic when it doesn't match doesn't change anything", func(t *testing.T) {
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
-			"val-a": 30,
-		}, model.PluginKVSetOptions{
-			EncodeJSON: true,
-			Atomic:     true,
-			OldValue: map[string]interface{}{
-				"val-a": 20,
-			},
+		err := th.App.SetPluginKey(pluginId, "key", []byte("value-1"))
+		require.Nil(t, err)
+
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-3"), model.PluginKVSetOptions{
+			Atomic:   true,
+			OldValue: []byte("value-2"),
 		})
 		assert.False(t, result)
 		assert.Nil(t, err)
@@ -258,18 +223,16 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		// test that the value didn't change
 		ret, err := th.App.GetPluginKey(pluginId, "key")
 		assert.Nil(t, err)
-		assert.Equal(t, []byte(`{"val-a":10}`), ret)
+		assert.Equal(t, []byte(`value-1`), ret)
 	})
 
 	t.Run("test the atomic change with the proper old value", func(t *testing.T) {
-		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", map[string]interface{}{
-			"val-a": 30,
-		}, model.PluginKVSetOptions{
-			EncodeJSON: true,
-			Atomic:     true,
-			OldValue: map[string]interface{}{
-				"val-a": 10,
-			},
+		err := th.App.SetPluginKey(pluginId, "key", []byte("value-2"))
+		require.Nil(t, err)
+
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-3"), model.PluginKVSetOptions{
+			Atomic:   true,
+			OldValue: []byte("value-2"),
 		})
 		assert.True(t, result)
 		assert.Nil(t, err)
@@ -277,55 +240,28 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		// test that the value did change
 		ret, err := th.App.GetPluginKey(pluginId, "key")
 		assert.Nil(t, err)
-		assert.Equal(t, []byte(`{"val-a":30}`), ret)
+		assert.Equal(t, []byte(`value-3`), ret)
 	})
-}
 
-func TestPluginKeyValueStoreSetWithOptionsByteArray(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	t.Run("test that value is set and unset with ExpireInSeconds", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{
+			ExpireInSeconds: 1,
+		})
+		assert.True(t, result)
+		assert.Nil(t, err)
 
-	pluginId := "testpluginid"
+		// test that the value is set
+		ret, err := th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(`value-1`), ret)
 
-	defer func() {
-		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
-	}()
+		// test that the value is not longer
+		time.Sleep(1500 * time.Millisecond)
 
-	// storing a value works
-	result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`myvalue`), model.PluginKVSetOptions{})
-	assert.True(t, result)
-	assert.Nil(t, err)
-
-	// and I can get it back!
-	ret, err := th.App.GetPluginKey(pluginId, "key")
-	assert.Nil(t, err)
-	assert.Equal(t, []byte(`myvalue`), ret)
-
-	// test that setting it atomic when it doesn't match doesn't change anything
-	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`newvalue`), model.PluginKVSetOptions{
-		Atomic:   true,
-		OldValue: []byte(`differentvalue`),
+		ret, err = th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Nil(t, ret)
 	})
-	assert.False(t, result)
-	assert.Nil(t, err)
-
-	// test that the value didn't change
-	ret, err = th.App.GetPluginKey(pluginId, "key")
-	assert.Nil(t, err)
-	assert.Equal(t, []byte(`myvalue`), ret)
-
-	// now do the atomic change with the proper old value
-	result, err = th.App.SetPluginKeyWithOptions(pluginId, "key", []byte(`newvalue`), model.PluginKVSetOptions{
-		Atomic:   true,
-		OldValue: []byte(`myvalue`),
-	})
-	assert.True(t, result)
-	assert.Nil(t, err)
-
-	// test that the value did change
-	ret, err = th.App.GetPluginKey(pluginId, "key")
-	assert.Nil(t, err)
-	assert.Equal(t, []byte(`newvalue`), ret)
 }
 
 func TestServePluginRequest(t *testing.T) {
