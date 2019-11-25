@@ -85,9 +85,9 @@ func (o *Preference) IsValid() *AppError {
 	}
 
 	if o.Category == PREFERENCE_CATEGORY_THEME {
-		var unused map[string]string
+		var unused *Theme
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
-			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest)
+			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value+", err="+err.Error(), http.StatusBadRequest)
 		}
 	}
 
