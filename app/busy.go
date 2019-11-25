@@ -19,6 +19,9 @@ type Busy struct {
 
 // IsBusy returns true if the server has been marked as busy.
 func (b *Busy) IsBusy() bool {
+	if b == nil {
+		return false
+	}
 	return atomic.LoadInt32(&b.busy) != 0
 }
 
