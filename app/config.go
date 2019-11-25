@@ -403,15 +403,3 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 
 	return nil
 }
-
-func (a *App) IsSEIndexingEnabled() bool {
-	return a.SearchEngine.GetActiveEngine().IsIndexingEnabled()
-}
-
-func (a *App) IsSESearchEnabled() bool {
-	return a.SearchEngine.GetActiveEngine().IsSearchEnabled()
-}
-
-func (a *App) IsSEAutocompletionEnabled() bool {
-	return a.SearchEngine.GetActiveEngine().IsAutocompletionEnabled()
-}

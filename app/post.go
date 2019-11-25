@@ -281,14 +281,6 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		})
 	}
 
-	if a.IsSEIndexingEnabled() {
-		a.Srv.Go(func() {
-			if err = a.SearchEngine.GetActiveEngine().IndexPost(rpost, channel.TeamId); err != nil {
-				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	if a.Metrics != nil {
 		a.Metrics.IncrementPostCreate()
 	}
@@ -564,19 +556,6 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		})
 	}
 
-	if a.IsSEIndexingEnabled() {
-		a.Srv.Go(func() {
-			channel, chanErr := a.Srv.Store.Channel().GetForPost(rpost.Id)
-			if chanErr != nil {
-				mlog.Error("Couldn't get channel for post for SearchEngine indexing.", mlog.String("channel_id", rpost.ChannelId), mlog.String("post_id", rpost.Id))
-				return
-			}
-			if err := a.SearchEngine.GetActiveEngine().IndexPost(rpost, channel.TeamId); err != nil {
-				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	rpost = a.PreparePostForClient(rpost, false, true)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
@@ -844,14 +823,6 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	a.Srv.Go(func() {
 		a.DeleteFlaggedPosts(post.Id)
 	})
-
-	if a.IsSEIndexingEnabled() {
-		a.Srv.Go(func() {
-			if err := a.SearchEngine.GetActiveEngine().DeletePost(post); err != nil {
-				mlog.Error("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.Err(err))
-			}
-		})
-	}
 
 	a.InvalidateCacheForChannelPosts(post.ChannelId)
 

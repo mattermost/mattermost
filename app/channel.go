@@ -265,23 +265,6 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		})
 	}
 
-	if a.IsSEIndexingEnabled() {
-		if sc.Type == model.CHANNEL_OPEN {
-			a.Srv.Go(func() {
-				if err := a.SearchEngine.GetActiveEngine().IndexChannel(sc); err != nil {
-					mlog.Error("Encountered error indexing channel", mlog.String("channel_id", sc.Id), mlog.Err(err))
-				}
-			})
-		}
-		if addMember {
-			a.Srv.Go(func() {
-				if err := a.indexUserFromId(channel.CreatorId); err != nil {
-					mlog.Error("Encountered error indexing user", mlog.String("user_id", channel.CreatorId), mlog.Err(err))
-				}
-			})
-		}
-	}
-
 	return sc, nil
 }
 
@@ -309,16 +292,6 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 						hooks.ChannelHasBeenCreated(pluginContext, channel)
 						return true
 					}, plugin.ChannelHasBeenCreatedId)
-				})
-			}
-
-			if a.IsSEIndexingEnabled() {
-				a.Srv.Go(func() {
-					for _, id := range []string{userId, otherUserId} {
-						if indexUserErr := a.indexUserFromId(id); indexUserErr != nil {
-							mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(indexUserErr))
-						}
-					}
 				})
 			}
 
@@ -425,16 +398,6 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 	message.Add("teammate_ids", model.ArrayToJson(userIds))
 	a.Publish(message)
 
-	if a.IsSEIndexingEnabled() {
-		a.Srv.Go(func() {
-			for _, id := range userIds {
-				if err := a.indexUserFromId(id); err != nil {
-					mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(err))
-				}
-			}
-		})
-	}
-
 	return channel, nil
 }
 
@@ -519,14 +482,6 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, "", channel.Id, "", nil)
 	messageWs.Add("channel", channel.ToJson())
 	a.Publish(messageWs)
-
-	if a.IsSEIndexingEnabled() && channel.Type == model.CHANNEL_OPEN {
-		a.Srv.Go(func() {
-			if err := a.SearchEngine.GetActiveEngine().IndexChannel(channel); err != nil {
-				mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
-			}
-		})
-	}
 
 	return channel, nil
 }
@@ -1687,14 +1642,6 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		})
 	}
 
-	if a.IsSEIndexingEnabled() {
-		a.Srv.Go(func() {
-			if err := a.indexUserFromId(userIdToRemove); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", userIdToRemove), mlog.Err(err))
-			}
-		})
-	}
-
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
 	message.Add("user_id", userIdToRemove)
 	message.Add("remover_id", removerUserId)
@@ -1816,50 +1763,11 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 	return channelUnread, nil
 }
 
-func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	channelIds, err := a.SearchEngine.GetActiveEngine().SearchChannels(teamId, term)
-	if err != nil {
-		return nil, err
-	}
-
-	channelList := model.ChannelList{}
-	if len(channelIds) > 0 {
-		channels, err := a.Srv.Store.Channel().GetChannelsByIds(channelIds)
-		if err != nil {
-			return nil, err
-		}
-		for _, c := range channels {
-			if c.DeleteAt > 0 && !includeDeleted {
-				continue
-			}
-			channelList = append(channelList, c)
-		}
-	}
-
-	return &channelList, nil
-}
-
 func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
-	var channelList *model.ChannelList
-	var err *model.AppError
 	term = strings.TrimSpace(term)
 
-	if a.IsSEAutocompletionEnabled() {
-		channelList, err = a.esAutocompleteChannels(teamId, term, includeDeleted)
-		if err != nil {
-			mlog.Error("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.Err(err))
-		}
-	}
-
-	if !a.IsSEAutocompletionEnabled() || err != nil {
-		channelList, err = a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return channelList, nil
+	return a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
 }
 
 func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
@@ -2006,11 +1914,6 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, currentSession
 }
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
-	profiles, err := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, false)
-	if err != nil {
-		return err
-	}
-
 	if err := a.Srv.Store.Post().PermanentDeleteByChannel(channel.Id); err != nil {
 		return err
 	}
@@ -2018,7 +1921,6 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 	if err := a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {
 		return err
 	}
-
 	if err := a.Srv.Store.Webhook().PermanentDeleteIncomingByChannel(channel.Id); err != nil {
 		return err
 	}
@@ -2029,23 +1931,6 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 
 	if err := a.Srv.Store.Channel().PermanentDelete(channel.Id); err != nil {
 		return err
-	}
-
-	if a.IsSEIndexingEnabled() {
-		a.Srv.Go(func() {
-			for _, user := range profiles {
-				if err := a.indexUser(user); err != nil {
-					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-				}
-			}
-		})
-		if channel.Type == model.CHANNEL_OPEN {
-			a.Srv.Go(func() {
-				if err := a.SearchEngine.GetActiveEngine().DeleteChannel(channel); err != nil {
-					mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
-				}
-			})
-		}
 	}
 
 	return nil
