@@ -159,7 +159,10 @@ golangci-lint: ## Run golangci-lint on codebase
 	fi; \
 
 	@echo Running golangci-lint
-	golangci-lint run
+	golangci-lint run ./...
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	golangci-lint run ./enterprise/...
+endif
 
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off go get -u github.com/mattermost/mattermost-utilities/mmgotool
