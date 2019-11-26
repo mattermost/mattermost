@@ -952,61 +952,6 @@ func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
-	finalParamsList := []*model.SearchParams{}
-	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
-
-	for _, params := range paramsList {
-		params.OrTerms = isOrSearch
-		// Don't allow users to search for "*"
-		if params.Terms != "*" {
-			// Convert channel names to channel IDs
-			params.InChannels = a.convertChannelNamesToChannelIds(params.InChannels, userId, teamId, includeDeletedChannels)
-			params.ExcludedChannels = a.convertChannelNamesToChannelIds(params.ExcludedChannels, userId, teamId, includeDeletedChannels)
-
-			// Convert usernames to user IDs
-			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
-			params.ExcludedUsers = a.convertUserNameToUserIds(params.ExcludedUsers)
-
-			finalParamsList = append(finalParamsList, params)
-		}
-	}
-
-	// If the processed search params are empty, return empty search results.
-	if len(finalParamsList) == 0 {
-		return model.MakePostSearchResults(model.NewPostList(), nil), nil
-	}
-
-	// We only allow the user to search in channels they are a member of.
-	userChannels, err := a.GetChannelsForUser(teamId, userId, includeDeleted)
-	if err != nil {
-		mlog.Error("error getting channel for user", mlog.Err(err))
-		return nil, err
-	}
-
-	postIds, matches, err := a.SearchEngine.GetActiveEngine().SearchPosts(userChannels, finalParamsList, page, perPage)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get the posts
-	postList := model.NewPostList()
-	if len(postIds) > 0 {
-		posts, err := a.Srv.Store.Post().GetPostsByIds(postIds)
-		if err != nil {
-			return nil, err
-		}
-		for _, p := range posts {
-			if p.DeleteAt == 0 {
-				postList.AddPost(p)
-				postList.AddOrder(p.Id)
-			}
-		}
-	}
-
-	return model.MakePostSearchResults(postList, matches), nil
-}
-
 func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	var err *model.AppError
