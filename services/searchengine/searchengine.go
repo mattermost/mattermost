@@ -2,6 +2,7 @@ package searchengine
 
 import (
 	"github.com/mattermost/mattermost-server/jobs"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/services/searchengine/nullengine"
@@ -45,6 +46,14 @@ func (seb *SearchEngineBroker) UpdateConfig(cfg *model.Config) *model.AppError {
 	seb.cfg = cfg
 	if seb.ElasticsearchEngine != nil {
 		seb.ElasticsearchEngine.UpdateConfig(cfg)
+	}
+
+	if seb.BleveEngine == nil && *cfg.BleveSettings.EnableIndexing && *cfg.BleveSettings.IndexDir != "" {
+		bleveEngine, err := bleveengine.NewBleveEngine(cfg, seb.jobServer)
+		if err != nil {
+			mlog.Error(err.Error())
+		}
+		seb.BleveEngine = bleveEngine
 	}
 	if seb.BleveEngine != nil {
 		seb.BleveEngine.UpdateConfig(cfg)

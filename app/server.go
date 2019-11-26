@@ -740,6 +740,8 @@ func (s *Server) StartSearchEngine() {
 	}
 
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		s.SearchEngine.UpdateConfig(newConfig)
+
 		if s.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
 			s.Go(func() {
 				if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
