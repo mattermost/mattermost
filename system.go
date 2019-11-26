@@ -48,6 +48,6 @@ func (s *SystemService) GetSystemInstallDate() (time.Time, error) {
 //
 // Minimum server version: 5.10
 func (s *SystemService) GetDiagnosticID() string {
-	// TODO: Consider deprecating/rewriting in favour of just using GetUnsanitizedConfig().
+	// TODO: Consider deprecating/rewriting in favor of just using GetUnsanitizedConfig().
 	return s.api.GetDiagnosticId()
 }

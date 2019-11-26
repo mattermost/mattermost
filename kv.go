@@ -70,7 +70,7 @@ func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (
 
 // SetWithExpiry sets a key-value pair with the given expiration duration relative to now.
 //
-// This method is deprecated in favour of calling Set with the appropriate options, but exists
+// This method is deprecated in favor of calling Set with the appropriate options, but exists
 // to streamline adoption of this package for existing plugins.
 //
 // Minimum server version: 5.18
@@ -81,7 +81,7 @@ func (k *KVService) SetWithExpiry(key string, value interface{}, ttl time.Durati
 
 // CompareAndSet writes a key-value pair if the current value matches the given old value.
 //
-// This method is deprecated in favour of calling Set with the appropriate options, but exists
+// This method is deprecated in favor of calling Set with the appropriate options, but exists
 // to streamline adoption of this package for existing plugins.
 //
 // Minimum server version: 5.18
@@ -91,7 +91,7 @@ func (k *KVService) CompareAndSet(key string, oldValue, value interface{}) (upse
 
 // CompareAndDelete deletes a key-value pair if the current value matches the given old value.
 //
-// This method is deprecated in favour of calling Set with the appropriate options, but exists
+// This method is deprecated in favor of calling Set with the appropriate options, but exists
 // to streamline adoption of this package for existing plugins.
 //
 // Minimum server version: 5.18

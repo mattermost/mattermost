@@ -80,7 +80,7 @@ func TestGetUsers(t *testing.T) {
 		client := NewClient(api)
 
 		options := &model.UserGetOptions{}
-		expectedUsers := []*model.User{&model.User{Username: "test"}}
+		expectedUsers := []*model.User{{Username: "test"}}
 		api.On("GetUsers", options).Return(expectedUsers, nil)
 
 		actualUsers, err := client.User.List(options)
@@ -204,7 +204,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 		client := NewClient(api)
 
 		usernames := []string{"test1", "test2"}
-		expectedUsers := []*model.User{&model.User{Username: "test1"}, &model.User{Username: "test2"}}
+		expectedUsers := []*model.User{{Username: "test1"}, {Username: "test2"}}
 		api.On("GetUsersByUsernames", usernames).Return(expectedUsers, nil)
 
 		actualUsers, err := client.User.ListByUsernames(usernames)
@@ -237,7 +237,7 @@ func TestGetUsersInTeam(t *testing.T) {
 		teamID := "team_id"
 		page := 1
 		perPage := 10
-		expectedUsers := []*model.User{&model.User{Username: "test1"}, &model.User{Username: "test2"}}
+		expectedUsers := []*model.User{{Username: "test1"}, {Username: "test2"}}
 		api.On("GetUsersInTeam", teamID, page, perPage).Return(expectedUsers, nil)
 
 		actualUsers, err := client.User.ListInTeam(teamID, page, perPage)

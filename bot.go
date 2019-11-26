@@ -25,7 +25,7 @@ func (b *BotService) Get(botUserID string, includeDeleted bool) (*model.Bot, err
 // BotListOption is an option to configure a bot List() request.
 type BotListOption func(*model.BotGetOptions)
 
-// BotOwner option configures bot list request to only retrive the bots that matches with
+// BotOwner option configures bot list request to only retrieve the bots that matches with
 // owner's id.
 func BotOwner(id string) BotListOption {
 	return func(o *model.BotGetOptions) {
@@ -33,14 +33,14 @@ func BotOwner(id string) BotListOption {
 	}
 }
 
-// BotIncludeDeleted option configures bot list request to also retrive the deleted bots.
+// BotIncludeDeleted option configures bot list request to also retrieve the deleted bots.
 func BotIncludeDeleted() BotListOption {
 	return func(o *model.BotGetOptions) {
 		o.IncludeDeleted = true
 	}
 }
 
-// BotOnlyOrphans option configures bot list request to only retrive orphan bots.
+// BotOnlyOrphans option configures bot list request to only retrieve orphan bots.
 func BotOnlyOrphans() BotListOption {
 	return func(o *model.BotGetOptions) {
 		o.OnlyOrphaned = true
