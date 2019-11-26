@@ -243,7 +243,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
-			(Posts.CreateAt > :StartTime OR Posts.EditAt > :StartTime OR Posts.DeleteAt > :StartTime) AND
+			(Posts.CreateAt > :StartTime OR Posts.UpdateAt > :StartTime OR Posts.DeleteAt > :StartTime) AND
 			Posts.Type NOT LIKE 'system_%'
 		ORDER BY PostUpdateAt
 		LIMIT :Limit`
