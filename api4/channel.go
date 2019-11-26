@@ -17,8 +17,8 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.ApiSessionRequired(getAllChannels)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.ApiSessionRequired(createChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/direct", api.ApiSessionRequired(createDirectChannel)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/search", api.ApiSessionRequired(searchAllChannels)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/group/search", api.ApiSessionRequired(searchGroupChannels)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchAllChannels)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/group/search", api.ApiSessionRequiredDisableWhenBusy(searchGroupChannels)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/group", api.ApiSessionRequired(createGroupChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.ApiSessionRequired(viewChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.ApiSessionRequired(updateChannelScheme)).Methods("PUT")
@@ -26,8 +26,8 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("", api.ApiSessionRequired(getPublicChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.ApiSessionRequired(getDeletedChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.ApiSessionRequired(getPublicChannelsByIdsForTeam)).Methods("POST")
-	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.ApiSessionRequired(searchChannelsForTeam)).Methods("POST")
-	api.BaseRoutes.ChannelsForTeam.Handle("/search_archived", api.ApiSessionRequired(searchArchivedChannelsForTeam)).Methods("POST")
+	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchChannelsForTeam)).Methods("POST")
+	api.BaseRoutes.ChannelsForTeam.Handle("/search_archived", api.ApiSessionRequiredDisableWhenBusy(searchArchivedChannelsForTeam)).Methods("POST")
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.ApiSessionRequired(autocompleteChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.ApiSessionRequired(autocompleteChannelsForTeamForSearch)).Methods("GET")
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getChannelsForTeamForUser)).Methods("GET")
@@ -424,11 +424,6 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv.Busy.IsBusy() {
-		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusyError()
-		return
-	}
 	props := model.ChannelSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("channel_search")
@@ -826,11 +821,6 @@ func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *
 }
 
 func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv.Busy.IsBusy() {
-		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusyError()
-		return
-	}
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -867,11 +857,6 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv.Busy.IsBusy() {
-		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusyError()
-		return
-	}
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -908,11 +893,6 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv.Busy.IsBusy() {
-		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusyError()
-		return
-	}
 	props := model.ChannelSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("channel_search")

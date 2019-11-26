@@ -34,7 +34,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(createTeam)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(getAllTeams)).Methods("GET")
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/scheme", api.ApiSessionRequired(updateTeamScheme)).Methods("PUT")
-	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequired(searchTeams)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchTeams)).Methods("POST")
 	api.BaseRoutes.TeamsForUser.Handle("", api.ApiSessionRequired(getTeamsForUser)).Methods("GET")
 	api.BaseRoutes.TeamsForUser.Handle("/unread", api.ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
 
@@ -777,11 +777,6 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv.Busy.IsBusy() {
-		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusyError()
-		return
-	}
 	props := model.TeamSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("team_search")

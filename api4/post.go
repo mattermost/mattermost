@@ -25,7 +25,7 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.ApiSessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
 
-	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequired(searchPosts)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequiredDisableWhenBusy(searchPosts)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.ApiSessionRequired(patchPost)).Methods("PUT")
 	api.BaseRoutes.PostForUser.Handle("/set_unread", api.ApiSessionRequired(setPostUnread)).Methods("POST")
@@ -431,11 +431,6 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv.Busy.IsBusy() {
-		// this is considered a non-critical service and will be disabled when server busy.
-		c.SetServerBusyError()
-		return
-	}
 	c.RequireTeamId()
 	if c.Err != nil {
 		return

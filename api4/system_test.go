@@ -596,6 +596,24 @@ func TestServerBusy503(t *testing.T) {
 		CheckServiceUnavailableStatus(t, resp)
 	})
 
+	t.Run("search teams while busy", func(t *testing.T) {
+		ts := &model.TeamSearch{}
+		_, resp := th.SystemAdminClient.SearchTeams(ts)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	t.Run("search channels while busy", func(t *testing.T) {
+		cs := &model.ChannelSearch{}
+		_, resp := th.SystemAdminClient.SearchChannels("foo", cs)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	t.Run("search archived channels while busy", func(t *testing.T) {
+		cs := &model.ChannelSearch{}
+		_, resp := th.SystemAdminClient.SearchArchivedChannels("foo", cs)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
 	th.App.Srv.Busy.Clear()
 
 	t.Run("search users while not busy", func(t *testing.T) {
