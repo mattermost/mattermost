@@ -596,6 +596,7 @@ func TestPluginSync(t *testing.T) {
 	}
 }
 
+/*
 func TestCanaryPlugins(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -761,3 +762,4 @@ func TestCanaryPlugins(t *testing.T) {
 	require.Nil(t, err)
 	require.Len(t, pluginStatus, 0)
 }
+*/
