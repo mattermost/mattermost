@@ -20,12 +20,13 @@ type SearchUserStore struct {
 func (s SearchUserStore) deleteUserIndex(user *model.User) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			engineCopy := engine
-			go (func() {
+			go (func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteUser(user); err != nil {
 					mlog.Error("Encountered error deleting user", mlog.String("user_id", user.Id), mlog.Err(err))
+					return
 				}
-			})()
+				mlog.Debug("Removed user from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
+			})(engine)
 		}
 	}
 }
@@ -43,9 +44,11 @@ func (s SearchUserStore) Search(teamId, term string, options *model.UserSearchOp
 				continue
 			}
 
+			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
 			return users, nil
 		}
 	}
+	mlog.Debug("Using database search because no other search engine is available")
 	return s.UserStore.Search(teamId, term, options)
 }
 
@@ -132,9 +135,11 @@ func (s SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term stri
 			if err != nil {
 				continue
 			}
+			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
 			return autocomplete, err
 		}
 	}
 
+	mlog.Debug("Using database search because no other search engine is available")
 	return s.UserStore.AutocompleteUsersInChannel(teamId, channelId, term, options)
 }

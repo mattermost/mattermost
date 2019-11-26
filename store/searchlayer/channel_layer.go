@@ -19,12 +19,12 @@ func (c *SearchChannelStore) deleteChannelIndex(channel *model.Channel) {
 	if channel.Type == model.CHANNEL_OPEN {
 		for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 			if engine.IsIndexingEnabled() {
-				engineCopy := engine
-				go (func() {
+				go (func(engineCopy searchengine.SearchEngineInterface) {
 					if err := engineCopy.DeleteChannel(channel); err != nil {
 						mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 					}
-				})()
+					mlog.Debug("Removed channel from index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("channel_id", channel.Id))
+				})(engine)
 			}
 		}
 	}
@@ -34,12 +34,12 @@ func (c *SearchChannelStore) indexChannel(channel *model.Channel) {
 	if channel.Type == model.CHANNEL_OPEN {
 		for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 			if engine.IsIndexingEnabled() {
-				engineCopy := engine
-				go (func() {
+				go (func(engineCopy searchengine.SearchEngineInterface) {
 					if err := engineCopy.IndexChannel(channel); err != nil {
 						mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 					}
-				})()
+					mlog.Debug("Indexed channel in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("channel_id", channel.Id))
+				})(engine)
 			}
 		}
 	}
@@ -104,11 +104,13 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 				continue
 			}
 			allFailed = false
+			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
 			break
 		}
 	}
 
 	if allFailed {
+		mlog.Debug("Using database search because no other search engine is available")
 		channelList, err = c.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
 		if err != nil {
 			return nil, err

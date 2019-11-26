@@ -54,6 +54,5 @@ func (seb *SearchEngineBroker) GetActiveEngines() []SearchEngineInterface {
 	if seb.BleveEngine != nil && seb.BleveEngine.IsActive() {
 		engines = append(engines, seb.BleveEngine)
 	}
-	engines = append(engines, seb.NullEngine)
-	return engines
+	return append(engines, seb.NullEngine)
 }

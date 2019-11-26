@@ -964,11 +964,6 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 
 	finalParamsList := []*model.SearchParams{}
 
-	// If the processed search params are empty, return empty search results.
-	if len(finalParamsList) == 0 {
-		return model.MakePostSearchResults(model.NewPostList(), nil), nil
-	}
-
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
 		// Don't allow users to search for "*"
@@ -983,6 +978,11 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 
 			finalParamsList = append(finalParamsList, params)
 		}
+	}
+
+	// If the processed search params are empty, return empty search results.
+	if len(finalParamsList) == 0 {
+		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
 	postSearchResults, err = a.Srv.Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, isOrSearch, includeDeleted, page, perPage)

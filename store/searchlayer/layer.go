@@ -59,8 +59,7 @@ func (s SearchStore) indexUserFromID(userId string) {
 func (s SearchStore) indexUser(user *model.User) {
 	for _, engine := range s.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			engineCopy := engine
-			go (func() {
+			go (func(engineCopy searchengine.SearchEngineInterface) {
 				userTeams, err := s.Team().GetTeamsByUserId(user.Id)
 				if err != nil {
 					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -87,7 +86,8 @@ func (s SearchStore) indexUser(user *model.User) {
 					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
 					return
 				}
-			})()
+				mlog.Debug("Indexed user in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
+			})(engine)
 		}
 	}
 }
