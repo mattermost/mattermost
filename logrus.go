@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/sirupsen/logrus"
 )
 
@@ -17,13 +16,13 @@ import (
 //
 // Alternatively, construct your own logger to pass to pluginapi.ConfigureLogrus.
 type LogrusHook struct {
-	API plugin.API
+	log LogService
 }
 
 // NewLogrusHook creates a new instance of LogrusHook.
-func NewLogrusHook(api plugin.API) *LogrusHook {
+func NewLogrusHook(log LogService) *LogrusHook {
 	return &LogrusHook{
-		API: api,
+		log: log,
 	}
 }
 
@@ -42,13 +41,13 @@ func (lh *LogrusHook) Fire(entry *logrus.Entry) error {
 
 	switch entry.Level {
 	case logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel:
-		lh.API.LogError(entry.Message, fields...)
+		lh.log.Error(entry.Message, fields...)
 	case logrus.WarnLevel:
-		lh.API.LogWarn(entry.Message, fields...)
+		lh.log.Warn(entry.Message, fields...)
 	case logrus.InfoLevel:
-		lh.API.LogInfo(entry.Message, fields...)
+		lh.log.Info(entry.Message, fields...)
 	case logrus.DebugLevel, logrus.TraceLevel:
-		lh.API.LogDebug(entry.Message, fields...)
+		lh.log.Debug(entry.Message, fields...)
 	}
 
 	return nil
@@ -56,8 +55,8 @@ func (lh *LogrusHook) Fire(entry *logrus.Entry) error {
 
 // ConfigureLogrus configures the given logrus logger with a hook to proxy through the RPC API,
 // discarding the default output to avoid duplicating the events across the standard STDOUT proxy.
-func ConfigureLogrus(logger *logrus.Logger, api plugin.API) {
-	hook := NewLogrusHook(api)
+func ConfigureLogrus(logger *logrus.Logger, client *Client) {
+	hook := NewLogrusHook(client.Log)
 	logger.Hooks.Add(hook)
 	logger.SetOutput(ioutil.Discard)
 }
