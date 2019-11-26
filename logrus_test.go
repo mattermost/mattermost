@@ -1,12 +1,13 @@
 package pluginapi_test
 
 import (
-	"pluginapi"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+
+	"pluginapi"
 )
 
 func TestLogrus(t *testing.T) {

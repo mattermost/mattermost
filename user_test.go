@@ -1,8 +1,10 @@
-package pluginapi
+package pluginapi_test
 
 import (
 	"net/http"
 	"testing"
+
+	"pluginapi"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
@@ -14,8 +16,7 @@ func TestCreateUser(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		expectedUser := &model.User{
 			Username: "test",
@@ -30,8 +31,7 @@ func TestCreateUser(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		expectedUser := &model.User{
 			Username: "test",
@@ -48,8 +48,7 @@ func TestDeleteUser(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		expectedUserID := model.NewId()
 		api.On("DeleteUser", expectedUserID).Return(nil)
@@ -61,8 +60,7 @@ func TestDeleteUser(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		expectedUserID := model.NewId()
 		api.On("DeleteUser", expectedUserID).Return(model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -76,8 +74,7 @@ func TestGetUsers(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		options := &model.UserGetOptions{}
 		expectedUsers := []*model.User{{Username: "test"}}
@@ -91,8 +88,7 @@ func TestGetUsers(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		options := &model.UserGetOptions{}
 		api.On("GetUsers", options).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -107,8 +103,7 @@ func TestGetUser(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		userID := "id"
 		expectedUser := &model.User{Id: userID, Username: "test"}
@@ -122,8 +117,7 @@ func TestGetUser(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		userID := "id"
 		api.On("GetUser", userID).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -138,8 +132,7 @@ func TestGetUserByEmail(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		email := "test@example.com"
 		expectedUser := &model.User{Email: email, Username: "test"}
@@ -153,8 +146,7 @@ func TestGetUserByEmail(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		email := "test@example.com"
 		api.On("GetUserByEmail", email).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -169,8 +161,7 @@ func TestGetUserByUsername(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		username := "test"
 		expectedUser := &model.User{Username: username}
@@ -184,8 +175,7 @@ func TestGetUserByUsername(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		username := "test"
 		api.On("GetUserByUsername", username).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -200,8 +190,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		usernames := []string{"test1", "test2"}
 		expectedUsers := []*model.User{{Username: "test1"}, {Username: "test2"}}
@@ -215,8 +204,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		usernames := []string{"test1", "test2"}
 		api.On("GetUsersByUsernames", usernames).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -231,8 +219,7 @@ func TestGetUsersInTeam(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		teamID := "team_id"
 		page := 1
@@ -248,8 +235,7 @@ func TestGetUsersInTeam(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		teamID := "team_id"
 		page := 1

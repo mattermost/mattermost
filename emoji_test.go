@@ -1,4 +1,4 @@
-package pluginapi
+package pluginapi_test
 
 import (
 	"io/ioutil"
@@ -8,6 +8,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/stretchr/testify/require"
+
+	"pluginapi"
 )
 
 func TestGetEmoji(t *testing.T) {
@@ -15,7 +17,7 @@ func TestGetEmoji(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
 
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("GetEmoji", "1").Return(&model.Emoji{Id: "2"}, nil)
 
@@ -27,8 +29,7 @@ func TestGetEmoji(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -44,8 +45,7 @@ func TestGetEmojiByName(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("GetEmojiByName", "1").Return(&model.Emoji{Id: "2"}, nil)
 
@@ -57,8 +57,7 @@ func TestGetEmojiByName(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -74,8 +73,7 @@ func TestGetEmojiImage(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("GetEmojiImage", "1").Return([]byte{1}, "jpg", nil)
 
@@ -90,8 +88,7 @@ func TestGetEmojiImage(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -108,8 +105,7 @@ func TestListEmojis(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("GetEmojiList", "1", 2, 3).Return([]*model.Emoji{
 			{Id: "4"},
@@ -124,8 +120,7 @@ func TestListEmojis(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 

@@ -1,4 +1,4 @@
-package pluginapi
+package pluginapi_test
 
 import (
 	"encoding/json"
@@ -10,6 +10,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"pluginapi"
 )
 
 func newAppError() *model.AppError {
@@ -21,7 +23,7 @@ func TestKVSet(t *testing.T) {
 		name            string
 		key             string
 		value           interface{}
-		options         []KVSetOption
+		options         []pluginapi.KVSetOption
 		expectedOptions model.PluginKVSetOptions
 		upserted        bool
 		err             error
@@ -30,7 +32,7 @@ func TestKVSet(t *testing.T) {
 			"[]byte value",
 			"1",
 			[]byte{2},
-			[]KVSetOption{},
+			[]pluginapi.KVSetOption{},
 			model.PluginKVSetOptions{},
 			true,
 			nil,
@@ -39,7 +41,7 @@ func TestKVSet(t *testing.T) {
 			"string value",
 			"1",
 			"2",
-			[]KVSetOption{},
+			[]pluginapi.KVSetOption{},
 			model.PluginKVSetOptions{EncodeJSON: true},
 			true,
 			nil,
@@ -47,7 +49,7 @@ func TestKVSet(t *testing.T) {
 		{
 			"struct value", "1",
 			struct{ a string }{"2"},
-			[]KVSetOption{},
+			[]pluginapi.KVSetOption{},
 			model.PluginKVSetOptions{
 				EncodeJSON: true,
 			},
@@ -58,8 +60,8 @@ func TestKVSet(t *testing.T) {
 			"compare and set []byte value",
 			"1",
 			[]byte{2},
-			[]KVSetOption{
-				SetAtomic([]byte{3}),
+			[]pluginapi.KVSetOption{
+				pluginapi.SetAtomic([]byte{3}),
 			},
 			model.PluginKVSetOptions{
 				Atomic:   true,
@@ -72,8 +74,8 @@ func TestKVSet(t *testing.T) {
 			"compare and set string value",
 			"1",
 			"2",
-			[]KVSetOption{
-				SetAtomic("3"),
+			[]pluginapi.KVSetOption{
+				pluginapi.SetAtomic("3"),
 			},
 			model.PluginKVSetOptions{
 				EncodeJSON: true,
@@ -86,7 +88,7 @@ func TestKVSet(t *testing.T) {
 			"value is nil",
 			"1",
 			nil,
-			[]KVSetOption{},
+			[]pluginapi.KVSetOption{},
 			model.PluginKVSetOptions{
 				EncodeJSON: true,
 			},
@@ -97,8 +99,8 @@ func TestKVSet(t *testing.T) {
 			"current value is nil",
 			"1",
 			"2",
-			[]KVSetOption{
-				SetAtomic(nil),
+			[]pluginapi.KVSetOption{
+				pluginapi.SetAtomic(nil),
 			},
 			model.PluginKVSetOptions{
 				EncodeJSON: true,
@@ -112,8 +114,8 @@ func TestKVSet(t *testing.T) {
 			"value is nil, current value is []byte",
 			"1",
 			nil,
-			[]KVSetOption{
-				SetAtomic([]byte{3}),
+			[]pluginapi.KVSetOption{
+				pluginapi.SetAtomic([]byte{3}),
 			},
 			model.PluginKVSetOptions{
 				Atomic:   true,
@@ -126,7 +128,7 @@ func TestKVSet(t *testing.T) {
 			"error",
 			"1",
 			[]byte{2},
-			[]KVSetOption{},
+			[]pluginapi.KVSetOption{},
 			model.PluginKVSetOptions{},
 			false,
 			newAppError(),
@@ -136,8 +138,7 @@ func TestKVSet(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			api := &plugintest.API{}
-
-			client := NewClient(api)
+			client := pluginapi.NewClient(api)
 
 			api.On("KVSetWithOptions", test.key, test.value, test.expectedOptions).Return(test.upserted, test.err)
 
@@ -157,8 +158,7 @@ func TestKVSet(t *testing.T) {
 func TestSetWithExpiry(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	api.On("KVSetWithOptions", "1", 2, model.PluginKVSetOptions{
 		EncodeJSON:      true,
@@ -172,8 +172,7 @@ func TestSetWithExpiry(t *testing.T) {
 func TestCompareAndSet(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	api.On("KVSetWithOptions", "1", 2, model.PluginKVSetOptions{
 		EncodeJSON: true,
@@ -189,8 +188,7 @@ func TestCompareAndSet(t *testing.T) {
 func TestCompareAndDelete(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	api.On("KVSetWithOptions", "1", nil, model.PluginKVSetOptions{
 		EncodeJSON: true,
@@ -206,8 +204,7 @@ func TestCompareAndDelete(t *testing.T) {
 func TestGet(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	aStringJSON, _ := json.Marshal("2")
 
@@ -222,8 +219,7 @@ func TestGet(t *testing.T) {
 func TestGetInBytes(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	api.On("KVGet", "1").Return([]byte{2}, nil)
 
@@ -237,8 +233,7 @@ func TestGetInBytes(t *testing.T) {
 func TestDelete(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	api.On("KVSetWithOptions", "1", nil, model.PluginKVSetOptions{
 		EncodeJSON: true,
@@ -251,8 +246,7 @@ func TestDelete(t *testing.T) {
 func TestDeleteAll(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	api.On("KVDeleteAll").Return(nil)
 
@@ -263,8 +257,7 @@ func TestDeleteAll(t *testing.T) {
 func TestListKeys(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	api.On("KVList", 1, 2).Return([]string{"3", "4"}, nil)
 

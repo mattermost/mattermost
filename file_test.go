@@ -1,10 +1,12 @@
-package pluginapi
+package pluginapi_test
 
 import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	"pluginapi"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
@@ -15,8 +17,7 @@ func TestGetFile(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("GetFile", "1").Return([]byte{2}, nil)
 
@@ -30,8 +31,7 @@ func TestGetFile(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -47,8 +47,7 @@ func TestGetFileByPath(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("ReadFile", "1").Return([]byte{2}, nil)
 
@@ -62,8 +61,7 @@ func TestGetFileByPath(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -79,8 +77,7 @@ func TestGetFileInfo(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("GetFileInfo", "1").Return(&model.FileInfo{Id: "2"}, nil)
 
@@ -92,8 +89,7 @@ func TestGetFileInfo(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -109,8 +105,7 @@ func TestGetFileLink(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("GetFileLink", "1").Return("2", nil)
 
@@ -122,8 +117,7 @@ func TestGetFileLink(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -139,8 +133,7 @@ func TestUploadFile(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("UploadFile", []byte{1}, "3", "2").Return(&model.FileInfo{Id: "4"}, nil)
 
@@ -152,8 +145,7 @@ func TestUploadFile(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -169,8 +161,7 @@ func TestCopyFileInfos(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("CopyFileInfos", "3", []string{"1", "2"}).Return([]string{"4", "5"}, nil)
 
@@ -182,8 +173,7 @@ func TestCopyFileInfos(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 

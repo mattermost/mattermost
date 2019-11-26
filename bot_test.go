@@ -1,4 +1,4 @@
-package pluginapi
+package pluginapi_test
 
 import (
 	"bytes"
@@ -9,14 +9,15 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/stretchr/testify/require"
+
+	"pluginapi"
 )
 
 func TestCreateBot(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("CreateBot", &model.Bot{Username: "1"}).Return(&model.Bot{Username: "1", UserId: "2"}, nil)
 
@@ -29,8 +30,7 @@ func TestCreateBot(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -47,8 +47,7 @@ func TestUpdateBotStatus(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("UpdateBotActive", "1", true).Return(&model.Bot{UserId: "2"}, nil)
 
@@ -60,8 +59,7 @@ func TestUpdateBotStatus(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -77,8 +75,7 @@ func TestSetBotIconImage(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("SetBotIconImage", "1", []byte{2}).Return(nil)
 
@@ -89,8 +86,7 @@ func TestSetBotIconImage(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -105,8 +101,7 @@ func TestGetBot(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("GetBot", "1", true).Return(&model.Bot{UserId: "2"}, nil)
 
@@ -118,8 +113,7 @@ func TestGetBot(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -135,8 +129,7 @@ func TestGetBotIconImage(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("GetBotIconImage", "1").Return([]byte{2}, nil)
 
@@ -150,8 +143,7 @@ func TestGetBotIconImage(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -167,7 +159,7 @@ func TestListBot(t *testing.T) {
 	tests := []struct {
 		name            string
 		page, count     int
-		options         []BotListOption
+		options         []pluginapi.BotListOption
 		expectedOptions *model.BotGetOptions
 		bots            []*model.Bot
 		err             error
@@ -176,8 +168,8 @@ func TestListBot(t *testing.T) {
 			"owner filter",
 			1,
 			2,
-			[]BotListOption{
-				BotOwner("3"),
+			[]pluginapi.BotListOption{
+				pluginapi.BotOwner("3"),
 			},
 			&model.BotGetOptions{
 				Page:    1,
@@ -194,10 +186,10 @@ func TestListBot(t *testing.T) {
 			"all filter",
 			1,
 			2,
-			[]BotListOption{
-				BotOwner("3"),
-				BotIncludeDeleted(),
-				BotOnlyOrphans(),
+			[]pluginapi.BotListOption{
+				pluginapi.BotOwner("3"),
+				pluginapi.BotIncludeDeleted(),
+				pluginapi.BotOnlyOrphans(),
 			},
 			&model.BotGetOptions{
 				Page:           1,
@@ -215,7 +207,7 @@ func TestListBot(t *testing.T) {
 			"no filter",
 			1,
 			2,
-			[]BotListOption{},
+			[]pluginapi.BotListOption{},
 			&model.BotGetOptions{
 				Page:    1,
 				PerPage: 2,
@@ -229,8 +221,8 @@ func TestListBot(t *testing.T) {
 			"app error",
 			1,
 			2,
-			[]BotListOption{
-				BotOwner("3"),
+			[]pluginapi.BotListOption{
+				pluginapi.BotOwner("3"),
 			},
 			&model.BotGetOptions{
 				Page:    1,
@@ -245,8 +237,7 @@ func TestListBot(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			api := &plugintest.API{}
-
-			client := NewClient(api)
+			client := pluginapi.NewClient(api)
 
 			api.On("GetBots", test.expectedOptions).Return(test.bots, test.err)
 
@@ -267,8 +258,7 @@ func TestDeleteBotIconImage(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("DeleteBotIconImage", "1").Return(nil)
 
@@ -279,8 +269,7 @@ func TestDeleteBotIconImage(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -295,8 +284,7 @@ func TestDeleteBotPermanently(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		api.On("PermanentDeleteBot", "1").Return(nil)
 
@@ -307,8 +295,7 @@ func TestDeleteBotPermanently(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 

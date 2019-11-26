@@ -51,6 +51,8 @@ linters-settings:
       - hugeParam
   gofmt:
     simplify: true
+  goimports:
+    local-prefixes: pluginapi
   golint:
     min-confidence: 0
   govet:

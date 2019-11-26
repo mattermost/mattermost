@@ -1,4 +1,4 @@
-package pluginapi
+package pluginapi_test
 
 import (
 	"net/http"
@@ -8,14 +8,15 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"pluginapi"
 )
 
 func TestCreatePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		expectedPost := &model.Post{
 			Id: "postID",
@@ -30,8 +31,7 @@ func TestCreatePost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		expectedPost := &model.Post{
 			Id: "postID",
@@ -48,8 +48,7 @@ func TestGetPost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		expectedPost := &model.Post{
@@ -65,8 +64,7 @@ func TestGetPost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		api.On("GetPost", postID).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -81,8 +79,7 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		expectedPost := &model.Post{
 			Id: "postID",
@@ -97,8 +94,7 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		expectedPost := &model.Post{
 			Id: "postID",
@@ -115,8 +111,7 @@ func TestDeletePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 
@@ -129,8 +124,7 @@ func TestDeletePost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		api.On("DeletePost", postID).Return(model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -143,8 +137,7 @@ func TestDeletePost(t *testing.T) {
 func TestSendEphemeralPost(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	userID := "userID"
 	expectedPost := &model.Post{
@@ -159,8 +152,7 @@ func TestSendEphemeralPost(t *testing.T) {
 func TestUpdateEphemeralPost(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	userID := "userID"
 	expectedPost := &model.Post{
@@ -175,8 +167,7 @@ func TestUpdateEphemeralPost(t *testing.T) {
 func TestDeleteEphemeralPost(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-
-	client := NewClient(api)
+	client := pluginapi.NewClient(api)
 
 	userID := "userID"
 	postID := "postID"
@@ -189,8 +180,7 @@ func TestGetPostThread(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		expectedPostList := model.NewPostList()
@@ -206,8 +196,7 @@ func TestGetPostThread(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		api.On("GetPostThread", postID).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -222,8 +211,7 @@ func TestGetPostsSince(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		time := int64(0)
@@ -240,8 +228,7 @@ func TestGetPostsSince(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		time := int64(0)
@@ -257,8 +244,7 @@ func TestGetPostsAfter(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		postID := "postID"
@@ -275,8 +261,7 @@ func TestGetPostsAfter(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		postID := "postID"
@@ -292,8 +277,7 @@ func TestGetPostsBefore(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		postID := "postID"
@@ -310,8 +294,7 @@ func TestGetPostsBefore(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		postID := "postID"
@@ -327,8 +310,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		expectedPostList := model.NewPostList()
@@ -344,8 +326,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		channelID := "channelID"
 		api.On("GetPostsForChannel", channelID, 0, 0).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -360,8 +341,7 @@ func TestSearchPostsInTeam(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		teamID := "teamID"
 		searchParams := []*model.SearchParams{{InChannels: []string{"channelID"}}}
@@ -376,8 +356,7 @@ func TestSearchPostsInTeam(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		teamID := "teamID"
 		searchParams := []*model.SearchParams{{InChannels: []string{"channelID"}}}
@@ -393,8 +372,7 @@ func TestAddReaction(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		expectedReaction := &model.Reaction{
 			PostId: "postId",
@@ -409,8 +387,7 @@ func TestAddReaction(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		expectedReaction := &model.Reaction{
 			PostId: "postId",
@@ -427,8 +404,7 @@ func TestGetReactions(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		expectedReactions := []*model.Reaction{
@@ -445,8 +421,7 @@ func TestGetReactions(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		postID := "postID"
 		api.On("GetReactions", postID).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
@@ -461,8 +436,7 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		reaction := &model.Reaction{
 			PostId: "postId",
@@ -476,8 +450,7 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
-		client := NewClient(api)
+		client := pluginapi.NewClient(api)
 
 		reaction := &model.Reaction{
 			PostId: "postId",
