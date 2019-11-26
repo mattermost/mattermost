@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
-	"pluginapi"
+	pluginapi "github.com/lieut-data/mattermost-plugin-api"
 )
 
 func TestLogrus(t *testing.T) {

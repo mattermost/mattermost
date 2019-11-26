@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/stretchr/testify/require"
 
-	"pluginapi"
+	pluginapi "github.com/lieut-data/mattermost-plugin-api"
 )
 
 func TestCreateBot(t *testing.T) {
