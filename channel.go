@@ -139,28 +139,28 @@ func (c *ChannelService) GetMember(channelID, userID string) (*model.ChannelMemb
 	return channelMember, normalizeAppErr(appErr)
 }
 
-// GetMembers gets a channel membership for all users.
+// ListMembers gets a channel membership for all users.
 //
 // Minimum server version: 5.6
-func (c *ChannelService) GetMembers(channelID string, page, perPage int) ([]*model.ChannelMember, error) {
+func (c *ChannelService) ListMembers(channelID string, page, perPage int) ([]*model.ChannelMember, error) {
 	channelMembers, appErr := c.api.GetChannelMembers(channelID, page, perPage)
 
 	return channelMembersToChannelMemberSlice(channelMembers), normalizeAppErr(appErr)
 }
 
-// GetMembersByIDs gets a channel membership for a particular User
+// ListMembersByIDs gets a channel membership for a particular User
 //
 // Minimum server version: 5.6
-func (c *ChannelService) GetMembersByIDs(channelID string, userIDs []string) ([]*model.ChannelMember, error) {
+func (c *ChannelService) ListMembersByIDs(channelID string, userIDs []string) ([]*model.ChannelMember, error) {
 	channelMembers, appErr := c.api.GetChannelMembersByIds(channelID, userIDs)
 
 	return channelMembersToChannelMemberSlice(channelMembers), normalizeAppErr(appErr)
 }
 
-// GetMembersForUser returns all channel memberships on a team for a user.
+// ListMembersForUser returns all channel memberships on a team for a user.
 //
 // Minimum server version: 5.10
-func (c *ChannelService) GetMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, error) {
+func (c *ChannelService) ListMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, error) {
 	channelMembers, appErr := c.api.GetChannelMembersForUser(teamID, userID, page, perPage)
 
 	return channelMembers, normalizeAppErr(appErr)

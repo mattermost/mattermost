@@ -19,7 +19,7 @@ func TestGetMembers(t *testing.T) {
 
 		api.On("GetChannelMembers", "channelID", 1, 10).Return(nil, nil)
 
-		cm, err := client.Channel.GetMembers("channelID", 1, 10)
+		cm, err := client.Channel.ListMembers("channelID", 1, 10)
 		require.NoError(t, err)
 		require.Empty(t, cm)
 	})
