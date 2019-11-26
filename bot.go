@@ -27,6 +27,15 @@ func (b *BotService) Create(bot *model.Bot) error {
 	return nil
 }
 
+// PatchBot applies the given patch to the bot and corresponding user.
+//
+// Minimum server version: 5.10
+func (b *BotService) PatchBot(botUserID string, botPatch *model.BotPatch) (*model.Bot, error) {
+	bot, appErr := b.api.PatchBot(botUserID, botPatch)
+
+	return bot, normalizeAppErr(appErr)
+}
+
 // BotUpdateOption is an option to update bot.
 type BotUpdateOption func(*model.BotPatch)
 
@@ -66,10 +75,10 @@ func (b *BotService) Update(botUserID string, options ...BotUpdateOption) (*mode
 	return bot, normalizeAppErr(appErr)
 }
 
-// UpdateStatus marks a bot as active or inactive, along with its corresponding user.
+// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 //
 // Minimum server version: 5.10
-func (b *BotService) UpdateStatus(botUserID string, isActive bool) (*model.Bot, error) {
+func (b *BotService) UpdateBotActive(botUserID string, isActive bool) (*model.Bot, error) {
 	bot, appErr := b.api.UpdateBotActive(botUserID, isActive)
 	return bot, normalizeAppErr(appErr)
 }
@@ -133,10 +142,10 @@ func BotOnlyOrphans() BotListOption {
 // List returns a list of bots by page, count and options.
 //
 // Minimum server version: 5.10
-func (b *BotService) List(page, count int, options ...BotListOption) ([]*model.Bot, error) {
+func (b *BotService) List(page, perPage int, options ...BotListOption) ([]*model.Bot, error) {
 	opts := &model.BotGetOptions{
 		Page:    page,
-		PerPage: count,
+		PerPage: perPage,
 	}
 	for _, o := range options {
 		o(opts)
