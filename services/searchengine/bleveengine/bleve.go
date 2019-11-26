@@ -5,6 +5,7 @@ import (
 
 	"net/http"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -26,6 +27,8 @@ type BleveEngine struct {
 	cfg          *model.Config
 	jobServer    *jobs.JobServer
 }
+
+var emailRegex = regexp.MustCompile(`^[^\s"]+@[^\s"]+$`)
 
 var keywordMapping *mapping.FieldMapping
 var standardMapping *mapping.FieldMapping
@@ -157,19 +160,95 @@ func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError
 }
 
 func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
-	var channelQueries []query.Query
+	channelQueries := []query.Query{}
 	for _, channel := range *channels {
 		channelIdQ := bleve.NewTermQuery(channel.Id)
 		channelIdQ.SetField("ChannelId")
+		channelQueries = append(channelQueries, channelIdQ)
+	}
+	channelDisjunctionQ := bleve.NewDisjunctionQuery(channelQueries...)
+
+	termQueries := []query.Query{}
+	filters := []query.Query{}
+	notFilters := []query.Query{}
+	for i, params := range searchParams {
+		// ToDo: needs email filtering
+		/*
+           Not valid, probably will be TermQueries on the emails
+
+		newTerms := []string{}
+		for _, term := range strings.Split(params.Terms, " ") {
+			if emailRegex.MatchString(term) {
+				term = `"` + term + `"`
+			}
+			newTerms = append(newTerms, term)
+		}
+
+		params.Terms = strings.Join(newTerms, " ")
+        */
+
+		// Date, channels and FromUsers filters come in all
+		// searchParams iteration, and as they are global to the
+		// query, we only need to process them once
+		if i == 0 {
+			if len(params.InChannels) > 0 {
+				for _, channelId := range params.InChannels {
+					channelQ := bleve.NewTermQuery(channelId)
+					channelQ.SetField("ChannelId")
+					filters = append(filters, channelQ)
+				}
+			}
+
+			if len(params.ExcludedChannels) > 0 {
+				for _, channelId := range params.ExcludedChannels {
+					channelQ := bleve.NewTermQuery(channelId)
+					channelQ.SetField("ChannelId")
+					notFilters = append(notFilters, channelQ)
+				}
+			}
+
+			if len(params.FromUsers) > 0 {
+				for _, userId := range params.FromUsers {
+					userQ := bleve.NewTermQuery(userId)
+					userQ.SetField("UserId")
+					filters = append(filters, userQ)
+				}
+			}
+
+			if len(params.ExcludedUsers) > 0 {
+				for _, userId := range params.FromUsers {
+					userQ := bleve.NewTermQuery(userId)
+					userQ.SetField("UserId")
+					notFilters = append(notFilters, userQ)
+				}
+			}
+		}
+
+		messageQ := bleve.NewQueryStringQuery(params.Terms)
+		// messageQ.SetField("Message") // ToDo: override default field
+		termQueries = append(termQueries, messageQ)
 	}
 
-	// ToDo: needs to loop
-	params := searchParams[0]
-	// ToDo: needs email filtering
-	messageQ := bleve.NewMatchQuery(params.Terms)
-	messageQ.SetField("Message")
+	var allTermsQ query.Query
+	if searchParams[0].OrTerms {
+		allTermsQ = bleve.NewDisjunctionQuery(termQueries...)
+	} else {
+		allTermsQ = bleve.NewConjunctionQuery(termQueries...)
+	}
+
 	// ToDo: SIMPLE APPROACH
-	query := bleve.NewConjunctionQuery(append(channelQueries, messageQ)...)
+	query := bleve.NewBooleanQuery()
+	query.AddMust(
+		channelDisjunctionQ,
+		allTermsQ,
+	)
+	if len(filters) > 0 {
+		query.AddMust(bleve.NewConjunctionQuery(filters...))
+	}
+	if len(notFilters) > 0 {
+		query.AddMustNot(notFilters...)
+	}
+
 	search := bleve.NewSearchRequest(query)
 	results, err := b.postIndex.Search(search)
 	if err != nil {
@@ -282,9 +361,8 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.uchan.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	fmt.Println("=========== USERS ============")
+	fmt.Println("====== USERS IN CHANNEL ======")
 	fmt.Println(uchan)
-	fmt.Println("==============================")
 
 	// --------------- end uchan
 
@@ -331,6 +409,10 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.nuchan.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	fmt.Println("==== USERS IN NOT CHANNEL ====")
+	fmt.Println(nuchan)
+	fmt.Println("==============================")
+
 	// --------------- end nuchan
 
 	uchanIds := []string{}
@@ -351,9 +433,9 @@ func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []st
 		return []string{}, nil
 	}
 
-	var query query.Query
+	var rootQ query.Query
 	if term == "" && teamId == "" && restrictedToChannels == nil {
-		query = bleve.NewMatchAllQuery()
+		rootQ = bleve.NewMatchAllQuery()
 	} else {
 		boolQ := bleve.NewBooleanQuery()
 
@@ -367,32 +449,36 @@ func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []st
 			boolQ.AddMust(termQ)
 		}
 
-		if restrictedToChannels == nil {
+		if len(restrictedToChannels) > 0 {
+			// restricted channels are already filtered by team, so we
+			// can search only those matches
+			restrictedChannelsQ := []query.Query{}
+			for _, channelId := range restrictedToChannels {
+				channelIdQ := bleve.NewTermQuery(channelId)
+				channelIdQ.SetField("ChannelsIds")
+				restrictedChannelsQ = append(restrictedChannelsQ, channelIdQ)
+			}
+			boolQ.AddMust(bleve.NewDisjunctionQuery(restrictedChannelsQ...))
+		} else {
 			// this means that we only need to restrict by team
 			if teamId != "" {
 				teamIdQ := bleve.NewTermQuery(teamId)
 				teamIdQ.SetField("TeamsIds")
 				boolQ.AddMust(teamIdQ)
 			}
-		} else {
-			// restricted channels are already filtered by team, so we
-			// can search only those matches
-			for _, channelId := range restrictedToChannels {
-				channelIdQ := bleve.NewTermQuery(channelId)
-				channelIdQ.SetField("ChannelsIds")
-				boolQ.AddMust(channelIdQ)
-			}
 		}
 
-		query = boolQ
+		rootQ = boolQ
 	}
 
-	results, err := b.userIndex.Search(bleve.NewSearchRequest(query))
+	search := bleve.NewSearchRequest(rootQ)
+
+	results, err := b.userIndex.Search(search)
 	if err != nil {
 		return nil, model.NewAppError("Bleveengine.SearchUsersInTeam", "bleveengine.search_users_in_team.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	fmt.Println("=========== USERS ============")
+	fmt.Println("======= USERS IN TEAM ========")
 	fmt.Println(results)
 	fmt.Println("==============================")
 
