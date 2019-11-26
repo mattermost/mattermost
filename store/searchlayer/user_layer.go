@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/searchengine"
 	"github.com/mattermost/mattermost-server/store"
 )
 
@@ -16,19 +17,34 @@ type SearchUserStore struct {
 	rootStore *SearchStore
 }
 
+func (s SearchUserStore) deleteUserIndex(user *model.User) {
+	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
+		if engine.IsIndexingEnabled() {
+			engineCopy := engine
+			go (func() {
+				if err := engineCopy.DeleteUser(user); err != nil {
+					mlog.Error("Encountered error deleting user", mlog.String("user_id", user.Id), mlog.Err(err))
+				}
+			})()
+		}
+	}
+}
+
 func (s SearchUserStore) Search(teamId, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	if s.rootStore.searchEngine.GetActiveEngine().IsIndexingEnabled() {
-		usersIds, err := s.rootStore.searchEngine.GetActiveEngine().SearchUsersInTeam(teamId, options.ListOfAllowedChannels, term, options)
-		if err != nil {
-			return nil, err
-		}
+	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
+		if engine.IsSearchEnabled() {
+			usersIds, err := engine.SearchUsersInTeam(teamId, options.ListOfAllowedChannels, term, options)
+			if err != nil {
+				continue
+			}
 
-		users, err := s.UserStore.GetProfileByIds(usersIds, nil, false)
-		if err != nil {
-			return nil, err
-		}
+			users, err := s.UserStore.GetProfileByIds(usersIds, nil, false)
+			if err != nil {
+				continue
+			}
 
-		return users, nil
+			return users, nil
+		}
 	}
 	return s.UserStore.Search(teamId, term, options)
 }
@@ -57,24 +73,20 @@ func (s SearchUserStore) PermanentDelete(userId string) *model.AppError {
 		mlog.Error("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
 	}
 	err := s.UserStore.PermanentDelete(userId)
-	if s.rootStore.searchEngine.GetActiveEngine().IsIndexingEnabled() && err == nil && userErr == nil {
-		go (func() {
-			if err := s.rootStore.searchEngine.GetActiveEngine().DeleteUser(user); err != nil {
-				mlog.Error("Encountered error deleting user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
-		})()
+	if err == nil && userErr == nil {
+		s.deleteUserIndex(user)
 	}
 	return err
 }
 
-func (s SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+func (s SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine.SearchEngineInterface, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	var err *model.AppError
 	uchanIds := []string{}
 	nuchanIds := []string{}
 	if !strings.Contains(strings.Join(options.ListOfAllowedChannels, "."), channelId) {
-		nuchanIds, err = s.rootStore.searchEngine.GetActiveEngine().SearchUsersInTeam(teamId, options.ListOfAllowedChannels, term, options)
+		nuchanIds, err = engine.SearchUsersInTeam(teamId, options.ListOfAllowedChannels, term, options)
 	} else {
-		uchanIds, nuchanIds, err = s.rootStore.searchEngine.GetActiveEngine().SearchUsersInChannel(teamId, channelId, options.ListOfAllowedChannels, term, options)
+		uchanIds, nuchanIds, err = engine.SearchUsersInChannel(teamId, channelId, options.ListOfAllowedChannels, term, options)
 	}
 	if err != nil {
 		return nil, err
@@ -111,4 +123,18 @@ func (s SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term stri
 	autocomplete.OutOfChannel = users
 
 	return autocomplete, nil
+}
+
+func (s SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
+		if engine.IsAutocompletionEnabled() {
+			autocomplete, err := s.autocompleteUsersInChannelByEngine(engine, teamId, channelId, term, options)
+			if err != nil {
+				continue
+			}
+			return autocomplete, err
+		}
+	}
+
+	return s.UserStore.AutocompleteUsersInChannel(teamId, channelId, term, options)
 }

@@ -46,12 +46,14 @@ func (seb *SearchEngineBroker) UpdateConfig(cfg *model.Config) *model.AppError {
 	return nil
 }
 
-func (seb *SearchEngineBroker) GetActiveEngine() SearchEngineInterface {
+func (seb *SearchEngineBroker) GetActiveEngines() []SearchEngineInterface {
+	engines := []SearchEngineInterface{}
 	if seb.ElasticsearchEngine != nil && seb.ElasticsearchEngine.IsActive() {
-		return seb.ElasticsearchEngine
+		engines = append(engines, seb.ElasticsearchEngine)
 	}
 	if seb.BleveEngine != nil && seb.BleveEngine.IsActive() {
-		return seb.BleveEngine
+		engines = append(engines, seb.BleveEngine)
 	}
-	return seb.NullEngine
+	engines = append(engines, seb.NullEngine)
+	return engines
 }

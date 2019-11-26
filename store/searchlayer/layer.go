@@ -57,34 +57,37 @@ func (s SearchStore) indexUserFromID(userId string) {
 }
 
 func (s SearchStore) indexUser(user *model.User) {
-	if s.searchEngine.GetActiveEngine().IsIndexingEnabled() {
-		go (func() {
-			userTeams, err := s.Team().GetTeamsByUserId(user.Id)
-			if err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-				return
-			}
+	for _, engine := range s.searchEngine.GetActiveEngines() {
+		if engine.IsIndexingEnabled() {
+			engineCopy := engine
+			go (func() {
+				userTeams, err := s.Team().GetTeamsByUserId(user.Id)
+				if err != nil {
+					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+					return
+				}
 
-			userTeamsIds := []string{}
-			for _, team := range userTeams {
-				userTeamsIds = append(userTeamsIds, team.Id)
-			}
+				userTeamsIds := []string{}
+				for _, team := range userTeams {
+					userTeamsIds = append(userTeamsIds, team.Id)
+				}
 
-			userChannelMembers, err := s.Channel().GetAllChannelMembersForUser(user.Id, false, true)
-			if err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-				return
-			}
+				userChannelMembers, err := s.Channel().GetAllChannelMembersForUser(user.Id, false, true)
+				if err != nil {
+					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+					return
+				}
 
-			userChannelsIds := []string{}
-			for channelId := range userChannelMembers {
-				userChannelsIds = append(userChannelsIds, channelId)
-			}
+				userChannelsIds := []string{}
+				for channelId := range userChannelMembers {
+					userChannelsIds = append(userChannelsIds, channelId)
+				}
 
-			if err := s.searchEngine.GetActiveEngine().IndexUser(user, userTeamsIds, userChannelsIds); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-				return
-			}
-		})()
+				if err := engineCopy.IndexUser(user, userTeamsIds, userChannelsIds); err != nil {
+					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+					return
+				}
+			})()
+		}
 	}
 }

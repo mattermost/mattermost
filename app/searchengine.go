@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) TestSearchEngine(cfg *model.Config) *model.AppError {
+func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
 	if *cfg.ElasticsearchSettings.Password == model.FAKE_SETTING {
 		if *cfg.ElasticsearchSettings.ConnectionUrl == *a.Config().ElasticsearchSettings.ConnectionUrl && *cfg.ElasticsearchSettings.Username == *a.Config().ElasticsearchSettings.Username {
 			*cfg.ElasticsearchSettings.Password = *a.Config().ElasticsearchSettings.Password
@@ -18,7 +18,7 @@ func (a *App) TestSearchEngine(cfg *model.Config) *model.AppError {
 		}
 	}
 
-	seI := a.SearchEngine.GetActiveEngine()
+	seI := a.SearchEngine.ElasticsearchEngine
 	if seI == nil {
 		err := model.NewAppError("TestElasticsearch", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 		return err
@@ -30,8 +30,8 @@ func (a *App) TestSearchEngine(cfg *model.Config) *model.AppError {
 	return nil
 }
 
-func (a *App) PurgeSearchEngineIndexes() *model.AppError {
-	seI := a.SearchEngine.GetActiveEngine()
+func (a *App) PurgeElasticsearchIndexes() *model.AppError {
+	seI := a.SearchEngine.ElasticsearchEngine
 	if seI == nil {
 		err := model.NewAppError("PurgeElasticsearchIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 		return err
