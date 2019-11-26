@@ -1,6 +1,8 @@
 package bleveengine
 
 import (
+	"fmt"
+
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -23,17 +25,6 @@ type BleveEngine struct {
 	channelIndex bleve.Index
 	cfg          *model.Config
 	jobServer    *jobs.JobServer
-}
-
-type BlevePost struct {
-	Id        string   `json:"id"`
-	TeamId    string   `json:"team_id"`
-	ChannelId string   `json:"channel_id"`
-	UserId    string   `json:"user_id"`
-	CreateAt  int64    `json:"create_at"`
-	Message   string   `json:"message"`
-	Type      string   `json:"type"`
-	Hashtags  []string `json:"hashtags"`
 }
 
 var keywordMapping *mapping.FieldMapping
@@ -188,6 +179,10 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 	postIds := []string{}
 	matches := model.PostSearchMatches{}
 
+	fmt.Println("=========== POSTS ============")
+	fmt.Println(results)
+	fmt.Println("==============================")
+
 	for _, r := range results.Hits {
 		postIds = append(postIds, r.ID)
 		// process highlight
@@ -224,6 +219,10 @@ func (b *BleveEngine) SearchChannels(teamId, term string) ([]string, *model.AppE
 	if err != nil {
 		return nil, model.NewAppError("Bleveengine.SearchChannels", "bleveengine.search_channels.error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	fmt.Println("========= CHANNELS ===========")
+	fmt.Println(results)
+	fmt.Println("==============================")
 
 	channelIds := []string{}
 	for _, result := range results.Hits {
@@ -282,6 +281,11 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 	if err != nil {
 		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.uchan.error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	fmt.Println("=========== USERS ============")
+	fmt.Println(uchan)
+	fmt.Println("==============================")
+
 	// --------------- end uchan
 
 	/*
@@ -383,13 +387,17 @@ func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []st
 		query = boolQ
 	}
 
-	result, err := b.userIndex.Search(bleve.NewSearchRequest(query))
+	results, err := b.userIndex.Search(bleve.NewSearchRequest(query))
 	if err != nil {
 		return nil, model.NewAppError("Bleveengine.SearchUsersInTeam", "bleveengine.search_users_in_team.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	fmt.Println("=========== USERS ============")
+	fmt.Println(results)
+	fmt.Println("==============================")
+
 	usersIds := []string{}
-	for _, r := range result.Hits {
+	for _, r := range results.Hits {
 		usersIds = append(usersIds, r.ID)
 	}
 
