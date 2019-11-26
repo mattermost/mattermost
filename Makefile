@@ -1,9 +1,14 @@
-GO=go
+GO ?= go
+GO_TEST_FLAGS ?= -race
 
 all: test
 
 test:
-	$(GO) test -v --race ./...
+	$(GO) test $(GO_TEST_FLAGS) -v ./...
+
+coverage:
+	$(GO) test $(GO_TEST_FLAGS) -coverprofile=coverage.txt ./...
+	$(GO) tool cover -html=coverage.txt
 
 check-style:
 	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
