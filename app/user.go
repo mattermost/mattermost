@@ -943,12 +943,12 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
 
-func (a *App) userDeactivated(user *model.User) *model.AppError {
-	if err := a.RevokeAllSessions(user.Id); err != nil {
+func (a *App) userDeactivated(userId string) *model.AppError {
+	if err := a.RevokeAllSessions(userId); err != nil {
 		return err
 	}
 
-	a.SetStatusOffline(user.Id, false)
+	a.SetStatusOffline(userId, false)
 
 	// when disable a user, userDeactivated is called for the user and the
 	// bots the user owns. Only notify once, when the user is the owner, not the
@@ -958,20 +958,20 @@ func (a *App) userDeactivated(user *model.User) *model.AppError {
 	}
 
 	if *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated {
-		a.disableUserBots(user.Id)
+		a.disableUserBots(userId)
 	}
 
 	return nil
 }
 
-func (a *App) invalidateUserChannelMembersCaches(user *model.User) *model.AppError {
-	teamsForUser, err := a.GetTeamsForUser(user.Id)
+func (a *App) invalidateUserChannelMembersCaches(userId string) *model.AppError {
+	teamsForUser, err := a.GetTeamsForUser(userId)
 	if err != nil {
 		return err
 	}
 
 	for _, team := range teamsForUser {
-		channelsForUser, err := a.GetChannelsForUser(team.Id, user.Id, false)
+		channelsForUser, err := a.GetChannelsForUser(team.Id, userId, false)
 		if err != nil {
 			return err
 		}
@@ -999,17 +999,38 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	ruser := userUpdate.New
 
 	if !active {
-		if err := a.userDeactivated(ruser); err != nil {
+		if err := a.userDeactivated(ruser.Id); err != nil {
 			return nil, err
 		}
 	}
 
-	a.invalidateUserChannelMembersCaches(user)
+	a.invalidateUserChannelMembersCaches(user.Id)
 	a.InvalidateCacheForUser(user.Id)
 
 	a.sendUpdatedUserEvent(*ruser)
 
 	return ruser, nil
+}
+
+func (a *App) DeactivateGuests() *model.AppError {
+	userIds, err := a.Srv.Store.User().DeactivateGuests()
+	if err != nil {
+		return err
+	}
+
+	for _, userId := range userIds {
+		if err := a.userDeactivated(userId); err != nil {
+			return err
+		}
+	}
+
+	a.Srv.Store.Channel().ClearCaches()
+	a.Srv.Store.User().ClearCaches()
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GUESTS_DEACTIVATED, "", "", "", nil)
+	a.Publish(message)
+
+	return nil
 }
 
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
@@ -2279,6 +2300,8 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 		}
 
 		for _, member := range *channelMembers {
+			a.InvalidateCacheForChannelMembers(member.ChannelId)
+
 			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
 			evt.Add("channelMember", member.ToJson())
 			a.Publish(evt)
@@ -2318,6 +2341,8 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		}
 
 		for _, member := range *channelMembers {
+			a.InvalidateCacheForChannelMembers(member.ChannelId)
+
 			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
 			evt.Add("channelMember", member.ToJson())
 			a.Publish(evt)

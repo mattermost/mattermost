@@ -12,6 +12,7 @@ import (
 type ElasticsearchInterface interface {
 	Start() *model.AppError
 	Stop() *model.AppError
+	GetVersion() int
 	IndexPost(post *model.Post, teamId string) *model.AppError
 	SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError)
 	DeletePost(post *model.Post) *model.AppError

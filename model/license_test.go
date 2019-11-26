@@ -31,6 +31,7 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	CheckTrue(t, m["data_retention"].(bool))
 	CheckTrue(t, m["message_export"].(bool))
 	CheckTrue(t, m["custom_permissions_schemes"].(bool))
+	CheckTrue(t, m["id_loaded"].(bool))
 	CheckTrue(t, m["future"].(bool))
 }
 
@@ -55,6 +56,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.MessageExport)
 	CheckTrue(t, *f.CustomPermissionsSchemes)
 	CheckTrue(t, *f.GuestAccountsPermissions)
+	CheckTrue(t, *f.IDLoadedPushNotifications)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}
@@ -78,6 +80,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.CustomPermissionsSchemes = true
 	*f.GuestAccountsPermissions = true
 	*f.EmailNotificationContents = true
+	*f.IDLoadedPushNotifications = true
 
 	f.SetDefaults()
 
@@ -98,6 +101,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.MessageExport)
 	CheckTrue(t, *f.CustomPermissionsSchemes)
 	CheckTrue(t, *f.GuestAccountsPermissions)
+	CheckTrue(t, *f.IDLoadedPushNotifications)
 	CheckFalse(t, *f.FutureFeatures)
 }
 
@@ -173,6 +177,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.MessageExport, *f.MessageExport)
 	CheckBool(t, *f1.CustomPermissionsSchemes, *f.CustomPermissionsSchemes)
 	CheckBool(t, *f1.GuestAccountsPermissions, *f.GuestAccountsPermissions)
+	CheckBool(t, *f1.IDLoadedPushNotifications, *f.IDLoadedPushNotifications)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
 
 	invalid := `{"asdf`
