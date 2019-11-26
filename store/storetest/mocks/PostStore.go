@@ -612,6 +612,22 @@ func (_m *PostStore) InvalidateLastPostTimeCache(channelId string) {
 	_m.Called(channelId)
 }
 
+// MoveToChannelPost provides a mock function with given fields: MovePost
+func (_m *PostStore) MoveToChannelPost(MovePost *model.MovePost) *model.AppError {
+	ret := _m.Called(MovePost)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.MovePost) *model.AppError); ok {
+		r0 = rf(MovePost)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // Overwrite provides a mock function with given fields: post
 func (_m *PostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
 	ret := _m.Called(post)

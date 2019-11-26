@@ -614,6 +614,21 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 	return updatedPost, nil
 }
 
+func (a *App) MoveToChannelPost(movePost *model.MovePost) *model.AppError {
+	//TODO - not sure we need to validate chaqnnel here, could be done in the query directly
+	channel, err := a.GetChannel(movePost.ChannelId)
+	if err != nil {
+		err = model.NewAppError("MoveToChannelPost", "api.post.move_to_channel_post.can_not_move_post_in_deleted.error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if channel.DeleteAt != 0 {
+		err = model.NewAppError("MoveToChannelPost", "api.post.move_to_channel_post.can_not_move_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return err
+	}
+
+	return a.Srv.Store.Post().MoveToChannelPost(movePost)
+}
+
 func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	return a.Srv.Store.Post().GetPosts(options, false)
 }

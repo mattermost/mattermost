@@ -152,6 +152,11 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
+type MovePost struct {
+	PostId    string `json:"post_id"`
+	ChannelId string `json:"channel_id"`
+}
+
 // Clone shallowly copies the post.
 func (o *Post) Clone() *Post {
 	copy := *o
@@ -390,6 +395,15 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 	}
 
 	return &post
+}
+
+func MovePostFromJson(data io.Reader) *MovePost {
+	var movePost MovePost
+	err := json.NewDecoder(data).Decode(&movePost)
+	if err != nil {
+		return nil
+	}
+	return &movePost
 }
 
 func (o *SearchParameter) SearchParameterToJson() string {

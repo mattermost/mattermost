@@ -31,6 +31,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.PostForUser.Handle("/set_unread", api.ApiSessionRequired(setPostUnread)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/pin", api.ApiSessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.ApiSessionRequired(unpinPost)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/movepost", api.ApiSessionRequired(moveToChannelPost)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -590,6 +591,47 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(patchedPost.ToJson()))
+}
+
+func moveToChannelPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	movePost := model.MovePostFromJson(r.Body)
+
+	if movePost == nil {
+		c.SetInvalidParam("movePost")
+		return
+	}
+
+	//TODO(ctomai) CANCEL PERMISSION CHECK TEMPORARILY
+	// if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_MOVE_TO_CHANNEL_POST) {
+	// 	c.SetPermissionError(model.PERMISSION_MOVE_TO_CHANNEL_POST)
+	// 	return
+	// }
+
+	// originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	// if err != nil {
+	// 	c.SetPermissionError(model.PERMISSION_MOVE_TO_CHANNEL_POST)
+	// 	return
+	// }
+
+	// if c.App.Session.UserId != originalPost.UserId {
+	// 	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_MOVE_TO_CHANNEL_OTHERS_POSTS) {
+	// 		c.SetPermissionError(model.PERMISSION_MOVE_TO_CHANNEL_OTHERS_POSTS)
+	// 		return
+	// 	}
+	// }
+
+	err := c.App.MoveToChannelPost(movePost)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {

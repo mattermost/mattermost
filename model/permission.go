@@ -96,6 +96,9 @@ var PERMISSION_DEMOTE_TO_GUEST *Permission
 // admin functions but not others
 var PERMISSION_MANAGE_SYSTEM *Permission
 
+var PERMISSION_MOVE_TO_CHANNEL_POST *Permission
+var PERMISSION_MOVE_TO_CHANNEL_OTHERS_POSTS *Permission
+
 var ALL_PERMISSIONS []*Permission
 
 func initializePermissions() {
@@ -432,6 +435,18 @@ func initializePermissions() {
 		"delete_others_posts",
 		"authentication.permissions.delete_others_posts.name",
 		"authentication.permissions.delete_others_posts.description",
+		PERMISSION_SCOPE_CHANNEL,
+	}
+	PERMISSION_MOVE_TO_CHANNEL_POST = &Permission{
+		"move_to_channel_post",
+		"authentication.permissions.move_to_channel_post.name",
+		"authentication.permissions.move_to_channel_post.description",
+		PERMISSION_SCOPE_CHANNEL,
+	}
+	PERMISSION_MOVE_TO_CHANNEL_OTHERS_POSTS = &Permission{
+		"move_to_channel_others_posts",
+		"authentication.permissions.move_to_channel_others_posts.name",
+		"authentication.permissions.move_to_channel_others_posts.description",
 		PERMISSION_SCOPE_CHANNEL,
 	}
 	PERMISSION_REMOVE_USER_FROM_TEAM = &Permission{

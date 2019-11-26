@@ -203,7 +203,7 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
 
 	query := `
             SELECT
-                A.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = A.Id AND Posts.DeleteAt = 0) as ReplyCount 
+                A.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = A.Id AND Posts.DeleteAt = 0) as ReplyCount
             FROM
                 (SELECT
                     *
@@ -245,7 +245,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	var posts []*model.Post
 	query := `
 		SELECT
-			*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount 
+			*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount
 		FROM Posts p
 		WHERE
 			Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
@@ -1529,4 +1529,41 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		}
 	}
 	return posts, nil
+}
+
+func (s *SqlPostStore) MoveToChannelPost(moveToChannelPost *model.MovePost) *model.AppError {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlPostStore.MoveToChannelPost", "store.sql_post.move_to_channel_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		mlog.Warn("TODO(ctomai) Postgres implementation")
+	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if _, err := transaction.Exec(`
+	        SET @startTime = :StartTime;
+		`, map[string]interface{}{
+			"StartTime": model.GetMillis(),
+		}); err != nil {
+			return model.NewAppError("SqlPostStore.MoveToChannelPost", "store.sql_post.move_to_channel_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if _, err := transaction.Exec(`
+	        UPDATE Posts SET CreateAt = (SELECT @startTime := @startTime+1), UpdateAt = CreateAt, ChannelId = :ChannelId WHERE Id = :RootId OR RootId = :RootId ORDER BY CreateAt ASC
+		`, map[string]interface{}{
+			"ChannelId": moveToChannelPost.ChannelId,
+			"RootId":    moveToChannelPost.PostId,
+		}); err != nil {
+			return model.NewAppError("SqlPostStore.MoveToChannelPost", "store.sql_post.move_to_channel_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if err := transaction.Commit(); err != nil {
+			return model.NewAppError("SqlPostStore.MoveToChannelPost", "store.sql_post.move_to_channel_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		mlog.Warn("No implementation found")
+	}
+
+	return nil
 }
