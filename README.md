@@ -6,8 +6,11 @@ The plugin API as exposed in [github.com/mattermost/mattermost-server/plugin](ht
 Fixing the API in place is difficult. Any backwards incompatible changes to the RPC API would break existing plugins. Even backwards incompatible changes to the plugin helpers would break semver, requiring a coordinated major version bump with parent repository. Adding new methods improves the experience for newer plugins, but forever clutters the [plugin GoDoc](https://godoc.org/github.com/mattermost/mattermost-server/plugin).
 
 Instead, we opted to wrap the existing RPC API and helpers with a client hosted in this separate repository. Issues fixed and improvements added include:
-* `*model.AppError` eliminated for all API calls, safely returning an `error` interface instead
-* TBD
+* `*model.AppError` eliminated for all API calls, correctly returning an `error` interface instead
+* methods logically organized by service instead of a flat API (e.g. `client.Users.List`)
+* custom types eliminated in favour of simple splices (e.g. `[]*model.ChannelMember` instead of `model.ChannelMembers`)
+* more consistent method names (e.g. `Get`, `List`, `Create`, `Update`, `Delete`)
+* functional pattern for optional parameters (e.g. `List(teamId, page, perPage, ...TeamListOption)`)
 
 The API exposed by this client officially replaces direct use of the RPC API and helpers. While we will maintain backwards compatibility with the existing RPC API, we may bump the major version of this repository in coordination with a breaking semver change. This will affect only plugin authors who opt in to the newer package, and existing plugins will continue to compile and run without changes using the older version of the package.
 
