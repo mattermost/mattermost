@@ -1,6 +1,8 @@
 package bleveengine
 
 import (
+	"encoding/xml"
+	"io"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -66,6 +68,66 @@ func getSuggestionInputsSplitByMultiple(term string, splitStrs []string) []strin
 	return utils.RemoveDuplicatesFromStringArray(suggestionList)
 }
 
+// ToDo: this is a duplicate
+func getMatchesForHit(highlights map[string][]string) ([]string, error) {
+	matchMap := make(map[string]bool)
+
+	parseMatches := func(snippets []string) error {
+		// Highlighted matches are returned as an array of snippets of the post where
+		// each snippet has the highlighted text surrounded by html <em> tags
+		for _, snippet := range snippets {
+			decoder := xml.NewDecoder(strings.NewReader(snippet))
+			inMatch := false
+
+			for {
+				token, err := decoder.Token()
+				if err == io.EOF {
+					break
+				} else if err != nil {
+					return err
+				}
+
+				switch typed := token.(type) {
+				case xml.StartElement:
+					if typed.Name.Local == "em" {
+						inMatch = true
+					}
+				case xml.EndElement:
+					if typed.Name.Local == "em" {
+						inMatch = false
+					}
+				case xml.CharData:
+					if inMatch && len(typed) != 0 {
+						match := string(typed)
+						match = strings.Trim(match, "_*~")
+
+						matchMap[match] = true
+					}
+				}
+			}
+		}
+
+		return nil
+	}
+
+	if err := parseMatches(highlights["message"]); err != nil {
+		return nil, err
+	}
+	if err := parseMatches(highlights["attachments"]); err != nil {
+		return nil, err
+	}
+	if err := parseMatches(highlights["hashtags"]); err != nil {
+		return nil, err
+	}
+
+	var matches []string
+	for match := range matchMap {
+		matches = append(matches, match)
+	}
+
+	return matches, nil
+}
+
 func BLVChannelFromChannel(channel *model.Channel) *BLVChannel {
 	displayNameInputs := getSuggestionInputsSplitBy(channel.DisplayName, " ")
 	nameInputs := getSuggestionInputsSplitByMultiple(channel.Name, []string{"-", "_"})
@@ -110,8 +172,15 @@ func BLVUserFromUserAndTeams(user *model.User, teamsIds, channelsIds []string) *
 	}
 }
 
-func BLVPostFromPost(post *model.Post) *BLVPost {
+func BLVPostFromPost(post *model.Post, teamId string) *BLVPost {
 	return &BLVPost{
 		Id: post.Id,
+		TeamId: teamId,
+		ChannelId: post.ChannelId,
+		UserId:    post.UserId,
+		CreateAt:  post.CreateAt,
+		Message:   post.Message,
+		Type:      post.Type,
+		Hashtags:  strings.Fields(post.Hashtags),
 	}
 }

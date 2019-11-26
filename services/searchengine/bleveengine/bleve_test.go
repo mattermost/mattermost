@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 
 	"github.com/blevesearch/bleve"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -90,6 +91,17 @@ func createPostWithHashtags(userId string, channelId string, message string, has
 	return post
 }
 
+// ToDo: from elastic/testlib, generalise for both?
+func checkMatchesEqual(t *testing.T, expected model.PostSearchMatches, actual map[string][]string) {
+	a := assert.New(t)
+
+	a.Len(actual, len(expected), "Received matches for a different number of posts")
+
+	for postId, expectedMatches := range expected {
+		a.ElementsMatch(expectedMatches, actual[postId], fmt.Sprintf("%v: expected %v, got %v", postId, expectedMatches, actual[postId]))
+	}
+}
+
 func (s *BleveEngineTestSuite) SetupTest() {
 	postIndex, err := bleve.NewMemOnly(getPostIndexMapping())
 	if err != nil {
@@ -126,6 +138,55 @@ func (s *BleveEngineTestSuite) TestBleveIndexPost() {
 	s.Require().Nil(err)
 	s.Len(result.Hits, 1)
 	s.Equal(post.Id, result.Hits[0].ID)
+}
+
+func (s *BleveEngineTestSuite) TestBleveSearchPosts() {
+	// Create and index a post
+	channel := &model.Channel{Id: model.NewId()}
+	post := createPost(model.NewId(), channel.Id, model.NewId())
+	s.Nil(s.engine.IndexPost(post, model.NewId()))
+
+	// Check the post is there.
+	result, err := s.engine.postIndex.Search(bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{post.Id})))
+	s.Require().Nil(err)
+	s.Len(result.Hits, 1)
+	s.Equal(post.Id, result.Hits[0].ID)
+
+	// Do a search for that post.
+	channels := &model.ChannelList{
+		channel,
+	}
+
+	searchParams := []*model.SearchParams{
+		{
+			Terms:     post.Message,
+			IsHashtag: false,
+			OrTerms:   false,
+		},
+	}
+
+	// Check the post is found as expected
+	ids, matches, err := s.engine.SearchPosts(channels, searchParams, 0, 20)
+	s.Nil(err)
+	s.Len(ids, 1)
+	s.Equal(ids[0], post.Id)
+	checkMatchesEqual(s.T(), map[string][]string{
+		post.Id: {post.Message},
+	}, matches)
+
+	// Do a search that won't match anything.
+	searchParams = []*model.SearchParams{
+		{
+			Terms:     model.NewId(),
+			IsHashtag: false,
+			OrTerms:   false,
+		},
+	}
+
+	ids, matches, err = s.engine.SearchPosts(channels, searchParams, 0, 20)
+	s.Nil(err)
+	s.Len(ids, 0)
+	s.Len(matches, 0)
 }
 
 func (s *BleveEngineTestSuite) TestBleveDeletePost() {

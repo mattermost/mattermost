@@ -12,6 +12,7 @@ import (
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
+	"github.com/blevesearch/bleve/analysis/analyzer/standard"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/blevesearch/bleve/search/query"
 )
@@ -35,10 +36,22 @@ type BlevePost struct {
 	Hashtags  []string `json:"hashtags"`
 }
 
-func getChannelIndexMapping() *mapping.IndexMappingImpl {
-	keywordMapping := bleve.NewTextFieldMapping()
+var keywordMapping *mapping.FieldMapping
+var standardMapping *mapping.FieldMapping
+var dateMapping *mapping.FieldMapping
+
+func init() {
+	keywordMapping = bleve.NewTextFieldMapping()
 	keywordMapping.Analyzer = keyword.Name
 
+	standardMapping = bleve.NewTextFieldMapping()
+	standardMapping.Analyzer = standard.Name
+
+	dateMapping = bleve.NewDateTimeFieldMapping()
+	// ToDo: set a format?
+}
+
+func getChannelIndexMapping() *mapping.IndexMappingImpl {
 	channelMapping := bleve.NewDocumentMapping()
 	channelMapping.AddFieldMappingsAt("Id", keywordMapping)
 	channelMapping.AddFieldMappingsAt("TeamId", keywordMapping)
@@ -51,13 +64,24 @@ func getChannelIndexMapping() *mapping.IndexMappingImpl {
 }
 
 func getPostIndexMapping() *mapping.IndexMappingImpl {
-	return bleve.NewIndexMapping()
+	postMapping := bleve.NewDocumentMapping()
+	postMapping.AddFieldMappingsAt("Id", keywordMapping)
+	postMapping.AddFieldMappingsAt("TeamId", keywordMapping)
+	postMapping.AddFieldMappingsAt("ChannelId", keywordMapping)
+	postMapping.AddFieldMappingsAt("UserId", keywordMapping)
+	postMapping.AddFieldMappingsAt("CreateAt", dateMapping)
+	postMapping.AddFieldMappingsAt("Message", standardMapping)
+	postMapping.AddFieldMappingsAt("Type", keywordMapping)
+	postMapping.AddFieldMappingsAt("Hashtags", standardMapping)
+	postMapping.AddFieldMappingsAt("Attachments", standardMapping)
+
+	indexMapping := bleve.NewIndexMapping()
+	indexMapping.AddDocumentMapping("_default", postMapping)
+
+	return indexMapping
 }
 
 func getUserIndexMapping() *mapping.IndexMappingImpl {
-	keywordMapping := bleve.NewTextFieldMapping()
-	keywordMapping.Analyzer = keyword.Name
-
 	userMapping := bleve.NewDocumentMapping()
 	userMapping.AddFieldMappingsAt("Id", keywordMapping)
 	userMapping.AddFieldMappingsAt("SuggestionsWithFullname", keywordMapping)
@@ -134,7 +158,7 @@ func (b *BleveEngine) GetName() string {
 }
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
-	blvPost := BLVPostFromPost(post)
+	blvPost := BLVPostFromPost(post, teamId)
 	if err := b.postIndex.Index(blvPost.Id, blvPost); err != nil {
 		return model.NewAppError("Bleveengine.IndexPost", "bleveengine.index_post.error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -142,15 +166,35 @@ func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError
 }
 
 func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
-	// simple query string on both messages and attachments
+	var channelQueries []query.Query
+	for _, channel := range *channels {
+		channelIdQ := bleve.NewTermQuery(channel.Id)
+		channelIdQ.SetField("ChannelId")
+	}
 
-	// implement inChannels, excludedChannels, fromUser, excludedUsers, dateFilters
+	// ToDo: needs to loop
+	params := searchParams[0]
+	// ToDo: needs email filtering
+	messageQ := bleve.NewMatchQuery(params.Terms)
+	messageQ.SetField("Message")
+	// ToDo: SIMPLE APPROACH
+	query := bleve.NewConjunctionQuery(append(channelQueries, messageQ)...)
+	search := bleve.NewSearchRequest(query)
+	results, err := b.postIndex.Search(search)
+	if err != nil {
+		return nil, nil, model.NewAppError("Bleveengine.SearchPosts", "bleveengine.search_posts.error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-	// hashtags
+	postIds := []string{}
+	matches := model.PostSearchMatches{}
 
-	// highlighting
+	for _, r := range results.Hits {
+		postIds = append(postIds, r.ID)
+		// process highlight
+		// matchesForPost, err := getMatchesForHit()
+	}
 
-	return nil, nil, nil
+	return postIds, matches, nil
 }
 
 func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
