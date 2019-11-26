@@ -5,7 +5,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// PostService exposes methods to read and write the posts of a Mattermost server.
+// PostService exposes methods to manipulate posts.
 type PostService struct {
 	api plugin.API
 }
@@ -121,4 +121,31 @@ func (p *PostService) SearchPostsInTeam(teamID string, paramsList []*model.Searc
 	postList, appErr := p.api.SearchPostsInTeam(teamID, paramsList)
 
 	return postList, normalizeAppErr(appErr)
+}
+
+// AddReaction add a reaction to a post.
+//
+// Minimum server version: 5.3
+func (r *ReactionService) AddReaction(reaction *model.Reaction) (*model.Reaction, error) {
+	reaction, appErr := r.api.AddReaction(reaction)
+
+	return reaction, normalizeAppErr(appErr)
+}
+
+// GetReactions get the reactions of a post.
+//
+// Minimum server version: 5.3
+func (r *ReactionService) GetReactions(postID string) ([]*model.Reaction, error) {
+	reactions, appErr := r.api.GetReactions(postID)
+
+	return reactions, normalizeAppErr(appErr)
+}
+
+// RemoveReaction remove a reaction from a post.
+//
+// Minimum server version: 5.3
+func (r *ReactionService) RemoveReaction(reaction *model.Reaction) error {
+	appErr := r.api.RemoveReaction(reaction)
+
+	return normalizeAppErr(appErr)
 }

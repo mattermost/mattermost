@@ -5,8 +5,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// CommandService exposes methods to read and write the groups of a Mattermost server.
-type CommandService struct {
+// SlashCommandService exposes methods to manipulate slash commands.
+type SlashCommandService struct {
 	api plugin.API
 }
 

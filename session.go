@@ -5,7 +5,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// SessionService exposes methods to read and write the groups of a Mattermost server.
+// SessionService exposes methods to manipulate groups.
 type SessionService struct {
 	api plugin.API
 }

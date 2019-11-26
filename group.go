@@ -5,7 +5,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// GroupService exposes methods to read and write the groups of a Mattermost server.
+// GroupService exposes methods to manipulate groups.
 type GroupService struct {
 	api plugin.API
 }

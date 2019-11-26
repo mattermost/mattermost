@@ -5,7 +5,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// ConfigurationService exposes methods to read and write the server and plugin configuration.
+// ConfigurationService exposes methods to manipulate the server and plugin configuration.
 type ConfigurationService struct {
 	api plugin.API
 }

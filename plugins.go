@@ -8,7 +8,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// PluginService exposes methods to interact with the set of plugins on a Mattermost server.
+// PluginService exposes methods to manipulate the set of plugins as well as communicate with
+// other plugin instances.
 type PluginService struct {
 	api plugin.API
 }
@@ -20,6 +21,16 @@ func (p *PluginService) List() ([]*model.Manifest, error) {
 	manifests, appErr := p.api.GetPlugins()
 
 	return manifests, normalizeAppErr(appErr)
+}
+
+// Install will upload another plugin with tar.gz file.
+// Previous version will be replaced on replace true.
+//
+// Minimum server version: 5.18
+func (p *PluginService) Install(file io.Reader, replace bool) (*model.Manifest, error) {
+	manifest, appErr := p.api.InstallPlugin(file, replace)
+
+	return manifest, normalizeAppErr(appErr)
 }
 
 // Enable will enable an plugin installed.
@@ -56,16 +67,6 @@ func (p *PluginService) GetPluginStatus(id string) (*model.PluginStatus, error) 
 	pluginStatus, appErr := p.api.GetPluginStatus(id)
 
 	return pluginStatus, normalizeAppErr(appErr)
-}
-
-// Install will upload another plugin with tar.gz file.
-// Previous version will be replaced on replace true.
-//
-// Minimum server version: 5.18
-func (p *PluginService) Install(file io.Reader, replace bool) (*model.Manifest, error) {
-	manifest, appErr := p.api.InstallPlugin(file, replace)
-
-	return manifest, normalizeAppErr(appErr)
 }
 
 // HTTP allows inter-plugin requests to plugin APIs.

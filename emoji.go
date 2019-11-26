@@ -8,7 +8,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// EmojiService provides features to set, update and retrieve emojis.
+// EmojiService exposes methods to manipulate emojis.
 type EmojiService struct {
 	api plugin.API
 }

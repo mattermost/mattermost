@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// FileService provides features to deal with post attachments.
+// FileService exposes methods to manipulate files, most often as post attachments.
 type FileService struct {
 	api plugin.API
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// SystemService exposes methods to read and write the server and plugin configuration.
+// SystemService exposes methods to query system properties.
 type SystemService struct {
 	api plugin.API
 }
@@ -40,6 +40,7 @@ func (s *SystemService) GetServerVersion() string {
 func (s *SystemService) GetSystemInstallDate() (time.Time, error) {
 	installDateMS, appErr := s.api.GetSystemInstallDate()
 	installDate := installDateMS * time.Millisecond
+
 	return installDate, normalizeAppError(appError)
 }
 
