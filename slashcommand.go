@@ -1,7 +1,7 @@
 package pluginapi
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
@@ -14,13 +14,13 @@ type SlashCommandService struct {
 // can fulfill it via the ExecuteCommand hook.
 //
 // Minimum server version: 5.2
-func (c *CommandService) Register(command *model.Command) error {
+func (c *SlashCommandService) Register(command *model.Command) error {
 	return c.api.RegisterCommand(command)
 }
 
 // Unregister unregisters a command previously registered via Register.
 //
 // Minimum server version: 5.2
-func (c *CommandService) Unregister(teamID, trigger string) error {
+func (c *SlashCommandService) Unregister(teamID, trigger string) error {
 	return c.api.UnregisterCommand(teamID, trigger)
 }

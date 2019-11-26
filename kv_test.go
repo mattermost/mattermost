@@ -12,7 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var appError = model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+func newAppError() *model.AppError {
+	return model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+}
 
 func TestKVSet(t *testing.T) {
 	tests := []struct {
@@ -127,7 +129,7 @@ func TestKVSet(t *testing.T) {
 			[]KVSetOption{},
 			model.PluginKVSetOptions{},
 			false,
-			appError,
+			newAppError(),
 		},
 	}
 

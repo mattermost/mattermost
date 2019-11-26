@@ -30,8 +30,9 @@ func TestLogrus(t *testing.T) {
 
 			api := &plugintest.API{}
 			defer api.AssertExpectations(t)
+			client := pluginapi.NewClient(api)
 
-			pluginapi.ConfigureLogrus(logger, api)
+			pluginapi.ConfigureLogrus(logger, client)
 
 			// Parameter order of map is non-deterministic, so expect either.
 			api.On(testCase.APICall, "message", "a", "a", "b", "1").Maybe()

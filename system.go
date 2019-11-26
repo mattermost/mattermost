@@ -3,7 +3,7 @@ package pluginapi
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
@@ -39,9 +39,9 @@ func (s *SystemService) GetServerVersion() string {
 // Minimum server version: 5.10
 func (s *SystemService) GetSystemInstallDate() (time.Time, error) {
 	installDateMS, appErr := s.api.GetSystemInstallDate()
-	installDate := installDateMS * time.Millisecond
+	installDate := time.Unix(0, installDateMS*int64(time.Millisecond))
 
-	return installDate, normalizeAppError(appError)
+	return installDate, normalizeAppErr(appErr)
 }
 
 // GetDiagnosticID returns a unique identifier used by the server for diagnostic reports.

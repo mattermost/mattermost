@@ -7,6 +7,7 @@ type Client struct {
 	api plugin.API
 
 	Bot          BotService
+	Channel      ChannelService
 	SlashCommand SlashCommandService
 	Emoji        EmojiService
 	File         FileService
@@ -27,6 +28,7 @@ func NewClient(api plugin.API) *Client {
 		api: api,
 
 		Bot:          BotService{api},
+		Channel:      ChannelService{api},
 		SlashCommand: SlashCommandService{api},
 		Emoji:        EmojiService{api},
 		File:         FileService{api},

@@ -83,7 +83,7 @@ func (c *ChannelService) ListPublicChannelsForTeam(teamID string, page, perPage 
 func (c *ChannelService) Search(teamID string, term string) ([]*model.Channel, error) {
 	channels, appErr := c.api.SearchChannels(teamID, term)
 
-	return channel, normalizeAppErr(appErr)
+	return channels, normalizeAppErr(appErr)
 }
 
 // Create creates a channel.
@@ -137,16 +137,16 @@ func (c *ChannelService) GetMember(channelID, userID string) (*model.ChannelMemb
 func (c *ChannelService) GetMembers(channelID string, page, perPage int) ([]*model.ChannelMember, error) {
 	channelMembers, appErr := c.api.GetChannelMembers(channelID, page, perPage)
 
-	return channelMembers, normalizeAppErr(appErr)
+	return channelMembersToChannelMemberSlice(channelMembers), normalizeAppErr(appErr)
 }
 
 // GetMembersByIDs gets a channel membership for a particular User
 //
 // Minimum server version: 5.6
 func (c *ChannelService) GetMembersByIDs(channelID string, userIDs []string) ([]*model.ChannelMember, error) {
-	channelMembers, appErr := c.api.GetChannelMembersByIDs(channelID, userIDs)
+	channelMembers, appErr := c.api.GetChannelMembersByIds(channelID, userIDs)
 
-	return channelMembers, normalizeAppErr(appErr)
+	return channelMembersToChannelMemberSlice(channelMembers), normalizeAppErr(appErr)
 }
 
 // GetMembersForUser returns all channel memberships on a team for a user.
@@ -203,4 +203,16 @@ func (c *ChannelService) UpdateChannelMemberNotifications(channelID, userID stri
 	channelMember, appErr := c.api.UpdateChannelMemberNotifications(channelID, userID, notifications)
 
 	return channelMember, normalizeAppErr(appErr)
+}
+
+func channelMembersToChannelMemberSlice(cm *model.ChannelMembers) []*model.ChannelMember {
+	if cm == nil {
+		return nil
+	}
+
+	cmp := make([]*model.ChannelMember, len(*cm))
+	for i := 0; i < len(*cm); i++ {
+		cmp[i] = &(*cm)[i]
+	}
+	return cmp
 }

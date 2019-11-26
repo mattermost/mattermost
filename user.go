@@ -123,7 +123,7 @@ func (u *UserService) GetStatus(userID string) (*model.Status, error) {
 //
 // Minimum server version: 5.2
 func (u *UserService) ListStatusesByIDs(userIDs []string) ([]*model.Status, error) {
-	statuses, appErr := u.api.GetUserStatusesByIDs(userIDs)
+	statuses, appErr := u.api.GetUserStatusesByIds(userIDs)
 
 	return statuses, normalizeAppErr(appErr)
 }
@@ -133,9 +133,9 @@ func (u *UserService) ListStatusesByIDs(userIDs []string) ([]*model.Status, erro
 //
 // Minimum server version: 5.2
 func (u *UserService) UpdateStatus(userID, status string) (*model.Status, error) {
-	status, appErr := u.api.UpdateUserStatus(userID, status)
+	rStatus, appErr := u.api.UpdateUserStatus(userID, status)
 
-	return status, normalizeAppErr(appErr)
+	return rStatus, normalizeAppErr(appErr)
 }
 
 // UpdateActive deactivates or reactivates an user.
@@ -176,14 +176,14 @@ func (u *UserService) HasPermissionTo(userID string, permission *model.Permissio
 //
 // Minimum server version: 5.3
 func (u *UserService) HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool {
-	return u.api.HasPermissionToTeam(userID, permission)
+	return u.api.HasPermissionToTeam(userID, teamID, permission)
 }
 
 // HasPermissionToChannel check if the user has the permission at channel scope.
 //
 // Minimum server version: 5.3
 func (u *UserService) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
-	return u.api.HasPermissionToChannel(userID, permission)
+	return u.api.HasPermissionToChannel(userID, channelID, permission)
 }
 
 // GetLDAPAttributes will return LDAP attributes for a user.
@@ -193,7 +193,7 @@ func (u *UserService) HasPermissionToChannel(userID, channelID string, permissio
 //
 // Minimum server version: 5.3
 func (u *UserService) GetLDAPAttributes(userID string, attributes []string) (map[string]string, error) {
-	ldapUserAttributes, appErr := l.api.GetLDAPUserAttributes(userID, attributes)
+	ldapUserAttributes, appErr := u.api.GetLDAPUserAttributes(userID, attributes)
 
 	return ldapUserAttributes, normalizeAppErr(appErr)
 }

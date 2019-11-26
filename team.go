@@ -104,9 +104,7 @@ func (t *TeamService) SetIcon(teamID string, data []byte) error {
 //
 // Minimum server version: 5.6
 func (t *TeamService) RemoveIcon(teamID string) error {
-	appErr := t.api.RemoveTeamIcon(teamID, data)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(t.api.RemoveTeamIcon(teamID))
 }
 
 // ListUnreadForUser gets the unread message and mention counts for each team to which the given user belongs.
@@ -122,7 +120,7 @@ func (t *TeamService) ListUnreadForUser(userID string) ([]*model.TeamUnread, err
 //
 // Minimum server version: 5.2
 func (t *TeamService) GetMember(teamID, userID string) (*model.TeamMember, error) {
-	teamMember, appErr := t.api.GetTeamMembers(teamID, userID)
+	teamMember, appErr := t.api.GetTeamMember(teamID, userID)
 
 	return teamMember, normalizeAppErr(appErr)
 }

@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,95 +43,6 @@ func TestCreateBot(t *testing.T) {
 	})
 }
 
-func TestUpdateBot(t *testing.T) {
-	userName := "userName"
-	displayName := "displayName"
-	description := "description"
-	tests := []struct {
-		name            string
-		botUserID       string
-		options         []BotUpdateOption
-		expectedOptions *model.BotPatch
-		bot             *model.Bot
-		err             error
-	}{
-		{
-			"user name update",
-			"1",
-			[]BotUpdateOption{
-				BotUserNameUpdate(userName),
-			},
-			&model.BotPatch{
-				Username: &userName,
-			},
-			&model.Bot{
-				UserId: "2",
-			},
-			nil,
-		},
-		{
-			"update all",
-			"1",
-			[]BotUpdateOption{
-				BotUserNameUpdate(userName),
-				BotDisplayNameUpdate(displayName),
-				BotDescriptionUpdate(description),
-			},
-			&model.BotPatch{
-				Username:    &userName,
-				DisplayName: &displayName,
-				Description: &description,
-			},
-			&model.Bot{
-				UserId: "2",
-			},
-			nil,
-		},
-		{
-			"no update options error",
-			"1",
-			nil,
-			nil,
-			nil,
-			errors.New("no update options provided"),
-		},
-		{
-			"app error",
-			"1",
-			[]BotUpdateOption{
-				BotUserNameUpdate(userName),
-			},
-			&model.BotPatch{
-				Username: &userName,
-			},
-			nil,
-			model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError),
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			api := &plugintest.API{}
-
-			client := NewClient(api)
-
-			if len(test.options) > 0 {
-				api.On("PatchBot", test.botUserID, test.expectedOptions).Return(test.bot, test.err)
-			}
-
-			bot, err := client.Bot.Update(test.botUserID, test.options...)
-			if test.err != nil {
-				require.Equal(t, test.err.Error(), err.Error(), test.name)
-			} else {
-				require.NoError(t, err, test.name)
-			}
-			require.Equal(t, test.bot, bot, test.name)
-
-			api.AssertExpectations(t)
-		})
-	}
-}
-
 func TestUpdateBotStatus(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
@@ -142,7 +52,7 @@ func TestUpdateBotStatus(t *testing.T) {
 
 		api.On("UpdateBotActive", "1", true).Return(&model.Bot{UserId: "2"}, nil)
 
-		bot, err := client.Bot.UpdateStatus("1", true)
+		bot, err := client.Bot.UpdateActive("1", true)
 		require.NoError(t, err)
 		require.Equal(t, &model.Bot{UserId: "2"}, bot)
 	})
@@ -157,7 +67,7 @@ func TestUpdateBotStatus(t *testing.T) {
 
 		api.On("UpdateBotActive", "1", true).Return(nil, appErr)
 
-		bot, err := client.Bot.UpdateStatus("1", true)
+		bot, err := client.Bot.UpdateActive("1", true)
 		require.Equal(t, appErr, err)
 		require.Zero(t, bot)
 	})

@@ -126,7 +126,7 @@ func (p *PostService) SearchPostsInTeam(teamID string, paramsList []*model.Searc
 // AddReaction add a reaction to a post.
 //
 // Minimum server version: 5.3
-func (r *ReactionService) AddReaction(reaction *model.Reaction) (*model.Reaction, error) {
+func (r *PostService) AddReaction(reaction *model.Reaction) (*model.Reaction, error) {
 	reaction, appErr := r.api.AddReaction(reaction)
 
 	return reaction, normalizeAppErr(appErr)
@@ -135,7 +135,7 @@ func (r *ReactionService) AddReaction(reaction *model.Reaction) (*model.Reaction
 // GetReactions get the reactions of a post.
 //
 // Minimum server version: 5.3
-func (r *ReactionService) GetReactions(postID string) ([]*model.Reaction, error) {
+func (r *PostService) GetReactions(postID string) ([]*model.Reaction, error) {
 	reactions, appErr := r.api.GetReactions(postID)
 
 	return reactions, normalizeAppErr(appErr)
@@ -144,7 +144,7 @@ func (r *ReactionService) GetReactions(postID string) ([]*model.Reaction, error)
 // RemoveReaction remove a reaction from a post.
 //
 // Minimum server version: 5.3
-func (r *ReactionService) RemoveReaction(reaction *model.Reaction) error {
+func (r *PostService) RemoveReaction(reaction *model.Reaction) error {
 	appErr := r.api.RemoveReaction(reaction)
 
 	return normalizeAppErr(appErr)

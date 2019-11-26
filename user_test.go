@@ -22,7 +22,7 @@ func TestCreateUser(t *testing.T) {
 		}
 		api.On("CreateUser", expectedUser).Return(expectedUser, nil)
 
-		actualUser, err := client.User.CreateUser(expectedUser)
+		actualUser, err := client.User.Create(expectedUser)
 		require.NoError(t, err)
 		assert.Equal(t, expectedUser, actualUser)
 	})
@@ -38,7 +38,7 @@ func TestCreateUser(t *testing.T) {
 		}
 		api.On("CreateUser", expectedUser).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
 
-		actualUser, err := client.User.CreateUser(expectedUser)
+		actualUser, err := client.User.Create(expectedUser)
 		require.EqualError(t, err, "here: id, an error occurred")
 		assert.Nil(t, actualUser)
 	})
@@ -54,7 +54,7 @@ func TestDeleteUser(t *testing.T) {
 		expectedUserID := model.NewId()
 		api.On("DeleteUser", expectedUserID).Return(nil)
 
-		err := client.User.DeleteUser(expectedUserID)
+		err := client.User.Delete(expectedUserID)
 		require.NoError(t, err)
 	})
 
@@ -67,7 +67,7 @@ func TestDeleteUser(t *testing.T) {
 		expectedUserID := model.NewId()
 		api.On("DeleteUser", expectedUserID).Return(model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
 
-		err := client.User.DeleteUser(expectedUserID)
+		err := client.User.Delete(expectedUserID)
 		require.EqualError(t, err, "here: id, an error occurred")
 	})
 }
@@ -83,7 +83,7 @@ func TestGetUsers(t *testing.T) {
 		expectedUsers := []*model.User{&model.User{Username: "test"}}
 		api.On("GetUsers", options).Return(expectedUsers, nil)
 
-		actualUsers, err := client.User.GetUsers(options)
+		actualUsers, err := client.User.List(options)
 		require.NoError(t, err)
 		assert.Equal(t, expectedUsers, actualUsers)
 	})
@@ -97,7 +97,7 @@ func TestGetUsers(t *testing.T) {
 		options := &model.UserGetOptions{}
 		api.On("GetUsers", options).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
 
-		actualUsers, err := client.User.GetUsers(options)
+		actualUsers, err := client.User.List(options)
 		require.EqualError(t, err, "here: id, an error occurred")
 		assert.Nil(t, actualUsers)
 	})
@@ -114,7 +114,7 @@ func TestGetUser(t *testing.T) {
 		expectedUser := &model.User{Id: userID, Username: "test"}
 		api.On("GetUser", userID).Return(expectedUser, nil)
 
-		actualUser, err := client.User.GetUser(userID)
+		actualUser, err := client.User.Get(userID)
 		require.NoError(t, err)
 		assert.Equal(t, expectedUser, actualUser)
 	})
@@ -128,7 +128,7 @@ func TestGetUser(t *testing.T) {
 		userID := "id"
 		api.On("GetUser", userID).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
 
-		actualUser, err := client.User.GetUser(userID)
+		actualUser, err := client.User.Get(userID)
 		require.EqualError(t, err, "here: id, an error occurred")
 		assert.Nil(t, actualUser)
 	})
@@ -145,7 +145,7 @@ func TestGetUserByEmail(t *testing.T) {
 		expectedUser := &model.User{Email: email, Username: "test"}
 		api.On("GetUserByEmail", email).Return(expectedUser, nil)
 
-		actualUser, err := client.User.GetUserByEmail(email)
+		actualUser, err := client.User.GetByEmail(email)
 		require.NoError(t, err)
 		assert.Equal(t, expectedUser, actualUser)
 	})
@@ -159,7 +159,7 @@ func TestGetUserByEmail(t *testing.T) {
 		email := "test@example.com"
 		api.On("GetUserByEmail", email).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
 
-		actualUser, err := client.User.GetUserByEmail(email)
+		actualUser, err := client.User.GetByEmail(email)
 		require.EqualError(t, err, "here: id, an error occurred")
 		assert.Nil(t, actualUser)
 	})
@@ -176,7 +176,7 @@ func TestGetUserByUsername(t *testing.T) {
 		expectedUser := &model.User{Username: username}
 		api.On("GetUserByUsername", username).Return(expectedUser, nil)
 
-		actualUser, err := client.User.GetUserByUsername(username)
+		actualUser, err := client.User.GetByUsername(username)
 		require.NoError(t, err)
 		assert.Equal(t, expectedUser, actualUser)
 	})
@@ -190,7 +190,7 @@ func TestGetUserByUsername(t *testing.T) {
 		username := "test"
 		api.On("GetUserByUsername", username).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
 
-		actualUser, err := client.User.GetUserByUsername(username)
+		actualUser, err := client.User.GetByUsername(username)
 		require.EqualError(t, err, "here: id, an error occurred")
 		assert.Nil(t, actualUser)
 	})
@@ -207,7 +207,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 		expectedUsers := []*model.User{&model.User{Username: "test1"}, &model.User{Username: "test2"}}
 		api.On("GetUsersByUsernames", usernames).Return(expectedUsers, nil)
 
-		actualUsers, err := client.User.GetUsersByUsernames(usernames)
+		actualUsers, err := client.User.ListByUsernames(usernames)
 		require.NoError(t, err)
 		assert.Equal(t, expectedUsers, actualUsers)
 	})
@@ -221,7 +221,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 		usernames := []string{"test1", "test2"}
 		api.On("GetUsersByUsernames", usernames).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
 
-		actualUsers, err := client.User.GetUsersByUsernames(usernames)
+		actualUsers, err := client.User.ListByUsernames(usernames)
 		require.EqualError(t, err, "here: id, an error occurred")
 		assert.Nil(t, actualUsers)
 	})
@@ -240,7 +240,7 @@ func TestGetUsersInTeam(t *testing.T) {
 		expectedUsers := []*model.User{&model.User{Username: "test1"}, &model.User{Username: "test2"}}
 		api.On("GetUsersInTeam", teamID, page, perPage).Return(expectedUsers, nil)
 
-		actualUsers, err := client.User.GetUsersInTeam(teamID, page, perPage)
+		actualUsers, err := client.User.ListInTeam(teamID, page, perPage)
 		require.NoError(t, err)
 		assert.Equal(t, expectedUsers, actualUsers)
 	})
@@ -256,7 +256,7 @@ func TestGetUsersInTeam(t *testing.T) {
 		perPage := 10
 		api.On("GetUsersInTeam", teamID, page, perPage).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
 
-		actualUsers, err := client.User.GetUsersInTeam(teamID, page, perPage)
+		actualUsers, err := client.User.ListInTeam(teamID, page, perPage)
 		require.EqualError(t, err, "here: id, an error occurred")
 		assert.Nil(t, actualUsers)
 	})

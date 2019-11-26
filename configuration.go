@@ -1,7 +1,7 @@
 package pluginapi
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
@@ -16,7 +16,7 @@ type ConfigurationService struct {
 // Minimum server version: 5.2
 func (c *ConfigurationService) LoadPluginConfiguration(dest interface{}) error {
 	// TODO: Isn't this method redundant given GetPluginConfig() and even GetConfig()?
-	return c.api.LoadPluginConfiguration()
+	return c.api.LoadPluginConfiguration(dest)
 }
 
 // GetConfig fetches the currently persisted config
@@ -37,19 +37,19 @@ func (c *ConfigurationService) GetUnsanitizedConfig() *model.Config {
 //
 // Minimum server version: 5.2
 func (c *ConfigurationService) SaveConfig(config *model.Config) error {
-	return normalizeAppError(c.api.SaveConfig(config))
+	return normalizeAppErr(c.api.SaveConfig(config))
 }
 
 // GetPluginConfig fetches the currently persisted config of plugin
 //
 // Minimum server version: 5.6
 func (c *ConfigurationService) GetPluginConfig() map[string]interface{} {
-	return c.api.GetPluginConfig(c)
+	return c.api.GetPluginConfig()
 }
 
 // SavePluginConfig sets the given config for plugin and persists the changes
 //
 // Minimum server version: 5.6
 func (c *ConfigurationService) SavePluginConfig(config map[string]interface{}) error {
-	return normalizeAppError(c.api.SavePluginConfig(config))
+	return normalizeAppErr(c.api.SavePluginConfig(config))
 }
