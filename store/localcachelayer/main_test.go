@@ -6,6 +6,8 @@ package localcachelayer
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-server/store"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/testlib"
@@ -41,6 +43,12 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
+	fakeWebhook := model.IncomingWebhook{Id: "123"}
+	mockWebhookStore := mocks.WebhookStore{}
+	mockWebhookStore.On("GetIncoming", "123", true).Return(&fakeWebhook, nil)
+	mockWebhookStore.On("GetIncoming", "123", false).Return(&fakeWebhook, nil)
+	mockStore.On("Webhook").Return(&mockWebhookStore)
+
 	fakeEmoji := model.Emoji{Id: "123", Name: "name123"}
 	mockEmojiStore := mocks.EmojiStore{}
 	mockEmojiStore.On("Get", "123", true).Return(&fakeEmoji, nil)
@@ -74,6 +82,11 @@ func getMockStore() *mocks.Store {
 	mockTermsOfServiceStore.On("Get", "123", true).Return(&fakeTermsOfService, nil)
 	mockTermsOfServiceStore.On("Get", "123", false).Return(&fakeTermsOfService, nil)
 	mockStore.On("TermsOfService").Return(&mockTermsOfServiceStore)
+	fakeUser := []*model.User{{Id: "123"}}
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
+	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
+	mockStore.On("User").Return(&mockUserStore)
 
 	return &mockStore
 }
