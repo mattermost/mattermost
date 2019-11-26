@@ -6,41 +6,42 @@ import "github.com/mattermost/mattermost-server/v5/plugin"
 type Client struct {
 	api plugin.API
 
-	User     UserService
-	Post     PostService
-	Reaction ReactionService
+	Bot      BotService
+	Command  CommandService
 	Emoji    EmojiService
 	File     FileService
-	KV       KVService
-	Bot      BotService
-	Log      LogService
-	Command  CommandService
-	Mail     MailService
 	Frontend FrontendService
 	Group    GroupService
+	KV       KVService
 	LDAP     LDAPService
+	Log      LogService
+	Mail     MailService
 	Plugin   PluginService
+	Post     PostService
+	Reaction ReactionService
 	Session  SessionService
+	User     UserService
 }
 
 // NewClient creates a new instance of Client.
 func NewClient(api plugin.API) *Client {
 	return &Client{
-		api:      api,
-		User:     UserService{api},
-		Post:     PostService{api},
-		Reaction: ReactionService{api},
+		api: api,
+
+		Bot:      BotService{api},
+		Command:  CommandService{api},
 		Emoji:    EmojiService{api},
 		File:     FileService{api},
-		KV:       KVService{api},
-		Bot:      BotService{api},
-		Log:      LogService{api},
-		Command:  CommandService{api},
-		Mail:     MailService{api},
 		Frontend: FrontendService{api},
 		Group:    GroupService{api},
+		KV:       KVService{api},
 		LDAP:     LDAPService{api},
+		Log:      LogService{api},
+		Mail:     MailService{api},
 		Plugin:   PluginService{api},
+		Post:     PostService{api},
+		Reaction: ReactionService{api},
 		Session:  SessionService{api},
+		User:     UserService{api},
 	}
 }
