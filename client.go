@@ -14,6 +14,13 @@ type Client struct {
 	KV       KVService
 	Bot      BotService
 	Log      LogService
+	Command  CommandService
+	Mail     MailService
+	Frontend FrontendService
+	Group    GroupService
+	LDAP     LDAPService
+	Plugin   PluginService
+	Session  SessionService
 }
 
 // NewClient creates a new instance of Client.
@@ -28,5 +35,12 @@ func NewClient(api plugin.API) *Client {
 		KV:       KVService{api},
 		Bot:      BotService{api},
 		Log:      LogService{api},
+		Command:  CommandService{api},
+		Mail:     MailService{api},
+		Frontend: FrontendService{api},
+		Group:    GroupService{api},
+		LDAP:     LDAPService{api},
+		Plugin:   PluginService{api},
+		Session:  SessionService{api},
 	}
 }
