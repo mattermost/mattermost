@@ -126,6 +126,7 @@ type Server struct {
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
+	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
 }
 
@@ -259,6 +260,21 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if s.startElasticsearch && s.Elasticsearch != nil {
 		s.StartElasticsearch()
+	}
+
+	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
+			if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
+				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+			}
+		}
+	})
+
+	// Disable active guest accounts on first run if guest accounts are disabled
+	if !*s.Config().GuestAccountsSettings.Enable {
+		if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
+			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+		}
 	}
 
 	s.initJobs()

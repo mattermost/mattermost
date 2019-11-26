@@ -153,3 +153,10 @@ func TestGetIpAddress(t *testing.T) {
 
 	assert.Equal(t, "10.1.0.1", GetIpAddress(&httpRequest10, []string{"X-Real-Ip", "X-Forwarded-For"}))
 }
+
+func TestRemoveStringFromSlice(t *testing.T) {
+	a := []string{"one", "two", "three", "four", "five", "six"}
+	expected := []string{"one", "two", "three", "five", "six"}
+
+	assert.Equal(t, RemoveStringFromSlice("four", a), expected)
+}
