@@ -35,8 +35,7 @@ func (lh *LogrusHook) Levels() []logrus.Level {
 func (lh *LogrusHook) Fire(entry *logrus.Entry) error {
 	fields := []interface{}{}
 	for key, value := range entry.Data {
-		fields = append(fields, key)
-		fields = append(fields, fmt.Sprintf("%+v", value))
+		fields = append(fields, key, fmt.Sprintf("%+v", value))
 	}
 
 	switch entry.Level {

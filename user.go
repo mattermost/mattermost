@@ -68,7 +68,7 @@ func (u *UserService) ListInChannel(channelID, sortBy string, page, perPage int)
 // ListInTeam gets users in team.
 //
 // Minimum server version: 5.6
-func (u *UserService) ListInTeam(teamID string, page int, perPage int) ([]*model.User, error) {
+func (u *UserService) ListInTeam(teamID string, page, perPage int) ([]*model.User, error) {
 	users, appErr := u.api.GetUsersInTeam(teamID, page, perPage)
 
 	return users, normalizeAppErr(appErr)

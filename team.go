@@ -137,7 +137,7 @@ func (t *TeamService) ListMembers(teamID string, page, perPage int) ([]*model.Te
 // ListMembersForUser returns all team memberships for a user.
 //
 // Minimum server version: 5.10
-func (t *TeamService) ListMembersForUser(userID string, page int, perPage int) ([]*model.TeamMember, error) {
+func (t *TeamService) ListMembersForUser(userID string, page, perPage int) ([]*model.TeamMember, error) {
 	teamMembers, appErr := t.api.GetTeamMembersForUser(userID, page, perPage)
 
 	return teamMembers, normalizeAppErr(appErr)

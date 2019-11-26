@@ -80,7 +80,7 @@ func (c *ChannelService) ListPublicChannelsForTeam(teamID string, page, perPage 
 // Search returns the channels on a team matching the provided search term.
 //
 // Minimum server version: 5.6
-func (c *ChannelService) Search(teamID string, term string) ([]*model.Channel, error) {
+func (c *ChannelService) Search(teamID, term string) ([]*model.Channel, error) {
 	channels, appErr := c.api.SearchChannels(teamID, term)
 
 	return channels, normalizeAppErr(appErr)
