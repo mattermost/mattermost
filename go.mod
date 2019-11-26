@@ -1,4 +1,4 @@
-module pluginapi
+module github.com/lieut-data/mattermost-plugin-api
 
 go 1.13
 
