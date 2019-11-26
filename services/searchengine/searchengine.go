@@ -43,6 +43,12 @@ type SearchEngineBroker struct {
 
 func (seb *SearchEngineBroker) UpdateConfig(cfg *model.Config) *model.AppError {
 	seb.cfg = cfg
+	if seb.ElasticsearchEngine != nil {
+		seb.ElasticsearchEngine.UpdateConfig(cfg)
+	}
+	if seb.BleveEngine != nil {
+		seb.BleveEngine.UpdateConfig(cfg)
+	}
 	return nil
 }
 

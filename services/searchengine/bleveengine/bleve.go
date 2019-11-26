@@ -436,3 +436,7 @@ func (b *BleveEngine) IsIndexingEnabled() bool {
 func (b *BleveEngine) IsSearchEnabled() bool {
 	return *b.cfg.BleveSettings.EnableSearching
 }
+
+func (b *BleveEngine) UpdateConfig(cfg *model.Config) {
+	b.cfg = cfg
+}

@@ -24,6 +24,8 @@ func (b *NullEngine) IsActive() bool {
 	return true
 }
 
+func (b *NullEngine) UpdateConfig(cfg *model.Config) {}
+
 func (b *NullEngine) GetVersion() int {
 	return 0
 }

@@ -133,6 +133,7 @@ func (s SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term stri
 		if engine.IsAutocompletionEnabled() {
 			autocomplete, err := s.autocompleteUsersInChannelByEngine(engine, teamId, channelId, term, options)
 			if err != nil {
+				mlog.Error("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))

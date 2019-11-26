@@ -10,6 +10,7 @@ type SearchEngineInterface interface {
 	Start() *model.AppError
 	Stop() *model.AppError
 	GetVersion() int
+	UpdateConfig(cfg *model.Config)
 	GetName() string
 	IsActive() bool
 	IsIndexingEnabled() bool
