@@ -863,7 +863,7 @@ func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, q
 	return searchQuery, queryParams
 }
 
-func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byName bool) (string, map[string]interface{}) {
 	if len(channels) == 0 {
 		return "", queryParams
 	}
@@ -875,10 +875,17 @@ func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPr
 		queryParams[paramName] = channel
 	}
 	clause := strings.Join(clauseSlice, ", ")
-	if exclusion {
-		return "AND Name NOT IN (" + clause + ")", queryParams
+	if byName {
+		if exclusion {
+			return "AND Name NOT IN (" + clause + ")", queryParams
+		}
+		return "AND Name IN (" + clause + ")", queryParams
 	}
-	return "AND Name IN (" + clause + ")", queryParams
+
+	if exclusion {
+		return "AND Id NOT IN (" + clause + ")", queryParams
+	}
+	return "AND Id IN (" + clause + ")", queryParams
 }
 
 func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
@@ -926,6 +933,10 @@ func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedU
 }
 
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
+	return s.search(teamId, userId, params, true)
+}
+
+func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool) (*model.PostList, *model.AppError) {
 	queryParams := map[string]interface{}{
 		"TeamId": teamId,
 		"UserId": userId,
@@ -978,10 +989,10 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 				ORDER BY CreateAt DESC
 			LIMIT 100`
 
-	inChannelClause, queryParams := s.buildSearchChannelFilterClause(params.InChannels, "InChannel", false, queryParams)
+	inChannelClause, queryParams := s.buildSearchChannelFilterClause(params.InChannels, "InChannel", false, queryParams, channelsByName)
 	searchQuery = strings.Replace(searchQuery, "IN_CHANNEL_FILTER", inChannelClause, 1)
 
-	excludedChannelClause, queryParams := s.buildSearchChannelFilterClause(params.ExcludedChannels, "ExcludedChannel", true, queryParams)
+	excludedChannelClause, queryParams := s.buildSearchChannelFilterClause(params.ExcludedChannels, "ExcludedChannel", true, queryParams, channelsByName)
 	searchQuery = strings.Replace(searchQuery, "EXCLUDED_CHANNEL_FILTER", excludedChannelClause, 1)
 
 	postFilterClause, queryParams := s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams)
@@ -1529,4 +1540,50 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		}
 	}
 	return posts, nil
+}
+
+func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+	// Since we don't support paging for DB search, we just return nothing for later pages
+	if page > 0 {
+		return model.MakePostSearchResults(model.NewPostList(), nil), nil
+	}
+
+	var wg sync.WaitGroup
+
+	pchan := make(chan store.StoreResult, len(paramsList))
+
+	for _, params := range paramsList {
+		// Don't allow users to search for everything.
+		if params.Terms == "*" {
+			continue
+		}
+
+		params.IncludeDeletedChannels = includeDeletedChannels
+		params.OrTerms = isOrSearch
+
+		wg.Add(1)
+
+		go func(params *model.SearchParams) {
+			defer wg.Done()
+			postList, err := s.search(teamId, userId, params, false)
+			pchan <- store.StoreResult{Data: postList, Err: err}
+		}(params)
+	}
+
+	wg.Wait()
+	close(pchan)
+
+	posts := model.NewPostList()
+
+	for result := range pchan {
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		data := result.Data.(*model.PostList)
+		posts.Extend(data)
+	}
+
+	posts.SortByCreateAt()
+
+	return model.MakePostSearchResults(posts, nil), nil
 }

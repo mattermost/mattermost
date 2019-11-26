@@ -68,3 +68,34 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) *
 	}
 	return err
 }
+
+func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+	// We only allow the user to search in channels they are a member of.
+	userChannels, err := s.rootStore.Channel().GetChannels(teamId, userId, includeDeletedChannels)
+	if err != nil {
+		mlog.Error("error getting channel for user", mlog.Err(err))
+		return nil, err
+	}
+
+	postIds, matches, err := s.rootStore.searchEngine.GetActiveEngine().SearchPosts(userChannels, paramsList, page, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the posts
+	postList := model.NewPostList()
+	if len(postIds) > 0 {
+		posts, err := s.PostStore.GetPostsByIds(postIds)
+		if err != nil {
+			return nil, err
+		}
+		for _, p := range posts {
+			if p.DeleteAt == 0 {
+				postList.AddPost(p)
+				postList.AddOrder(p.Id)
+			}
+		}
+	}
+
+	return model.MakePostSearchResults(postList, matches), nil
+}

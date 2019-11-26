@@ -1011,54 +1011,38 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 	var postSearchResults *model.PostSearchResults
 	var err *model.AppError
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
+	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
 	}
 
-	if a.SearchEngine.GetActiveEngine().IsSearchEnabled() {
-		postSearchResults, err = a.esSearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
-		if err != nil {
-			mlog.Error("Encountered error on SearchPostsInTeamForUser through SearchEngine. Falling back to default search.", mlog.Err(err))
+	finalParamsList := []*model.SearchParams{}
+
+	// If the processed search params are empty, return empty search results.
+	if len(finalParamsList) == 0 {
+		return model.MakePostSearchResults(model.NewPostList(), nil), nil
+	}
+
+	for _, params := range paramsList {
+		params.OrTerms = isOrSearch
+		// Don't allow users to search for "*"
+		if params.Terms != "*" {
+			// Convert channel names to channel IDs
+			params.InChannels = a.convertChannelNamesToChannelIds(params.InChannels, userId, teamId, includeDeletedChannels)
+			params.ExcludedChannels = a.convertChannelNamesToChannelIds(params.ExcludedChannels, userId, teamId, includeDeletedChannels)
+
+			// Convert usernames to user IDs
+			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
+			params.ExcludedUsers = a.convertUserNameToUserIds(params.ExcludedUsers)
+
+			finalParamsList = append(finalParamsList, params)
 		}
 	}
 
-	if !a.SearchEngine.GetActiveEngine().IsSearchEnabled() || err != nil {
-		// Since we don't support paging for DB search, we just return nothing for later pages
-		if page > 0 {
-			return model.MakePostSearchResults(model.NewPostList(), nil), nil
-		}
-
-		includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
-		posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
-			params.IncludeDeletedChannels = includeDeleted
-			params.OrTerms = isOrSearch
-			for idx, channelName := range params.InChannels {
-				if strings.HasPrefix(channelName, "@") {
-					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
-					if err != nil {
-						mlog.Error("error getting channel_id by name from in filter", mlog.Err(err))
-						continue
-					}
-					params.InChannels[idx] = channel.Name
-				}
-			}
-			for idx, channelName := range params.ExcludedChannels {
-				if strings.HasPrefix(channelName, "@") {
-					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
-					if err != nil {
-						mlog.Error("error getting channel_id by name from in filter", mlog.Err(err))
-						continue
-					}
-					params.ExcludedChannels[idx] = channel.Name
-				}
-			}
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		postSearchResults = model.MakePostSearchResults(posts, nil)
+	postSearchResults, err = a.Srv.Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, isOrSearch, includeDeleted, page, perPage)
+	if err != nil {
+		return nil, err
 	}
 
 	return postSearchResults, nil
