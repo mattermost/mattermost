@@ -159,14 +159,9 @@ golangci-lint: ## Run golangci-lint on codebase
 	fi; \
 
 	@echo Running golangci-lint
-	golangci-lint run
-
-megacheck: ## Run megacheck on codebasis
-	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
-	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
-
+	golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GOPATH)/bin/megacheck $(EE_PACKAGES) || exit 1
+	golangci-lint run ./enterprise/...
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
