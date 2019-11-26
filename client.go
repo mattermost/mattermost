@@ -1,6 +1,8 @@
 package pluginapi
 
-import "github.com/mattermost/mattermost-server/v5/plugin"
+import (
+	"github.com/mattermost/mattermost-server/v5/plugin"
+)
 
 // Client is a streamlined wrapper over the mattermost plugin API.
 type Client struct {

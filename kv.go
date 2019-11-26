@@ -37,12 +37,15 @@ func SetExpiry(ttl time.Duration) KVSetOption {
 	}
 }
 
-// Set stores a key-value pair for the active plugin.
-//
+// Set stores a key-value pair, unique per plugin.
 // Keys prefixed with `mmi_` are reserved for use by this package and will fail to be set.
 //
+// Returns (false, err) if DB error occurred
+// Returns (false, nil) if the value was not set
+// Returns (true, nil) if the value was set
+//
 // Minimum server version: 5.18
-func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (written bool, err error) {
+func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (bool, error) {
 	if strings.HasPrefix(key, "mmi_") {
 		return false, errors.New("'mmi_' prefix is not allowed for keys")
 	}
@@ -76,26 +79,35 @@ func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (
 // Minimum server version: 5.18
 func (k *KVService) SetWithExpiry(key string, value interface{}, ttl time.Duration) error {
 	_, err := k.Set(key, value, SetExpiry(ttl))
+
 	return err
 }
 
 // CompareAndSet writes a key-value pair if the current value matches the given old value.
 //
+// Returns (false, err) if DB error occurred
+// Returns (false, nil) if the value was not set
+// Returns (true, nil) if the value was set
+//
 // Deprecated: CompareAndSet exists to streamline adoption of this package for existing plugins.
 // Use Set with the appropriate options instead.
 //
 // Minimum server version: 5.18
-func (k *KVService) CompareAndSet(key string, oldValue, value interface{}) (upserted bool, err error) {
+func (k *KVService) CompareAndSet(key string, oldValue, value interface{}) (bool, error) {
 	return k.Set(key, value, SetAtomic(oldValue))
 }
 
 // CompareAndDelete deletes a key-value pair if the current value matches the given old value.
 //
+// Returns (false, err) if DB error occurred
+// Returns (false, nil) if current value != oldValue or key does not exist when deleting
+// Returns (true, nil) if current value == oldValue and the key was deleted
+//
 // Deprecated: CompareAndDelete exists to streamline adoption of this package for existing plugins.
 // Use Set with the appropriate options instead.
 //
 // Minimum server version: 5.18
-func (k *KVService) CompareAndDelete(key string, oldValue interface{}) (deleted bool, err error) {
+func (k *KVService) CompareAndDelete(key string, oldValue interface{}) (bool, error) {
 	return k.Set(key, nil, SetAtomic(oldValue))
 }
 
@@ -152,7 +164,8 @@ type listKeysOptions struct {
 // ListKeys lists all keys for the plugin.
 //
 // Minimum server version: 5.6
-func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) (keys []string, err error) {
+func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]string, error) {
 	keys, appErr := k.api.KVList(page, count)
+
 	return keys, normalizeAppErr(appErr)
 }

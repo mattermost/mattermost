@@ -1,6 +1,8 @@
 package pluginapi
 
-import "github.com/mattermost/mattermost-server/v5/plugin"
+import (
+	"github.com/mattermost/mattermost-server/v5/plugin"
+)
 
 // MailService exposes methods to send email.
 type MailService struct {
@@ -11,7 +13,5 @@ type MailService struct {
 //
 // Minimum server version: 5.7
 func (m *MailService) Send(to, subject, htmlBody string) error {
-	appErr := m.api.SendMail(to, subject, htmlBody)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(m.api.SendMail(to, subject, htmlBody))
 }

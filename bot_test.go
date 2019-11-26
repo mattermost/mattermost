@@ -3,7 +3,6 @@ package pluginapi_test
 import (
 	"bytes"
 	"io/ioutil"
-	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -32,7 +31,7 @@ func TestCreateBot(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("CreateBot", &model.Bot{Username: "1"}).Return(nil, appErr)
 
@@ -61,7 +60,7 @@ func TestUpdateBotStatus(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("UpdateBotActive", "1", true).Return(nil, appErr)
 
@@ -88,7 +87,7 @@ func TestSetBotIconImage(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("SetBotIconImage", "1", []byte{2}).Return(appErr)
 
@@ -115,7 +114,7 @@ func TestGetBot(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("GetBot", "1", true).Return(nil, appErr)
 
@@ -145,7 +144,7 @@ func TestGetBotIconImage(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("GetBotIconImage", "1").Return(nil, appErr)
 
@@ -230,7 +229,7 @@ func TestListBot(t *testing.T) {
 				OwnerId: "3",
 			},
 			nil,
-			model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError),
+			newAppError(),
 		},
 	}
 
@@ -271,7 +270,7 @@ func TestDeleteBotIconImage(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("DeleteBotIconImage", "1").Return(appErr)
 
@@ -297,7 +296,7 @@ func TestDeleteBotPermanently(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("PermanentDeleteBot", "1").Return(appErr)
 

@@ -52,14 +52,14 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: pluginapi
+    local-prefixes: github.com/lieut-data/mattermost-plugin-api
   golint:
     min-confidence: 0
   govet:
     check-shadowing: true
     enable-all: true
   lll:
-    line-length: 160
+    line-length: 150
   misspell:
     locale: US
 

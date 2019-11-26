@@ -1,6 +1,8 @@
 package pluginapi
 
-import "github.com/mattermost/mattermost-server/v5/model"
+import (
+	"github.com/mattermost/mattermost-server/v5/model"
+)
 
 // normalizeAppError returns a truly nil error if appErr is nil.
 //
@@ -20,5 +22,6 @@ func normalizeAppErr(appErr *model.AppError) error {
 	if appErr == nil {
 		return nil
 	}
+
 	return appErr
 }

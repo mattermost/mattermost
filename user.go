@@ -1,6 +1,10 @@
 package pluginapi
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
@@ -86,19 +90,29 @@ func (u *UserService) Search(search *model.UserSearch) ([]*model.User, error) {
 // Create creates a user.
 //
 // Minimum server version: 5.2
-func (u *UserService) Create(user *model.User) (*model.User, error) {
-	user, appErr := u.api.CreateUser(user)
+func (u *UserService) Create(user *model.User) error {
+	createdUser, appErr := u.api.CreateUser(user)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
 
-	return user, normalizeAppErr(appErr)
+	*user = *createdUser
+
+	return nil
 }
 
 // Update updates a user.
 //
 // Minimum server version: 5.2
-func (u *UserService) Update(user *model.User) (*model.User, error) {
-	user, appErr := u.api.UpdateUser(user)
+func (u *UserService) Update(user *model.User) error {
+	updatedUser, appErr := u.api.UpdateUser(user)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
 
-	return user, normalizeAppErr(appErr)
+	*user = *updatedUser
+
+	return nil
 }
 
 // Delete deletes a user.
@@ -150,19 +164,25 @@ func (u *UserService) UpdateActive(userID string, active bool) error {
 // GetProfileImage gets user's profile image.
 //
 // Minimum server version: 5.6
-func (u *UserService) GetProfileImage(userID string) ([]byte, error) {
-	imageBytes, appErr := u.api.GetProfileImage(userID)
+func (u *UserService) GetProfileImage(userID string) (io.Reader, error) {
+	contentBytes, appErr := u.api.GetProfileImage(userID)
+	if appErr != nil {
+		return nil, normalizeAppErr(appErr)
+	}
 
-	return imageBytes, normalizeAppErr(appErr)
+	return bytes.NewReader(contentBytes), nil
 }
 
 // SetProfileImage sets a user's profile image.
 //
 // Minimum server version: 5.6
-func (u *UserService) SetProfileImage(userID string, data []byte) error {
-	appErr := u.api.SetProfileImage(userID, data)
+func (u *UserService) SetProfileImage(userID string, content io.Reader) error {
+	contentBytes, err := ioutil.ReadAll(content)
+	if err != nil {
+		return err
+	}
 
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(u.api.SetProfileImage(userID, contentBytes))
 }
 
 // HasPermissionTo check if the user has the permission at system scope.

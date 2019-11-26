@@ -1,14 +1,14 @@
 package pluginapi_test
 
 import (
-	"net/http"
 	"testing"
 
-	pluginapi "github.com/lieut-data/mattermost-plugin-api"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	pluginapi "github.com/lieut-data/mattermost-plugin-api"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -22,9 +22,8 @@ func TestCreateUser(t *testing.T) {
 		}
 		api.On("CreateUser", expectedUser).Return(expectedUser, nil)
 
-		actualUser, err := client.User.Create(expectedUser)
+		err := client.User.Create(expectedUser)
 		require.NoError(t, err)
-		assert.Equal(t, expectedUser, actualUser)
 	})
 
 	t.Run("failure", func(t *testing.T) {
@@ -35,11 +34,10 @@ func TestCreateUser(t *testing.T) {
 		expectedUser := &model.User{
 			Username: "test",
 		}
-		api.On("CreateUser", expectedUser).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
+		api.On("CreateUser", expectedUser).Return(nil, newAppError())
 
-		actualUser, err := client.User.Create(expectedUser)
+		err := client.User.Create(expectedUser)
 		require.EqualError(t, err, "here: id, an error occurred")
-		assert.Nil(t, actualUser)
 	})
 }
 
@@ -62,7 +60,7 @@ func TestDeleteUser(t *testing.T) {
 		client := pluginapi.NewClient(api)
 
 		expectedUserID := model.NewId()
-		api.On("DeleteUser", expectedUserID).Return(model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
+		api.On("DeleteUser", expectedUserID).Return(newAppError())
 
 		err := client.User.Delete(expectedUserID)
 		require.EqualError(t, err, "here: id, an error occurred")
@@ -90,7 +88,7 @@ func TestGetUsers(t *testing.T) {
 		client := pluginapi.NewClient(api)
 
 		options := &model.UserGetOptions{}
-		api.On("GetUsers", options).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
+		api.On("GetUsers", options).Return(nil, newAppError())
 
 		actualUsers, err := client.User.List(options)
 		require.EqualError(t, err, "here: id, an error occurred")
@@ -119,7 +117,7 @@ func TestGetUser(t *testing.T) {
 		client := pluginapi.NewClient(api)
 
 		userID := "id"
-		api.On("GetUser", userID).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
+		api.On("GetUser", userID).Return(nil, newAppError())
 
 		actualUser, err := client.User.Get(userID)
 		require.EqualError(t, err, "here: id, an error occurred")
@@ -148,7 +146,7 @@ func TestGetUserByEmail(t *testing.T) {
 		client := pluginapi.NewClient(api)
 
 		email := "test@example.com"
-		api.On("GetUserByEmail", email).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
+		api.On("GetUserByEmail", email).Return(nil, newAppError())
 
 		actualUser, err := client.User.GetByEmail(email)
 		require.EqualError(t, err, "here: id, an error occurred")
@@ -177,7 +175,7 @@ func TestGetUserByUsername(t *testing.T) {
 		client := pluginapi.NewClient(api)
 
 		username := "test"
-		api.On("GetUserByUsername", username).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
+		api.On("GetUserByUsername", username).Return(nil, newAppError())
 
 		actualUser, err := client.User.GetByUsername(username)
 		require.EqualError(t, err, "here: id, an error occurred")
@@ -206,7 +204,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 		client := pluginapi.NewClient(api)
 
 		usernames := []string{"test1", "test2"}
-		api.On("GetUsersByUsernames", usernames).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
+		api.On("GetUsersByUsernames", usernames).Return(nil, newAppError())
 
 		actualUsers, err := client.User.ListByUsernames(usernames)
 		require.EqualError(t, err, "here: id, an error occurred")
@@ -239,10 +237,21 @@ func TestGetUsersInTeam(t *testing.T) {
 		teamID := "team_id"
 		page := 1
 		perPage := 10
-		api.On("GetUsersInTeam", teamID, page, perPage).Return(nil, model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError))
+		api.On("GetUsersInTeam", teamID, page, perPage).Return(nil, newAppError())
 
 		actualUsers, err := client.User.ListInTeam(teamID, page, perPage)
 		require.EqualError(t, err, "here: id, an error occurred")
 		assert.Nil(t, actualUsers)
 	})
+}
+
+func TestHasTeamUserPermission(t *testing.T) {
+	api := &plugintest.API{}
+	defer api.AssertExpectations(t)
+	client := pluginapi.NewClient(api)
+
+	api.On("HasPermissionToTeam", "1", "2", &model.Permission{Id: "3"}).Return(true)
+
+	ok := client.User.HasPermissionToTeam("1", "2", &model.Permission{Id: "3"})
+	require.True(t, ok)
 }

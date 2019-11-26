@@ -22,8 +22,8 @@ func (c *ChannelService) Get(channelID string) (*model.Channel, error) {
 // GetByName gets a channel by its name, given a team id.
 //
 // Minimum server version: 5.2
-func (c *ChannelService) GetByName(teamID, name string, includeDeleted bool) (*model.Channel, error) {
-	channel, appErr := c.api.GetChannelByName(teamID, name, includeDeleted)
+func (c *ChannelService) GetByName(teamID, channelName string, includeDeleted bool) (*model.Channel, error) {
+	channel, appErr := c.api.GetChannelByName(teamID, channelName, includeDeleted)
 
 	return channel, normalizeAppErr(appErr)
 }
@@ -89,28 +89,36 @@ func (c *ChannelService) Search(teamID, term string) ([]*model.Channel, error) {
 // Create creates a channel.
 //
 // Minimum server version: 5.2
-func (c *ChannelService) Create(channel *model.Channel) (*model.Channel, error) {
-	channel, appErr := c.api.CreateChannel(channel)
+func (c *ChannelService) Create(channel *model.Channel) error {
+	createdChannel, appErr := c.api.CreateChannel(channel)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
 
-	return channel, normalizeAppErr(appErr)
+	*channel = *createdChannel
+
+	return nil
 }
 
 // Update updates a channel.
 //
 // Minimum server version: 5.2
-func (c *ChannelService) Update(channel *model.Channel) (*model.Channel, error) {
-	channel, appErr := c.api.UpdateChannel(channel)
+func (c *ChannelService) Update(channel *model.Channel) error {
+	updatedChannel, appErr := c.api.UpdateChannel(channel)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
 
-	return channel, normalizeAppErr(appErr)
+	*channel = *updatedChannel
+
+	return nil
 }
 
 // Delete deletes a channel.
 //
 // Minimum server version: 5.2
 func (c *ChannelService) Delete(channelID string) error {
-	appErr := c.api.DeleteChannel(channelID)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(c.api.DeleteChannel(channelID))
 }
 
 // GetChannelStats gets statistics for a channel.
@@ -158,7 +166,7 @@ func (c *ChannelService) GetMembersForUser(teamID, userID string, page, perPage 
 	return channelMembers, normalizeAppErr(appErr)
 }
 
-// AddMember joins a user to a channel (as if they joined themselves)
+// AddMember joins a user to a channel (as if they joined themselves).
 // This means the user will not receive notifications for joining the channel.
 //
 // Minimum server version: 5.2
@@ -214,5 +222,6 @@ func channelMembersToChannelMemberSlice(cm *model.ChannelMembers) []*model.Chann
 	for i := 0; i < len(*cm); i++ {
 		cmp[i] = &(*cm)[i]
 	}
+
 	return cmp
 }

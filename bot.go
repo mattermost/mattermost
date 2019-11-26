@@ -19,6 +19,7 @@ type BotService struct {
 // Minimum server version: 5.10
 func (b *BotService) Get(botUserID string, includeDeleted bool) (*model.Bot, error) {
 	bot, appErr := b.api.GetBot(botUserID, includeDeleted)
+
 	return bot, normalizeAppErr(appErr)
 }
 
@@ -71,7 +72,9 @@ func (b *BotService) Create(bot *model.Bot) error {
 	if appErr != nil {
 		return normalizeAppErr(appErr)
 	}
+
 	*bot = *createdBot
+
 	return nil
 }
 
@@ -89,6 +92,7 @@ func (b *BotService) Patch(botUserID string, botPatch *model.BotPatch) (*model.B
 // Minimum server version: 5.10
 func (b *BotService) UpdateActive(botUserID string, isActive bool) (*model.Bot, error) {
 	bot, appErr := b.api.UpdateBotActive(botUserID, isActive)
+
 	return bot, normalizeAppErr(appErr)
 }
 
@@ -96,15 +100,13 @@ func (b *BotService) UpdateActive(botUserID string, isActive bool) (*model.Bot, 
 //
 // Minimum server version: 5.10
 func (b *BotService) DeletePermanently(botUserID string) error {
-	appErr := b.api.PermanentDeleteBot(botUserID)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(b.api.PermanentDeleteBot(botUserID))
 }
 
 // GetIconImage gets the bot icon image shown for the bot in the LHS.
 //
 // Minimum server version: 5.14
-func (b *BotService) GetIconImage(botUserID string) (content io.Reader, err error) {
+func (b *BotService) GetIconImage(botUserID string) (io.Reader, error) {
 	contentBytes, appErr := b.api.GetBotIconImage(botUserID)
 	if appErr != nil {
 		return nil, normalizeAppErr(appErr)
@@ -124,16 +126,12 @@ func (b *BotService) SetIconImage(botUserID string, content io.Reader) error {
 		return err
 	}
 
-	appErr := b.api.SetBotIconImage(botUserID, contentBytes)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(b.api.SetBotIconImage(botUserID, contentBytes))
 }
 
 // DeleteIconImage deletes the bot icon image shown for the bot in the LHS.
 //
 // Minimum server version: 5.14
 func (b *BotService) DeleteIconImage(botUserID string) error {
-	appErr := b.api.DeleteBotIconImage(botUserID)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(b.api.DeleteBotIconImage(botUserID))
 }

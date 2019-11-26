@@ -13,10 +13,15 @@ type PostService struct {
 // CreatePost creates a post.
 //
 // Minimum server version: 5.2
-func (p *PostService) CreatePost(post *model.Post) (*model.Post, error) {
-	post, appErr := p.api.CreatePost(post)
+func (p *PostService) CreatePost(post *model.Post) error {
+	createdPost, appErr := p.api.CreatePost(post)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
 
-	return post, normalizeAppErr(appErr)
+	*post = *createdPost
+
+	return nil
 }
 
 // GetPost gets a post.
@@ -31,34 +36,37 @@ func (p *PostService) GetPost(postID string) (*model.Post, error) {
 // UpdatePost updates a post.
 //
 // Minimum server version: 5.2
-func (p *PostService) UpdatePost(post *model.Post) (*model.Post, error) {
-	post, appErr := p.api.UpdatePost(post)
+func (p *PostService) UpdatePost(post *model.Post) error {
+	updatedPost, appErr := p.api.UpdatePost(post)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
 
-	return post, normalizeAppErr(appErr)
+	*post = *updatedPost
+
+	return nil
 }
 
 // DeletePost deletes a post.
 //
 // Minimum server version: 5.2
 func (p *PostService) DeletePost(postID string) error {
-	appErr := p.api.DeletePost(postID)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(p.api.DeletePost(postID))
 }
 
 // SendEphemeralPost creates an ephemeral post.
 //
 // Minimum server version: 5.2
-func (p *PostService) SendEphemeralPost(userID string, post *model.Post) *model.Post {
-	return p.api.SendEphemeralPost(userID, post)
+func (p *PostService) SendEphemeralPost(userID string, post *model.Post) {
+	*post = *p.api.SendEphemeralPost(userID, post)
 }
 
 // UpdateEphemeralPost updates an ephemeral message previously sent to the user.
 // EXPERIMENTAL: This API is experimental and can be changed without advance notice.
 //
 // Minimum server version: 5.2
-func (p *PostService) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
-	return p.api.UpdateEphemeralPost(userID, post)
+func (p *PostService) UpdateEphemeralPost(userID string, post *model.Post) {
+	*post = *p.api.UpdateEphemeralPost(userID, post)
 }
 
 // DeleteEphemeralPost deletes an ephemeral message previously sent to the user.
@@ -126,10 +134,15 @@ func (p *PostService) SearchPostsInTeam(teamID string, paramsList []*model.Searc
 // AddReaction add a reaction to a post.
 //
 // Minimum server version: 5.3
-func (p *PostService) AddReaction(reaction *model.Reaction) (*model.Reaction, error) {
-	reaction, appErr := p.api.AddReaction(reaction)
+func (p *PostService) AddReaction(reaction *model.Reaction) error {
+	addedReaction, appErr := p.api.AddReaction(reaction)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
 
-	return reaction, normalizeAppErr(appErr)
+	*reaction = *addedReaction
+
+	return nil
 }
 
 // GetReactions get the reactions of a post.
@@ -145,7 +158,5 @@ func (p *PostService) GetReactions(postID string) ([]*model.Reaction, error) {
 //
 // Minimum server version: 5.3
 func (p *PostService) RemoveReaction(reaction *model.Reaction) error {
-	appErr := p.api.RemoveReaction(reaction)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(p.api.RemoveReaction(reaction))
 }

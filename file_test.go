@@ -3,13 +3,13 @@ package pluginapi_test
 import (
 	"bytes"
 	"io/ioutil"
-	"net/http"
 	"testing"
 
-	pluginapi "github.com/lieut-data/mattermost-plugin-api"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/stretchr/testify/require"
+
+	pluginapi "github.com/lieut-data/mattermost-plugin-api"
 )
 
 func TestGetFile(t *testing.T) {
@@ -32,7 +32,7 @@ func TestGetFile(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("GetFile", "1").Return(nil, appErr)
 
@@ -62,7 +62,7 @@ func TestGetFileByPath(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("ReadFile", "1").Return(nil, appErr)
 
@@ -90,7 +90,7 @@ func TestGetFileInfo(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("GetFileInfo", "1").Return(nil, appErr)
 
@@ -118,7 +118,7 @@ func TestGetFileLink(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("GetFileLink", "1").Return("", appErr)
 
@@ -146,7 +146,7 @@ func TestUploadFile(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("UploadFile", []byte{1}, "3", "2").Return(nil, appErr)
 
@@ -174,7 +174,7 @@ func TestCopyFileInfos(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("CopyFileInfos", "3", []string{"1", "2"}).Return(nil, appErr)
 

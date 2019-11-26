@@ -16,9 +16,7 @@ type FrontendService struct {
 //
 // Minimum server version: 5.6
 func (f *FrontendService) OpenInteractiveDialog(dialog model.OpenDialogRequest) error {
-	appErr := f.api.OpenInteractiveDialog(dialog)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(f.api.OpenInteractiveDialog(dialog))
 }
 
 // PublishWebSocketEvent sends an event to WebSocket connections.

@@ -18,6 +18,7 @@ type EmojiService struct {
 // Minimum server version: 5.6
 func (e *EmojiService) Get(id string) (*model.Emoji, error) {
 	emoji, appErr := e.api.GetEmoji(id)
+
 	return emoji, normalizeAppErr(appErr)
 }
 
@@ -26,17 +27,19 @@ func (e *EmojiService) Get(id string) (*model.Emoji, error) {
 // Minimum server version: 5.6
 func (e *EmojiService) GetByName(name string) (*model.Emoji, error) {
 	emoji, appErr := e.api.GetEmojiByName(name)
+
 	return emoji, normalizeAppErr(appErr)
 }
 
 // GetImage gets a custom emoji's content and format by id.
 //
 // Minimum server version: 5.6
-func (e *EmojiService) GetImage(id string) (content io.Reader, format string, err error) {
+func (e *EmojiService) GetImage(id string) (io.Reader, string, error) {
 	contentBytes, format, appErr := e.api.GetEmojiImage(id)
 	if appErr != nil {
 		return nil, "", normalizeAppErr(appErr)
 	}
+
 	return bytes.NewReader(contentBytes), format, nil
 }
 
@@ -46,5 +49,6 @@ func (e *EmojiService) GetImage(id string) (content io.Reader, format string, er
 // Minimum server version: 5.6
 func (e *EmojiService) List(sortBy string, page, count int) ([]*model.Emoji, error) {
 	emojis, appErr := e.api.GetEmojiList(sortBy, page, count)
+
 	return emojis, normalizeAppErr(appErr)
 }

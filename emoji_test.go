@@ -2,20 +2,19 @@ package pluginapi_test
 
 import (
 	"io/ioutil"
-	"net/http"
 	"testing"
 
-	pluginapi "github.com/lieut-data/mattermost-plugin-api"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/stretchr/testify/require"
+
+	pluginapi "github.com/lieut-data/mattermost-plugin-api"
 )
 
 func TestGetEmoji(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-
 		client := pluginapi.NewClient(api)
 
 		api.On("GetEmoji", "1").Return(&model.Emoji{Id: "2"}, nil)
@@ -30,7 +29,7 @@ func TestGetEmoji(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("GetEmoji", "1").Return(nil, appErr)
 
@@ -58,7 +57,7 @@ func TestGetEmojiByName(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("GetEmojiByName", "1").Return(nil, appErr)
 
@@ -89,7 +88,7 @@ func TestGetEmojiImage(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("GetEmojiImage", "1").Return(nil, "", appErr)
 
@@ -121,7 +120,7 @@ func TestListEmojis(t *testing.T) {
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api)
 
-		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
+		appErr := newAppError()
 
 		api.On("GetEmojiList", "1", 2, 3).Return(nil, appErr)
 

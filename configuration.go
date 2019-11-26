@@ -19,7 +19,7 @@ func (c *ConfigurationService) LoadPluginConfiguration(dest interface{}) error {
 	return c.api.LoadPluginConfiguration(dest)
 }
 
-// GetConfig fetches the currently persisted config
+// GetConfig fetches the currently persisted config.
 //
 // Minimum server version: 5.2
 func (c *ConfigurationService) GetConfig() *model.Config {

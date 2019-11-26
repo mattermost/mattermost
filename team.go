@@ -1,6 +1,10 @@
 package pluginapi
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
@@ -28,20 +32,38 @@ func (t *TeamService) GetByName(name string) (*model.Team, error) {
 	return team, normalizeAppErr(appErr)
 }
 
-// List gets all teams.
-//
-// Minimum server version: 5.2
-func (t *TeamService) List() ([]*model.Team, error) {
-	teams, appErr := t.api.GetTeams()
+// TeamListOption is used to filter team listing.
+type TeamListOption func(*ListTeamsOptions)
 
-	return teams, normalizeAppErr(appErr)
+// ListTeamsOptions holds options about filter out team listing.
+type ListTeamsOptions struct {
+	UserID string
 }
 
-// ListForUser returns list of teams of given user ID.
+// FilterTeamsByUser option is used to filter teams by user.
+func FilterTeamsByUser(userID string) TeamListOption {
+	return func(o *ListTeamsOptions) {
+		o.UserID = userID
+	}
+}
+
+// List gets a list of teams by options.
 //
-// Minimum server version: 5.6
-func (t *TeamService) ListForUser(userID string) ([]*model.Team, error) {
-	teams, appErr := t.api.GetTeamsForUser(userID)
+// Minimum server version: 5.2
+// Minimum server version when LimitTeamsToUser() option is used: 5.6
+func (t *TeamService) List(options ...TeamListOption) ([]*model.Team, error) {
+	opts := ListTeamsOptions{}
+	for _, o := range options {
+		o(&opts)
+	}
+
+	var teams []*model.Team
+	var appErr *model.AppError
+	if opts.UserID != "" {
+		teams, appErr = t.api.GetTeamsForUser(opts.UserID)
+	} else {
+		teams, appErr = t.api.GetTeams()
+	}
 
 	return teams, normalizeAppErr(appErr)
 }
@@ -58,53 +80,76 @@ func (t *TeamService) Search(term string) ([]*model.Team, error) {
 // Create creates a team.
 //
 // Minimum server version: 5.2
-func (t *TeamService) Create(team *model.Team) (*model.Team, error) {
-	team, appErr := t.api.CreateTeam(team)
+func (t *TeamService) Create(team *model.Team) error {
+	createdTeam, appErr := t.api.CreateTeam(team)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
 
-	return team, normalizeAppErr(appErr)
+	*team = *createdTeam
+
+	return nil
 }
 
-// UpdateTeam updates a team.
+// Update updates a team.
 //
 // Minimum server version: 5.2
-func (t *TeamService) UpdateTeam(team *model.Team) (*model.Team, error) {
-	team, appErr := t.api.UpdateTeam(team)
+func (t *TeamService) Update(team *model.Team) error {
+	updatedTeam, appErr := t.api.UpdateTeam(team)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
 
-	return team, normalizeAppErr(appErr)
+	*team = *updatedTeam
+
+	return nil
 }
 
 // Delete deletes a team.
 //
 // Minimum server version: 5.2
 func (t *TeamService) Delete(teamID string) error {
-	appErr := t.api.DeleteTeam(teamID)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(t.api.DeleteTeam(teamID))
 }
 
 // GetIcon gets the team icon.
 //
 // Minimum server version: 5.6
-func (t *TeamService) GetIcon(teamID string) ([]byte, error) {
-	icon, appErr := t.api.GetTeamIcon(teamID)
+func (t *TeamService) GetIcon(teamID string) (io.Reader, error) {
+	contentBytes, appErr := t.api.GetTeamIcon(teamID)
+	if appErr != nil {
+		return nil, normalizeAppErr(appErr)
+	}
 
-	return icon, normalizeAppErr(appErr)
+	return bytes.NewReader(contentBytes), nil
 }
 
 // SetIcon sets the team icon.
 //
 // Minimum server version: 5.6
-func (t *TeamService) SetIcon(teamID string, data []byte) error {
-	appErr := t.api.SetTeamIcon(teamID, data)
+func (t *TeamService) SetIcon(teamID string, content io.Reader) error {
+	contentBytes, err := ioutil.ReadAll(content)
+	if err != nil {
+		return err
+	}
 
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(t.api.SetTeamIcon(teamID, contentBytes))
 }
 
-// RemoveIcon removes the team icon.
+// DeleteIcon removes the team icon.
 //
 // Minimum server version: 5.6
-func (t *TeamService) RemoveIcon(teamID string) error {
+func (t *TeamService) DeleteIcon(teamID string) error {
 	return normalizeAppErr(t.api.RemoveTeamIcon(teamID))
+}
+
+// GetUsers lists users of the team.
+//
+// Minimum server version: 5.6
+func (t *TeamService) ListUsers(teamID string, page, count int) ([]*model.User, error) {
+	users, appErr := t.api.GetUsersInTeam(teamID, page, count)
+
+	return users, normalizeAppErr(appErr)
 }
 
 // ListUnreadForUser gets the unread message and mention counts for each team to which the given user belongs.
@@ -165,24 +210,22 @@ func (t *TeamService) CreateMembers(teamID string, userIDs []string, requestorID
 //
 // Minimum server version: 5.2
 func (t *TeamService) DeleteMember(teamID, userID, requestorID string) error {
-	appErr := t.api.DeleteTeamMember(teamID, userID, requestorID)
-
-	return normalizeAppErr(appErr)
+	return normalizeAppErr(t.api.DeleteTeamMember(teamID, userID, requestorID))
 }
 
-// UpdateTeamMemberRoles updates the role for a team membership.
+// UpdateMemberRoles updates the role for a team membership.
 //
 // Minimum server version: 5.2
-func (t *TeamService) UpdateTeamMemberRoles(teamID, userID, newRoles string) (*model.TeamMember, error) {
+func (t *TeamService) UpdateMemberRoles(teamID, userID, newRoles string) (*model.TeamMember, error) {
 	teamMember, appErr := t.api.UpdateTeamMemberRoles(teamID, userID, newRoles)
 
 	return teamMember, normalizeAppErr(appErr)
 }
 
-// GetTeamStats gets a team's statistics
+// GetStats gets a team's statistics
 //
 // Minimum server version: 5.8
-func (t *TeamService) GetTeamStats(teamID string) (*model.TeamStats, error) {
+func (t *TeamService) GetStats(teamID string) (*model.TeamStats, error) {
 	teamStats, appErr := t.api.GetTeamStats(teamID)
 
 	return teamStats, normalizeAppErr(appErr)
