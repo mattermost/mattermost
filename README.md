@@ -9,8 +9,37 @@ Instead, we opted to wrap the existing RPC API and helpers with a client hosted 
 * `*model.AppError` eliminated for all API calls, safely returning an `error` interface instead
 * TBD
 
+The API exposed by this client officially replaces direct use of the RPC API and helpers. While we will maintain backwards compatibility with the existing RPC API, we may bump the major version of this repository in coordination with a breaking semver change. This will affect only plugin authors who opt in to the newer package, and existing plugins will continue to compile and run without changes using the older version of the package.
+
+Usage of this package is altogether optional, allowing plugin authors to switch to this package as needed. However, note that all new helpers and abstractions over the RPC API are expected to be added only to this package.
+
+## Getting Started
+
+This package is in a pre-alpha state. To start using this API with your own plugin, first change all your import statements to reference the newly moduled `v5` version of the Mattermost server:
+```diff
+import (
+-    "github.com/mattermost/mattermost-server"
++    "github.com/mattermost/mattermost-server/v5"
+)
+```
+
+Then update your `go.mod` to point at a custom fork of the `mattermost-server`. This requirement is temporary, as the changes will soon be available upstream:
+```sh
+go mod edit -replace github.com/mattermost/mattermost-server/v5=github.com/lieut-data/mattermost-server/v5@v5.99.99
+```
+
+Finally, add this package as a dependency:
+```sh
+go get github.com/lieut-data/mattermost-plugin-api@v0.0.3
+```
+
+## Migration Guide
+
+(This section is a work in progress)
+
 A complete migration guide from the old API to the new API is as follows:
-(work in progress)
+
+```
 	LoadPluginConfiguration(dest interface{}) error
 	RegisterCommand(command *model.Command) error
 	UnregisterCommand(teamId, trigger string) error
@@ -148,7 +177,5 @@ A complete migration guide from the old API to the new API is as follows:
 	SetBotIconImage(botUserId string, data []byte) *model.AppError
 	DeleteBotIconImage(botUserId string) *model.AppError
 	PluginHTTP(request *http.Request) *http.Response
+```
 
-The API exposed by this client officially replaces direct use of the RPC API and helpers. While we will maintain backwards compatibility with the existing RPC API, we may bump the major version of this repository in coordination with a breaking semver change. This will affect only plugin authors who opt in to the newer package, and existing plugins will continue to compile and run without changes using the older version of the package.
-
-Usage of this package is altogether optional, allowing plugin authors to switch to this package as needed. However, note that all new helpers and abstractions over the RPC API are expected to be added only to this package.
