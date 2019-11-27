@@ -385,11 +385,8 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	skipFetchThreads := false
-	if r.URL.Query().Get("fetchThreads") == "false" {
-		skipFetchThreads = true
-	}
-	list, err := c.App.GetPostThread(c.Params.PostId, skipFetchThreads)
+
+	list, err := c.App.GetPostThread(c.Params.PostId)
 	if err != nil {
 		c.Err = err
 		return
