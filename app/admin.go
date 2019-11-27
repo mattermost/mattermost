@@ -218,3 +218,33 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 
 	return nil
 }
+
+// ServerBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
+func (a *App) ServerBusyStateChanged(sbs *model.ServerBusyState) {
+	if sbs.Busy {
+		expires := time.Unix(sbs.Expires, 0)
+		dur := time.Until(expires)
+		if dur > 0 {
+			a.Srv.Busy.Set(dur)
+			mlog.Warn("server busy state activitated via cluster event - non-critical services disabled", mlog.Int64("seconds", sbs.Expires))
+		}
+	} else {
+		a.Srv.Busy.Clear()
+		mlog.Info("server busy state cleared via cluster event - non-critical services enabled")
+	}
+}
+
+// NotifyServerBusyChange informs all cluster members of a server busy state change,
+// meaning this server has been marked as busy or not busy.
+func (a *App) NotifyServerBusyChange(sbs *model.ServerBusyState) *model.AppError {
+	if a.Cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:            model.CLUSTER_EVENT_BUSY_STATE_CHANGED,
+			SendType:         model.CLUSTER_SEND_RELIABLE,
+			WaitForAllToSend: true,
+			Data:             sbs.ToJson(),
+		}
+		a.Cluster.SendClusterMessage(msg)
+	}
+	return nil
+}
