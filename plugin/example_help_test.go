@@ -16,8 +16,8 @@ type configuration struct {
 	TeamName    string
 	ChannelName string
 
-	// channelId is resolved when the public configuration fields above change
-	channelId string
+	// channelID is resolved when the public configuration fields above change
+	channelID string
 }
 
 type HelpPlugin struct {
@@ -75,7 +75,7 @@ func (p *HelpPlugin) OnConfigurationChange() error {
 		return errors.Wrapf(err, "failed to find channel %s", configuration.ChannelName)
 	}
 
-	configuration.channelId = channel.Id
+	configuration.channelID = channel.Id
 
 	p.setConfiguration(configuration)
 
@@ -86,7 +86,7 @@ func (p *HelpPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	configuration := p.getConfiguration()
 
 	// Ignore posts not in the configured channel
-	if post.ChannelId != configuration.channelId {
+	if post.ChannelId != configuration.channelID {
 		return
 	}
 
@@ -101,7 +101,7 @@ func (p *HelpPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	}
 
 	p.API.SendEphemeralPost(post.UserId, &model.Post{
-		ChannelId: configuration.channelId,
+		ChannelId: configuration.channelID,
 		Message:   "You asked for help? Checkout https://about.mattermost.com/help/",
 		Props: map[string]interface{}{
 			"sent_by_plugin": true,

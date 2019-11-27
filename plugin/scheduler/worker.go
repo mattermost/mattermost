@@ -73,16 +73,14 @@ func (worker *Worker) DoJob(job *model.Job) {
 		return
 	}
 
-	err := worker.app.DeleteAllExpiredPluginKeys()
-	if err == nil {
-		mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
-		worker.setJobSuccess(job)
-		return
-	} else {
+	if err := worker.app.DeleteAllExpiredPluginKeys(); err != nil {
 		mlog.Error("Worker: Failed to delete expired keys", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 		worker.setJobError(job, err)
 		return
 	}
+
+	mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
+	worker.setJobSuccess(job)
 }
 
 func (worker *Worker) setJobSuccess(job *model.Job) {
