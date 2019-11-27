@@ -472,7 +472,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv.Busy.Set(time.Second * time.Duration(i))
-	mlog.Warn("server busy state activitated - non-critical services disabled", mlog.Int64("seconds", i))
+	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
 	ReturnStatusOK(w)
 }
 
