@@ -73,6 +73,7 @@ type Post struct {
 	OriginalId string `json:"original_id"`
 
 	Message string `json:"message"`
+
 	// MessageSource will contain the message as submitted by the user if Message has been modified
 	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
 	// populate edit boxes if present.
@@ -87,8 +88,7 @@ type Post struct {
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	ReplyCount int64         `json:"reply_count" db:"-"`
-	Metadata   *PostMetadata `json:"metadata,omitempty" db:"-"`
+	Metadata *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
 type PostEphemeral struct {
@@ -168,20 +168,6 @@ func (o *Post) ToJson() string {
 func (o *Post) ToUnsanitizedJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
-}
-
-type GetPostsSinceOptions struct {
-	ChannelId        string
-	Time             int64
-	SkipFetchThreads bool
-}
-
-type GetPostsOptions struct {
-	ChannelId        string
-	PostId           string
-	Page             int
-	PerPage          int
-	SkipFetchThreads bool
 }
 
 func PostFromJson(data io.Reader) *Post {
