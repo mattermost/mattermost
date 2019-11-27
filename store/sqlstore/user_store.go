@@ -1148,14 +1148,18 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 
 	time := model.GetMillis() - timePeriod
 
-	query := "SELECT COUNT(*) FROM Status s"
-
-	if options.IncludeBotAccounts {
-		query += " WHERE LastActivityAt > :Time"
-	} else {
-		query += " LEFT JOIN Bots ON s.UserId = Bots.UserId WHERE Bots.UserId IS NULL AND LastActivityAt > :Time"
+	joins := []string{}
+	wheres := []string{"LastActivityAt > :Time"}
+	if !options.IncludeBotAccounts {
+		joins = append(joins, "LEFT JOIN Bots ON s.UserId = Bots.UserId")
+		wheres = append(wheres, "Bots.UserId IS NULL")
 	}
 
+	if !options.IncludeDeleted {
+		joins = append(joins, "LEFT JOIN Users ON s.UserId = Users.Id")
+		wheres = append(wheres, "Users.DeleteAt != 0")
+	}
+	query := fmt.Sprintf("SELECT COUNT(*) FROM Status s %v WHERE %v", strings.Join(joins, " "), strings.Join(wheres, " AND "))
 	v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
 	if err != nil {
 		return 0, model.NewAppError("SqlUserStore.AnalyticsDailyActiveUsers", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
