@@ -150,7 +150,7 @@ func (a *App) trackActivity() {
 		inactiveUserCount = iucr
 	}
 
-	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount(false)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
