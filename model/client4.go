@@ -421,7 +421,7 @@ func (c *Client4) GetRedirectLocationRoute() string {
 }
 
 func (c *Client4) GetServerBusyRoute() string {
-	return "/svrbusy"
+	return "/server_busy"
 }
 
 func (c *Client4) GetUserTermsOfServiceRoute(userId string) string {
@@ -4628,7 +4628,7 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 
 // SetServerBusy will mark the server as busy, which disables non-critical services for `secs` seconds.
 func (c *Client4) SetServerBusy(secs int) (bool, *Response) {
-	url := fmt.Sprintf("%s?secs=%d", c.GetServerBusyRoute(), secs)
+	url := fmt.Sprintf("%s?seconds=%d", c.GetServerBusyRoute(), secs)
 	r, err := c.DoApiPost(url, "")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
@@ -4656,16 +4656,8 @@ func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
 	}
 	defer closeBody(r)
 
-	m := MapFromJson(r.Body)
-	s, ok := m["expires"]
-	if !ok {
-		s = "-1"
-	}
-	secs, e := strconv.ParseInt(s, 10, 64)
-	if e != nil || secs < 0 {
-		return nil, BuildErrorResponse(r, NewAppError("GetServerBusyExpires", "model.client.get_server_busy_expires.app_error", nil, "`expires` must be a positive integer", http.StatusBadRequest))
-	}
-	expires := time.Unix(secs, 0)
+	sbs := ServerBusyStateFromJson(r.Body)
+	expires := time.Unix(sbs.Expires, 0)
 	return &expires, BuildResponse(r)
 }
 

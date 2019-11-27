@@ -17,7 +17,10 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-const REDIRECT_LOCATION_CACHE_SIZE = 10000
+const (
+	REDIRECT_LOCATION_CACHE_SIZE = 10000
+	DEFAULT_SERVER_BUSY_SECONDS  = "3600"
+)
 
 var redirectLocationDataCache = utils.NewLru(REDIRECT_LOCATION_CACHE_SIZE)
 
@@ -42,9 +45,9 @@ func (api *API) InitSystem() {
 
 	api.BaseRoutes.ApiRoot.Handle("/notifications/ack", api.ApiSessionRequired(pushNotificationAck)).Methods("POST")
 
-	api.BaseRoutes.ApiRoot.Handle("/svrbusy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
-	api.BaseRoutes.ApiRoot.Handle("/svrbusy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/svrbusy/clear", api.ApiSessionRequired(clearServerBusy)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy/clear", api.ApiSessionRequired(clearServerBusy)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -457,14 +460,14 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// number of seconds to keep server marked busy
-	secs := r.URL.Query().Get("secs")
+	secs := r.URL.Query().Get("seconds")
 	if secs == "" {
-		secs = "3600" // default 1 hour
+		secs = DEFAULT_SERVER_BUSY_SECONDS
 	}
 
 	i, err := strconv.ParseInt(secs, 10, 64)
 	if err != nil || i <= 0 {
-		c.SetInvalidUrlParam("secs")
+		c.SetInvalidUrlParam("seconds")
 		return
 	}
 
@@ -489,9 +492,11 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := make(map[string]string)
-	m["busy"] = fmt.Sprintf("%t", c.App.Srv.Busy.IsBusy())
-	m["expires"] = fmt.Sprintf("%d", c.App.Srv.Busy.Expires().Unix())
-	m["expires_ts"] = c.App.Srv.Busy.Expires().UTC().Format("Mon Jan 2 15:04:05 -0700 MST 2006")
-	w.Write([]byte(model.MapToJson(m)))
+	busy := c.App.Srv.Busy
+	sbs := &model.ServerBusyState{
+		Busy:       busy.IsBusy(),
+		Expires:    busy.Expires().Unix(),
+		Expires_ts: busy.Expires().UTC().Format("Mon Jan 2 15:04:05 -0700 MST 2006"),
+	}
+	w.Write([]byte(sbs.ToJson()))
 }
