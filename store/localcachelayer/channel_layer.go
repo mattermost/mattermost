@@ -86,6 +86,7 @@ func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 
 func (s LocalCacheChannelStore) GetByName(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
 	return s.getByName(teamId, name, false, allowFromCache)
 }
+
 func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
 	var channels []*model.Channel
 
@@ -97,15 +98,9 @@ func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowF
 				continue
 			}
 			visited[name] = struct{}{}
-			if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
-				if s.rootStore.metrics != nil {
-					s.rootStore.metrics.IncrementMemCacheHitCounter("Channel By Name")
-				}
+			if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId + name); cacheItem != nil {
 				channels = append(channels, cacheItem.(*model.Channel))
 			} else {
-				if s.rootStore.metrics != nil {
-					s.rootStore.metrics.IncrementMemCacheMissCounter("Channel By Name")
-				}
 				misses = append(misses, name)
 			}
 		}
@@ -138,14 +133,8 @@ func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowF
 
 func (s LocalCacheChannelStore) getByName(teamId string, name string, includeDeleted bool, allowFromCache bool) (*model.Channel, *model.AppError) {
 	if allowFromCache {
-		if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
-			if s.rootStore.metrics != nil {
-				s.rootStore.metrics.IncrementMemCacheHitCounter("Channel By Name")
-			}
+		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId + name); cacheItem != nil {
 			return cacheItem.(*model.Channel), nil
-		}
-		if s.rootStore.metrics != nil {
-			s.rootStore.metrics.IncrementMemCacheMissCounter("Channel By Name")
 		}
 	}
 
