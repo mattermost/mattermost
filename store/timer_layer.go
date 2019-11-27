@@ -984,22 +984,6 @@ func (s *TimerLayerChannelStore) GetGuestCount(channelId string, allowFromCache 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetGuestCountFromCache(channelId string) int64 {
-	start := timemodule.Now()
-
-	resultVar0 := s.ChannelStore.GetGuestCountFromCache(channelId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if true {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetGuestCountFromCache", success, elapsed)
-	}
-	return resultVar0
-}
-
 func (s *TimerLayerChannelStore) GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
 	start := timemodule.Now()
 
@@ -5162,10 +5146,10 @@ func (s *TimerLayerTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTeamStore) AnalyticsTeamCount() (int64, *model.AppError) {
+func (s *TimerLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.TeamStore.AnalyticsTeamCount()
+	resultVar0, resultVar1 := s.TeamStore.AnalyticsTeamCount(includeDeleted)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
