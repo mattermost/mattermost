@@ -4,7 +4,6 @@
 package localcachelayer
 
 import (
-	"fmt"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -108,18 +107,10 @@ func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowF
 	}
 
 	if len(names) > 0 {
-		props := map[string]interface{}{}
-		var namePlaceholders []string
-		for _, name := range names {
-			key := fmt.Sprintf("Name%v", len(namePlaceholders))
-			props[key] = name
-			namePlaceholders = append(namePlaceholders, ":"+key)
-		}
-
 		dbChannels, err := s.ChannelStore.GetByNames(teamId, names, allowFromCache)
 
-		if err == nil {
-			return channels, err
+		if err != nil {
+			return nil, err
 		}
 
 		for _, channel := range dbChannels {
