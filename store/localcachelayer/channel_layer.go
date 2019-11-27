@@ -29,13 +29,23 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelByName(msg *model
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelGuestCounts(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		s.rootStore.channelGuestCountCache.Purge()
+	} else {
+		s.rootStore.channelGuestCountCache.Remove(msg.Data)
+	}
+}
+
 func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByNameCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Count - Purge")
 	}
 }
 
@@ -53,6 +63,13 @@ func (s LocalCacheChannelStore) InvalidateChannelByName(teamId, name string) {
 	}
 }
 
+func (s LocalCacheChannelStore) InvalidateGuestCount(channelId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelGuestCountCache, channelId)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guests Count - Remove by channelId")
+	}
+}
+
 func (s LocalCacheChannelStore) GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
 	if allowFromCache {
 		if count := s.rootStore.doStandardReadCache(s.rootStore.channelMemberCountsCache, channelId); count != nil {
@@ -63,6 +80,21 @@ func (s LocalCacheChannelStore) GetMemberCount(channelId string, allowFromCache 
 
 	if allowFromCache && err == nil {
 		s.rootStore.doStandardAddToCache(s.rootStore.channelMemberCountsCache, channelId, count)
+	}
+
+	return count, err
+}
+
+func (s LocalCacheChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
+	if allowFromCache {
+		if count := s.rootStore.doStandardReadCache(s.rootStore.channelGuestCountCache, channelId); count != nil {
+			return count.(int64), nil
+		}
+	}
+	count, err := s.ChannelStore.GetGuestCount(channelId, allowFromCache)
+
+	if allowFromCache && err == nil {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelGuestCountCache, channelId, count)
 	}
 
 	return count, err

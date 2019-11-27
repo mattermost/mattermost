@@ -109,6 +109,33 @@ func TestChangeUserEmail(t *testing.T) {
 
 }
 
+func TestDeleteUserBotUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.CheckCommand(t, "user", "delete", th.BasicUser.Username, "--confirm")
+	_, err := th.App.Srv.Store.User().Get(th.BasicUser.Id)
+	require.Error(t, err)
+
+	// Make a bot
+	bot := &model.Bot{
+		Username:    "bottodelete",
+		Description: "Delete me!",
+		OwnerId:     model.NewId(),
+	}
+	user, err := th.App.Srv.Store.User().Save(model.UserFromBot(bot))
+	require.Nil(t, err)
+	bot.UserId = user.Id
+	bot, err = th.App.Srv.Store.Bot().Save(bot)
+	require.Nil(t, err)
+
+	th.CheckCommand(t, "user", "delete", bot.Username, "--confirm")
+	_, err = th.App.Srv.Store.User().Get(user.Id)
+	require.Error(t, err)
+	_, err = th.App.Srv.Store.Bot().Get(user.Id, true)
+	require.Error(t, err)
+}
+
 func TestConvertUser(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

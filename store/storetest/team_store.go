@@ -778,12 +778,29 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
-	_, err := ss.Team().Save(&o1)
+	team, err := ss.Team().Save(&o1)
 	require.Nil(t, err)
 
-	teamCount, err := ss.Team().AnalyticsTeamCount()
+	// not including deleted teams
+	teamCount, err := ss.Team().AnalyticsTeamCount(false)
 	require.Nil(t, err)
 	require.NotEqual(t, 0, int(teamCount), "should be at least 1 team")
+
+	// delete the team for the next check
+	team.DeleteAt = model.GetMillis()
+	_, err = ss.Team().Update(team)
+	require.Nil(t, err)
+
+	// get the count of teams not including deleted
+	countNotIncludingDeleted, err := ss.Team().AnalyticsTeamCount(false)
+	require.Nil(t, err)
+
+	// get the count of teams including deleted
+	countIncludingDeleted, err := ss.Team().AnalyticsTeamCount(true)
+	require.Nil(t, err)
+
+	// count including deleted should be one greater than not including deleted
+	require.Equal(t, countNotIncludingDeleted+1, countIncludingDeleted)
 }
 
 func testTeamMembers(t *testing.T, ss store.Store) {
