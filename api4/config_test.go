@@ -384,24 +384,38 @@ func TestPatchConfig(t *testing.T) {
 
 	t.Run("should patch the config", func(t *testing.T) {
 		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = false
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalDefaultChannels = []string{"some-channel"} })
 
+		oldConfig, _ := th.SystemAdminClient.GetConfig()
+
+		assert.False(t, *oldConfig.PasswordSettings.Lowercase)
+		assert.NotEqual(t, 15, *oldConfig.PasswordSettings.MinimumLength)
+		assert.Equal(t, "DEBUG", *oldConfig.LogSettings.ConsoleLevel)
+		assert.True(t, oldConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+
+		states := make(map[string]*model.PluginState)
+		states["com.mattermost.nps"] = &model.PluginState{Enable: *model.NewBool(false)}
 		config := model.Config{PasswordSettings: model.PasswordSettings{
-			Lowercase: model.NewBool(true),
-			Number:    model.NewBool(true),
-			Uppercase: model.NewBool(true),
-			Symbol:    model.NewBool(true),
+			Lowercase:     model.NewBool(true),
+			MinimumLength: model.NewInt(15),
 		}, LogSettings: model.LogSettings{
 			ConsoleLevel: model.NewString("INFO"),
-		}}
+		},
+			TeamSettings: model.TeamSettings{
+				ExperimentalDefaultChannels: []string{"another-channel"},
+			},
+			PluginSettings: model.PluginSettings{
+				PluginStates: states,
+			},
+		}
 
 		_, response := th.SystemAdminClient.PatchConfig(&config)
 
 		updatedConfig, _ := th.SystemAdminClient.GetConfig()
 		assert.True(t, *updatedConfig.PasswordSettings.Lowercase)
-		assert.True(t, *updatedConfig.PasswordSettings.Number)
-		assert.True(t, *updatedConfig.PasswordSettings.Uppercase)
-		assert.True(t, *updatedConfig.PasswordSettings.Symbol)
 		assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
+		assert.Equal(t, []string{"another-channel"}, updatedConfig.TeamSettings.ExperimentalDefaultChannels)
+		assert.False(t, updatedConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
 		assert.Equal(t, "no-cache, no-store, must-revalidate", response.Header.Get("Cache-Control"))
 	})
 
