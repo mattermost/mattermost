@@ -83,20 +83,20 @@ func (_m *TeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
 	return r0, r1
 }
 
-// AnalyticsTeamCount provides a mock function with given fields:
-func (_m *TeamStore) AnalyticsTeamCount() (int64, *model.AppError) {
-	ret := _m.Called()
+// AnalyticsTeamCount provides a mock function with given fields: includeDeleted
+func (_m *TeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError) {
+	ret := _m.Called(includeDeleted)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func() int64); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(bool) int64); ok {
+		r0 = rf(includeDeleted)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(bool) *model.AppError); ok {
+		r1 = rf(includeDeleted)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

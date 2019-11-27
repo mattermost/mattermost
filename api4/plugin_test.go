@@ -181,11 +181,11 @@ func TestPlugin(t *testing.T) {
 
 	// Activate error case
 	ok, resp = th.SystemAdminClient.EnablePlugin("junk")
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	assert.False(t, ok)
 
 	ok, resp = th.SystemAdminClient.EnablePlugin("JUNK")
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	assert.False(t, ok)
 
 	// Successful deactivate

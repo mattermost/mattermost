@@ -6,6 +6,8 @@ package localcachelayer
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-server/store"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/testlib"
@@ -41,6 +43,12 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
+	fakeWebhook := model.IncomingWebhook{Id: "123"}
+	mockWebhookStore := mocks.WebhookStore{}
+	mockWebhookStore.On("GetIncoming", "123", true).Return(&fakeWebhook, nil)
+	mockWebhookStore.On("GetIncoming", "123", false).Return(&fakeWebhook, nil)
+	mockStore.On("Webhook").Return(&mockWebhookStore)
+
 	fakeEmoji := model.Emoji{Id: "123", Name: "name123"}
 	mockEmojiStore := mocks.EmojiStore{}
 	mockEmojiStore.On("Get", "123", true).Return(&fakeEmoji, nil)
@@ -51,11 +59,28 @@ func getMockStore() *mocks.Store {
 	mockStore.On("Emoji").Return(&mockEmojiStore)
 
 	mockCount := int64(10)
+	mockGuestCount := int64(12)
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
+	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
+	mockChannelStore.On("GetGuestCount", "id", false).Return(mockGuestCount, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
+
+	fakePosts := &model.PostList{}
+	fakeOptions := model.GetPostsOptions{ChannelId: "123", PerPage: 30}
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetPosts", fakeOptions, true).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", fakeOptions, false).Return(fakePosts, nil)
+	mockPostStore.On("InvalidateLastPostTimeCache", "12360")
+	mockStore.On("Post").Return(&mockPostStore)
+
+	fakeUser := []*model.User{{Id: "123"}}
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
+	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
+	mockStore.On("User").Return(&mockUserStore)
 
 	return &mockStore
 }
