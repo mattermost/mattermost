@@ -97,7 +97,7 @@ func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowF
 				continue
 			}
 			visited[name] = struct{}{}
-			if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId + name); cacheItem != nil {
+			if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId+name); cacheItem != nil {
 				channels = append(channels, cacheItem.(*model.Channel))
 			} else {
 				misses = append(misses, name)
@@ -124,7 +124,7 @@ func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowF
 
 func (s LocalCacheChannelStore) getByName(teamId string, name string, includeDeleted bool, allowFromCache bool) (*model.Channel, *model.AppError) {
 	if allowFromCache {
-		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId + name); cacheItem != nil {
+		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId+name); cacheItem != nil {
 			return cacheItem.(*model.Channel), nil
 		}
 	}
