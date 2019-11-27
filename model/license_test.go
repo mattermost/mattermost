@@ -78,6 +78,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.DataRetention = true
 	*f.MessageExport = true
 	*f.CustomPermissionsSchemes = true
+	*f.GuestAccounts = true
 	*f.GuestAccountsPermissions = true
 	*f.EmailNotificationContents = true
 	*f.IDLoadedPushNotifications = true
@@ -100,6 +101,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.DataRetention)
 	CheckTrue(t, *f.MessageExport)
 	CheckTrue(t, *f.CustomPermissionsSchemes)
+	CheckTrue(t, *f.GuestAccounts)
 	CheckTrue(t, *f.GuestAccountsPermissions)
 	CheckTrue(t, *f.IDLoadedPushNotifications)
 	CheckFalse(t, *f.FutureFeatures)
@@ -176,6 +178,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.DataRetention, *f.DataRetention)
 	CheckBool(t, *f1.MessageExport, *f.MessageExport)
 	CheckBool(t, *f1.CustomPermissionsSchemes, *f.CustomPermissionsSchemes)
+	CheckBool(t, *f1.GuestAccounts, *f.GuestAccounts)
 	CheckBool(t, *f1.GuestAccountsPermissions, *f.GuestAccountsPermissions)
 	CheckBool(t, *f1.IDLoadedPushNotifications, *f.IDLoadedPushNotifications)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
