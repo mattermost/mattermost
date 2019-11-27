@@ -118,7 +118,7 @@ type TraceOnAdapter struct{}
 func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
 	originalString := fmt.Sprintf(format, v...)
 	newString := strings.ReplaceAll(originalString, "\n", " ")
-	newString = strings.ReplaceAll(newString, "\t", "")
+	newString = strings.ReplaceAll(newString, "\t", " ")
 	newString = strings.ReplaceAll(newString, "\"", "")
 	mlog.Debug(newString)
 }
