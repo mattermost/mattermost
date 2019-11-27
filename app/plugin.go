@@ -334,7 +334,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 	}
 
 	if manifest == nil {
-		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
