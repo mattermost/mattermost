@@ -246,7 +246,6 @@ func (me *LoadTestProvider) DeActivateUserCommand(a *App, args *model.CommandArg
 	return &model.CommandResponse{Text: "DeActivated user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
-
 func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	cmd := strings.TrimSpace(strings.TrimPrefix(message, "users"))
 
