@@ -1144,11 +1144,9 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 			query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND TeamId = :TeamId AND DeleteAt = 0`
 		}
 
-		var dbChannels []*model.Channel
-		if _, err := s.GetReplica().Select(&dbChannels, query, props); err != nil && err != sql.ErrNoRows {
+		if _, err := s.GetReplica().Select(&channels, query, props); err != nil && err != sql.ErrNoRows {
 			return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
 		}
-		channels = append(channels, dbChannels...)
 	}
 
 	return channels, nil
