@@ -198,7 +198,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
 	}()
 
-	t.Run("storing a value works without providing options works", func(t *testing.T) {
+	t.Run("storing a value without providing options works", func(t *testing.T) {
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{})
 		assert.True(t, result)
 		assert.Nil(t, err)
