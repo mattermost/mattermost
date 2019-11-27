@@ -157,6 +157,9 @@ github.com/nfnt/resize
 github.com/oklog/run
 # github.com/olekukonko/tablewriter v0.0.1
 github.com/olekukonko/tablewriter
+# github.com/olivere/elastic v6.2.23+incompatible
+github.com/olivere/elastic/config
+github.com/olivere/elastic/uritemplates
 # github.com/pborman/uuid v1.2.0
 github.com/pborman/uuid
 # github.com/pelletier/go-toml v1.4.0
@@ -233,19 +236,19 @@ go.uber.org/zap/zapcore
 # golang.org/x/crypto v0.0.0-20191001170739-f9e2070545dc
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
+golang.org/x/crypto/argon2
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/blake2b
+golang.org/x/crypto/blowfish
+golang.org/x/crypto/cast5
+golang.org/x/crypto/ed25519
+golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
-golang.org/x/crypto/bcrypt
+golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
-golang.org/x/crypto/blowfish
-golang.org/x/crypto/argon2
-golang.org/x/crypto/cast5
-golang.org/x/crypto/openpgp/elgamal
-golang.org/x/crypto/blake2b
-golang.org/x/crypto/ed25519
-golang.org/x/crypto/ed25519/internal/edwards25519
 # golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a
 golang.org/x/image/bmp
 golang.org/x/image/ccitt
@@ -359,10 +362,8 @@ gopkg.in/ini.v1
 gopkg.in/mail.v2
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 gopkg.in/natefinch/lumberjack.v2
-# gopkg.in/olivere/elastic.v5 v5.0.82
-gopkg.in/olivere/elastic.v5
-gopkg.in/olivere/elastic.v5/config
-gopkg.in/olivere/elastic.v5/uritemplates
+# gopkg.in/olivere/elastic.v6 v6.2.23
+gopkg.in/olivere/elastic.v6
 # gopkg.in/yaml.v2 v2.2.3
 gopkg.in/yaml.v2
 # willnorris.com/go/gifresize v1.0.0
