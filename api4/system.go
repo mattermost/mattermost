@@ -19,7 +19,8 @@ import (
 
 const (
 	REDIRECT_LOCATION_CACHE_SIZE = 10000
-	DEFAULT_SERVER_BUSY_SECONDS  = "3600"
+	DEFAULT_SERVER_BUSY_SECONDS  = 3600
+	MAX_SERVER_BUSY_SECONDS      = 86400
 )
 
 var redirectLocationDataCache = utils.NewLru(REDIRECT_LOCATION_CACHE_SIZE)
@@ -462,17 +463,17 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	// number of seconds to keep server marked busy
 	secs := r.URL.Query().Get("seconds")
 	if secs == "" {
-		secs = DEFAULT_SERVER_BUSY_SECONDS
+		secs = strconv.FormatInt(DEFAULT_SERVER_BUSY_SECONDS, 10)
 	}
 
 	i, err := strconv.ParseInt(secs, 10, 64)
-	if err != nil || i <= 0 {
-		c.SetInvalidUrlParam("seconds")
+	if err != nil || i <= 0 || i > MAX_SERVER_BUSY_SECONDS {
+		c.SetInvalidUrlParam(fmt.Sprintf("seconds must be 1 - %d", MAX_SERVER_BUSY_SECONDS))
 		return
 	}
 
 	c.App.Srv.Busy.Set(time.Second * time.Duration(i))
-	mlog.Warn("server busy state activitated - non-critical services disabled", mlog.Int64("seconds", i))
+	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
 	ReturnStatusOK(w)
 }
 

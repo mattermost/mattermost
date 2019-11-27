@@ -1083,16 +1083,16 @@
     "translation": "Invalid or missing {{.Name}} parameter in request URL"
   },
   {
-    "id": "api.context.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
-  },
-  {
     "id": "api.context.mfa_required.app_error",
     "translation": "Multi-factor authentication is required on this server."
   },
   {
     "id": "api.context.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
+  },
+  {
+    "id": "api.context.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable"
   },
   {
     "id": "api.context.session_expired.app_error",
