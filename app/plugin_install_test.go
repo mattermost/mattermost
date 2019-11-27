@@ -65,7 +65,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		actualManifest, appErr := th.App.installPluginLocally(&nilReadSeeker{}, installPluginLocallyOnlyIfNew)
+		actualManifest, appErr := th.App.installPluginLocally(&nilReadSeeker{}, nil, installPluginLocallyOnlyIfNew)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.plugin.extract.app_error", appErr.Id, appErr.Error())
 		require.Nil(t, actualManifest)
@@ -79,7 +79,7 @@ func TestInstallPluginLocally(t *testing.T) {
 			{"test", "test file"},
 		})
 
-		actualManifest, appErr := th.App.installPluginLocally(reader, installPluginLocallyOnlyIfNew)
+		actualManifest, appErr := th.App.installPluginLocally(reader, nil, installPluginLocallyOnlyIfNew)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.plugin.manifest.app_error", appErr.Id, appErr.Error())
 		require.Nil(t, actualManifest)
@@ -96,7 +96,7 @@ func TestInstallPluginLocally(t *testing.T) {
 			{"plugin.json", manifest.ToJson()},
 		})
 
-		actualManifest, appError := th.App.installPluginLocally(reader, installationStrategy)
+		actualManifest, appError := th.App.installPluginLocally(reader, nil, installationStrategy)
 		if actualManifest != nil {
 			require.Equal(t, manifest, actualManifest)
 		}

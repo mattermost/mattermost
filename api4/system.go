@@ -410,7 +410,34 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := c.App.SendAckToPushProxy(ack)
-	if err != nil {
+	if ack.IsIdLoaded {
+		if err != nil {
+			// Log the error only, then continue to fetch notification message
+			c.App.NotificationsLog.Error("Notification ack not sent to push proxy",
+				mlog.String("ackId", ack.Id),
+				mlog.String("type", ack.NotificationType),
+				mlog.String("postId", ack.PostId),
+				mlog.String("status", err.Error()),
+			)
+		}
+
+		notificationInterface := c.App.Notification
+
+		if notificationInterface == nil {
+			c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
+			return
+		}
+
+		msg, appError := notificationInterface.GetNotificationMessage(ack, c.App.Session.UserId)
+		if appError != nil {
+			c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Write([]byte(msg.ToJson()))
+
+		return
+	} else if err != nil {
 		c.Err = model.NewAppError("pushNotificationAck", "api.push_notifications_ack.forward.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
