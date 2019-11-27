@@ -471,8 +471,12 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.Srv.Busy.Set(time.Second * time.Duration(i))
+	dur := time.Second * time.Duration(i)
+	c.App.Srv.Busy.Set(dur)
 	mlog.Warn("server busy state activitated - non-critical services disabled", mlog.Int64("seconds", i))
+
+	c.App.NotifyServerBusyChange(&model.ServerBusyState{Busy: true, Expires: time.Now().Add(dur).Unix()})
+
 	ReturnStatusOK(w)
 }
 
@@ -483,6 +487,9 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.App.Srv.Busy.Clear()
 	mlog.Info("server busy state cleared - non-critical services enabled")
+
+	c.App.NotifyServerBusyChange(&model.ServerBusyState{Busy: false, Expires: time.Time{}.Unix()})
+
 	ReturnStatusOK(w)
 }
 
