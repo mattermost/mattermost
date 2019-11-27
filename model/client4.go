@@ -4656,16 +4656,8 @@ func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
 	}
 	defer closeBody(r)
 
-	m := MapFromJson(r.Body)
-	s, ok := m["expires"]
-	if !ok {
-		s = "-1"
-	}
-	secs, e := strconv.ParseInt(s, 10, 64)
-	if e != nil || secs < 0 {
-		return nil, BuildErrorResponse(r, NewAppError("GetServerBusyExpires", "model.client.get_server_busy_expires.app_error", nil, "`expires` must be a positive integer", http.StatusBadRequest))
-	}
-	expires := time.Unix(secs, 0)
+	sbs := ServerBusyStateFromJson(r.Body)
+	expires := time.Unix(sbs.Expires, 0)
 	return &expires, BuildResponse(r)
 }
 

@@ -468,8 +468,12 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.Srv.Busy.Set(time.Second * time.Duration(i))
+	dur := time.Second * time.Duration(i)
+	c.App.Srv.Busy.Set(dur)
 	mlog.Warn("server busy state activitated - non-critical services disabled", mlog.Int64("seconds", i))
+
+	c.App.NotifyServerBusyChange(&model.ServerBusyState{Busy: true, Expires: time.Now().Add(dur).Unix()})
+
 	ReturnStatusOK(w)
 }
 
@@ -480,6 +484,9 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.App.Srv.Busy.Clear()
 	mlog.Info("server busy state cleared - non-critical services enabled")
+
+	c.App.NotifyServerBusyChange(&model.ServerBusyState{Busy: false, Expires: time.Time{}.Unix()})
+
 	ReturnStatusOK(w)
 }
 
@@ -489,9 +496,11 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := make(map[string]string)
-	m["busy"] = fmt.Sprintf("%t", c.App.Srv.Busy.IsBusy())
-	m["expires"] = fmt.Sprintf("%d", c.App.Srv.Busy.Expires().Unix())
-	m["expires_ts"] = c.App.Srv.Busy.Expires().UTC().Format("Mon Jan 2 15:04:05 -0700 MST 2006")
-	w.Write([]byte(model.MapToJson(m)))
+	busy := c.App.Srv.Busy
+	sbs := &model.ServerBusyState{
+		Busy:       busy.IsBusy(),
+		Expires:    busy.Expires().Unix(),
+		Expires_ts: busy.Expires().UTC().Format("Mon Jan 2 15:04:05 -0700 MST 2006"),
+	}
+	w.Write([]byte(sbs.ToJson()))
 }
