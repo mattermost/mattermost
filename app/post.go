@@ -789,7 +789,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 		return model.NewPostList(), nil
 	}
 
-	postList, err := a.GetPostThread(lastUnreadPostId, skipFetchThreads)
+	postList, err := a.GetPostThread(lastUnreadPostId, false)
 	if err != nil {
 		return nil, err
 	}
