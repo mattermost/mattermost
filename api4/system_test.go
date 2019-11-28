@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -506,4 +507,118 @@ func TestRedirectLocation(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.GetRedirectLocation("", "")
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestSetServerBusy(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	const secs = 30
+
+	t.Run("as system user", func(t *testing.T) {
+		ok, resp := th.Client.SetServerBusy(secs)
+		CheckForbiddenStatus(t, resp)
+		require.False(t, ok, "should not set server busy due to no permission")
+		require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy")
+	})
+
+	t.Run("as system admin", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.SetServerBusy(secs)
+		CheckNoError(t, resp)
+		require.True(t, ok, "should set server busy successfully")
+		require.True(t, th.App.Srv.Busy.IsBusy(), "server should be marked busy")
+	})
+}
+
+func TestSetServerBusyInvalidParam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	t.Run("as system admin, invalid param", func(t *testing.T) {
+		params := []int{-1, 0, MAX_SERVER_BUSY_SECONDS + 1}
+		for _, p := range params {
+			ok, resp := th.SystemAdminClient.SetServerBusy(p)
+			CheckBadRequestStatus(t, resp)
+			require.False(t, ok, "should not set server busy due to invalid param ", p)
+			require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
+		}
+	})
+}
+
+func TestClearServerBusy(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv.Busy.Set(time.Second * 30)
+	t.Run("as system user", func(t *testing.T) {
+		ok, resp := th.Client.ClearServerBusy()
+		CheckForbiddenStatus(t, resp)
+		require.False(t, ok, "should not clear server busy flag due to no permission.")
+		require.True(t, th.App.Srv.Busy.IsBusy(), "server should be marked busy")
+	})
+
+	th.App.Srv.Busy.Set(time.Second * 30)
+	t.Run("as system admin", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.ClearServerBusy()
+		CheckNoError(t, resp)
+		require.True(t, ok, "should clear server busy flag successfully")
+		require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy")
+	})
+}
+
+func TestGetServerBusyExpires(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv.Busy.Set(time.Second * 30)
+
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := th.Client.GetServerBusyExpires()
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as system admin", func(t *testing.T) {
+		expires, resp := th.SystemAdminClient.GetServerBusyExpires()
+		CheckNoError(t, resp)
+		require.Greater(t, expires.Unix(), time.Now().Unix())
+	})
+}
+
+func TestServerBusy503(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv.Busy.Set(time.Second * 30)
+
+	t.Run("search users while busy", func(t *testing.T) {
+		us := &model.UserSearch{Term: "test"}
+		_, resp := th.SystemAdminClient.SearchUsers(us)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	t.Run("search teams while busy", func(t *testing.T) {
+		ts := &model.TeamSearch{}
+		_, resp := th.SystemAdminClient.SearchTeams(ts)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	t.Run("search channels while busy", func(t *testing.T) {
+		cs := &model.ChannelSearch{}
+		_, resp := th.SystemAdminClient.SearchChannels("foo", cs)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	t.Run("search archived channels while busy", func(t *testing.T) {
+		cs := &model.ChannelSearch{}
+		_, resp := th.SystemAdminClient.SearchArchivedChannels("foo", cs)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	th.App.Srv.Busy.Clear()
+
+	t.Run("search users while not busy", func(t *testing.T) {
+		us := &model.UserSearch{Term: "test"}
+		_, resp := th.SystemAdminClient.SearchUsers(us)
+		CheckNoError(t, resp)
+	})
 }
