@@ -44,7 +44,7 @@ require (
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/mattermost/go-i18n v1.11.0
 	github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
-	github.com/mattermost/ldap v3.0.4+incompatible
+	github.com/mattermost/ldap v0.0.0-20191128170712-57b05a35daa9
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/viper v1.0.4
 	github.com/mattn/go-runewidth v0.0.4 // indirect
