@@ -17,7 +17,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 )
@@ -399,8 +399,7 @@ func (u *User) SetDefaultNotifications() {
 
 func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	nonUsernameKeys := []string{}
-	splitKeys := strings.Split(user.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",")
-	for _, key := range splitKeys {
+	for _, key := range user.GetMentionKeys() {
 		if key != oldUsername && key != "@"+oldUsername {
 			nonUsernameKeys = append(nonUsernameKeys, key)
 		}
@@ -410,6 +409,22 @@ func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	if len(nonUsernameKeys) > 0 {
 		user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
 	}
+}
+
+func (user *User) GetMentionKeys() []string {
+	var keys []string
+
+	for _, key := range strings.Split(user.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
+		trimmedKey := strings.TrimSpace(key)
+
+		if trimmedKey == "" {
+			continue
+		}
+
+		keys = append(keys, trimmedKey)
+	}
+
+	return keys
 }
 
 func (u *User) Patch(patch *UserPatch) {
