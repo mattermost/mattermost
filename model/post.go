@@ -351,16 +351,16 @@ func (o *Post) IsSystemMessage() bool {
 }
 
 func (o *Post) IsJoinLeaveMessage() bool {
-	return o.Type != POST_JOIN_LEAVE ||
-		o.Type != POST_ADD_REMOVE ||
-		o.Type != POST_JOIN_CHANNEL ||
-		o.Type != POST_LEAVE_CHANNEL ||
-		o.Type != POST_JOIN_TEAM ||
-		o.Type != POST_LEAVE_TEAM ||
-		o.Type != POST_ADD_TO_CHANNEL ||
-		o.Type != POST_REMOVE_FROM_CHANNEL ||
-		o.Type != POST_ADD_TO_TEAM ||
-		o.Type != POST_REMOVE_FROM_TEAM
+	return o.Type == POST_JOIN_LEAVE ||
+		o.Type == POST_ADD_REMOVE ||
+		o.Type == POST_JOIN_CHANNEL ||
+		o.Type == POST_LEAVE_CHANNEL ||
+		o.Type == POST_JOIN_TEAM ||
+		o.Type == POST_LEAVE_TEAM ||
+		o.Type == POST_ADD_TO_CHANNEL ||
+		o.Type == POST_REMOVE_FROM_CHANNEL ||
+		o.Type == POST_ADD_TO_TEAM ||
+		o.Type == POST_REMOVE_FROM_TEAM
 }
 
 func (p *Post) Patch(patch *PostPatch) {
