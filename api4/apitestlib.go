@@ -240,6 +240,10 @@ func (me *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.SystemAdminClient.AuthToken)
 }
 
+func (me *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), client.AuthToken)
+}
+
 func (me *TestHelper) CreateUser() *model.User {
 	return me.CreateUserWithClient(me.Client)
 }
