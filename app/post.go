@@ -1180,7 +1180,7 @@ func (a *App) MaxPostSize() int {
 }
 
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
-// given post. Returns the number of mentions or store.MentionAllPosts if the post is in a direct message channel.
+// given post.
 func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *model.AppError) {
 	channel, err := a.GetChannel(post.ChannelId)
 	if err != nil {
@@ -1188,7 +1188,13 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 	}
 
 	if channel.Type == model.CHANNEL_DIRECT {
-		return store.MentionAllPosts, nil
+		// In a DM channel, every post made by the other user is a mention
+		count, err := a.Srv.Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
+		if err != nil {
+			return 0, err
+		}
+
+		return int(count), err
 	}
 
 	channelMember, err := a.GetChannelMember(channel.Id, user.Id)
