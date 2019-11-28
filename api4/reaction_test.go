@@ -7,9 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestSaveReaction(t *testing.T) {

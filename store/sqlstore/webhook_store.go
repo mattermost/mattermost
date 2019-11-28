@@ -8,10 +8,10 @@ import (
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlWebhookStore struct {
@@ -412,7 +412,7 @@ func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.Out
 
 func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *model.AppError) {
 	query :=
-		`SELECT 
+		`SELECT
 			COUNT(*)
 		FROM
 			IncomingWebhooks
@@ -433,7 +433,7 @@ func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *model.Ap
 
 func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, *model.AppError) {
 	query :=
-		`SELECT 
+		`SELECT
 			COUNT(*)
 		FROM
 			OutgoingWebhooks
