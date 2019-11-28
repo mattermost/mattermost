@@ -5,8 +5,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type BLVChannel struct {
@@ -174,8 +174,8 @@ func BLVUserFromUserAndTeams(user *model.User, teamsIds, channelsIds []string) *
 
 func BLVPostFromPost(post *model.Post, teamId string) *BLVPost {
 	return &BLVPost{
-		Id: post.Id,
-		TeamId: teamId,
+		Id:        post.Id,
+		TeamId:    teamId,
 		ChannelId: post.ChannelId,
 		UserId:    post.UserId,
 		CreateAt:  post.CreateAt,

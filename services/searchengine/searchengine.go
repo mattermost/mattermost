@@ -1,11 +1,11 @@
 package searchengine
 
 import (
-	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/services/searchengine/nullengine"
+	"github.com/mattermost/mattermost-server/v5/jobs"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/nullengine"
 )
 
 func NewSearchEngineBroker(cfg *model.Config, jobServer *jobs.JobServer) (*SearchEngineBroker, error) {

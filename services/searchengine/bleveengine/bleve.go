@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/jobs"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
@@ -174,18 +174,18 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 	for i, params := range searchParams {
 		// ToDo: needs email filtering
 		/*
-           Not valid, probably will be TermQueries on the emails
+			           Not valid, probably will be TermQueries on the emails
 
-		newTerms := []string{}
-		for _, term := range strings.Split(params.Terms, " ") {
-			if emailRegex.MatchString(term) {
-				term = `"` + term + `"`
-			}
-			newTerms = append(newTerms, term)
-		}
+					newTerms := []string{}
+					for _, term := range strings.Split(params.Terms, " ") {
+						if emailRegex.MatchString(term) {
+							term = `"` + term + `"`
+						}
+						newTerms = append(newTerms, term)
+					}
 
-		params.Terms = strings.Join(newTerms, " ")
-        */
+					params.Terms = strings.Join(newTerms, " ")
+		*/
 
 		// Date, channels and FromUsers filters come in all
 		// searchParams iteration, and as they are global to the

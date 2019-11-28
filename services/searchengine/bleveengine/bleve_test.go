@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/blevesearch/bleve"
 	"github.com/stretchr/testify/assert"
@@ -119,8 +119,8 @@ func (s *BleveEngineTestSuite) SetupTest() {
 	}
 
 	s.engine = &BleveEngine{
-		postIndex: postIndex,
-		userIndex: userIndex,
+		postIndex:    postIndex,
+		userIndex:    userIndex,
 		channelIndex: channelIndex,
 	}
 }
