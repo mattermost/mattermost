@@ -1157,7 +1157,7 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 
 	if !options.IncludeDeleted {
 		joins = append(joins, "LEFT JOIN Users ON s.UserId = Users.Id")
-		wheres = append(wheres, "Users.DeleteAt != 0")
+		wheres = append(wheres, "Users.DeleteAt = 0")
 	}
 	query := fmt.Sprintf("SELECT COUNT(*) FROM Status s %v WHERE %v", strings.Join(joins, " "), strings.Join(wheres, " AND "))
 	v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
