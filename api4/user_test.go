@@ -265,6 +265,82 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 }
 
+func TestCreateUserWebSocketEvent(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	t.Run("guest should not received new_user event but user should", func(t *testing.T) {
+		th.App.SetLicense(model.NewTestLicense("guests"))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
+
+		id := model.NewId()
+		guestPassword := "Pa$$word11"
+		guest := &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      guestPassword,
+			EmailVerified: true,
+		}
+
+		guest, err := th.App.CreateGuest(guest)
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, guest.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToChannel(guest, th.BasicChannel)
+		require.Nil(t, err)
+
+		guestClient := th.CreateClient()
+
+		_, resp := guestClient.Login(guest.Email, guestPassword)
+		require.Nil(t, resp.Error)
+
+		guestWSClient, err := th.CreateWebSocketClientWithClient(guestClient)
+		require.Nil(t, err)
+		defer guestWSClient.Close()
+		guestWSClient.Listen()
+
+		userWSClient, err := th.CreateWebSocketClient()
+		require.Nil(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
+
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+
+		inviteId := th.BasicTeam.InviteId
+
+		_, resp = th.Client.CreateUserWithInviteId(&user, inviteId)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		var userHasReceived bool
+		var guestHasReceived bool
+
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.Event == model.WEBSOCKET_EVENT_NEW_USER {
+						userHasReceived = true
+					}
+				case ev := <-guestWSClient.EventChannel:
+					if ev.Event == model.WEBSOCKET_EVENT_NEW_USER {
+						guestHasReceived = true
+					}
+				case <-time.After(2 * time.Second):
+					return
+				}
+			}
+		}()
+
+		require.Truef(t, userHasReceived, "User should have received %s event", model.WEBSOCKET_EVENT_NEW_USER)
+		require.Falsef(t, guestHasReceived, "Guest should not have received %s event", model.WEBSOCKET_EVENT_NEW_USER)
+	})
+}
+
 func TestCreateUserWithInviteId(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
