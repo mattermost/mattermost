@@ -4,9 +4,9 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
@@ -84,7 +84,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		teamCountChan := make(chan store.StoreResult, 1)
 		go func() {
-			teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+			teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount(false)
 			teamCountChan <- store.StoreResult{Data: teamCount, Err: err}
 			close(teamCountChan)
 		}()
