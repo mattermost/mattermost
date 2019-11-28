@@ -157,7 +157,6 @@ type ChannelStore interface {
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidatePinnedPostCount(channelId string)
-	GetPinnedPostCountFromCache(channelId string) int64
 	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidateGuestCount(channelId string)
 	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)

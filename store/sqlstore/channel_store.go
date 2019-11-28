@@ -29,9 +29,6 @@ const (
 	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE = model.SESSION_CACHE_SIZE
 	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC  = 1800 // 30 mins
 
-	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
-	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC  = 1800 // 30 mins
-
 	CHANNEL_CACHE_SEC = 900 // 15 mins
 )
 
@@ -277,21 +274,18 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
-var channelPinnedPostCountsCache = utils.NewLru(CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE)
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
 var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func (s SqlChannelStore) ClearCaches() {
-	channelPinnedPostCountsCache.Purge()
 	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
 	channelCache.Purge()
 	channelByNameCache.Purge()
 
 	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props for Channel - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
@@ -1600,46 +1594,9 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 }
 
 func (s SqlChannelStore) InvalidatePinnedPostCount(channelId string) {
-	channelPinnedPostCountsCache.Remove(channelId)
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Remove by ChannelId")
-	}
-}
-
-func (s SqlChannelStore) GetPinnedPostCountFromCache(channelId string) int64 {
-	if cacheItem, ok := channelPinnedPostCountsCache.Get(channelId); ok {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheHitCounter("Channel Pinned Post Counts")
-		}
-		return cacheItem.(int64)
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Channel Pinned Post Counts")
-	}
-
-	count, err := s.GetPinnedPostCount(channelId, true)
-	if err != nil {
-		return 0
-	}
-
-	return count
 }
 
 func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
-	if allowFromCache {
-		if cacheItem, ok := channelPinnedPostCountsCache.Get(channelId); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Channel Pinned Post Counts")
-			}
-			return cacheItem.(int64), nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Channel Pinned Post Counts")
-	}
-
 	count, err := s.GetReplica().SelectInt(`
 		SELECT count(*)
 			FROM Posts
@@ -1650,10 +1607,6 @@ func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache boo
 
 	if err != nil {
 		return 0, model.NewAppError("SqlChannelStore.GetPinnedPostCount", "store.sql_channel.get_pinnedpost_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
-	}
-
-	if allowFromCache {
-		channelPinnedPostCountsCache.AddWithExpiresInSecs(channelId, count, CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC)
 	}
 
 	return count, nil

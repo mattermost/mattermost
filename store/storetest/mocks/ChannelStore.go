@@ -646,13 +646,13 @@ func (_m *ChannelStore) GetChannelsByScheme(schemeId string, offset int, limit i
 	return r0, r1
 }
 
-// GetDeleted provides a mock function with given fields: team_id, offset, limit
+// GetDeleted provides a mock function with given fields: team_id, offset, limit, userId
 func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
-	ret := _m.Called(team_id, offset, limit)
+	ret := _m.Called(team_id, offset, limit, userId)
 
 	var r0 *model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, int, int) *model.ChannelList); ok {
-		r0 = rf(team_id, offset, limit)
+	if rf, ok := ret.Get(0).(func(string, int, int, string) *model.ChannelList); ok {
+		r0 = rf(team_id, offset, limit, userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelList)
@@ -660,8 +660,8 @@ func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int, userId
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(team_id, offset, limit)
+	if rf, ok := ret.Get(1).(func(string, int, int, string) *model.AppError); ok {
+		r1 = rf(team_id, offset, limit, userId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1016,20 +1016,6 @@ func (_m *ChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool
 	}
 
 	return r0, r1
-}
-
-// GetPinnedPostCountFromCache provides a mock function with given fields: channelId
-func (_m *ChannelStore) GetPinnedPostCountFromCache(channelId string) int64 {
-	ret := _m.Called(channelId)
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(channelId)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	return r0
 }
 
 // GetPinnedPosts provides a mock function with given fields: channelId
@@ -1452,16 +1438,48 @@ func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchO
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, store.ChannelSearchOpts) *model.AppError); ok {
+	var r1 int64
+	if rf, ok := ret.Get(1).(func(string, store.ChannelSearchOpts) int64); ok {
 		r1 = rf(term, opts)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	var r2 *model.AppError
+	if rf, ok := ret.Get(2).(func(string, store.ChannelSearchOpts) *model.AppError); ok {
+		r2 = rf(term, opts)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
+}
+
+// SearchArchivedInTeam provides a mock function with given fields: teamId, term, userId
+func (_m *ChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
+	ret := _m.Called(teamId, term, userId)
+
+	var r0 *model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.ChannelList); ok {
+		r0 = rf(teamId, term, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+		r1 = rf(teamId, term, userId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0, 0, r1
+	return r0, r1
 }
 
 // SearchForUserInTeam provides a mock function with given fields: userId, teamId, term, includeDeleted
@@ -1530,31 +1548,6 @@ func (_m *ChannelStore) SearchInTeam(teamId string, term string, includeDeleted 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
 		r1 = rf(teamId, term, includeDeleted)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// SearchArchivedInTeam provides a mock function with given fields: teamId, term, userId
-func (_m *ChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
-	ret := _m.Called(teamId, term, userId)
-
-	var r0 *model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, string, string) *model.ChannelList); ok {
-		r0 = rf(teamId, term, userId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelList)
-		}
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
-		r1 = rf(teamId, term, userId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

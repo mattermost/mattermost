@@ -29,6 +29,7 @@ const (
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS                     = "inv_webhooks"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID                 = "inv_emojis_by_id"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME            = "inv_emojis_id_by_name"
+	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_PINNEDPOSTS_COUNTS   = "inv_channel_pinnedposts_counts"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS        = "inv_channel_member_counts"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS                   = "inv_last_posts"
 	CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS                 = "inv_all_user_sessions"
