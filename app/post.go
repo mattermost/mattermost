@@ -1189,12 +1189,12 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 
 	if channel.Type == model.CHANNEL_DIRECT {
 		// In a DM channel, every post made by the other user is a mention
-		count, err := a.Srv.Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
-		if err != nil {
-			return 0, err
+		count, countErr := a.Srv.Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
+		if countErr != nil {
+			return 0, countErr
 		}
 
-		return int(count), err
+		return int(count), countErr
 	}
 
 	channelMember, err := a.GetChannelMember(channel.Id, user.Id)
