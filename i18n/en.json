@@ -1091,6 +1091,10 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.context.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable"
+  },
+  {
     "id": "api.context.session_expired.app_error",
     "translation": "Invalid or expired session, please login again."
   },
@@ -2805,6 +2809,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
+  },
+  {
+    "id": "api.websocket_handler.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable"
   },
   {
     "id": "app.admin.test_email.failure",
