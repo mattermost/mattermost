@@ -4,13 +4,8 @@ test-te: test-server
 # test-ee used to just run the enterprise edition tests, but now runs whatever is available
 test-ee: test-server
 
-## Runs govet against all packages. This is now subsumed by make golangci-lint.
-govet:
-	@echo Running GOVET
-	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
-	$(GO) vet $(GOFLAGS) $(ALL_PACKAGES) || exit 1
-	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GOFLAGS) $(ALL_PACKAGES) || exit 1
-	$(GO) run $(GOFLAGS) ./plugin/checker
+## Old target to run go vet. Now it just invokes golangci-lint.
+govet: golangci-lint
 
 gofmt: ## Runs gofmt against all packages. This is now subsumed by make golangci-lint.
 	@echo Running GOFMT
