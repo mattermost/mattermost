@@ -486,8 +486,18 @@ func (s SqlTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppError) {
 	return c, nil
 }
 
-func (s SqlTeamStore) AnalyticsTeamCount() (int64, *model.AppError) {
-	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0", map[string]interface{}{})
+func (s SqlTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError) {
+	query := s.getQueryBuilder().Select("COUNT(*) FROM Teams")
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return 0, model.NewAppError("SqlTeamStore.AnalyticsTeamCount", "store.sql_team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	c, err := s.GetReplica().SelectInt(queryString, args...)
 
 	if err != nil {
 		return int64(0), model.NewAppError("SqlTeamStore.AnalyticsTeamCount", "store.sql_team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)

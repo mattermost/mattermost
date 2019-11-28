@@ -505,7 +505,7 @@ func TestImportImportTeam(t *testing.T) {
 	scheme2 := th.SetupTeamScheme()
 
 	// Check how many teams are in the database.
-	teamsCount, err := th.App.Srv.Store.Team().AnalyticsTeamCount()
+	teamsCount, err := th.App.Srv.Store.Team().AnalyticsTeamCount(false)
 	require.Nil(t, err, "Failed to get team count.")
 
 	data := TeamImportData{

@@ -659,7 +659,7 @@ func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppE
 }
 
 func (a *App) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
-	totalCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+	totalCount, err := a.Srv.Store.Team().AnalyticsTeamCount(true)
 	if err != nil {
 		return nil, err
 	}

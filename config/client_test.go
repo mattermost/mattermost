@@ -139,6 +139,32 @@ func TestGetClientConfig(t *testing.T) {
 				"ExperimentalChannelOrganization": "true",
 			},
 		},
+		{
+			"default marketplace",
+			&model.Config{
+				PluginSettings: model.PluginSettings{
+					MarketplaceUrl: sToP(model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"IsDefaultMarketplace": "true",
+			},
+		},
+		{
+			"non-default marketplace",
+			&model.Config{
+				PluginSettings: model.PluginSettings{
+					MarketplaceUrl: sToP("http://example.com"),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"IsDefaultMarketplace": "false",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

@@ -24,7 +24,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("", api.ApiSessionRequired(getUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/ids", api.ApiSessionRequired(getUsersByIds)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/usernames", api.ApiSessionRequired(getUsersByNames)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequired(searchUsers)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")

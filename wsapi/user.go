@@ -13,6 +13,11 @@ func (api *API) InitUser() {
 }
 
 func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	if api.App.Srv.Busy.IsBusy() {
+		// this is considered a non-critical service and will be disabled when server busy.
+		return nil, NewServerBusyWebSocketError(req.Action)
+	}
+
 	var ok bool
 	var channelId string
 	if channelId, ok = req.Data["channel_id"].(string); !ok || len(channelId) != 26 {

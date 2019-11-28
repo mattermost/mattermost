@@ -50,3 +50,20 @@ type SystemECDSAKey struct {
 	Y     *big.Int `json:"y"`
 	D     *big.Int `json:"d,omitempty"`
 }
+
+type ServerBusyState struct {
+	Busy       bool   `json:"busy"`
+	Expires    int64  `json:"expires"`
+	Expires_ts string `json:"expires_ts,omitempty"`
+}
+
+func (sbs *ServerBusyState) ToJson() string {
+	b, _ := json.Marshal(sbs)
+	return string(b)
+}
+
+func ServerBusyStateFromJson(r io.Reader) *ServerBusyState {
+	var sbs *ServerBusyState
+	json.NewDecoder(r).Decode(&sbs)
+	return sbs
+}

@@ -29,9 +29,6 @@ const (
 	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE = model.SESSION_CACHE_SIZE
 	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC  = 1800 // 30 mins
 
-	CHANNEL_GUESTS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
-	CHANNEL_GUESTS_COUNTS_CACHE_SEC  = 1800 // 30 mins
-
 	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
 	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC  = 1800 // 30 mins
 
@@ -281,7 +278,6 @@ type publicChannel struct {
 }
 
 var channelPinnedPostCountsCache = utils.NewLru(CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE)
-var channelGuestCountsCache = utils.NewLru(CHANNEL_GUESTS_COUNTS_CACHE_SIZE)
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
 var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
@@ -289,7 +285,6 @@ var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func (s SqlChannelStore) ClearCaches() {
 	channelPinnedPostCountsCache.Purge()
-	channelGuestCountsCache.Purge()
 	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
 	channelCache.Purge()
@@ -1665,46 +1660,9 @@ func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache boo
 }
 
 func (s SqlChannelStore) InvalidateGuestCount(channelId string) {
-	channelGuestCountsCache.Remove(channelId)
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Counts - Remove by ChannelId")
-	}
-}
-
-func (s SqlChannelStore) GetGuestCountFromCache(channelId string) int64 {
-	if cacheItem, ok := channelGuestCountsCache.Get(channelId); ok {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheHitCounter("Channel Guest Counts")
-		}
-		return cacheItem.(int64)
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Channel Guest Counts")
-	}
-
-	count, err := s.GetGuestCount(channelId, true)
-	if err != nil {
-		return 0
-	}
-
-	return count
 }
 
 func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
-	if allowFromCache {
-		if cacheItem, ok := channelGuestCountsCache.Get(channelId); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Channel Guest Counts")
-			}
-			return cacheItem.(int64), nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Channel Guest Counts")
-	}
-
 	count, err := s.GetReplica().SelectInt(`
 		SELECT
 			count(*)
@@ -1719,11 +1677,6 @@ func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (i
 	if err != nil {
 		return 0, model.NewAppError("SqlChannelStore.GetGuestCount", "store.sql_channel.get_member_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
 	}
-
-	if allowFromCache {
-		channelGuestCountsCache.AddWithExpiresInSecs(channelId, count, CHANNEL_GUESTS_COUNTS_CACHE_SEC)
-	}
-
 	return count, nil
 }
 

@@ -724,8 +724,14 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if err := a.PermanentDeleteUser(user); err != nil {
-			return err
+		if user.IsBot {
+			if err := a.PermanentDeleteBot(user.Id); err != nil {
+				return err
+			}
+		} else {
+			if err := a.PermanentDeleteUser(user); err != nil {
+				return err
+			}
 		}
 	}
 
