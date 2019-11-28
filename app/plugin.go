@@ -526,7 +526,7 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) ([]*model.
 	return result, nil
 }
 
-// addLocalPlugins returns the list of local plugins that are not in
+// addLocalPlugins returns a merged list of locally installed and remote marketplace plugins.
 func (a *App) addLocalPlugins(remoteMarketplacePlugins []*model.MarketplacePlugin) ([]*model.MarketplacePlugin, *model.AppError) {
 	result := remoteMarketplacePlugins
 	remotePlugins := map[string]bool{}
