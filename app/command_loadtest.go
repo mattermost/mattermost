@@ -39,9 +39,6 @@ var usage = `Mattermost testing commands to help configure the system
 		Example:
 			/test channels fuzz 5 10
 
-	ThreadedPost - create a large threaded post
-        /test threaded_post
-
 	Posts - Add some random posts with fuzz text to current channel.
 		/test posts [fuzz] <Min Posts> <Max Posts> <Max Images>
 
@@ -128,10 +125,6 @@ func (me *LoadTestProvider) DoCommand(a *App, args *model.CommandArgs, message s
 
 	if strings.HasPrefix(message, "post") {
 		return me.PostCommand(a, args, message)
-	}
-
-	if strings.HasPrefix(message, "threaded_post") {
-		return me.ThreadedPostCommand(a, args, message)
 	}
 
 	if strings.HasPrefix(message, "url") {
@@ -282,34 +275,6 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 	channelCreator.CreateTestChannels(channelsr)
 
 	return &model.CommandResponse{Text: "Added channels", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-}
-
-func (me *LoadTestProvider) ThreadedPostCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
-	var usernames []string
-	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if profileUsers, err := a.Srv.Store.User().GetProfiles(options); err == nil {
-		usernames = make([]string, len(profileUsers))
-		i := 0
-		for _, userprof := range profileUsers {
-			usernames[i] = userprof.Username
-			i++
-		}
-	}
-
-	client := model.NewAPIv4Client(args.SiteURL)
-	client.MockSession(args.Session.Token)
-	testPoster := NewAutoPostCreator(client, args.ChannelId)
-	testPoster.Fuzzy = true
-	testPoster.Users = usernames
-	rpost, ok := testPoster.CreateRandomPost()
-	if !ok {
-		return &model.CommandResponse{Text: "Cannot create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	}
-	for i := 0; i < 1000; i++ {
-		testPoster.CreateRandomPostNested(rpost.Id, rpost.Id)
-	}
-
-	return &model.CommandResponse{Text: "Added threaded post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {

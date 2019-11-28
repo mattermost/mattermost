@@ -66,10 +66,6 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 }
 
 func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, bool) {
-	return cfg.CreateRandomPostNested("", "")
-}
-
-func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*model.Post, bool) {
 	var fileIds []string
 	if cfg.HasImage {
 		var err1 bool
@@ -88,12 +84,10 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*mo
 
 	post := &model.Post{
 		ChannelId: cfg.channelid,
-		ParentId:  parentId,
-		RootId:    rootId,
 		Message:   postText,
 		FileIds:   fileIds}
-	rpost, resp := cfg.client.CreatePost(post)
-	if resp != nil && resp.Error != nil {
+	rpost, err2 := cfg.client.CreatePost(post)
+	if err2 != nil {
 		return nil, false
 	}
 	return rpost, true
