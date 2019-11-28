@@ -3,10 +3,11 @@ package localcachelayer
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func TestChannelStore(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
