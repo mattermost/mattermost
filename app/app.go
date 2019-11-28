@@ -38,7 +38,7 @@ type App struct {
 	Cluster          einterfaces.ClusterInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
-	SearchEngine     searchengine.SearchEngineBroker
+	SearchEngine     *searchengine.SearchEngineBroker
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface

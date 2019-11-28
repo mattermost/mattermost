@@ -105,7 +105,7 @@ func ServerConnector(s *Server) AppOption {
 		a.Cluster = s.Cluster
 		a.Compliance = s.Compliance
 		a.DataRetention = s.DataRetention
-		a.SearchEngine = s.SearchEngine
+		a.SearchEngine = &s.SearchEngine
 		a.Ldap = s.Ldap
 		a.MessageExport = s.MessageExport
 		a.Metrics = s.Metrics
