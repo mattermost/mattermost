@@ -597,6 +597,7 @@ func TestCheckPostsFileInfoIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: postId,
+				ChildId:  info.Id,
 			}, data.Records[0])
 			dbmap.Delete(info)
 		})
@@ -613,6 +614,19 @@ func TestCheckPostsPostsParentIdIntegrity(t *testing.T) {
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 0)
+		})
+
+		t.Run("should generate a report with no records", func(t *testing.T) {
+			root := createPost(ss, model.NewId(), model.NewId(), "", "")
+			parent := createPost(ss, model.NewId(), model.NewId(), root.Id, root.Id)
+			post := createPost(ss, model.NewId(), model.NewId(), root.Id, parent.Id)
+			result := checkPostsPostsParentIdIntegrity(supplier)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+			dbmap.Delete(parent)
+			dbmap.Delete(root)
+			dbmap.Delete(post)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1180,6 +1194,7 @@ func TestCheckUsersFileInfoIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
+				ChildId:  info.Id,
 			}, data.Records[0])
 			dbmap.Delete(info)
 		})
@@ -1371,10 +1386,26 @@ func TestCheckUsersPreferencesIntegrity(t *testing.T) {
 			require.Len(t, data.Records, 0)
 		})
 
-		t.Run("should generate a report with one record", func(t *testing.T) {
+		t.Run("should generate a report with no records", func(t *testing.T) {
 			user := createUser(ss)
+			require.NotNil(t, user)
 			userId := user.Id
 			preferences := createPreferences(ss, userId)
+			require.NotNil(t, preferences)
+			result := checkUsersPreferencesIntegrity(supplier)
+			require.Nil(t, result.Err)
+			data := result.Data.(store.RelationalIntegrityCheckData)
+			require.Len(t, data.Records, 0)
+			dbmap.Exec(`DELETE FROM Preferences`)
+			dbmap.Delete(user)
+		})
+
+		t.Run("should generate a report with one record", func(t *testing.T) {
+			user := createUser(ss)
+			require.NotNil(t, user)
+			userId := user.Id
+			preferences := createPreferences(ss, userId)
+			require.NotNil(t, preferences)
 			dbmap.Delete(user)
 			result := checkUsersPreferencesIntegrity(supplier)
 			require.Nil(t, result.Err)
@@ -1383,7 +1414,8 @@ func TestCheckUsersPreferencesIntegrity(t *testing.T) {
 			require.Equal(t, store.OrphanedRecord{
 				ParentId: userId,
 			}, data.Records[0])
-			dbmap.Delete(preferences)
+			dbmap.Exec(`DELETE FROM Preferences`)
+			dbmap.Delete(user)
 		})
 	})
 }
