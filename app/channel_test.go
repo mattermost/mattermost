@@ -1132,12 +1132,12 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		th.CreatePost(dc)
 		th.CreatePost(dc)
 
-		response, err := th.App.MarkChannelAsUnreadFromPost(dm1.Id, u1.Id)
+		response, err := th.App.MarkChannelAsUnreadFromPost(dm1.Id, u2.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, int64(0), response.MsgCount)
 		assert.Equal(t, int64(3), response.MentionCount)
 
-		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err := th.App.GetChannelUnread(dc.Id, u2.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(3), unread.MsgCount)
 		assert.Equal(t, int64(3), unread.MentionCount)
