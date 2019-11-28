@@ -10,9 +10,9 @@ import (
 
 	"github.com/segmentio/analytics-go"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
@@ -150,7 +150,7 @@ func (a *App) trackActivity() {
 		inactiveUserCount = iucr
 	}
 
-	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount(false)
 	if err != nil {
 		mlog.Error(err.Error())
 	}

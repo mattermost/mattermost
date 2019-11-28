@@ -13,8 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -31,7 +31,7 @@ type WebConnActivityMessage struct {
 
 type Hub struct {
 	// connectionCount should be kept first.
-	// See https://github.com/mattermost/mattermost-server/pull/7281
+	// See https://github.com/mattermost/mattermost-server/v5/pull/7281
 	connectionCount int64
 	app             *App
 	connectionIndex int

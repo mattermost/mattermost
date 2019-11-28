@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCheckIfRolesGrantPermission(t *testing.T) {
