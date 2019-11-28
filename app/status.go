@@ -228,6 +228,10 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 }
 
 func (a *App) BroadcastStatus(status *model.Status) {
+	if a.Srv.Busy.IsBusy() {
+		// this is considered a non-critical service and will be disabled when server busy.
+		return
+	}
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)

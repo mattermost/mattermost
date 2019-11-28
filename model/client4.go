@@ -420,6 +420,10 @@ func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
 }
 
+func (c *Client4) GetServerBusyRoute() string {
+	return "/server_busy"
+}
+
 func (c *Client4) GetUserTermsOfServiceRoute(userId string) string {
 	return c.GetUserRoute(userId) + "/terms_of_service"
 }
@@ -4620,6 +4624,41 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	}
 	defer closeBody(r)
 	return MapFromJson(r.Body)["location"], BuildResponse(r)
+}
+
+// SetServerBusy will mark the server as busy, which disables non-critical services for `secs` seconds.
+func (c *Client4) SetServerBusy(secs int) (bool, *Response) {
+	url := fmt.Sprintf("%s?seconds=%d", c.GetServerBusyRoute(), secs)
+	r, err := c.DoApiPost(url, "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// ClearServerBusy will mark the server as not busy.
+func (c *Client4) ClearServerBusy() (bool, *Response) {
+	r, err := c.DoApiPost(c.GetServerBusyRoute()+"/clear", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// GetServerBusyExpires returns the time when a server marked busy
+// will automatically have the flag cleared.
+func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
+	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	sbs := ServerBusyStateFromJson(r.Body)
+	expires := time.Unix(sbs.Expires, 0)
+	return &expires, BuildResponse(r)
 }
 
 // RegisterTermsOfServiceAction saves action performed by a user against a specific terms of service.

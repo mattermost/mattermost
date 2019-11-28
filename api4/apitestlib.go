@@ -636,6 +636,11 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	checkHTTPStatus(t, resp, http.StatusInternalServerError, true)
 }
 
+func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusServiceUnavailable, true)
+}
+
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 

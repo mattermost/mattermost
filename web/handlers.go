@@ -66,6 +66,7 @@ type Handler struct {
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
+	DisableWhenBusy     bool
 
 	cspShaDirective string
 }
@@ -157,6 +158,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.RequireMfa {
 		c.MfaRequired()
+	}
+
+	if c.Err == nil && h.DisableWhenBusy && c.App.Srv.Busy.IsBusy() {
+		c.SetServerBusyError()
 	}
 
 	if c.Err == nil {
