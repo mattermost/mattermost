@@ -4,11 +4,11 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type Option func(s *Server) error
@@ -109,6 +109,7 @@ func ServerConnector(s *Server) AppOption {
 		a.Ldap = s.Ldap
 		a.MessageExport = s.MessageExport
 		a.Metrics = s.Metrics
+		a.Notification = s.Notification
 		a.Saml = s.Saml
 
 		a.HTTPService = s.HTTPService
