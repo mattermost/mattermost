@@ -3699,6 +3699,54 @@
     "translation": "Invalid or missing token"
   },
   {
+    "id": "bleve.not-available.error",
+    "translation": "Bleve search is not available on this server"
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "Failed to delete the channel"
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "Failed to delete the post"
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "Failed to delete the user"
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "Failed to index the channel"
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "Failed to index the post"
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "Failed to index the user"
+  },
+  {
+    "id": "bleveengine.search_channels.error",
+    "translation": "Bleve searching is disabled on this server"
+  },
+  {
+    "id": "bleveengine.search_posts.error",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.nuchan.error",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.uchan.error",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "bleveengine.search_users_in_team.error",
+    "translation": "Search failed to complete"
+  },
+  {
     "id": "brand.save_brand_image.decode.app_error",
     "translation": "Unable to decode the image data."
   },
@@ -4589,6 +4637,10 @@
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.filename.app_error",
+    "translation": "Invalid IndexDir for Bleve. Must be a valid Bleve index directory."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
