@@ -654,8 +654,8 @@ type UserGetByIdsOpts struct {
 }
 
 type OrphanedRecord struct {
-	ParentId string
-	ChildId  string
+	ParentId *string
+	ChildId  *string
 }
 
 type RelationalIntegrityCheckData struct {

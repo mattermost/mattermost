@@ -397,8 +397,8 @@ func TestCheckChannelsCommandWebhooksIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: channelId,
-				ChildId:  cwh.Id,
+				ParentId: &channelId,
+				ChildId:  &cwh.Id,
 			}, data.Records[0])
 			dbmap.Delete(cwh)
 		})
@@ -427,7 +427,7 @@ func TestCheckChannelsChannelMemberHistoryIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: cmh.ChannelId,
+				ParentId: &cmh.ChannelId,
 			}, data.Records[0])
 			dbmap.Delete(user)
 			dbmap.Exec(`DELETE FROM ChannelMemberHistory`)
@@ -456,7 +456,7 @@ func TestCheckChannelsChannelMembersIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: member.ChannelId,
+				ParentId: &member.ChannelId,
 			}, data.Records[0])
 			ss.Channel().PermanentDeleteMembersByChannel(member.ChannelId)
 		})
@@ -483,8 +483,8 @@ func TestCheckChannelsIncomingWebhooksIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: channelId,
-				ChildId:  wh.Id,
+				ParentId: &channelId,
+				ChildId:  &wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -513,8 +513,8 @@ func TestCheckChannelsOutgoingWebhooksIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: channelId,
-				ChildId:  wh.Id,
+				ParentId: &channelId,
+				ChildId:  &wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -540,8 +540,8 @@ func TestCheckChannelsPostsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: post.ChannelId,
-				ChildId:  post.Id,
+				ParentId: &post.ChannelId,
+				ChildId:  &post.Id,
 			}, data.Records[0])
 			dbmap.Delete(post)
 		})
@@ -568,8 +568,8 @@ func TestCheckCommandsCommandWebhooksIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: commandId,
-				ChildId:  cwh.Id,
+				ParentId: &commandId,
+				ChildId:  &cwh.Id,
 			}, data.Records[0])
 			dbmap.Delete(cwh)
 		})
@@ -596,8 +596,8 @@ func TestCheckPostsFileInfoIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: postId,
-				ChildId:  info.Id,
+				ParentId: &postId,
+				ChildId:  &info.Id,
 			}, data.Records[0])
 			dbmap.Delete(info)
 		})
@@ -640,8 +640,8 @@ func TestCheckPostsPostsParentIdIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: parentId,
-				ChildId:  post.Id,
+				ParentId: &parentId,
+				ChildId:  &post.Id,
 			}, data.Records[0])
 			dbmap.Delete(root)
 			dbmap.Delete(post)
@@ -671,8 +671,8 @@ func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: rootId,
-				ChildId:  post.Id,
+				ParentId: &rootId,
+				ChildId:  &post.Id,
 			}, data.Records[0])
 			dbmap.Delete(post)
 		})
@@ -699,7 +699,7 @@ func TestCheckPostsReactionsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: postId,
+				ParentId: &postId,
 			}, data.Records[0])
 			dbmap.Delete(reaction)
 		})
@@ -729,8 +729,8 @@ func TestCheckSchemesChannelsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: schemeId,
-				ChildId:  channel.Id,
+				ParentId: &schemeId,
+				ChildId:  &channel.Id,
 			}, data.Records[0])
 			dbmap.Delete(channel)
 		})
@@ -760,8 +760,8 @@ func TestCheckSchemesTeamsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: schemeId,
-				ChildId:  team.Id,
+				ParentId: &schemeId,
+				ChildId:  &team.Id,
 			}, data.Records[0])
 			dbmap.Delete(team)
 		})
@@ -791,8 +791,8 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: sessionId,
-				ChildId:  audit.Id,
+				ParentId: &sessionId,
+				ChildId:  &audit.Id,
 			}, data.Records[0])
 			ss.Audit().PermanentDeleteByUser(userId)
 		})
@@ -818,8 +818,8 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: channel.TeamId,
-				ChildId:  channel.Id,
+				ParentId: &channel.TeamId,
+				ChildId:  &channel.Id,
 			}, data.Records[0])
 			dbmap.Delete(channel)
 		})
@@ -846,8 +846,8 @@ func TestCheckTeamsCommandsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: teamId,
-				ChildId:  cmd.Id,
+				ParentId: &teamId,
+				ChildId:  &cmd.Id,
 			}, data.Records[0])
 			dbmap.Delete(cmd)
 		})
@@ -874,8 +874,8 @@ func TestCheckTeamsIncomingWebhooksIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: teamId,
-				ChildId:  wh.Id,
+				ParentId: &teamId,
+				ChildId:  &wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -902,8 +902,8 @@ func TestCheckTeamsOutgoingWebhooksIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: teamId,
-				ChildId:  wh.Id,
+				ParentId: &teamId,
+				ChildId:  &wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -931,7 +931,7 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: team.Id,
+				ParentId: &team.Id,
 			}, data.Records[0])
 			ss.Team().RemoveAllMembersByTeam(member.TeamId)
 		})
@@ -960,8 +960,8 @@ func TestCheckUsersAuditsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  audit.Id,
+				ParentId: &userId,
+				ChildId:  &audit.Id,
 			}, data.Records[0])
 			ss.Audit().PermanentDeleteByUser(userId)
 		})
@@ -988,8 +988,8 @@ func TestCheckUsersCommandWebhooksIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  cwh.Id,
+				ParentId: &userId,
+				ChildId:  &cwh.Id,
 			}, data.Records[0])
 			dbmap.Delete(cwh)
 		})
@@ -1015,8 +1015,8 @@ func TestCheckUsersChannelsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: channel.CreatorId,
-				ChildId:  channel.Id,
+				ParentId: &channel.CreatorId,
+				ChildId:  &channel.Id,
 			}, data.Records[0])
 			dbmap.Delete(channel)
 		})
@@ -1045,7 +1045,7 @@ func TestCheckUsersChannelMemberHistoryIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: cmh.UserId,
+				ParentId: &cmh.UserId,
 			}, data.Records[0])
 			dbmap.Delete(channel)
 			dbmap.Exec(`DELETE FROM ChannelMemberHistory`)
@@ -1075,7 +1075,7 @@ func TestCheckUsersChannelMembersIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: member.UserId,
+				ParentId: &member.UserId,
 			}, data.Records[0])
 			dbmap.Delete(channel)
 			ss.Channel().PermanentDeleteMembersByUser(member.UserId)
@@ -1103,8 +1103,8 @@ func TestCheckUsersCommandsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  cmd.Id,
+				ParentId: &userId,
+				ChildId:  &cmd.Id,
 			}, data.Records[0])
 			dbmap.Delete(cmd)
 		})
@@ -1133,8 +1133,8 @@ func TestCheckUsersCompliancesIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  compliance.Id,
+				ParentId: &userId,
+				ChildId:  &compliance.Id,
 			}, data.Records[0])
 			dbmap.Delete(compliance)
 		})
@@ -1163,8 +1163,8 @@ func TestCheckUsersEmojiIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  emoji.Id,
+				ParentId: &userId,
+				ChildId:  &emoji.Id,
 			}, data.Records[0])
 			dbmap.Delete(emoji)
 		})
@@ -1193,8 +1193,8 @@ func TestCheckUsersFileInfoIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  info.Id,
+				ParentId: &userId,
+				ChildId:  &info.Id,
 			}, data.Records[0])
 			dbmap.Delete(info)
 		})
@@ -1221,8 +1221,8 @@ func TestCheckUsersIncomingWebhooksIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  wh.Id,
+				ParentId: &userId,
+				ChildId:  &wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -1251,8 +1251,8 @@ func TestCheckUsersOAuthAccessDataIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  ad.Token,
+				ParentId: &userId,
+				ChildId:  &ad.Token,
 			}, data.Records[0])
 			ss.OAuth().RemoveAccessData(ad.Token)
 		})
@@ -1281,8 +1281,8 @@ func TestCheckUsersOAuthAppsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  app.Id,
+				ParentId: &userId,
+				ChildId:  &app.Id,
 			}, data.Records[0])
 			ss.OAuth().DeleteApp(app.Id)
 		})
@@ -1311,8 +1311,8 @@ func TestCheckUsersOAuthAuthDataIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  ad.Code,
+				ParentId: &userId,
+				ChildId:  &ad.Code,
 			}, data.Records[0])
 			ss.OAuth().RemoveAuthData(ad.Code)
 		})
@@ -1339,8 +1339,8 @@ func TestCheckUsersOutgoingWebhooksIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  wh.Id,
+				ParentId: &userId,
+				ChildId:  &wh.Id,
 			}, data.Records[0])
 			dbmap.Delete(wh)
 		})
@@ -1366,8 +1366,8 @@ func TestCheckUsersPostsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: post.UserId,
-				ChildId:  post.Id,
+				ParentId: &post.UserId,
+				ChildId:  &post.Id,
 			}, data.Records[0])
 			dbmap.Delete(post)
 		})
@@ -1412,7 +1412,7 @@ func TestCheckUsersPreferencesIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
+				ParentId: &userId,
 			}, data.Records[0])
 			dbmap.Exec(`DELETE FROM Preferences`)
 			dbmap.Delete(user)
@@ -1442,7 +1442,7 @@ func TestCheckUsersReactionsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
+				ParentId: &userId,
 			}, data.Records[0])
 			dbmap.Delete(reaction)
 		})
@@ -1469,8 +1469,8 @@ func TestCheckUsersSessionsIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  session.Id,
+				ParentId: &userId,
+				ChildId:  &session.Id,
 			}, data.Records[0])
 			dbmap.Delete(session)
 		})
@@ -1499,7 +1499,7 @@ func TestCheckUsersStatusIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
+				ParentId: &userId,
 			}, data.Records[0])
 			dbmap.Delete(status)
 		})
@@ -1528,7 +1528,7 @@ func TestCheckUsersTeamMembersIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: member.UserId,
+				ParentId: &member.UserId,
 			}, data.Records[0])
 			ss.Team().RemoveAllMembersByTeam(member.TeamId)
 			dbmap.Delete(team)
@@ -1558,8 +1558,8 @@ func TestCheckUsersUserAccessTokensIntegrity(t *testing.T) {
 			data := result.Data.(store.RelationalIntegrityCheckData)
 			require.Len(t, data.Records, 1)
 			require.Equal(t, store.OrphanedRecord{
-				ParentId: userId,
-				ChildId:  uat.Id,
+				ParentId: &userId,
+				ChildId:  &uat.Id,
 			}, data.Records[0])
 			ss.UserAccessToken().Delete(uat.Id)
 		})
