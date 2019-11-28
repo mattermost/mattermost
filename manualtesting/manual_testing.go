@@ -11,12 +11,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/web"
+	"github.com/mattermost/mattermost-server/v5/api4"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/web"
 )
 
 type TestEnvironment struct {

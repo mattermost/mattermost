@@ -17,7 +17,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 )
