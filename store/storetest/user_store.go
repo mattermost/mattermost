@@ -3427,12 +3427,12 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSuppli
 		Username: "u4" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer func() { 
-		require.Nil(t, ss.User().PermanentDelete(u0.Id)) 
-		require.Nil(t, ss.User().PermanentDelete(u1.Id)) 
-		require.Nil(t, ss.User().PermanentDelete(u2.Id)) 
-		require.Nil(t, ss.User().PermanentDelete(u3.Id)) 
-		require.Nil(t, ss.User().PermanentDelete(u4.Id)) 
+	defer func() {
+		require.Nil(t, ss.User().PermanentDelete(u0.Id))
+		require.Nil(t, ss.User().PermanentDelete(u1.Id))
+		require.Nil(t, ss.User().PermanentDelete(u2.Id))
+		require.Nil(t, ss.User().PermanentDelete(u3.Id))
+		require.Nil(t, ss.User().PermanentDelete(u4.Id))
 	}()
 
 	_, err = ss.Bot().Save(&model.Bot{
