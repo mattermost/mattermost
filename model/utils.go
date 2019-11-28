@@ -207,7 +207,7 @@ func MapToJson(objmap map[string]string) string {
 	return string(b)
 }
 
-// MapToJson converts a map to a json string
+// MapBoolToJson converts a map to a json string
 func MapBoolToJson(objmap map[string]bool) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)

@@ -4,11 +4,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/config"
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig *model.Config
