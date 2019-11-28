@@ -497,15 +497,10 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 
 	list := model.NewPostList()
 
-	latestUpdate := options.Time
-
 	for _, p := range posts {
 		list.AddPost(p)
 		if p.UpdateAt > options.Time {
 			list.AddOrder(p.Id)
-		}
-		if latestUpdate < p.UpdateAt {
-			latestUpdate = p.UpdateAt
 		}
 	}
 

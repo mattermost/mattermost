@@ -97,9 +97,8 @@ func (s LocalCachePostStore) GetPostsSince(options model.GetPostsSinceOptions, a
 				latestUpdate = p.UpdateAt
 			}
 		}
+		s.rootStore.doStandardAddToCache(s.rootStore.lastPostTimeCache, options.ChannelId, latestUpdate)
 	}
-
-	s.rootStore.doStandardAddToCache(s.rootStore.lastPostTimeCache, options.ChannelId, latestUpdate)
 
 	return list, err
 }
