@@ -271,6 +271,11 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !*c.App.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalPlugins {
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.remote_marketplace_disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	plugins, appErr := c.App.GetMarketplacePlugins(filter)
 	if appErr != nil {
 		c.Err = appErr
@@ -347,12 +352,14 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 
 	filter := u.Query().Get("filter")
 	serverVersion := u.Query().Get("server_version")
+	localPlugins := u.Query().Get("local_plugins") == "true"
 
 	return &model.MarketplacePluginFilter{
 		Page:          page,
 		PerPage:       perPage,
 		Filter:        filter,
 		ServerVersion: serverVersion,
+		LocalPlugins:  localPlugins,
 	}, nil
 }
 
