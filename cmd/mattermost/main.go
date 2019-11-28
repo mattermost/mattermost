@@ -6,13 +6,13 @@ package main
 import (
 	"os"
 
-	"github.com/mattermost/mattermost-server/cmd/mattermost/commands"
+	"github.com/mattermost/mattermost-server/v5/cmd/mattermost/commands"
 
 	// Plugins
-	_ "github.com/mattermost/mattermost-server/model/gitlab"
+	_ "github.com/mattermost/mattermost-server/v5/model/gitlab"
 
 	// Enterprise Imports
-	_ "github.com/mattermost/mattermost-server/imports"
+	_ "github.com/mattermost/mattermost-server/v5/imports"
 
 	// Enterprise Deps
 	_ "github.com/gorilla/handlers"
@@ -23,7 +23,7 @@ import (
 	_ "github.com/prometheus/client_golang/prometheus"
 	_ "github.com/prometheus/client_golang/prometheus/promhttp"
 	_ "github.com/tylerb/graceful"
-	_ "gopkg.in/olivere/elastic.v5"
+	_ "gopkg.in/olivere/elastic.v6"
 )
 
 func main() {
