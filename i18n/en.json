@@ -2035,6 +2035,14 @@
     "translation": "%v removed from the team."
   },
   {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
+  },
+  {
     "id": "api.team.set_team_icon.array.app_error",
     "translation": "Empty array under 'image' in request"
   },

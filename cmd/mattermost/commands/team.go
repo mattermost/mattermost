@@ -310,7 +310,7 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	var teams []*model.Team
 
 	for _, searchTerm := range args {
-		foundTeams, err := a.SearchAllTeams(searchTerm)
+		foundTeams, _, err := a.SearchAllTeams(&model.TeamSearch{Term: searchTerm})
 		if err != nil {
 			return err
 		}
