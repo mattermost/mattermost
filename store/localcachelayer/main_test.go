@@ -58,10 +58,6 @@ func getMockStore() *mocks.Store {
 	mockEmojiStore.On("Delete", &fakeEmoji, int64(0)).Return(nil)
 	mockStore.On("Emoji").Return(&mockEmojiStore)
 
-	mockPinnedPostsCount := int64(10)
-	mockChannelStore.On("GetPinnedPostCount", "id", true).Return(mockPinnedPostsCount, nil)
-	mockChannelStore.On("GetPinnedPostCount", "id", false).Return(mockPinnedPostsCount, nil)
-
 	mockCount := int64(10)
 	mockGuestCount := int64(12)
 	mockChannelStore := mocks.ChannelStore{}
@@ -71,6 +67,10 @@ func getMockStore() *mocks.Store {
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", false).Return(mockGuestCount, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
+
+	mockPinnedPostsCount := int64(10)
+	mockChannelStore.On("GetPinnedPostCount", "id", true).Return(mockPinnedPostsCount, nil)
+	mockChannelStore.On("GetPinnedPostCount", "id", false).Return(mockPinnedPostsCount, nil)
 
 	fakePosts := &model.PostList{}
 	fakeOptions := model.GetPostsOptions{ChannelId: "123", PerPage: 30}
