@@ -393,3 +393,8 @@ func (_m *SearchEngineInterface) TestConfig(cfg *model.Config) *model.AppError {
 
 	return r0
 }
+
+// UpdateConfig provides a mock function with given fields: cfg
+func (_m *SearchEngineInterface) UpdateConfig(cfg *model.Config) {
+	_m.Called(cfg)
+}
