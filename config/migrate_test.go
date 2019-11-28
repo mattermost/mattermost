@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/testlib"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

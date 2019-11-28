@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,8 +38,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type configuration struct {
@@ -122,8 +122,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type configuration struct {

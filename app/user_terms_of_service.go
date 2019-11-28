@@ -3,7 +3,7 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/model"
+import "github.com/mattermost/mattermost-server/v5/model"
 
 func (a *App) GetUserTermsOfService(userId string) (*model.UserTermsOfService, *model.AppError) {
 	return a.Srv.Store.UserTermsOfService().GetByUser(userId)

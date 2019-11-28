@@ -6,7 +6,7 @@ package config
 import (
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // removeEnvOverrides returns a new config without the given environment overrides.

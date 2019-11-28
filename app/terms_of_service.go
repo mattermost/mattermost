@@ -4,7 +4,7 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError) {

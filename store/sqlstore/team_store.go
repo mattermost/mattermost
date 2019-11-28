@@ -11,10 +11,10 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -305,6 +305,26 @@ func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
+// SearchAllPaged returns a teams list and the total count of teams that matched the search.
+func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError) {
+	var teams []*model.Team
+	var totalCount int64
+	offset := page * perPage
+
+	term = sanitizeSearchTerm(term, "\\")
+
+	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term ORDER BY DisplayName, Name LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Term": term + "%", "Limit": perPage, "Offset": offset}); err != nil {
+		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	totalCount, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term + "%"})
+	if err != nil {
+		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return teams, totalCount, nil
+}
+
 func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -486,8 +506,18 @@ func (s SqlTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppError) {
 	return c, nil
 }
 
-func (s SqlTeamStore) AnalyticsTeamCount() (int64, *model.AppError) {
-	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0", map[string]interface{}{})
+func (s SqlTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError) {
+	query := s.getQueryBuilder().Select("COUNT(*) FROM Teams")
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return 0, model.NewAppError("SqlTeamStore.AnalyticsTeamCount", "store.sql_team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	c, err := s.GetReplica().SelectInt(queryString, args...)
 
 	if err != nil {
 		return int64(0), model.NewAppError("SqlTeamStore.AnalyticsTeamCount", "store.sql_team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)

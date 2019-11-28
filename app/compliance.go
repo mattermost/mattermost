@@ -8,7 +8,7 @@ import (
 
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {
