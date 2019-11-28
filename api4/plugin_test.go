@@ -17,9 +17,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/testlib"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -181,11 +181,11 @@ func TestPlugin(t *testing.T) {
 
 	// Activate error case
 	ok, resp = th.SystemAdminClient.EnablePlugin("junk")
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	assert.False(t, ok)
 
 	ok, resp = th.SystemAdminClient.EnablePlugin("JUNK")
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	assert.False(t, ok)
 
 	// Successful deactivate

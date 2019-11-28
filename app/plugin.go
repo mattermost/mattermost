@@ -10,12 +10,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/services/marketplace"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/services/marketplace"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/pkg/errors"
 )
 
@@ -334,7 +334,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 	}
 
 	if manifest == nil {
-		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {

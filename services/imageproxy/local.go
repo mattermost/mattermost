@@ -11,8 +11,8 @@ import (
 	"net/http/httptest"
 	"net/url"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"willnorris.com/go/imageproxy"
 )
 

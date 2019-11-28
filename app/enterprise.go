@@ -4,11 +4,11 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
@@ -107,6 +107,12 @@ func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
 	samlInterface = f
 }
 
+var notificationInterface func(*App) einterfaces.NotificationInterface
+
+func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterface) {
+	notificationInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if accountMigrationInterface != nil {
 		s.AccountMigration = accountMigrationInterface(s)
@@ -125,6 +131,9 @@ func (s *Server) initEnterprise() {
 	}
 	if metricsInterface != nil {
 		s.Metrics = metricsInterface(s.FakeApp())
+	}
+	if notificationInterface != nil {
+		s.Notification = notificationInterface(s.FakeApp())
 	}
 	if samlInterface != nil {
 		s.Saml = samlInterface(s.FakeApp())
