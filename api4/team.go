@@ -789,13 +789,22 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var teams []*model.Team
+	var totalCount int64
 	var err *model.AppError
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		teams, err = c.App.SearchAllTeams(props.Term)
+		teams, totalCount, err = c.App.SearchAllTeams(props)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
+		if props.Page != nil || props.PerPage != nil {
+			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.private_team_search", nil, "", http.StatusNotImplemented)
+			return
+		}
 		teams, err = c.App.SearchPrivateTeams(props.Term)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
+		if props.Page != nil || props.PerPage != nil {
+			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
+			return
+		}
 		teams, err = c.App.SearchPublicTeams(props.Term)
 	} else {
 		teams = []*model.Team{}
@@ -808,7 +817,15 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeams(c.App.Session, teams)
 
-	w.Write([]byte(model.TeamListToJson(teams)))
+	var payload []byte
+	if props.Page != nil && props.PerPage != nil {
+		twc := &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}
+		payload = model.TeamsWithCountToJson(twc)
+	} else {
+		payload = []byte(model.TeamListToJson(teams))
+	}
+
+	w.Write(payload)
 }
 
 func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -1657,6 +1657,23 @@ func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response) {
 	return TeamListFromJson(r.Body), BuildResponse(r)
 }
 
+// SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
+func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Response) {
+	if search.Page == nil {
+		search.Page = NewInt(0)
+	}
+	if search.PerPage == nil {
+		search.PerPage = NewInt(100)
+	}
+	r, err := c.DoApiPost(c.GetTeamsRoute()+"/search", search.ToJson())
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	twc := TeamsWithCountFromJson(r.Body)
+	return twc.Teams, twc.TotalCount, BuildResponse(r)
+}
+
 // TeamExists returns true or false if the team exist or not.
 func (c *Client4) TeamExists(name, etag string) (bool, *Response) {
 	r, err := c.DoApiGet(c.GetTeamByNameRoute(name)+"/exists", etag)
