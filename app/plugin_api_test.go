@@ -792,9 +792,10 @@ func TestInstallPlugin(t *testing.T) {
 
 		import (
 			"net/http"
-		
-			"github.com/mattermost/mattermost-server/plugin"
+			
 			"github.com/pkg/errors"
+
+			"github.com/mattermost/mattermost-server/v5/plugin"
 		)
 
 		type configuration struct {
