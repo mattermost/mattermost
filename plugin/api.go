@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	plugin "github.com/hashicorp/go-plugin"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // The API can be used to retrieve data or perform actions on behalf of the plugin. Most methods
@@ -664,7 +664,7 @@ type API interface {
 	// Minimum server version: 5.6
 	GetFileLink(fileId string) (string, *model.AppError)
 
-	// ReadFileAtPath reads the file from the backend for a specific path
+	// ReadFile reads the file from the backend for a specific path
 	//
 	// @tag File
 	// Minimum server version: 5.3

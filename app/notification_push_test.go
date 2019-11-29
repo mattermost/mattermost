@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
@@ -572,13 +573,13 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		},
 		"full message, public channel, commented on post": {
 			Message:           "this is a message",
-			replyToThreadType: THREAD_ROOT,
+			replyToThreadType: model.COMMENTS_NOTIFY_ROOT,
 			ChannelType:       model.CHANNEL_OPEN,
 			ExpectedMessage:   "user: this is a message",
 		},
 		"full message, public channel, commented on thread": {
 			Message:           "this is a message",
-			replyToThreadType: THREAD_ANY,
+			replyToThreadType: model.COMMENTS_NOTIFY_ANY,
 			ChannelType:       model.CHANNEL_OPEN,
 			ExpectedMessage:   "user: this is a message",
 		},
@@ -595,13 +596,13 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		},
 		"full message, private channel, commented on post": {
 			Message:           "this is a message",
-			replyToThreadType: THREAD_ROOT,
+			replyToThreadType: model.COMMENTS_NOTIFY_ROOT,
 			ChannelType:       model.CHANNEL_PRIVATE,
 			ExpectedMessage:   "user: this is a message",
 		},
 		"full message, private channel, commented on thread": {
 			Message:           "this is a message",
-			replyToThreadType: THREAD_ANY,
+			replyToThreadType: model.COMMENTS_NOTIFY_ANY,
 			ChannelType:       model.CHANNEL_PRIVATE,
 			ExpectedMessage:   "user: this is a message",
 		},
@@ -618,13 +619,13 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		},
 		"full message, group message channel, commented on post": {
 			Message:           "this is a message",
-			replyToThreadType: THREAD_ROOT,
+			replyToThreadType: model.COMMENTS_NOTIFY_ROOT,
 			ChannelType:       model.CHANNEL_GROUP,
 			ExpectedMessage:   "user: this is a message",
 		},
 		"full message, group message channel, commented on thread": {
 			Message:           "this is a message",
-			replyToThreadType: THREAD_ANY,
+			replyToThreadType: model.COMMENTS_NOTIFY_ANY,
 			ChannelType:       model.CHANNEL_GROUP,
 			ExpectedMessage:   "user: this is a message",
 		},
@@ -641,13 +642,13 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		},
 		"full message, direct message channel, commented on post": {
 			Message:           "this is a message",
-			replyToThreadType: THREAD_ROOT,
+			replyToThreadType: model.COMMENTS_NOTIFY_ROOT,
 			ChannelType:       model.CHANNEL_DIRECT,
 			ExpectedMessage:   "this is a message",
 		},
 		"full message, direct message channel, commented on thread": {
 			Message:           "this is a message",
-			replyToThreadType: THREAD_ANY,
+			replyToThreadType: model.COMMENTS_NOTIFY_ANY,
 			ChannelType:       model.CHANNEL_DIRECT,
 			ExpectedMessage:   "this is a message",
 		},
@@ -673,14 +674,14 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		},
 		"generic message, public channel, commented on post": {
 			Message:                  "this is a message",
-			replyToThreadType:        THREAD_ROOT,
+			replyToThreadType:        model.COMMENTS_NOTIFY_ROOT,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_OPEN,
 			ExpectedMessage:          "user commented on your post.",
 		},
 		"generic message, public channel, commented on thread": {
 			Message:                  "this is a message",
-			replyToThreadType:        THREAD_ANY,
+			replyToThreadType:        model.COMMENTS_NOTIFY_ANY,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_OPEN,
 			ExpectedMessage:          "user commented on a thread you participated in.",
@@ -707,14 +708,14 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		},
 		"generic message, public private, commented on post": {
 			Message:                  "this is a message",
-			replyToThreadType:        THREAD_ROOT,
+			replyToThreadType:        model.COMMENTS_NOTIFY_ROOT,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_PRIVATE,
 			ExpectedMessage:          "user commented on your post.",
 		},
 		"generic message, public private, commented on thread": {
 			Message:                  "this is a message",
-			replyToThreadType:        THREAD_ANY,
+			replyToThreadType:        model.COMMENTS_NOTIFY_ANY,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_PRIVATE,
 			ExpectedMessage:          "user commented on a thread you participated in.",
@@ -741,14 +742,14 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		},
 		"generic message, group message channel, commented on post": {
 			Message:                  "this is a message",
-			replyToThreadType:        THREAD_ROOT,
+			replyToThreadType:        model.COMMENTS_NOTIFY_ROOT,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_GROUP,
 			ExpectedMessage:          "user commented on your post.",
 		},
 		"generic message, group message channel, commented on thread": {
 			Message:                  "this is a message",
-			replyToThreadType:        THREAD_ANY,
+			replyToThreadType:        model.COMMENTS_NOTIFY_ANY,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_GROUP,
 			ExpectedMessage:          "user commented on a thread you participated in.",
@@ -775,14 +776,14 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		},
 		"generic message, direct message channel, commented on post": {
 			Message:                  "this is a message",
-			replyToThreadType:        THREAD_ROOT,
+			replyToThreadType:        model.COMMENTS_NOTIFY_ROOT,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_DIRECT,
 			ExpectedMessage:          "sent you a message.",
 		},
 		"generic message, direct message channel, commented on thread": {
 			Message:                  "this is a message",
-			replyToThreadType:        THREAD_ANY,
+			replyToThreadType:        model.COMMENTS_NOTIFY_ANY,
 			PushNotificationContents: model.GENERIC_NOTIFICATION,
 			ChannelType:              model.CHANNEL_DIRECT,
 			ExpectedMessage:          "sent you a message.",
@@ -882,6 +883,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			})
 
 			actualMessage := th.App.getPushNotificationMessage(
+				pushNotificationContents,
 				tc.Message,
 				tc.explicitMention,
 				tc.channelWideMention,
@@ -898,7 +900,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 	}
 }
 
-func TestBuildPushNotificationMessage(t *testing.T) {
+func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -942,7 +944,8 @@ func TestBuildPushNotificationMessage(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			receiver.NotifyProps["push"] = tc.pushNotifyProps
-			msg := th.App.BuildPushNotificationMessage(post, receiver, channel, channel.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			msg, err := th.App.BuildPushNotificationMessage(model.FULL_NOTIFICATION, post, receiver, channel, channel.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			require.Nil(t, err)
 			assert.Equal(t, tc.expectedBadge, msg.Badge)
 		})
 	}

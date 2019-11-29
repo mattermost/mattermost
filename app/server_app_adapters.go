@@ -8,21 +8,21 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
 )
 
-// This is a bridge between the old and new initalization for the context refactor.
-// It calls app layer initalization code that then turns around and acts on the server.
-// Don't add anything new here, new initilization should be done in the server and
+// This is a bridge between the old and new initialization for the context refactor.
+// It calls app layer initialization code that then turns around and acts on the server.
+// Don't add anything new here, new initialization should be done in the server and
 // performed in the NewServer function.
-func (s *Server) RunOldAppInitalization() error {
+func (s *Server) RunOldAppInitialization() error {
 	s.FakeApp().CreatePushNotificationsHub()
 	s.FakeApp().StartPushNotificationsHubWorkers()
 

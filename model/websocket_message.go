@@ -14,6 +14,7 @@ const (
 	WEBSOCKET_EVENT_POSTED                  = "posted"
 	WEBSOCKET_EVENT_POST_EDITED             = "post_edited"
 	WEBSOCKET_EVENT_POST_DELETED            = "post_deleted"
+	WEBSOCKET_EVENT_POST_UNREAD             = "post_unread"
 	WEBSOCKET_EVENT_CHANNEL_CONVERTED       = "channel_converted"
 	WEBSOCKET_EVENT_CHANNEL_CREATED         = "channel_created"
 	WEBSOCKET_EVENT_CHANNEL_DELETED         = "channel_deleted"
@@ -51,6 +52,7 @@ const (
 	WEBSOCKET_EVENT_LICENSE_CHANGED         = "license_changed"
 	WEBSOCKET_EVENT_CONFIG_CHANGED          = "config_changed"
 	WEBSOCKET_EVENT_OPEN_DIALOG             = "open_dialog"
+	WEBSOCKET_EVENT_GUESTS_DEACTIVATED      = "guests_deactivated"
 )
 
 type WebSocketMessage interface {

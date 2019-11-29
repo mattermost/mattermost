@@ -20,8 +20,8 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/hashicorp/go-plugin"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var hookNameToId map[string]int = make(map[string]int)
@@ -525,7 +525,7 @@ func (s *hooksRPCServer) FileWillBeUploaded(args *Z_FileWillBeUploadedArgs, retu
 	return nil
 }
 
-// MessageWillBePosted is in this file because of the difficulty of identifiying which fields need special behaviour.
+// MessageWillBePosted is in this file because of the difficulty of identifying which fields need special behaviour.
 // The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.
 func init() {
@@ -565,8 +565,8 @@ func (s *hooksRPCServer) MessageWillBePosted(args *Z_MessageWillBePostedArgs, re
 	return nil
 }
 
-// MessageWillBeUpdated is in this file because of the difficulty of identifiying which fields need special behaviour.
-// The special behavour needed is decoding the returned post into the original one to avoid the unintentional removal
+// MessageWillBeUpdated is in this file because of the difficulty of identifying which fields need special behaviour.
+// The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.
 func init() {
 	hookNameToId["MessageWillBeUpdated"] = MessageWillBeUpdatedId
