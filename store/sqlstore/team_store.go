@@ -11,21 +11,16 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
-	TEAM_MEMBER_EXISTS_ERROR         = "store.sql_team.save_member.exists.app_error"
-	ALL_TEAM_IDS_FOR_USER_CACHE_SIZE = model.SESSION_CACHE_SIZE
-	ALL_TEAM_IDS_FOR_USER_CACHE_SEC  = 1800 // 30 mins
+	TEAM_MEMBER_EXISTS_ERROR = "store.sql_team.save_member.exists.app_error"
 )
 
 type SqlTeamStore struct {
 	SqlStore
-	metrics einterfaces.MetricsInterface
 }
 
 type teamMember struct {
@@ -155,10 +150,9 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func NewSqlTeamStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TeamStore {
+func NewSqlTeamStore(sqlStore SqlStore) store.TeamStore {
 	s := &SqlTeamStore{
 		sqlStore,
-		metrics,
 	}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -243,11 +237,6 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 	}
 	if count != 1 {
 		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id, http.StatusInternalServerError)
-	}
-
-	if oldTeam.DeleteAt == 0 && team.DeleteAt != 0 {
-		// Invalidate this cache after any team deletion
-		allTeamIdsForUserCache.Purge()
 	}
 
 	return team, nil
@@ -933,21 +922,9 @@ func (s SqlTeamStore) ResetAllTeamSchemes() *model.AppError {
 	return nil
 }
 
-var allTeamIdsForUserCache = utils.NewLru(ALL_TEAM_IDS_FOR_USER_CACHE_SIZE)
+func (s SqlTeamStore) ClearCaches() {}
 
-func (s SqlTeamStore) ClearCaches() {
-	allTeamIdsForUserCache.Purge()
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("All Team Ids for User - Purge")
-	}
-}
-
-func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {
-	allTeamIdsForUserCache.Remove(userId)
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("All Team Ids for User - Remove by UserId")
-	}
-}
+func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
 
 func (s SqlTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 
@@ -1035,21 +1012,8 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.
 	return data, nil
 }
 
-// GetUserTeamIds get the team ids to which the user belongs to
+// GetUserTeamIds get the team ids to which the user belongs to. allowFromCache parameter does not have any effect in this Store
 func (s SqlTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]string, *model.AppError) {
-	if allowFromCache {
-		if cacheItem, ok := allTeamIdsForUserCache.Get(userID); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("All Team Ids for User")
-			}
-			return cacheItem.([]string), nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("All Team Ids for User")
-	}
-
 	var teamIds []string
 	_, err := s.GetReplica().Select(&teamIds,
 		`SELECT
@@ -1067,9 +1031,6 @@ func (s SqlTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]stri
 		return []string{}, model.NewAppError("SqlTeamStore.GetUserTeamIds", "store.sql_team.get_user_team_ids.app_error", nil, "userID="+userID+" "+err.Error(), http.StatusInternalServerError)
 	}
 
-	if allowFromCache {
-		allTeamIdsForUserCache.AddWithExpiresInSecs(userID, teamIds, ALL_TEAM_IDS_FOR_USER_CACHE_SEC)
-	}
 	return teamIds, nil
 }
 
