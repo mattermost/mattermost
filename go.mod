@@ -45,6 +45,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.0
 	github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
 	github.com/mattermost/ldap v3.0.4+incompatible
+	github.com/mattermost/mattermost-govet v0.0.0-20191129212931-994b8d96216d // indirect
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/viper v1.0.4
 	github.com/mattn/go-runewidth v0.0.4 // indirect
@@ -90,7 +91,7 @@ require (
 	golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914
 	golang.org/x/sys v0.0.0-20191002091554-b397fe3ad8ed // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20191002161851-3769738f410b
+	golang.org/x/tools v0.0.0-20191127201027-ecd32218bd7f
 	google.golang.org/appengine v1.6.4 // indirect
 	google.golang.org/genproto v0.0.0-20190927181202-20e1ac93f88c // indirect
 	google.golang.org/grpc v1.24.0 // indirect
