@@ -420,6 +420,10 @@ func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
 }
 
+func (c *Client4) GetServerBusyRoute() string {
+	return "/server_busy"
+}
+
 func (c *Client4) GetUserTermsOfServiceRoute(userId string) string {
 	return c.GetUserRoute(userId) + "/terms_of_service"
 }
@@ -1657,6 +1661,23 @@ func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response) {
 	return TeamListFromJson(r.Body), BuildResponse(r)
 }
 
+// SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
+func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Response) {
+	if search.Page == nil {
+		search.Page = NewInt(0)
+	}
+	if search.PerPage == nil {
+		search.PerPage = NewInt(100)
+	}
+	r, err := c.DoApiPost(c.GetTeamsRoute()+"/search", search.ToJson())
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	twc := TeamsWithCountFromJson(r.Body)
+	return twc.Teams, twc.TotalCount, BuildResponse(r)
+}
+
 // TeamExists returns true or false if the team exist or not.
 func (c *Client4) TeamExists(name, etag string) (bool, *Response) {
 	r, err := c.DoApiGet(c.GetTeamByNameRoute(name)+"/exists", etag)
@@ -2255,6 +2276,16 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeam
 	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
 }
 
+// SearchAllChannelsPaged searches all the channels and returns the results paged with the total count.
+func (c *Client4) SearchAllChannelsPaged(search *ChannelSearch) (*ChannelsWithCount, *Response) {
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelsWithCountFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
 func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsRoute()+"/group/search", search.ToJson())
@@ -2503,6 +2534,16 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 	}
 	defer closeBody(r)
 	return PostFromJson(r.Body), BuildResponse(r)
+}
+
+// SetPostUnread marks channel where post belongs as unread on the time of the provided post.
+func (c *Client4) SetPostUnread(userId string, postId string) *Response {
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", "")
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
 }
 
 // PinPost pin a post based on provided post id string.
@@ -4600,6 +4641,41 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	}
 	defer closeBody(r)
 	return MapFromJson(r.Body)["location"], BuildResponse(r)
+}
+
+// SetServerBusy will mark the server as busy, which disables non-critical services for `secs` seconds.
+func (c *Client4) SetServerBusy(secs int) (bool, *Response) {
+	url := fmt.Sprintf("%s?seconds=%d", c.GetServerBusyRoute(), secs)
+	r, err := c.DoApiPost(url, "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// ClearServerBusy will mark the server as not busy.
+func (c *Client4) ClearServerBusy() (bool, *Response) {
+	r, err := c.DoApiPost(c.GetServerBusyRoute()+"/clear", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// GetServerBusyExpires returns the time when a server marked busy
+// will automatically have the flag cleared.
+func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
+	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	sbs := ServerBusyStateFromJson(r.Body)
+	expires := time.Unix(sbs.Expires, 0)
+	return &expires, BuildResponse(r)
 }
 
 // RegisterTermsOfServiceAction saves action performed by a user against a specific terms of service.

@@ -1091,6 +1091,10 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.context.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable"
+  },
+  {
     "id": "api.context.session_expired.app_error",
     "translation": "Invalid or expired session, please login again."
   },
@@ -1879,6 +1883,10 @@
     "translation": "User not found"
   },
   {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+  },
+  {
     "id": "api.team.add_members.error",
     "translation": "Error adding team member(s)."
   },
@@ -2025,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v removed from the team."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -2801,6 +2817,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
+  },
+  {
+    "id": "api.websocket_handler.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable"
   },
   {
     "id": "app.admin.test_email.failure",
@@ -3923,6 +3943,14 @@
     "translation": "Failed to create Elasticsearch bulk processor"
   },
   {
+    "id": "ent.elasticsearch.start.get_server_version.app_error",
+    "translation": "Failed to get Elasticsearch server version"
+  },
+  {
+    "id": "ent.elasticsearch.start.parse_server_version.app_error",
+    "translation": "Failed to parse Elasticsearch server version"
+  },
+  {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
     "translation": "Failed to start Elasticsearch bulk processor"
   },
@@ -3945,6 +3973,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
     "id": "ent.ldap.app_error",
@@ -5663,6 +5695,10 @@
     "translation": "Failed to update the channel member"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Unable to delete the channel"
   },
@@ -5997,6 +6033,10 @@
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "Unable to update the last viewed at time"
+  },
+  {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread"
   },
   {
     "id": "store.sql_channel.update_member.app_error",
