@@ -70,8 +70,8 @@ type LocalCacheStore struct {
 	postLastPostsCache           *utils.Cache
 	user                         LocalCacheUserStore
 	userProfileByIdsCache        *utils.Cache
-	team                       LocalCacheTeamStore
-	teamAllTeamIdsForUserCache *utils.Cache
+	team                         LocalCacheTeamStore
+	teamAllTeamIdsForUserCache   *utils.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
