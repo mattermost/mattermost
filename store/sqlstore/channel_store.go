@@ -280,21 +280,18 @@ type publicChannel struct {
 var channelPinnedPostCountsCache = utils.NewLru(CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE)
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
-var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func (s SqlChannelStore) ClearCaches() {
 	channelPinnedPostCountsCache.Purge()
 	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
-	channelCache.Purge()
 	channelByNameCache.Purge()
 
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props for Channel - Purge")
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
 	}
 }
@@ -670,10 +667,6 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.Chan
 }
 
 func (s SqlChannelStore) InvalidateChannel(id string) {
-	channelCache.Remove(id)
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Remove by ChannelId")
-	}
 }
 
 func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
@@ -714,20 +707,6 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*mode
 		db = s.GetReplica()
 	}
 
-	if allowFromCache {
-		if cacheItem, ok := channelCache.Get(id); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Channel")
-			}
-			ch := cacheItem.(*model.Channel).DeepCopy()
-			return ch, nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Channel")
-	}
-
 	obj, err := db.Get(model.Channel{}, id)
 	if err != nil {
 		return nil, model.NewAppError("SqlChannelStore.Get", "store.sql_channel.get.find.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
@@ -738,7 +717,6 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*mode
 	}
 
 	ch := obj.(*model.Channel)
-	channelCache.AddWithExpiresInSecs(id, ch, CHANNEL_CACHE_SEC)
 	return ch, nil
 }
 

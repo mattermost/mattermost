@@ -29,13 +29,23 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelGuestCounts(msg *
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		s.rootStore.channelByIdCache.Purge()
+	} else {
+		s.rootStore.channelByIdCache.Remove(msg.Data)
+	}
+}
+
 func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Count - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
 	}
 }
 
@@ -50,6 +60,13 @@ func (s LocalCacheChannelStore) InvalidateGuestCount(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelGuestCountCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guests Count - Remove by channelId")
+	}
+}
+
+func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channelId)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Remove by ChannelId")
 	}
 }
 
@@ -94,4 +111,33 @@ func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 
 	}
 
 	return count
+}
+
+func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
+	return s.get(id, false, allowFromCache)
+}
+
+func (s LocalCacheChannelStore) get(id string, master bool, allowFromCache bool) (*model.Channel, *model.AppError) {
+
+	if allowFromCache {
+		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id); cacheItem != nil {
+			if s.rootStore.metrics != nil {
+				s.rootStore.metrics.IncrementMemCacheHitCounter("Channel")
+			}
+			ch := cacheItem.(*model.Channel).DeepCopy()
+			return ch, nil
+		}
+	}
+
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheMissCounter("Channel")
+	}
+
+	ch, err := s.ChannelStore.Get(id, allowFromCache)
+
+	if allowFromCache && err == nil {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelByIdCache, id, ch)
+	}
+
+	return ch, nil
 }
