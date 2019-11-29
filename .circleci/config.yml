@@ -39,13 +39,12 @@ jobs:
             - mattermost-server
 
   vet:
+    working_directory: /go/src/github.com/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
-    working_directory: /go/src/github.com/mattermost/mattermost-server
     steps:
       - attach_workspace:
           at: /go/src/github.com/mattermost/mattermost-server
-    steps:
       - run: |
           make vet
 
