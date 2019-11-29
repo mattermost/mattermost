@@ -3010,6 +3010,16 @@ func (c *Client4) GetConfig() (*Config, *Response) {
 	return ConfigFromJson(r.Body), BuildResponse(r)
 }
 
+// SetConfig will update the server config
+func (c *Client4) SetConfig(config *Config) *Response {
+	r, err := c.DoApiPut(c.GetConfigRoute(), config.ToJson())
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
 // ReloadConfig will reload the server configuration.
 func (c *Client4) ReloadConfig() (bool, *Response) {
 	r, err := c.DoApiPost(c.GetConfigRoute()+"/reload", "")
