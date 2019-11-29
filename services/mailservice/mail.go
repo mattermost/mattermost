@@ -42,6 +42,7 @@ type SmtpConnectionInfo struct {
 	SmtpServerName       string
 	SmtpServerHost       string
 	SmtpPort             string
+	SmtpServerTimeout    int
 	SkipCertVerification bool
 	ConnectionSecurity   string
 	Auth                 bool
@@ -103,18 +104,22 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 	var err error
 
 	smtpAddress := connectionInfo.SmtpServerHost + ":" + connectionInfo.SmtpPort
+	dialer := &net.Dialer{
+		Timeout: time.Duration(connectionInfo.SmtpServerTimeout) * time.Second,
+	}
+
 	if connectionInfo.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: connectionInfo.SkipCertVerification,
 			ServerName:         connectionInfo.SmtpServerName,
 		}
 
-		conn, err = tls.Dial("tcp", smtpAddress, tlsconfig)
+		conn, err = tls.DialWithDialer(dialer, "tcp", smtpAddress, tlsconfig)
 		if err != nil {
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		conn, err = net.Dial("tcp", smtpAddress)
+		conn, err = dialer.Dial("tcp", smtpAddress)
 		if err != nil {
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -131,6 +136,7 @@ func ConnectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 			SmtpServerName:       *config.EmailSettings.SMTPServer,
 			SmtpServerHost:       *config.EmailSettings.SMTPServer,
 			SmtpPort:             *config.EmailSettings.SMTPPort,
+			SmtpServerTimeout:    *config.EmailSettings.SMTPServerTimeout,
 		},
 	)
 }
@@ -176,6 +182,7 @@ func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 			SmtpServerName:       *config.EmailSettings.SMTPServer,
 			SmtpServerHost:       *config.EmailSettings.SMTPServer,
 			SmtpPort:             *config.EmailSettings.SMTPPort,
+			SmtpServerTimeout:    *config.EmailSettings.SMTPServerTimeout,
 			Auth:                 *config.EmailSettings.EnableSMTPAuth,
 			SmtpUsername:         *config.EmailSettings.SMTPUsername,
 			SmtpPassword:         *config.EmailSettings.SMTPPassword,
@@ -183,25 +190,24 @@ func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 	)
 }
 
-func TestConnection(config *model.Config) {
+func TestConnection(config *model.Config) *model.AppError {
 	if !*config.EmailSettings.SendEmailNotifications {
-		return
+		return &model.AppError{Message: "SendEmailNotifications is not true"}
 	}
 
 	conn, err1 := ConnectToSMTPServer(config)
 	if err1 != nil {
-		mlog.Error("SMTP server settings do not appear to be configured properly", mlog.Err(err1))
-		return
+		return &model.AppError{Message: "SMTP server settings do not appear to be configured properly"}
 	}
 	defer conn.Close()
 
 	c, err2 := NewSMTPClient(conn, config)
 	if err2 != nil {
-		mlog.Error("SMTP server settings do not appear to be configured properly", mlog.Err(err2))
-		return
+		return &model.AppError{Message: "SMTP server settings do not appear to be configured properly"}
 	}
 	defer c.Quit()
 	defer c.Close()
+	return nil
 }
 
 func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
