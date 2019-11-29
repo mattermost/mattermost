@@ -6,11 +6,10 @@ package localcachelayer
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/store"
-
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/testlib"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
 var mainHelper *testlib.MainHelper
@@ -67,6 +66,10 @@ func getMockStore() *mocks.Store {
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", false).Return(mockGuestCount, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
+
+	mockPinnedPostsCount := int64(10)
+	mockChannelStore.On("GetPinnedPostCount", "id", true).Return(mockPinnedPostsCount, nil)
+	mockChannelStore.On("GetPinnedPostCount", "id", false).Return(mockPinnedPostsCount, nil)
 
 	fakePosts := &model.PostList{}
 	fakeOptions := model.GetPostsOptions{ChannelId: "123", PerPage: 30}

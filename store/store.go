@@ -6,7 +6,7 @@
 package store
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -68,6 +68,7 @@ type TeamStore interface {
 	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) (*model.Team, *model.AppError)
 	SearchAll(term string) ([]*model.Team, *model.AppError)
+	SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError)
 	SearchOpen(term string) ([]*model.Team, *model.AppError)
 	SearchPrivate(term string) ([]*model.Team, *model.AppError)
 	GetAll() ([]*model.Team, *model.AppError)
@@ -156,7 +157,6 @@ type ChannelStore interface {
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidatePinnedPostCount(channelId string)
-	GetPinnedPostCountFromCache(channelId string) int64
 	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidateGuestCount(channelId string)
 	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)
