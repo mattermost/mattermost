@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetClientConfig(t *testing.T) {
@@ -137,6 +137,32 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"ExperimentalChannelOrganization": "true",
+			},
+		},
+		{
+			"default marketplace",
+			&model.Config{
+				PluginSettings: model.PluginSettings{
+					MarketplaceUrl: sToP(model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"IsDefaultMarketplace": "true",
+			},
+		},
+		{
+			"non-default marketplace",
+			&model.Config{
+				PluginSettings: model.PluginSettings{
+					MarketplaceUrl: sToP("http://example.com"),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"IsDefaultMarketplace": "false",
 			},
 		},
 	}
