@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/pkg/errors"
 )
 
@@ -60,6 +60,19 @@ func (c *Client) GetPlugins(request *model.MarketplacePluginFilter) ([]*model.Ba
 	default:
 		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
 	}
+}
+
+func (c *Client) GetPlugin(filter *model.MarketplacePluginFilter, pluginVersion string) (*model.BaseMarketplacePlugin, error) {
+	plugins, err := c.GetPlugins(filter)
+	if err != nil {
+		return nil, err
+	}
+	for _, plugin := range plugins {
+		if plugin.Manifest.Version == pluginVersion {
+			return plugin, nil
+		}
+	}
+	return nil, errors.New("plugin not found")
 }
 
 // closeBody ensures the Body of an http.Response is properly closed.
