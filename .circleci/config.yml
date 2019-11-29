@@ -39,14 +39,17 @@ jobs:
             - mattermost-server
 
   vet:
-    working_directory: /go/src/github.com/mattermost/mattermost-server
+    working_directory: /go/src/github.com/mattermost
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
     steps:
       - attach_workspace:
-          at: /go/src/github.com/mattermost/mattermost-server
-      - run: |
-          make vet
+          at: /go/src/github.com/mattermost
+      - run:
+          name: Run Vet
+          command: |
+              cd mattermost-server
+              make vet
 
   # TODO: enable this step when the i18n-extract works with mattermost-server only
   # and not depend on both mm-server/enterprise
