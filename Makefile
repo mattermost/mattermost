@@ -455,7 +455,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	$(GO) mod vendor
 
 vet: ## Run mattermost go vet specifi checks
-	$(GO) get github.com/mattermost/mattermost-govet
+	$(GO) get -u github.com/mattermost/mattermost-govet
 	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license $(TE_PACKAGES)
 
 todo: ## Display TODO and FIXME items in the source code.

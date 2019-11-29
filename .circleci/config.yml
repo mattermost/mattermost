@@ -41,7 +41,7 @@ jobs:
   vet:
     working_directory: /go/src/github.com/mattermost
     docker:
-      - image: mattermost/mattermost-build-webapp:oct-2-2018
+      - image: mattermost/mattermost-build-server:oct-18-2019
     steps:
       - attach_workspace:
           at: /go/src/github.com/mattermost
