@@ -458,6 +458,10 @@ vet: ## Run mattermost go vet specifi checks
 	$(GO) get -u github.com/mattermost/mattermost-govet
 	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license $(TE_PACKAGES)
 
+vet-enterprise: ## Run mattermost go vet specifi checks
+	$(GO) get -u github.com/mattermost/mattermost-govet
+	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -enterpriseLicense $(EE_PACKAGES)
+
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime XXX

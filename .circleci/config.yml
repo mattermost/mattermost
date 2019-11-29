@@ -39,7 +39,7 @@ jobs:
             - mattermost-server
 
   vet:
-    working_directory: /go/src/github.com/mattermost
+    working_directory: /go/src/github.com/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-server:oct-18-2019
     steps:
@@ -48,7 +48,6 @@ jobs:
       - run:
           name: Run Vet
           command: |
-              cd mattermost-server
               make vet
 
   # TODO: enable this step when the i18n-extract works with mattermost-server only
