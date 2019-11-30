@@ -242,7 +242,8 @@ func TestGetLogs(t *testing.T) {
 	Client := th.Client
 
 	for i := 0; i < 20; i++ {
-		mlog.Info(fmt.Sprint(i))
+		logMessage := fmt.Sprint(i)
+		mlog.Info(logMessage)
 	}
 
 	logs, resp := th.SystemAdminClient.GetLogs(0, 10)
