@@ -1018,7 +1018,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err := c.App.GetUser(c.App.Session.UserId); err != nil && user != nil  {
+	if user, err := c.App.GetUser(c.App.Session.UserId); err != nil && user != nil {
 		c.LogAudit(fmt.Sprintf("userId=%s - past roles=%s; new roles=%s", c.Params.UserId, user.GetRoles(), newRoles))
 	}
 

@@ -27,6 +27,7 @@ func (c *Context) LogAudit(extraInfo string) {
 	method := []string{c.App.HttpMethod, " "}
 	action := strings.Join(method, c.App.Path)
 	audit := &model.Audit{UserId: c.App.Session.UserId, IpAddress: c.App.IpAddress, Action: action, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
+	
 	if err := c.App.Srv.Store.Audit().Save(audit); err != nil {
 		c.LogError(err)
 	}
