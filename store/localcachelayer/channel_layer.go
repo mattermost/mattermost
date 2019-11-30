@@ -158,16 +158,9 @@ func (s LocalCacheChannelStore) get(id string, master bool, allowFromCache bool)
 
 	if allowFromCache {
 		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id); cacheItem != nil {
-			if s.rootStore.metrics != nil {
-				s.rootStore.metrics.IncrementMemCacheHitCounter("Channel")
-			}
 			ch := cacheItem.(*model.Channel).DeepCopy()
 			return ch, nil
 		}
-	}
-
-	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheMissCounter("Channel")
 	}
 
 	ch, err := s.ChannelStore.Get(id, allowFromCache)
