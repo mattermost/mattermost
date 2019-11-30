@@ -123,7 +123,7 @@ jobs:
               --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
-              -v ~/go/mattermost:~/go/mattermost \
+              -v ~/go/mattermost:/go/mattermost \
               -w ~/go/mattermost/mattermost-server \
               mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
@@ -196,7 +196,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=postgres \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
-              -v ~/go/mattermost:~/go/mattermost \
+              -v ~/go/mattermost:/go/mattermost \
               -w ~/go/mattermost/mattermost-server \
               mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
@@ -232,7 +232,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=mysql \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
-              -v ~/go/mattermost:~/go/mattermost \
+              -v ~/go/mattermost:/go/mattermost \
               -w ~/go/mattermost/mattermost-server \
               mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
