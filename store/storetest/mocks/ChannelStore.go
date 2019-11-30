@@ -5,8 +5,8 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/model"
-	store "github.com/mattermost/mattermost-server/store"
+	model "github.com/mattermost/mattermost-server/v5/model"
+	store "github.com/mattermost/mattermost-server/v5/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -1016,20 +1016,6 @@ func (_m *ChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool
 	}
 
 	return r0, r1
-}
-
-// GetPinnedPostCountFromCache provides a mock function with given fields: channelId
-func (_m *ChannelStore) GetPinnedPostCountFromCache(channelId string) int64 {
-	ret := _m.Called(channelId)
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(channelId)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	return r0
 }
 
 // GetPinnedPosts provides a mock function with given fields: channelId

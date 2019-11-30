@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package main
 
@@ -8,8 +8,8 @@ import (
 	"go/ast"
 	"go/token"
 
-	"github.com/mattermost/mattermost-server/plugin/checker/internal/asthelpers"
-	"github.com/mattermost/mattermost-server/plugin/checker/internal/version"
+	"github.com/mattermost/mattermost-server/v5/plugin/checker/internal/asthelpers"
+	"github.com/mattermost/mattermost-server/v5/plugin/checker/internal/version"
 )
 
 func checkAPIVersionComments(pkgPath string) (result, error) {
