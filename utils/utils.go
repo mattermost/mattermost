@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -17,6 +17,15 @@ func StringInSlice(a string, slice []string) bool {
 		}
 	}
 	return false
+}
+
+func RemoveStringFromSlice(a string, slice []string) []string {
+	for i, str := range slice {
+		if str == a {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
 }
 
 func StringArrayIntersection(arr1, arr2 []string) []string {

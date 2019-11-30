@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -14,6 +14,7 @@ const (
 	WEBSOCKET_EVENT_POSTED                  = "posted"
 	WEBSOCKET_EVENT_POST_EDITED             = "post_edited"
 	WEBSOCKET_EVENT_POST_DELETED            = "post_deleted"
+	WEBSOCKET_EVENT_POST_UNREAD             = "post_unread"
 	WEBSOCKET_EVENT_CHANNEL_CONVERTED       = "channel_converted"
 	WEBSOCKET_EVENT_CHANNEL_CREATED         = "channel_created"
 	WEBSOCKET_EVENT_CHANNEL_DELETED         = "channel_deleted"

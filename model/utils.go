@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -207,7 +207,7 @@ func MapToJson(objmap map[string]string) string {
 	return string(b)
 }
 
-// MapToJson converts a map to a json string
+// MapBoolToJson converts a map to a json string
 func MapBoolToJson(objmap map[string]bool) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
@@ -623,4 +623,9 @@ func GetPreferredTimezone(timezone StringMap) string {
 	}
 
 	return timezone["manualTimezone"]
+}
+
+// IsSamlFile checks if filename is a SAML file.
+func IsSamlFile(saml *SamlSettings, filename string) bool {
+	return filename == *saml.PublicCertificateFile || filename == *saml.PrivateKeyFile || filename == *saml.IdpCertificateFile
 }
