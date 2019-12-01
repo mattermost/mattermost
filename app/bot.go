@@ -199,17 +199,27 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 }
 
 func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError {
-	perPage := 1000
-	options := &model.BotGetOptions{
+	perPage := 25
+	botOptions := &model.BotGetOptions{
 		OwnerId:        userId,
 		IncludeDeleted: false,
 		OnlyOrphaned:   false,
 		Page:           0,
 		PerPage:        perPage,
 	}
-	userBots, err := a.GetBots(options)
-	if err != nil {
-		return err
+	// get owner bots
+	var userBots []*model.Bot
+	for {
+		bots, err := a.GetBots(botOptions)
+		if err != nil {
+			return err
+		}
+
+		if len(bots) == 0 {
+			break
+		}
+		userBots = append(userBots, bots...)
+		botOptions.Page += 1
 	}
 
 	// user does not own bots
@@ -217,20 +227,29 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError 
 		return nil
 	}
 
-	// user being disabled
-	user, err := a.GetUser(userId)
-	if err != nil {
-		return err
-	}
-
-	// get sysadmins
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  perPage,
 		Role:     model.SYSTEM_ADMIN_ROLE_ID,
 		Inactive: false,
 	}
-	sysAdmins, err := a.GetUsers(userOptions)
+	// get sysadmins
+	var sysAdmins []*model.User
+	for {
+		sysAdminsList, err := a.GetUsers(userOptions)
+		if err != nil {
+			return err
+		}
+
+		if len(sysAdminsList) == 0 {
+			break
+		}
+		sysAdmins = append(sysAdmins, sysAdminsList...)
+		userOptions.Page += 1
+	}
+
+	// user being disabled
+	user, err := a.GetUser(userId)
 	if err != nil {
 		return err
 	}
