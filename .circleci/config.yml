@@ -70,6 +70,7 @@ jobs:
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            node -v
       - store_artifacts:
           path: /go/src/github.com/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -151,6 +152,51 @@ jobs:
           path: ~/go/src/github.com/mattermost/mattermost-server/test-results/
       - store_artifacts:
           path: ~/go/src/github.com/mattermost/mattermost-server/test-results/
+
+  test-e2e:
+    executor:
+      name: ubuntu
+    steps:
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost
+      - run:
+          name: Run Docker compose
+          command: |
+            cd mattermost-server/build
+            docker-compose --no-ansi run --rm start_dependencies
+            cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+            docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+            docker-compose --no-ansi ps
+          background: true
+      - run:
+          name: Wait for docker compose
+          command: |
+            sleep 5
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - run:
+          name: Install node and npm
+          command: |
+            curl -sSL "https://nodejs.org/dist/v11.10.0/node-v11.10.0-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v11.10.0-linux-x64/bin/node
+            curl https://www.npmjs.com/install.sh | sudo bash
+            node -v
+      - run:
+          name: Run server
+          command: |
+            ulimit -n 8096
+            mkdir -p mattermost-server/client/plugins
+            cd mattermost-server
+            make run BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM"
+      - run:
+          name: Run Cypress tests
+          when: always
+          command: |
+            cd mattermost-webapp/e2e
+            npm run test:ci
+      - store_test_results:
+          path: ~/go/src/github.com/mattermost/mattermost-webapp/e2e/results/
+      - store_artifacts:
+          path: ~/go/src/github.com/mattermost/mattermost-webapp/e2e/results/
 
   test-schema:
     executor:
@@ -325,9 +371,12 @@ workflows:
           context: matterbuild-docker
           requires:
             - upload-s3-sha
-      - test:
+      - test-e2e:
           requires:
             - setup
+      - test:
+          requires:
+            - test-e2e
       - test-schema:
           requires:
             - setup
