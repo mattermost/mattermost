@@ -940,7 +940,7 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}
-			oldHash := sha1.Sum(oldFileData) // rather directly
+			oldHash := sha1.Sum(oldFileData)
 
 			if bytes.Equal(oldHash[:], newHash[:]) {
 				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
