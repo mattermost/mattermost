@@ -23,9 +23,6 @@ import (
 )
 
 const (
-	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE = model.SESSION_CACHE_SIZE
-	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC  = 900 // 15 mins
-
 	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE = model.SESSION_CACHE_SIZE
 	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC  = 1800 // 30 mins
 
@@ -274,17 +271,14 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
-var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
 var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func (s SqlChannelStore) ClearCaches() {
-	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
 	channelByNameCache.Purge()
 
 	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props for Channel - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
 	}
@@ -1252,8 +1246,6 @@ var CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 `
 
 func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
-	defer s.InvalidateAllChannelMembersForUser(member.UserId)
-
 	// Grab the channel we are saving this member to
 	channel, errCh := s.GetFromMaster(member.ChannelId)
 	if errCh != nil {
@@ -1368,29 +1360,7 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) (*model.Chan
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
-	allChannelMembersForUserCache.Remove(userId)
-	allChannelMembersForUserCache.Remove(userId + "_deleted")
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Remove by UserId")
-	}
-}
-
 func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
-	if cacheItem, ok := allChannelMembersForUserCache.Get(userId); ok {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
-		}
-		ids := cacheItem.(map[string]string)
-		if _, ok := ids[channelId]; ok {
-			return true
-		}
-		return false
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
-	}
 
 	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
 	if err != nil {
@@ -1439,23 +1409,6 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 }
 
 func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, *model.AppError) {
-	cache_key := userId
-	if includeDeleted {
-		cache_key += "_deleted"
-	}
-	if allowFromCache {
-		if cacheItem, ok := allChannelMembersForUserCache.Get(cache_key); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
-			}
-			ids := cacheItem.(map[string]string)
-			return ids, nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
-	}
 
 	var deletedClause string
 	if !includeDeleted {
@@ -1493,9 +1446,6 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 
 	ids := data.ToMapStringString()
 
-	if allowFromCache {
-		allChannelMembersForUserCache.AddWithExpiresInSecs(cache_key, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
-	}
 	return ids, nil
 }
 
@@ -1591,6 +1541,9 @@ func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache boo
 }
 
 func (s SqlChannelStore) InvalidateGuestCount(channelId string) {
+}
+
+func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 }
 
 func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError) {

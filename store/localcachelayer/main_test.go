@@ -70,6 +70,16 @@ func getMockStore() *mocks.Store {
 	mockChannelStore.On("GetGuestCount", "id", false).Return(mockGuestCount, nil)
 	mockChannelStore.On("Get", channelId, true).Return(&fakeChannelId, nil)
 	mockChannelStore.On("Get", channelId, false).Return(&fakeChannelId, nil)
+
+	fakeAllChannelMembersForUserIncludeDeleted := map[string]string{
+		"channle_id_1": "role1",
+	}
+	fakeAllChannelMembersForUserExcludeDeleted := map[string]string{
+		"channle_id_2": "role2",
+	}
+	mockChannelStore.On("GetAllChannelMembersForUser", "id", true, true).Return(fakeAllChannelMembersForUserIncludeDeleted, nil)
+	mockChannelStore.On("GetAllChannelMembersForUser", "id", true, false).Return(fakeAllChannelMembersForUserExcludeDeleted, nil)
+	mockChannelStore.On("GetAllChannelMembersForUser", "id", false, false).Return(fakeAllChannelMembersForUserExcludeDeleted, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
 	mockPinnedPostsCount := int64(10)

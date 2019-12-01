@@ -275,3 +275,127 @@ func TestChannelStoreChannel(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 2)
 	})
 }
+
+func TestChannelStoreAllChannelMembersForUserCache(t *testing.T) {
+	t.Run("first call not cached include deleted, second cached include deleted, returning same data", func(t *testing.T) {
+		allChannelMembersForUserResult := map[string]string{
+			"channle_id_1": "role1",
+		}
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		allChannelMembersForUser, err := cachedStore.Channel().GetAllChannelMembersForUser("id", true, true)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersForUser, allChannelMembersForUserResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 1)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", true, true)
+
+		allChannelMembersForUser, err = cachedStore.Channel().GetAllChannelMembersForUser("id", true, true)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersForUser, allChannelMembersForUserResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 1)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", true, true)
+	})
+
+	t.Run("first call not cached exclude deleted, second cached exclude deleted, returning same data", func(t *testing.T) {
+		allChannelMembersForUserResult := map[string]string{
+			"channle_id_2": "role2",
+		}
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		allChannelMembersForUser, err := cachedStore.Channel().GetAllChannelMembersForUser("id", true, false)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersForUser, allChannelMembersForUserResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 1)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", true, false)
+
+		allChannelMembersForUser, err = cachedStore.Channel().GetAllChannelMembersForUser("id", true, false)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersForUser, allChannelMembersForUserResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 1)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", true, false)
+	})
+
+	t.Run("first call not cached include deleted, second call not cached exclude deleted, returning diffrent data", func(t *testing.T) {
+		fakeAllChannelMembersForUserIncludeDeleted := map[string]string{
+			"channle_id_1": "role1",
+		}
+		fakeAllChannelMembersForUserExcludeDeleted := map[string]string{
+			"channle_id_2": "role2",
+		}
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		allChannelMembersForUser, err := cachedStore.Channel().GetAllChannelMembersForUser("id", true, true)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersForUser, fakeAllChannelMembersForUserIncludeDeleted)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 1)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", true, true)
+
+		allChannelMembersForUser, err = cachedStore.Channel().GetAllChannelMembersForUser("id", true, false)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersForUser, fakeAllChannelMembersForUserExcludeDeleted)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 2)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", true, false)
+	})
+
+	t.Run("first call not cached, clear cache, second not cached, returning same data", func(t *testing.T) {
+		allChannelMembersForUserResult := map[string]string{
+			"channle_id_2": "role2",
+		}
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		allChannelMembersForUser, err := cachedStore.Channel().GetAllChannelMembersForUser("id", true, false)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersForUser, allChannelMembersForUserResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 1)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", true, false)
+
+		cachedStore.Channel().InvalidateAllChannelMembersForUser("id")
+		allChannelMembersForUser, err = cachedStore.Channel().GetAllChannelMembersForUser("id", true, false)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersForUser, allChannelMembersForUserResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 2)
+	})
+
+	t.Run("first call force no cached,  second force no cached, returning same data", func(t *testing.T) {
+		allChannelMembersForUserResult := map[string]string{
+			"channle_id_2": "role2",
+		}
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		allChannelMembersForUser, err := cachedStore.Channel().GetAllChannelMembersForUser("id", false, false)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersForUser, allChannelMembersForUserResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 1)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", false, false)
+
+		cachedStore.Channel().InvalidateAllChannelMembersForUser("id")
+		allChannelMembersForUser, err = cachedStore.Channel().GetAllChannelMembersForUser("id", false, false)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersForUser, allChannelMembersForUserResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 2)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", false, false)
+	})
+
+	t.Run("first call not cached, second cached, third cached, returning same data", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		channelExist := cachedStore.Channel().IsUserInChannelUseCache("id", "channle_id_2")
+		assert.Equal(t, channelExist, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 1)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", true, false)
+
+		channelExist = cachedStore.Channel().IsUserInChannelUseCache("id", "non_existing_channel")
+		assert.Equal(t, channelExist, false)
+
+		channelExist = cachedStore.Channel().IsUserInChannelUseCache("id", "channle_id_2")
+		assert.Equal(t, channelExist, true)
+
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersForUser", 1)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersForUser", "id", true, false)
+	})
+}

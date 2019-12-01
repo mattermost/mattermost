@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -45,17 +46,27 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.C
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateAllChannelMemebersForUser(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		s.rootStore.allChannelMembersForUserCache.Purge()
+	} else {
+		s.rootStore.allChannelMembersForUserCache.Remove(msg.Data)
+	}
+}
+
 func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelPinnedPostCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.allChannelMembersForUserCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Count - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Purge")
 	}
 }
 
@@ -84,6 +95,15 @@ func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Remove by ChannelId")
+	}
+}
+
+func (s LocalCacheChannelStore) InvalidateAllChannelMembersForUser(userId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.allChannelMembersForUserCache, userId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.allChannelMembersForUserCache, userId+"_deleted")
+
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Remove by UserId")
 	}
 }
 
@@ -166,4 +186,47 @@ func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Chan
 	}
 
 	return ch, err
+}
+func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	defer s.InvalidateAllChannelMembersForUser(member.UserId)
+	return s.ChannelStore.SaveMember(member)
+}
+
+func (s LocalCacheChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
+	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
+	if err != nil {
+		mlog.Error("Error getting all channel members for user", mlog.Err(err))
+		return false
+	}
+
+	if _, ok := ids[channelId]; ok {
+		return true
+	}
+
+	return false
+}
+
+func (s LocalCacheChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, *model.AppError) {
+
+	if !allowFromCache {
+		return s.ChannelStore.GetAllChannelMembersForUser(userId, allowFromCache, includeDeleted)
+	}
+
+	cache_key := userId
+	if includeDeleted {
+		cache_key += "_deleted"
+	}
+
+	if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.allChannelMembersForUserCache, cache_key); cacheItem != nil {
+		ids := cacheItem.(map[string]string)
+		return ids, nil
+	}
+
+	ids, err := s.ChannelStore.GetAllChannelMembersForUser(userId, allowFromCache, includeDeleted)
+
+	if err == nil {
+		s.rootStore.doStandardAddToCache(s.rootStore.allChannelMembersForUserCache, cache_key, ids)
+	}
+
+	return ids, err
 }
