@@ -154,8 +154,8 @@ jobs:
           path: ~/go/src/github.com/mattermost/mattermost-server/test-results/
 
   test-e2e:
-    executor:
-      name: ubuntu
+    docker:
+      - image: circleci/golang:1.9-node
     steps:
       - attach_workspace:
           at: ~/go/src/github.com/mattermost
