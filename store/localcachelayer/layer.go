@@ -74,32 +74,32 @@ type LocalCacheStore struct {
 	teamAllTeamIdsForUserCache   store.Cache
 }
 
-func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
+func initLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheFactory store.CacheFactory) LocalCacheStore {
 	localCacheStore := LocalCacheStore{
 		Store:   baseStore,
 		cluster: cluster,
 		metrics: metrics,
 	}
-	localCacheStore.reactionCache = utils.NewLruWithParams(REACTION_CACHE_SIZE, "Reaction", REACTION_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS)
+	localCacheStore.reactionCache = cacheFactory.NewCacheWithParams(REACTION_CACHE_SIZE, "Reaction", REACTION_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS)
 	localCacheStore.reaction = LocalCacheReactionStore{ReactionStore: baseStore.Reaction(), rootStore: &localCacheStore}
-	localCacheStore.roleCache = utils.NewLruWithParams(ROLE_CACHE_SIZE, "Role", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES)
+	localCacheStore.roleCache = cacheFactory.NewCacheWithParams(ROLE_CACHE_SIZE, "Role", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES)
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
-	localCacheStore.schemeCache = utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
+	localCacheStore.schemeCache = cacheFactory.NewCacheWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
-	localCacheStore.webhookCache = utils.NewLruWithParams(WEBHOOK_CACHE_SIZE, "Webhook", WEBHOOK_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS)
+	localCacheStore.webhookCache = cacheFactory.NewCacheWithParams(WEBHOOK_CACHE_SIZE, "Webhook", WEBHOOK_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS)
 	localCacheStore.webhook = LocalCacheWebhookStore{WebhookStore: baseStore.Webhook(), rootStore: &localCacheStore}
-	localCacheStore.emojiCacheById = utils.NewLruWithParams(EMOJI_CACHE_SIZE, "EmojiById", EMOJI_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID)
-	localCacheStore.emojiIdCacheByName = utils.NewLruWithParams(EMOJI_CACHE_SIZE, "EmojiByName", EMOJI_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME)
+	localCacheStore.emojiCacheById = cacheFactory.NewCacheWithParams(EMOJI_CACHE_SIZE, "EmojiById", EMOJI_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID)
+	localCacheStore.emojiIdCacheByName = cacheFactory.NewCacheWithParams(EMOJI_CACHE_SIZE, "EmojiByName", EMOJI_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME)
 	localCacheStore.emoji = LocalCacheEmojiStore{EmojiStore: baseStore.Emoji(), rootStore: &localCacheStore}
-	localCacheStore.channelPinnedPostCountsCache = utils.NewLruWithParams(CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE, "ChannelPinnedPostsCounts", CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_PINNEDPOSTS_COUNTS)
-	localCacheStore.channelMemberCountsCache = utils.NewLruWithParams(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE, "ChannelMemberCounts", CHANNEL_MEMBERS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS)
-	localCacheStore.channelGuestCountCache = utils.NewLruWithParams(CHANNEL_GUEST_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUEST_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT)
+	localCacheStore.channelPinnedPostCountsCache = cacheFactory.NewCacheWithParams(CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE, "ChannelPinnedPostsCounts", CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_PINNEDPOSTS_COUNTS)
+	localCacheStore.channelMemberCountsCache = cacheFactory.NewCacheWithParams(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE, "ChannelMemberCounts", CHANNEL_MEMBERS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS)
+	localCacheStore.channelGuestCountCache = cacheFactory.NewCacheWithParams(CHANNEL_GUEST_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUEST_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT)
 	localCacheStore.channel = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
-	localCacheStore.postLastPostsCache = utils.NewLruWithParams(LAST_POSTS_CACHE_SIZE, "LastPost", LAST_POSTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS)
+	localCacheStore.postLastPostsCache = cacheFactory.NewCacheWithParams(LAST_POSTS_CACHE_SIZE, "LastPost", LAST_POSTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS)
 	localCacheStore.post = LocalCachePostStore{PostStore: baseStore.Post(), rootStore: &localCacheStore}
-	localCacheStore.userProfileByIdsCache = utils.NewLruWithParams(USER_PROFILE_BY_ID_CACHE_SIZE, "UserProfileByIds", USER_PROFILE_BY_ID_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS)
+	localCacheStore.userProfileByIdsCache = cacheFactory.NewCacheWithParams(USER_PROFILE_BY_ID_CACHE_SIZE, "UserProfileByIds", USER_PROFILE_BY_ID_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS)
 	localCacheStore.user = LocalCacheUserStore{UserStore: baseStore.User(), rootStore: &localCacheStore}
-	localCacheStore.teamAllTeamIdsForUserCache = utils.NewLruWithParams(TEAM_CACHE_SIZE, "Team", TEAM_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS)
+	localCacheStore.teamAllTeamIdsForUserCache = cacheFactory.NewCacheWithParams(TEAM_CACHE_SIZE, "Team", TEAM_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS)
 	localCacheStore.team = LocalCacheTeamStore{TeamStore: baseStore.Team(), rootStore: &localCacheStore}
 
 	if cluster != nil {
@@ -117,6 +117,16 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS, localCacheStore.team.handleClusterInvalidateTeam)
 	}
 	return localCacheStore
+}
+
+func NewLocalCacheLayerWithFactory(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheFactory store.CacheFactory) LocalCacheStore {
+	return initLayer(baseStore, metrics, cluster, cacheFactory)
+}
+
+func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
+	//defaults to LRU cache if no factory specified
+	var cacheFactory store.CacheFactory = new(utils.LruCacheFactory)
+	return initLayer(baseStore, metrics, cluster, cacheFactory)
 }
 
 func (s LocalCacheStore) Reaction() store.ReactionStore {

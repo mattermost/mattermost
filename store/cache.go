@@ -1,9 +1,13 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package store
 
 import (
 	"time"
 )
 
+// Cache is a representation of any cache store that has keys and values
 type Cache interface {
 	Purge()
 	Add(key, value interface{})
@@ -16,4 +20,10 @@ type Cache interface {
 	Len() int
 	Name() string
 	GetInvalidateClusterEvent() string
+}
+
+// CacheFactory defines how to create new caches
+type CacheFactory interface {
+	NewCache(size int) Cache
+	NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) Cache
 }

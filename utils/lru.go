@@ -12,6 +12,7 @@ package utils
 
 import (
 	"container/list"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"sync"
 	"time"
 )
@@ -27,6 +28,17 @@ type LruCache struct {
 	invalidateClusterEvent string
 	currentGeneration      int64
 	len                    int
+}
+
+// LruCacheFactory is an implementation of CacheFactory to create a new Lru Cache
+type LruCacheFactory struct{}
+
+func (c *LruCacheFactory) NewCache(size int) store.Cache {
+	return NewLru(size)
+}
+
+func (c *LruCacheFactory) NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) store.Cache {
+	return NewLruWithParams(size, name, defaultExpiry, invalidateClusterEvent)
 }
 
 // entry is used to hold a value in the evictList.
