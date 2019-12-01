@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,11 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -1177,4 +1177,138 @@ func (a *App) MaxPostSize() int {
 	}
 
 	return maxPostSize
+}
+
+// countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
+// given post. Returns the number of mentions or store.MentionAllPosts if the post is in a direct message channel.
+func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *model.AppError) {
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return 0, err
+	}
+
+	if channel.Type == model.CHANNEL_DIRECT {
+		return store.MentionAllPosts, nil
+	}
+
+	channelMember, err := a.GetChannelMember(channel.Id, user.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	keywords := addMentionKeywordsForUser(
+		map[string][]string{},
+		user,
+		channelMember.NotifyProps,
+		&model.Status{Status: model.STATUS_ONLINE}, // Assume the user is online since they would've triggered this
+		true, // Assume channel mentions are always allowed for simplicity
+	)
+	commentMentions := user.NotifyProps[model.COMMENTS_NOTIFY_PROP]
+	checkForCommentMentions := commentMentions == model.COMMENTS_NOTIFY_ROOT || commentMentions == model.COMMENTS_NOTIFY_ANY
+
+	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
+	mentionedByThread := make(map[string]bool)
+
+	thread, err := a.GetPostThread(post.Id, false)
+	if err != nil {
+		return 0, err
+	}
+
+	count := 0
+
+	if isPostMention(user, post, keywords, thread.Posts, mentionedByThread, checkForCommentMentions) {
+		count += 1
+	}
+
+	page := 0
+	perPage := 200
+	for {
+		postList, err := a.GetPostsAfterPost(model.GetPostsOptions{
+			ChannelId: post.ChannelId,
+			PostId:    post.Id,
+			Page:      page,
+			PerPage:   perPage,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		for _, postId := range postList.Order {
+			if isPostMention(user, postList.Posts[postId], keywords, postList.Posts, mentionedByThread, checkForCommentMentions) {
+				count += 1
+			}
+		}
+
+		if len(postList.Order) < perPage {
+			break
+		}
+
+		page += 1
+	}
+
+	return count, nil
+}
+
+func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]*model.Post, mentionedByThread map[string]bool) bool {
+	if post.RootId == "" {
+		// Not a comment
+		return false
+	}
+
+	if mentioned, ok := mentionedByThread[post.RootId]; ok {
+		// We've already figured out if the user was mentioned by this thread
+		return mentioned
+	}
+
+	// Whether or not the user was mentioned because they started the thread
+	mentioned := otherPosts[post.RootId].UserId == user.Id
+
+	// Or because they commented on it before this post
+	if !mentioned && user.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY {
+		for _, otherPost := range otherPosts {
+			if otherPost.Id == post.Id {
+				continue
+			}
+
+			if otherPost.RootId != post.RootId {
+				continue
+			}
+
+			if otherPost.UserId == user.Id && otherPost.CreateAt < post.CreateAt {
+				// Found a comment made by the user from before this post
+				mentioned = true
+				break
+			}
+		}
+	}
+
+	mentionedByThread[post.RootId] = mentioned
+	return mentioned
+}
+
+func isPostMention(user *model.User, post *model.Post, keywords map[string][]string, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
+	// Prevent the user from mentioning themselves
+	if post.UserId == user.Id && post.Props["from_webhook"] != "true" {
+		return false
+	}
+
+	// Check for keyword mentions
+	mentions := getExplicitMentions(post, keywords)
+	if _, ok := mentions.Mentions[user.Id]; ok {
+		return true
+	}
+
+	// Check for mentions caused by being added to the channel
+	if post.Type == model.POST_ADD_TO_CHANNEL {
+		if addedUserId, ok := post.Props[model.POST_PROPS_ADDED_USER_ID].(string); ok && addedUserId == user.Id {
+			return true
+		}
+	}
+
+	// Check for comment mentions
+	if checkForCommentMentions && isCommentMention(user, post, otherPosts, mentionedByThread) {
+		return true
+	}
+
+	return false
 }

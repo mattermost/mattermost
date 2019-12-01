@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package markdown
 
@@ -459,8 +459,8 @@ func TestAutolinking(t *testing.T) {
 			ExpectedHTML: `<p><a href="ftp://example.com">ftp://example.com</a></p>`,
 		},
 		// "valid-link-4": {
-		// 	Markdown:     `ts3server://example.com?port=9001`,
-		// 	ExpectedHTML: `<p><a href="ts3server://example.com?port=9001">ts3server://example.com?port=9001</a></p>`,
+		// 	Markdown:     `ts3server://example.com?port=9000`,
+		// 	ExpectedHTML: `<p><a href="ts3server://example.com?port=9000">ts3server://example.com?port=9000</a></p>`,
 		// },
 		"valid-link-5": {
 			Markdown:     `www.example.com`,

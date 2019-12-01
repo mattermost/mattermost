@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package main
 
@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const pluginPackagePath = "github.com/mattermost/mattermost-server/plugin"
+const pluginPackagePath = "github.com/mattermost/mattermost-server/v5/plugin"
 
 type result struct {
 	Warnings []string
