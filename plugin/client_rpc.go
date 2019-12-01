@@ -720,3 +720,55 @@ func (s *apiRPCServer) LogError(args *Z_LogErrorArgs, returns *Z_LogErrorReturns
 	}
 	return nil
 }
+
+type Z_InstallPluginArgs struct {
+	PluginStreamID uint32
+	B              bool
+}
+
+type Z_InstallPluginReturns struct {
+	A *model.Manifest
+	B *model.AppError
+}
+
+func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	pluginStreamID := g.muxBroker.NextId()
+
+	go func() {
+		uploadPluginConnection, err := g.muxBroker.Accept(pluginStreamID)
+		if err != nil {
+			log.Print("Plugin failed to upload plugin. MuxBroker could not Accept connection", mlog.Err(err))
+			return
+		}
+		defer uploadPluginConnection.Close()
+		serveIOReader(file, uploadPluginConnection)
+	}()
+
+	_args := &Z_InstallPluginArgs{pluginStreamID, replace}
+	_returns := &Z_InstallPluginReturns{}
+	if err := g.client.Call("Plugin.InstallPlugin", _args, _returns); err != nil {
+		log.Print("RPC call InstallPlugin to plugin failed.", mlog.Err(err))
+	}
+
+	return _returns.A, _returns.B
+}
+
+func (g *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_InstallPluginReturns) error {
+	hook, ok := g.impl.(interface {
+		InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
+	})
+	if !ok {
+		return encodableError(fmt.Errorf("API InstallPlugin called but not implemented."))
+	}
+
+	receivePluginConnection, err := g.muxBroker.Dial(args.PluginStreamID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote plugin stream, error: %v", err.Error())
+		return err
+	}
+	pluginReader := connectIOReader(receivePluginConnection)
+	defer pluginReader.Close()
+
+	returns.A, returns.B = hook.InstallPlugin(pluginReader, args.B)
+	return nil
+}
