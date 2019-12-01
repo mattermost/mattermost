@@ -25,7 +25,7 @@ const (
 	FILE_INFO_CACHE_SEC  = 1800 // 30 minutes
 )
 
-var fileInfoCache *utils.Cache = utils.NewLru(FILE_INFO_CACHE_SIZE)
+var fileInfoCache store.Cache = utils.NewLru(FILE_INFO_CACHE_SIZE)
 
 func (fs SqlFileInfoStore) ClearCaches() {
 	fileInfoCache.Purge()

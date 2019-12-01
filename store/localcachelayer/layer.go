@@ -52,26 +52,26 @@ type LocalCacheStore struct {
 	metrics                      einterfaces.MetricsInterface
 	cluster                      einterfaces.ClusterInterface
 	reaction                     LocalCacheReactionStore
-	reactionCache                *utils.Cache
+	reactionCache                store.Cache
 	role                         LocalCacheRoleStore
-	roleCache                    *utils.Cache
+	roleCache                    store.Cache
 	scheme                       LocalCacheSchemeStore
-	schemeCache                  *utils.Cache
+	schemeCache                  store.Cache
 	emoji                        LocalCacheEmojiStore
-	emojiCacheById               *utils.Cache
-	emojiIdCacheByName           *utils.Cache
+	emojiCacheById               store.Cache
+	emojiIdCacheByName           store.Cache
 	channel                      LocalCacheChannelStore
-	channelMemberCountsCache     *utils.Cache
-	channelGuestCountCache       *utils.Cache
-	channelPinnedPostCountsCache *utils.Cache
+	channelMemberCountsCache     store.Cache
+	channelGuestCountCache       store.Cache
+	channelPinnedPostCountsCache store.Cache
 	webhook                      LocalCacheWebhookStore
-	webhookCache                 *utils.Cache
+	webhookCache                 store.Cache
 	post                         LocalCachePostStore
-	postLastPostsCache           *utils.Cache
+	postLastPostsCache           store.Cache
 	user                         LocalCacheUserStore
-	userProfileByIdsCache        *utils.Cache
+	userProfileByIdsCache        store.Cache
 	team                         LocalCacheTeamStore
-	teamAllTeamIdsForUserCache   *utils.Cache
+	teamAllTeamIdsForUserCache   store.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
@@ -160,7 +160,7 @@ func (s LocalCacheStore) DropAllTables() {
 	s.Store.DropAllTables()
 }
 
-func (s *LocalCacheStore) doInvalidateCacheCluster(cache *utils.Cache, key string) {
+func (s *LocalCacheStore) doInvalidateCacheCluster(cache store.Cache, key string) {
 	cache.Remove(key)
 	if s.cluster != nil {
 		msg := &model.ClusterMessage{
@@ -172,11 +172,11 @@ func (s *LocalCacheStore) doInvalidateCacheCluster(cache *utils.Cache, key strin
 	}
 }
 
-func (s *LocalCacheStore) doStandardAddToCache(cache *utils.Cache, key string, value interface{}) {
+func (s *LocalCacheStore) doStandardAddToCache(cache store.Cache, key string, value interface{}) {
 	cache.AddWithDefaultExpires(key, value)
 }
 
-func (s *LocalCacheStore) doStandardReadCache(cache *utils.Cache, key string) interface{} {
+func (s *LocalCacheStore) doStandardReadCache(cache store.Cache, key string) interface{} {
 	if cacheItem, ok := cache.Get(key); ok {
 		if s.metrics != nil {
 			s.metrics.IncrementMemCacheHitCounter(cache.Name())
@@ -191,7 +191,7 @@ func (s *LocalCacheStore) doStandardReadCache(cache *utils.Cache, key string) in
 	return nil
 }
 
-func (s *LocalCacheStore) doClearCacheCluster(cache *utils.Cache) {
+func (s *LocalCacheStore) doClearCacheCluster(cache store.Cache) {
 	cache.Purge()
 	if s.cluster != nil {
 		msg := &model.ClusterMessage{

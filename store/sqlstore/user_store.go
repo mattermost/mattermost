@@ -41,7 +41,7 @@ type SqlUserStore struct {
 	usersQuery sq.SelectBuilder
 }
 
-var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
+var profilesInChannelCache store.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
 
 func (us SqlUserStore) ClearCaches() {
 	profilesInChannelCache.Purge()

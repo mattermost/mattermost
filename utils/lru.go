@@ -16,8 +16,8 @@ import (
 	"time"
 )
 
-// Cache is a thread-safe fixed size LRU cache.
-type Cache struct {
+// LruCache is a thread-safe fixed size LRU cache.
+type LruCache struct {
 	size                   int
 	evictList              *list.List
 	items                  map[interface{}]*list.Element
@@ -38,8 +38,8 @@ type entry struct {
 }
 
 // New creates an LRU of the given size.
-func NewLru(size int) *Cache {
-	return &Cache{
+func NewLru(size int) *LruCache {
+	return &LruCache{
 		size:      size,
 		evictList: list.New(),
 		items:     make(map[interface{}]*list.Element, size),
@@ -47,7 +47,7 @@ func NewLru(size int) *Cache {
 }
 
 // New creates an LRU with the given parameters.
-func NewLruWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) *Cache {
+func NewLruWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) *LruCache {
 	lru := NewLru(size)
 	lru.name = name
 	lru.defaultExpiry = defaultExpiry
@@ -56,7 +56,7 @@ func NewLruWithParams(size int, name string, defaultExpiry int64, invalidateClus
 }
 
 // Purge is used to completely clear the cache.
-func (c *Cache) Purge() {
+func (c *LruCache) Purge() {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -65,24 +65,24 @@ func (c *Cache) Purge() {
 }
 
 // Add adds the given key and value to the store without an expiry.
-func (c *Cache) Add(key, value interface{}) {
+func (c *LruCache) Add(key, value interface{}) {
 	c.AddWithExpiresInSecs(key, value, 0)
 }
 
 // Add adds the given key and value to the store with the default expiry.
-func (c *Cache) AddWithDefaultExpires(key, value interface{}) {
+func (c *LruCache) AddWithDefaultExpires(key, value interface{}) {
 	c.AddWithExpiresInSecs(key, value, c.defaultExpiry)
 }
 
 // AddWithExpiresInSecs adds the given key and value to the cache with the given expiry.
-func (c *Cache) AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64) {
+func (c *LruCache) AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
 	c.add(key, value, time.Duration(expireAtSecs)*time.Second)
 }
 
-func (c *Cache) add(key, value interface{}, ttl time.Duration) {
+func (c *LruCache) add(key, value interface{}, ttl time.Duration) {
 	var expires time.Time
 	if ttl > 0 {
 		expires = time.Now().Add(ttl)
@@ -113,14 +113,14 @@ func (c *Cache) add(key, value interface{}, ttl time.Duration) {
 }
 
 // Get returns the value stored in the cache for a key, or nil if no value is present. The ok result indicates whether value was found in the cache.
-func (c *Cache) Get(key interface{}) (value interface{}, ok bool) {
+func (c *LruCache) Get(key interface{}) (value interface{}, ok bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
 	return c.getValue(key)
 }
 
-func (c *Cache) getValue(key interface{}) (value interface{}, ok bool) {
+func (c *LruCache) getValue(key interface{}) (value interface{}, ok bool) {
 	if ent, ok := c.items[key]; ok {
 		e := ent.Value.(*entry)
 
@@ -138,7 +138,7 @@ func (c *Cache) getValue(key interface{}) (value interface{}, ok bool) {
 
 // GetOrAdd returns the existing value for the key if present. Otherwise, it stores and returns the given value. The loaded result is true if the value was loaded, false if stored.
 // This API intentionally deviates from the Add-only variants above for simplicity. We should simplify the entire API in the future.
-func (c *Cache) GetOrAdd(key, value interface{}, ttl time.Duration) (actual interface{}, loaded bool) {
+func (c *LruCache) GetOrAdd(key, value interface{}, ttl time.Duration) (actual interface{}, loaded bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -153,7 +153,7 @@ func (c *Cache) GetOrAdd(key, value interface{}, ttl time.Duration) (actual inte
 }
 
 // Remove deletes the value for a key.
-func (c *Cache) Remove(key interface{}) {
+func (c *LruCache) Remove(key interface{}) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -163,7 +163,7 @@ func (c *Cache) Remove(key interface{}) {
 }
 
 // Keys returns a slice of the keys in the cache, from oldest to newest.
-func (c *Cache) Keys() []interface{} {
+func (c *LruCache) Keys() []interface{} {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
@@ -181,23 +181,23 @@ func (c *Cache) Keys() []interface{} {
 }
 
 // Len returns the number of items in the cache.
-func (c *Cache) Len() int {
+func (c *LruCache) Len() int {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.len
 }
 
 // Name identifies this cache instance among others in the system.
-func (c *Cache) Name() string {
+func (c *LruCache) Name() string {
 	return c.name
 }
 
 // GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
-func (c *Cache) GetInvalidateClusterEvent() string {
+func (c *LruCache) GetInvalidateClusterEvent() string {
 	return c.invalidateClusterEvent
 }
 
-func (c *Cache) removeElement(e *list.Element) {
+func (c *LruCache) removeElement(e *list.Element) {
 	c.evictList.Remove(e)
 	kv := e.Value.(*entry)
 	if kv.generation == c.currentGeneration {
