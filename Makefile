@@ -50,11 +50,11 @@ GOPATH ?= $(shell go env GOPATH)
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
 GO=go
 DELVE=dlv
-LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
@@ -80,7 +80,7 @@ TESTFLAGSEE ?= -short
 TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.1.2
+PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
@@ -159,35 +159,38 @@ golangci-lint: ## Run golangci-lint on codebase
 	fi; \
 
 	@echo Running golangci-lint
-	golangci-lint run
+	golangci-lint run ./...
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	golangci-lint run ./enterprise/...
+endif
 
 i18n-extract: ## Extract strings for translation from the source code
-	env GO111MODULE=off go get -u github.com/mattermost/mattermost-utilities/mmgotool
+	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOPATH)/bin/mmgotool i18n extract
 
 store-mocks: ## Creates mock files.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
 filesstore-mocks: ## Creates mock files.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
@@ -241,7 +244,7 @@ do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
 go-junit-report:
-	env GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
+	env GO111MODULE=off $(GO) get -u github.com/jstemmer/go-junit-report
 
 test-compile: ## Compile tests.
 	@echo COMPILE TESTS
@@ -312,20 +315,20 @@ run-server: validate-go-version start-docker ## Starts the server.
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development
@@ -411,7 +414,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 	@echo Cleaning
 
 	rm -Rf $(DIST_ROOT)
-	go clean $(GOFLAGS) -i ./...
+	$(GO) clean $(GOFLAGS) -i ./...
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
@@ -443,13 +446,13 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	@echo Updating Dependencies
 
 	# Update all dependencies (does not update across major versions)
-	go get -u
+	$(GO) get -u
 
 	# Tidy up
-	go mod tidy
+	$(GO) mod tidy
 
 	# Copy everything to vendor directory
-	go mod vendor
+	$(GO) mod vendor
 
 
 todo: ## Display TODO and FIXME items in the source code.
