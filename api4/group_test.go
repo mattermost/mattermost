@@ -642,10 +642,11 @@ func TestGetGroupsByChannel(t *testing.T) {
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
+		SchemeAdmin: model.NewBool(false),
 	})
 	assert.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	groupSyncable, err := th.App.CreateGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -678,6 +679,21 @@ func TestGetGroupsByChannel(t *testing.T) {
 	groups, _, response := th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	assert.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.Group{group}, groups)
+	require.NotNil(t, groups[0].SchemeAdmin)
+	require.False(t, *groups[0].SchemeAdmin)
+
+	// set syncable to true
+	groupSyncable.SchemeAdmin = true
+	_, err = th.App.UpdateGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+
+	// ensure that SchemeAdmin field is updated
+	groups, _, response = th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, opts)
+	assert.Nil(t, response.Error)
+	group.SchemeAdmin = model.NewBool(true)
+	assert.ElementsMatch(t, []*model.Group{group}, groups)
+	require.NotNil(t, groups[0].SchemeAdmin)
+	require.True(t, *groups[0].SchemeAdmin)
 
 	groups, _, response = th.SystemAdminClient.GetGroupsByChannel(model.NewId(), opts)
 	assert.Equal(t, "store.sql_channel.get.existing.app_error", response.Error.Id)
@@ -695,10 +711,11 @@ func TestGetGroupsByTeam(t *testing.T) {
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
+		SchemeAdmin: model.NewBool(false),
 	})
 	assert.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	groupSyncable, err := th.App.CreateGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -729,6 +746,21 @@ func TestGetGroupsByTeam(t *testing.T) {
 	groups, _, response := th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
 	assert.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.Group{group}, groups)
+	require.NotNil(t, groups[0].SchemeAdmin)
+	require.False(t, *groups[0].SchemeAdmin)
+
+	// set syncable to true
+	groupSyncable.SchemeAdmin = true
+	_, err = th.App.UpdateGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+
+	// ensure that SchemeAdmin field is updated
+	groups, _, response = th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
+	assert.Nil(t, response.Error)
+	group.SchemeAdmin = model.NewBool(true)
+	assert.ElementsMatch(t, []*model.Group{group}, groups)
+	require.NotNil(t, groups[0].SchemeAdmin)
+	require.True(t, *groups[0].SchemeAdmin)
 
 	groups, _, response = th.SystemAdminClient.GetGroupsByTeam(model.NewId(), opts)
 	assert.Nil(t, response.Error)

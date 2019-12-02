@@ -861,7 +861,7 @@ func (s *SqlGroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model
 
 func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t selectType, syncableID string, opts model.GroupSearchOpts) sq.SelectBuilder {
 	selectStrs := map[selectType]string{
-		selectGroups:      "ug.*",
+		selectGroups:      "ug.*, gs.SchemeAdmin AS SyncableSchemeAdmin",
 		selectCountGroups: "COUNT(*)",
 	}
 
@@ -883,7 +883,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 
 	if opts.IncludeMemberCount && t == selectGroups {
 		query = s.getQueryBuilder().
-			Select("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount").
+			Select(fmt.Sprintf("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, Group%ss.SchemeAdmin", st)).
 			From("UserGroups ug").
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
 			LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.GroupId = ug.Id", table)).
@@ -1163,4 +1163,72 @@ func (s *SqlGroupStore) CountChannelMembersMinusGroupMembers(channelID string, g
 	}
 
 	return count, nil
+}
+
+func (s *SqlGroupStore) AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
+	var groupIds []string
+
+	sql := fmt.Sprintf(`
+		SELECT 
+			GroupMembers.GroupId
+		FROM 
+			GroupMembers 
+		INNER JOIN 
+			Group%[1]ss ON Group%[1]ss.GroupId = GroupMembers.GroupId
+		WHERE 
+			GroupMembers.UserId = :UserId 
+			AND GroupMembers.DeleteAt = 0 
+			AND %[1]sId = :%[1]sId 
+			AND Group%[1]ss.DeleteAt = 0 
+			AND Group%[1]ss.SchemeAdmin = TRUE`, syncableType)
+
+	_, err := s.GetReplica().Select(&groupIds, sql, map[string]interface{}{"UserId": userID, fmt.Sprintf("%sId", syncableType): syncableID})
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore AdminRoleGroupsForSyncableMember", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groupIds, nil
+}
+
+func (s *SqlGroupStore) PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
+	query := s.getQueryBuilder().Select("UserId").
+		From(fmt.Sprintf("Group%ss", syncableType)).
+		Join(fmt.Sprintf("GroupMembers ON GroupMembers.GroupId = Group%ss.GroupId AND Group%[1]ss.SchemeAdmin = TRUE AND GroupMembers.DeleteAt = 0", syncableType.String()))
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.PermittedSyncableAdmins", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	fmt.Println(sql)
+	var userIDs []string
+	if _, err = s.GetReplica().Select(&userIDs, sql, args...); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.PermittedSyncableAdmins", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return userIDs, nil
+}
+
+func (s *SqlGroupStore) UpdateMembersRole(syncableID string, syncableType model.GroupSyncableType, userIDs []string, idEquality store.Equality, newSchemeAdminValue bool) *model.AppError {
+	query := s.getQueryBuilder().
+		Update(fmt.Sprintf("%sMembers", syncableType)).
+		Set("SchemeAdmin", newSchemeAdminValue).
+		Where(sq.Eq{fmt.Sprintf("%sId", syncableType): syncableID})
+
+	if idEquality == store.Equals {
+		query = query.Where(sq.Eq{"UserId": userIDs})
+	}
+	if idEquality == store.NotEquals {
+		query = query.Where(sq.NotEq{"UserId": userIDs})
+	}
+
+	sql, params, err := query.ToSql()
+	if err != nil {
+		return model.NewAppError("SqlGroupStore.UpdateMembersRole", "store.sql_team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err = s.GetMaster().Exec(sql, params...); err != nil {
+		return model.NewAppError("SqlGroupStore.UpdateMembersRole", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }

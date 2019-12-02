@@ -9,6 +9,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+type Equality int
+
+const (
+	Equals Equality = iota
+	NotEquals
+)
+
 type StoreResult struct {
 	Data interface{}
 	Err  *model.AppError
@@ -612,6 +619,17 @@ type GroupStore interface {
 	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError)
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError)
 	CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError)
+
+	// AdminRoleGroupsForSyncableMember returns the IDs of all of the groups that the user is a member of that are
+	// configured as SchemeAdmin: true for the given syncable.
+	AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+
+	// PermittedSyncableAdmins returns the IDs of all of the user who are permitted by the group syncable to have
+	// the admin role for the given syncable.
+	PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+
+	// UpdateMembersRole updates the SchemeAdmin field value of a list of channel members or team members.
+	UpdateMembersRole(syncableID string, syncableType model.GroupSyncableType, userIDs []string, idEquality Equality, newSchemeAdminValue bool) *model.AppError
 }
 
 type LinkMetadataStore interface {
