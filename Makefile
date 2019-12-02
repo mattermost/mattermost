@@ -454,7 +454,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Copy everything to vendor directory
 	$(GO) mod vendor
 
-vet: ## Run mattermost go vet specifi checks
+vet: ## Run mattermost go vet specific checks
 	$(GO) get -u github.com/mattermost/mattermost-govet
 	env GO111MODULE=off $(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license $(TE_PACKAGES)
 
