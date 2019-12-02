@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 // This files was copied/modified from https://github.com/hashicorp/golang-lru
 // which was (see below)
 

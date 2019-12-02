@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
@@ -6,7 +9,7 @@ import (
 	"github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGroupMsgUsernames(t *testing.T) {

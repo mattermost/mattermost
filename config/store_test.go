@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package config_test
 
 import (
@@ -7,7 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/config"
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/stretchr/testify/require"
 )
 
