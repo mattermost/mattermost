@@ -597,9 +597,9 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
 	populatePluginSignatureMap(pluginSignaturePathMap, fileStorePaths, ".tar.gz")
 
-	cannaryTag := a.Config().PluginSettings.CanaryTag
-	if cannaryTag != nil && *cannaryTag != "" {
-		canarySuffix := fmt.Sprintf(".tar.gz%s", *cannaryTag)
+	cannaryTag := *a.Config().PluginSettings.CanaryTag
+	if cannaryTag != "" {
+		canarySuffix := fmt.Sprintf(".tar.gz%s", cannaryTag)
 		populatePluginSignatureMap(pluginSignaturePathMap, fileStorePaths, canarySuffix)
 	}
 

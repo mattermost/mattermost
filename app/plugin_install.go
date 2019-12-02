@@ -339,35 +339,32 @@ func (a *App) removePlugin(id string) *model.AppError {
 	if err = a.removeSignature(id); err != nil {
 		mlog.Error("Can't remove signature", mlog.Err(err))
 	}
-
-	a.notifyClusterPluginEvent(
-		model.CLUSTER_EVENT_REMOVE_PLUGIN,
-		model.PluginEventData{
-			Id: id,
-		},
-	)
+	canaryTag := *a.Config().PluginSettings.CanaryTag
+	if canaryTag == "" {
+		a.notifyClusterPluginEvent(
+			model.CLUSTER_EVENT_REMOVE_PLUGIN,
+			model.PluginEventData{
+				Id: id,
+			},
+		)
+	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
 		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
-	canaryTag := a.Config().PluginSettings.CanaryTag
-	if canaryTag != nil && *canaryTag != "" {
-		a.installPluginWithNoCanaryTag(id, pluginEnabled)
-	}
-	if canaryTag != nil && *canaryTag == "" {
+	if canaryTag == "" {
 		a.removeAllPlugins(id)
+	} else {
+		a.installPluginWithNoCanaryTag(id, pluginEnabled)
 	}
 
 	return nil
 }
 
 func (a *App) installPluginWithNoCanaryTag(id string, pluginEnabled bool) {
-	temp := *a.Config().PluginSettings.CanaryTag
-	*a.Config().PluginSettings.CanaryTag = ""
-	pluginPath := a.getBundleStorePath(id)
+	pluginPath := filepath.Join(fileStorePluginFolder, fmt.Sprintf("%s.tar.gz", id))
 	signaturePath := a.getSignatureStorePath(id)
-	*a.Config().PluginSettings.CanaryTag = temp
 	bundleExist, appErr := a.FileExists(pluginPath)
 	if appErr != nil {
 		mlog.Error("No plugin without canary tag", mlog.Err(appErr))
