@@ -1114,7 +1114,7 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	queryStr, args, err := query.ToSql()
 
 	if err != nil {
-		return int64(0), model.NewAppError("SqlUserStore.Get", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlUserStore.Get", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	v, err := us.GetReplica().SelectInt(queryStr, args...)
