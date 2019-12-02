@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,17 +11,19 @@ import (
 	"image/color"
 	"image/png"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -71,7 +73,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/v5/plugin"
 		)
 
 		type MyPlugin struct {
@@ -420,8 +422,8 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 			"fmt"
 		)
 
@@ -491,8 +493,8 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 			"fmt"
 		)
 
@@ -558,8 +560,8 @@ func TestPluginAPIGetBundlePath(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -645,7 +647,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/plugin"
+      "github.com/mattermost/mattermost-server/v5/plugin"
     )
 
     type MyPlugin struct {
@@ -729,6 +731,128 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 	}
 
 	assert.True(t, found)
+}
+
+func TestInstallPlugin(t *testing.T) {
+	// TODO(ilgooz): remove this setup func to use existent setupPluginApiTest().
+	// following setupTest() func is a modified version of setupPluginApiTest().
+	// we need a modified version of setupPluginApiTest() because it wasn't possible to use it directly here
+	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
+	// dirs and this behavior tends to break this test as a result.
+	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App) (func(), string) {
+		pluginDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+		webappPluginDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+
+		app.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = pluginDir
+			*cfg.PluginSettings.ClientDirectory = webappPluginDir
+		})
+
+		env, err := plugin.NewEnvironment(app.NewPluginAPI, pluginDir, webappPluginDir, app.Log)
+		require.NoError(t, err)
+
+		app.SetPluginsEnvironment(env)
+
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+		utils.CompileGo(t, pluginCode, backend)
+
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+		manifest, activated, reterr := env.Activate(pluginID)
+		require.Nil(t, reterr)
+		require.NotNil(t, manifest)
+		require.True(t, activated)
+
+		return func() {
+			os.RemoveAll(pluginDir)
+			os.RemoveAll(webappPluginDir)
+		}, pluginDir
+	}
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// start an http server to serve plugin's tarball to the test.
+	path, _ := fileutils.FindDir("tests")
+	ts := httptest.NewServer(http.FileServer(http.Dir(path)))
+	defer ts.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		cfg.PluginSettings.Plugins["testinstallplugin"] = map[string]interface{}{
+			"DownloadURL": ts.URL + "/testplugin.tar.gz",
+		}
+	})
+
+	tearDown, _ := setupTest(t,
+		`
+		package main
+
+		import (
+			"net/http"
+			
+			"github.com/pkg/errors"
+
+			"github.com/mattermost/mattermost-server/v5/plugin"
+		)
+
+		type configuration struct {
+			DownloadURL string
+		}
+		
+		type Plugin struct {
+			plugin.MattermostPlugin
+
+			configuration configuration
+		}
+
+		func (p *Plugin) OnConfigurationChange() error {
+			if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
+				return err
+			}
+			return nil
+		}
+		
+		func (p *Plugin) OnActivate() error {
+			resp, err := http.Get(p.configuration.DownloadURL)
+			if err != nil {
+				return err
+			}
+			defer resp.Body.Close()
+			_, aerr := p.API.InstallPlugin(resp.Body, true)
+			if aerr != nil {
+				return errors.Wrap(aerr, "cannot install plugin")
+			}
+			return nil
+		}
+
+		func main() {
+			plugin.ClientMain(&Plugin{})
+		}
+		
+	`,
+		`{"id": "testinstallplugin", "backend": {"executable": "backend.exe"}, "settings_schema": {
+		"settings": [
+			{
+				"key": "DownloadURL",
+				"type": "text"
+			}
+		]
+	}}`, "testinstallplugin", th.App)
+	defer tearDown()
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testinstallplugin")
+	require.NoError(t, err)
+
+	err = hooks.OnActivate()
+	require.NoError(t, err)
+
+	plugins, aerr := th.App.GetPlugins()
+	require.Nil(t, aerr)
+	require.Len(t, plugins.Inactive, 1)
+	require.Equal(t, "testplugin", plugins.Inactive[0].Id)
 }
 
 func TestPluginAPIGetTeamIcon(t *testing.T) {
@@ -1008,8 +1132,8 @@ func TestPluginBots(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -1481,7 +1605,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/v5/plugin"
 			"bytes"
 			"net/http"
 		)
@@ -1509,8 +1633,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 			"bytes"
 			"net/http"
 			"io/ioutil"
