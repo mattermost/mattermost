@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SqlComplianceStore struct {
@@ -75,7 +75,7 @@ func (us SqlComplianceStore) Get(id string) (*model.Compliance, *model.AppError)
 		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if obj == nil {
-		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error(), http.StatusNotFound)
+		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, "", http.StatusNotFound)
 	}
 	return obj.(*model.Compliance), nil
 }
@@ -213,8 +213,10 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Posts.Id AS PostId,
 			Posts.CreateAt AS PostCreateAt,
 			Posts.UpdateAt AS PostUpdateAt,
+			Posts.DeleteAt AS PostDeleteAt,
 			Posts.Message AS PostMessage,
 			Posts.Type AS PostType,
+			Posts.Props AS PostProps,
 			Posts.OriginalId AS PostOriginalId,
 			Posts.RootId AS PostRootId,
 			Posts.Props AS PostProps,
@@ -241,8 +243,8 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
-			(Posts.CreateAt > :StartTime OR Posts.EditAt > :StartTime) AND
-			Posts.Type = ''
+			(Posts.CreateAt > :StartTime OR Posts.UpdateAt > :StartTime OR Posts.DeleteAt > :StartTime) AND
+			Posts.Type NOT LIKE 'system_%'
 		ORDER BY PostUpdateAt
 		LIMIT :Limit`
 

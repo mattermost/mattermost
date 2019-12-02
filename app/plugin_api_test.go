@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,21 +11,24 @@ import (
 	"image/color"
 	"image/png"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginId string, app *App) string {
+func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIds []string, app *App) string {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	webappPluginDir, err := ioutil.TempDir("", "")
@@ -36,18 +39,27 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	env, err := plugin.NewEnvironment(app.NewPluginAPI, pluginDir, webappPluginDir, app.Log)
 	require.NoError(t, err)
 
-	backend := filepath.Join(pluginDir, pluginId, "backend.exe")
-	utils.CompileGo(t, pluginCode, backend)
+	require.Equal(t, len(pluginCodes), len(pluginIds))
+	require.Equal(t, len(pluginManifests), len(pluginIds))
 
-	ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(pluginManifest), 0600)
-	manifest, activated, reterr := env.Activate(pluginId)
-	require.Nil(t, reterr)
-	require.NotNil(t, manifest)
-	require.True(t, activated)
+	for i, pluginId := range pluginIds {
+		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
+		utils.CompileGo(t, pluginCodes[i], backend)
+
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(pluginManifests[i]), 0600)
+		manifest, activated, reterr := env.Activate(pluginId)
+		require.Nil(t, reterr)
+		require.NotNil(t, manifest)
+		require.True(t, activated)
+	}
 
 	app.SetPluginsEnvironment(env)
 
 	return pluginDir
+}
+
+func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginId string, app *App) string {
+	return setupMultiPluginApiTest(t, []string{pluginCode}, []string{pluginManifest}, []string{pluginId}, app)
 }
 
 func TestPublicFilesPathConfiguration(t *testing.T) {
@@ -61,7 +73,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/v5/plugin"
 		)
 
 		type MyPlugin struct {
@@ -410,8 +422,8 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 			"fmt"
 		)
 
@@ -481,8 +493,8 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 			"fmt"
 		)
 
@@ -548,8 +560,8 @@ func TestPluginAPIGetBundlePath(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -635,7 +647,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/plugin"
+      "github.com/mattermost/mattermost-server/v5/plugin"
     )
 
     type MyPlugin struct {
@@ -682,6 +694,165 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotEmpty(t, plugins)
 	assert.Equal(t, pluginManifests, plugins)
+}
+
+func TestPluginAPIInstallPlugin(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	_, err = api.InstallPlugin(bytes.NewReader(tarData), true)
+	assert.NotNil(t, err, "should not allow upload if upload disabled")
+	assert.Equal(t, err.Error(), "installPlugin: Plugins and/or plugin uploads have been disabled., ")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	manifest, err := api.InstallPlugin(bytes.NewReader(tarData), true)
+	defer os.RemoveAll("plugins/testplugin")
+	require.Nil(t, err)
+	assert.Equal(t, "testplugin", manifest.Id)
+
+	// Successfully installed
+	pluginsResp, err := api.GetPlugins()
+	require.Nil(t, err)
+
+	found := false
+	for _, m := range pluginsResp {
+		if m.Id == manifest.Id {
+			found = true
+		}
+	}
+
+	assert.True(t, found)
+}
+
+func TestInstallPlugin(t *testing.T) {
+	// TODO(ilgooz): remove this setup func to use existent setupPluginApiTest().
+	// following setupTest() func is a modified version of setupPluginApiTest().
+	// we need a modified version of setupPluginApiTest() because it wasn't possible to use it directly here
+	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
+	// dirs and this behavior tends to break this test as a result.
+	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App) (func(), string) {
+		pluginDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+		webappPluginDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+
+		app.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = pluginDir
+			*cfg.PluginSettings.ClientDirectory = webappPluginDir
+		})
+
+		env, err := plugin.NewEnvironment(app.NewPluginAPI, pluginDir, webappPluginDir, app.Log)
+		require.NoError(t, err)
+
+		app.SetPluginsEnvironment(env)
+
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+		utils.CompileGo(t, pluginCode, backend)
+
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+		manifest, activated, reterr := env.Activate(pluginID)
+		require.Nil(t, reterr)
+		require.NotNil(t, manifest)
+		require.True(t, activated)
+
+		return func() {
+			os.RemoveAll(pluginDir)
+			os.RemoveAll(webappPluginDir)
+		}, pluginDir
+	}
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// start an http server to serve plugin's tarball to the test.
+	path, _ := fileutils.FindDir("tests")
+	ts := httptest.NewServer(http.FileServer(http.Dir(path)))
+	defer ts.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		cfg.PluginSettings.Plugins["testinstallplugin"] = map[string]interface{}{
+			"DownloadURL": ts.URL + "/testplugin.tar.gz",
+		}
+	})
+
+	tearDown, _ := setupTest(t,
+		`
+		package main
+
+		import (
+			"net/http"
+			
+			"github.com/pkg/errors"
+
+			"github.com/mattermost/mattermost-server/v5/plugin"
+		)
+
+		type configuration struct {
+			DownloadURL string
+		}
+		
+		type Plugin struct {
+			plugin.MattermostPlugin
+
+			configuration configuration
+		}
+
+		func (p *Plugin) OnConfigurationChange() error {
+			if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
+				return err
+			}
+			return nil
+		}
+		
+		func (p *Plugin) OnActivate() error {
+			resp, err := http.Get(p.configuration.DownloadURL)
+			if err != nil {
+				return err
+			}
+			defer resp.Body.Close()
+			_, aerr := p.API.InstallPlugin(resp.Body, true)
+			if aerr != nil {
+				return errors.Wrap(aerr, "cannot install plugin")
+			}
+			return nil
+		}
+
+		func main() {
+			plugin.ClientMain(&Plugin{})
+		}
+		
+	`,
+		`{"id": "testinstallplugin", "backend": {"executable": "backend.exe"}, "settings_schema": {
+		"settings": [
+			{
+				"key": "DownloadURL",
+				"type": "text"
+			}
+		]
+	}}`, "testinstallplugin", th.App)
+	defer tearDown()
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testinstallplugin")
+	require.NoError(t, err)
+
+	err = hooks.OnActivate()
+	require.NoError(t, err)
+
+	plugins, aerr := th.App.GetPlugins()
+	require.Nil(t, aerr)
+	require.Len(t, plugins.Inactive, 1)
+	require.Equal(t, "testplugin", plugins.Inactive[0].Id)
 }
 
 func TestPluginAPIGetTeamIcon(t *testing.T) {
@@ -961,8 +1132,8 @@ func TestPluginBots(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -1400,4 +1571,122 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 	for i := range config.SqlSettings.DataSourceSearchReplicas {
 		assert.NotEqual(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
 	}
+}
+
+func TestPluginCallLogAPI(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	pluginID := "com.mattermost.sample"
+	path, _ := fileutils.FindDir("mattermost-server/app/plugin_api_test")
+	pluginCode, err := ioutil.ReadFile(filepath.Join(path, "plugin_using_log_api.go"))
+	assert.NoError(t, err)
+	setupPluginApiTest(t, string(pluginCode),
+		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
+}
+
+func TestPluginAddUserToChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	member, err := api.AddUserToChannel(th.BasicChannel.Id, th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, err)
+	require.NotNil(t, member)
+	require.Equal(t, th.BasicChannel.Id, member.ChannelId)
+	require.Equal(t, th.BasicUser.Id, member.UserId)
+}
+
+func TestInterpluginPluginHTTP(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	setupMultiPluginApiTest(t,
+		[]string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"bytes"
+			"net/http"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/api/v2/test" {
+				return
+			}
+			buf := bytes.Buffer{}
+			buf.ReadFrom(r.Body)
+			resp := "we got:" + buf.String()
+			w.WriteHeader(598)
+			w.Write([]byte(resp))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
+			"bytes"
+			"net/http"
+			"io/ioutil"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			buf := bytes.Buffer{}
+			buf.WriteString("This is the request")
+			req, err := http.NewRequest("GET", "/testplugininterserver/api/v2/test", &buf)
+			if err != nil {
+				return nil, err.Error()
+			}
+			req.Header.Add("Mattermost-User-Id", "userid")
+			resp := p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "Nil resp"
+			}
+			if resp.Body == nil {
+				return nil, "Nil body"
+			}
+			respbody, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err.Error()
+			}
+			if resp.StatusCode != 598 {
+				return nil, "wrong status " + string(respbody)
+			}
+			return nil, string(respbody)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		},
+		[]string{
+			`{"id": "testplugininterserver", "backend": {"executable": "backend.exe"}}`,
+			`{"id": "testplugininterclient", "backend": {"executable": "backend.exe"}}`,
+		},
+		[]string{
+			"testplugininterserver",
+			"testplugininterclient",
+		},
+		th.App,
+	)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugininterclient")
+	require.NoError(t, err)
+	_, ret := hooks.MessageWillBePosted(nil, nil)
+	assert.Equal(t, "we got:This is the request", ret)
 }

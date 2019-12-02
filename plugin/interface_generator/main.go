@@ -379,7 +379,7 @@ func generateGlue(info *PluginInterfaceInfo) {
 }
 
 func getPluginPackageDir() string {
-	dirs, err := goList("github.com/mattermost/mattermost-server/plugin")
+	dirs, err := goList("github.com/mattermost/mattermost-server/v5/plugin")
 	if err != nil {
 		panic(err)
 	} else if len(dirs) != 1 {
@@ -392,13 +392,19 @@ func getPluginPackageDir() string {
 func removeExcluded(info *PluginInterfaceInfo) *PluginInterfaceInfo {
 	toBeExcluded := func(item string) bool {
 		excluded := []string{
-			"OnActivate",
+			"FileWillBeUploaded",
 			"Implemented",
 			"LoadPluginConfiguration",
-			"ServeHTTP",
-			"FileWillBeUploaded",
+			"InstallPlugin",
+			"LogDebug",
+			"LogError",
+			"LogInfo",
+			"LogWarn",
 			"MessageWillBePosted",
 			"MessageWillBeUpdated",
+			"OnActivate",
+			"PluginHTTP",
+			"ServeHTTP",
 		}
 		for _, exclusion := range excluded {
 			if exclusion == item {

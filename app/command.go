@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -12,10 +12,10 @@ import (
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type CommandProvider interface {
@@ -39,8 +39,13 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse) (*model.Post, *model.AppError) {
-	post.Message = model.ParseSlackLinksToMarkdown(response.Text)
+func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+	if skipSlackParsing {
+		post.Message = response.Text
+	} else {
+		post.Message = model.ParseSlackLinksToMarkdown(response.Text)
+	}
+
 	post.CreateAt = model.GetMillis()
 
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
@@ -430,11 +435,16 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		post.AddProp("from_webhook", "true")
 	}
 
-	// Process Slack text replacements
-	response.Text = a.ProcessSlackText(response.Text)
-	response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+	// Do not process text if this is a code block
+	skipSlackParsing := command.Trigger == "code"
 
-	if _, err := a.CreateCommandPost(post, args.TeamId, response); err != nil {
+	// Process Slack text replacements
+	if !skipSlackParsing {
+		response.Text = a.ProcessSlackText(response.Text)
+		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+	}
+
+	if _, err := a.CreateCommandPost(post, args.TeamId, response, skipSlackParsing); err != nil {
 		return post, err
 	}
 

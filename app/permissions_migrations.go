@@ -1,10 +1,10 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type permissionTransformation struct {
@@ -282,11 +282,7 @@ func getAddManageGuestsPermissionsMigration() permissionsMap {
 	return permissionsMap{
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add: []string{PERMISSION_PROMOTE_GUEST, PERMISSION_DEMOTE_TO_GUEST},
-		},
-		permissionTransformation{
-			On:  permissionExists(PERMISSION_INVITE_USER),
-			Add: []string{PERMISSION_INVITE_GUEST},
+			Add: []string{PERMISSION_PROMOTE_GUEST, PERMISSION_DEMOTE_TO_GUEST, PERMISSION_INVITE_GUEST},
 		},
 	}
 }

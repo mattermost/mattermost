@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -13,11 +13,11 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/imgutils"
-	"github.com/mattermost/mattermost-server/utils/markdown"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/imgutils"
+	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
 const LINK_CACHE_SIZE = 10000
@@ -73,8 +73,6 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 	} else {
 		mlog.Warn("Failed to retrieve URL for overriden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
-
-	return
 }
 
 func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
@@ -86,6 +84,11 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	a.OverrideIconURLIfEmoji(post)
 
 	post.Metadata = &model.PostMetadata{}
+
+	if post.DeleteAt > 0 {
+		// Don't fill out metadata for deleted posts
+		return post
+	}
 
 	// Emojis and reaction counts
 	if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {

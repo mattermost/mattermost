@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -13,10 +13,10 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -66,20 +66,23 @@ type Handler struct {
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
+	DisableWhenBusy     bool
 
 	cspShaDirective string
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
-	mlog.Debug("request:", mlog.String("method", r.Method), mlog.String("url", r.URL.Path))
+
+	requestID := model.NewId()
+	mlog.Debug("Received HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
 
 	c := &Context{}
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
 	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
-	c.App.RequestId = model.NewId()
+	c.App.RequestId = requestID
 	c.App.IpAddress = utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader)
 	c.App.UserAgent = r.UserAgent()
 	c.App.AcceptLanguage = r.Header.Get("Accept-Language")
@@ -155,6 +158,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.RequireMfa {
 		c.MfaRequired()
+	}
+
+	if c.Err == nil && h.DisableWhenBusy && c.App.Srv.Busy.IsBusy() {
+		c.SetServerBusyError()
 	}
 
 	if c.Err == nil {
@@ -306,25 +313,6 @@ func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		RequireSession:      true,
 		TrustRequester:      false,
 		RequireMfa:          true,
-		IsStatic:            false,
-	}
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
-	}
-	return handler
-}
-
-// apiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
-// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
-// websocket.
-func (w *Web) apiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	handler := &Handler{
-		GetGlobalAppOptions: w.GetGlobalAppOptions,
-		HandleFunc:          h,
-		HandlerName:         GetHandlerName(h),
-		RequireSession:      false,
-		TrustRequester:      true,
-		RequireMfa:          false,
 		IsStatic:            false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {

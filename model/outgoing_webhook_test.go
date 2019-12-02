@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"net/url"
-	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestOutgoingWebhookJson(t *testing.T) {
@@ -15,132 +16,81 @@ func TestOutgoingWebhookJson(t *testing.T) {
 	json := o.ToJson()
 	ro := OutgoingWebhookFromJson(strings.NewReader(json))
 
-	if o.Id != ro.Id {
-		t.Fatal("Ids do not match")
-	}
+	assert.Equal(t, o.Id, ro.Id, "Ids do not match")
 }
 
 func TestOutgoingWebhookIsValid(t *testing.T) {
 	o := OutgoingWebhook{}
-
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, o.IsValid(), "empty declaration should be invalid")
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "Id = NewId; %s should be invalid", o.Id)
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "CreateAt = GetMillis; %d should be invalid", o.CreateAt)
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "UpdateAt = GetMillis; %d should be invalid", o.UpdateAt)
 
 	o.CreatorId = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "CreatorId %s should be invalid", o.CreatorId)
 
 	o.CreatorId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "CreatorId = NewId; %s should be invalid", o.CreatorId)
 
 	o.Token = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "Token %s should be invalid", o.Token)
 
 	o.Token = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "Token = NewId; %s should be invalid", o.Token)
 
 	o.ChannelId = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "ChannelId %s should be invalid", o.ChannelId)
 
 	o.ChannelId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "ChannelId = NewId; %s should be invalid", o.ChannelId)
 
 	o.TeamId = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "TeamId %s should be invalid", o.TeamId)
 
 	o.TeamId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "TeamId = NewId; %s should be invalid", o.TeamId)
 
 	o.CallbackURLs = []string{"nowhere.com/"}
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "%v for CallbackURLs should be invalid", o.CallbackURLs)
 
 	o.CallbackURLs = []string{"http://nowhere.com/"}
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nilf(t, o.IsValid(), "%v for CallbackURLs should be valid", o.CallbackURLs)
 
 	o.DisplayName = strings.Repeat("1", 65)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "DisplayName length %d invalid, max length 64", len(o.DisplayName))
 
 	o.DisplayName = strings.Repeat("1", 64)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nilf(t, o.IsValid(), "DisplayName length %d should be valid, max length 64", len(o.DisplayName))
 
 	o.Description = strings.Repeat("1", 501)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "Description length %d should be invalid, max length 500", len(o.Description))
 
 	o.Description = strings.Repeat("1", 500)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nilf(t, o.IsValid(), "Description length %d should be valid, max length 500", len(o.Description))
 
 	o.ContentType = strings.Repeat("1", 129)
-	if err := o.IsValid(); err == nil {
-		t.Fatal(err)
-	}
+	assert.NotNilf(t, o.IsValid(), "ContentType length %d should be invalid, max length 128", len(o.ContentType))
 
 	o.ContentType = strings.Repeat("1", 128)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nilf(t, o.IsValid(), "ContentType length %d should be valid", len(o.ContentType))
 
 	o.Username = strings.Repeat("1", 65)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNilf(t, o.IsValid(), "Username length %d should be invalid, max length 64", len(o.Username))
 
 	o.Username = strings.Repeat("1", 64)
-	if err := o.IsValid(); err != nil {
-		t.Fatal("should be invalid")
-	}
+	assert.Nilf(t, o.IsValid(), "Username length %d should be valid", len(o.Username))
 
 	o.IconURL = strings.Repeat("1", 1025)
-	if err := o.IsValid(); err == nil {
-		t.Fatal(err)
-	}
+	assert.NotNilf(t, o.IsValid(), "IconURL length %d should be invalid, max length 1024", len(o.IconURL))
 
 	o.IconURL = strings.Repeat("1", 1024)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nilf(t, o.IsValid(), "IconURL length %d should be valid", len(o.IconURL))
 }
 
 func TestOutgoingWebhookPayloadToFormValues(t *testing.T) {
@@ -171,9 +121,9 @@ func TestOutgoingWebhookPayloadToFormValues(t *testing.T) {
 	v.Set("text", "Text")
 	v.Set("trigger_word", "TriggerWord")
 	v.Set("file_ids", "FileIds")
-	if got, want := p.ToFormValues(), v.Encode(); !reflect.DeepEqual(got, want) {
-		t.Fatalf("Got %+v, wanted %+v", got, want)
-	}
+	got := p.ToFormValues()
+	want := v.Encode()
+	assert.Equalf(t, got, want, "Got %+v, wanted %+v", got, want)
 }
 
 func TestOutgoingWebhookPreSave(t *testing.T) {
@@ -189,12 +139,8 @@ func TestOutgoingWebhookPreUpdate(t *testing.T) {
 func TestOutgoingWebhookTriggerWordStartsWith(t *testing.T) {
 	o := OutgoingWebhook{Id: NewId()}
 	o.TriggerWords = append(o.TriggerWords, "foo")
-	if !o.TriggerWordStartsWith("foobar") {
-		t.Fatal("Should return true")
-	}
-	if o.TriggerWordStartsWith("barfoo") {
-		t.Fatal("Should return false")
-	}
+	assert.True(t, o.TriggerWordStartsWith("foobar"), "Should return true")
+	assert.False(t, o.TriggerWordStartsWith("barfoo"), "Should return false")
 }
 
 func TestOutgoingWebhookResponseJson(t *testing.T) {
@@ -204,7 +150,5 @@ func TestOutgoingWebhookResponseJson(t *testing.T) {
 	json := o.ToJson()
 	ro, _ := OutgoingWebhookResponseFromJson(strings.NewReader(json))
 
-	if *o.Text != *ro.Text {
-		t.Fatal("Text does not match")
-	}
+	assert.Equal(t, *o.Text, *ro.Text, "Text does not match")
 }

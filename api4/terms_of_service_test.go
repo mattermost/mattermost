@@ -1,10 +1,14 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package api4
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetTermsOfService(t *testing.T) {
@@ -13,9 +17,7 @@ func TestGetTermsOfService(t *testing.T) {
 	Client := th.Client
 
 	_, err := th.App.CreateTermsOfService("abc", th.BasicUser.Id)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	termsOfService, resp := Client.GetTermsOfService("")
 	CheckNoError(t, resp)

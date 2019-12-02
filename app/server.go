@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -24,17 +24,17 @@ import (
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/httpservice"
-	"github.com/mattermost/mattermost-server/services/imageproxy"
-	"github.com/mattermost/mattermost-server/services/timezones"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/jobs"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
@@ -53,6 +53,7 @@ type Server struct {
 	Server      *http.Server
 	ListenAddr  *net.TCPAddr
 	RateLimiter *RateLimiter
+	Busy        *Busy
 
 	didFinishListen chan struct{}
 
@@ -126,6 +127,7 @@ type Server struct {
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
+	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
 }
 
@@ -186,7 +188,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	err := s.RunOldAppInitalization()
+	err := s.RunOldAppInitialization()
 	if err != nil {
 		return nil, err
 	}
@@ -215,8 +217,9 @@ func NewServer(options ...Option) (*Server, error) {
 
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
 	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
+
 	pwd, _ := os.Getwd()
-	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
+	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
 
 	s.checkPushNotificationServerUrl()
@@ -244,7 +247,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if err := s.Store.Status().ResetAll(); err != nil {
-		mlog.Error(fmt.Sprint("Error to reset the server status.", err.Error()))
+		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
 	if s.joinCluster && s.Cluster != nil {
@@ -258,6 +261,21 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if s.startElasticsearch && s.Elasticsearch != nil {
 		s.StartElasticsearch()
+	}
+
+	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
+			if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
+				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+			}
+		}
+	})
+
+	// Disable active guest accounts on first run if guest accounts are disabled
+	if !*s.Config().GuestAccountsSettings.Enable {
+		if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
+			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+		}
 	}
 
 	s.initJobs()
@@ -310,7 +328,7 @@ func (s *Server) StopHTTPServer() {
 		didShutdown := false
 		for s.didFinishListen != nil && !didShutdown {
 			if err := s.Server.Shutdown(ctx); err != nil {
-				mlog.Warn(err.Error())
+				mlog.Warn("Unable to shutdown server", mlog.Err(err))
 			}
 			timer := time.NewTimer(time.Millisecond * 50)
 			select {
@@ -332,7 +350,7 @@ func (s *Server) Shutdown() error {
 
 	err := s.shutdownDiagnostics()
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Unable to cleanly shutdown diagnostic client: %s", err))
+		mlog.Error("Unable to cleanly shutdown diagnostic client", mlog.Err(err))
 	}
 
 	s.StopHTTPServer()
@@ -456,6 +474,7 @@ func (s *Server) Start() error {
 		s.RateLimiter = rateLimiter
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
+	s.Busy = &Busy{}
 
 	// Creating a logger for logging errors from http.Server at error level
 	errStdLog, err := s.Log.StdLogAt(mlog.LevelError, mlog.String("source", "httpserver"))
@@ -502,7 +521,7 @@ func (s *Server) Start() error {
 
 	if *s.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
-			mlog.Error("Unable to setup forwarding: " + err.Error())
+			mlog.Error("Unable to setup forwarding", mlog.Err(err))
 		} else if port != "443" {
 			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
@@ -519,7 +538,7 @@ func (s *Server) Start() error {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
 					if err != nil {
-						mlog.Error("Unable to setup forwarding: " + err.Error())
+						mlog.Error("Unable to setup forwarding", mlog.Err(err))
 						return
 					}
 					defer redirectListener.Close()
@@ -605,7 +624,7 @@ func (s *Server) Start() error {
 		}
 
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
+			mlog.Critical("Error starting server", mlog.Err(err))
 			time.Sleep(time.Second)
 		}
 
@@ -632,7 +651,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 func (s *Server) checkPushNotificationServerUrl() {
 	notificationServer := *s.Config().EmailSettings.PushNotificationServer
-	if strings.HasPrefix(notificationServer, "http://") == true {
+	if strings.HasPrefix(notificationServer, "http://") {
 		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
 	}
 }

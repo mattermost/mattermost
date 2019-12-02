@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestSystemStore(t *testing.T, ss store.Store) {
@@ -42,15 +42,13 @@ func testSystemStore(t *testing.T, ss store.Store) {
 func testSystemStoreSaveOrUpdate(t *testing.T, ss store.Store) {
 	system := &model.System{Name: model.NewId(), Value: "value"}
 
-	if err := ss.System().SaveOrUpdate(system); err != nil {
-		t.Fatal(err)
-	}
+	err := ss.System().SaveOrUpdate(system)
+	require.Nil(t, err)
 
 	system.Value = "value2"
 
-	if err := ss.System().SaveOrUpdate(system); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.System().SaveOrUpdate(system)
+	require.Nil(t, err)
 }
 
 func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {

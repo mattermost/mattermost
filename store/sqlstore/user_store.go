@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -14,17 +14,15 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
 	PROFILES_IN_CHANNEL_CACHE_SIZE  = model.CHANNEL_CACHE_SIZE
 	PROFILES_IN_CHANNEL_CACHE_SEC   = 900 // 15 mins
-	PROFILE_BY_IDS_CACHE_SIZE       = model.SESSION_CACHE_SIZE
-	PROFILE_BY_IDS_CACHE_SEC        = 900 // 15 mins
 	MAX_GROUP_CHANNELS_FOR_PROFILES = 50
 )
 
@@ -44,25 +42,16 @@ type SqlUserStore struct {
 }
 
 var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
-var profileByIdsCache *utils.Cache = utils.NewLru(PROFILE_BY_IDS_CACHE_SIZE)
 
 func (us SqlUserStore) ClearCaches() {
 	profilesInChannelCache.Purge()
-	profileByIdsCache.Purge()
 
 	if us.metrics != nil {
 		us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Purge")
-		us.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Purge")
 	}
 }
 
-func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {
-	profileByIdsCache.Remove(userId)
-
-	if us.metrics != nil {
-		us.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Remove")
-	}
-}
+func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {}
 
 func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
@@ -139,6 +128,40 @@ func (us SqlUserStore) Save(user *model.User) (*model.User, *model.AppError) {
 	}
 
 	return user, nil
+}
+
+func (us SqlUserStore) DeactivateGuests() ([]string, *model.AppError) {
+	curTime := model.GetMillis()
+	updateQuery := us.getQueryBuilder().Update("Users").
+		Set("UpdateAt", curTime).
+		Set("DeleteAt", curTime).
+		Where(sq.Eq{"Roles": "system_guest"}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	queryString, args, err := updateQuery.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.UpdateActiveForMultipleUsers", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	_, err = us.GetMaster().Exec(queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.UpdateActiveForMultipleUsers", "store.sql_user.update_active_for_multiple_users.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	selectQuery := us.getQueryBuilder().Select("Id").From("Users").Where(sq.Eq{"DeleteAt": curTime})
+
+	queryString, args, err = selectQuery.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.UpdateActiveForMultipleUsers", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	userIds := []string{}
+	_, err = us.GetMaster().Select(&userIds, queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.UpdateActiveForMultipleUsers", "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return userIds, nil
 }
 
 func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.UserUpdate, *model.AppError) {
@@ -795,46 +818,15 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, *model.AppError) {
+func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, _ bool) ([]*model.User, *model.AppError) {
 	if options == nil {
 		options = &store.UserGetByIdsOpts{}
 	}
 
 	users := []*model.User{}
-	remainingUserIds := make([]string, 0)
-
-	if allowFromCache {
-		for _, userId := range userIds {
-			if cacheItem, ok := profileByIdsCache.Get(userId); ok {
-				u := &model.User{}
-				*u = *cacheItem.(*model.User)
-
-				if options.Since == 0 || u.UpdateAt > options.Since {
-					users = append(users, u)
-				}
-			} else {
-				remainingUserIds = append(remainingUserIds, userId)
-			}
-		}
-		if us.metrics != nil {
-			us.metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(users)))
-			us.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
-		}
-	} else {
-		remainingUserIds = userIds
-		if us.metrics != nil {
-			us.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
-		}
-	}
-
-	// If everything came from the cache then just return
-	if len(remainingUserIds) == 0 {
-		return users, nil
-	}
-
 	query := us.usersQuery.
 		Where(map[string]interface{}{
-			"u.Id": remainingUserIds,
+			"u.Id": userIds,
 		}).
 		OrderBy("u.Username ASC")
 
@@ -857,10 +849,6 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetB
 
 	for _, u := range users {
 		u.Sanitize(map[string]bool{})
-
-		cpy := &model.User{}
-		*cpy = *u
-		profileByIdsCache.AddWithExpiresInSecs(cpy.Id, cpy, PROFILE_BY_IDS_CACHE_SEC)
 	}
 
 	return users, nil
@@ -1129,7 +1117,7 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	return v, nil
 }
 
-func (us SqlUserStore) GetUnreadCount(userId string) (int64, error) {
+func (us SqlUserStore) GetUnreadCount(userId string) (int64, *model.AppError) {
 	query := `
 		SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
 		FROM Channels c
@@ -1267,7 +1255,7 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = sanitizeSearchTerm(term, "*")
 
-	searchType := USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+	var searchType []string
 	if options.AllowEmails {
 		if options.AllowFullNames {
 			searchType = USER_SEARCH_TYPE_ALL
@@ -1359,8 +1347,7 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool
 }
 
 func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) string {
-	var querystr string
-	querystr = `
+	querystr := `
 		SELECT
 			CONCAT(MAX(UpdateAt), '.', COUNT(Id)) as etag
 		FROM
@@ -1449,10 +1436,9 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		OrderBy("u.CreateAt").
 		Limit(uint64(limit)).
 		ToSql()
-	_, err1 := us.GetSearchReplica().Select(&users, usersQuery, args...)
-
-	if err1 != nil {
-		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_users.app_error", nil, err1.Error(), http.StatusInternalServerError)
+	_, err := us.GetSearchReplica().Select(&users, usersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	userIds := []string{}
@@ -1479,10 +1465,9 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"c.Type": "O", "cm.UserId": userIds}).
 		ToSql()
-	_, err2 := us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
-
-	if err2 != nil {
-		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error", nil, err2.Error(), http.StatusInternalServerError)
+	_, err = us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var teamMembers []*model.TeamMember
@@ -1491,10 +1476,9 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		From("TeamMembers").
 		Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
 		ToSql()
-	_, err3 := us.GetSearchReplica().Select(&teamMembers, teamMembersQuery, args...)
-
-	if err3 != nil {
-		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error", nil, err3.Error(), http.StatusInternalServerError)
+	_, err = us.GetSearchReplica().Select(&teamMembers, teamMembersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	userMap := map[string]*model.UserForIndexing{}

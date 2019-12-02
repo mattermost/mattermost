@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -305,8 +305,8 @@ func TestTruncateOpenGraph(t *testing.T) {
 			sampleImage("metoo.gif"),
 			sampleImage("fifth.ico"),
 			sampleImage("notme.tiff")},
-		Audios:  []*opengraph.Audio{&opengraph.Audio{}},
-		Videos:  []*opengraph.Video{&opengraph.Video{}},
+		Audios:  []*opengraph.Audio{{}},
+		Videos:  []*opengraph.Video{{}},
 		Article: &opengraph.Article{},
 		Book:    &opengraph.Book{},
 		Profile: &opengraph.Profile{},

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,14 +10,20 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/services/marketplace"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/services/marketplace"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/pkg/errors"
 )
+
+type pluginSignaturePath struct {
+	pluginId      string
+	path          string
+	signaturePath string
+}
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.
@@ -43,6 +49,7 @@ func (a *App) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
 }
 
 func (a *App) SyncPluginsActiveState() {
+	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	a.Srv.PluginsLock.RLock()
 	pluginsEnvironment := a.Srv.PluginsEnvironment
 	a.Srv.PluginsLock.RUnlock()
@@ -124,6 +131,7 @@ func (a *App) NewPluginAPI(manifest *model.Manifest) plugin.API {
 }
 
 func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
+	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	a.Srv.PluginsLock.RLock()
 	pluginsEnvironment := a.Srv.PluginsEnvironment
 	a.Srv.PluginsLock.RUnlock()
@@ -162,10 +170,18 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 				return nil
 			}
 
-			if fileReader, err := os.Open(walkPath); err != nil {
+			fileReader, err := os.Open(walkPath)
+			if err != nil {
 				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-			} else if _, err := a.installPluginLocally(fileReader, true); err != nil {
-				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
+				return nil
+			}
+			defer fileReader.Close()
+
+			mlog.Debug("Installing prepackaged plugin", mlog.String("path", walkPath))
+
+			_, appErr := a.installPluginLocally(fileReader, nil, installPluginLocallyOnlyIfNewOrUpgrade)
+			if appErr != nil {
+				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(appErr), mlog.String("path", walkPath))
 			}
 
 			return nil
@@ -224,42 +240,38 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	// Install plugins from the file store.
-	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
+	pluginSignaturePathMap, appErr := a.getPluginsFromFolder()
 	if appErr != nil {
-		return model.NewAppError("SyncPlugins", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return appErr
 	}
-	if len(fileStorePaths) == 0 {
-		mlog.Info("Found no files in plugins file store")
-		return nil
-	}
-
-	for _, path := range fileStorePaths {
-		if !strings.HasSuffix(path, ".tar.gz") {
-			mlog.Warn("Ignoring non-plugin in file store", mlog.String("bundle", path))
-			continue
-		}
-
-		var reader filesstore.ReadCloseSeeker
-		reader, appErr = a.FileReader(path)
+	for _, plugin := range pluginSignaturePathMap {
+		reader, appErr := a.FileReader(plugin.path)
 		if appErr != nil {
-			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", path), mlog.Err(appErr))
+			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 			continue
 		}
 		defer reader.Close()
 
-		mlog.Info("Syncing plugin from file store", mlog.String("bundle", path))
-		if _, err := a.installPluginLocally(reader, true); err != nil {
-			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", path), mlog.Err(err))
+		var signature filesstore.ReadCloseSeeker
+		if *a.Config().PluginSettings.RequirePluginSignature {
+			signature, appErr = a.FileReader(plugin.signaturePath)
+			if appErr != nil {
+				mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
+				continue
+			}
+			defer signature.Close()
+		}
+
+		mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
+		if _, err := a.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
+			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 		}
 	}
-
 	return nil
 }
 
 func (a *App) ShutDownPlugins() {
-	a.Srv.PluginsLock.Lock()
-	pluginsEnvironment := a.Srv.PluginsEnvironment
-	defer a.Srv.PluginsLock.Unlock()
+	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return
 	}
@@ -270,7 +282,15 @@ func (a *App) ShutDownPlugins() {
 
 	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
 	a.Srv.PluginConfigListenerId = ""
-	a.Srv.PluginsEnvironment = nil
+
+	// Acquiring lock manually before cleaning up PluginsEnvironment.
+	a.Srv.PluginsLock.Lock()
+	defer a.Srv.PluginsLock.Unlock()
+	if a.Srv.PluginsEnvironment == pluginsEnvironment {
+		a.Srv.PluginsEnvironment = nil
+	} else {
+		mlog.Warn("Another PluginsEnvironment detected while shutting down plugins.")
+	}
 }
 
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
@@ -314,7 +334,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 	}
 
 	if manifest == nil {
-		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
@@ -356,7 +376,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	}
 
 	if manifest == nil {
-		return model.NewAppError("DisablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("DisablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
@@ -400,6 +420,24 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	}
 
 	return resp, nil
+}
+
+// GetMarketplacePlugin returns plugin from marketplace-server
+func (a *App) GetMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.BaseMarketplacePlugin, *model.AppError) {
+	marketplaceClient, err := marketplace.NewClient(
+		*a.Config().PluginSettings.MarketplaceUrl,
+		a.HTTPService,
+	)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	filter := &model.MarketplacePluginFilter{Filter: request.Id}
+	plugin, err := marketplaceClient.GetPlugin(filter, request.Version)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return plugin, nil
 }
 
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
@@ -548,4 +586,34 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	a.Publish(message)
 
 	return nil
+}
+
+func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.AppError) {
+	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
+	if appErr != nil {
+		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
+	for _, path := range fileStorePaths {
+		if strings.HasSuffix(path, ".tar.gz") {
+			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
+			helper := &pluginSignaturePath{
+				pluginId:      id,
+				path:          path,
+				signaturePath: "",
+			}
+			pluginSignaturePathMap[id] = helper
+		}
+	}
+	for _, path := range fileStorePaths {
+		if strings.HasSuffix(path, ".sig") {
+			id := strings.TrimSuffix(filepath.Base(path), ".sig")
+			if val, ok := pluginSignaturePathMap[id]; !ok {
+				mlog.Error("Unknown signature", mlog.String("path", path))
+			} else {
+				val.signaturePath = path
+			}
+		}
+	}
+	return pluginSignaturePathMap, nil
 }

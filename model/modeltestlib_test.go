@@ -1,51 +1,34 @@
-// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
-	"runtime/debug"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func CheckInt(t *testing.T, got int, expected int) {
-	if got != expected {
-		debug.PrintStack()
-		t.Fatalf("Got: %v, Expected: %v", got, expected)
-	}
+	assert.Equal(t, got, expected)
 }
 
 func CheckInt64(t *testing.T, got int64, expected int64) {
-	if got != expected {
-		debug.PrintStack()
-		t.Fatalf("Got: %v, Expected: %v", got, expected)
-	}
+	assert.Equal(t, got, expected)
 }
 
 func CheckString(t *testing.T, got string, expected string) {
-	if got != expected {
-		debug.PrintStack()
-		t.Fatalf("Got: %v, Expected: %v", got, expected)
-	}
+	assert.Equal(t, got, expected)
 }
 
 func CheckTrue(t *testing.T, test bool) {
-	if !test {
-		debug.PrintStack()
-		t.Fatal("Expected true")
-	}
+	assert.True(t, test)
 }
 
 func CheckFalse(t *testing.T, test bool) {
-	if test {
-		debug.PrintStack()
-		t.Fatal("Expected true")
-	}
+	assert.False(t, test)
 }
 
 func CheckBool(t *testing.T, got bool, expected bool) {
-	if got != expected {
-		debug.PrintStack()
-		t.Fatalf("Got: %v, Expected: %v", got, expected)
-	}
+	assert.Equal(t, got, expected)
 }

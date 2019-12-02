@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestStatusStore(t *testing.T, ss store.Store) {
@@ -23,9 +23,8 @@ func testStatusStore(t *testing.T, ss store.Store) {
 
 	status.LastActivityAt = 10
 
-	if _, err := ss.Status().Get(status.UserId); err != nil {
-		t.Fatal(err)
-	}
+	_, err := ss.Status().Get(status.UserId)
+	require.Nil(t, err)
 
 	status2 := &model.Status{UserId: model.NewId(), Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	require.Nil(t, ss.Status().SaveOrUpdate(status2))
@@ -33,40 +32,28 @@ func testStatusStore(t *testing.T, ss store.Store) {
 	status3 := &model.Status{UserId: model.NewId(), Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	require.Nil(t, ss.Status().SaveOrUpdate(status3))
 
-	if statuses, err := ss.Status().GetByIds([]string{status.UserId, "junk"}); err != nil {
-		t.Fatal(err)
-	} else {
-		if len(statuses) != 1 {
-			t.Fatal("should only have 1 status")
-		}
-	}
+	statuses, err := ss.Status().GetByIds([]string{status.UserId, "junk"})
+	require.Nil(t, err)
+	require.Len(t, statuses, 1, "should only have 1 status")
 
-	if err := ss.Status().ResetAll(); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Status().ResetAll()
+	require.Nil(t, err)
 
-	if statusParameter, err := ss.Status().Get(status.UserId); err != nil {
-		t.Fatal(err)
-	} else {
-		if statusParameter.Status != model.STATUS_OFFLINE {
-			t.Fatal("should be offline")
-		}
-	}
+	statusParameter, err := ss.Status().Get(status.UserId)
+	require.Nil(t, err)
+	require.Equal(t, statusParameter.Status, model.STATUS_OFFLINE, "should be offline")
 
-	if err := ss.Status().UpdateLastActivityAt(status.UserId, 10); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Status().UpdateLastActivityAt(status.UserId, 10)
+	require.Nil(t, err)
 }
 
 func testActiveUserCount(t *testing.T, ss store.Store) {
 	status := &model.Status{UserId: model.NewId(), Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	require.Nil(t, ss.Status().SaveOrUpdate(status))
 
-	if count, err := ss.Status().GetTotalActiveUsersCount(); err != nil {
-		t.Fatal(err)
-	} else {
-		require.True(t, count > 0, "expected count > 0, got %d", count)
-	}
+	count, err := ss.Status().GetTotalActiveUsersCount()
+	require.Nil(t, err)
+	require.True(t, count > 0, "expected count > 0, got %d", count)
 }
 
 type ByUserId []*model.Status

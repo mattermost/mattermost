@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type mixedUnlinkedGroup struct {
@@ -155,13 +155,21 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	var status int
 	var newOrUpdatedGroup *model.Group
 
+	// Truncate display name if necessary
+	var displayName string
+	if len(ldapGroup.DisplayName) > model.GroupDisplayNameMaxLength {
+		displayName = ldapGroup.DisplayName[:model.GroupDisplayNameMaxLength]
+	} else {
+		displayName = ldapGroup.DisplayName
+	}
+
 	// Group has been previously linked
 	if group != nil {
 		if group.DeleteAt == 0 {
 			newOrUpdatedGroup = group
 		} else {
 			group.DeleteAt = 0
-			group.DisplayName = ldapGroup.DisplayName
+			group.DisplayName = displayName
 			group.RemoteId = ldapGroup.RemoteId
 			newOrUpdatedGroup, err = c.App.UpdateGroup(group)
 			if err != nil {
@@ -178,7 +186,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		// the LDAP group name with an appended duplicate-breaker.
 		newGroup := &model.Group{
 			Name:        model.NewId(),
-			DisplayName: ldapGroup.DisplayName,
+			DisplayName: displayName,
 			RemoteId:    ldapGroup.RemoteId,
 			Source:      model.GroupSourceLdap,
 		}

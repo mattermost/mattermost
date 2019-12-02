@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package mailservice
 
@@ -18,11 +18,23 @@ import (
 	"net/http"
 
 	"github.com/jaytaylor/html2text"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
+
+type mailData struct {
+	mimeTo        string
+	smtpTo        string
+	from          mail.Address
+	replyTo       mail.Address
+	subject       string
+	htmlBody      string
+	attachments   []*model.FileInfo
+	embeddedFiles map[string]io.Reader
+	mimeHeaders   map[string]string
+}
 
 // smtpClient is implemented by an smtp.Client. See https://golang.org/pkg/net/smtp/#Client.
 //
@@ -204,15 +216,29 @@ func TestConnection(config *model.Config) {
 	defer c.Close()
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *model.Config, enableComplianceFeatures bool) *model.AppError {
 	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
 	replyTo := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.ReplyToAddress}
 
-	return SendMailUsingConfigAdvanced(to, to, fromMail, replyTo, subject, htmlBody, nil, nil, nil, config, enableComplianceFeatures)
+	mail := mailData{
+		mimeTo:        to,
+		smtpTo:        to,
+		from:          fromMail,
+		replyTo:       replyTo,
+		subject:       subject,
+		htmlBody:      htmlBody,
+		embeddedFiles: embeddedFiles,
+	}
+
+	return sendMailUsingConfigAdvanced(mail, config, enableComplianceFeatures)
+}
+
+func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures)
 }
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients
-func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, embeddedFiles map[string]io.Reader, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComplianceFeatures bool) *model.AppError {
 	if len(*config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
@@ -235,34 +261,34 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, replyTo mail.Addre
 		return err
 	}
 
-	return SendMail(c, mimeTo, smtpTo, from, replyTo, subject, htmlBody, attachments, embeddedFiles, mimeHeaders, fileBackend, time.Now())
+	return SendMail(c, mail, fileBackend, time.Now())
 }
 
-func SendMail(c smtpClient, mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, embeddedFiles map[string]io.Reader, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
-	mlog.Debug("sending mail", mlog.String("to", smtpTo), mlog.String("subject", subject))
+func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
+	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
-	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
+	htmlMessage := "\r\n<html><body>" + mail.htmlBody + "</body></html>"
 
-	txtBody, err := html2text.FromString(htmlBody)
+	txtBody, err := html2text.FromString(mail.htmlBody)
 	if err != nil {
 		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
 		txtBody = ""
 	}
 
 	headers := map[string][]string{
-		"From":                      {from.String()},
-		"To":                        {mimeTo},
-		"Subject":                   {encodeRFC2047Word(subject)},
+		"From":                      {mail.from.String()},
+		"To":                        {mail.mimeTo},
+		"Subject":                   {encodeRFC2047Word(mail.subject)},
 		"Content-Transfer-Encoding": {"8bit"},
 		"Auto-Submitted":            {"auto-generated"},
 		"Precedence":                {"bulk"},
 	}
 
-	if len(replyTo.Address) > 0 {
-		headers["Reply-To"] = []string{replyTo.String()}
+	if len(mail.replyTo.Address) > 0 {
+		headers["Reply-To"] = []string{mail.replyTo.String()}
 	}
 
-	for k, v := range mimeHeaders {
+	for k, v := range mail.mimeHeaders {
 		headers[k] = []string{encodeRFC2047Word(v)}
 	}
 
@@ -272,11 +298,11 @@ func SendMail(c smtpClient, mimeTo, smtpTo string, from, replyTo mail.Address, s
 	m.SetBody("text/plain", txtBody)
 	m.AddAlternative("text/html", htmlMessage)
 
-	for name, reader := range embeddedFiles {
+	for name, reader := range mail.embeddedFiles {
 		m.EmbedReader(name, reader)
 	}
 
-	for _, fileInfo := range attachments {
+	for _, fileInfo := range mail.attachments {
 		bytes, err := fileBackend.ReadFile(fileInfo.Path)
 		if err != nil {
 			return err
@@ -290,11 +316,11 @@ func SendMail(c smtpClient, mimeTo, smtpTo string, from, replyTo mail.Address, s
 		}))
 	}
 
-	if err = c.Mail(from.Address); err != nil {
+	if err = c.Mail(mail.from.Address); err != nil {
 		return model.NewAppError("SendMail", "utils.mail.send_mail.from_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err = c.Rcpt(smtpTo); err != nil {
+	if err = c.Rcpt(mail.smtpTo); err != nil {
 		return model.NewAppError("SendMail", "utils.mail.send_mail.to_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

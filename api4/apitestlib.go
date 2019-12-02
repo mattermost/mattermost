@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -9,23 +9,22 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/web"
-	"github.com/mattermost/mattermost-server/wsapi"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/web"
+	"github.com/mattermost/mattermost-server/v5/wsapi"
 
 	s3 "github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/credentials"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -239,6 +238,10 @@ func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.Ap
 
 func (me *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, *model.AppError) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.SystemAdminClient.AuthToken)
+}
+
+func (me *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), client.AuthToken)
 }
 
 func (me *TestHelper) CreateUser() *model.User {
@@ -560,57 +563,36 @@ func GenerateTestId() string {
 func CheckUserSanitization(t *testing.T, user *model.User) {
 	t.Helper()
 
-	if user.Password != "" {
-		t.Fatal("password wasn't blank")
-	}
-
-	if user.AuthData != nil && *user.AuthData != "" {
-		t.Fatal("auth data wasn't blank")
-	}
-
-	if user.MfaSecret != "" {
-		t.Fatal("mfa secret wasn't blank")
-	}
+	require.Equal(t, "", user.Password, "password wasn't blank")
+	require.Empty(t, user.AuthData, "auth data wasn't blank")
+	require.Equal(t, "", user.MfaSecret, "mfa secret wasn't blank")
 }
 
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	t.Helper()
 
-	if !reflect.ValueOf(data).IsNil() {
-		t.Fatal("etag data was not nil")
-	}
-
-	if resp.StatusCode != http.StatusNotModified {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusNotModified))
-		t.Fatal("wrong status code for etag")
-	}
+	require.Empty(t, data)
+	require.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
 }
 
 func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
 	if resp.Error != nil {
-		t.Fatalf("Expected no error, got %q", resp.Error.Error())
+		require.FailNow(t, "Expected no error, got %q", resp.Error.Error())
 	}
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
 	t.Helper()
 
-	switch {
-	case resp == nil:
-		t.Fatalf("Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, expectError)
-
-	case expectError && resp.Error == nil:
-		t.Fatalf("Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
-
-	case !expectError && resp.Error != nil:
-		t.Fatalf("Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
-
-	case resp.StatusCode != expectedStatus:
-		t.Fatalf("Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
+	require.NotNilf(t, resp, "Unexpected nil response, expected http:%v, expectError:%v", expectedStatus, expectError)
+	if expectError {
+		require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
+	} else {
+		require.Nil(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
 	}
+	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
 }
 
 func CheckOKStatus(t *testing.T, resp *model.Response) {
@@ -658,19 +640,20 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	checkHTTPStatus(t, resp, http.StatusInternalServerError, true)
 }
 
+func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusServiceUnavailable, true)
+}
+
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
-	if resp.Error == nil {
-		t.Fatal("should have errored with message:" + errorId)
-		return
-	}
+	require.NotNilf(t, resp.Error, "should have errored with message: %s", errorId)
+	require.Equalf(t, resp.Error.Id, errorId, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
+}
 
-	if resp.Error.Id != errorId {
-		t.Log("actual: " + resp.Error.Id)
-		t.Log("expected: " + errorId)
-		t.Fatal("incorrect error message")
-	}
+func CheckStartsWith(t *testing.T, value, prefix, message string) {
+	require.True(t, strings.HasPrefix(value, prefix), message, value)
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.

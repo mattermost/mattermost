@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -167,7 +167,7 @@ func UserFromBot(b *Bot) *User {
 	return &User{
 		Id:        b.UserId,
 		Username:  b.Username,
-		Email:     fmt.Sprintf("%s@localhost", strings.ToLower(b.Username)),
+		Email:     NormalizeEmail(fmt.Sprintf("%s@localhost", b.Username)),
 		FirstName: b.DisplayName,
 		Roles:     SYSTEM_USER_ROLE_ID,
 	}
@@ -217,4 +217,16 @@ func (l *BotList) Etag() string {
 // The errors must the same in both cases to avoid leaking that a user is a bot.
 func MakeBotNotFoundError(userId string) *AppError {
 	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]interface{}{"user_id": userId}, "", http.StatusNotFound)
+}
+
+func IsBotDMChannel(channel *Channel, botUserID string) bool {
+	if channel.Type != CHANNEL_DIRECT {
+		return false
+	}
+
+	if !strings.HasPrefix(channel.Name, botUserID+"__") && !strings.HasSuffix(channel.Name, "__"+botUserID) {
+		return false
+	}
+
+	return true
 }

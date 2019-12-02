@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitPost() {
@@ -25,9 +25,10 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.ApiSessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
 
-	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequired(searchPosts)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequiredDisableWhenBusy(searchPosts)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.ApiSessionRequired(patchPost)).Methods("PUT")
+	api.BaseRoutes.PostForUser.Handle("/set_unread", api.ApiSessionRequired(setPostUnread)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/pin", api.ApiSessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.ApiSessionRequired(unpinPost)).Methods("POST")
 }
@@ -384,8 +385,11 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-
-	list, err := c.App.GetPostThread(c.Params.PostId)
+	skipFetchThreads := false
+	if r.URL.Query().Get("fetchThreads") == "false" {
+		skipFetchThreads = true
+	}
+	list, err := c.App.GetPostThread(c.Params.PostId, skipFetchThreads)
 	if err != nil {
 		c.Err = err
 		return
@@ -472,7 +476,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeamForUser(terms, c.App.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset), page, perPage)
+	results, err := c.App.SearchPostsInTeamForUser(terms, c.App.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
@@ -586,6 +590,28 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(patchedPost.ToJson()))
+}
+
+func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+	if c.App.Session.UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	state, err := c.App.MarkChannelAsUnreadFromPost(c.Params.PostId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	w.Write([]byte(state.ToJson()))
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinned bool) {

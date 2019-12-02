@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestCreateBot(t *testing.T) {
@@ -44,6 +44,20 @@ func TestCreateBot(t *testing.T) {
 			})
 			require.NotNil(t, err)
 			require.Equal(t, "model.bot.is_valid.description.app_error", err.Id)
+		})
+
+		t.Run("username contains . character", func(t *testing.T) {
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			bot, err := th.App.CreateBot(&model.Bot{
+				Username:    "username.",
+				Description: "a bot",
+				OwnerId:     th.BasicUser.Id,
+			})
+			require.NotNil(t, err)
+			require.Nil(t, bot)
+			require.Equal(t, "model.user.is_valid.email.app_error", err.Id)
 		})
 	})
 
@@ -157,6 +171,9 @@ func TestPatchBot(t *testing.T) {
 
 		patchedBot, err := th.App.PatchBot(createdBot.UserId, botPatch)
 		require.Nil(t, err)
+
+		// patchedBot should create a new .UpdateAt time
+		require.NotEqual(t, createdBot.UpdateAt, patchedBot.UpdateAt)
 
 		createdBot.Username = "username2"
 		createdBot.DisplayName = "updated bot"

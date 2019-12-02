@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -9,10 +9,10 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlFileInfoStore struct {
@@ -266,10 +266,12 @@ func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int6
 	if err != nil {
 		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
-	rowsAffected, err1 := sqlResult.RowsAffected()
-	if err1 != nil {
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
 		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
+
 	return rowsAffected, nil
 }
 
@@ -281,9 +283,10 @@ func (s SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.Ap
 		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteByUser", "store.sql_file_info.PermanentDeleteByUser.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
 
-	rowsAffected, err1 := sqlResult.RowsAffected()
-	if err1 != nil {
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
 		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteByUser", "store.sql_file_info.PermanentDeleteByUser.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
+
 	return rowsAffected, nil
 }

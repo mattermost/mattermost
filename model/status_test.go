@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -16,22 +16,10 @@ func TestStatus(t *testing.T) {
 	json := status.ToJson()
 	status2 := StatusFromJson(strings.NewReader(json))
 
-	if status.UserId != status2.UserId {
-		t.Fatal("UserId should have matched")
-	}
-
-	if status.Status != status2.Status {
-		t.Fatal("Status should have matched")
-	}
-
-	if status.LastActivityAt != status2.LastActivityAt {
-		t.Fatal("LastActivityAt should have matched")
-	}
-
-	if status.Manual != status2.Manual {
-		t.Fatal("Manual should have matched")
-	}
-
+	assert.Equal(t, status.UserId, status2.UserId, "UserId should have matched")
+	assert.Equal(t, status.Status, status2.Status, "Status should have matched")
+	assert.Equal(t, status.LastActivityAt, status2.LastActivityAt, "LastActivityAt should have matched")
+	assert.Equal(t, status.Manual, status2.Manual, "Manual should have matched")
 	assert.Equal(t, "", status2.ActiveChannel)
 
 	json = status.ToClusterJson()
@@ -70,10 +58,6 @@ func TestStatusListFromJson(t *testing.T) {
 	toDec := strings.NewReader(jsonStream)
 	statusesFromJson := StatusListFromJson(toDec)
 
-	if statusesFromJson[0].UserId != dat[0]["user_id"] {
-		t.Fatal("UserId should be equal")
-	}
-	if statusesFromJson[1].UserId != dat[1]["user_id"] {
-		t.Fatal("UserId should be equal")
-	}
+	assert.Equal(t, statusesFromJson[0].UserId, dat[0]["user_id"], "UserId should be equal")
+	assert.Equal(t, statusesFromJson[1].UserId, dat[1]["user_id"], "UserId should be equal")
 }

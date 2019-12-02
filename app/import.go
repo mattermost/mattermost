@@ -1,25 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func stopOnError(err LineImportWorkerError) bool {
 	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
-		mlog.Warn(fmt.Sprintf("Large image import error: %s", err.Error.Error()))
+		mlog.Warn("Large image import error", mlog.Err(err.Error))
 		return false
 	}
 	return true

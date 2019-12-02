@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package human
 
@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 func ParseLogMessage(msg string) LogEntry {
@@ -41,7 +41,7 @@ func parseLogMessage(msg string) (result LogEntry, err error) {
 	} else {
 		d, ok := token.(json.Delim)
 		if !ok || d != '{' {
-			return result, errors.New(fmt.Sprintf("input is not a JSON object, found: %v", token))
+			return result, fmt.Errorf("input is not a JSON object, found: %v", token)
 		}
 	}
 
@@ -110,7 +110,7 @@ func parseLogMessage(msg string) (result LogEntry, err error) {
 	} else {
 		d, ok := token.(json.Delim)
 		if !ok || d != '}' {
-			return result, errors.New(fmt.Sprintf("failed to read '}', read: %v", token))
+			return result, fmt.Errorf("failed to read '}', read: %v", token)
 		}
 	}
 

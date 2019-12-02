@@ -1,14 +1,18 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
 	return a.Srv.Store.Group().Get(id)
+}
+
+func (a *App) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	return a.Srv.Store.Group().GetByName(name)
 }
 
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
@@ -17,6 +21,10 @@ func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource)
 
 func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
 	return a.Srv.Store.Group().GetAllBySource(groupSource)
+}
+
+func (a *App) GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError) {
+	return a.Srv.Store.Group().GetByUser(userId)
 }
 
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {

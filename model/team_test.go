@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTeamJson(t *testing.T) {
@@ -13,56 +16,46 @@ func TestTeamJson(t *testing.T) {
 	json := o.ToJson()
 	ro := TeamFromJson(strings.NewReader(json))
 
-	if o.Id != ro.Id {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, o.Id, ro.Id, "Ids do not match")
 }
 
 func TestTeamIsValid(t *testing.T) {
 	o := Team{}
 
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err := o.IsValid()
+	require.NotNil(t, err, "should be invalid")
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err = o.IsValid()
+	require.NotNil(t, err, "should be invalid")
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err = o.IsValid()
+	require.NotNil(t, err, "should be invalid")
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err = o.IsValid()
+	require.NotNil(t, err, "should be invalid")
 
 	o.Email = strings.Repeat("01234567890", 20)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err = o.IsValid()
+	require.NotNil(t, err, "should be invalid")
 
 	o.Email = "corey+test@hulen.com"
 	o.DisplayName = strings.Repeat("01234567890", 20)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err = o.IsValid()
+	require.NotNil(t, err, "should be invalid")
 
 	o.DisplayName = "1234"
 	o.Name = "ZZZZZZZ"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	err = o.IsValid()
+	require.NotNil(t, err, "should be invalid")
 
 	o.Name = "zzzzz"
 	o.Type = TEAM_OPEN
 	o.InviteId = NewId()
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	err = o.IsValid()
+	require.Nil(t, err, err)
 }
 
 func TestTeamPreSave(t *testing.T) {
@@ -95,9 +88,8 @@ var domains = []struct {
 
 func TestValidTeamName(t *testing.T) {
 	for _, v := range domains {
-		if IsValidTeamName(v.value) != v.expected {
-			t.Errorf("expect %v as %v", v.value, v.expected)
-		}
+		actual := IsValidTeamName(v.value)
+		assert.Equal(t, v.expected, actual)
 	}
 }
 
@@ -112,24 +104,20 @@ var tReservedDomains = []struct {
 
 func TestReservedTeamName(t *testing.T) {
 	for _, v := range tReservedDomains {
-		if IsReservedTeamName(v.value) != v.expected {
-			t.Errorf("expect %v as %v", v.value, v.expected)
-		}
+		actual := IsReservedTeamName(v.value)
+		assert.Equal(t, v.expected, actual)
 	}
 }
 
 func TestCleanTeamName(t *testing.T) {
-	if CleanTeamName("Jimbo's Admin") != "jimbos-admin" {
-		t.Fatal("didn't clean name properly")
-	}
+	actual := CleanTeamName("Jimbo's Admin")
+	require.Equal(t, "jimbos-admin", actual, "didn't clean name properly")
 
-	if CleanTeamName("Admin Really cool") != "really-cool" {
-		t.Fatal("didn't clean name properly")
-	}
+	actual = CleanTeamName("Admin Really cool")
+	require.Equal(t, "really-cool", actual, "didn't clean name properly")
 
-	if CleanTeamName("super-duper-guys") != "super-duper-guys" {
-		t.Fatal("didn't clean name properly")
-	}
+	actual = CleanTeamName("super-duper-guys")
+	require.Equal(t, "super-duper-guys", actual, "didn't clean name properly")
 }
 
 func TestTeamPatch(t *testing.T) {
@@ -152,22 +140,10 @@ func TestTeamPatch(t *testing.T) {
 	o := Team{Id: NewId()}
 	o.Patch(p)
 
-	if *p.DisplayName != o.DisplayName {
-		t.Fatal("DisplayName did not update")
-	}
-	if *p.Description != o.Description {
-		t.Fatal("Description did not update")
-	}
-	if *p.CompanyName != o.CompanyName {
-		t.Fatal("CompanyName did not update")
-	}
-	if *p.AllowedDomains != o.AllowedDomains {
-		t.Fatal("AllowedDomains did not update")
-	}
-	if *p.AllowOpenInvite != o.AllowOpenInvite {
-		t.Fatal("AllowOpenInvite did not update")
-	}
-	if *p.GroupConstrained != *o.GroupConstrained {
-		t.Fatalf("expected %v got %v", *p.GroupConstrained, *o.GroupConstrained)
-	}
+	require.Equal(t, *p.DisplayName, o.DisplayName, "DisplayName did not update")
+	require.Equal(t, *p.Description, o.Description, "Description did not update")
+	require.Equal(t, *p.CompanyName, o.CompanyName, "CompanyName did not update")
+	require.Equal(t, *p.AllowedDomains, o.AllowedDomains, "AllowedDomains did not update")
+	require.Equal(t, *p.AllowOpenInvite, o.AllowOpenInvite, "AllowOpenInvite did not update")
+	require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
 }

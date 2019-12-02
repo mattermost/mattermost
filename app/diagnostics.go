@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,9 +10,9 @@ import (
 
 	"github.com/segmentio/analytics-go"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
@@ -47,10 +47,12 @@ const (
 	TRACK_CONFIG_DATA_RETENTION     = "config_data_retention"
 	TRACK_CONFIG_MESSAGE_EXPORT     = "config_message_export"
 	TRACK_CONFIG_DISPLAY            = "config_display"
+	TRACK_CONFIG_GUEST_ACCOUNTS     = "config_guest_accounts"
 	TRACK_CONFIG_IMAGE_PROXY        = "config_image_proxy"
 	TRACK_PERMISSIONS_GENERAL       = "permissions_general"
 	TRACK_PERMISSIONS_SYSTEM_SCHEME = "permissions_system_scheme"
 	TRACK_PERMISSIONS_TEAM_SCHEMES  = "permissions_team_schemes"
+	TRACK_ELASTICSEARCH             = "elasticsearch"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -71,6 +73,7 @@ func (a *App) sendDailyDiagnostics(override bool) {
 		a.trackPlugins()
 		a.trackServer()
 		a.trackPermissions()
+		a.trackElasticsearch()
 	}
 }
 
@@ -147,7 +150,7 @@ func (a *App) trackActivity() {
 		inactiveUserCount = iucr
 	}
 
-	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount(false)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
@@ -296,10 +299,10 @@ func (a *App) trackConfig() {
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
-		"experimental_ldap_group_sync":                            *cfg.ServiceSettings.ExperimentalLdapGroupSync,
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
+		"enable_latex":                                            *cfg.ServiceSettings.EnableLatex,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -487,6 +490,7 @@ func (a *App) trackConfig() {
 		"isempty_group_filter":                   isDefault(*cfg.LdapSettings.GroupFilter, ""),
 		"isdefault_group_display_name_attribute": isDefault(*cfg.LdapSettings.GroupDisplayNameAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE),
 		"isdefault_group_id_attribute":           isDefault(*cfg.LdapSettings.GroupIdAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE),
+		"isempty_guest_filter":                   isDefault(*cfg.LdapSettings.GuestFilter, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
@@ -510,6 +514,7 @@ func (a *App) trackConfig() {
 		"isdefault_scoping_idp_provider_id":   isDefault(*cfg.SamlSettings.ScopingIDPProviderId, ""),
 		"isdefault_scoping_idp_name":          isDefault(*cfg.SamlSettings.ScopingIDPName, ""),
 		"isdefault_id_attribute":              isDefault(*cfg.SamlSettings.IdAttribute, model.SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE),
+		"isdefault_guest_attribute":           isDefault(*cfg.SamlSettings.GuestAttribute, model.SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE),
 		"isdefault_first_name_attribute":      isDefault(*cfg.SamlSettings.FirstNameAttribute, model.SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
 		"isdefault_last_name_attribute":       isDefault(*cfg.SamlSettings.LastNameAttribute, model.SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
 		"isdefault_email_attribute":           isDefault(*cfg.SamlSettings.EmailAttribute, model.SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
@@ -629,6 +634,13 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomUrlSchemes) != 0,
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_GUEST_ACCOUNTS, map[string]interface{}{
+		"enable":                                 *cfg.GuestAccountsSettings.Enable,
+		"allow_email_accounts":                   *cfg.GuestAccountsSettings.AllowEmailAccounts,
+		"enforce_multifactor_authentication":     *cfg.GuestAccountsSettings.EnforceMultifactorAuthentication,
+		"isdefault_restrict_creation_to_domains": isDefault(*cfg.GuestAccountsSettings.RestrictCreationToDomains, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_IMAGE_PROXY, map[string]interface{}{
@@ -850,4 +862,14 @@ func (a *App) trackPermissions() {
 			})
 		}
 	}
+}
+
+func (a *App) trackElasticsearch() {
+	data := map[string]interface{}{}
+
+	if a.Elasticsearch != nil && a.Elasticsearch.GetVersion() != 0 {
+		data["elasticsearch_server_version"] = a.Elasticsearch.GetVersion()
+	}
+
+	a.SendDiagnostic(TRACK_ELASTICSEARCH, data)
 }

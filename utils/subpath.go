@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -17,9 +17,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 // getSubpathScript renders the inline script that defines window.publicPath to change how webpack loads assets.
@@ -145,6 +145,12 @@ func UpdateAssetsSubpathFromConfig(config *model.Config) error {
 	// updates the assets and must be configured separately.
 	if model.BuildNumber == "dev" {
 		mlog.Debug("Skipping update to assets subpath since dev build")
+		return nil
+	}
+
+	// Similarly, don't rewrite during a CI build, when the assets may not even be present.
+	if os.Getenv("IS_CI") == "true" {
+		mlog.Debug("Skipping update to assets subpath since CI build")
 		return nil
 	}
 

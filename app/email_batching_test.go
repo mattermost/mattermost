@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,11 +64,11 @@ func TestHandleNewNotifications(t *testing.T) {
 	job.Add(&model.User{Id: id1}, &model.Post{UserId: id1, Message: "test4"}, &model.Team{Name: "team"})
 	job.Add(&model.User{Id: id2}, &model.Post{UserId: id1, Message: "test5"}, &model.Team{Name: "team"})
 	job.handleNewNotifications()
-	assert.Equal(t, job.pendingNotifications[id1][0].post.Message, "test1", "incorrect order of received posts for user1");
-	assert.Equal(t, job.pendingNotifications[id1][1].post.Message, "test2", "incorrect order of received posts for user1");
-	assert.Equal(t, job.pendingNotifications[id1][2].post.Message, "test4", "incorrect order of received posts for user1");
-	assert.Equal(t, job.pendingNotifications[id2][0].post.Message, "test3", "incorrect order of received posts for user2");
-	assert.Equal(t, job.pendingNotifications[id2][1].post.Message, "test5", "incorrect order of received posts for user2");
+	assert.Equal(t, job.pendingNotifications[id1][0].post.Message, "test1", "incorrect order of received posts for user1")
+	assert.Equal(t, job.pendingNotifications[id1][1].post.Message, "test2", "incorrect order of received posts for user1")
+	assert.Equal(t, job.pendingNotifications[id1][2].post.Message, "test4", "incorrect order of received posts for user1")
+	assert.Equal(t, job.pendingNotifications[id2][0].post.Message, "test3", "incorrect order of received posts for user2")
+	assert.Equal(t, job.pendingNotifications[id2][1].post.Message, "test5", "incorrect order of received posts for user2")
 }
 
 func TestCheckPendingNotifications(t *testing.T) {

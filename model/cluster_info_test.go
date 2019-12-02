@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClusterInfoJson(t *testing.T) {
@@ -13,9 +15,7 @@ func TestClusterInfoJson(t *testing.T) {
 	json := cluster.ToJson()
 	result := ClusterInfoFromJson(strings.NewReader(json))
 
-	if cluster.IpAddress != result.IpAddress {
-		t.Fatal("Ids do not match")
-	}
+	assert.Equal(t, cluster.IpAddress, result.IpAddress, "Ids do not match")
 }
 
 func TestClusterInfosJson(t *testing.T) {
@@ -25,7 +25,5 @@ func TestClusterInfosJson(t *testing.T) {
 	json := ClusterInfosToJson(clusterInfos)
 	result := ClusterInfosFromJson(strings.NewReader(json))
 
-	if clusterInfos[0].IpAddress != result[0].IpAddress {
-		t.Fatal("Ids do not match")
-	}
+	assert.Equal(t, clusterInfos[0].IpAddress, result[0].IpAddress, "Ids do not match")
 }
