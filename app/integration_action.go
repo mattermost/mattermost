@@ -180,9 +180,11 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	upstreamRequest.UserName = user.Username
 
 	tr, ok := <-teamChan
-	if ok && tr.Err != nil {
-		return "", tr.Err
-	} else if ok {
+	if ok {
+		if tr.Err != nil {
+			return "", tr.Err
+		}
+
 		team := tr.Data.(*model.Team)
 		upstreamRequest.TeamName = team.Name
 	}
