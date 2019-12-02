@@ -10,8 +10,8 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - errcheck
     - deadcode
+    - errcheck
     - goconst
     - gocritic
     - gofmt
