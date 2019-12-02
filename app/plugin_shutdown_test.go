@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
@@ -19,7 +22,7 @@ func TestPluginShutdownTest(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/v5/plugin"
 			)
 
 			type MyPlugin struct {
@@ -34,7 +37,7 @@ func TestPluginShutdownTest(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/v5/plugin"
 			)
 
 			type MyPlugin struct {

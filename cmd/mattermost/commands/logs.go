@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/mattermost/mattermost-server/mlog/human"
+	"github.com/mattermost/mattermost-server/v5/mlog/human"
 	"github.com/spf13/cobra"
 )
 
