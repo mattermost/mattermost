@@ -1513,6 +1513,10 @@
     "translation": "Uitgaande webhooks zijn uitgeschakeld door de beheerder."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "Er deed zich een fout voor tijdens het verwijderen van de OAuth2 App"
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Missing file in multipart/form request"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,6 +1715,14 @@
     "translation": "Push Notifications are disabled on this server."
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "You've received a new message."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "An error occurred fetching the ID-loaded push notification"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "An error occurred sending the receipt delivery to the push notification service"
   },
@@ -1859,8 +1875,16 @@
     "translation": "Unable to open the Slack export zip file.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "User not found"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
     "id": "api.team.add_members.error",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v was verwijdert van het kanaal."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -3471,6 +3503,10 @@
     "translation": "Bericht kan niet opgehaald worden"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Er deed zich een fout voor tijdens het verwijderen van de OAuth2 App"
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Plugins have been disabled. Please check your logs for details."
   },
@@ -3493,6 +3529,10 @@
   {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Bericht kan niet opgehaald worden"
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "An error occurred while getting the public key from the store."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3531,12 +3571,24 @@
     "translation": "Marketplace has been disabled. Please check your logs for details."
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "Failed to get plugins from the marketplace server."
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin."
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "Failed to marshal marketplace plugins."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3559,8 +3611,16 @@
     "translation": "Unable to restart plugin on upgrade."
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Unable to store the plugin to the configured file store."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Unable to store the plugin signature to the configured file store."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
@@ -3577,6 +3637,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "Unable to generate plugin webapp bundle."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Er is een fout opgetreden tijdens het deelnemen aan het kanaal."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Er is een fout opgetreden tijdens het deelnemen aan het kanaal."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3893,6 +3961,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
     "id": "ent.ldap.app_error",
@@ -5611,6 +5683,10 @@
     "translation": "Kan leden niet toevoegen aan het directe kanaal"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Kan de kanalen niet ophalen"
   },
@@ -5945,6 +6021,10 @@
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "De laatst bekeken tijd kon niet worden bijgewerkt"
+  },
+  {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread"
   },
   {
     "id": "store.sql_channel.update_member.app_error",

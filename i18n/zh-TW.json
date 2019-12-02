@@ -764,7 +764,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
+    "translation": "此頻道為群組管理。該使用者不屬於同步此頻道的群組。"
   },
   {
     "id": "api.command_invite.hint",
@@ -1342,7 +1342,7 @@
   },
   {
     "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
-    "translation": "Invalid/Missing channel ID or Team ID."
+    "translation": "無效或缺少頻道或團隊 ID。"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1513,6 +1513,10 @@
     "translation": "外寄 Webhook 已被系統管理員停用。"
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "開啟公鑰檔案時發生錯誤"
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "下載模組時錯誤。"
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "multipart/form 要求缺少檔案"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "無法驗證模組簽章。"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,6 +1715,14 @@
     "translation": "此伺服器停用推播通知。"
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "收到新訊息。"
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "擷取 ID Loaded Push Notification 時發生錯誤"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "傳送訊息至推播服務時發生錯誤"
   },
@@ -1859,8 +1875,16 @@
     "translation": "無法開啟 Slack 匯出 zip 檔。\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "找不到使用者"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "此伺服器沒有設定或不支援 ID Loaded Push Notification。"
   },
   {
     "id": "api.team.add_members.error",
@@ -1868,7 +1892,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
+    "translation": "此團隊為群組管理。該使用者不屬於同步此團隊的群組。"
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v 已從團隊中移除。"
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "只針對私人團隊的搜尋沒有實做分頁。"
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "只針對公開團隊的搜尋沒有實做分頁。"
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -2632,7 +2664,7 @@
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+    "translation": "訪客存取未被啟用，無法啟用訪客帳號。"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -3471,6 +3503,10 @@
     "translation": "無法停用模組"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "刪除公鑰檔案時發生錯誤"
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "模組已被停用。詳情請看系統紀錄。"
   },
@@ -3495,6 +3531,10 @@
     "translation": "無法取得啟用的模組"
   },
   {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "從儲存空間取得公鑰時發生錯誤。"
+  },
+  {
     "id": "app.plugin.get_statuses.app_error",
     "translation": "無法取得模組狀態。"
   },
@@ -3516,7 +3556,7 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Plugin version could not be parsed"
+    "translation": "無法解析模組版本"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3531,12 +3571,24 @@
     "translation": "市集已被停用。詳情請看系統紀錄。"
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "無法解碼市集模組請求。"
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "無法從市集伺服器取得模組。"
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "找不到模組。"
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "無法封送處理市集模組。"
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "無法修改 saml 檔案。"
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3559,8 +3611,16 @@
     "translation": "升級時無法重新啟動模組。"
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "無法解碼 base64 簽章。"
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "無法將模組儲存至設定的檔案儲存空間。"
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "無法將模組簽章儲存至設定的檔案儲存空間。"
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
@@ -3577,6 +3637,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "無法產生模組的網頁應用程式套件。"
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "讀取檔案時發生錯誤。"
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "儲存檔案時發生錯誤。"
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3895,6 +3963,10 @@
     "translation": "Elasticsearch 伺服器網址或使用者名稱有所變更。請重新輸入 Elasticsearch 密碼以測試連線。"
   },
   {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "授權不支援 ID Loaded Push Notification。"
+  },
+  {
     "id": "ent.ldap.app_error",
     "translation": "LDAP 介面為 nil"
   },
@@ -3968,7 +4040,7 @@
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": "無效的 AD/LDAP Filter"
+    "translation": "無效的 AD/LDAP 訪客過濾條件"
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -4728,7 +4800,7 @@
   },
   {
     "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
-    "translation": "Invalid Canonical Algorithm."
+    "translation": "無效的標準演算法。"
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
@@ -4736,7 +4808,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
+    "translation": "無效的訪客屬性。必須為此格式：'欄位=值'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4760,7 +4832,7 @@
   },
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
-    "translation": "Invalid Signature Algorithm."
+    "translation": "無效的簽章演算法。"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -5164,11 +5236,11 @@
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+    "translation": "無效的舊值，當操作不是不可部分完成時不該設定。"
   },
   {
     "id": "model.plugin_kvset_options.serialize_value.app_error",
-    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
+    "translation": "無法還原序列化。EncodeJSON: {{.EncodeJSON}}。"
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5611,6 +5683,10 @@
     "translation": "更新頻道成員時失敗"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "無法計算自給定日期以來的訊息"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "無法刪除頻道"
   },
@@ -5947,6 +6023,10 @@
     "translation": "無法更新最後瀏覽時間"
   },
   {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "無法將頻道標為尚未閱讀"
+  },
+  {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "更新頻道成員時遇到錯誤"
   },
@@ -6144,7 +6224,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
+    "translation": "無法移除群組成員 \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -7168,11 +7248,11 @@
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Unable to get the list of deactivate guests ids"
+    "translation": "無法取得停用訪客的 ID 列表"
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "無法停用模組"
+    "translation": "無法停用訪客"
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
@@ -7504,11 +7584,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "Mattermost 不再支援此瀏覽器"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "Mattermost 不再支援瀏覽器的這個版本"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",

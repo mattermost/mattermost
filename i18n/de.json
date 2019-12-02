@@ -1513,6 +1513,10 @@
     "translation": "Ausgehende Webhooks wurden vom Systemadministrator deaktiviert."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "Es ist ein Fehler beim Löschen des Zertifikates aufgetreten."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Es ist ein Fehler beim Herunterladen des Plugins aufgetreten."
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Fehlende Datei in multipart/form-Anfrage"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,6 +1715,14 @@
     "translation": "Push-Benachrichtigungen sind auf diesem Server deaktiviert."
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "You've received a new message."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "An error occurred fetching the ID-loaded push notification"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "Es ist ein Fehler beim Senden der Quittungslieferung an den Push-Benachrichtigungsdienst aufgetreten."
   },
@@ -1859,8 +1875,16 @@
     "translation": "Konnte Slack-Export ZIP-Datei nicht öffnen.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Benutzer nicht gefunden"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
     "id": "api.team.add_members.error",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v wurde aus dem Team entfernt."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -3471,6 +3503,10 @@
     "translation": "Konnte Plugin nicht deaktivieren"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Es ist ein Fehler beim Löschen des Zertifikates aufgetreten."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Plugins wurden deaktiviert. Bitte prüfen Sie ihre Logs für Details."
   },
@@ -3493,6 +3529,10 @@
   {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Konnte aktive Plugins nicht abrufen."
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "An error occurred while getting the public key from the store."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3531,12 +3571,24 @@
     "translation": "Marktplatz wurde deaktiviert. Bitte prüfen Sie ihre Logs für Details."
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "Fehler beim Abrufen der Plugins vom Marktplatz-Server."
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin."
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "Fehler beim Anordnen von Marktplatz-Plugins."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3559,7 +3611,15 @@
     "translation": "Konnte das Plugin kann beim Upgrade nicht neu starten."
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
+    "translation": "Konnte das Plugin nicht im konfigurierten Dateispeicher abspeichern."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
     "translation": "Konnte das Plugin nicht im konfigurierten Dateispeicher abspeichern."
   },
   {
@@ -3577,6 +3637,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "Konnte Plugin-Webapp-Bundle nicht generieren."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Es ist ein Fehler beim Verlassen des Kanals aufgetreten."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Es ist ein Fehler beim Verlassen des Kanals aufgetreten."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3893,6 +3961,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "Elasticsearch-Server-URL oder -Benutzername hat sich geändert. Bitte geben Sie das Elasticsearch-Passwort erneut ein, um die Verbindung zu testen."
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
     "id": "ent.ldap.app_error",
@@ -5611,6 +5683,10 @@
     "translation": "Fehler beim Aktualisieren des Kanalmitglieds."
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Konnte den Kanal nicht löschen."
   },
@@ -5945,6 +6021,10 @@
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "Konnte den Zeitpunkt der letzten Betrachtung nicht aktualisieren."
+  },
+  {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread"
   },
   {
     "id": "store.sql_channel.update_member.app_error",

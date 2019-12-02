@@ -1513,6 +1513,10 @@
     "translation": "传出的 webhooks 已被系统管理员禁用。"
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "删除证书时遇到错误。"
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "下载插件时遇到错误。"
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "multipart/form 请求缺少文件"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,6 +1715,14 @@
     "translation": "此服务器已停用推送。"
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "You've received a new message."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "An error occurred fetching the ID-loaded push notification"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "发送接收标记到推送服务出错"
   },
@@ -1859,8 +1875,16 @@
     "translation": "无法打开 Slack 导出的 zip 文件。\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "未找到用户"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
     "id": "api.team.add_members.error",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v 已移出团队。"
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -3471,6 +3503,10 @@
     "translation": "无法停用插件"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "删除证书时遇到错误。"
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "日志已停用。请检查您的日志了解详情。"
   },
@@ -3493,6 +3529,10 @@
   {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "无法获取已启动的插件"
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "An error occurred while getting the public key from the store."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3531,12 +3571,24 @@
     "translation": "集市已停用。请检查您的日志了解详情。"
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "从集市服务器获取插件失败。"
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin."
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "封装集市插件失败。"
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3559,7 +3611,15 @@
     "translation": "无法升级时重启插件。"
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
+    "translation": "无法储存插件到配置的文件储存。"
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
     "translation": "无法储存插件到配置的文件储存。"
   },
   {
@@ -3577,6 +3637,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "无法生成插件应用包。"
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "离开频道时发生错误。"
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "离开频道时发生错误。"
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3893,6 +3961,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "Elasticsearch 服务端网址或用户名已变更。请重新输入 Elasticsearch 密码测试连接。"
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
     "id": "ent.ldap.app_error",
@@ -5611,6 +5683,10 @@
     "translation": "更新频道成员失败"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "无法删除频道"
   },
@@ -5945,6 +6021,10 @@
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "无法能更新最后查看时间"
+  },
+  {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread"
   },
   {
     "id": "store.sql_channel.update_member.app_error",

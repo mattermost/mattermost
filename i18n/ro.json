@@ -764,7 +764,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
+    "translation": "Acest canal este gestionat de grupuri.  Acest utilizator nu face parte dintr-un grup sincronizat cu acest canal."
   },
   {
     "id": "api.command_invite.hint",
@@ -1342,7 +1342,7 @@
   },
   {
     "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
-    "translation": "Invalid/Missing channel ID or Team ID."
+    "translation": "ID-ul canalului invalid/lipsește sau ID-ul echipei."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1513,6 +1513,10 @@
     "translation": "Ieşire webhooks au fost dezactivate de sistem admin."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "A apărut o eroare la deschiderea fișierului cu cheie publică."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "A apărut o eroare la descărcarea pluginului."
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Fişier lipsă în multipart/formular cerere"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Nu se poate verifica semnătura pluginului."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,6 +1715,14 @@
     "translation": "Anunțurile push sunt dezactivate pe acest server."
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "Ați primit un mesaj nou."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "A apărut o eroare la preluarea notificării push încărcată cu ID"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "A apărut o eroare la expedierea livrării de chitanță serviciului de notificări prin împingere"
   },
@@ -1859,8 +1875,16 @@
     "translation": "Imposibil de deschis fişierul zip export moale.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Utilizatorul nu a fost găsit"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Notificările Push nu sunt configurate sau acceptate pe acest server."
   },
   {
     "id": "api.team.add_members.error",
@@ -1868,7 +1892,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
+    "translation": "Această echipă este administrată de grupuri.  Acest utilizator nu face parte dintr-un grup sincronizat cu această echipă."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v scos din echipa."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -2632,7 +2664,7 @@
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+    "translation": "Nu puteți activa un cont de invitat, deoarece funcția Acces de invitat nu este activată."
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -3471,6 +3503,10 @@
     "translation": "Imposibil de dezactivat pluginul"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "A apărut o eroare la ștergerea cheii publice."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "S-a dezactivat plugin-uri. Verificați jurnalele pentru detalii."
   },
@@ -3495,6 +3531,10 @@
     "translation": "Imposibilitatea de a obţine plugin-uri active"
   },
   {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "A apărut o eroare la preluarea cheii publice din magazin."
+  },
+  {
     "id": "app.plugin.get_statuses.app_error",
     "translation": "Nu se pot obține starea pluginurilor"
   },
@@ -3516,7 +3556,7 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Plugin version could not be parsed"
+    "translation": "Versiunea pluginului nu a putut fi analizată"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3531,12 +3571,24 @@
     "translation": "Piața a fost dezactivată. Vă rugăm să verificați jurnalele pentru detalii."
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Nu a reușit să decodeze cererea pluginului de pe piață."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "Eșecul de a primi pluginuri de pe serverul de pe piață."
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Plugin nu a fost găsit."
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "Nu a reușit plugin-urile de pe piața Marshal."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Nu pot modifica fișierele saml."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3559,8 +3611,16 @@
     "translation": "Imposibil de repornit pluginul la actualizare."
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Imposibil de decodat semnătura base64."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Imposibil de stocat plugin-ul în depozitul de fișiere configurat."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Nu se poate stoca semnătura pluginului în discul configurat."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
@@ -3577,6 +3637,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "Imposibil să genereze pachetul webapp plugin."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "A apărut o eroare la citirea fișierului."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "A apărut o eroare la salvarea fișierului."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3895,6 +3963,10 @@
     "translation": "URL-ul serverului Elasticsearch sau numele de utilizator a schimbat. Vă rugăm să re-introduceţi parola Elasticsearch pentru a testa conexiunea."
   },
   {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Licența dvs. nu acceptă notificările push Loaded ID."
+  },
+  {
     "id": "ent.ldap.app_error",
     "translation": "interfața ldap a fost zero"
   },
@@ -3968,7 +4040,7 @@
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": "AD/LDAP invalidă filtru"
+    "translation": "Filtrul invitat AD/LDAP invalid"
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -4536,15 +4608,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Setarea Elasticsearch ConnectionUrl trebuie să fie asigurată atunci când este activată indexarea Elastic Search."
+    "translation": "Setarea Elasticsearch ConnectionUrl trebuie să fie asigurată atunci când este activată indexarea Elasticsearch."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Setarea Elasticsearch IndexingEnabled trebuie să fie adevărată atunci când Elastic Search AutocompleteEnabled este setat pe true."
+    "translation": "Elasticsearch IndexingEnabled trebuie setat pe true când Elasticsearch AutocompleteEnabled este setat pe true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch IndexingEnabled trebuie să fie setat pe true când Elastic Search SearchEnabled este setat pe true."
+    "translation": "Elasticsearch IndexingEnabled trebuie setat pe true când Elasticsearch SearchEnabled este setat pe true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4728,7 +4800,7 @@
   },
   {
     "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
-    "translation": "Invalid Canonical Algorithm."
+    "translation": "Algoritm canonic nevalid."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
@@ -4736,7 +4808,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
+    "translation": "Atribut invitat nevalid. Trebuie să fie sub forma 'câmp=valoare'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4760,7 +4832,7 @@
   },
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
-    "translation": "Invalid Signature Algorithm."
+    "translation": "Algoritm de semnătură invalid."
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -5164,11 +5236,11 @@
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+    "translation": "Valoare veche invalidă, nu trebuie setată atunci când operațiunea nu este atomică."
   },
   {
     "id": "model.plugin_kvset_options.serialize_value.app_error",
-    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
+    "translation": "Nu s-a putut deserializa o valoare. EncodeJSON: {{.EncodeJSON}}."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5611,6 +5683,10 @@
     "translation": "Actualizarea elementului canal a eșuat"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Imposibil de numărat mesaje de la data dată"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Nu se poate șterge canalul"
   },
@@ -5947,6 +6023,10 @@
     "translation": "Imposibil de actualizat ultimele vizualizate la timp"
   },
   {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Imposibil de marcat canalul ca necitit"
+  },
+  {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "Am întâlnit o eroare la actualizarea membru canal"
   },
@@ -6144,7 +6224,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
+    "translation": "Imposibil de eliminat membrii grupului cu UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -7168,11 +7248,11 @@
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Unable to get the list of deactivate guests ids"
+    "translation": "Imposibil să obțineți lista cu ID-urile invitaților dezactivați"
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Imposibil de dezactivat pluginul"
+    "translation": "Imposibil de dezactivat oaspeții"
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
@@ -7504,11 +7584,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "Acest browser nu mai este suportat de Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "Această versiune a browserului nu mai este suportată de Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",

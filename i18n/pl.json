@@ -764,7 +764,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
+    "translation": "Ten kanał jest zarządzany przez grupy.  Ten użytkownik nie jest częścią grupy, która jest zsynchronizowana z tym kanałem."
   },
   {
     "id": "api.command_invite.hint",
@@ -800,7 +800,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "{{.Username}} nie jest członkiem tego kanału."
+    "translation": "{{.Username}} nie jest członkiem tego zespołu."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1342,7 +1342,7 @@
   },
   {
     "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
-    "translation": "Invalid/Missing channel ID or Team ID."
+    "translation": "Brak/nieprawidłowy ID kanału lub ID zespołu."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1513,6 +1513,10 @@
     "translation": "Wychodzące webhooki zostały wyłączone przez administratora systemu."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "Wystąpił błąd podczas usuwania certyfikatu."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Podczas pobierania wtyczki wystąpił błąd."
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Brakujący plik w żądaniu multipart/form"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,6 +1715,14 @@
     "translation": "Powiadomienia Push są wyłączone na tym serwerze."
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "You've received a new message."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "An error occurred fetching the ID-loaded push notification"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "Wystąpił błąd podczas wysyłania potwierdzenia odbioru do usługi powiadomień push"
   },
@@ -1859,8 +1875,16 @@
     "translation": "Nie można otworzyć pliku zip z eksportem Slacka.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Nie znaleziono użytkownika"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
     "id": "api.team.add_members.error",
@@ -1868,7 +1892,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
+    "translation": "Ten zespół jest zarządzany przez grupy.  Ten użytkownik nie jest częścią grupy, która jest zsynchronizowana z tym kanałem."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1880,15 +1904,15 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+    "translation": "Goście nie mogą dołączyć do zespołu z linku zaproszeniowego. Proszę poprosić o e-mail zaproszenieowy aby dołączyć do tego zespołu. "
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "Konta gości są wyłączone."
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "twoja licencja nie obsługuje grup ldap"
+    "translation": "Twoja licencja nie wspiera kont gości"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1936,15 +1960,15 @@
   },
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Konta gości są wyłączone"
   },
   {
     "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "twoja licencja nie obsługuje grup ldap"
+    "translation": "Twoja licencja nie obsługuje kont gości"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-    "translation": "The channels of the invite must be part of the team of the invite."
+    "translation": "Kanały do których chcesz zaprosić, muszą być częścią zespołu do którego chcesz zaprosić."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -1988,11 +2012,11 @@
   },
   {
     "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "Konta gości są wyłączone."
   },
   {
     "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "twoja licencja nie obsługuje grup ldap"
+    "translation": "Twoja licencja nie wspiera kont gości"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v został usunięty z zespołu."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -2156,7 +2188,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]], zaprasza cię do dołączenia do [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2164,11 +2196,11 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "translation": "[[{{.SenderName}}]], zaprasza Cię do dołączenia do zespołu [[{{.TeamDisplayName}}]] jako gość."
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprasza Cię do dołączenia do zespołu {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprasza Cię do dołączenia do zespołu {{ .TeamDisplayName }} jako gość"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2420,15 +2452,15 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Konta gości są wyłączone"
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
-    "translation": "twoja licencja nie obsługuje grup ldap"
+    "translation": "Twoja licencja nie obsługuje kont gości"
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
-    "translation": "Unable to create the user, invalid invitation."
+    "translation": "Nie można utworzyć użytkownika, nieprawidłowe zaproszenie."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2448,7 +2480,7 @@
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": "Unable to convert the user to guest because is already a guest"
+    "translation": "Nie można skonwertować użytkownika do gościa ponieważ już jest gościem."
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
@@ -2492,11 +2524,11 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Konta gości są wyłączone"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
-    "translation": "twoja licencja nie obsługuje grup ldap"
+    "translation": "Twoja licencja nie obsługuje kont gości"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2552,7 +2584,7 @@
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "Unable to convert the guest to regular user because is not a guest"
+    "translation": "Nie można skonwertować gościa do zwykłego użytkownika, ponieważ nie jest gościem."
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2632,7 +2664,7 @@
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+    "translation": "Nie możesz aktywować konta gościa, ponieważ funkcja Dostęp dla Gości nie jest włączona."
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2676,7 +2708,7 @@
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "Wpisany email nie należy do akceptowanej domeny. Skontaktuj się ze swoim administratorem lub zarejestruj się za pomocą innego adresu email."
+    "translation": "Wpisany email nie należy do akceptowanej domeny dla gości. Skontaktuj się ze swoim administratorem lub zarejestruj się za pomocą innego adresu email."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2792,7 +2824,7 @@
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": "This is not a valid live URL"
+    "translation": "Ten adres nie jest prawidłowym adresem właściwej strony"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3412,7 +3444,7 @@
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3471,6 +3503,10 @@
     "translation": "Nie udało się deaktywować pluginu"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Wystąpił błąd podczas usuwania certyfikatu."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Wtyczki zostały wyłączone. Sprawdź swoje logi, aby poznać szczegóły."
   },
@@ -3493,6 +3529,10 @@
   {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Nie udało się pobrać aktywnych pluginów"
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "An error occurred while getting the public key from the store."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3524,19 +3564,31 @@
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Failed to create marketplace client."
+    "translation": "Nie udało się stworzyć klienta sklepu."
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "Wtyczki zostały wyłączone. Sprawdź swoje logi, aby poznać szczegóły."
+    "translation": "Sklep rozszerzeń został wyłączony. Sprawdź swoje logi, aby poznać szczegóły."
+  },
+  {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
   },
   {
     "id": "app.plugin.marketplace_plugins.app_error",
-    "translation": "Failed to get plugins from the marketplace server."
+    "translation": "Nie udało się pobrać wtyczek z serwera sklepu."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin."
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Failed to marshal marketplace plugins."
+    "translation": "Nie udało się wprowadzić wtyczek ze sklepu."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3559,7 +3611,15 @@
     "translation": "Nie można uruchomić wtyczki podczas aktualizacji."
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
+    "translation": "Nie można zachować wtyczki w skonfigurowanym magazynie plików."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
     "translation": "Nie można zachować wtyczki w skonfigurowanym magazynie plików."
   },
   {
@@ -3577,6 +3637,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "Nie można wygenerować bundle webapp wtyczki."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Wystąpił błąd podczas wychodzenia z kanału."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Wystąpił błąd podczas wychodzenia z kanału."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3895,6 +3963,10 @@
     "translation": "Adres URL lub nazwa serwera Elasticsearch została zmieniona. Ponownie wprowadź hasło Elasticsearch, aby przetestować połączenie."
   },
   {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Your license does not support ID Loaded Push Notifications."
+  },
+  {
     "id": "ent.ldap.app_error",
     "translation": "intefejs ldap jest pusty"
   },
@@ -3968,7 +4040,7 @@
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": "Nieprawidłowy filtr AD/LDAP"
+    "translation": "Nieprawidłowy filtr Gości AD/LDAP"
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -4540,11 +4612,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Ustawienie Elastic Search IndexingEnabled musi być włączone, gdy Elastich Search AutocompleteEnabled jest włączone."
+    "translation": "Ustawienie Elasticsearch IndexingEnabled musi być włączone, gdy Elasticsearch AutocompleteEnabled jest włączone."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search Ustawienie IndexingEnabled musi być ustawione na wartość true, gdy Elastich Search SearchEnabled ma wartość true."
+    "translation": "Elasticsearch Ustawienie IndexingEnabled musi być ustawione na wartość true, gdy Elasticsearch SearchEnabled ma wartość true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4728,7 +4800,7 @@
   },
   {
     "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
-    "translation": "Invalid Canonical Algorithm."
+    "translation": "Nieprawidłowy algorytm kanoniczny."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
@@ -4736,7 +4808,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
+    "translation": "Niewłaściwy atrybut \"Gość\". Musi mieć postać \"pole=wartość\"."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4760,7 +4832,7 @@
   },
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
-    "translation": "Invalid Signature Algorithm."
+    "translation": "Nieprawidłowy algorytm sygnatury."
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -4944,11 +5016,11 @@
   },
   {
     "id": "model.guest.is_valid.channel.app_error",
-    "translation": "Nieprawidłowy identyfikator kanału"
+    "translation": "Nieprawidłowy kanał"
   },
   {
     "id": "model.guest.is_valid.channels.app_error",
-    "translation": "Nieprawidłowy identyfikator kanału"
+    "translation": "Nieprawidłowe kanały"
   },
   {
     "id": "model.guest.is_valid.email.app_error",
@@ -4956,7 +5028,7 @@
   },
   {
     "id": "model.guest.is_valid.emails.app_error",
-    "translation": "Nieprawidłowy email"
+    "translation": "Nieprawidłowe emaile"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -5164,11 +5236,11 @@
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+    "translation": "Nieprawidłowa stara wartość, nie musi on być ustawiony, gdy operacja nie jest wykonywana."
   },
   {
     "id": "model.plugin_kvset_options.serialize_value.app_error",
-    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
+    "translation": "Nie może deserializacji wartości. EncodeJSON: {{.EncodeJSON}}."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5611,6 +5683,10 @@
     "translation": "Nie udało się zaktualizować użytkownika kanału"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Nie można skasować kanału"
   },
@@ -5724,7 +5800,7 @@
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
-    "translation": "Nie można pobrać liczby członków kanału"
+    "translation": "Nie można pobrać ilości przypiętych wiadomości na kanale"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
@@ -5947,6 +6023,10 @@
     "translation": "Nie można zaktualizować ostatnio oglądanego"
   },
   {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread"
+  },
+  {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "Wystąpił błąd podczas aktualizowania użytkownika kanału"
   },
@@ -6144,7 +6224,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
+    "translation": "Możesz usuwać członków grupy z userId \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -6680,7 +6760,7 @@
   },
   {
     "id": "store.sql_session.update_props.app_error",
-    "translation": "Unable to update session props"
+    "translation": "Nie można aktualizować rekwizytów sesyjnych"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
@@ -6740,11 +6820,11 @@
   },
   {
     "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "Nie można policzyć zespołów"
+    "translation": "Nie można policzyć prywatnych zespołów"
   },
   {
     "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "Nie można policzyć zespołów"
+    "translation": "Nie można policzyć publicznych zespołów"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -6976,7 +7056,7 @@
   },
   {
     "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Nie udało się zaktualizować użytkownika kanału"
+    "translation": "Nie udało się członkostw użytkownika na kanałach"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
@@ -6988,7 +7068,7 @@
   },
   {
     "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Nie udało się zaktualizować użytkownika kanału"
+    "translation": "Nie udało się zaktualizować członkostwa zespołów użytkownika"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
@@ -7168,11 +7248,11 @@
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Unable to get the list of deactivate guests ids"
+    "translation": "Nie można uzyskać listy nieaktywnych identyfikatorów gości."
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Nie udało się deaktywować pluginu"
+    "translation": "Nie udało się dezaktywować gościa"
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
@@ -7428,15 +7508,15 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Get the latest Chrome browser"
+    "translation": "Pobierz najnowszą wersję Chrome"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Get the latest Firefox browser"
+    "translation": "Pobierz najnowszą wersję Firefox"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Get the latest Safari browser"
+    "translation": "Pobierz najnowszą wersję Safari"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
@@ -7456,43 +7536,43 @@
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": "Download the App"
+    "translation": "Pobierz aplikację"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "Pobierz aplikację Mattermost lub skorzystaj z obsługiwanej przeglądarki, aby uzyskać najlepsze doświadczenie."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": "Download the App"
+    "translation": "Pobierz aplikację"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "Poradnik instalacji"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "Poradnik instalacji"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "Dowiedz się więcej na temat wspieranych przeglądarek."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Wersja 61+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Wersja 44+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Wersja 60+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Wersja 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -7504,23 +7584,23 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "Ta przeglądarka nie jest już obsługiwana przez Mattermost."
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "Ta wersja przeglądarki nie jest już obsługiwana przez Mattermost."
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
-    "translation": "Open Edge"
+    "translation": "Otwórz Edge"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "Ustaw jako domyślne"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
-    "translation": "or"
+    "translation": "lub"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",

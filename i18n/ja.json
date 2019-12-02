@@ -764,7 +764,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
+    "translation": "このチャンネルはグループによって管理されています。  このユーザーはこのチャンネルと同期しているグループのメンバーではありません。"
   },
   {
     "id": "api.command_invite.hint",
@@ -1342,7 +1342,7 @@
   },
   {
     "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
-    "translation": "Invalid/Missing channel ID or Team ID."
+    "translation": "チャンネルIDもしくはチームIDが存在しないか不正です。"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1513,6 +1513,10 @@
     "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "公開鍵ファイルを開く際にエラーが発生しました。"
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "プラグインをダウンロードする際にエラーが発生しました。"
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "multipart/formリクエストにファイルが存在しません"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "プラグイン署名を検証できませんでした。"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,6 +1715,14 @@
     "translation": "このサーバーではプッシュ通知は無効です。"
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "新しいメッセージがあります。"
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "An error occurred fetching the ID-loaded push notification"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "プッシュ通知サービスへの受信完了通知送信時にエラーが発生しました"
   },
@@ -1859,8 +1875,16 @@
     "translation": "Slackエクスポートのzipファイルを開けませんでした。\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "ユーザーが見付かりません"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
     "id": "api.team.add_members.error",
@@ -1868,7 +1892,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
+    "translation": "このチームはグループによって管理されています。  このユーザーはこのチームと同期しているグループのメンバーではありません。"
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v はチームから削除されました。"
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -2632,7 +2664,7 @@
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+    "translation": "ゲストアカウント機能が有効ではないため、ゲストアカウントを有効化できません。"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -3471,6 +3503,10 @@
     "translation": "プラグインを無効化できませんでした"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "公開鍵を削除中にエラーが発生しました。"
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "プラグインは無効化されています。詳しくはログを確認してください。"
   },
@@ -3495,6 +3531,10 @@
     "translation": "有効なプラグインを取得できませんでした"
   },
   {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "ストアから公開鍵を取得する際にエラーが発生しました。"
+  },
+  {
     "id": "app.plugin.get_statuses.app_error",
     "translation": "プラグインの状態を取得できません"
   },
@@ -3516,7 +3556,7 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Plugin version could not be parsed"
+    "translation": "プラグインのバージョンを解析できません"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3531,12 +3571,24 @@
     "translation": "マーケットプレースは無効化されています。詳しくはログを確認してください。"
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "マーケットプレースのプラグインリクエストをデコードできませんでした。"
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "マーケットプレースサーバーからプラグインを取得できませんでした。"
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "プラグインが見つかりませんでした。"
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "マーケットプレースプラグインを変換できませんでした。"
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "SAMLファイルを変更できません。"
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3559,8 +3611,16 @@
     "translation": "アップグレード時にプラグインを再起動できませんでした。"
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Base64署名をデコードできませんでした。"
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "プラグインを設定されたファイルストアへ保存できませんでした。"
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "プラグイン署名を設定されたファイルストアへ保存できませんでした。"
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
@@ -3577,6 +3637,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "プラグインwebappのバンドルを生成できませんでした。"
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "ファイルを読み込む際にエラーが発生しました。"
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "ファイルを保存する際にエラーが発生しました。"
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3895,6 +3963,10 @@
     "translation": "ElasticsearchサーバーのURLかユーザー名が変更されました。接続をテストするためにElasticsearchのパスワードを再度入力してください。"
   },
   {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Your license does not support ID Loaded Push Notifications."
+  },
+  {
     "id": "ent.ldap.app_error",
     "translation": "LDAPインターフェースがnilでした"
   },
@@ -3968,7 +4040,7 @@
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": "不正なAD/LDAPフィルターです"
+    "translation": "不正なAD/LDAPゲストフィルターです"
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -4736,7 +4808,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
+    "translation": "ゲストの属性値が不正です。'field=value' の形式でなくてはなりません"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4760,7 +4832,7 @@
   },
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
-    "translation": "Invalid Signature Algorithm."
+    "translation": "署名アルゴリズムが不正です。"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -5164,11 +5236,11 @@
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+    "translation": "古い値が不正です。操作がアトミックでない場合は設定しないでください。"
   },
   {
     "id": "model.plugin_kvset_options.serialize_value.app_error",
-    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
+    "translation": "値をデシリアライズできませんでした。EncodeJSON: {{.EncodeJSON}}."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5611,6 +5683,10 @@
     "translation": "チャンネルメンバーを更新できませんでした"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "与えられた日付以降のメッセージをカウントできませんでした"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "チャンネルを削除できませんでした"
   },
@@ -5947,6 +6023,10 @@
     "translation": "最終閲覧日時を更新できませんでした"
   },
   {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "チャンネルを既読にできませんでした"
+  },
+  {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "チャンネルのメンバーを更新する際にエラーが発生しました"
   },
@@ -6144,7 +6224,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
+    "translation": "ユーザーID \"{{.UserId}}\" のグループメンバーを削除できませんでした"
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -7168,11 +7248,11 @@
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Unable to get the list of deactivate guests ids"
+    "translation": "無効化されたゲストIDのリストを取得できませんでした"
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "プラグインを無効化できませんでした"
+    "translation": "ゲストを無効化できませんでした"
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
@@ -7504,11 +7584,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "このブラウザはMattermostではサポートされていません"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "あなたのブラウザのバージョンはMattermostではサポートされていません"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
