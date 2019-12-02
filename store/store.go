@@ -1,16 +1,12 @@
 //go:generate go run layer_generators/main.go
 
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package store
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
-)
-
-const (
-	MentionAllPosts = -1
 )
 
 type StoreResult struct {
@@ -166,6 +162,7 @@ type ChannelStore interface {
 	PermanentDeleteMembersByChannel(channelId string) *model.AppError
 	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError)
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError)
+	CountPostsAfter(channelId string, timestamp int64, userId string) (int64, *model.AppError)
 	IncrementMentionCount(channelId string, userId string) *model.AppError
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError)
