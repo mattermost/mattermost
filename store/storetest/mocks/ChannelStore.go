@@ -132,6 +132,29 @@ func (_m *ChannelStore) ClearCaches() {
 	_m.Called()
 }
 
+// CountPostsAfter provides a mock function with given fields: channelId, timestamp, userId
+func (_m *ChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int64, *model.AppError) {
+	ret := _m.Called(channelId, timestamp, userId)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, int64, string) int64); ok {
+		r0 = rf(channelId, timestamp, userId)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int64, string) *model.AppError); ok {
+		r1 = rf(channelId, timestamp, userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreateDirectChannel provides a mock function with given fields: userId, otherUserId
 func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userId, otherUserId)
@@ -767,20 +790,6 @@ func (_m *ChannelStore) GetGuestCount(channelId string, allowFromCache bool) (in
 	}
 
 	return r0, r1
-}
-
-// GetGuestCountFromCache provides a mock function with given fields: channelId
-func (_m *ChannelStore) GetGuestCountFromCache(channelId string) int64 {
-	ret := _m.Called(channelId)
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(channelId)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	return r0
 }
 
 // GetMember provides a mock function with given fields: channelId, userId
