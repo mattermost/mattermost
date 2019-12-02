@@ -792,6 +792,20 @@ func (_m *ChannelStore) GetGuestCount(channelId string, allowFromCache bool) (in
 	return r0, r1
 }
 
+// GetGuestCountFromCache provides a mock function with given fields: channelId
+func (_m *ChannelStore) GetGuestCountFromCache(channelId string) int64 {
+	ret := _m.Called(channelId)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(channelId)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	return r0
+}
+
 // GetMember provides a mock function with given fields: channelId, userId
 func (_m *ChannelStore) GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
 	ret := _m.Called(channelId, userId)
