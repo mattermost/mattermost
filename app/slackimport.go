@@ -72,7 +72,7 @@ type SlackPost struct {
 
 var isValidChannelNameCharacters = regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`).MatchString
 
-const SLACK_IMPORT_MAX_FILE_SIZE = 1024 * 1024 * 50
+const SLACK_IMPORT_MAX_FILE_SIZE = 1024 * 1024 * 70
 
 type SlackComment struct {
 	User    string `json:"user"`
