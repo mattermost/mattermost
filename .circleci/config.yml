@@ -310,9 +310,6 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
-      - vet:
-          requires:
-            - setup
       - build:
           requires:
             - setup
