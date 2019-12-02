@@ -3402,22 +3402,43 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSuppli
 
 	// Create 5 users statuses u0, u1, u2, u3, u4.
 	// u4 is also a bot
-	u0Id := model.NewId()
-	u1Id := model.NewId()
-	u2Id := model.NewId()
-	u3Id := model.NewId()
-
+	u0, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u0" + model.NewId(),
+	})
+	require.Nil(t, err)
+	u1, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u2" + model.NewId(),
+	})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u3" + model.NewId(),
+	})
+	require.Nil(t, err)
 	u4, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u4" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
+	defer func() {
+		require.Nil(t, ss.User().PermanentDelete(u0.Id))
+		require.Nil(t, ss.User().PermanentDelete(u1.Id))
+		require.Nil(t, ss.User().PermanentDelete(u2.Id))
+		require.Nil(t, ss.User().PermanentDelete(u3.Id))
+		require.Nil(t, ss.User().PermanentDelete(u4.Id))
+	}()
 
 	_, err = ss.Bot().Save(&model.Bot{
 		UserId:   u4.Id,
 		Username: u4.Username,
-		OwnerId:  u1Id,
+		OwnerId:  u1.Id,
 	})
 	require.Nil(t, err)
 
@@ -3428,31 +3449,37 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSuppli
 	// u0 last activity status is two months ago.
 	// u1 last activity status is two days ago.
 	// u2, u3, u4 last activity is within last day
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
 
 	// Daily counts (without bots)
-	count, err := ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+	count, err := ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Equal(t, int64(2), count)
 
 	// Daily counts (with bots)
-	count, err = ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true})
+	count, err = ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Equal(t, int64(3), count)
 
 	// Monthly counts (without bots)
-	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Equal(t, int64(3), count)
 
 	// Monthly counts - (with bots)
-	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true})
+	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Equal(t, int64(4), count)
+
+	// Monthly counts - (with bots, excluding deleted)
+	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: false})
+	require.Nil(t, err)
+	assert.Equal(t, int64(4), count)
+
 }
 
 func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
