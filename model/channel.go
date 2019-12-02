@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -90,12 +90,17 @@ type DirectChannelForExport struct {
 // ExcludeDefaultChannels will exclude the configured default channels (ex 'town-square' and 'off-topic').
 // IncludeDeleted will include channel records where DeleteAt != 0.
 // ExcludeChannelNames will exclude channels from the results by name.
+// Paginate whether to paginate the results.
+// Page page requested, if results are paginated.
+// PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
 	NotAssociatedToGroup   string
 	ExcludeDefaultChannels bool
 	IncludeDeleted         bool
 	ExcludeChannelNames    []string
+	Page                   *int
+	PerPage                *int
 }
 
 func (o *Channel) DeepCopy() *Channel {
