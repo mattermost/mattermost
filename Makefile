@@ -196,13 +196,10 @@ einterfaces-mocks: ## Creates mock files for einterfaces.
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
 
-check-licenses: ## Checks license status.
-	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
-
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-style: golangci-lint plugin-checker check-licenses check-plugin-golint ## Runs golangci against all packages and also ensures plugin package golint compliant
+check-style: golangci-lint plugin-checker check-plugin-golint vet ## Runs golangci against all packages and also ensures plugin package golint compliant
 
 check-plugin-golint: # Checks if golint returns any uncompliant code for any file that starts with plugin/helpers
 	@! golint ./plugin/ | grep plugin/helpers
@@ -455,12 +452,11 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	$(GO) mod vendor
 
 vet: ## Run mattermost go vet specific checks
-	$(GO) get -u github.com/mattermost/mattermost-govet
-	env GO111MODULE=off $(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license $(TE_PACKAGES)
-
-vet-enterprise: ## Run mattermost go vet specifi checks
-	$(GO) get -u github.com/mattermost/mattermost-govet
+	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-govet
+	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license $(TE_PACKAGES)
+ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -enterpriseLicense $(EE_PACKAGES)
+endif
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
