@@ -43,6 +43,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/blang/semver"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -308,6 +309,11 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 }
 
 func (a *App) removePlugin(id string) *model.AppError {
+	pluginEnabled := false
+	if pluginState, ok := a.Config().PluginSettings.PluginStates[id]; ok && pluginState.Enable {
+		pluginEnabled = true
+	}
+
 	// Disable plugin before removal to make sure this
 	// plugin remains disabled on re-install.
 	if err := a.DisablePlugin(id); err != nil {
@@ -345,7 +351,70 @@ func (a *App) removePlugin(id string) *model.AppError {
 		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
+	canaryTag := a.Config().PluginSettings.CanaryTag
+	if canaryTag != nil && *canaryTag != "" {
+		a.installPluginWithNoCanaryTag(id, pluginEnabled)
+	}
+	if canaryTag != nil && *canaryTag == "" {
+		a.removeAllPlugins(id)
+	}
+
 	return nil
+}
+
+func (a *App) installPluginWithNoCanaryTag(id string, pluginEnabled bool) {
+	temp := *a.Config().PluginSettings.CanaryTag
+	*a.Config().PluginSettings.CanaryTag = ""
+	pluginPath := a.getBundleStorePath(id)
+	signaturePath := a.getSignatureStorePath(id)
+	*a.Config().PluginSettings.CanaryTag = temp
+	bundleExist, appErr := a.FileExists(pluginPath)
+	if appErr != nil {
+		mlog.Error("No plugin without canary tag", mlog.Err(appErr))
+		return
+	}
+	if !bundleExist {
+		mlog.Error("No plugin without canary tag")
+		return
+	}
+	pluginReader, err := os.Open(pluginPath)
+	if err != nil {
+		mlog.Error("Failed to open plugin without canary tag", mlog.Err(err), mlog.String("path", pluginPath))
+		return
+	}
+	defer pluginReader.Close()
+	signatureReader, err := os.Open(signaturePath)
+	if err != nil {
+		mlog.Info("No signature file for plugin without canary tag", mlog.Err(err), mlog.String("path", pluginPath))
+	} else {
+		defer signatureReader.Close()
+	}
+
+	_, appErr = a.installPluginLocally(pluginReader, signatureReader, installPluginLocallyAlways)
+	if appErr != nil {
+		mlog.Error("Unable to install plugin without cannary tag", mlog.Err(appErr), mlog.String("path", pluginPath))
+	}
+	if pluginEnabled {
+		appErr = a.EnablePlugin(id)
+		if appErr != nil {
+			mlog.Error("Unable to enable plugin without cannary tag", mlog.Err(appErr), mlog.String("path", pluginPath))
+		}
+	}
+}
+
+func (a *App) removeAllPlugins(id string) {
+	fileStorePaths, appErr := a.ListDirectory(fileStorePluginFolder)
+	if appErr != nil {
+		mlog.Error("Can't list directory", mlog.Err(appErr), mlog.String("path", fileStorePluginFolder))
+		return
+	}
+	for _, fileStorePath := range fileStorePaths {
+		if strings.Contains(fileStorePath, id) {
+			if appErr = a.RemoveFile(fileStorePath); appErr != nil {
+				mlog.Error("Can't remove plugin", mlog.Err(appErr), mlog.String("path", fileStorePath))
+			}
+		}
+	}
 }
 
 func (a *App) removePluginLocally(id string) *model.AppError {

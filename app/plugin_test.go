@@ -592,11 +592,13 @@ func TestPluginSync(t *testing.T) {
 			require.Nil(t, err)
 			require.Len(t, pluginStatus, 1)
 			require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+			appErr = th.App.RemovePlugin("testplugin")
+			checkNoError(t, appErr)
 		})
 	}
 }
 
-/*
 func TestCanaryPlugins(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -762,4 +764,3 @@ func TestCanaryPlugins(t *testing.T) {
 	require.Nil(t, err)
 	require.Len(t, pluginStatus, 0)
 }
-*/
