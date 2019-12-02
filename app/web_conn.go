@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,8 +11,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -301,6 +301,28 @@ func (webCon *WebConn) SendHello() {
 	webCon.Send <- msg
 }
 
+func (webCon *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
+	var userId string
+	var canSee bool
+
+	switch msg.Event {
+	case model.WEBSOCKET_EVENT_USER_UPDATED:
+		userId = msg.Data["user"].(*model.User).Id
+	case model.WEBSOCKET_EVENT_NEW_USER:
+		userId = msg.Data["user_id"].(string)
+	default:
+		return true
+	}
+
+	canSee, err := webCon.App.UserCanSeeOtherUser(webCon.UserId, userId)
+	if err != nil {
+		mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
+		return false
+	}
+
+	return canSee
+}
+
 func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session
 	if !webCon.IsAuthenticated() {
@@ -369,13 +391,8 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		return webCon.IsMemberOfTeam(msg.Broadcast.TeamId)
 	}
 
-	if msg.Event == model.WEBSOCKET_EVENT_USER_UPDATED && webCon.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
-		canSee, err := webCon.App.UserCanSeeOtherUser(webCon.UserId, msg.Data["user"].(*model.User).Id)
-		if err != nil {
-			mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
-			return false
-		}
-		return canSee
+	if webCon.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
+		return webCon.shouldSendEventToGuest(msg)
 	}
 
 	return true

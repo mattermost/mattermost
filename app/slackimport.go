@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -18,9 +18,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SlackChannel struct {
@@ -71,6 +71,8 @@ type SlackPost struct {
 }
 
 var isValidChannelNameCharacters = regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`).MatchString
+
+const SLACK_IMPORT_MAX_FILE_SIZE = 1024 * 1024 * 70
 
 type SlackComment struct {
 	User    string `json:"user"`
@@ -696,6 +698,10 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	posts := make(map[string][]SlackPost)
 	uploads := make(map[string]*zip.File)
 	for _, file := range zipreader.File {
+		if file.UncompressedSize64 > SLACK_IMPORT_MAX_FILE_SIZE {
+			log.WriteString(utils.T("api.slackimport.slack_import.zip.file_too_large", map[string]interface{}{"Filename": file.Name}))
+			continue
+		}
 		reader, err := file.Open()
 		if err != nil {
 			log.WriteString(utils.T("api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}))

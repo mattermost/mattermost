@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -9,10 +9,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type Context struct {
@@ -165,6 +165,10 @@ func (c *Context) SetInvalidUrlParam(parameter string) {
 	c.Err = NewInvalidUrlParamError(parameter)
 }
 
+func (c *Context) SetServerBusyError() {
+	c.Err = NewServerBusyError()
+}
+
 func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
 	metrics := c.App.Metrics
 	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); len(etag) > 0 {
@@ -191,6 +195,10 @@ func NewInvalidParamError(parameter string) *model.AppError {
 }
 func NewInvalidUrlParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
+	return err
+}
+func NewServerBusyError() *model.AppError {
+	err := model.NewAppError("Context", "api.context.server_busy.app_error", nil, "", http.StatusServiceUnavailable)
 	return err
 }
 
