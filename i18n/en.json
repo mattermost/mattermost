@@ -3588,7 +3588,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
-    "translation": "Plugin not found."
+    "translation": "Could not find the requested marketplace plugin."
   },
   {
     "id": "app.plugin.marshal.app_error",
