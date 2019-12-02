@@ -44,7 +44,7 @@ import (
 
 const (
 	// LetsEncryptURL is the Directory endpoint of Let's Encrypt CA.
-	LetsEncryptURL = "https://acme-v01.api.letsencrypt.org/directory"
+	LetsEncryptURL = "https://acme-v02.api.letsencrypt.org/directory"
 
 	// ALPNProto is the ALPN protocol name used by a CA server when validating
 	// tls-alpn-01 challenges.

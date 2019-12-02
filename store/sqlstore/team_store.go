@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -11,21 +11,16 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
-	TEAM_MEMBER_EXISTS_ERROR         = "store.sql_team.save_member.exists.app_error"
-	ALL_TEAM_IDS_FOR_USER_CACHE_SIZE = model.SESSION_CACHE_SIZE
-	ALL_TEAM_IDS_FOR_USER_CACHE_SEC  = 1800 // 30 mins
+	TEAM_MEMBER_EXISTS_ERROR = "store.sql_team.save_member.exists.app_error"
 )
 
 type SqlTeamStore struct {
 	SqlStore
-	metrics einterfaces.MetricsInterface
 }
 
 type teamMember struct {
@@ -155,10 +150,9 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func NewSqlTeamStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TeamStore {
+func NewSqlTeamStore(sqlStore SqlStore) store.TeamStore {
 	s := &SqlTeamStore{
 		sqlStore,
-		metrics,
 	}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -245,11 +239,6 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id, http.StatusInternalServerError)
 	}
 
-	if oldTeam.DeleteAt == 0 && team.DeleteAt != 0 {
-		// Invalidate this cache after any team deletion
-		allTeamIdsForUserCache.Purge()
-	}
-
 	return team, nil
 }
 
@@ -303,6 +292,26 @@ func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	}
 
 	return teams, nil
+}
+
+// SearchAllPaged returns a teams list and the total count of teams that matched the search.
+func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError) {
+	var teams []*model.Team
+	var totalCount int64
+	offset := page * perPage
+
+	term = sanitizeSearchTerm(term, "\\")
+
+	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term ORDER BY DisplayName, Name LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Term": term + "%", "Limit": perPage, "Offset": offset}); err != nil {
+		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	totalCount, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term + "%"})
+	if err != nil {
+		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return teams, totalCount, nil
 }
 
 func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
@@ -913,21 +922,9 @@ func (s SqlTeamStore) ResetAllTeamSchemes() *model.AppError {
 	return nil
 }
 
-var allTeamIdsForUserCache = utils.NewLru(ALL_TEAM_IDS_FOR_USER_CACHE_SIZE)
+func (s SqlTeamStore) ClearCaches() {}
 
-func (s SqlTeamStore) ClearCaches() {
-	allTeamIdsForUserCache.Purge()
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("All Team Ids for User - Purge")
-	}
-}
-
-func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {
-	allTeamIdsForUserCache.Remove(userId)
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("All Team Ids for User - Remove by UserId")
-	}
-}
+func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
 
 func (s SqlTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 
@@ -1015,21 +1012,8 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.
 	return data, nil
 }
 
-// GetUserTeamIds get the team ids to which the user belongs to
+// GetUserTeamIds get the team ids to which the user belongs to. allowFromCache parameter does not have any effect in this Store
 func (s SqlTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]string, *model.AppError) {
-	if allowFromCache {
-		if cacheItem, ok := allTeamIdsForUserCache.Get(userID); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("All Team Ids for User")
-			}
-			return cacheItem.([]string), nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("All Team Ids for User")
-	}
-
 	var teamIds []string
 	_, err := s.GetReplica().Select(&teamIds,
 		`SELECT
@@ -1047,9 +1031,6 @@ func (s SqlTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]stri
 		return []string{}, model.NewAppError("SqlTeamStore.GetUserTeamIds", "store.sql_team.get_user_team_ids.app_error", nil, "userID="+userID+" "+err.Error(), http.StatusInternalServerError)
 	}
 
-	if allowFromCache {
-		allTeamIdsForUserCache.AddWithExpiresInSecs(userID, teamIds, ALL_TEAM_IDS_FOR_USER_CACHE_SEC)
-	}
 	return teamIds, nil
 }
 

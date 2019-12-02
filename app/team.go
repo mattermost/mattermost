@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -15,11 +15,11 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -710,8 +710,13 @@ func (a *App) GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.Team
 	return &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}, nil
 }
 
-func (a *App) SearchAllTeams(term string) ([]*model.Team, *model.AppError) {
-	return a.Srv.Store.Team().SearchAll(term)
+// SearchAllTeams returns a team list and the total count of the results
+func (a *App) SearchAllTeams(searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
+	if searchOpts.IsPaginated() {
+		return a.Srv.Store.Team().SearchAllPaged(searchOpts.Term, *searchOpts.Page, *searchOpts.PerPage)
+	}
+	results, err := a.Srv.Store.Team().SearchAll(searchOpts.Term)
+	return results, int64(len(results)), err
 }
 
 func (a *App) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
