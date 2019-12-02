@@ -6,7 +6,7 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // GetPluginStatus returns the status for a plugin installed on this server.
@@ -28,7 +28,7 @@ func (a *App) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) 
 			return status, nil
 		}
 	}
-	return nil, model.NewAppError("GetPluginStatus", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+	return nil, model.NewAppError("GetPluginStatus", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 }
 
 // GetPluginStatuses returns the status for plugins installed on this server.
