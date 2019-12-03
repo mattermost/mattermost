@@ -1726,16 +1726,6 @@ func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptio
 func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	listOfAllowedChannels, err := a.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
-	if err != nil {
-		return nil, err
-	}
-	options.ListOfAllowedChannels = listOfAllowedChannels
-
-	if len(listOfAllowedChannels) == 0 {
-		return &model.UserAutocompleteInChannel{}, nil
-	}
-
 	autocomplete, err := a.Srv.Store.User().AutocompleteUsersInChannel(teamId, channelId, term, options)
 	if err != nil {
 		return nil, err

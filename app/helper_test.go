@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -72,8 +71,6 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 
 	searchEngineBroker, _ := searchengine.NewSearchEngineBroker(th.App.Config(), th.App.Srv.Jobs)
 	th.App.Srv.SearchEngine = *searchEngineBroker
-
-	th.App.Srv.Store = searchlayer.NewSearchLayer(th.App.Srv.Store, &th.App.Srv.SearchEngine)
 
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 

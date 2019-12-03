@@ -12,7 +12,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -100,11 +102,15 @@ func (h *MainHelper) setupStore() {
 
 	h.Settings = storetest.MakeSqlSettings(driverName)
 
+	config := &model.Config{}
+	config.SetDefaults()
+	searchEngineBroker, _ := searchengine.NewSearchEngineBroker(config, nil)
+
 	h.ClusterInterface = &FakeClusterInterface{}
 	h.SqlSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
-	h.Store = &TestStore{
+	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SqlSupplier,
-	}
+	}, searchEngineBroker)
 }
 
 func (h *MainHelper) setupResources() {
