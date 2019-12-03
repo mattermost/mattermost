@@ -51,7 +51,7 @@ type PluginSetting struct {
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
 	//
-	// "custom" will result in a custom defined setting and will load the custom component registered for the System Console.
+	// "custom" will result in a custom defined setting and will load the custom component registered for the webApp System Console.
 	Type string `json:"type" yaml:"type"`
 
 	// The help text to display to the user. Supports Markdown formatting.
