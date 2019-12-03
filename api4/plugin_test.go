@@ -915,6 +915,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 	t.Run("verify, install and remove plugin", func(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			serverVersion := req.URL.Query().Get("server_version")
+			require.NotEmpty(t, serverVersion)
+			require.Equal(t, model.CurrentVersion, serverVersion)
 			res.WriteHeader(http.StatusOK)
 			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[1]})
 			require.NoError(t, err)
