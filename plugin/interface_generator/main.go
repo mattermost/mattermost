@@ -395,6 +395,7 @@ func removeExcluded(info *PluginInterfaceInfo) *PluginInterfaceInfo {
 			"FileWillBeUploaded",
 			"Implemented",
 			"LoadPluginConfiguration",
+			"InstallPlugin",
 			"LogDebug",
 			"LogError",
 			"LogInfo",

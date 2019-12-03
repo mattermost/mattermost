@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -697,7 +697,7 @@ func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manife
 
 // KV Store Section
 
-func (api *PluginAPI) KVSetWithOptions(key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
+func (api *PluginAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	return api.app.SetPluginKeyWithOptions(api.id, key, value, options)
 }
 

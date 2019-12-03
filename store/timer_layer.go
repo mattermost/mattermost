@@ -1144,22 +1144,6 @@ func (s *TimerLayerChannelStore) GetPinnedPostCount(channelId string, allowFromC
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetPinnedPostCountFromCache(channelId string) int64 {
-	start := timemodule.Now()
-
-	resultVar0 := s.ChannelStore.GetPinnedPostCountFromCache(channelId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if true {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetPinnedPostCountFromCache", success, elapsed)
-	}
-	return resultVar0
-}
-
 func (s *TimerLayerChannelStore) GetPinnedPosts(channelId string) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
