@@ -57,6 +57,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetChannelCounts", func(t *testing.T) { testChannelStoreGetChannelCounts(t, ss) })
 	t.Run("GetMembersForUser", func(t *testing.T) { testChannelStoreGetMembersForUser(t, ss) })
 	t.Run("GetMembersForUserWithPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithPagination(t, ss) })
+	t.Run("CountPostsAfter", func(t *testing.T) { testCountPostsAfter(t, ss) })
 	t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, ss) })
 	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, ss) })
 	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, ss) })
@@ -1592,6 +1593,150 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	members, err = ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
 	require.Nil(t, err)
 	assert.Len(t, *members, 1)
+}
+
+func testCountPostsAfter(t *testing.T, ss store.Store) {
+	t.Run("should count all posts with or without the given user ID", func(t *testing.T) {
+		userId1 := model.NewId()
+		userId2 := model.NewId()
+
+		channelId := model.NewId()
+
+		p1, err := ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1000,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1001,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId2,
+			ChannelId: channelId,
+			CreateAt:  1002,
+		})
+		require.Nil(t, err)
+
+		count, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		require.Nil(t, err)
+		assert.Equal(t, 3, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		require.Nil(t, err)
+		assert.Equal(t, 2, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, userId1)
+		require.Nil(t, err)
+		assert.Equal(t, 2, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, userId1)
+		require.Nil(t, err)
+		assert.Equal(t, 1, count)
+	})
+
+	t.Run("should not count deleted posts", func(t *testing.T) {
+		userId1 := model.NewId()
+
+		channelId := model.NewId()
+
+		p1, err := ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1000,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1001,
+			DeleteAt:  1001,
+		})
+		require.Nil(t, err)
+
+		count, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		require.Nil(t, err)
+		assert.Equal(t, 1, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		require.Nil(t, err)
+		assert.Equal(t, 0, count)
+	})
+
+	t.Run("should count system/bot messages, but not join/leave messages", func(t *testing.T) {
+		userId1 := model.NewId()
+
+		channelId := model.NewId()
+
+		p1, err := ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1000,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1001,
+			Type:      model.POST_JOIN_CHANNEL,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1002,
+			Type:      model.POST_REMOVE_FROM_CHANNEL,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1003,
+			Type:      model.POST_LEAVE_TEAM,
+		})
+		require.Nil(t, err)
+
+		p5, err := ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1004,
+			Type:      model.POST_HEADER_CHANGE,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1005,
+			Type:      "custom_nps_survey",
+		})
+		require.Nil(t, err)
+
+		count, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		require.Nil(t, err)
+		assert.Equal(t, 3, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		require.Nil(t, err)
+		assert.Equal(t, 2, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt-1, "")
+		require.Nil(t, err)
+		assert.Equal(t, 2, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt, "")
+		require.Nil(t, err)
+		assert.Equal(t, 1, count)
+	})
 }
 
 func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {

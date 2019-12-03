@@ -133,14 +133,14 @@ func (_m *ChannelStore) ClearCaches() {
 }
 
 // CountPostsAfter provides a mock function with given fields: channelId, timestamp, userId
-func (_m *ChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int64, *model.AppError) {
+func (_m *ChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError) {
 	ret := _m.Called(channelId, timestamp, userId)
 
-	var r0 int64
-	if rf, ok := ret.Get(0).(func(string, int64, string) int64); ok {
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string, int64, string) int); ok {
 		r0 = rf(channelId, timestamp, userId)
 	} else {
-		r0 = ret.Get(0).(int64)
+		r0 = ret.Get(0).(int)
 	}
 
 	var r1 *model.AppError
