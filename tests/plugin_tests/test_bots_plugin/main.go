@@ -75,44 +75,45 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 		return nil, err.Error() + "failed to disable bot"
 	}
 
-	return nil, "OK"
 	// TODO: investigate why the following code panics
-	if fetchedBot, err = p.API.GetBot(patchedBot.UserId, false); err == nil {
-		return nil, "expected not to find disabled bot"
-	}
-	if _, err = p.API.UpdateBotActive(fetchedBot.UserId, true); err != nil {
-		return nil, err.Error() + "failed to disable bot"
-	}
-	if fetchedBot, err = p.API.GetBot(patchedBot.UserId, false); err != nil {
-		return nil, err.Error() + "failed to get bot after enabling"
-	}
-	if fetchedBot.UserId != patchedBot.UserId {
-		return nil, "GetBot did not return the expected bot after enabling"
-	}
-	if err = p.API.PermanentDeleteBot(patchedBot.UserId); err != nil {
-		return nil, err.Error() + "failed to delete bot"
-	}
+	/*
+		if fetchedBot, err = p.API.GetBot(patchedBot.UserId, false); err == nil {
+			return nil, "expected not to find disabled bot"
+		}
+		if _, err = p.API.UpdateBotActive(fetchedBot.UserId, true); err != nil {
+			return nil, err.Error() + "failed to disable bot"
+		}
+		if fetchedBot, err = p.API.GetBot(patchedBot.UserId, false); err != nil {
+			return nil, err.Error() + "failed to get bot after enabling"
+		}
+		if fetchedBot.UserId != patchedBot.UserId {
+			return nil, "GetBot did not return the expected bot after enabling"
+		}
+		if err = p.API.PermanentDeleteBot(patchedBot.UserId); err != nil {
+			return nil, err.Error() + "failed to delete bot"
+		}
 
-	if _, err = p.API.GetBot(patchedBot.UserId, false); err == nil {
-		return nil, err.Error() + "found bot after permanently deleting"
-	}
-	createdBotWithOverriddenCreator, err := p.API.CreateBot(&model.Bot{
-		Username:    "bot",
-		Description: "a plugin bot",
-		OwnerId:     "abc123",
-	})
-	if err != nil {
-		return nil, err.Error() + "failed to create bot with overridden creator"
-	}
-	if fetchedBot, err = p.API.GetBot(createdBotWithOverriddenCreator.UserId, false); err != nil {
-		return nil, err.Error() + "failed to get bot"
-	}
-	if fetchedBot.Description != "a plugin bot" {
-		return nil, "GetBot did not return the expected bot Description"
-	}
-	if fetchedBot.OwnerId != "abc123" {
-		return nil, "GetBot did not return the expected bot OwnerId"
-	}
+		if _, err = p.API.GetBot(patchedBot.UserId, false); err == nil {
+			return nil, err.Error() + "found bot after permanently deleting"
+		}
+		createdBotWithOverriddenCreator, err := p.API.CreateBot(&model.Bot{
+			Username:    "bot",
+			Description: "a plugin bot",
+			OwnerId:     "abc123",
+		})
+		if err != nil {
+			return nil, err.Error() + "failed to create bot with overridden creator"
+		}
+		if fetchedBot, err = p.API.GetBot(createdBotWithOverriddenCreator.UserId, false); err != nil {
+			return nil, err.Error() + "failed to get bot"
+		}
+		if fetchedBot.Description != "a plugin bot" {
+			return nil, "GetBot did not return the expected bot Description"
+		}
+		if fetchedBot.OwnerId != "abc123" {
+			return nil, "GetBot did not return the expected bot OwnerId"
+		}
+	*/
 	return nil, "OK"
 }
 
