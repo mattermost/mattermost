@@ -452,7 +452,11 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	$(GO) mod vendor
 
 vet: ## Run mattermost go vet specific checks
-	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-govet
+	@if ! [ -x "$$(command -v mattermost-govet)" ]; then \
+		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off go get -u github.com/mattermost/mattermost-govet\""; \
+		exit 1; \
+	fi; \
+
 	env GO111MODULE=off $(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	env GO111MODULE=off $(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -enterpriseLicense ./enterprise/...
