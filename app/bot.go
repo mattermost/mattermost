@@ -293,28 +293,14 @@ func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotL
 	}
 
 	T := utils.GetUserTranslations(user.Locale)
-	infoMessage := T("app.bot.get_disable_bot_sysadmin_message.infoMessage")
-
-	if disableBotsSetting {
-		message = T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1",
-			map[string]interface{}{"UserName": user.Username, "NumBots": len(userBots), "BotNames": botList})
-		if printAllBots {
-			message = T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.1.printall",
-				map[string]interface{}{"UserName": user.Username, "BotNames": botList})
-		}
-		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.true.2")
-		message += infoMessage
-	} else {
-		message = T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1",
-			map[string]interface{}{"UserName": user.Username, "NumBots": len(userBots), "BotNames": botList})
-		if printAllBots {
-			message = T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.1.printall",
-				map[string]interface{}{"UserName": user.Username, "NumBots": len(userBots), "BotNames": botList})
-		}
-		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.2")
-		message += infoMessage
-		message += T("app.bot.get_disable_bot_sysadmin_message.disableBotsSetting.false.3")
-	}
+	message = T("app.bot.get_disable_bot_sysadmin_message",
+		map[string]interface{}{
+			"UserName":           user.Username,
+			"NumBots":            len(userBots),
+			"BotNames":           botList,
+			"disableBotsSetting": disableBotsSetting,
+			"printAllBots":       printAllBots,
+		})
 
 	return message
 }
