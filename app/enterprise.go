@@ -142,22 +142,20 @@ func (s *Server) initEnterprise() {
 		s.Notification = notificationInterface(s.FakeApp())
 	}
 	if samlInterface != nil {
-		// default to original interface.
-		s.Saml = samlInterface(s.FakeApp())
-		s.AddConfigListener(func(_, cfg *model.Config) {
-			if samlInterfaceNew != nil {
-				if *cfg.ExperimentalSettings.UseNewSAMLLibrary {
-					mlog.Debug("Loading new SAML2 library")
-					s.Saml = samlInterfaceNew(s.FakeApp())
-				} else {
-					mlog.Debug("Loading original SAML library")
-					s.Saml = samlInterface(s.FakeApp())
-				}
+		setSAMLInterface := func(_, cfg *model.Config) {
+			if *cfg.ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
+				mlog.Debug("Loading new SAML2 library")
+				s.Saml = samlInterfaceNew(s.FakeApp())
+			} else {
+				mlog.Debug("Loading original SAML library")
+				s.Saml = samlInterface(s.FakeApp())
 			}
 			if err := s.Saml.ConfigureSP(); err != nil {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
-		})
+		}
+		setSAMLInterface(nil, s.Config())
+		s.AddConfigListener(setSAMLInterface)
 	}
 	if dataRetentionInterface != nil {
 		s.DataRetention = dataRetentionInterface(s.FakeApp())

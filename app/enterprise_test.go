@@ -12,68 +12,100 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEnterpriseNone(t *testing.T) {
+func TestSAMLSettings(t *testing.T) {
+	tt := []struct {
+		name              string
+		setSAMLInterface  bool
+		setNewInterface   bool
+		useNewSAMLLibrary bool
+		isNil             bool
+		metadata          string
+	}{
+		{
+			name:              "No SAML Interfaces, default setting",
+			setSAMLInterface:  false,
+			setNewInterface:   false,
+			useNewSAMLLibrary: false,
+			isNil:             true,
+		},
+		{
+			name:              "No SAML Interfaces, set config true",
+			setSAMLInterface:  false,
+			setNewInterface:   false,
+			useNewSAMLLibrary: true,
+			isNil:             true,
+		},
+		{
+			name:              "Orignal SAML Interface, default setting",
+			setSAMLInterface:  true,
+			setNewInterface:   false,
+			useNewSAMLLibrary: false,
+			isNil:             false,
+			metadata:          "samlOne",
+		},
+		{
+			name:              "Orignal SAML Interface, config true",
+			setSAMLInterface:  true,
+			setNewInterface:   false,
+			useNewSAMLLibrary: true,
+			isNil:             false,
+			metadata:          "samlOne",
+		},
+		{
+			name:              "Both SAML Interfaces, default setting",
+			setSAMLInterface:  true,
+			setNewInterface:   true,
+			useNewSAMLLibrary: false,
+			isNil:             false,
+			metadata:          "samlOne",
+		},
+		{
+			name:              "Both SAML Interfaces, config true",
+			setSAMLInterface:  true,
+			setNewInterface:   true,
+			useNewSAMLLibrary: true,
+			isNil:             false,
+			metadata:          "samlTwo",
+		},
+	}
 
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			saml := &mocks.SamlInterface{}
+			saml.Mock.On("ConfigureSP").Return(nil)
+			saml.Mock.On("GetMetadata").Return("samlOne", nil)
+			if tc.setSAMLInterface {
+				RegisterSamlInterface(func(a *App) einterfaces.SamlInterface {
+					return saml
+				})
+			}
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.UseNewSAMLLibrary = true
-	})
+			saml2 := &mocks.SamlInterface{}
+			saml2.Mock.On("ConfigureSP").Return(nil)
+			saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
+			if tc.setNewInterface {
+				RegisterNewSamlInterface(func(a *App) einterfaces.SamlInterface {
+					return saml2
+				})
+			}
 
-	assert.Nil(t, th.App.Srv.Saml)
-}
+			th := SetupEnterprise(t).InitBasic()
+			defer th.TearDown()
 
-func TestEnterpriseDefault(t *testing.T) {
+			if tc.useNewSAMLLibrary {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ExperimentalSettings.UseNewSAMLLibrary = tc.useNewSAMLLibrary
+				})
+			}
 
-	saml := &mocks.SamlInterface{}
-	saml.Mock.On("ConfigureSP").Return(nil)
-	saml.Mock.On("GetMetadata").Return("samlOne", nil)
-	RegisterSamlInterface(func(a *App) einterfaces.SamlInterface {
-		return saml
-	})
-
-	saml2 := &mocks.SamlInterface{}
-	saml2.Mock.On("ConfigureSP").Return(nil)
-	saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
-	RegisterNewSamlInterface(func(a *App) einterfaces.SamlInterface {
-		return saml2
-	})
-
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
-
-	assert.NotNil(t, th.App.Srv.Saml)
-	origMetadata, _ := th.App.Srv.Saml.GetMetadata()
-	samlMetadata, _ := saml.GetMetadata()
-	assert.Equal(t, origMetadata, samlMetadata)
-}
-
-func TestEnterpriseNew(t *testing.T) {
-
-	saml := &mocks.SamlInterface{}
-	saml.Mock.On("ConfigureSP").Return(nil)
-	saml.Mock.On("GetMetadata").Return("samlOne", nil)
-	RegisterSamlInterface(func(a *App) einterfaces.SamlInterface {
-		return saml
-	})
-
-	saml2 := &mocks.SamlInterface{}
-	saml2.Mock.On("ConfigureSP").Return(nil)
-	saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
-	RegisterNewSamlInterface(func(a *App) einterfaces.SamlInterface {
-		return saml2
-	})
-
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.UseNewSAMLLibrary = true
-	})
-
-	assert.NotNil(t, th.App.Srv.Saml)
-	origMetadata, _ := th.App.Srv.Saml.GetMetadata()
-	samlMetadata, _ := saml2.GetMetadata()
-	assert.Equal(t, origMetadata, samlMetadata)
+			if tc.isNil {
+				assert.Nil(t, th.App.Srv.Saml)
+			} else {
+				assert.NotNil(t, th.App.Srv.Saml)
+				metadata, err := th.App.Srv.Saml.GetMetadata()
+				assert.Nil(t, err)
+				assert.Equal(t, tc.metadata, metadata)
+			}
+		})
+	}
 }
