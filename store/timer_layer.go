@@ -568,6 +568,22 @@ func (s *TimerLayerChannelStore) ClearCaches() {
 	return
 }
 
+func (s *TimerLayerChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int64, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.ChannelStore.CountPostsAfter(channelId, timestamp, userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CountPostsAfter", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError) {
 	start := timemodule.Now()
 
@@ -3736,7 +3752,7 @@ func (s *TimerLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*mod
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPluginStore) SetWithOptions(pluginId string, key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
+func (s *TimerLayerPluginStore) SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PluginStore.SetWithOptions(pluginId, key, value, options)
@@ -5798,6 +5814,22 @@ func (s *TimerLayerTeamStore) SearchAll(term string) ([]*model.Team, *model.AppE
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.SearchAll", success, elapsed)
 	}
 	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1, resultVar2 := s.TeamStore.SearchAllPaged(term, page, perPage)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar2 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.SearchAllPaged", success, elapsed)
+	}
+	return resultVar0, resultVar1, resultVar2
 }
 
 func (s *TimerLayerTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
