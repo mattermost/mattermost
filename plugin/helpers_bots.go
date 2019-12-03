@@ -167,7 +167,7 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		return false, nil
 	}
 
-	if post.Props["from_webhook"] == true && !messageProcessOptions.AllowWebhook {
+	if !messageProcessOptions.AllowWebhook && post.Props["from_webhook"] == true {
 		return false, nil
 	}
 
