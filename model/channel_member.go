@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -28,6 +28,16 @@ type ChannelUnread struct {
 	ChannelId    string    `json:"channel_id"`
 	MsgCount     int64     `json:"msg_count"`
 	MentionCount int64     `json:"mention_count"`
+	NotifyProps  StringMap `json:"-"`
+}
+
+type ChannelUnreadAt struct {
+	TeamId       string    `json:"team_id"`
+	UserId       string    `json:"user_id"`
+	ChannelId    string    `json:"channel_id"`
+	MsgCount     int64     `json:"msg_count"`
+	MentionCount int64     `json:"mention_count"`
+	LastViewedAt int64     `json:"last_viewed_at"`
 	NotifyProps  StringMap `json:"-"`
 }
 
@@ -67,6 +77,11 @@ func (o *ChannelUnread) ToJson() string {
 	return string(b)
 }
 
+func (o *ChannelUnreadAt) ToJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
+}
+
 func ChannelMembersFromJson(data io.Reader) *ChannelMembers {
 	var o *ChannelMembers
 	json.NewDecoder(data).Decode(&o)
@@ -75,6 +90,12 @@ func ChannelMembersFromJson(data io.Reader) *ChannelMembers {
 
 func ChannelUnreadFromJson(data io.Reader) *ChannelUnread {
 	var o *ChannelUnread
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+func ChannelUnreadAtFromJson(data io.Reader) *ChannelUnreadAt {
+	var o *ChannelUnreadAt
 	json.NewDecoder(data).Decode(&o)
 	return o
 }

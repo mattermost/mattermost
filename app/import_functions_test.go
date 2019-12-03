@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -505,7 +505,7 @@ func TestImportImportTeam(t *testing.T) {
 	scheme2 := th.SetupTeamScheme()
 
 	// Check how many teams are in the database.
-	teamsCount, err := th.App.Srv.Store.Team().AnalyticsTeamCount()
+	teamsCount, err := th.App.Srv.Store.Team().AnalyticsTeamCount(false)
 	require.Nil(t, err, "Failed to get team count.")
 
 	data := TeamImportData{
@@ -2569,6 +2569,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		}},
 	}
 
+	// import with attachments
 	err = th.App.ImportPost(data, false)
 	assert.Nil(t, err)
 
@@ -2576,6 +2577,16 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	assert.Equal(t, len(attachments), 2)
 	assert.Contains(t, attachments[0].Path, team.Id)
 	assert.Contains(t, attachments[1].Path, team.Id)
+	AssertFileIdsInPost(attachments, th, t)
+
+	// import existing post with new attachments
+	data.Attachments = &[]AttachmentImportData{{Path: &testImage}}
+	err = th.App.ImportPost(data, false)
+	assert.Nil(t, err)
+
+	attachments = GetAttachments(user3.Id, th, t)
+	assert.Equal(t, len(attachments), 1)
+	assert.Contains(t, attachments[0].Path, team.Id)
 	AssertFileIdsInPost(attachments, th, t)
 
 	attachments = GetAttachments(user4.Id, th, t)

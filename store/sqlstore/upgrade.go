@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -12,13 +12,14 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_16_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_17_0
+	VERSION_5_17_0           = "5.17.0"
 	VERSION_5_16_0           = "5.16.0"
 	VERSION_5_15_0           = "5.15.0"
 	VERSION_5_14_0           = "5.14.0"
@@ -163,6 +164,7 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion514(sqlStore)
 	upgradeDatabaseToVersion515(sqlStore)
 	upgradeDatabaseToVersion516(sqlStore)
+	upgradeDatabaseToVersion517(sqlStore)
 
 	return nil
 }
@@ -719,5 +721,11 @@ func upgradeDatabaseToVersion516(sqlStore SqlStore) {
 
 		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
 		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
+	}
+}
+
+func upgradeDatabaseToVersion517(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_16_0, VERSION_5_17_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_17_0)
 	}
 }
