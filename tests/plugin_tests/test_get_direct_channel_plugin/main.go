@@ -6,8 +6,8 @@ package main
 import (
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 type MyPlugin struct {
@@ -65,7 +65,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 	if !isEmpty(dm3) {
 		return nil, "dm3 is NOT empty"
 	}
-	return nil, ""
+	return nil, "OK"
 }
 
 func main() {

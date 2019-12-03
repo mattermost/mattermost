@@ -24,14 +24,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -411,7 +406,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "plugin_tests", "manual.test_load_configuration_plugin", "main.go")
 
-	err := pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", nil, `{"id": "testloadpluginconfig", "backend": {"executable": "backend.exe"}, "settings_schema": {
+	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", nil, `{"id": "testloadpluginconfig", "backend": {"executable": "backend.exe"}, "settings_schema": {
 		"settings": [
 			{
 				"key": "MyStringSetting",
@@ -447,7 +442,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "plugin_tests", "manual.test_load_configuration_defaults_plugin", "main.go")
 
-	err := pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", nil, `{
+	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", nil, `{
 		"settings": [
 			{
 				"key": "MyStringSetting",
@@ -787,10 +782,10 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 		fmt.Sprintf(`{"id": "%v", "backend": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema),
 		id, th.App)
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(id)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, hooks)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
-	if ret != "" {
+	if ret != "OK" {
 		return errors.New(ret)
 	}
 	return nil
@@ -801,6 +796,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 // 2. For each folder - compiles the main.go inside and executes it, validating it's result
 // 3. If folder starts with "manual." it is skipped ("manual." tests executed in other part of this file)
 // 4. Before compiling the main.go file is passed through templating and the following values are available in the template: BasicUser, BasicUser2, BasicChannel, BasicTeam, BasicPost
+// 5. Succesfully running test should return nil, "OK". Any other returned string is considered and error
 
 func TestBasicAPIPlugins(t *testing.T) {
 	testFolder, found := fileutils.FindDir("tests")

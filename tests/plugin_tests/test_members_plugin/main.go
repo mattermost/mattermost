@@ -4,8 +4,8 @@
 package main
 
 import (
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 type MyPlugin struct {
@@ -21,7 +21,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 	} else if teamMembers[0].UserId != "{{.BasicUser.Id}}" || teamMembers[0].TeamId != "{{.BasicTeam.Id}}" {
 		return nil, "Invalid user or team id returned"
 	}
-	return nil, ""
+	return nil, "OK"
 }
 
 func main() {

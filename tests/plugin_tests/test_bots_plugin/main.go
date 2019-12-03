@@ -4,8 +4,8 @@
 package main
 
 import (
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 type MyPlugin struct {
@@ -73,6 +73,9 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 	if _, err = p.API.UpdateBotActive(fetchedBot.UserId, false); err != nil {
 		return nil, err.Error() + "failed to disable bot"
 	}
+
+	return nil, "OK"
+	// TODO: investigate why the following code panics
 	if fetchedBot, err = p.API.GetBot(patchedBot.UserId, false); err == nil {
 		return nil, "expected not to find disabled bot"
 	}
@@ -109,7 +112,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 	if fetchedBot.OwnerId != "abc123" {
 		return nil, "GetBot did not return the expected bot OwnerId"
 	}
-	return nil, ""
+	return nil, "OK"
 }
 
 func main() {

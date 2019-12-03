@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 )
 
 type MyPlugin struct {
@@ -51,7 +51,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 	if resultsEmail.Body.Text != body {
 		return nil, fmt.Sprintf("body differs: %v vs %s", resultsEmail.Body.Text, body)
 	}
-	return nil, ""
+	return nil, "OK"
 }
 
 func main() {

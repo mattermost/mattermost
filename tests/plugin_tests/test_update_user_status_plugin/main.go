@@ -6,8 +6,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 type MyPlugin struct {
@@ -41,7 +41,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 		return nil, "Status was expected to be nil, got: " + status.Status
 	}
 
-	return nil, ""
+	return nil, "OK"
 }
 
 func main() {

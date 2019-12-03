@@ -11,8 +11,8 @@ import (
 	"image/png"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 type MyPlugin struct {
@@ -82,7 +82,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 	if img2.At(2, 3) != colorful {
 		return nil, fmt.Sprintf("color mismatch %v != %v", img2.At(2, 3), colorful)
 	}
-	return nil, ""
+	return nil, "OK"
 }
 
 func main() {
