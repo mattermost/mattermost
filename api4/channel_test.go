@@ -1978,6 +1978,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	_, r1 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s1)
 	CheckNoError(t, r1)
 
+	timeout := time.After(600 * time.Millisecond)
 	waiting := true
 	for waiting {
 		select {
@@ -1986,6 +1987,9 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 				require.Equal(t, model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, event.Event)
 				waiting = false
 			}
+		case <-timeout:
+			require.FailNow(t, "Should have received event channel member websocket event and not timedout")
+			waiting = false
 		}
 	}
 
