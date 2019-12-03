@@ -756,9 +756,9 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 	}
 
 	// Notify the clients that the member notify props changed
-	evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
-	evt.Add("channelMember", member.ToJson())
-	a.Publish(evt)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
+	message.Add("channelMember", member.ToJson())
+	a.Publish(message)
 
 	a.InvalidateCacheForUser(userId)
 	return member, nil
