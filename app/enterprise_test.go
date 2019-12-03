@@ -12,15 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
-
-func TestEnterpriseFail(t *testing.T) {
-
-	saml := &mocks.SamlInterface{}
-	saml.Mock.On("ConfigureSP").Return(nil)
-	RegisterSamlInterface(func(a *App) einterfaces.SamlInterface {
-		return saml
-	})
+func TestEnterpriseNone(t *testing.T) {
 
 	th := SetupEnterprise(t).InitBasic()
 	defer th.TearDown()
@@ -32,15 +24,45 @@ func TestEnterpriseFail(t *testing.T) {
 	assert.Nil(t, th.App.Srv.Saml)
 }
 
-func TestEnterpriseSuccess(t *testing.T) {
+func TestEnterpriseDefault(t *testing.T) {
 
 	saml := &mocks.SamlInterface{}
 	saml.Mock.On("ConfigureSP").Return(nil)
+	saml.Mock.On("GetMetadata").Return("samlOne", nil)
 	RegisterSamlInterface(func(a *App) einterfaces.SamlInterface {
 		return saml
 	})
+
+	saml2 := &mocks.SamlInterface{}
+	saml2.Mock.On("ConfigureSP").Return(nil)
+	saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
 	RegisterNewSamlInterface(func(a *App) einterfaces.SamlInterface {
+		return saml2
+	})
+
+	th := SetupEnterprise(t).InitBasic()
+	defer th.TearDown()
+
+	assert.NotNil(t, th.App.Srv.Saml)
+	origMetadata, _ := th.App.Srv.Saml.GetMetadata()
+	samlMetadata, _ := saml.GetMetadata()
+	assert.Equal(t, origMetadata, samlMetadata)
+}
+
+func TestEnterpriseNew(t *testing.T) {
+
+	saml := &mocks.SamlInterface{}
+	saml.Mock.On("ConfigureSP").Return(nil)
+	saml.Mock.On("GetMetadata").Return("samlOne", nil)
+	RegisterSamlInterface(func(a *App) einterfaces.SamlInterface {
 		return saml
+	})
+
+	saml2 := &mocks.SamlInterface{}
+	saml2.Mock.On("ConfigureSP").Return(nil)
+	saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
+	RegisterNewSamlInterface(func(a *App) einterfaces.SamlInterface {
+		return saml2
 	})
 
 	th := SetupEnterprise(t).InitBasic()
@@ -51,4 +73,7 @@ func TestEnterpriseSuccess(t *testing.T) {
 	})
 
 	assert.NotNil(t, th.App.Srv.Saml)
+	origMetadata, _ := th.App.Srv.Saml.GetMetadata()
+	samlMetadata, _ := saml2.GetMetadata()
+	assert.Equal(t, origMetadata, samlMetadata)
 }
