@@ -80,7 +80,7 @@ func TestEmojiStoreCache(t *testing.T) {
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "Get", 2)
 	})
 
-	t.Run("first call by id force no cached, second not cached, third cached", func(t *testing.T) {
+	t.Run("first call by name force no cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 
