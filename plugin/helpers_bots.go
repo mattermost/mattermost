@@ -148,6 +148,10 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		return false, nil
 	}
 
+	if !messageProcessOptions.AllowWebhook && post.Props["from_webhook"] == true {
+		return false, nil
+	}
+
 	if !messageProcessOptions.AllowBots {
 		user, appErr := p.API.GetUser(post.UserId)
 		if appErr != nil {
@@ -164,10 +168,6 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 	}
 
 	if len(messageProcessOptions.FilterUserIDs) != 0 && !utils.StringInSlice(post.UserId, messageProcessOptions.FilterUserIDs) {
-		return false, nil
-	}
-
-	if !messageProcessOptions.AllowWebhook && post.Props["from_webhook"] == true {
 		return false, nil
 	}
 
