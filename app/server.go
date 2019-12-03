@@ -733,14 +733,6 @@ func (s *Server) StartSearchEngine() {
 		})
 	}
 
-	if s.SearchEngine.BleveEngine != nil && s.SearchEngine.BleveEngine.IsActive() {
-		s.Go(func() {
-			if err := s.SearchEngine.BleveEngine.Start(); err != nil {
-				s.Log.Error(err.Error())
-			}
-		})
-	}
-
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		s.SearchEngine.UpdateConfig(newConfig)
 
@@ -765,20 +757,6 @@ func (s *Server) StartSearchEngine() {
 					if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
 						mlog.Error(err.Error())
 					}
-				}
-			})
-		}
-
-		if s.SearchEngine.BleveEngine != nil && !*oldConfig.BleveSettings.EnableIndexing && *newConfig.BleveSettings.EnableIndexing {
-			s.Go(func() {
-				if err := s.SearchEngine.BleveEngine.Start(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		} else if s.SearchEngine.BleveEngine != nil && *oldConfig.BleveSettings.EnableIndexing && !*newConfig.BleveSettings.EnableIndexing {
-			s.Go(func() {
-				if err := s.SearchEngine.BleveEngine.Stop(); err != nil {
-					mlog.Error(err.Error())
 				}
 			})
 		}

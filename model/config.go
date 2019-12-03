@@ -178,8 +178,6 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS = 3600
 	ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS           = 30
 
-	BLEVE_SETTINGS_DEFAULT_INDEX_DIR = ""
-
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
@@ -2188,31 +2186,6 @@ func (s *ElasticsearchSettings) SetDefaults() {
 	}
 }
 
-type BleveSettings struct {
-	IndexDir           *string
-	EnableIndexing     *bool `restricted:"true"`
-	EnableSearching    *bool `restricted:"true"`
-	EnableAutocomplete *bool `restricted:"true"`
-}
-
-func (s *BleveSettings) SetDefaults() {
-	if s.IndexDir == nil {
-		s.IndexDir = NewString(BLEVE_SETTINGS_DEFAULT_INDEX_DIR)
-	}
-
-	if s.EnableIndexing == nil {
-		s.EnableIndexing = NewBool(false)
-	}
-
-	if s.EnableSearching == nil {
-		s.EnableSearching = NewBool(false)
-	}
-
-	if s.EnableAutocomplete == nil {
-		s.EnableAutocomplete = NewBool(false)
-	}
-}
-
 type DataRetentionSettings struct {
 	EnableMessageDeletion *bool
 	EnableFileDeletion    *bool
@@ -2504,7 +2477,6 @@ type Config struct {
 	ExperimentalSettings    ExperimentalSettings
 	AnalyticsSettings       AnalyticsSettings
 	ElasticsearchSettings   ElasticsearchSettings
-	BleveSettings           BleveSettings
 	DataRetentionSettings   DataRetentionSettings
 	MessageExportSettings   MessageExportSettings
 	JobSettings             JobSettings
@@ -2586,7 +2558,6 @@ func (o *Config) SetDefaults() {
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
 	o.ElasticsearchSettings.SetDefaults()
-	o.BleveSettings.SetDefaults()
 	o.NativeAppSettings.SetDefaults()
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
@@ -2649,10 +2620,6 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.ElasticsearchSettings.isValid(); err != nil {
-		return err
-	}
-
-	if err := o.BleveSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -3026,15 +2993,6 @@ func (ess *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.request_timeout_seconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return nil
-}
-
-func (bs *BleveSettings) isValid() *AppError {
-	if *bs.EnableIndexing {
-		if len(*bs.IndexDir) == 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
 	return nil
 }
 
