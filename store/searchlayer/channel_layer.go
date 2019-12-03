@@ -145,18 +145,20 @@ func (c *SearchChannelStore) esAutocompleteChannels(engine searchengine.SearchEn
 func (c *SearchChannelStore) PermanentDeleteMembersByChannel(channelId string) *model.AppError {
 	err := c.ChannelStore.PermanentDeleteMembersByChannel(channelId)
 
-	if err == nil {
-		profiles, err := c.rootStore.User().GetAllProfilesInChannel(channelId, false)
-		if err != nil {
-			mlog.Error("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(err))
-		} else {
-			for _, user := range profiles {
-				c.rootStore.indexUser(user)
-			}
+	if err != nil {
+		return err
+	}
+
+	profiles, err := c.rootStore.User().GetAllProfilesInChannel(channelId, false)
+	if err != nil {
+		mlog.Error("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(err))
+	} else {
+		for _, user := range profiles {
+			c.rootStore.indexUser(user)
 		}
 	}
 
-	return err
+	return nil
 }
 
 func (c *SearchChannelStore) PermanentDelete(channelId string) *model.AppError {
