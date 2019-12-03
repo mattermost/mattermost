@@ -148,7 +148,7 @@ func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []b
 	return true, nil
 }
 
-func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value interface{}, opt model.PluginKVSetOptions) (bool, *model.AppError) {
+func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value []byte, opt model.PluginKVSetOptions) (bool, *model.AppError) {
 	if err := opt.IsValid(); err != nil {
 		return false, err
 	}
@@ -159,13 +159,7 @@ func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value inter
 	}
 
 	if opt.Atomic {
-		var serializedOldValue []byte
-		serializedOldValue, err = opt.GetOldValueSerialized()
-		if err != nil {
-			return false, err
-		}
-
-		return ps.CompareAndSet(kv, serializedOldValue)
+		return ps.CompareAndSet(kv, opt.OldValue)
 	}
 
 	savedKv, err := ps.SaveOrUpdate(kv)
