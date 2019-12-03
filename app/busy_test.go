@@ -31,7 +31,7 @@ func TestBusySet(t *testing.T) {
 	// allow a moment for cluster to sync.
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
 
-	// test set after auto expiry
+	// test set after auto expiry.
 	busy.Set(time.Second * 30)
 	require.True(t, busy.IsBusy())
 	require.True(t, compareBusyState(t, busy, cluster.Busy))
