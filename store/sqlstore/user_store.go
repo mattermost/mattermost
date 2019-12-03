@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -14,17 +14,15 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
 	PROFILES_IN_CHANNEL_CACHE_SIZE  = model.CHANNEL_CACHE_SIZE
 	PROFILES_IN_CHANNEL_CACHE_SEC   = 900 // 15 mins
-	PROFILE_BY_IDS_CACHE_SIZE       = model.SESSION_CACHE_SIZE
-	PROFILE_BY_IDS_CACHE_SEC        = 900 // 15 mins
 	MAX_GROUP_CHANNELS_FOR_PROFILES = 50
 )
 
@@ -44,25 +42,16 @@ type SqlUserStore struct {
 }
 
 var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
-var profileByIdsCache *utils.Cache = utils.NewLru(PROFILE_BY_IDS_CACHE_SIZE)
 
 func (us SqlUserStore) ClearCaches() {
 	profilesInChannelCache.Purge()
-	profileByIdsCache.Purge()
 
 	if us.metrics != nil {
 		us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Purge")
-		us.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Purge")
 	}
 }
 
-func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {
-	profileByIdsCache.Remove(userId)
-
-	if us.metrics != nil {
-		us.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Remove")
-	}
-}
+func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {}
 
 func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
@@ -829,46 +818,15 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, *model.AppError) {
+func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, _ bool) ([]*model.User, *model.AppError) {
 	if options == nil {
 		options = &store.UserGetByIdsOpts{}
 	}
 
 	users := []*model.User{}
-	remainingUserIds := make([]string, 0)
-
-	if allowFromCache {
-		for _, userId := range userIds {
-			if cacheItem, ok := profileByIdsCache.Get(userId); ok {
-				u := &model.User{}
-				*u = *cacheItem.(*model.User)
-
-				if options.Since == 0 || u.UpdateAt > options.Since {
-					users = append(users, u)
-				}
-			} else {
-				remainingUserIds = append(remainingUserIds, userId)
-			}
-		}
-		if us.metrics != nil {
-			us.metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(users)))
-			us.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
-		}
-	} else {
-		remainingUserIds = userIds
-		if us.metrics != nil {
-			us.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
-		}
-	}
-
-	// If everything came from the cache then just return
-	if len(remainingUserIds) == 0 {
-		return users, nil
-	}
-
 	query := us.usersQuery.
 		Where(map[string]interface{}{
-			"u.Id": remainingUserIds,
+			"u.Id": userIds,
 		}).
 		OrderBy("u.Username ASC")
 
@@ -891,10 +849,6 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetB
 
 	for _, u := range users {
 		u.Sanitize(map[string]bool{})
-
-		cpy := &model.User{}
-		*cpy = *u
-		profileByIdsCache.AddWithExpiresInSecs(cpy.Id, cpy, PROFILE_BY_IDS_CACHE_SEC)
 	}
 
 	return users, nil
@@ -1147,16 +1101,23 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.UserCountOptions) (int64, *model.AppError) {
 
 	time := model.GetMillis() - timePeriod
+	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > :Time", map[string]interface{}{"Time": time})
 
-	query := "SELECT COUNT(*) FROM Status s"
-
-	if options.IncludeBotAccounts {
-		query += " WHERE LastActivityAt > :Time"
-	} else {
-		query += " LEFT JOIN Bots ON s.UserId = Bots.UserId WHERE Bots.UserId IS NULL AND LastActivityAt > :Time"
+	if !options.IncludeBotAccounts {
+		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
 	}
 
-	v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
+	if !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
+	}
+
+	queryStr, args, err := query.ToSql()
+
+	if err != nil {
+		return 0, model.NewAppError("SqlUserStore.Get", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	v, err := us.GetReplica().SelectInt(queryStr, args...)
 	if err != nil {
 		return 0, model.NewAppError("SqlUserStore.AnalyticsDailyActiveUsers", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

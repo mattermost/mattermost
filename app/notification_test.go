@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestSendNotifications(t *testing.T) {
@@ -1541,9 +1541,9 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			notification := &PostNotification{
-				channel:    testCase.channel,
-				sender:     sender,
-				profileMap: profileMap,
+				Channel:    testCase.channel,
+				Sender:     sender,
+				ProfileMap: profileMap,
 			}
 
 			recipientId := recipient.Id
@@ -1626,9 +1626,9 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 			}
 
 			notification := &PostNotification{
-				channel: channel,
-				post:    post,
-				sender:  sender,
+				Channel: channel,
+				Post:    post,
+				Sender:  sender,
 			}
 
 			assert.Equal(t, testCase.expected, notification.GetSenderName(testCase.nameFormat, testCase.allowOverrides))

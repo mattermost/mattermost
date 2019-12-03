@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -13,11 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
@@ -51,8 +50,8 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -100,8 +99,8 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 				"time"
 			)
 
@@ -1261,7 +1260,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		assert.Equal(t, 2, count)
 	})
 
-	t.Run("should return store.MentionAllPosts for a direct channel", func(t *testing.T) {
+	t.Run("should return the number of posts made by the other user for a direct channel", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1278,10 +1277,22 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false)
 		require.Nil(t, err)
 
+		_, err = th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test2",
+		}, channel, false)
+		require.Nil(t, err)
+
 		count, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
-		assert.Equal(t, store.MentionAllPosts, count)
+		assert.Equal(t, 2, count)
+
+		count, err = th.App.countMentionsFromPost(user1, post1)
+
+		assert.Nil(t, err)
+		assert.Equal(t, 0, count)
 	})
 
 	t.Run("should not count mentions from the before the given post", func(t *testing.T) {

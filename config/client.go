@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // GenerateClientConfig renders the given configuration for a client.
@@ -132,6 +132,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
+	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 
 	if license != nil {
 		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package httpservice
 
@@ -10,7 +10,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/mattermost/mattermost-server/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
 )
 
 // HTTPService wraps the functionality for making http requests to provide some improvements to the default client
