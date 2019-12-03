@@ -2,8 +2,6 @@
 github.com/Masterminds/squirrel
 # github.com/NYTimes/gziphandler v1.1.1
 github.com/NYTimes/gziphandler
-# github.com/RoaringBitmap/roaring v0.4.21
-github.com/RoaringBitmap/roaring
 # github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878
 github.com/armon/go-metrics
 # github.com/avct/uasurfer v0.0.0-20190821150637-906cc7dc6197
@@ -12,56 +10,8 @@ github.com/avct/uasurfer
 github.com/beorn7/perks/quantile
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
-# github.com/blevesearch/bleve v0.8.1
-github.com/blevesearch/bleve
-github.com/blevesearch/bleve/analysis
-github.com/blevesearch/bleve/analysis/analyzer/keyword
-github.com/blevesearch/bleve/analysis/analyzer/standard
-github.com/blevesearch/bleve/analysis/datetime/flexible
-github.com/blevesearch/bleve/analysis/datetime/optional
-github.com/blevesearch/bleve/analysis/lang/en
-github.com/blevesearch/bleve/analysis/token/lowercase
-github.com/blevesearch/bleve/analysis/token/porter
-github.com/blevesearch/bleve/analysis/token/stop
-github.com/blevesearch/bleve/analysis/tokenizer/single
-github.com/blevesearch/bleve/analysis/tokenizer/unicode
-github.com/blevesearch/bleve/document
-github.com/blevesearch/bleve/geo
-github.com/blevesearch/bleve/index
-github.com/blevesearch/bleve/index/scorch
-github.com/blevesearch/bleve/index/scorch/mergeplan
-github.com/blevesearch/bleve/index/scorch/segment
-github.com/blevesearch/bleve/index/scorch/segment/zap
-github.com/blevesearch/bleve/index/store
-github.com/blevesearch/bleve/index/store/boltdb
-github.com/blevesearch/bleve/index/store/gtreap
-github.com/blevesearch/bleve/index/upsidedown
-github.com/blevesearch/bleve/mapping
-github.com/blevesearch/bleve/numeric
-github.com/blevesearch/bleve/registry
-github.com/blevesearch/bleve/search
-github.com/blevesearch/bleve/search/collector
-github.com/blevesearch/bleve/search/facet
-github.com/blevesearch/bleve/search/highlight
-github.com/blevesearch/bleve/search/highlight/format/html
-github.com/blevesearch/bleve/search/highlight/fragmenter/simple
-github.com/blevesearch/bleve/search/highlight/highlighter/html
-github.com/blevesearch/bleve/search/highlight/highlighter/simple
-github.com/blevesearch/bleve/search/query
-github.com/blevesearch/bleve/search/scorer
-github.com/blevesearch/bleve/search/searcher
-github.com/blevesearch/bleve/size
-# github.com/blevesearch/go-porterstemmer v1.0.2
-github.com/blevesearch/go-porterstemmer
-# github.com/blevesearch/segment v0.0.0-20160915185041-762005e7a34f
-github.com/blevesearch/segment
 # github.com/corpix/uarand v0.1.1
 github.com/corpix/uarand
-# github.com/couchbase/vellum v0.0.0-20190829182332-ef2e028c01fd
-github.com/couchbase/vellum
-github.com/couchbase/vellum/levenshtein
-github.com/couchbase/vellum/regexp
-github.com/couchbase/vellum/utf8
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
@@ -70,14 +20,8 @@ github.com/dgryski/dgoogauth
 github.com/disintegration/imaging
 # github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
 github.com/dyatlov/go-opengraph/opengraph
-# github.com/edsrzf/mmap-go v1.0.0
-github.com/edsrzf/mmap-go
-# github.com/etcd-io/bbolt v1.3.3
-github.com/etcd-io/bbolt
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
-# github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2
-github.com/glycerine/go-unsnap-stream
 # github.com/go-sql-driver/mysql v1.4.1
 github.com/go-sql-driver/mysql
 # github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
@@ -90,8 +34,6 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/golang/snappy v0.0.1
-github.com/golang/snappy
 # github.com/google/btree v1.0.0
 github.com/google/btree
 # github.com/google/uuid v1.1.1
@@ -205,8 +147,6 @@ github.com/mitchellh/go-homedir
 github.com/mitchellh/go-testing-interface
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
-# github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae
-github.com/mschoch/smat
 # github.com/muesli/smartcrop v0.3.0
 github.com/muesli/smartcrop
 github.com/muesli/smartcrop/nfnt
@@ -224,8 +164,6 @@ github.com/olivere/elastic/uritemplates
 github.com/pborman/uuid
 # github.com/pelletier/go-toml v1.4.0
 github.com/pelletier/go-toml
-# github.com/philhofer/fwd v1.0.0
-github.com/philhofer/fwd
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
@@ -270,8 +208,6 @@ github.com/spf13/jwalterweatherman
 github.com/spf13/pflag
 # github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
 github.com/ssor/bom
-# github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2
-github.com/steveyen/gtreap
 # github.com/stretchr/objx v0.2.0
 github.com/stretchr/objx
 # github.com/stretchr/testify v1.4.0
@@ -282,12 +218,8 @@ github.com/stretchr/testify/suite
 # github.com/throttled/throttled v2.2.4+incompatible
 github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
-# github.com/tinylib/msgp v1.1.0
-github.com/tinylib/msgp/msgp
 # github.com/tylerb/graceful v1.2.15
 github.com/tylerb/graceful
-# github.com/willf/bitset v1.1.10
-github.com/willf/bitset
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 github.com/xtgo/uuid
 # go.uber.org/atomic v1.4.0
