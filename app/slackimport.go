@@ -72,6 +72,8 @@ type SlackPost struct {
 
 var isValidChannelNameCharacters = regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`).MatchString
 
+const SLACK_IMPORT_MAX_FILE_SIZE = 1024 * 1024 * 70
+
 type SlackComment struct {
 	User    string `json:"user"`
 	Comment string `json:"comment"`
@@ -696,6 +698,10 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	posts := make(map[string][]SlackPost)
 	uploads := make(map[string]*zip.File)
 	for _, file := range zipreader.File {
+		if file.UncompressedSize64 > SLACK_IMPORT_MAX_FILE_SIZE {
+			log.WriteString(utils.T("api.slackimport.slack_import.zip.file_too_large", map[string]interface{}{"Filename": file.Name}))
+			continue
+		}
 		reader, err := file.Open()
 		if err != nil {
 			log.WriteString(utils.T("api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}))
