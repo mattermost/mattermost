@@ -2569,6 +2569,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		}},
 	}
 
+	// import with attachments
 	err = th.App.ImportPost(data, false)
 	assert.Nil(t, err)
 
@@ -2576,6 +2577,16 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	assert.Equal(t, len(attachments), 2)
 	assert.Contains(t, attachments[0].Path, team.Id)
 	assert.Contains(t, attachments[1].Path, team.Id)
+	AssertFileIdsInPost(attachments, th, t)
+
+	// import existing post with new attachments
+	data.Attachments = &[]AttachmentImportData{{Path: &testImage}}
+	err = th.App.ImportPost(data, false)
+	assert.Nil(t, err)
+
+	attachments = GetAttachments(user3.Id, th, t)
+	assert.Equal(t, len(attachments), 1)
+	assert.Contains(t, attachments[0].Path, team.Id)
 	AssertFileIdsInPost(attachments, th, t)
 
 	attachments = GetAttachments(user4.Id, th, t)

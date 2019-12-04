@@ -1194,7 +1194,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 			return 0, countErr
 		}
 
-		return int(count), countErr
+		return count, countErr
 	}
 
 	channelMember, err := a.GetChannelMember(channel.Id, user.Id)
