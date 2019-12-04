@@ -10,6 +10,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -44,6 +45,7 @@ type Hub struct {
 	activity        chan *WebConnActivityMessage
 	ExplicitStop    bool
 	goroutineId     int
+	connections     *hubConnectionIndex
 }
 
 func (a *App) NewWebHub() *Hub {
@@ -401,6 +403,15 @@ func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	}
 }
 
+// UserConnectionCount returns the number of connections a user has
+// in this hub.
+func (h *Hub) UserConnectionCount(userId string) int {
+	if h.connections == nil {
+		return 0
+	}
+	return len(h.connections.ForUser(userId))
+}
+
 func (h *Hub) InvalidateUser(userId string) {
 	select {
 	case h.invalidateUser <- userId:
@@ -440,22 +451,22 @@ func (h *Hub) Start() {
 		h.goroutineId = getGoroutineId()
 		mlog.Debug("Hub for index is starting with goroutine", mlog.Int("index", h.connectionIndex), mlog.Int("goroutine", h.goroutineId))
 
-		connections := newHubConnectionIndex()
+		h.connections = newHubConnectionIndex()
 
 		for {
 			select {
 			case webCon := <-h.register:
-				connections.Add(webCon)
-				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
+				h.connections.Add(webCon)
+				atomic.StoreInt64(&h.connectionCount, int64(len(h.connections.All())))
 			case webCon := <-h.unregister:
-				connections.Remove(webCon)
-				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
+				h.connections.Remove(webCon)
+				atomic.StoreInt64(&h.connectionCount, int64(len(h.connections.All())))
 
 				if len(webCon.UserId) == 0 {
 					continue
 				}
 
-				conns := connections.ForUser(webCon.UserId)
+				conns := h.connections.ForUser(webCon.UserId)
 				if len(conns) == 0 {
 					h.app.Srv.Go(func() {
 						h.app.SetStatusOffline(webCon.UserId, false)
@@ -474,19 +485,19 @@ func (h *Hub) Start() {
 					}
 				}
 			case userId := <-h.invalidateUser:
-				for _, webCon := range connections.ForUser(userId) {
+				for _, webCon := range h.connections.ForUser(userId) {
 					webCon.InvalidateCache()
 				}
 			case activity := <-h.activity:
-				for _, webCon := range connections.ForUser(activity.UserId) {
+				for _, webCon := range h.connections.ForUser(activity.UserId) {
 					if webCon.GetSessionToken() == activity.SessionToken {
 						webCon.LastUserActivityAt = activity.ActivityAt
 					}
 				}
 			case msg := <-h.broadcast:
-				candidates := connections.All()
+				candidates := h.connections.All()
 				if msg.Broadcast.UserId != "" {
-					candidates = connections.ForUser(msg.Broadcast.UserId)
+					candidates = h.connections.ForUser(msg.Broadcast.UserId)
 				}
 				msg.PrecomputeJSON()
 				for _, webCon := range candidates {
@@ -496,14 +507,14 @@ func (h *Hub) Start() {
 						default:
 							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webCon.UserId))
 							close(webCon.Send)
-							connections.Remove(webCon)
+							h.connections.Remove(webCon)
 						}
 					}
 				}
 			case <-h.stop:
 				userIds := make(map[string]bool)
 
-				for _, webCon := range connections.All() {
+				for _, webCon := range h.connections.All() {
 					userIds[webCon.UserId] = true
 					webCon.Close()
 				}
@@ -549,9 +560,10 @@ type hubConnectionIndexIndexes struct {
 
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.
 type hubConnectionIndex struct {
-	connections         []*WebConn
-	connectionsByUserId map[string][]*WebConn
-	connectionIndexes   map[*WebConn]*hubConnectionIndexIndexes
+	connections            []*WebConn
+	connectionsByUserIdMut sync.RWMutex
+	connectionsByUserId    map[string][]*WebConn
+	connectionIndexes      map[*WebConn]*hubConnectionIndexIndexes
 }
 
 func newHubConnectionIndex() *hubConnectionIndex {
@@ -564,6 +576,8 @@ func newHubConnectionIndex() *hubConnectionIndex {
 
 func (i *hubConnectionIndex) Add(wc *WebConn) {
 	i.connections = append(i.connections, wc)
+	i.connectionsByUserIdMut.Lock()
+	defer i.connectionsByUserIdMut.Unlock()
 	i.connectionsByUserId[wc.UserId] = append(i.connectionsByUserId[wc.UserId], wc)
 	i.connectionIndexes[wc] = &hubConnectionIndexIndexes{
 		connections:         len(i.connections) - 1,
@@ -582,6 +596,8 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	i.connections = i.connections[:len(i.connections)-1]
 	i.connectionIndexes[last].connections = indexes.connections
 
+	i.connectionsByUserIdMut.Lock()
+	defer i.connectionsByUserIdMut.Unlock()
 	userConnections := i.connectionsByUserId[wc.UserId]
 	last = userConnections[len(userConnections)-1]
 	userConnections[indexes.connectionsByUserId] = last
@@ -592,6 +608,8 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 }
 
 func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
+	i.connectionsByUserIdMut.RLock()
+	defer i.connectionsByUserIdMut.RUnlock()
 	return i.connectionsByUserId[id]
 }
 

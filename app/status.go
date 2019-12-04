@@ -176,6 +176,12 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
+	hub := a.GetHubForUserId(userId)
+	// No need to set status if the user does not have any
+	// active websocket connections.
+	if hub != nil && hub.UserConnectionCount(userId) == 0 {
+		return
+	}
 
 	broadcast := false
 
