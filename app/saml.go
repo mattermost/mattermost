@@ -4,6 +4,9 @@
 package app
 
 import (
+	"crypto/x509"
+	"encoding/pem"
+	"encoding/xml"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -171,4 +174,92 @@ func (a *App) GetSamlCertificateStatus() *model.SamlCertificateStatus {
 	status.PublicCertificateFile, _ = a.Srv.configStore.HasFile(*a.Config().SamlSettings.PublicCertificateFile)
 
 	return status
+}
+
+func (a *App) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError) {
+	if a.Saml == nil {
+		err := model.NewAppError("GetSamlMetadataFromIdp", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return nil, err
+	}
+
+	idpMetadata, err := a.FetchSamlMetadataFromIdp(idpMetadataUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	data := &model.SamlMetadataResponse{}
+	data.IdpDescriptorUrl = idpMetadata.EntityID
+
+	if idpMetadata.IDPSSODescriptors == nil || len(idpMetadata.IDPSSODescriptors) == 0 {
+		err := model.NewAppError("GetSamlMetadataFromIdp", "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error", nil, "", http.StatusInternalServerError)
+		return nil, err
+	}
+
+	idpSSODescriptor := idpMetadata.IDPSSODescriptors[0]
+	if idpSSODescriptor.SingleSignOnServices == nil || len(idpSSODescriptor.SingleSignOnServices) == 0 {
+		err := model.NewAppError("GetSamlMetadataFromIdp", "api.admin.saml.invalid_xml_missing_ssoservices.app_error", nil, "", http.StatusInternalServerError)
+		return nil, err
+	}
+
+	data.IdpUrl = idpSSODescriptor.SingleSignOnServices[0].Location
+	if idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors == nil || len(idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors) == 0 {
+		err := model.NewAppError("GetSamlMetadataFromIdp", "api.admin.saml.invalid_xml_missing_keydescriptor.app_error", nil, "", http.StatusInternalServerError)
+		return nil, err
+	}
+	keyDescriptor := idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors[0]
+	data.IdpPublicCertificate = keyDescriptor.KeyInfo.X509Data.X509Certificate.Cert
+
+	return data, nil
+}
+
+func (a *App) FetchSamlMetadataFromIdp(url string) (*model.EntityDescriptor, *model.AppError) {
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.invalid_response_from_idp.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer resp.Body.Close()
+
+	bodyXML, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_read_response_body.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	entityDescriptor := model.EntityDescriptor{}
+	err = xml.Unmarshal(bodyXML, &entityDescriptor)
+	if err != nil {
+		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_decode_metadata_xml.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return &entityDescriptor, nil
+}
+
+func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
+	const certPrefix = "-----BEGIN CERTIFICATE-----\n"
+	const certSuffix = "\n-----END CERTIFICATE-----"
+	fixedCertTxt := certPrefix + string(data) + certSuffix
+
+	block, _ := pem.Decode([]byte(fixedCertTxt))
+	if _, e := x509.ParseCertificate(block.Bytes); e != nil {
+		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_certificate.app_error", nil, e.Error(), http.StatusInternalServerError)
+	}
+
+	data = pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: block.Bytes,
+	})
+
+	if err := a.Srv.configStore.SetFile(SamlIdpCertificateName, data); err != nil {
+		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_save_certificate_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	cfg := a.Config().Clone()
+	*cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
 }

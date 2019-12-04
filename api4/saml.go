@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 
@@ -22,6 +23,9 @@ func (api *API) InitSaml() {
 	api.BaseRoutes.SAML.Handle("/certificate/idp", api.ApiSessionRequired(removeSamlIdpCertificate)).Methods("DELETE")
 
 	api.BaseRoutes.SAML.Handle("/certificate/status", api.ApiSessionRequired(getSamlCertificateStatus)).Methods("GET")
+
+	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.ApiHandler(getSamlMetadataFromIdp)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/idp/frommetadata", api.ApiSessionRequired(setSamlIdpCertificateFromMetadata)).Methods("POST")
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -163,4 +167,46 @@ func getSamlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request
 
 	status := c.App.GetSamlCertificateStatus()
 	w.Write([]byte(status.ToJson()))
+}
+
+func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	props := model.MapFromJson(r.Body)
+	url := props["saml_metadata_url"]
+	if url == "" {
+		c.SetInvalidParam("saml_metadata_url")
+		return
+	}
+
+	metadata, err := c.App.GetSamlMetadataFromIdp(url)
+	if err != nil {
+		c.Err = model.NewAppError("getSamlMetadataFromIdp", "api.admin.saml.failure_get_certificate_from_idp.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte(metadata.ToJson()))
+}
+
+func setSamlIdpCertificateFromMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("setSamlIdpCertificateFromMetadata", "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := c.App.SetSamlIdpCertificateFromMetadata(body); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }

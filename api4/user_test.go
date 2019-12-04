@@ -4282,6 +4282,7 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.SamlSettings.Encrypt = false
 		*cfg.SamlSettings.IdpUrl = "https://localhost/adfs/ls"
 		*cfg.SamlSettings.IdpDescriptorUrl = "https://localhost/adfs/services/trust"
+		*cfg.SamlSettings.IdpMetadataUrl = "https://localhost/adfs/metadata"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName
 		*cfg.SamlSettings.PrivateKeyFile = app.SamlPrivateKeyName
