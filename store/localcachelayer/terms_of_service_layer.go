@@ -33,37 +33,23 @@ func (s LocalCacheTermsOfServiceStore) ClearCaches() {
 	}
 }
 
-func (s LocalCacheTermsOfServiceStore) InvalidateTermsOfService(termsOfServiceId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.termsOfServiceCache, termsOfServiceId)
-	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Terms Of Service - Remove by TermsOfServiceId")
-	}
-}
-
 func (s LocalCacheTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError) {
 	tos, err := s.TermsOfServiceStore.Save(termsOfService)
 	if err != nil {
 		return nil, err
 	}
-	s.rootStore.termsOfServiceCache.AddWithDefaultExpires(termsOfService.Id, termsOfService)
+	s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, termsOfService.Id, termsOfService)
 	return tos, nil
 }
 
 func (s LocalCacheTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError) {
 	if allowFromCache {
 		if s.rootStore.termsOfServiceCache.Len() != 0 {
-			if cacheItem, ok := s.rootStore.termsOfServiceCache.Get(s.rootStore.termsOfServiceCache.Keys()[len(s.rootStore.termsOfServiceCache.Keys())-1]); ok {
-				if s.rootStore.metrics != nil {
-					s.rootStore.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
-				}
-
+			lastKey := s.rootStore.termsOfServiceCache.Keys()[s.rootStore.termsOfServiceCache.Len()-1]
+			if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.termsOfServiceCache, lastKey.(string)); cacheItem != nil {
 				return cacheItem.(*model.TermsOfService), nil
 			}
 		}
-	}
-
-	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
 	}
 
 	termsOfService, err := s.TermsOfServiceStore.GetLatest(allowFromCache)
@@ -72,7 +58,7 @@ func (s LocalCacheTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.Te
 	}
 
 	if allowFromCache {
-		s.rootStore.termsOfServiceCache.AddWithDefaultExpires(termsOfService.Id, termsOfService)
+		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, termsOfService.Id, termsOfService)
 	}
 
 	return termsOfService, nil
@@ -80,25 +66,15 @@ func (s LocalCacheTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.Te
 
 func (s LocalCacheTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError) {
 	if allowFromCache {
-		if s.rootStore.termsOfServiceCache.Len() != 0 {
-			if cacheItem, ok := s.rootStore.termsOfServiceCache.Get(id); ok {
-				if s.rootStore.metrics != nil {
-					s.rootStore.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
-				}
-
-				return cacheItem.(*model.TermsOfService), nil
-			}
+		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.termsOfServiceCache, id); cacheItem != nil {
+			return cacheItem.(*model.TermsOfService), nil
 		}
-	}
-
-	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
 	}
 
 	termsOfService, err := s.TermsOfServiceStore.Get(id, allowFromCache)
 
 	if allowFromCache && err == nil {
-		s.rootStore.termsOfServiceCache.AddWithDefaultExpires(termsOfService.Id, termsOfService)
+		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, termsOfService.Id, termsOfService)
 	}
 
 	return termsOfService, err
