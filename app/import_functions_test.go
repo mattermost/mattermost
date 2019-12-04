@@ -595,7 +595,7 @@ func TestImportImportChannel(t *testing.T) {
 	scheme2 := th.SetupChannelScheme()
 
 	// Import a Team.
-	teamName := model.NewId()
+	teamName := model.NewRandomTeamName()
 	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
@@ -862,7 +862,7 @@ func TestImportImportUser(t *testing.T) {
 	data.Password = ptrStr("TestPassword")
 
 	// Test team and channel memberships
-	teamName := model.NewId()
+	teamName := model.NewRandomTeamName()
 	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
@@ -1570,7 +1570,7 @@ func TestImportImportPost(t *testing.T) {
 	defer th.TearDown()
 
 	// Create a Team.
-	teamName := model.NewId()
+	teamName := model.NewRandomTeamName()
 	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
@@ -2510,7 +2510,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	defer th.TearDown()
 
 	// Create a Team.
-	teamName := model.NewId()
+	teamName := model.NewRandomTeamName()
 	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
