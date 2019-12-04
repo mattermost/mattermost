@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -91,14 +91,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		dailyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			dailyActive, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+			dailyActive, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 			dailyActiveChan <- store.StoreResult{Data: dailyActive, Err: err}
 			close(dailyActiveChan)
 		}()
 
 		monthlyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			monthlyActive, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false})
+			monthlyActive, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, Err: err}
 			close(monthlyActiveChan)
 		}()

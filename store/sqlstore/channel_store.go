@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -277,19 +277,16 @@ type publicChannel struct {
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
 var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
-var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func (s SqlChannelStore) ClearCaches() {
 	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
 	channelCache.Purge()
-	channelByNameCache.Purge()
 
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props for Channel - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
 	}
 }
 
@@ -671,10 +668,6 @@ func (s SqlChannelStore) InvalidateChannel(id string) {
 }
 
 func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
-	channelByNameCache.Remove(teamId + name)
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel by Name - Remove by TeamId and Name")
-	}
 }
 
 func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
@@ -1019,7 +1012,7 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 			PublicChannels pc ON (pc.Id = Channels.Id)
 		WHERE
 			pc.TeamId = :TeamId
-		AND pc.DeleteAt = 0 
+		AND pc.DeleteAt = 0
 		ORDER BY pc.DisplayName
 		LIMIT :Limit
 		OFFSET :Offset
@@ -1123,29 +1116,6 @@ func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bo
 func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
 	var channels []*model.Channel
 
-	if allowFromCache {
-		var misses []string
-		visited := make(map[string]struct{})
-		for _, name := range names {
-			if _, ok := visited[name]; ok {
-				continue
-			}
-			visited[name] = struct{}{}
-			if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Channel By Name")
-				}
-				channels = append(channels, cacheItem.(*model.Channel))
-			} else {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter("Channel By Name")
-				}
-				misses = append(misses, name)
-			}
-		}
-		names = misses
-	}
-
 	if len(names) > 0 {
 		props := map[string]interface{}{}
 		var namePlaceholders []string
@@ -1163,13 +1133,8 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 			query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND TeamId = :TeamId AND DeleteAt = 0`
 		}
 
-		var dbChannels []*model.Channel
-		if _, err := s.GetReplica().Select(&dbChannels, query, props); err != nil && err != sql.ErrNoRows {
+		if _, err := s.GetReplica().Select(&channels, query, props); err != nil && err != sql.ErrNoRows {
 			return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
-		}
-		for _, channel := range dbChannels {
-			channelByNameCache.AddWithExpiresInSecs(teamId+channel.Name, channel, CHANNEL_CACHE_SEC)
-			channels = append(channels, channel)
 		}
 	}
 
@@ -1189,18 +1154,6 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 	}
 	channel := model.Channel{}
 
-	if allowFromCache {
-		if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Channel By Name")
-			}
-			return cacheItem.(*model.Channel), nil
-		}
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter("Channel By Name")
-		}
-	}
-
 	if err := s.GetReplica().SelectOne(&channel, query, map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlChannelStore.GetByName", store.MISSING_CHANNEL_ERROR, nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusNotFound)
@@ -1208,7 +1161,6 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 		return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	channelByNameCache.AddWithExpiresInSecs(teamId+name, &channel, CHANNEL_CACHE_SEC)
 	return &channel, nil
 }
 
@@ -1229,15 +1181,15 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 	channels := &model.ChannelList{}
 
 	query := `
-		SELECT * FROM Channels 
-		WHERE (TeamId = :TeamId OR TeamId = '') 
-		AND DeleteAt != 0 
+		SELECT * FROM Channels
+		WHERE (TeamId = :TeamId OR TeamId = '')
+		AND DeleteAt != 0
 		AND Type != 'P'
 		UNION
-			SELECT * FROM Channels 
-			WHERE (TeamId = :TeamId OR TeamId = '') 
-			AND DeleteAt != 0 
-			AND Type = 'P' 
+			SELECT * FROM Channels
+			WHERE (TeamId = :TeamId OR TeamId = '')
+			AND DeleteAt != 0
+			AND Type = 'P'
 			AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
 		ORDER BY DisplayName LIMIT :Limit OFFSET :Offset
 	`
@@ -1758,27 +1710,45 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	return times, nil
 }
 
-// countPostsAfter returns the number of posts in the given channel created after but not including the given timestamp.
-func (s SqlChannelStore) countPostsAfter(channelID string, since int64) (int64, *model.AppError) {
-	countUnreadQuery := `
+// CountPostsAfter returns the number of posts in the given channel created after but not including the given timestamp. If given a non-empty user ID, only counts posts made by that user.
+func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError) {
+	joinLeavePostTypes, params := MapStringsToQueryParams([]string{
+		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
+		model.POST_JOIN_LEAVE,
+		model.POST_ADD_REMOVE,
+		model.POST_JOIN_CHANNEL,
+		model.POST_LEAVE_CHANNEL,
+		model.POST_JOIN_TEAM,
+		model.POST_LEAVE_TEAM,
+		model.POST_ADD_TO_CHANNEL,
+		model.POST_REMOVE_FROM_CHANNEL,
+		model.POST_ADD_TO_TEAM,
+		model.POST_REMOVE_FROM_TEAM,
+	}, "PostType")
+
+	query := `
 	SELECT count(*)
 	FROM Posts
 	WHERE
-		ChannelId = :channelId
-		AND CreateAt > :createAt
-		AND Type = ''
+		ChannelId = :ChannelId
+		AND CreateAt > :CreateAt
+		AND Type NOT IN ` + joinLeavePostTypes + `
 		AND DeleteAt = 0
 	`
-	countParams := map[string]interface{}{
-		"channelId": channelID,
-		"createAt":  since,
+
+	params["ChannelId"] = channelId
+	params["CreateAt"] = timestamp
+
+	if userId != "" {
+		query += " AND UserId = :UserId"
+		params["UserId"] = userId
 	}
 
-	unread, err := s.GetReplica().SelectInt(countUnreadQuery, countParams)
+	unread, err := s.GetReplica().SelectInt(query, params)
 	if err != nil {
-		return 0, model.NewAppError("SqlChannelStore.countPostsAfter", "store.sql_channel.count_posts_since.app_error", countParams, fmt.Sprintf("channel_id=%s, since=%d, err=%s", channelID, since, err), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlChannelStore.CountPostsAfter", "store.sql_channel.count_posts_since.app_error", nil, fmt.Sprintf("channel_id=%s, timestamp=%d, err=%s", channelId, timestamp, err), http.StatusInternalServerError)
 	}
-	return unread, nil
+	return int(unread), nil
 }
 
 // UpdateLastViewedAtPost updates a ChannelMember as if the user last read the channel at the time of the given post.
@@ -1787,14 +1757,9 @@ func (s SqlChannelStore) countPostsAfter(channelID string, since int64) (int64, 
 func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError) {
 	unreadDate := unreadPost.CreateAt - 1
 
-	unread, appErr := s.countPostsAfter(unreadPost.ChannelId, unreadDate)
+	unread, appErr := s.CountPostsAfter(unreadPost.ChannelId, unreadDate, "")
 	if appErr != nil {
 		return nil, appErr
-	}
-
-	if mentionCount == store.MentionAllPosts {
-		// Treat every unread post as a mention (like in a DM channel)
-		mentionCount = int(unread)
 	}
 
 	params := map[string]interface{}{
