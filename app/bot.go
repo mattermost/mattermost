@@ -215,10 +215,12 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError 
 			return err
 		}
 
-		if len(bots) == 0 {
+		userBots = append(userBots, bots...)
+
+		if len(bots) < perPage {
 			break
 		}
-		userBots = append(userBots, bots...)
+
 		botOptions.Page += 1
 	}
 
@@ -241,10 +243,12 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError 
 			return err
 		}
 
-		if len(sysAdminsList) == 0 {
+		sysAdmins = append(sysAdmins, sysAdminsList...)
+
+		if len(sysAdminsList) < perPage {
 			break
 		}
-		sysAdmins = append(sysAdmins, sysAdminsList...)
+
 		userOptions.Page += 1
 	}
 
