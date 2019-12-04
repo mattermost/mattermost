@@ -434,8 +434,8 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		post.AddProp("from_webhook", "true")
 	}
 
-	// Do not process text if this is a code block
-	skipSlackParsing := command.Trigger == "code"
+	// Do not process text if this is a code block or response contains "skip_slack_parsing":"true"
+	skipSlackParsing := command.Trigger == "code" || (len(response.SkipSlackParsing) != 0 && response.SkipSlackParsing == "true")
 
 	// Process Slack text replacements
 	if !skipSlackParsing {
