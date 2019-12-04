@@ -118,6 +118,14 @@ func (me *LoadTestProvider) DoCommand(a *App, args *model.CommandArgs, message s
 		return me.UsersCommand(a, args, message)
 	}
 
+	if strings.HasPrefix(message, "activate_user") {
+		return me.ActivateUserCommand(a, args, message)
+	}
+
+	if strings.HasPrefix(message, "deactivate_user") {
+		return me.DeActivateUserCommand(a, args, message)
+	}
+
 	if strings.HasPrefix(message, "channels") {
 		return me.ChannelsCommand(a, args, message)
 	}
@@ -227,6 +235,22 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 	}
 
 	return &model.CommandResponse{Text: "Created environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+}
+
+func (me *LoadTestProvider) ActivateUserCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+	user_id := strings.TrimSpace(strings.TrimPrefix(message, "activate_user"))
+	if err := a.UpdateUserActive(user_id, true); err != nil {
+		return &model.CommandResponse{Text: "Failed to activate user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+	return &model.CommandResponse{Text: "Activated user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+}
+
+func (me *LoadTestProvider) DeActivateUserCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+	user_id := strings.TrimSpace(strings.TrimPrefix(message, "deactivate_user"))
+	if err := a.UpdateUserActive(user_id, false); err != nil {
+		return &model.CommandResponse{Text: "Failed to deactivate user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+	return &model.CommandResponse{Text: "DeActivated user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {

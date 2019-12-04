@@ -25,6 +25,7 @@ func (a *App) RegisterAllClusterMessageHandlers() {
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS, a.ClusterClearSessionCacheForAllUsersHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INSTALL_PLUGIN, a.ClusterInstallPluginHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_REMOVE_PLUGIN, a.ClusterRemovePluginHandler)
+	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_BUSY_STATE_CHANGED, a.ClusterBusyStateChgHandler)
 
 }
 
@@ -88,4 +89,8 @@ func (a *App) ClusterInstallPluginHandler(msg *model.ClusterMessage) {
 
 func (a *App) ClusterRemovePluginHandler(msg *model.ClusterMessage) {
 	a.RemovePluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
+}
+
+func (a *App) ClusterBusyStateChgHandler(msg *model.ClusterMessage) {
+	a.ServerBusyStateChanged(model.ServerBusyStateFromJson(strings.NewReader(msg.Data)))
 }

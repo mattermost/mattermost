@@ -886,12 +886,18 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 	reply.Message = *data.Message
 	reply.CreateAt = *data.CreateAt
 
-	if data.Attachments != nil {
-		fileIds, err := a.uploadAttachments(data.Attachments, reply, teamId, dryRun)
-		if err != nil {
-			return err
+	fileIds, err := a.uploadAttachments(data.Attachments, reply, teamId, dryRun)
+	if err != nil {
+		return err
+	}
+	for _, fileID := range reply.FileIds {
+		if _, ok := fileIds[fileID]; !ok {
+			a.Srv.Store.FileInfo().PermanentDelete(fileID)
 		}
-		reply.FileIds = append(reply.FileIds, fileIds...)
+	}
+	reply.FileIds = make([]string, 0)
+	for fileID := range fileIds {
+		reply.FileIds = append(reply.FileIds, fileID)
 	}
 
 	if reply.Id == "" {
@@ -911,51 +917,47 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 
 func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, teamId string, dryRun bool) (*model.FileInfo, *model.AppError) {
 	file, err := os.Open(*data.Path)
-	if err != nil {
+	if file == nil || err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 	}
-	if file != nil {
-		timestamp := utils.TimeFromMillis(post.CreateAt)
-		buf := bytes.NewBuffer(nil)
-		_, _ = io.Copy(buf, file)
-		// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
-		if post.Id != "" {
-			if oldFiles, err := a.GetFileInfosForPost(post.Id, true); err == nil {
-				for _, oldFile := range oldFiles {
-					if oldFile.Name != path.Base(file.Name()) || oldFile.Size != int64(buf.Len()) {
-						continue
-					}
-					// check md5
-					newHash := sha1.Sum(buf.Bytes())
-					oldFileData, err := a.GetFile(oldFile.Id)
-					if err != nil {
-						return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
-					}
-					oldHash := sha1.Sum(oldFileData)
 
-					if bytes.Equal(oldHash[:], newHash[:]) {
-						mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
-						return nil, nil
-					}
-
-				}
-			} else {
+	timestamp := utils.TimeFromMillis(post.CreateAt)
+	buf := bytes.NewBuffer(nil)
+	_, _ = io.Copy(buf, file)
+	// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
+	if post.Id != "" {
+		oldFiles, err := a.GetFileInfosForPost(post.Id, true)
+		if err != nil {
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+		}
+		for _, oldFile := range oldFiles {
+			if oldFile.Name != path.Base(file.Name()) || oldFile.Size != int64(buf.Len()) {
+				continue
+			}
+			// check md5
+			newHash := sha1.Sum(buf.Bytes())
+			oldFileData, err := a.GetFile(oldFile.Id)
+			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}
+			oldHash := sha1.Sum(oldFileData)
+
+			if bytes.Equal(oldHash[:], newHash[:]) {
+				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
+				return oldFile, nil
+			}
 		}
-		fileInfo, err := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
-
-		if err != nil {
-			mlog.Error("Failed to upload file:", mlog.Err(err))
-			return nil, err
-		}
-
-		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{buf.Bytes()})
-
-		mlog.Info("Uploading file with name", mlog.String("file_name", file.Name()))
-		return fileInfo, nil
 	}
-	return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+	fileInfo, appErr := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
+	if appErr != nil {
+		mlog.Error("Failed to upload file:", mlog.Err(err))
+		return nil, appErr
+	}
+
+	a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{buf.Bytes()})
+
+	mlog.Info("Uploading file with name", mlog.String("file_name", file.Name()))
+	return fileInfo, nil
 }
 
 func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
@@ -1009,13 +1011,18 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-	if data.Attachments != nil {
-		var fileIds []string
-		fileIds, err = a.uploadAttachments(data.Attachments, post, team.Id, dryRun)
-		if err != nil {
-			return err
+	fileIds, err := a.uploadAttachments(data.Attachments, post, team.Id, dryRun)
+	if err != nil {
+		return err
+	}
+	for _, fileID := range post.FileIds {
+		if _, ok := fileIds[fileID]; !ok {
+			a.Srv.Store.FileInfo().PermanentDelete(fileID)
 		}
-		post.FileIds = append(post.FileIds, fileIds...)
+	}
+	post.FileIds = make([]string, 0)
+	for fileID := range fileIds {
+		post.FileIds = append(post.FileIds, fileID)
 	}
 
 	if post.Id == "" {
@@ -1073,16 +1080,18 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	return nil
 }
 
-func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model.Post, teamId string, dryRun bool) ([]string, *model.AppError) {
-	fileIds := []string{}
+// uploadAttachments imports new attachments and returns current attachments of the post as a map
+func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model.Post, teamId string, dryRun bool) (map[string]bool, *model.AppError) {
+	if attachments == nil {
+		return nil, nil
+	}
+	fileIds := make(map[string]bool)
 	for _, attachment := range *attachments {
 		fileInfo, err := a.ImportAttachment(&attachment, post, teamId, dryRun)
 		if err != nil {
 			return nil, err
 		}
-		if fileInfo != nil { // nil is returned when the file was skipped due to duplication
-			fileIds = append(fileIds, fileInfo.Id)
-		}
+		fileIds[fileInfo.Id] = true
 	}
 	return fileIds, nil
 }
@@ -1238,13 +1247,18 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-	if data.Attachments != nil {
-		var fileIds []string
-		fileIds, err = a.uploadAttachments(data.Attachments, post, "noteam", dryRun)
-		if err != nil {
-			return err
+	fileIds, err := a.uploadAttachments(data.Attachments, post, "noteam", dryRun)
+	if err != nil {
+		return err
+	}
+	for _, fileID := range post.FileIds {
+		if _, ok := fileIds[fileID]; !ok {
+			a.Srv.Store.FileInfo().PermanentDelete(fileID)
 		}
-		post.FileIds = append(post.FileIds, fileIds...)
+	}
+	post.FileIds = make([]string, 0)
+	for fileID := range fileIds {
+		post.FileIds = append(post.FileIds, fileID)
 	}
 
 	if post.Id == "" {
