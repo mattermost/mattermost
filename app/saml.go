@@ -221,13 +221,13 @@ func (a *App) FetchSamlMetadataFromIdp(url string) (*model.EntityDescriptor, *mo
 
 	bodyXML, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_read_response_body.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_read_response_body_from_idp.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	entityDescriptor := model.EntityDescriptor{}
 	err = xml.Unmarshal(bodyXML, &entityDescriptor)
 	if err != nil {
-		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_decode_metadata_xml.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return &entityDescriptor, nil
@@ -240,7 +240,7 @@ func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
 
 	block, _ := pem.Decode([]byte(fixedCertTxt))
 	if _, e := x509.ParseCertificate(block.Bytes); e != nil {
-		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_certificate.app_error", nil, e.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, e.Error(), http.StatusInternalServerError)
 	}
 
 	data = pem.EncodeToMemory(&pem.Block{
@@ -249,7 +249,7 @@ func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
 	})
 
 	if err := a.Srv.configStore.SetFile(SamlIdpCertificateName, data); err != nil {
-		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_save_certificate_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_save_idp_certificate_file.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	cfg := a.Config().Clone()

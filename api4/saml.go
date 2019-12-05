@@ -184,7 +184,7 @@ func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	metadata, err := c.App.GetSamlMetadataFromIdp(url)
 	if err != nil {
-		c.Err = model.NewAppError("getSamlMetadataFromIdp", "api.admin.saml.failure_get_certificate_from_idp.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("getSamlMetadataFromIdp", "api.admin.saml.failure_get_metadata_from_idp.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
