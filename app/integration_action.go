@@ -157,12 +157,19 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		upstreamURL = action.Integration.URL
 	}
 
-	teamChan := make(chan store.StoreResult, 1)
-	go func() {
-		team, err := a.Srv.Store.Team().Get(upstreamRequest.TeamId)
-		teamChan <- store.StoreResult{Data: team, Err: err}
-		close(teamChan)
-	}()
+	if upstreamRequest.TeamId != "" {
+		teamChan := make(chan store.StoreResult, 1)
+		go func() {
+			team, err := a.Srv.Store.Team().Get(upstreamRequest.TeamId)
+			teamChan <- store.StoreResult{Data: team, Err: err}
+			close(teamChan)
+		}()
+		tr := <-teamChan
+		if tr.Err == nil {
+			team := tr.Data.(*model.Team)
+			upstreamRequest.TeamName = team.Name
+		}
+	}
 
 	ur := <-userChan
 	if ur.Err != nil {
@@ -170,13 +177,6 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	}
 	user := ur.Data.(*model.User)
 	upstreamRequest.UserName = user.Username
-
-	tr := <-teamChan
-	if tr.Err != nil {
-		return "", tr.Err
-	}
-	team := tr.Data.(*model.Team)
-	upstreamRequest.TeamName = team.Name
 
 	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
 		if selectedOption != "" {
