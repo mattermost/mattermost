@@ -48,7 +48,6 @@ const (
 
 	CLEAR_CACHE_MESSAGE_DATA = ""
 
-	CHANNEL_CACHE_SEC = 15 * 60
 )
 
 type LocalCacheStore struct {
