@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -84,7 +85,7 @@ func closeBody(r *http.Response) {
 }
 
 func (c *Client) buildURL(urlPath string, args ...interface{}) string {
-	return fmt.Sprintf("%s%s", c.address, fmt.Sprintf(urlPath, args...))
+	return fmt.Sprintf("%s/%s", strings.TrimRight(c.address, "/"), strings.TrimLeft(fmt.Sprintf(urlPath, args...), "/"))
 }
 
 func (c *Client) doGet(u string) (*http.Response, error) {
