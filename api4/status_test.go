@@ -63,9 +63,6 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	cleanup := setupWebSocketConnection(th, t, th.BasicUser.Id)
-	defer cleanup()
-
 	usersIds := []string{th.BasicUser.Id, th.BasicUser2.Id}
 
 	usersStatuses, resp := Client.GetUsersStatusesByIds(usersIds)
@@ -73,6 +70,9 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	for _, userStatus := range usersStatuses {
 		assert.Equal(t, "offline", userStatus.Status)
 	}
+
+	cleanup := setupWebSocketConnection(th, t, usersIds...)
+	defer cleanup()
 
 	th.App.SetStatusOnline(th.BasicUser.Id, true)
 	th.App.SetStatusOnline(th.BasicUser2.Id, true)
@@ -109,7 +109,7 @@ func TestUpdateUserStatus(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	cleanup := setupWebSocketConnection(th, t, th.BasicUser.Id)
+	cleanup := setupWebSocketConnection(th, t, th.BasicUser.Id, th.BasicUser2.Id)
 	defer cleanup()
 
 	toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser.Id}
