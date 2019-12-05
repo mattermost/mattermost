@@ -255,6 +255,8 @@ func TestWebSocketStatuses(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
+	webSocketConnCleanup := setupWebSocketConnection(th, t, th.BasicUser.Id, th.BasicUser2.Id)
+
 	Client := th.Client
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.Nil(t, err, err)
@@ -334,6 +336,7 @@ func TestWebSocketStatuses(t *testing.T) {
 		require.NotNil(t, resp2.Error, "should have errored - empty user ids")
 	}
 
+	webSocketConnCleanup()
 	WebSocketClient2.Close()
 
 	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, false)

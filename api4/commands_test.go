@@ -4,10 +4,15 @@
 package api4
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/gorilla/websocket"
+	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
@@ -399,9 +404,55 @@ func TestStatusCommands(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
+	cleanup := setupWebSocketConnection(th, t)
+	defer cleanup()
 	commandAndTest(t, th, "away")
 	commandAndTest(t, th, "offline")
 	commandAndTest(t, th, "online")
+}
+
+func setupWebSocketConnection(th *TestHelper, t *testing.T, userIDs ...string) func() {
+	th.App.HubStart()
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+
+	conns := make([]*app.WebConn, 0, len(userIDs))
+	for _, id := range userIDs {
+		session, appErr := th.App.CreateSession(&model.Session{
+			UserId: id,
+		})
+		require.Nil(t, appErr)
+		d := websocket.Dialer{}
+		c, _, err := d.Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
+		require.NoError(t, err)
+		wc := th.App.NewWebConn(c, *session, goi18n.IdentityTfunc(), "en")
+		go wc.Pump()
+		th.App.HubRegister(wc)
+		conns = append(conns, wc)
+	}
+
+	time.Sleep(500 * time.Millisecond)
+	return func() {
+		for _, c := range conns {
+			c.Close()
+		}
+		s.Close()
+	}
+}
+
+func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		upgrader := &websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		}
+		conn, err := upgrader.Upgrade(w, req, nil)
+		for err == nil {
+			_, _, err = conn.ReadMessage()
+		}
+		if _, ok := err.(*websocket.CloseError); !ok {
+			require.NoError(t, err)
+		}
+	}
 }
 
 func commandAndTest(t *testing.T, th *TestHelper, status string) {

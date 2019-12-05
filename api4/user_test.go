@@ -1900,6 +1900,9 @@ func TestGetNewUsersInTeam(t *testing.T) {
 func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+	cleanup := setupWebSocketConnection(th, t, th.BasicUser.Id)
+	defer cleanup()
+
 	teamId := th.BasicTeam.Id
 
 	th.App.SetStatusOnline(th.BasicUser.Id, true)
