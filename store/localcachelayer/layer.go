@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package localcachelayer
 
@@ -29,8 +29,13 @@ const (
 	EMOJI_CACHE_SIZE = 5000
 	EMOJI_CACHE_SEC  = 30 * 60
 
+	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
+	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC  = 30 * 60
+
 	CHANNEL_MEMBERS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
 	CHANNEL_MEMBERS_COUNTS_CACHE_SEC  = 30 * 60
+
+	CHANNEL_CACHE_SEC = 900 // 15 mins
 
 	LAST_POSTS_CACHE_SIZE = 20000
 	LAST_POSTS_CACHE_SEC  = 30 * 60
@@ -38,31 +43,38 @@ const (
 	USER_PROFILE_BY_ID_CACHE_SIZE = 20000
 	USER_PROFILE_BY_ID_SEC        = 30 * 60
 
+	TEAM_CACHE_SIZE = 20000
+	TEAM_CACHE_SEC  = 30 * 60
+
 	CLEAR_CACHE_MESSAGE_DATA = ""
 )
 
 type LocalCacheStore struct {
 	store.Store
-	metrics                  einterfaces.MetricsInterface
-	cluster                  einterfaces.ClusterInterface
-	reaction                 LocalCacheReactionStore
-	reactionCache            *utils.Cache
-	role                     LocalCacheRoleStore
-	roleCache                *utils.Cache
-	scheme                   LocalCacheSchemeStore
-	schemeCache              *utils.Cache
-	emoji                    LocalCacheEmojiStore
-	emojiCacheById           *utils.Cache
-	emojiIdCacheByName       *utils.Cache
-	channel                  LocalCacheChannelStore
-	channelMemberCountsCache *utils.Cache
-	channelGuestCountCache   *utils.Cache
-	webhook                  LocalCacheWebhookStore
-	webhookCache             *utils.Cache
-	post                     LocalCachePostStore
-	postLastPostsCache       *utils.Cache
-	user                     LocalCacheUserStore
-	userProfileByIdsCache    *utils.Cache
+	metrics                      einterfaces.MetricsInterface
+	cluster                      einterfaces.ClusterInterface
+	reaction                     LocalCacheReactionStore
+	reactionCache                *utils.Cache
+	role                         LocalCacheRoleStore
+	roleCache                    *utils.Cache
+	scheme                       LocalCacheSchemeStore
+	schemeCache                  *utils.Cache
+	emoji                        LocalCacheEmojiStore
+	emojiCacheById               *utils.Cache
+	emojiIdCacheByName           *utils.Cache
+	channel                      LocalCacheChannelStore
+	channelMemberCountsCache     *utils.Cache
+	channelByNameCache           *utils.Cache
+	channelGuestCountCache       *utils.Cache
+	channelPinnedPostCountsCache *utils.Cache
+	webhook                      LocalCacheWebhookStore
+	webhookCache                 *utils.Cache
+	post                         LocalCachePostStore
+	postLastPostsCache           *utils.Cache
+	user                         LocalCacheUserStore
+	userProfileByIdsCache        *utils.Cache
+	team                         LocalCacheTeamStore
+	teamAllTeamIdsForUserCache   *utils.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
@@ -82,13 +94,17 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.emojiCacheById = utils.NewLruWithParams(EMOJI_CACHE_SIZE, "EmojiById", EMOJI_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID)
 	localCacheStore.emojiIdCacheByName = utils.NewLruWithParams(EMOJI_CACHE_SIZE, "EmojiByName", EMOJI_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME)
 	localCacheStore.emoji = LocalCacheEmojiStore{EmojiStore: baseStore.Emoji(), rootStore: &localCacheStore}
+	localCacheStore.channelPinnedPostCountsCache = utils.NewLruWithParams(CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE, "ChannelPinnedPostsCounts", CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_PINNEDPOSTS_COUNTS)
 	localCacheStore.channelMemberCountsCache = utils.NewLruWithParams(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE, "ChannelMemberCounts", CHANNEL_MEMBERS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS)
+	localCacheStore.channelByNameCache = utils.NewLruWithParams(CHANNEL_CACHE_SEC, "ChannelByName", CHANNEL_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME)
 	localCacheStore.channelGuestCountCache = utils.NewLruWithParams(CHANNEL_GUEST_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUEST_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT)
 	localCacheStore.channel = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 	localCacheStore.postLastPostsCache = utils.NewLruWithParams(LAST_POSTS_CACHE_SIZE, "LastPost", LAST_POSTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS)
 	localCacheStore.post = LocalCachePostStore{PostStore: baseStore.Post(), rootStore: &localCacheStore}
 	localCacheStore.userProfileByIdsCache = utils.NewLruWithParams(USER_PROFILE_BY_ID_CACHE_SIZE, "UserProfileByIds", USER_PROFILE_BY_ID_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS)
 	localCacheStore.user = LocalCacheUserStore{UserStore: baseStore.User(), rootStore: &localCacheStore}
+	localCacheStore.teamAllTeamIdsForUserCache = utils.NewLruWithParams(TEAM_CACHE_SIZE, "Team", TEAM_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS)
+	localCacheStore.team = LocalCacheTeamStore{TeamStore: baseStore.Team(), rootStore: &localCacheStore}
 
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, localCacheStore.reaction.handleClusterInvalidateReaction)
@@ -97,10 +113,13 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS, localCacheStore.webhook.handleClusterInvalidateWebhook)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID, localCacheStore.emoji.handleClusterInvalidateEmojiById)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME, localCacheStore.emoji.handleClusterInvalidateEmojiIdByName)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_PINNEDPOSTS_COUNTS, localCacheStore.channel.handleClusterInvalidateChannelPinnedPostCount)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS, localCacheStore.channel.handleClusterInvalidateChannelMemberCounts)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME, localCacheStore.channel.handleClusterInvalidateChannelByName)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT, localCacheStore.channel.handleClusterInvalidateChannelGuestCounts)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS, localCacheStore.post.handleClusterInvalidateLastPosts)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS, localCacheStore.user.handleClusterInvalidateScheme)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS, localCacheStore.team.handleClusterInvalidateTeam)
 	}
 	return localCacheStore
 }
@@ -135,6 +154,10 @@ func (s LocalCacheStore) Post() store.PostStore {
 
 func (s LocalCacheStore) User() store.UserStore {
 	return s.user
+}
+
+func (s LocalCacheStore) Team() store.TeamStore {
+	return s.team
 }
 
 func (s LocalCacheStore) DropAllTables() {
@@ -191,7 +214,10 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.emojiCacheById)
 	s.doClearCacheCluster(s.emojiIdCacheByName)
 	s.doClearCacheCluster(s.channelMemberCountsCache)
+	s.doClearCacheCluster(s.channelByNameCache)
+	s.doClearCacheCluster(s.channelPinnedPostCountsCache)
 	s.doClearCacheCluster(s.channelGuestCountCache)
 	s.doClearCacheCluster(s.postLastPostsCache)
 	s.doClearCacheCluster(s.userProfileByIdsCache)
+	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
 }

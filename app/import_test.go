@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -143,7 +143,7 @@ func TestImportBulkImport(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
-	teamName := model.NewId()
+	teamName := model.NewRandomTeamName()
 	channelName := model.NewId()
 	username := model.NewId()
 	username2 := model.NewId()
