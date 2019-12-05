@@ -1988,7 +1988,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 				waiting = false
 			}
 		case <-timeout:
-			require.FailNow(t, "Should have received event channel member websocket event and not timedout")
+			require.Fail(t, "Should have received event channel member websocket event and not timedout")
 			waiting = false
 		}
 	}
