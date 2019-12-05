@@ -404,7 +404,7 @@ func TestStatusCommands(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	cleanup := setupWebSocketConnection(th, t)
+	cleanup := setupWebSocketConnection(th, t, th.BasicUser.Id)
 	defer cleanup()
 	commandAndTest(t, th, "away")
 	commandAndTest(t, th, "offline")
