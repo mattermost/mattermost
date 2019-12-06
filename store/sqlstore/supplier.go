@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -132,7 +132,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	supplier.initConnection()
 
-	supplier.stores.team = NewSqlTeamStore(supplier, metrics)
+	supplier.stores.team = NewSqlTeamStore(supplier)
 	supplier.stores.channel = NewSqlChannelStore(supplier, metrics)
 	supplier.stores.post = NewSqlPostStore(supplier, metrics)
 	supplier.stores.user = NewSqlUserStore(supplier, metrics)
