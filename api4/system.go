@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -492,12 +492,5 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-
-	busy := c.App.Srv.Busy
-	sbs := &model.ServerBusyState{
-		Busy:       busy.IsBusy(),
-		Expires:    busy.Expires().Unix(),
-		Expires_ts: busy.Expires().UTC().Format("Mon Jan 2 15:04:05 -0700 MST 2006"),
-	}
-	w.Write([]byte(sbs.ToJson()))
+	w.Write([]byte(c.App.Srv.Busy.ToJson()))
 }

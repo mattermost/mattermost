@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package plugintest_test
 
 import (
@@ -20,8 +23,8 @@ type HelloUserPlugin struct {
 }
 
 func (p *HelloUserPlugin) ServeHTTP(context *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	userId := r.Header.Get("Mattermost-User-Id")
-	user, err := p.API.GetUser(userId)
+	userID := r.Header.Get("Mattermost-User-Id")
+	user, err := p.API.GetUser(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		p.API.LogError(err.Error())
