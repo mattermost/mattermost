@@ -202,10 +202,7 @@ check-licenses: ## Checks license status.
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-style: golangci-lint plugin-checker check-licenses check-plugin-golint ## Runs golangci against all packages and also ensures plugin package golint compliant
-
-check-plugin-golint: # Checks if golint returns any uncompliant code for any file that starts with plugin/helpers
-	@! golint ./plugin/ | grep plugin/helpers
+check-style: golangci-lint plugin-checker check-licenses ## Runs golangci against all packages
 
 test-te-race: ## Checks for race conditions in the team edition.
 	@echo Testing TE race conditions
