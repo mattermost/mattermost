@@ -22,7 +22,7 @@ func TestReactionStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, nil)
 
 		reaction, err := cachedStore.Reaction().GetForPost("123", true)
 		require.Nil(t, err)
@@ -36,7 +36,7 @@ func TestReactionStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, second force no cached", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, nil)
 
 		cachedStore.Reaction().GetForPost("123", true)
 		mockStore.Reaction().(*mocks.ReactionStore).AssertNumberOfCalls(t, "GetForPost", 1)
@@ -46,7 +46,7 @@ func TestReactionStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, save, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, nil)
 
 		cachedStore.Reaction().GetForPost("123", true)
 		mockStore.Reaction().(*mocks.ReactionStore).AssertNumberOfCalls(t, "GetForPost", 1)
@@ -57,7 +57,7 @@ func TestReactionStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, delete, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, nil)
 
 		cachedStore.Reaction().GetForPost("123", true)
 		mockStore.Reaction().(*mocks.ReactionStore).AssertNumberOfCalls(t, "GetForPost", 1)

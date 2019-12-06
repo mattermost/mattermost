@@ -23,7 +23,7 @@ func TestWebhookStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, nil)
 
 		incomingWebhook, err := cachedStore.Webhook().GetIncoming("123", true)
 		require.Nil(t, err)
@@ -37,7 +37,7 @@ func TestWebhookStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, second force no cached", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, nil)
 
 		cachedStore.Webhook().GetIncoming("123", true)
 		mockStore.Webhook().(*mocks.WebhookStore).AssertNumberOfCalls(t, "GetIncoming", 1)
@@ -47,7 +47,7 @@ func TestWebhookStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, nil)
 
 		cachedStore.Webhook().GetIncoming("123", true)
 		mockStore.Webhook().(*mocks.WebhookStore).AssertNumberOfCalls(t, "GetIncoming", 1)

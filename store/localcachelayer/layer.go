@@ -119,13 +119,11 @@ func initLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, clus
 	return localCacheStore
 }
 
-func NewLocalCacheLayerWithFactory(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheFactory store.CacheFactory) LocalCacheStore {
-	return initLayer(baseStore, metrics, cluster, cacheFactory)
-}
-
-func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
-	//defaults to LRU cache if no factory specified
-	var cacheFactory store.CacheFactory = new(utils.LruCacheFactory)
+func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheFactory store.CacheFactory) LocalCacheStore {
+	//defaults to LRU if not specified
+	if cacheFactory == nil {
+		cacheFactory = new(utils.LruCacheFactory)
+	}
 	return initLayer(baseStore, metrics, cluster, cacheFactory)
 }
 
