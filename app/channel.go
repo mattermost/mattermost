@@ -596,10 +596,90 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 	return nil
 }
 
-func (a *App) RestoreChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
+func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
+	ihc := make(chan store.StoreResult, 1)
+	ohc := make(chan store.StoreResult, 1)
+
+	go func() {
+		webhooks, err := a.Srv.Store.Webhook().GetIncomingByChannel(channel.Id)
+		ihc <- store.StoreResult{Data: webhooks, Err: err}
+		close(ihc)
+	}()
+
+	go func() {
+		outgoingHooks, err := a.Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
+		ohc <- store.StoreResult{Data: outgoingHooks, Err: err}
+		close(ohc)
+	}()
+
+	var user *model.User
+	if userId != "" {
+		var err *model.AppError
+		user, err = a.Srv.Store.User().Get(userId)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	ihcresult := <-ihc
+	if ihcresult.Err != nil {
+		return nil, ihcresult.Err
+	}
+
+	ohcresult := <-ohc
+	if ohcresult.Err != nil {
+		return nil, ohcresult.Err
+	}
+
+	incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
+	outgoingHooks := ohcresult.Data.([]*model.OutgoingWebhook)
+
+	if channel.DeleteAt == 0 {
+		err := model.NewAppError("undeleteChannel", "api.channel.undelete_channel.undeleted.app_error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
+
+	if user != nil {
+		T := utils.GetUserTranslations(user.Locale)
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   fmt.Sprintf(T("api.channel.undelete_channel.unarchived"), user.Username),
+			Type:      model.POST_CHANNEL_UNDELETED,
+			UserId:    userId,
+			Props: model.StringInterface{
+				"username": user.Username,
+			},
+		}
+
+		if _, err := a.CreatePost(post, channel, false); err != nil {
+			mlog.Error("Failed to post unarchive message", mlog.Err(err))
+		}
+	}
+
+	now := model.GetMillis()
+	for _, hook := range incomingHooks {
+		if err := a.Srv.Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
+			mlog.Error("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
+		}
+		a.InvalidateCacheForWebhook(hook.Id)
+	}
+	for _, hook := range outgoingHooks {
+		if err := a.Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); err != nil {
+			mlog.Error("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
+		}
+	}
+
+	if err := a.Srv.Store.Channel().Restore(channel.Id, now); err != nil {
+		return nil, err
+	}
+	a.InvalidateCacheForChannel(channel)
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UNDELETED, channel.TeamId, "", "", nil)
+	message.Add("channel_id", channel.Id)
+	message.Add("delete_at", 0)
+	a.Publish(message)
+
 	return channel, nil
 }
 
