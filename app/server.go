@@ -312,7 +312,7 @@ func NewServer(options ...Option) (*Server, error) {
 	return s, nil
 }
 
-// Global app opptions that should be applied to apps created by this server
+// Global app options that should be applied to apps created by this server
 func (s *Server) AppOptions() []AppOption {
 	return []AppOption{
 		ServerConnector(s),
@@ -474,7 +474,7 @@ func (s *Server) Start() error {
 		s.RateLimiter = rateLimiter
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
-	s.Busy = &Busy{}
+	s.Busy = NewBusy(s.Cluster)
 
 	// Creating a logger for logging errors from http.Server at error level
 	errStdLog, err := s.Log.StdLogAt(mlog.LevelError, mlog.String("source", "httpserver"))

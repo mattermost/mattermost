@@ -5255,10 +5255,6 @@
     "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
   },
   {
-    "id": "model.plugin_kvset_options.serialize_value.app_error",
-    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
-  },
-  {
     "id": "model.post.is_valid.channel_id.app_error",
     "translation": "Invalid channel id"
   },
