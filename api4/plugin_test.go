@@ -930,6 +930,11 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
+		key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
+		require.NoError(t, err)
+		appErr := th.App.AddPublicKey("pub_key", key)
+		require.Nil(t, appErr)
+
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin_v2", Version: "1.2.3"}
 		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckNoError(t, resp)
@@ -948,6 +953,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		exists, err := th.App.FileExists(filePath)
 		require.Nil(t, err)
 		require.False(t, exists)
+
+		appErr = th.App.DeletePublicKey("pub_key")
+		require.Nil(t, appErr)
 	})
 }
 

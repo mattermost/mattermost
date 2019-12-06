@@ -306,7 +306,12 @@ workflows:
   version: 2
   untagged-build:
     jobs:
-      - setup
+      - setup:
+          filters:
+            branches:
+                ignore:
+                  - master
+                  - /^release-.*/
       # - check-i18n:
       #     requires:
       #       - setup
