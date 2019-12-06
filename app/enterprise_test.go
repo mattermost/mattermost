@@ -78,6 +78,8 @@ func TestSAMLSettings(t *testing.T) {
 				RegisterSamlInterface(func(a *App) einterfaces.SamlInterface {
 					return saml
 				})
+			} else {
+				RegisterSamlInterface(nil)
 			}
 
 			saml2 := &mocks.SamlInterface{}
@@ -87,6 +89,8 @@ func TestSAMLSettings(t *testing.T) {
 				RegisterNewSamlInterface(func(a *App) einterfaces.SamlInterface {
 					return saml2
 				})
+			} else {
+				RegisterNewSamlInterface(nil)
 			}
 
 			th := SetupEnterprise(t).InitBasic()
