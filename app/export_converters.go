@@ -39,11 +39,15 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
 }
 
 func ImportLineFromDirectChannel(channel *model.DirectChannelForExport) *LineImportData {
+	channelMembers := *channel.Members
+	if len(channelMembers) == 1 {
+		channelMembers = []string{channelMembers[0], channelMembers[0]}
+	}
 	return &LineImportData{
 		Type: "direct_channel",
 		DirectChannel: &DirectChannelImportData{
 			Header:  &channel.Header,
-			Members: channel.Members,
+			Members: &channelMembers,
 		},
 	}
 }
@@ -158,10 +162,14 @@ func ImportLineForPost(post *model.PostForExport) *LineImportData {
 }
 
 func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
+	channelMembers := *post.ChannelMembers
+	if len(channelMembers) == 1 {
+		channelMembers = []string{channelMembers[0], channelMembers[0]}
+	}
 	return &LineImportData{
 		Type: "direct_post",
 		DirectPost: &DirectPostImportData{
-			ChannelMembers: post.ChannelMembers,
+			ChannelMembers: &channelMembers,
 			User:           &post.User,
 			Message:        &post.Message,
 			CreateAt:       &post.CreateAt,
