@@ -88,6 +88,7 @@ func getMockStore() *mocks.Store {
 	mockTermsOfServiceStore.On("Get", "123", true).Return(&fakeTermsOfService, nil)
 	mockTermsOfServiceStore.On("Get", "123", false).Return(&fakeTermsOfService, nil)
 	mockStore.On("TermsOfService").Return(&mockTermsOfServiceStore)
+
 	fakeUser := []*model.User{{Id: "123"}}
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)

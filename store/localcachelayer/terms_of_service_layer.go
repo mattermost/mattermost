@@ -8,6 +8,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
+const (
+	LATEST_KEY = "latest"
+)
+
 type LocalCacheTermsOfServiceStore struct {
 	store.TermsOfServiceStore
 	rootStore *LocalCacheStore
@@ -31,33 +35,31 @@ func (s LocalCacheTermsOfServiceStore) ClearCaches() {
 
 func (s LocalCacheTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError) {
 	tos, err := s.TermsOfServiceStore.Save(termsOfService)
-	if err != nil {
-		return nil, err
+
+	if err == nil {
+		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, tos.Id, tos)
+		s.rootStore.termsOfServiceCache.Remove(LATEST_KEY)
 	}
-	s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, termsOfService.Id, termsOfService)
-	return tos, nil
+	return tos, err
 }
 
 func (s LocalCacheTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError) {
 	if allowFromCache {
 		if s.rootStore.termsOfServiceCache.Len() != 0 {
-			lastKey := s.rootStore.termsOfServiceCache.Keys()[s.rootStore.termsOfServiceCache.Len()-1]
-			if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.termsOfServiceCache, lastKey.(string)); cacheItem != nil {
+			if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.termsOfServiceCache, LATEST_KEY); cacheItem != nil {
 				return cacheItem.(*model.TermsOfService), nil
 			}
 		}
 	}
 
 	termsOfService, err := s.TermsOfServiceStore.GetLatest(allowFromCache)
-	if err != nil {
-		return nil, err
-	}
 
-	if allowFromCache {
+	if allowFromCache && err == nil {
 		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, termsOfService.Id, termsOfService)
+		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, LATEST_KEY, termsOfService)
 	}
 
-	return termsOfService, nil
+	return termsOfService, err
 }
 
 func (s LocalCacheTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError) {
@@ -71,6 +73,7 @@ func (s LocalCacheTermsOfServiceStore) Get(id string, allowFromCache bool) (*mod
 
 	if allowFromCache && err == nil {
 		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, termsOfService.Id, termsOfService)
+		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, LATEST_KEY, termsOfService)
 	}
 
 	return termsOfService, err
