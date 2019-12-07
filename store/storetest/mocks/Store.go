@@ -46,6 +46,22 @@ func (_m *Store) Bot() store.BotStore {
 	return r0
 }
 
+// CacheFactory provides a mock function with given fields:
+func (_m *Store) CacheFactory() store.CacheFactory {
+	ret := _m.Called()
+
+	var r0 store.CacheFactory
+	if rf, ok := ret.Get(0).(func() store.CacheFactory); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.CacheFactory)
+		}
+	}
+
+	return r0
+}
+
 // Channel provides a mock function with given fields:
 func (_m *Store) Channel() store.ChannelStore {
 	ret := _m.Called()

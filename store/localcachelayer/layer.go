@@ -7,7 +7,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -74,12 +73,13 @@ type LocalCacheStore struct {
 	teamAllTeamIdsForUserCache   store.Cache
 }
 
-func initLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheFactory store.CacheFactory) LocalCacheStore {
+func initLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
 	localCacheStore := LocalCacheStore{
 		Store:   baseStore,
 		cluster: cluster,
 		metrics: metrics,
 	}
+	cacheFactory := baseStore.CacheFactory()
 	localCacheStore.reactionCache = cacheFactory.NewCacheWithParams(REACTION_CACHE_SIZE, "Reaction", REACTION_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS)
 	localCacheStore.reaction = LocalCacheReactionStore{ReactionStore: baseStore.Reaction(), rootStore: &localCacheStore}
 	localCacheStore.roleCache = cacheFactory.NewCacheWithParams(ROLE_CACHE_SIZE, "Role", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES)
@@ -119,12 +119,9 @@ func initLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, clus
 	return localCacheStore
 }
 
-func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheFactory store.CacheFactory) LocalCacheStore {
-	//defaults to LRU if not specified
-	if cacheFactory == nil {
-		cacheFactory = new(utils.LruCacheFactory)
-	}
-	return initLayer(baseStore, metrics, cluster, cacheFactory)
+func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
+
+	return initLayer(baseStore, metrics, cluster)
 }
 
 func (s LocalCacheStore) Reaction() store.ReactionStore {

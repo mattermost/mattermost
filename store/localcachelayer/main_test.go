@@ -10,12 +10,26 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/stretchr/testify/mock"
 )
 
 var mainHelper *testlib.MainHelper
 
 func getMockStore() *mocks.Store {
 	mockStore := mocks.Store{}
+
+	mockCacheFactory := mocks.CacheFactory{}
+	//todo: replace this line with mocks for all tests
+	mockCache := utils.NewLru(128)
+
+	mockCacheFactory.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(mockCache)
+
+	mockStore.On("CacheFactory").Return(&mockCacheFactory)
 
 	fakeReaction := model.Reaction{PostId: "123"}
 	mockReactionsStore := mocks.ReactionStore{}
