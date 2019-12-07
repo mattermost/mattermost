@@ -264,6 +264,14 @@
     "translation": "Unable to delete direct or group message channels"
   },
   {
+    "id": "api.channel.undelete_channel.unarchived",
+    "translation": "%v unarchived the channel."
+  },
+  {
+    "id": "api.channel.undelete_channel.undeleted.app_error",
+    "translation": "The channel has been unarchived"
+  },
+  {
     "id": "api.channel.guest_join_channel.post_and_forget",
     "translation": "%v joined the channel as guest."
   },
