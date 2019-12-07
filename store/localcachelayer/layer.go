@@ -73,7 +73,8 @@ type LocalCacheStore struct {
 	teamAllTeamIdsForUserCache   store.Cache
 }
 
-func initLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
+func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
+
 	localCacheStore := LocalCacheStore{
 		Store:   baseStore,
 		cluster: cluster,
@@ -117,11 +118,6 @@ func initLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, clus
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS, localCacheStore.team.handleClusterInvalidateTeam)
 	}
 	return localCacheStore
-}
-
-func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
-
-	return initLayer(baseStore, metrics, cluster)
 }
 
 func (s LocalCacheStore) Reaction() store.ReactionStore {
