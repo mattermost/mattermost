@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"github.com/mattermost/mattermost-server/v5/model"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
