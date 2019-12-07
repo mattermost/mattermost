@@ -86,8 +86,8 @@ type Server struct {
 	newStore func() store.Store
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            *utils.LruCache
-	seenPendingPostIdsCache *utils.LruCache
+	sessionCache            store.Cache
+	seenPendingPostIdsCache store.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
