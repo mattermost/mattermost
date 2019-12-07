@@ -58,9 +58,6 @@ func getMockStore() *mocks.Store {
 	mockStore.On("Emoji").Return(&mockEmojiStore)
 
 	mockCount := int64(10)
-	teamIdString := "teamID123"
-	nameString := "nameId987"
-	fakeChannel := model.Channel{Name: nameString, TeamId: teamIdString}
 	mockGuestCount := int64(12)
 	channelId := "channel1"
 	fakeChannelId := model.Channel{Id: channelId}
@@ -68,8 +65,6 @@ func getMockStore() *mocks.Store {
 	mockChannelStore.On("ClearCaches").Return()
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
-	mockChannelStore.On("GetByName", teamIdString, nameString, true).Return(&fakeChannel, nil)
-	mockChannelStore.On("GetByName", teamIdString, nameString, false).Return(&fakeChannel, nil)
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", false).Return(mockGuestCount, nil)
 	mockChannelStore.On("Get", channelId, true).Return(&fakeChannelId, nil)

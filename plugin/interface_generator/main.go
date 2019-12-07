@@ -84,18 +84,18 @@ func FieldListToEncodedErrors(structPrefix string, fieldList *ast.FieldList, fil
 		}
 
 		if typeNameBuffer.String() != "error" {
-			nextLetter += 1
+			nextLetter++
 			continue
 		}
 
 		name := ""
 		if len(field.Names) == 0 {
 			name = string(nextLetter)
-			nextLetter += 1
+			nextLetter++
 		} else {
 			for range field.Names {
 				name += string(nextLetter)
-				nextLetter += 1
+				nextLetter++
 			}
 		}
 
@@ -125,11 +125,11 @@ func FieldListDestruct(structPrefix string, fieldList *ast.FieldList, fileset *t
 		}
 		if len(field.Names) == 0 {
 			result = append(result, structPrefix+string(nextLetter)+suffix)
-			nextLetter += 1
+			nextLetter++
 		} else {
 			for range field.Names {
 				result = append(result, structPrefix+string(nextLetter)+suffix)
-				nextLetter += 1
+				nextLetter++
 			}
 		}
 	}
@@ -155,11 +155,11 @@ func FieldListToStructList(fieldList *ast.FieldList, fileset *token.FileSet) str
 		}
 		if len(field.Names) == 0 {
 			result = append(result, string(nextLetter)+" "+typeName)
-			nextLetter += 1
+			nextLetter++
 		} else {
 			for range field.Names {
 				result = append(result, string(nextLetter)+" "+typeName)
-				nextLetter += 1
+				nextLetter++
 			}
 		}
 	}
