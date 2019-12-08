@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -26,14 +26,14 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/mfa"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/mfa"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 const (
@@ -949,6 +949,18 @@ func (a *App) userDeactivated(userId string) *model.AppError {
 	}
 
 	a.SetStatusOffline(userId, false)
+
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	// when disable a user, userDeactivated is called for the user and the
+	// bots the user owns. Only notify once, when the user is the owner, not the
+	// owners bots
+	if !user.IsBot {
+		a.notifySysadminsBotOwnerDeactivated(userId)
+	}
 
 	if *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated {
 		a.disableUserBots(userId)
