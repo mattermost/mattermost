@@ -81,7 +81,7 @@ var WebhookMoveOutgoingCmd = &cobra.Command{
 	Use:     "move-outgoing",
 	Short:   "Move outgoing webhook",
 	Long:    "Move outgoing webhook with an id",
-	Example: "  webhook move newteam oldteam:webhook-id --channel new-default-channel",
+	Example: "  webhook move-outgoing newteam oldteam:webhook-id --channel new-default-channel",
 	Args:    cobra.ExactArgs(2),
 	RunE:    moveOutgoingWebhookCmd,
 }
@@ -484,16 +484,18 @@ func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
 		return appError
 	}
 
-	if webhook.ChannelId != "" {
-		channelName, channelErr := command.Flags().GetString("channel")
-		if channelErr != nil {
-			return channelErr
-		}
+	channelName, channelErr := command.Flags().GetString("channel")
+	if channelErr != nil {
+		return channelErr
+	}
+	channel, getChannelErr := app.GetChannelByName(channelName, newTeamId, false)
 
-		channel, getChannelErr := app.GetChannelByName(channelName, newTeamId, false)
+	if webhook.ChannelId != "" {
 		if getChannelErr != nil {
 			return getChannelErr
 		}
+		webhook.ChannelId = channel.Id
+	} else if channelName != "" {
 		webhook.ChannelId = channel.Id
 	}
 
