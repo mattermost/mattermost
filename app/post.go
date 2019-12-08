@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,11 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -1180,7 +1180,7 @@ func (a *App) MaxPostSize() int {
 }
 
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
-// given post. Returns the number of mentions or store.MentionAllPosts if the post is in a direct message channel.
+// given post.
 func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *model.AppError) {
 	channel, err := a.GetChannel(post.ChannelId)
 	if err != nil {
@@ -1188,7 +1188,13 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 	}
 
 	if channel.Type == model.CHANNEL_DIRECT {
-		return store.MentionAllPosts, nil
+		// In a DM channel, every post made by the other user is a mention
+		count, countErr := a.Srv.Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
+		if countErr != nil {
+			return 0, countErr
+		}
+
+		return count, countErr
 	}
 
 	channelMember, err := a.GetChannelMember(channel.Id, user.Id)

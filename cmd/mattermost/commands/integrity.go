@@ -1,5 +1,5 @@
-// Copyright (c) 2019-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/spf13/cobra"
 )
 
@@ -31,10 +31,28 @@ func printRelationalIntegrityCheckResult(data store.RelationalIntegrityCheckData
 		return
 	}
 	for _, record := range data.Records {
-		if record.ChildId != "" {
-			fmt.Println(fmt.Sprintf("  Child %s (%s.%s) is missing Parent %s (%s.%s)", record.ChildId, data.ChildName, data.ChildIdAttr, record.ParentId, data.ChildName, data.ParentIdAttr))
+		var parentId string
+
+		if record.ParentId == nil {
+			parentId = "NULL"
+		} else if *record.ParentId == "" {
+			parentId = "empty"
 		} else {
-			fmt.Println(fmt.Sprintf("  Child is missing Parent %s (%s.%s)", record.ParentId, data.ChildName, data.ParentIdAttr))
+			parentId = *record.ParentId
+		}
+
+		if record.ChildId != nil {
+			if parentId == "NULL" || parentId == "empty" {
+				fmt.Println(fmt.Sprintf("  Child %s (%s.%s) has %s ParentIdAttr (%s.%s)", *record.ChildId, data.ChildName, data.ChildIdAttr, parentId, data.ChildName, data.ParentIdAttr))
+			} else {
+				fmt.Println(fmt.Sprintf("  Child %s (%s.%s) is missing Parent %s (%s.%s)", *record.ChildId, data.ChildName, data.ChildIdAttr, parentId, data.ChildName, data.ParentIdAttr))
+			}
+		} else {
+			if parentId == "NULL" || parentId == "empty" {
+				fmt.Println(fmt.Sprintf("  Child has %s ParentIdAttr (%s.%s)", parentId, data.ChildName, data.ParentIdAttr))
+			} else {
+				fmt.Println(fmt.Sprintf("  Child is missing Parent %s (%s.%s)", parentId, data.ChildName, data.ParentIdAttr))
+			}
 		}
 	}
 }
