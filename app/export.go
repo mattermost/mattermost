@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,10 +11,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/store"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 )
 
@@ -532,12 +532,6 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 				continue
 			}
 
-			// There's no import support for single member channels yet.
-			if len(*channel.Members) == 1 {
-				mlog.Debug("Bulk export for direct channels containing a single member is not supported.")
-				continue
-			}
-
 			channelLine := ImportLineFromDirectChannel(channel)
 			if err := a.ExportWriteLine(writer, channelLine); err != nil {
 				return err
@@ -565,12 +559,6 @@ func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 
 			// Skip deleted.
 			if post.DeleteAt != 0 {
-				continue
-			}
-
-			// There's no import support for single member channels yet.
-			if len(*post.ChannelMembers) == 1 {
-				mlog.Debug("Bulk export for posts containing a single member is not supported.")
 				continue
 			}
 

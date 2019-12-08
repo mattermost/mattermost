@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -13,18 +13,17 @@ import (
 	"sync"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlPostStore struct {
 	SqlStore
 	metrics           einterfaces.MetricsInterface
 	lastPostTimeCache *utils.Cache
-	lastPostsCache    *utils.Cache
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
 }
@@ -32,18 +31,13 @@ type SqlPostStore struct {
 const (
 	LAST_POST_TIME_CACHE_SIZE = 25000
 	LAST_POST_TIME_CACHE_SEC  = 900 // 15 minutes
-
-	LAST_POSTS_CACHE_SIZE = 1000
-	LAST_POSTS_CACHE_SEC  = 900 // 15 minutes
 )
 
 func (s *SqlPostStore) ClearCaches() {
 	s.lastPostTimeCache.Purge()
-	s.lastPostsCache.Purge()
 
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Purge")
-		s.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Purge")
 	}
 }
 
@@ -52,7 +46,6 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		SqlStore:          sqlStore,
 		metrics:           metrics,
 		lastPostTimeCache: utils.NewLru(LAST_POST_TIME_CACHE_SIZE),
-		lastPostsCache:    utils.NewLru(LAST_POSTS_CACHE_SIZE),
 		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
@@ -109,11 +102,7 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 
 	time := post.UpdateAt
 
-	if post.Type != model.POST_JOIN_LEAVE && post.Type != model.POST_ADD_REMOVE &&
-		post.Type != model.POST_JOIN_CHANNEL && post.Type != model.POST_LEAVE_CHANNEL &&
-		post.Type != model.POST_JOIN_TEAM && post.Type != model.POST_LEAVE_TEAM &&
-		post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL &&
-		post.Type != model.POST_ADD_TO_TEAM && post.Type != model.POST_REMOVE_FROM_TEAM {
+	if !post.IsJoinLeaveMessage() {
 		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
 			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
@@ -210,7 +199,7 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
 
 	query := `
             SELECT
-                A.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = A.Id AND Posts.DeleteAt = 0) as ReplyCount 
+                A.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = A.Id AND Posts.DeleteAt = 0) as ReplyCount
             FROM
                 (SELECT
                     *
@@ -252,7 +241,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	var posts []*model.Post
 	query := `
 		SELECT
-			*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount 
+			*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount
 		FROM Posts p
 		WHERE
 			Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
@@ -329,13 +318,8 @@ type etagPosts struct {
 func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 	s.lastPostTimeCache.Remove(channelId)
 
-	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
-	s.lastPostsCache.Remove(channelId + "30")
-	s.lastPostsCache.Remove(channelId + "60")
-
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Remove by Channel Id")
-		s.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Remove by Channel Id")
 	}
 }
 
@@ -451,24 +435,11 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) *model.AppErro
 	return nil
 }
 
-func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.PostList, *model.AppError) {
 	if options.PerPage > 1000 {
 		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+options.ChannelId, http.StatusBadRequest)
 	}
 	offset := options.PerPage * options.Page
-	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-	if allowFromCache && offset == 0 && (options.PerPage == 60 || options.PerPage == 30) {
-		if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", options.ChannelId, options.PerPage)); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
-			}
-			return cacheItem.(*model.PostList), nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
-	}
 
 	rpc := make(chan store.StoreResult, 1)
 	go func() {
@@ -509,11 +480,6 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bo
 	}
 
 	list.MakeNonNil()
-
-	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-	if offset == 0 && (options.PerPage == 60 || options.PerPage == 30) {
-		s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", options.ChannelId, options.PerPage), list, LAST_POSTS_CACHE_SEC)
-	}
 
 	return list, err
 }
