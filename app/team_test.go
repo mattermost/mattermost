@@ -67,7 +67,46 @@ func TestAddUserToTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	
+	t.Run("invite users by multiple domains", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "foo.com, bar.com"
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SendEmailNotifications = true
+			*cfg.ServiceSettings.EnableEmailInvitations = true
+		})
+	
+		_, err := th.App.UpdateTeam(th.BasicTeam)
+		require.Nil(t, err, "Should update the team")
+
+		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@foo.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser1, _ := th.App.CreateUser(&user1)
+
+		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@bar.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser2, _ := th.App.CreateUser(&user2)
+
+		user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser3, _ := th.App.CreateUser(&user3)
+
+		defer th.App.PermanentDeleteUser(&user1)
+		defer th.App.PermanentDeleteUser(&user2)
+		defer th.App.PermanentDeleteUser(&user3)
+
+		err =  th.App.InviteNewUsersToTeam([]string{user3.Email,user1.Email,user2.Email}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.NotNil(t, err)
+		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser1.Id, "")
+		require.Nil(t, err, "Should have allowed whitelisted user1")
+
+		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser2.Id, "")
+		require.Nil(t, err, "Should have allowed whitelisted user2")
+
+		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser3.Id, "")
+		require.NotNil(t, err, "Should not have allowed restricted user3")
+		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
+
+	})
+	
 	t.Run("add user", func(t *testing.T) {
+		t.Skip("skipping test in short mode.")
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(&user)
 		defer th.App.PermanentDeleteUser(&user)
@@ -77,6 +116,7 @@ func TestAddUserToTeam(t *testing.T) {
 	})
 
 	t.Run("allow user by domain", func(t *testing.T) {
+		t.Skip("skipping test in short mode.")
 		th.BasicTeam.AllowedDomains = "example.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
@@ -90,6 +130,7 @@ func TestAddUserToTeam(t *testing.T) {
 	})
 
 	t.Run("block user by domain but allow bot", func(t *testing.T) {
+		t.Skip("skipping test in short mode.")
 		th.BasicTeam.AllowedDomains = "example.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
@@ -124,6 +165,7 @@ func TestAddUserToTeam(t *testing.T) {
 	})
 
 	t.Run("block user with subdomain", func(t *testing.T) {
+		t.Skip("skipping test in short mode.")
 		th.BasicTeam.AllowedDomains = "example.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
@@ -138,6 +180,7 @@ func TestAddUserToTeam(t *testing.T) {
 	})
 
 	t.Run("allow users by multiple domains", func(t *testing.T) {
+		t.Skip("skipping test in short mode.")
 		th.BasicTeam.AllowedDomains = "foo.com, bar.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")

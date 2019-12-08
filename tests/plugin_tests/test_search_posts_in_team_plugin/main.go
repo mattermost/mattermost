@@ -18,7 +18,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 
 	testCases := []struct {
 		description      string
-		teamId           string
+		teamID           string
 		params           []*model.SearchParams
 		expectedPostsLen int
 	}{
@@ -49,7 +49,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 	}
 
 	for _, testCase := range testCases {
-		posts, err := p.API.SearchPostsInTeam(testCase.teamId, testCase.params)
+		posts, err := p.API.SearchPostsInTeam(testCase.teamID, testCase.params)
 		if err != nil {
 			return nil, fmt.Sprintf("%v: %v", testCase.description, err.Error())
 		}
