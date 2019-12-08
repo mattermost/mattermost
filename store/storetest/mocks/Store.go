@@ -46,16 +46,16 @@ func (_m *Store) Bot() store.BotStore {
 	return r0
 }
 
-// CacheFactory provides a mock function with given fields:
-func (_m *Store) CacheFactory() store.CacheFactory {
+// CacheProvider provides a mock function with given fields:
+func (_m *Store) CacheProvider() store.CacheProvider {
 	ret := _m.Called()
 
-	var r0 store.CacheFactory
-	if rf, ok := ret.Get(0).(func() store.CacheFactory); ok {
+	var r0 store.CacheProvider
+	if rf, ok := ret.Get(0).(func() store.CacheProvider); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.CacheFactory)
+			r0 = ret.Get(0).(store.CacheProvider)
 		}
 	}
 

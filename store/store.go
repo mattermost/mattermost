@@ -19,7 +19,7 @@ type StoreResult struct {
 }
 
 type Store interface {
-	CacheFactory() CacheFactory
+	CacheProvider() CacheProvider
 	Team() TeamStore
 	Channel() ChannelStore
 	Post() PostStore

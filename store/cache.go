@@ -22,8 +22,8 @@ type Cache interface {
 	GetInvalidateClusterEvent() string
 }
 
-// CacheFactory defines how to create new caches
-type CacheFactory interface {
+// CacheProvider defines how to create new caches
+type CacheProvider interface {
 	NewCache(size int) Cache
 	NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) Cache
 }

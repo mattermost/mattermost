@@ -12,7 +12,7 @@ import (
 
 // Store can be used to provide mock stores for testing.
 type Store struct {
-	Cache                     mocks.CacheFactory
+	Cache                     mocks.CacheProvider
 	TeamStore                 mocks.TeamStore
 	ChannelStore              mocks.ChannelStore
 	PostStore                 mocks.PostStore
@@ -46,7 +46,7 @@ type Store struct {
 	LinkMetadataStore         mocks.LinkMetadataStore
 }
 
-func (s *Store) CacheFactory() store.CacheFactory                  { return &s.Cache }
+func (s *Store) CacheProvider() store.CacheProvider                  { return &s.Cache }
 func (s *Store) Team() store.TeamStore                             { return &s.TeamStore }
 func (s *Store) Channel() store.ChannelStore                       { return &s.ChannelStore }
 func (s *Store) Post() store.PostStore                             { return &s.PostStore }

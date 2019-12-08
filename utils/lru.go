@@ -30,14 +30,14 @@ type LruCache struct {
 	len                    int
 }
 
-// LruCacheFactory is an implementation of CacheFactory to create a new Lru Cache
-type LruCacheFactory struct{}
+// LruCacheProvider is an implementation of CacheProvider to create a new Lru Cache
+type LruCacheProvider struct{}
 
-func (c *LruCacheFactory) NewCache(size int) store.Cache {
+func (c *LruCacheProvider) NewCache(size int) store.Cache {
 	return NewLru(size)
 }
 
-func (c *LruCacheFactory) NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) store.Cache {
+func (c *LruCacheProvider) NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) store.Cache {
 	return NewLruWithParams(size, name, defaultExpiry, invalidateClusterEvent)
 }
 
