@@ -34,6 +34,24 @@ func NewPluginAPI(a *App, manifest *model.Manifest) *PluginAPI {
 	}
 }
 
+func (api *PluginAPI) applyDefaultConfigValues(pluginConfig map[string]interface{}) {
+	initialConfig := make(map[string]interface{})
+
+	if api.manifest.SettingsSchema != nil {
+		for _, settings := range api.manifest.SettingsSchema.Settings {
+			initialConfig[strings.ToLower(settings.Key)] = settings.Default
+		}
+	}
+
+	for configName, configValue := range pluginConfig {
+		if configValue == "" {
+			if initialValue, exist := initialConfig[configName]; exist {
+				pluginConfig[configName] = initialValue
+			}
+		}
+	}
+}
+
 func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
 	finalConfig := make(map[string]interface{})
 
@@ -81,12 +99,24 @@ func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppEr
 }
 
 func (api *PluginAPI) GetConfig() *model.Config {
-	return api.app.GetSanitizedConfig()
+	cfg := api.app.GetSanitizedConfig()
+
+	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
+		api.applyDefaultConfigValues(pluginConfig)
+	}
+
+	return cfg
 }
 
 // GetUnsanitizedConfig gets the configuration for a system admin without removing secrets.
 func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
-	return api.app.Config().Clone()
+	cfg := api.app.Config().Clone()
+
+	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
+		api.applyDefaultConfigValues(pluginConfig)
+	}
+
+	return cfg
 }
 
 func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
@@ -96,8 +126,10 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 	cfg := api.app.GetSanitizedConfig()
 	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
+		api.applyDefaultConfigValues(pluginConfig)
 		return pluginConfig
 	}
+
 	return map[string]interface{}{}
 }
 
