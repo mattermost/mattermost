@@ -23,6 +23,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -112,10 +114,10 @@ type SqlSupplier struct {
 	stores         SqlSupplierStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
-	cacheProvider  store.CacheProvider
+	cacheProvider  cache.CacheProvider
 }
 
-func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface, cacheProvider store.CacheProvider) *SqlSupplier {
+func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface, cacheProvider cache.CacheProvider) *SqlSupplier {
 	supplier := &SqlSupplier{
 		rrCounter:     0,
 		srCounter:     0,
@@ -125,7 +127,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	//default to LRU if no cache factory injected
 	if supplier.cacheProvider == nil {
-		supplier.cacheProvider = new(utils.LruCacheProvider)
+		supplier.cacheProvider = new(lru.LruCacheProvider)
 	}
 
 	supplier.initConnection()
@@ -261,7 +263,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	return dbmap
 }
 
-func (s *SqlSupplier) CacheProvider() store.CacheProvider {
+func (s *SqlSupplier) CacheProvider() cache.CacheProvider {
 	return s.cacheProvider
 }
 

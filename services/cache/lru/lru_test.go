@@ -8,7 +8,7 @@
 // LRU implementation in groupcache:
 // https://github.com/golang/groupcache/tree/master/lru
 
-package utils
+package lru
 
 import (
 	"testing"

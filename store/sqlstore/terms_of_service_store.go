@@ -9,8 +9,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlTermsOfServiceStore struct {
@@ -18,7 +18,7 @@ type SqlTermsOfServiceStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
-var termsOfServiceCache = utils.NewLru(model.TERMS_OF_SERVICE_CACHE_SIZE)
+var termsOfServiceCache = lru.NewLru(model.TERMS_OF_SERVICE_CACHE_SIZE)
 
 const (
 	termsOfServiceCacheName = "TermsOfServiceStore"

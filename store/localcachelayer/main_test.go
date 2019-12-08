@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -21,7 +21,7 @@ func getMockStore() *mocks.Store {
 
 	mockCacheProvider := mocks.CacheProvider{}
 	//todo: replace this line with mocks for all tests
-	mockCache := utils.NewLru(128)
+	mockCache := lru.NewLru(128)
 
 	mockCacheProvider.On("NewCacheWithParams",
 		mock.AnythingOfType("int"),

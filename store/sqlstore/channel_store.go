@@ -18,8 +18,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -274,10 +274,10 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
-var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
-var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
-var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
-var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
+var allChannelMembersForUserCache = lru.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
+var allChannelMembersNotifyPropsForChannelCache = lru.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
+var channelCache = lru.NewLru(model.CHANNEL_CACHE_SIZE)
+var channelByNameCache = lru.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func (s SqlChannelStore) ClearCaches() {
 	allChannelMembersForUserCache.Purge()
@@ -1019,7 +1019,7 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 			PublicChannels pc ON (pc.Id = Channels.Id)
 		WHERE
 			pc.TeamId = :TeamId
-		AND pc.DeleteAt = 0 
+		AND pc.DeleteAt = 0
 		ORDER BY pc.DisplayName
 		LIMIT :Limit
 		OFFSET :Offset
@@ -1229,15 +1229,15 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 	channels := &model.ChannelList{}
 
 	query := `
-		SELECT * FROM Channels 
-		WHERE (TeamId = :TeamId OR TeamId = '') 
-		AND DeleteAt != 0 
+		SELECT * FROM Channels
+		WHERE (TeamId = :TeamId OR TeamId = '')
+		AND DeleteAt != 0
 		AND Type != 'P'
 		UNION
-			SELECT * FROM Channels 
-			WHERE (TeamId = :TeamId OR TeamId = '') 
-			AND DeleteAt != 0 
-			AND Type = 'P' 
+			SELECT * FROM Channels
+			WHERE (TeamId = :TeamId OR TeamId = '')
+			AND DeleteAt != 0
+			AND Type = 'P'
 			AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
 		ORDER BY DisplayName LIMIT :Limit OFFSET :Offset
 	`

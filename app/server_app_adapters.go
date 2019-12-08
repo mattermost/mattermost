@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
@@ -61,7 +62,7 @@ func (s *Server) RunOldAppInitialization() error {
 
 	if s.FakeApp().Srv.newStore == nil {
 		s.FakeApp().Srv.newStore = func() store.Store {
-			return store.NewTimerLayer(localcachelayer.NewLocalCacheLayer(sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics, new(utils.LruCacheProvider)), s.Metrics, s.Cluster), s.Metrics)
+			return store.NewTimerLayer(localcachelayer.NewLocalCacheLayer(sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics, new(lru.LruCacheProvider)), s.Metrics, s.Cluster), s.Metrics)
 		}
 	}
 

@@ -16,14 +16,15 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
-)
+	"github.com/mattermost/mattermost-server/v5/utils")
 
 type SqlPostStore struct {
 	SqlStore
 	metrics           einterfaces.MetricsInterface
-	lastPostTimeCache store.Cache
+	lastPostTimeCache cache.Cache
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
 }
@@ -45,7 +46,7 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
-		lastPostTimeCache: utils.NewLru(LAST_POST_TIME_CACHE_SIZE),
+		lastPostTimeCache: lru.NewLru(LAST_POST_TIME_CACHE_SIZE),
 		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
@@ -245,7 +246,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	var posts []*model.Post
 	query := `
 		SELECT
-			*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount 
+			*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = p.Id AND Posts.DeleteAt = 0) as ReplyCount
 		FROM Posts p
 		WHERE
 			Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)

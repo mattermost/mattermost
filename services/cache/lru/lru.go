@@ -8,13 +8,14 @@
 // LRU implementation in groupcache:
 // https://github.com/golang/groupcache/tree/master/lru
 
-package utils
+package lru
 
 import (
 	"container/list"
-	"github.com/mattermost/mattermost-server/v5/store"
 	"sync"
 	"time"
+
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 )
 
 // LruCache is a thread-safe fixed size LRU cache.
@@ -33,11 +34,11 @@ type LruCache struct {
 // LruCacheProvider is an implementation of CacheProvider to create a new Lru Cache
 type LruCacheProvider struct{}
 
-func (c *LruCacheProvider) NewCache(size int) store.Cache {
+func (c *LruCacheProvider) NewCache(size int) cache.Cache {
 	return NewLru(size)
 }
 
-func (c *LruCacheProvider) NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) store.Cache {
+func (c *LruCacheProvider) NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) cache.Cache {
 	return NewLruWithParams(size, name, defaultExpiry, invalidateClusterEvent)
 }
 

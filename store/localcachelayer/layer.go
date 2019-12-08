@@ -6,6 +6,7 @@ package localcachelayer
 import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -51,26 +52,26 @@ type LocalCacheStore struct {
 	metrics                      einterfaces.MetricsInterface
 	cluster                      einterfaces.ClusterInterface
 	reaction                     LocalCacheReactionStore
-	reactionCache                store.Cache
+	reactionCache                cache.Cache
 	role                         LocalCacheRoleStore
-	roleCache                    store.Cache
+	roleCache                    cache.Cache
 	scheme                       LocalCacheSchemeStore
-	schemeCache                  store.Cache
+	schemeCache                  cache.Cache
 	emoji                        LocalCacheEmojiStore
-	emojiCacheById               store.Cache
-	emojiIdCacheByName           store.Cache
+	emojiCacheById               cache.Cache
+	emojiIdCacheByName           cache.Cache
 	channel                      LocalCacheChannelStore
-	channelMemberCountsCache     store.Cache
-	channelGuestCountCache       store.Cache
-	channelPinnedPostCountsCache store.Cache
+	channelMemberCountsCache     cache.Cache
+	channelGuestCountCache       cache.Cache
+	channelPinnedPostCountsCache cache.Cache
 	webhook                      LocalCacheWebhookStore
-	webhookCache                 store.Cache
+	webhookCache                 cache.Cache
 	post                         LocalCachePostStore
-	postLastPostsCache           store.Cache
+	postLastPostsCache           cache.Cache
 	user                         LocalCacheUserStore
-	userProfileByIdsCache        store.Cache
+	userProfileByIdsCache        cache.Cache
 	team                         LocalCacheTeamStore
-	teamAllTeamIdsForUserCache   store.Cache
+	teamAllTeamIdsForUserCache   cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
@@ -161,7 +162,7 @@ func (s LocalCacheStore) DropAllTables() {
 	s.Store.DropAllTables()
 }
 
-func (s *LocalCacheStore) doInvalidateCacheCluster(cache store.Cache, key string) {
+func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string) {
 	cache.Remove(key)
 	if s.cluster != nil {
 		msg := &model.ClusterMessage{
@@ -173,11 +174,11 @@ func (s *LocalCacheStore) doInvalidateCacheCluster(cache store.Cache, key string
 	}
 }
 
-func (s *LocalCacheStore) doStandardAddToCache(cache store.Cache, key string, value interface{}) {
+func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value interface{}) {
 	cache.AddWithDefaultExpires(key, value)
 }
 
-func (s *LocalCacheStore) doStandardReadCache(cache store.Cache, key string) interface{} {
+func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string) interface{} {
 	if cacheItem, ok := cache.Get(key); ok {
 		if s.metrics != nil {
 			s.metrics.IncrementMemCacheHitCounter(cache.Name())
@@ -192,7 +193,7 @@ func (s *LocalCacheStore) doStandardReadCache(cache store.Cache, key string) int
 	return nil
 }
 
-func (s *LocalCacheStore) doClearCacheCluster(cache store.Cache) {
+func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
 	cache.Purge()
 	if s.cluster != nil {
 		msg := &model.ClusterMessage{

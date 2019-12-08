@@ -6,10 +6,10 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 )
 
-var statusCache *utils.LruCache = utils.NewLru(model.STATUS_CACHE_SIZE)
+var statusCache *lru.LruCache = lru.NewLru(model.STATUS_CACHE_SIZE)
 
 func ClearStatusCache() {
 	statusCache.Purge()

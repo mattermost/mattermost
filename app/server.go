@@ -30,6 +30,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
@@ -86,8 +88,8 @@ type Server struct {
 	newStore func() store.Store
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            store.Cache
-	seenPendingPostIdsCache store.Cache
+	sessionCache            cache.Cache
+	seenPendingPostIdsCache cache.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
@@ -138,8 +140,8 @@ func NewServer(options ...Option) (*Server, error) {
 		goroutineExitSignal:     make(chan struct{}, 1),
 		RootRouter:              rootRouter,
 		licenseListeners:        map[string]func(){},
-		sessionCache:            utils.NewLru(model.SESSION_CACHE_SIZE),
-		seenPendingPostIdsCache: utils.NewLru(PENDING_POST_IDS_CACHE_SIZE),
+		sessionCache:            lru.NewLru(model.SESSION_CACHE_SIZE),
+		seenPendingPostIdsCache: lru.NewLru(PENDING_POST_IDS_CACHE_SIZE),
 		clientConfig:            make(map[string]string),
 	}
 	for _, option := range options {
