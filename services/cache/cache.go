@@ -26,4 +26,5 @@ type Cache interface {
 type CacheProvider interface {
 	NewCache(size int) Cache
 	NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) Cache
+	Close()
 }

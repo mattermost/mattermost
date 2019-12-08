@@ -42,6 +42,10 @@ func (c *LruCacheProvider) NewCacheWithParams(size int, name string, defaultExpi
 	return NewLruWithParams(size, name, defaultExpiry, invalidateClusterEvent)
 }
 
+func (c *LruCacheProvider) Close() {
+	
+}
+
 // entry is used to hold a value in the evictList.
 type entry struct {
 	key        interface{}

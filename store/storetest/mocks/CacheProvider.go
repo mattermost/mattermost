@@ -30,6 +30,11 @@ func (_m *CacheProvider) NewCache(size int) cache.Cache {
 	return r0
 }
 
+// Close provides a mock function with given fields:
+func (_m *CacheProvider) Close() {
+	_m.Called()
+}
+
 // NewCacheWithParams provides a mock function with given fields: size, name, defaultExpiry, invalidateClusterEvent
 func (_m *CacheProvider) NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) cache.Cache {
 	ret := _m.Called(size, name, defaultExpiry, invalidateClusterEvent)
