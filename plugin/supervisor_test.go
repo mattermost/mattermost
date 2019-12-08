@@ -18,15 +18,15 @@ import (
 
 func TestSupervisor(t *testing.T) {
 	for name, f := range map[string]func(*testing.T){
-		"Supervisor_InvalidExecutablePath":     testSupervisor_InvalidExecutablePath,
-		"Supervisor_NonExistentExecutablePath": testSupervisor_NonExistentExecutablePath,
-		"Supervisor_StartTimeout":              testSupervisor_StartTimeout,
+		"Supervisor_InvalidExecutablePath":     testSupervisorInvalidExecutablePath,
+		"Supervisor_NonExistentExecutablePath": testSupervisorNonExistentExecutablePath,
+		"Supervisor_StartTimeout":              testSupervisorStartTimeout,
 	} {
 		t.Run(name, f)
 	}
 }
 
-func testSupervisor_InvalidExecutablePath(t *testing.T) {
+func testSupervisorInvalidExecutablePath(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
@@ -45,7 +45,7 @@ func testSupervisor_InvalidExecutablePath(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func testSupervisor_NonExistentExecutablePath(t *testing.T) {
+func testSupervisorNonExistentExecutablePath(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
@@ -65,7 +65,7 @@ func testSupervisor_NonExistentExecutablePath(t *testing.T) {
 }
 
 // If plugin development goes really wrong, let's make sure plugin activation won't block forever.
-func testSupervisor_StartTimeout(t *testing.T) {
+func testSupervisorStartTimeout(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
