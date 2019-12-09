@@ -1,12 +1,12 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -105,20 +105,20 @@ func TestCreateOrRestoreGroupMember(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	g, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
+	g, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
-	g, err = th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
-	require.NotNil(t, err)
-	require.Nil(t, g)
+	g, err = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
 }
 
 func TestDeleteGroupMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	groupMember, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
+	groupMember, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, groupMember)
 
@@ -215,11 +215,18 @@ func TestGetGroupsByChannel(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
-	groups, err := th.App.GetGroupsByChannel(th.BasicChannel.Id, 0, 60)
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	groups, _, err := th.App.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	require.Nil(t, err)
 	require.ElementsMatch(t, []*model.Group{group}, groups)
 
-	groups, err = th.App.GetGroupsByChannel(model.NewId(), 0, 60)
+	groups, _, err = th.App.GetGroupsByChannel(model.NewId(), opts)
 	require.Nil(t, err)
 	require.Empty(t, groups)
 }
@@ -241,11 +248,21 @@ func TestGetGroupsByTeam(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
-	groups, err := th.App.GetGroupsByTeam(th.BasicTeam.Id, 0, 60)
+	groups, _, err := th.App.GetGroupsByTeam(th.BasicTeam.Id, model.GroupSearchOpts{})
 	require.Nil(t, err)
 	require.ElementsMatch(t, []*model.Group{group}, groups)
 
-	groups, err = th.App.GetGroupsByTeam(model.NewId(), 0, 60)
+	groups, _, err = th.App.GetGroupsByTeam(model.NewId(), model.GroupSearchOpts{})
 	require.Nil(t, err)
 	require.Empty(t, groups)
+}
+
+func TestGetGroups(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	group := th.CreateGroup()
+
+	groups, err := th.App.GetGroups(0, 60, model.GroupSearchOpts{})
+	require.Nil(t, err)
+	require.ElementsMatch(t, []*model.Group{group}, groups)
 }

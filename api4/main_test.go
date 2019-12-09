@@ -1,19 +1,19 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/testlib"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
 var mainHelper *testlib.MainHelper
 
 func TestMain(m *testing.M) {
 	var options = testlib.HelperOptions{
-		EnableStore: true,
+		EnableStore:     true,
 		EnableResources: true,
 	}
 

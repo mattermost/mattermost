@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package einterfaces
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type LdapInterface interface {
@@ -19,6 +19,6 @@ type LdapInterface interface {
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 	MigrateIDAttribute(toAttribute string) error
 	GetGroup(groupUID string) (*model.Group, *model.AppError)
-	GetAllGroupsPage(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError)
-	FirstLoginSync(userID, userAuthService, userAuthData string) *model.AppError
+	GetAllGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
+	FirstLoginSync(userID, userAuthService, userAuthData, email string) *model.AppError
 }

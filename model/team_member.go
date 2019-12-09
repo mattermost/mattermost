@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -15,6 +15,7 @@ type TeamMember struct {
 	UserId        string `json:"user_id"`
 	Roles         string `json:"roles"`
 	DeleteAt      int64  `json:"delete_at"`
+	SchemeGuest   bool   `json:"scheme_guest"`
 	SchemeUser    bool   `json:"scheme_user"`
 	SchemeAdmin   bool   `json:"scheme_admin"`
 	ExplicitRoles string `json:"explicit_roles"`

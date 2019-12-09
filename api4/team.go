@@ -1,30 +1,40 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
 	MAX_ADD_MEMBERS_BATCH    = 20
 	MAXIMUM_BULK_IMPORT_SIZE = 10 * 1024 * 1024
+	groupIDsParamPattern     = "[^a-zA-Z0-9,]*"
 )
+
+var groupIDsQueryParamRegex *regexp.Regexp
+
+func init() {
+	groupIDsQueryParamRegex = regexp.MustCompile(groupIDsParamPattern)
+}
 
 func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(createTeam)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(getAllTeams)).Methods("GET")
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/scheme", api.ApiSessionRequired(updateTeamScheme)).Methods("PUT")
-	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequired(searchTeams)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchTeams)).Methods("POST")
 	api.BaseRoutes.TeamsForUser.Handle("", api.ApiSessionRequired(getTeamsForUser)).Methods("GET")
 	api.BaseRoutes.TeamsForUser.Handle("/unread", api.ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
 
@@ -33,6 +43,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(deleteTeam)).Methods("DELETE")
 	api.BaseRoutes.Team.Handle("/patch", api.ApiSessionRequired(patchTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/stats", api.ApiSessionRequired(getTeamStats)).Methods("GET")
+	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.ApiSessionRequired(regenerateTeamInviteId)).Methods("POST")
 
 	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequiredTrustRequester(getTeamIcon)).Methods("GET")
 	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequired(setTeamIcon)).Methods("POST")
@@ -55,8 +66,11 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.TeamMember.Handle("/schemeRoles", api.ApiSessionRequired(updateTeamMemberSchemeRoles)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/import", api.ApiSessionRequired(importTeam)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/invite/email", api.ApiSessionRequired(inviteUsersToTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/invite-guests/email", api.ApiSessionRequired(inviteGuestsToChannels)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("/invites/email", api.ApiSessionRequired(invalidateAllEmailInvites)).Methods("DELETE")
 	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.ApiHandler(getInviteInfo)).Methods("GET")
+
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/members_minus_group_members", api.ApiSessionRequired(teamMembersMinusGroupMembers)).Methods("GET")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -190,6 +204,29 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(patchedTeam.ToJson()))
 }
 
+func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	patchedTeam, err := c.App.RegenerateTeamInviteId(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.App.SanitizeTeam(c.App.Session, patchedTeam)
+
+	c.LogAudit("")
+	w.Write([]byte(patchedTeam.ToJson()))
+}
+
 func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -271,6 +308,17 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		return
+	}
+
 	team, err := c.App.GetTeamMember(c.Params.TeamId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
@@ -291,7 +339,13 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, restrictions)
 	if err != nil {
 		c.Err = err
 		return
@@ -308,6 +362,17 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
@@ -338,7 +403,13 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetTeamMembersByIds(c.Params.TeamId, userIds)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	members, err := c.App.GetTeamMembersByIds(c.Params.TeamId, userIds, restrictions)
 	if err != nil {
 		c.Err = err
 		return
@@ -394,7 +465,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team.GroupConstrained != nil && *team.GroupConstrained {
+	if team.IsGroupConstrained() {
 		nonMembers, err := c.App.FilterNonGroupTeamMembers([]string{member.UserId}, team)
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
@@ -431,6 +502,11 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	if len(tokenId) > 0 {
 		member, err = c.App.AddTeamMemberByToken(c.App.Session.UserId, tokenId)
 	} else if len(inviteId) > 0 {
+		if c.App.Session.Props[model.SESSION_PROP_IS_GUEST] == "true" {
+			c.Err = model.NewAppError("addUserToTeamFromInvite", "api.team.add_user_to_team_from_invite.guest.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
 		member, err = c.App.AddTeamMemberByInviteId(inviteId, c.App.Session.UserId)
 	} else {
 		err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)
@@ -475,7 +551,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team.GroupConstrained != nil && *team.GroupConstrained {
+	if team.IsGroupConstrained() {
 		nonMembers, err := c.App.FilterNonGroupTeamMembers(memberIDs, team)
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
@@ -541,7 +617,7 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team.GroupConstrained != nil && *team.GroupConstrained && (c.Params.UserId != c.App.Session.UserId) {
+	if team.IsGroupConstrained() && (c.Params.UserId != c.App.Session.UserId) {
 		c.Err = model.NewAppError("removeTeamMember", "api.team.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -590,7 +666,13 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stats, err := c.App.GetTeamStats(c.Params.TeamId)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	stats, err := c.App.GetTeamStats(c.Params.TeamId, restrictions)
 	if err != nil {
 		c.Err = err
 		return
@@ -643,7 +725,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if _, err := c.App.UpdateTeamMemberSchemeRoles(c.Params.TeamId, c.Params.UserId, schemeRoles.SchemeUser, schemeRoles.SchemeAdmin); err != nil {
+	if _, err := c.App.UpdateTeamMemberSchemeRoles(c.Params.TeamId, c.Params.UserId, schemeRoles.SchemeGuest, schemeRoles.SchemeUser, schemeRoles.SchemeAdmin); err != nil {
 		c.Err = err
 		return
 	}
@@ -652,15 +734,28 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
-	var teams []*model.Team
+	teams := []*model.Team{}
 	var err *model.AppError
+	var teamsWithCount *model.TeamsWithCount
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		if c.Params.IncludeTotalCount {
+			teamsWithCount, err = c.App.GetAllTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		} else {
+			teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		}
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
-		teams, err = c.App.GetAllPrivateTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		if c.Params.IncludeTotalCount {
+			teamsWithCount, err = c.App.GetAllPrivateTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		} else {
+			teams, err = c.App.GetAllPrivateTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		}
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		teams, err = c.App.GetAllPublicTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		if c.Params.IncludeTotalCount {
+			teamsWithCount, err = c.App.GetAllPublicTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		} else {
+			teams, err = c.App.GetAllPublicTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		}
 	}
 
 	if err != nil {
@@ -670,7 +765,15 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeams(c.App.Session, teams)
 
-	w.Write([]byte(model.TeamListToJson(teams)))
+	var resBody []byte
+
+	if c.Params.IncludeTotalCount {
+		resBody = model.TeamsWithCountToJson(teamsWithCount)
+	} else {
+		resBody = []byte(model.TeamListToJson(teams))
+	}
+
+	w.Write(resBody)
 }
 
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -686,13 +789,22 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var teams []*model.Team
+	var totalCount int64
 	var err *model.AppError
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		teams, err = c.App.SearchAllTeams(props.Term)
+		teams, totalCount, err = c.App.SearchAllTeams(props)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
+		if props.Page != nil || props.PerPage != nil {
+			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.private_team_search", nil, "", http.StatusNotImplemented)
+			return
+		}
 		teams, err = c.App.SearchPrivateTeams(props.Term)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
+		if props.Page != nil || props.PerPage != nil {
+			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
+			return
+		}
 		teams, err = c.App.SearchPublicTeams(props.Term)
 	} else {
 		teams = []*model.Team{}
@@ -705,7 +817,15 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeams(c.App.Session, teams)
 
-	w.Write([]byte(model.TeamListToJson(teams)))
+	var payload []byte
+	if props.Page != nil && props.PerPage != nil {
+		twc := &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}
+		payload = model.TeamsWithCountToJson(twc)
+	} else {
+		payload = []byte(model.TeamListToJson(teams))
+	}
+
+	w.Write(payload)
 }
 
 func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -714,14 +834,31 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := make(map[string]bool)
-
-	if _, err := c.App.GetTeamByName(c.Params.TeamName); err != nil {
-		resp["exists"] = false
-	} else {
-		resp["exists"] = true
+	team, err := c.App.GetTeamByName(c.Params.TeamName)
+	if err != nil && err.StatusCode != http.StatusNotFound {
+		c.Err = err
+		return
 	}
 
+	exists := false
+
+	if team != nil {
+		var teamMember *model.TeamMember
+		teamMember, err = c.App.GetTeamMember(team.Id, c.App.Session.UserId)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			c.Err = err
+			return
+		}
+
+		// Verify that the user can see the team (be a member or have the permission to list the team)
+		if (teamMember != nil && teamMember.DeleteAt == 0) ||
+			(team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS)) ||
+			(!team.AllowOpenInvite && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS)) {
+			exists = true
+		}
+	}
+
+	resp := map[string]bool{"exists": exists}
 	w.Write([]byte(model.MapBoolToJson(resp)))
 }
 
@@ -791,7 +928,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]string{}
-	data["results"] = base64.StdEncoding.EncodeToString([]byte(log.Bytes()))
+	data["results"] = base64.StdEncoding.EncodeToString(log.Bytes())
 	if c.Err != nil {
 		w.WriteHeader(c.Err.StatusCode)
 	}
@@ -822,6 +959,42 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := c.App.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.License() == nil {
+		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invate_guests_to_channels.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !*c.App.Config().GuestAccountsSettings.Enable {
+		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invate_guests_to_channels.disabled.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_INVITE_GUEST) {
+		c.SetPermissionError(model.PERMISSION_INVITE_GUEST)
+		return
+	}
+
+	guestsInvite := model.GuestsInviteFromJson(r.Body)
+	if err := guestsInvite.IsValid(); err != nil {
+		c.Err = err
+		return
+	}
+
+	err := c.App.InviteGuestsToChannels(c.Params.TeamId, guestsInvite, c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1023,4 +1196,54 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	groupIDsParam := groupIDsQueryParamRegex.ReplaceAllString(c.Params.GroupIDs, "")
+
+	if len(groupIDsParam) < 26 {
+		c.SetInvalidParam("group_ids")
+		return
+	}
+
+	groupIDs := []string{}
+	for _, gid := range strings.Split(c.Params.GroupIDs, ",") {
+		if len(gid) != 26 {
+			c.SetInvalidParam("group_ids")
+			return
+		}
+		groupIDs = append(groupIDs, gid)
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	users, totalCount, err := c.App.TeamMembersMinusGroupMembers(
+		c.Params.TeamId,
+		groupIDs,
+		c.Params.Page,
+		c.Params.PerPage,
+	)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(&model.UsersWithGroupsAndCount{
+		Users: users,
+		Count: totalCount,
+	})
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.teamMembersMinusGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
 }

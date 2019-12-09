@@ -1,5 +1,5 @@
-// Copyright (c) 2019-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -139,7 +139,7 @@ func TestPrintMap(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.Name, func(t *testing.T) {
-			res := printMap(test.Input, 0)
+			res := printStringMap(test.Input, 0)
 
 			// create two slice of string formed by splitting our strings on \n
 			slice1 := strings.Split(res, "\n")

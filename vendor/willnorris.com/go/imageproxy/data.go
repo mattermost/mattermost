@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -133,6 +134,7 @@ func (o Options) String() string {
 	if o.SmartCrop {
 		opts = append(opts, optSmartCrop)
 	}
+	sort.Strings(opts)
 	return strings.Join(opts, ",")
 }
 
@@ -225,7 +227,7 @@ func (o Options) transform() bool {
 // sign the remote URL in the request.  The HMAC key used to verify signatures is
 // provided to the imageproxy server on startup.
 //
-// See https://github.com/willnorris/imageproxy/wiki/URL-signing
+// See https://github.com/willnorris/imageproxy/blob/master/docs/url-signing.md
 // for examples of generating signatures.
 //
 // Examples

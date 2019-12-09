@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package timezones
 
@@ -378,7 +378,6 @@ var DefaultSupportedTimezones = []string{
 	"CST6CDT",
 	"Canada/Atlantic",
 	"Canada/Central",
-	"Canada/East-Saskatchewan",
 	"Canada/Eastern",
 	"Canada/Mountain",
 	"Canada/Newfoundland",
@@ -491,7 +490,6 @@ var DefaultSupportedTimezones = []string{
 	"Europe/Zagreb",
 	"Europe/Zaporozhye",
 	"Europe/Zurich",
-	"Factory",
 	"GB",
 	"GB-Eire",
 	"GMT",

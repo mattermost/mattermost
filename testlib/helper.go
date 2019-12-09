@@ -1,20 +1,21 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package testlib
 
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type MainHelper struct {
@@ -102,7 +103,7 @@ func (h *MainHelper) setupStore() {
 	h.ClusterInterface = &FakeClusterInterface{}
 	h.SqlSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = &TestStore{
-		store.NewLayeredStore(h.SqlSupplier, nil, h.ClusterInterface),
+		h.SqlSupplier,
 	}
 }
 
@@ -120,6 +121,10 @@ func (h *MainHelper) Close() error {
 	}
 	if h.testResourcePath != "" {
 		os.RemoveAll(h.testResourcePath)
+	}
+
+	if r := recover(); r != nil {
+		log.Fatalln(r)
 	}
 
 	os.Exit(h.status)

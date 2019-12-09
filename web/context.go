@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -9,10 +9,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type Context struct {
@@ -86,7 +86,10 @@ func (c *Context) IsSystemAdmin() bool {
 }
 
 func (c *Context) SessionRequired() {
-	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens && c.App.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN {
+	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
+		c.App.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN &&
+		c.App.Session.Props[model.SESSION_PROP_IS_BOT] != model.SESSION_PROP_IS_BOT_VALUE {
+
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
 	}
@@ -112,6 +115,9 @@ func (c *Context) MfaRequired() {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 		return
 	} else {
+		if user.IsGuest() && !*c.App.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
+			return
+		}
 		// Only required for email and ldap accounts
 		if user.AuthService != "" &&
 			user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
@@ -138,10 +144,12 @@ func (c *Context) MfaRequired() {
 }
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
+
 	cookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
 		Value:    "",
-		Path:     "/",
+		Path:     subpath,
 		MaxAge:   -1,
 		HttpOnly: true,
 	}
@@ -155,6 +163,10 @@ func (c *Context) SetInvalidParam(parameter string) {
 
 func (c *Context) SetInvalidUrlParam(parameter string) {
 	c.Err = NewInvalidUrlParamError(parameter)
+}
+
+func (c *Context) SetServerBusyError() {
+	c.Err = NewServerBusyError()
 }
 
 func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
@@ -183,6 +195,10 @@ func NewInvalidParamError(parameter string) *model.AppError {
 }
 func NewInvalidUrlParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
+	return err
+}
+func NewServerBusyError() *model.AppError {
+	err := model.NewAppError("Context", "api.context.server_busy.app_error", nil, "", http.StatusServiceUnavailable)
 	return err
 }
 

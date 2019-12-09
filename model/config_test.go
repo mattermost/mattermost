@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -95,6 +95,104 @@ func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	}
 }
 
+func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.SignatureAlgorithm != SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM {
+		t.Fatal("SamlSettings.SignatureAlgorithm default not set")
+	}
+
+	if *c1.SamlSettings.CanonicalAlgorithm != SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM {
+		t.Fatal("SamlSettings.CanonicalAlgorithm default not set")
+	}
+}
+
+func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
+	const testAlgorithm = "FakeAlgorithm"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			CanonicalAlgorithm: NewString(testAlgorithm),
+			SignatureAlgorithm: NewString(testAlgorithm),
+		},
+	}
+
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.SignatureAlgorithm != testAlgorithm {
+		t.Fatal("SamlSettings.SignatureAlgorithm should be overwritten")
+	}
+	if *c1.SamlSettings.CanonicalAlgorithm != testAlgorithm {
+		t.Fatal("SamlSettings.CanonicalAlgorithm should be overwritten")
+	}
+}
+
+func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	*c1.SamlSettings.Enable = true
+	*c1.SamlSettings.Verify = false
+	*c1.SamlSettings.Encrypt = false
+
+	*c1.SamlSettings.IdpUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.EmailAttribute = "Email"
+	*c1.SamlSettings.UsernameAttribute = "Username"
+
+	err := c1.SamlSettings.isValid()
+	if err != nil {
+		t.Fatal("SAMLSettings validation should pass with default settings")
+	}
+}
+
+func TestConfigIsValidFakeAlgorithm(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	*c1.SamlSettings.Enable = true
+	*c1.SamlSettings.Verify = false
+	*c1.SamlSettings.Encrypt = false
+
+	*c1.SamlSettings.IdpUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.EmailAttribute = "Email"
+	*c1.SamlSettings.UsernameAttribute = "Username"
+
+	temp := *c1.SamlSettings.CanonicalAlgorithm
+	*c1.SamlSettings.CanonicalAlgorithm = "Fake Algorithm"
+	err := c1.SamlSettings.isValid()
+	if err == nil {
+		t.Fatal("SAMLSettings validation should fail with fake Canonical Algorithm")
+	}
+	require.Equal(t, "model.config.is_valid.saml_canonical_algorithm.app_error", err.Message)
+	*c1.SamlSettings.CanonicalAlgorithm = temp
+
+	*c1.SamlSettings.SignatureAlgorithm = "Fake Algorithm"
+	err = c1.SamlSettings.isValid()
+	if err == nil {
+		t.Fatal("SAMLSettings validation should pass with fake signature settings")
+	}
+	require.Equal(t, "model.config.is_valid.saml_signature_algorithm.app_error", err.Message)
+}
+
+func TestConfigOverwriteGuestSettings(t *testing.T) {
+	const attribute = "FakeAttributeName"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			GuestAttribute: NewString(attribute),
+		},
+	}
+
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.GuestAttribute != attribute {
+		t.Fatal("SamlSettings.GuestAttribute should be overwritten")
+	}
+}
+
 func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -128,18 +226,52 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 }
 
 func TestConfigDefaultNPSPluginState(t *testing.T) {
-	c1 := Config{}
-	c1.SetDefaults()
+	t.Run("should enable NPS plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
 
-	if c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable != true {
-		t.Fatal("PluginSettings.PluginStates[\"com.mattermost.nps\"].Enable should default to true")
-	}
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
 
-	c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable = false
-	c1.SetDefaults()
-	if c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable != false {
-		t.Fatal("PluginSettings.PluginStates[\"com.mattermost.nps\"].Enable should remain false")
-	}
+	t.Run("should enable NPS plugin if diagnostics are enabled", func(t *testing.T) {
+		c1 := Config{
+			LogSettings: LogSettings{
+				EnableDiagnostics: NewBool(true),
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+
+	t.Run("should not enable NPS plugin if diagnostics are disabled", func(t *testing.T) {
+		c1 := Config{
+			LogSettings: LogSettings{
+				EnableDiagnostics: NewBool(false),
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+
+	t.Run("should not re-enable NPS plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.nps": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
 }
 
 func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
@@ -509,7 +641,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing period",
 			value: []string{"iris.beep"},
-			valid: false, // should technically be true, but client doesn't support it
+			valid: true,
 		},
 		{
 			name:  "containing hyphen",
@@ -519,7 +651,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing plus",
 			value: []string{"coap+tcp", "coap+ws"},
-			valid: false, // should technically be true, but client doesn't support it
+			valid: true,
 		},
 		{
 			name:  "starting with number",
@@ -593,7 +725,7 @@ func TestListenAddressIsValidated(t *testing.T) {
 		ss := &ServiceSettings{
 			ListenAddress: NewString(key),
 		}
-		ss.SetDefaults()
+		ss.SetDefaults(true)
 		if expected {
 			require.Nil(t, ss.isValid(), fmt.Sprintf("Got an error from '%v'.", key))
 		} else {
@@ -869,6 +1001,105 @@ func TestLdapSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: true,
 		},
+
+		{
+			Name: "valid guest filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(property=value)"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid guest filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("("),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid guest filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("()"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "valid guest filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(otherthing=othervalue))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "valid guest filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid guest filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid guest filter #4",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			test.LdapSettings.SetDefaults()
@@ -881,4 +1112,63 @@ func TestLdapSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfigSanitize(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	*c.LdapSettings.BindPassword = "foo"
+	*c.FileSettings.AmazonS3SecretAccessKey = "bar"
+	*c.EmailSettings.SMTPPassword = "baz"
+	*c.GitLabSettings.Secret = "bingo"
+	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
+	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
+
+	c.Sanitize()
+
+	assert.Equal(t, FAKE_SETTING, *c.LdapSettings.BindPassword)
+	assert.Equal(t, FAKE_SETTING, *c.FileSettings.PublicLinkSalt)
+	assert.Equal(t, FAKE_SETTING, *c.FileSettings.AmazonS3SecretAccessKey)
+	assert.Equal(t, FAKE_SETTING, *c.EmailSettings.SMTPPassword)
+	assert.Equal(t, FAKE_SETTING, *c.GitLabSettings.Secret)
+	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.DataSource)
+	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.AtRestEncryptKey)
+	assert.Equal(t, FAKE_SETTING, *c.ElasticsearchSettings.Password)
+	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceReplicas[0])
+	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceSearchReplicas[0])
+}
+
+func TestConfigMarketplaceDefaults(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL, *c.PluginSettings.MarketplaceUrl)
+	})
+
+	t.Run("old marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		*c.PluginSettings.MarketplaceUrl = PLUGIN_SETTINGS_OLD_MARKETPLACE_URL
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL, *c.PluginSettings.MarketplaceUrl)
+	})
+
+	t.Run("custom marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		*c.PluginSettings.MarketplaceUrl = "https://marketplace.example.com"
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, "https://marketplace.example.com", *c.PluginSettings.MarketplaceUrl)
+	})
 }

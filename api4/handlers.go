@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/mattermost/mattermost-server/web"
+	"github.com/mattermost/mattermost-server/v5/web"
 )
 
 type Context = web.Context
@@ -18,6 +18,7 @@ func (api *API) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request))
 	handler := &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      false,
 		RequireMfa:          false,
@@ -35,6 +36,7 @@ func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.R
 	handler := &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
 		RequireSession:      true,
 		TrustRequester:      false,
 		RequireMfa:          true,
@@ -54,6 +56,7 @@ func (api *API) ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *htt
 	handler := &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
 		RequireSession:      true,
 		TrustRequester:      false,
 		RequireMfa:          false,
@@ -73,6 +76,7 @@ func (api *API) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 	handler := &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
 		RequireSession:      false,
 		TrustRequester:      true,
 		RequireMfa:          false,
@@ -91,10 +95,31 @@ func (api *API) ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseW
 	handler := &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
 		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
 		RequireSession:      true,
 		TrustRequester:      true,
 		RequireMfa:          true,
 		IsStatic:            false,
+	}
+	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+
+}
+
+// DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
+// responding with HTTP 503 (Service Unavailable).
+func (api *API) ApiSessionRequiredDisableWhenBusy(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &web.Handler{
+		GetGlobalAppOptions: api.GetGlobalAppOptions,
+		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
+		RequireSession:      true,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            false,
+		DisableWhenBusy:     true,
 	}
 	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)

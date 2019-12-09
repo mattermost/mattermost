@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -12,8 +11,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (w *Web) InitWebhooks() {
@@ -30,6 +29,15 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
 	contentType := r.Header.Get("Content-Type")
+
+	defer func() {
+		if *c.App.Config().LogSettings.EnableWebhookDebugging {
+			if c.Err != nil {
+				mlog.Debug("Incoming webhook received", mlog.String("webhook_id", id), mlog.String("request_id", c.App.RequestId), mlog.String("payload", incomingWebhookPayload.ToJson()))
+			}
+		}
+	}()
+
 	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
 		payload := strings.NewReader(r.FormValue("payload"))
 
@@ -54,10 +62,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-	}
-
-	if *c.App.Config().LogSettings.EnableWebhookDebugging {
-		mlog.Debug(fmt.Sprintf("Incoming webhook received. Id=%s Content=%s", id, incomingWebhookPayload.ToJson()))
 	}
 
 	err = c.App.HandleIncomingWebhook(id, incomingWebhookPayload)

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -25,7 +25,6 @@ const (
 	CHANNEL_DISPLAY_NAME_MAX_RUNES = 64
 	CHANNEL_NAME_MIN_LENGTH        = 2
 	CHANNEL_NAME_MAX_LENGTH        = 64
-	CHANNEL_NAME_UI_MAX_LENGTH     = 22
 	CHANNEL_HEADER_MAX_RUNES       = 1024
 	CHANNEL_PURPOSE_MAX_RUNES      = 250
 	CHANNEL_CACHE_SIZE             = 25000
@@ -61,6 +60,11 @@ type ChannelWithTeamData struct {
 	TeamUpdateAt    int64  `json:"team_update_at"`
 }
 
+type ChannelsWithCount struct {
+	Channels   *ChannelListWithTeamData `json:"channels"`
+	TotalCount int64                    `json:"total_count"`
+}
+
 type ChannelPatch struct {
 	DisplayName      *string `json:"display_name"`
 	Name             *string `json:"name"`
@@ -80,6 +84,25 @@ type DirectChannelForExport struct {
 	Members *[]string
 }
 
+// ChannelSearchOpts contains options for searching channels.
+//
+// NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
+// ExcludeDefaultChannels will exclude the configured default channels (ex 'town-square' and 'off-topic').
+// IncludeDeleted will include channel records where DeleteAt != 0.
+// ExcludeChannelNames will exclude channels from the results by name.
+// Paginate whether to paginate the results.
+// Page page requested, if results are paginated.
+// PerPage number of results per page, if paginated.
+//
+type ChannelSearchOpts struct {
+	NotAssociatedToGroup   string
+	ExcludeDefaultChannels bool
+	IncludeDeleted         bool
+	ExcludeChannelNames    []string
+	Page                   *int
+	PerPage                *int
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {
@@ -96,6 +119,17 @@ func (o *Channel) ToJson() string {
 func (o *ChannelPatch) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
+}
+
+func (o *ChannelsWithCount) ToJson() []byte {
+	b, _ := json.Marshal(o)
+	return b
+}
+
+func ChannelsWithCountFromJson(data io.Reader) *ChannelsWithCount {
+	var o *ChannelsWithCount
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func ChannelFromJson(data io.Reader) *Channel {
@@ -204,6 +238,30 @@ func (o *Channel) AddProp(key string, value interface{}) {
 	o.MakeNonNil()
 
 	o.Props[key] = value
+}
+
+func (o *Channel) IsGroupConstrained() bool {
+	return o.GroupConstrained != nil && *o.GroupConstrained
+}
+
+func (o *Channel) GetOtherUserIdForDM(userId string) string {
+	if o.Type != CHANNEL_DIRECT {
+		return ""
+	}
+
+	userIds := strings.Split(o.Name, "__")
+
+	var otherUserId string
+
+	if userIds[0] != userIds[1] {
+		if userIds[0] == userId {
+			otherUserId = userIds[1]
+		} else {
+			otherUserId = userIds[0]
+		}
+	}
+
+	return otherUserId
 }
 
 func GetDMNameFromIds(userId1, userId2 string) string {

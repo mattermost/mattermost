@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func (a *App) ProcessSlackText(text string) string {
@@ -66,8 +66,8 @@ func replaceUserIds(userStore store.UserStore, text string) string {
 			userIds = append(userIds, match[1])
 		}
 
-		if res := <-userStore.GetProfileByIds(userIds, true); res.Err == nil {
-			for _, user := range res.Data.([]*model.User) {
+		if users, err := userStore.GetProfileByIds(userIds, nil, true); err == nil {
+			for _, user := range users {
 				text = strings.Replace(text, "<@"+user.Id+">", "@"+user.Username, -1)
 			}
 		}

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -9,8 +9,8 @@ import (
 
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
 
@@ -153,7 +153,7 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	autocompleteHint, _ := command.Flags().GetString("autocompleteHint")
 	post, errp := command.Flags().GetBool("post")
 	method := "P"
-	if errp != nil || post == false {
+	if errp != nil || !post {
 		method = "G"
 	}
 
@@ -257,12 +257,11 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		result := <-a.Srv.Store.Command().GetByTeam(team.Id)
-		if result.Err != nil {
+		commands, err := a.Srv.Store.Command().GetByTeam(team.Id)
+		if err != nil {
 			CommandPrintErrorln("Unable to list commands for '" + args[i] + "'")
 			continue
 		}
-		commands := result.Data.([]*model.Command)
 		for _, command := range commands {
 			commandListItem := fmt.Sprintf("%s: %s (team: %s)", command.Id, command.DisplayName, team.Name)
 			CommandPrettyPrintln(commandListItem)
@@ -372,7 +371,7 @@ func modifyCommandCmdF(command *cobra.Command, args []string) error {
 
 	post, err := command.Flags().GetBool("post")
 	method := "P"
-	if err != nil || post == false {
+	if err != nil || !post {
 		method = "G"
 	}
 	modifiedCommand.Method = method

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -7,12 +7,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type PluginAPI struct {
@@ -81,6 +84,11 @@ func (api *PluginAPI) GetConfig() *model.Config {
 	return api.app.GetSanitizedConfig()
 }
 
+// GetUnsanitizedConfig gets the configuration for a system admin without removing secrets.
+func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
+	return api.app.Config().Clone()
+}
+
 func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return api.app.SaveConfig(config, true)
 }
@@ -141,7 +149,8 @@ func (api *PluginAPI) GetTeam(teamId string) (*model.Team, *model.AppError) {
 }
 
 func (api *PluginAPI) SearchTeams(term string) ([]*model.Team, *model.AppError) {
-	return api.app.SearchAllTeams(term)
+	teams, _, err := api.app.SearchAllTeams(&model.TeamSearch{Term: term})
+	return teams, err
 }
 
 func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) {
@@ -173,7 +182,7 @@ func (api *PluginAPI) DeleteTeamMember(teamId, userId, requestorId string) *mode
 }
 
 func (api *PluginAPI) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMembers(teamId, page*perPage, perPage)
+	return api.app.GetTeamMembers(teamId, page*perPage, perPage, nil)
 }
 
 func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -189,7 +198,7 @@ func (api *PluginAPI) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*m
 }
 
 func (api *PluginAPI) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
-	return api.app.GetTeamStats(teamId)
+	return api.app.GetTeamStats(teamId, nil)
 }
 
 func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError) {
@@ -222,7 +231,7 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 }
 
 func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersByUsernames(usernames, true)
+	return api.app.GetUsersByUsernames(usernames, true, nil)
 }
 
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
@@ -342,7 +351,11 @@ func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *m
 	if err != nil {
 		return nil, err
 	}
-	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount}, nil
+	guestCount, err := api.app.GetChannelMemberCount(channelId)
+	if err != nil {
+		return nil, err
+	}
+	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount, GuestCount: guestCount}, nil
 }
 
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
@@ -392,7 +405,18 @@ func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.Channel
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId, "")
+	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
+}
+
+func (api *PluginAPI) AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError) {
+	postRootId := ""
+
+	channel, err := api.GetChannel(channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.app.AddChannelMember(userId, channel, asUserId, postRootId)
 }
 
 func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
@@ -423,6 +447,18 @@ func (api *PluginAPI) DeleteChannelMember(channelId, userId string) *model.AppEr
 	return api.app.LeaveChannel(channelId, userId)
 }
 
+func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
+	return api.app.GetGroup(groupId)
+}
+
+func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	return api.app.GetGroupByName(name)
+}
+
+func (api *PluginAPI) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
+	return api.app.GetGroupsByUserId(userId)
+}
+
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return api.app.CreatePostMissingChannel(post, true)
 }
@@ -447,8 +483,8 @@ func (api *PluginAPI) UpdateEphemeralPost(userId string, post *model.Post) *mode
 	return api.app.UpdateEphemeralPost(userId, post)
 }
 
-func (api *PluginAPI) DeleteEphemeralPost(userId string, post *model.Post) {
-	api.app.DeleteEphemeralPost(userId, post)
+func (api *PluginAPI) DeleteEphemeralPost(userId, postId string) {
+	api.app.DeleteEphemeralPost(userId, postId)
 }
 
 func (api *PluginAPI) DeletePost(postId string) *model.AppError {
@@ -457,7 +493,7 @@ func (api *PluginAPI) DeletePost(postId string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postId)
+	return api.app.GetPostThread(postId, false)
 }
 
 func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
@@ -465,19 +501,19 @@ func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
 }
 
 func (api *PluginAPI) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsSince(channelId, time)
+	return api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: time})
 }
 
 func (api *PluginAPI) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsAfterPost(channelId, postId, page, perPage)
+	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: postId, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsBeforePost(channelId, postId, page, perPage)
+	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: postId, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsPage(channelId, page, perPage)
+	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: perPage, PerPage: page})
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
@@ -500,12 +536,7 @@ func (api *PluginAPI) SetProfileImage(userId string, data []byte) *model.AppErro
 		return err
 	}
 
-	fileReader := bytes.NewReader(data)
-	err = api.app.SetProfileImageFromFile(userId, fileReader)
-	if err != nil {
-		return err
-	}
-	return nil
+	return api.app.SetProfileImageFromFile(userId, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
@@ -580,12 +611,7 @@ func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
 		return err
 	}
 
-	fileReader := bytes.NewReader(data)
-	err = api.app.SetTeamIconFromFile(team, fileReader)
-	if err != nil {
-		return err
-	}
-	return nil
+	return api.app.SetTeamIconFromFile(team, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
@@ -620,7 +646,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
 	}
 
-	return api.app.SendMail(to, subject, htmlBody)
+	return api.app.SendNotificationMail(to, subject, htmlBody)
 }
 
 // Plugin Section
@@ -656,10 +682,35 @@ func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.Ap
 	return api.app.GetPluginStatus(id)
 }
 
+func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	if !*api.app.Config().PluginSettings.Enable || !*api.app.Config().PluginSettings.EnableUploads {
+		return nil, model.NewAppError("installPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	fileBuffer, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, model.NewAppError("InstallPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return api.app.InstallPlugin(bytes.NewReader(fileBuffer), replace)
+}
+
 // KV Store Section
+
+func (api *PluginAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	return api.app.SetPluginKeyWithOptions(api.id, key, value, options)
+}
 
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)
+}
+
+func (api *PluginAPI) KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError) {
+	return api.app.CompareAndSetPluginKey(api.id, key, oldValue, newValue)
+}
+
+func (api *PluginAPI) KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
+	return api.app.CompareAndDeletePluginKey(api.id, key, oldValue)
 }
 
 func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
@@ -721,6 +772,12 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	if bot.OwnerId == "" {
 		bot.OwnerId = api.id
 	}
+	// Bots cannot be owners of other bots
+	if user, err := api.app.GetUser(bot.OwnerId); err == nil {
+		if user.IsBot {
+			return nil, model.NewAppError("CreateBot", "plugin_api.bot_cant_create_bot", nil, "", http.StatusBadRequest)
+		}
+	}
 
 	return api.app.CreateBot(bot)
 }
@@ -745,4 +802,54 @@ func (api *PluginAPI) UpdateBotActive(userId string, active bool) (*model.Bot, *
 
 func (api *PluginAPI) PermanentDeleteBot(userId string) *model.AppError {
 	return api.app.PermanentDeleteBot(userId)
+}
+
+func (api *PluginAPI) GetBotIconImage(userId string) ([]byte, *model.AppError) {
+	if _, err := api.app.GetBot(userId, true); err != nil {
+		return nil, err
+	}
+
+	return api.app.GetBotIconImage(userId)
+}
+
+func (api *PluginAPI) SetBotIconImage(userId string, data []byte) *model.AppError {
+	if _, err := api.app.GetBot(userId, true); err != nil {
+		return err
+	}
+
+	return api.app.SetBotIconImage(userId, bytes.NewReader(data))
+}
+
+func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
+	if _, err := api.app.GetBot(userId, true); err != nil {
+		return err
+	}
+
+	return api.app.DeleteBotIconImage(userId)
+}
+
+func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
+	split := strings.SplitN(request.URL.Path, "/", 3)
+	if len(split) != 3 {
+		return &http.Response{
+			StatusCode: http.StatusBadRequest,
+			Body:       ioutil.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /<pluginid>/*")),
+		}
+	}
+	destinationPluginId := split[1]
+	newURL, err := url.Parse("/" + split[2])
+	request.URL = newURL
+	if destinationPluginId == "" || err != nil {
+		message := "No plugin specified. Form of URL should be /<pluginid>/*"
+		if err != nil {
+			message = "Form of URL should be /<pluginid>/* Error: " + err.Error()
+		}
+		return &http.Response{
+			StatusCode: http.StatusBadRequest,
+			Body:       ioutil.NopCloser(bytes.NewBufferString(message)),
+		}
+	}
+	responseTransfer := &PluginResponseWriter{}
+	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
+	return responseTransfer.GenerateResponse()
 }

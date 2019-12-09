@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -8,10 +8,26 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
+
+var escapeLikeSearchChar = []string{
+	"%",
+	"_",
+}
+
+func sanitizeSearchTerm(term string, escapeChar string) string {
+	term = strings.Replace(term, escapeChar, "", -1)
+
+	for _, c := range escapeLikeSearchChar {
+		term = strings.Replace(term, c, escapeChar+c, -1)
+	}
+
+	return term
+}
 
 // Converts a list of strings into a list of query parameters and a named parameter map that can
 // be used as part of a SQL query.

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetImage(t *testing.T) {
@@ -38,7 +38,8 @@ func TestGetImage(t *testing.T) {
 
 		resp, err := th.Client.HttpClient.Do(r)
 		require.NoError(t, err)
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		assert.Equal(t, http.StatusFound, resp.StatusCode)
+		assert.Equal(t, imageURL, resp.Header.Get("Location"))
 	})
 
 	t.Run("atmos/camo", func(t *testing.T) {

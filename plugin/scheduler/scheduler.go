@@ -1,15 +1,17 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package scheduler
 
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+const pluginsJobInterval = 24 * 60 * 60 * time.Second
 
 type Scheduler struct {
 	App *app.App
@@ -32,16 +34,17 @@ func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 }
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
-	nextTime := time.Now().Add(60 * time.Second)
+	nextTime := time.Now().Add(pluginsJobInterval)
 	return &nextTime
 }
 
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	mlog.Debug("Scheduling Job", mlog.String("scheduler", scheduler.Name()))
 
-	if job, err := scheduler.App.Srv.Jobs.CreateJob(model.JOB_TYPE_PLUGINS, nil); err != nil {
+	job, err := scheduler.App.Srv.Jobs.CreateJob(model.JOB_TYPE_PLUGINS, nil)
+	if err != nil {
 		return nil, err
-	} else {
-		return job, nil
 	}
+
+	return job, nil
 }

@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,13 +23,13 @@ func TestMuteCommandNoChannel(t *testing.T) {
 	channel1 := th.BasicChannel
 	channel1M, channel1MError := th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
 
-	if channel1MError != nil {
-		t.Fatal("User is not a member of channel 1")
-	}
-
-	if channel1M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
-		t.Fatal("channel shouldn't be muted on initial setup")
-	}
+	assert.Nil(t, channel1MError, "User is not a member of channel 1")
+	assert.NotEqual(
+		t,
+		channel1M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP],
+		model.CHANNEL_NOTIFY_MENTION,
+		"Channel shouldn't be muted on initial setup",
+	)
 
 	cmd := &MuteProvider{}
 	resp := cmd.DoCommand(th.App, &model.CommandArgs{

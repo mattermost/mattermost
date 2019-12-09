@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -7,16 +7,22 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func getHashedKey(key string) string {
@@ -66,8 +72,8 @@ func TestPluginKeyValueStore(t *testing.T) {
 		ExpireAt: 0,
 	}
 
-	result := <-th.App.Srv.Store.Plugin().SaveOrUpdate(kv)
-	assert.Nil(t, result.Err)
+	_, err = th.App.Srv.Store.Plugin().SaveOrUpdate(kv)
+	assert.Nil(t, err)
 
 	// Test fetch by keyname (this key does not exist but hashed key will be used for lookup)
 	ret, err = th.App.GetPluginKey(pluginId, "key2")
@@ -123,6 +129,187 @@ func TestPluginKeyValueStore(t *testing.T) {
 	list, err = th.App.ListPluginKeys(pluginId, -1, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
+}
+
+func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginId := "testpluginid"
+
+	defer func() {
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
+	}()
+
+	// Set using Set api for key2
+	assert.Nil(t, th.App.SetPluginKey(pluginId, "key2", []byte("test")))
+	ret, err := th.App.GetPluginKey(pluginId, "key2")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test"), ret)
+
+	// Attempt to insert value for key2
+	updated, err := th.App.CompareAndSetPluginKey(pluginId, "key2", nil, []byte("test2"))
+	assert.Nil(t, err)
+	assert.False(t, updated)
+	ret, err = th.App.GetPluginKey(pluginId, "key2")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test"), ret)
+
+	// Insert new value for key
+	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", nil, []byte("test"))
+	assert.Nil(t, err)
+	assert.True(t, updated)
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test"), ret)
+
+	// Should fail to insert again
+	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", nil, []byte("test3"))
+	assert.Nil(t, err)
+	assert.False(t, updated)
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test"), ret)
+
+	// Test updating using incorrect old value
+	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", []byte("oldvalue"), []byte("test3"))
+	assert.Nil(t, err)
+	assert.False(t, updated)
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test"), ret)
+
+	// Test updating using correct old value
+	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", []byte("test"), []byte("test2"))
+	assert.Nil(t, err)
+	assert.True(t, updated)
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test2"), ret)
+}
+
+func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginId := "testpluginid"
+
+	defer func() {
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
+	}()
+
+	t.Run("storing a value without providing options works", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{})
+		assert.True(t, result)
+		assert.Nil(t, err)
+
+		// and I can get it back!
+		ret, err := th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(`value-1`), ret)
+	})
+
+	t.Run("test that setting it atomic when it doesn't match doesn't change anything", func(t *testing.T) {
+		err := th.App.SetPluginKey(pluginId, "key", []byte("value-1"))
+		require.Nil(t, err)
+
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-3"), model.PluginKVSetOptions{
+			Atomic:   true,
+			OldValue: []byte("value-2"),
+		})
+		assert.False(t, result)
+		assert.Nil(t, err)
+
+		// test that the value didn't change
+		ret, err := th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(`value-1`), ret)
+	})
+
+	t.Run("test the atomic change with the proper old value", func(t *testing.T) {
+		err := th.App.SetPluginKey(pluginId, "key", []byte("value-2"))
+		require.Nil(t, err)
+
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-3"), model.PluginKVSetOptions{
+			Atomic:   true,
+			OldValue: []byte("value-2"),
+		})
+		assert.True(t, result)
+		assert.Nil(t, err)
+
+		// test that the value did change
+		ret, err := th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(`value-3`), ret)
+	})
+
+	t.Run("when new value is nil and old value matches with the current, it should delete the currently set value", func(t *testing.T) {
+		// first set a value.
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-2", []byte("value-1"), model.PluginKVSetOptions{})
+		require.Nil(t, err)
+		require.True(t, result)
+
+		// now it should delete the set value.
+		result, err = th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-2", nil, model.PluginKVSetOptions{
+			Atomic:   true,
+			OldValue: []byte("value-1"),
+		})
+		assert.Nil(t, err)
+		assert.True(t, result)
+
+		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-2")
+		assert.Nil(t, err)
+		assert.Nil(t, ret)
+	})
+
+	t.Run("when new value is nil and there is a value set for the key already, it should delete the currently set value", func(t *testing.T) {
+		// first set a value.
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-3", []byte("value-1"), model.PluginKVSetOptions{})
+		require.Nil(t, err)
+		require.True(t, result)
+
+		// now it should delete the set value.
+		result, err = th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-3", nil, model.PluginKVSetOptions{})
+		assert.Nil(t, err)
+		assert.True(t, result)
+
+		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-3")
+		assert.Nil(t, err)
+		assert.Nil(t, ret)
+	})
+
+	t.Run("when old value is nil and there is no value set for the key before, it should set the new value", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-4", []byte("value-1"), model.PluginKVSetOptions{
+			Atomic:   true,
+			OldValue: nil,
+		})
+		assert.Nil(t, err)
+		assert.True(t, result)
+
+		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-4")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("value-1"), ret)
+	})
+
+	t.Run("test that value is set and unset with ExpireInSeconds", func(t *testing.T) {
+		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{
+			ExpireInSeconds: 1,
+		})
+		assert.True(t, result)
+		assert.Nil(t, err)
+
+		// test that the value is set
+		ret, err := th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(`value-1`), ret)
+
+		// test that the value is not longer
+		time.Sleep(1500 * time.Millisecond)
+
+		ret, err = th.App.GetPluginKey(pluginId, "key")
+		assert.Nil(t, err)
+		assert.Nil(t, ret)
+	})
 }
 
 func TestServePluginRequest(t *testing.T) {
@@ -254,4 +441,152 @@ func TestGetPluginStatuses(t *testing.T) {
 	pluginStatuses, err := th.App.GetPluginStatuses()
 	require.Nil(t, err)
 	require.NotNil(t, pluginStatuses)
+}
+
+func TestPluginSync(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testCases := []struct {
+		Description string
+		ConfigFunc  func(cfg *model.Config)
+	}{
+		{
+			"local",
+			func(cfg *model.Config) {
+				cfg.FileSettings.DriverName = model.NewString(model.IMAGE_DRIVER_LOCAL)
+			},
+		},
+		{
+			"s3",
+			func(cfg *model.Config) {
+				s3Host := os.Getenv("CI_MINIO_HOST")
+				if s3Host == "" {
+					s3Host = "localhost"
+				}
+
+				s3Port := os.Getenv("CI_MINIO_PORT")
+				if s3Port == "" {
+					s3Port = "9000"
+				}
+
+				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+				cfg.FileSettings.DriverName = model.NewString(model.IMAGE_DRIVER_S3)
+				cfg.FileSettings.AmazonS3AccessKeyId = model.NewString(model.MINIO_ACCESS_KEY)
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.MINIO_SECRET_KEY)
+				cfg.FileSettings.AmazonS3Bucket = model.NewString(model.MINIO_BUCKET)
+				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
+				cfg.FileSettings.AmazonS3Region = model.NewString("")
+				cfg.FileSettings.AmazonS3SSL = model.NewBool(false)
+
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			os.MkdirAll("./test-plugins", os.ModePerm)
+			defer os.RemoveAll("./test-plugins")
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Enable = true
+				*cfg.PluginSettings.Directory = "./test-plugins"
+				*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+				*cfg.PluginSettings.RequirePluginSignature = false
+			})
+			th.App.UpdateConfig(testCase.ConfigFunc)
+
+			env, err := plugin.NewEnvironment(th.App.NewPluginAPI, "./test-plugins", "./test-client-plugins", th.App.Log)
+			require.NoError(t, err)
+			th.App.SetPluginsEnvironment(env)
+
+			// New bundle in the file store case
+			path, _ := fileutils.FindDir("tests")
+			fileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+			require.NoError(t, err)
+			defer fileReader.Close()
+
+			_, appErr := th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin"))
+			checkNoError(t, appErr)
+
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+
+			// Check if installed
+			pluginStatus, err := env.Statuses()
+			require.Nil(t, err)
+			require.Len(t, pluginStatus, 1)
+			require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+			// Bundle removed from the file store case
+			appErr = th.App.RemoveFile(th.App.getBundleStorePath("testplugin"))
+			checkNoError(t, appErr)
+
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+
+			// Check if removed
+			pluginStatus, err = env.Statuses()
+			require.Nil(t, err)
+			require.Len(t, pluginStatus, 0)
+
+			// RequirePluginSignature = true case
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.RequirePluginSignature = true
+			})
+			pluginFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+			require.NoError(t, err)
+			defer pluginFileReader.Close()
+			_, appErr = th.App.WriteFile(pluginFileReader, th.App.getBundleStorePath("testplugin.tar.gz"))
+			checkNoError(t, appErr)
+			// no signature
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+			pluginStatus, err = env.Statuses()
+			require.Nil(t, err)
+			require.Len(t, pluginStatus, 0)
+
+			// Wrong signature
+			signatureFileReader, err := os.Open(filepath.Join(path, "testpluginv2.tar.gz.sig"))
+			require.NoError(t, err)
+			defer signatureFileReader.Close()
+			filePath := fmt.Sprintf("%s.sig", th.App.getBundleStorePath("testplugin"))
+			_, appErr = th.App.WriteFile(signatureFileReader, filePath)
+			checkNoError(t, appErr)
+
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+
+			pluginStatus, err = env.Statuses()
+			require.Nil(t, err)
+			require.Len(t, pluginStatus, 0)
+
+			// Correct signature
+			key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
+			require.NoError(t, err)
+			appErr = th.App.AddPublicKey("pub_key", key)
+			checkNoError(t, appErr)
+
+			signatureFileReader, err = os.Open(filepath.Join(path, "testplugin.tar.gz.sig"))
+			require.NoError(t, err)
+			defer signatureFileReader.Close()
+			filePath = fmt.Sprintf("%s.sig", th.App.getBundleStorePath("testplugin"))
+			_, appErr = th.App.WriteFile(signatureFileReader, filePath)
+			checkNoError(t, appErr)
+
+			appErr = th.App.SyncPlugins()
+			checkNoError(t, appErr)
+
+			pluginStatus, err = env.Statuses()
+			require.Nil(t, err)
+			require.Len(t, pluginStatus, 1)
+			require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+			appErr = th.App.DeletePublicKey("pub_key")
+			checkNoError(t, appErr)
+
+			appErr = th.App.RemovePlugin("testplugin")
+			checkNoError(t, appErr)
+		})
+	}
 }

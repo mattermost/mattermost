@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -9,24 +9,22 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
-	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/web"
-	"github.com/mattermost/mattermost-server/wsapi"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/web"
+	"github.com/mattermost/mattermost-server/v5/wsapi"
 
-	s3 "github.com/minio/minio-go"
-	"github.com/minio/minio-go/pkg/credentials"
+	s3 "github.com/minio/minio-go/v6"
+	"github.com/minio/minio-go/v6/pkg/credentials"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -64,7 +62,7 @@ func UseTestStore(store store.Store) {
 func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
 	testStore.DropAllTables()
 
-	memoryStore, err := config.NewMemoryStore()
+	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}
@@ -88,6 +86,10 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
 		*cfg.EmailSettings.SendEmailNotifications = true
+
+		// Disable sniffing, otherwise elastic client fails to connect to docker node
+		// More details: https://github.com/olivere/elastic/wiki/Sniffing
+		*cfg.ElasticsearchSettings.Sniff = false
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
@@ -104,10 +106,18 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	th.App.Srv.Store.MarkSystemRanUnitTests()
-	th.App.DoAdvancedPermissionsMigration()
-	th.App.DoEmojisPermissionsMigration()
+	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
+
+	// Disable strict password requirements for test
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PasswordSettings.MinimumLength = 5
+		*cfg.PasswordSettings.Lowercase = false
+		*cfg.PasswordSettings.Uppercase = false
+		*cfg.PasswordSettings.Symbol = false
+		*cfg.PasswordSettings.Number = false
+	})
 
 	if enterprise {
 		th.App.SetLicense(model.NewTestLicense())
@@ -125,16 +135,6 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 		}
 		th.tempWorkspace = dir
 	}
-
-	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
-	webappDir := filepath.Join(th.tempWorkspace, "webapp")
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Directory = pluginDir
-		*cfg.PluginSettings.ClientDirectory = webappDir
-	})
-
-	th.App.InitPlugins(pluginDir, webappDir)
 
 	return th
 }
@@ -240,6 +240,10 @@ func (me *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.SystemAdminClient.AuthToken)
 }
 
+func (me *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), client.AuthToken)
+}
+
 func (me *TestHelper) CreateUser() *model.User {
 	return me.CreateUserWithClient(me.Client)
 }
@@ -275,7 +279,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		Nickname:  "nn_" + id,
 		FirstName: "f_" + id,
 		LastName:  "l_" + id,
-		Password:  "Password1",
+		Password:  "Pa$$word11",
 	}
 
 	utils.DisableDebugLogForTest()
@@ -284,8 +288,11 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		panic(response.Error)
 	}
 
-	ruser.Password = "Password1"
-	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email))
+	ruser.Password = "Pa$$word11"
+	_, err := me.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	if err != nil {
+		return nil
+	}
 	utils.EnableDebugLogForTest()
 	return ruser
 }
@@ -384,12 +391,16 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 }
 
 func (me *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
-	post := store.Must(me.App.Srv.Store.Post().Save(&model.Post{
+	post, err := me.App.Srv.Store.Post().Save(&model.Post{
 		UserId:    me.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   message,
 		CreateAt:  createAtTime,
-	})).(*model.Post)
+	})
+
+	if err != nil {
+		panic(err)
+	}
 
 	return post
 }
@@ -505,10 +516,10 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 }
 
 func (me *TestHelper) GenerateTestEmail() string {
-	if *me.App.Config().EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
+	if *me.App.Config().EmailSettings.SMTPServer != "localhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
 		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
 	}
-	return strings.ToLower(model.NewId() + "@dockerhost")
+	return strings.ToLower(model.NewId() + "@localhost")
 }
 
 func (me *TestHelper) CreateGroup() *model.Group {
@@ -552,57 +563,36 @@ func GenerateTestId() string {
 func CheckUserSanitization(t *testing.T, user *model.User) {
 	t.Helper()
 
-	if user.Password != "" {
-		t.Fatal("password wasn't blank")
-	}
-
-	if user.AuthData != nil && *user.AuthData != "" {
-		t.Fatal("auth data wasn't blank")
-	}
-
-	if user.MfaSecret != "" {
-		t.Fatal("mfa secret wasn't blank")
-	}
+	require.Equal(t, "", user.Password, "password wasn't blank")
+	require.Empty(t, user.AuthData, "auth data wasn't blank")
+	require.Equal(t, "", user.MfaSecret, "mfa secret wasn't blank")
 }
 
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	t.Helper()
 
-	if !reflect.ValueOf(data).IsNil() {
-		t.Fatal("etag data was not nil")
-	}
-
-	if resp.StatusCode != http.StatusNotModified {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusNotModified))
-		t.Fatal("wrong status code for etag")
-	}
+	require.Empty(t, data)
+	require.Equal(t, resp.StatusCode, http.StatusNotModified, "wrong status code for etag")
 }
 
 func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
 	if resp.Error != nil {
-		t.Fatalf("Expected no error, got %q", resp.Error.Error())
+		require.FailNow(t, "Expected no error, got %q", resp.Error.Error())
 	}
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
 	t.Helper()
 
-	switch {
-	case resp == nil:
-		t.Fatalf("Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, expectError)
-
-	case expectError && resp.Error == nil:
-		t.Fatalf("Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
-
-	case !expectError && resp.Error != nil:
-		t.Fatalf("Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
-
-	case resp.StatusCode != expectedStatus:
-		t.Fatalf("Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
+	require.NotNilf(t, resp, "Unexpected nil response, expected http:%v, expectError:%v", expectedStatus, expectError)
+	if expectError {
+		require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
+	} else {
+		require.Nil(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
 	}
+	require.Equalf(t, expectedStatus, resp.StatusCode, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
 }
 
 func CheckOKStatus(t *testing.T, resp *model.Response) {
@@ -650,19 +640,20 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	checkHTTPStatus(t, resp, http.StatusInternalServerError, true)
 }
 
+func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusServiceUnavailable, true)
+}
+
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
-	if resp.Error == nil {
-		t.Fatal("should have errored with message:" + errorId)
-		return
-	}
+	require.NotNilf(t, resp.Error, "should have errored with message: %s", errorId)
+	require.Equalf(t, resp.Error.Id, errorId, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
+}
 
-	if resp.Error.Id != errorId {
-		t.Log("actual: " + resp.Error.Id)
-		t.Log("expected: " + errorId)
-		t.Fatal("incorrect error message")
-	}
+func CheckStartsWith(t *testing.T, value, prefix, message string) {
+	require.True(t, strings.HasPrefix(value, prefix), message, value)
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
@@ -735,9 +726,9 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 
 	if cm, err := me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
-		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
+		if _, err = me.App.Srv.Store.Channel().UpdateMember(cm); err != nil {
 			utils.EnableDebugLogForTest()
-			panic(sr.Err)
+			panic(err)
 		}
 	} else {
 		utils.EnableDebugLogForTest()
@@ -750,19 +741,18 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tmr := <-me.App.Srv.Store.Team().GetMember(team.Id, user.Id); tmr.Err == nil {
-		tm := tmr.Data.(*model.TeamMember)
+	if tm, err := me.App.Srv.Store.Team().GetMember(team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
-		if sr := <-me.App.Srv.Store.Team().UpdateMember(tm); sr.Err != nil {
+		if _, err = me.App.Srv.Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()
-			panic(sr.Err)
+			panic(err)
 		}
 	} else {
 		utils.EnableDebugLogForTest()
-		mlog.Error(tmr.Err.Error())
+		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
-		panic(tmr.Err)
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()
@@ -771,19 +761,18 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tmr := <-me.App.Srv.Store.Team().GetMember(team.Id, user.Id); tmr.Err == nil {
-		tm := tmr.Data.(*model.TeamMember)
+	if tm, err := me.App.Srv.Store.Team().GetMember(team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
-		if sr := <-me.App.Srv.Store.Team().UpdateMember(tm); sr.Err != nil {
+		if _, err = me.App.Srv.Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()
-			panic(sr.Err)
+			panic(err)
 		}
 	} else {
 		utils.EnableDebugLogForTest()
-		mlog.Error(tmr.Err.Error())
+		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
-		panic(tmr.Err)
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()

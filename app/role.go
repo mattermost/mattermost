@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -8,39 +8,23 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
-	result := <-a.Srv.Store.Role().Get(id)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Role), nil
+	return a.Srv.Store.Role().Get(id)
 }
 
 func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
-	result := <-a.Srv.Store.Role().GetAll()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Role), nil
+	return a.Srv.Store.Role().GetAll()
 }
 
 func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	result := <-a.Srv.Store.Role().GetByName(name)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Role), nil
+	return a.Srv.Store.Role().GetByName(name)
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
-	result := <-a.Srv.Store.Role().GetByNames(names)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Role), nil
+	return a.Srv.Store.Role().GetByNames(names)
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
@@ -66,22 +50,18 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.BuiltIn = false
 	role.SchemeManaged = false
 
-	result := <-a.Srv.Store.Role().Save(role)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Role), nil
+	return a.Srv.Store.Role().Save(role)
 
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	result := <-a.Srv.Store.Role().Save(role)
-	if result.Err != nil {
-		return nil, result.Err
+	savedRole, err := a.Srv.Store.Role().Save(role)
+	if err != nil {
+		return nil, err
 	}
-	a.sendUpdatedRoleEvent(role)
+	a.sendUpdatedRoleEvent(savedRole)
 
-	return role, nil
+	return savedRole, nil
 
 }
 

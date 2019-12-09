@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestSlackConvertTimeStamp(t *testing.T) {
@@ -116,9 +116,39 @@ func TestSlackParseChannels(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	channels, err := SlackParseChannels(file)
+	channels, err := SlackParseChannels(file, "O")
 	require.NoError(t, err)
 	assert.Equal(t, 6, len(channels))
+}
+
+func TestSlackParseDirectMessages(t *testing.T) {
+	file, err := os.Open("tests/slack-import-test-direct-messages.json")
+	require.NoError(t, err)
+	defer file.Close()
+
+	channels, err := SlackParseChannels(file, "D")
+	require.NoError(t, err)
+	assert.Equal(t, 4, len(channels))
+}
+
+func TestSlackParsePrivateChannels(t *testing.T) {
+	file, err := os.Open("tests/slack-import-test-private-channels.json")
+	require.NoError(t, err)
+	defer file.Close()
+
+	channels, err := SlackParseChannels(file, "P")
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(channels))
+}
+
+func TestSlackParseGroupDirectMessages(t *testing.T) {
+	file, err := os.Open("tests/slack-import-test-group-direct-messages.json")
+	require.NoError(t, err)
+	defer file.Close()
+
+	channels, err := SlackParseChannels(file, "G")
+	require.NoError(t, err)
+	assert.Equal(t, 3, len(channels))
 }
 
 func TestSlackParseUsers(t *testing.T) {
@@ -138,7 +168,17 @@ func TestSlackParsePosts(t *testing.T) {
 
 	posts, err := SlackParsePosts(file)
 	require.NoError(t, err)
-	assert.Equal(t, 8, len(posts))
+	assert.Equal(t, 9, len(posts))
+}
+
+func TestSlackParseMultipleAttachments(t *testing.T) {
+	file, err := os.Open("tests/slack-import-test-posts.json")
+	require.NoError(t, err)
+	defer file.Close()
+
+	posts, err := SlackParsePosts(file)
+	require.NoError(t, err)
+	assert.Equal(t, 2, len(posts[8].Files))
 }
 
 func TestSlackSanitiseChannelProperties(t *testing.T) {

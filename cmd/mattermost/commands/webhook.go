@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -108,7 +108,12 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 			incomingResult <- store.StoreResult{Data: incomingHooks, Err: err}
 			close(incomingResult)
 		}()
-		outgoingResult := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
+		outgoingResult := make(chan store.StoreResult, 1)
+		go func() {
+			outgoingHooks, err := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
+			outgoingResult <- store.StoreResult{Data: outgoingHooks, Err: err}
+			close(outgoingResult)
+		}()
 
 		if result := <-incomingResult; result.Err == nil {
 			CommandPrettyPrintln(fmt.Sprintf("Incoming webhooks for %s (%s):", team.DisplayName, team.Name))

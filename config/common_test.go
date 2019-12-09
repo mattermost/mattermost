@@ -1,13 +1,17 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package config_test
 
 import (
+	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/config"
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig *model.Config
@@ -131,6 +135,30 @@ func TestMergeConfigs(t *testing.T) {
 		assert.NotEqual(t, base.Get(), merged)
 		assert.NotEqual(t, patch, merged)
 		assert.Equal(t, expected, merged)
+	})
+}
+
+func TestConfigEnvironmentOverrides(t *testing.T) {
+	base, err := config.NewMemoryStore()
+	require.NoError(t, err)
+	originalConfig := &model.Config{}
+	originalConfig.ServiceSettings.SiteURL = newString("http://notoverriden.ca")
+
+	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridden.ca")
+	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+	t.Run("loading config should respect environment variable overrides", func(t *testing.T) {
+		err := base.Load()
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://overridden.ca", *base.Get().ServiceSettings.SiteURL)
+	})
+
+	t.Run("setting config should respect environment variable overrides", func(t *testing.T) {
+		_, err := base.Set(originalConfig)
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://overridden.ca", *base.Get().ServiceSettings.SiteURL)
 	})
 }
 

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package plugin
 
@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // These assignments are part of the wire protocol used to trigger hook events in plugins.
@@ -34,6 +34,11 @@ const (
 	UserHasLoggedInId       = 16
 	UserHasBeenCreatedId    = 17
 	TotalHooksId            = iota
+)
+
+const (
+	// DismissPostError dismisses a pending post when the error is returned from MessageWillBePosted.
+	DismissPostError = "plugin.message_will_be_posted.dismiss_post"
 )
 
 // Hooks describes the methods a plugin may implement to automatically receive the corresponding
@@ -90,6 +95,7 @@ type Hooks interface {
 	// To reject a post, return an non-empty string describing why the post was rejected.
 	// To modify the post, return the replacement, non-nil *model.Post and an empty string.
 	// To allow the post without modification, return a nil *model.Post and an empty string.
+	// To dismiss the post, return a nil *model.Post and the const DismissPostError string.
 	//
 	// If you don't need to modify or reject posts, use MessageHasBeenPosted instead.
 	//

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config_test
 
 import (
 	"bytes"
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -16,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byte) (string, func()) {
@@ -101,7 +100,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("existing config, initialization required", func(t *testing.T) {
@@ -137,6 +136,11 @@ func TestDatabaseStoreNew(t *testing.T) {
 		_, err := config.NewDatabaseStore("invalid")
 		require.Error(t, err)
 	})
+
+	t.Run("unsupported scheme with valid data source", func(t *testing.T) {
+		_, err := config.NewDatabaseStore(fmt.Sprintf("invalid://%s", *sqlSettings.DataSource))
+		require.Error(t, err)
+	})
 }
 
 func TestDatabaseStoreGet(t *testing.T) {
@@ -165,25 +169,146 @@ func TestDatabaseStoreGet(t *testing.T) {
 }
 
 func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
-	_, tearDown := setupConfigDatabase(t, testConfig, nil)
-	defer tearDown()
+	t.Run("get override for a string variable", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, testConfig, nil)
+		defer tearDown()
 
-	sqlSettings := mainHelper.GetSqlSettings()
-	ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
-	require.NoError(t, err)
-	defer ds.Close()
+		sqlSettings := mainHelper.GetSqlSettings()
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
 
-	assert.Equal(t, "http://TestStoreNew", *ds.Get().ServiceSettings.SiteURL)
-	assert.Empty(t, ds.GetEnvironmentOverrides())
+		assert.Equal(t, "http://TestStoreNew", *ds.Get().ServiceSettings.SiteURL)
+		assert.Empty(t, ds.GetEnvironmentOverrides())
 
-	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-	ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
-	require.NoError(t, err)
-	defer ds.Close()
+		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
 
-	assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
-	assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for a bool variable", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, testConfig, nil)
+		defer tearDown()
+
+		sqlSettings := mainHelper.GetSqlSettings()
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, false, *ds.Get().PluginSettings.EnableUploads)
+		assert.Empty(t, ds.GetEnvironmentOverrides())
+
+		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLEUPLOADS")
+
+		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, true, *ds.Get().PluginSettings.EnableUploads)
+		assert.Equal(t, map[string]interface{}{"PluginSettings": map[string]interface{}{"EnableUploads": true}}, ds.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for an int variable", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, testConfig, nil)
+		defer tearDown()
+
+		sqlSettings := mainHelper.GetSqlSettings()
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, model.TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM, *ds.Get().TeamSettings.MaxUsersPerTeam)
+		assert.Empty(t, ds.GetEnvironmentOverrides())
+
+		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
+		defer os.Unsetenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM")
+
+		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, 3000, *ds.Get().TeamSettings.MaxUsersPerTeam)
+		assert.Equal(t, map[string]interface{}{"TeamSettings": map[string]interface{}{"MaxUsersPerTeam": true}}, ds.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for an int64 variable", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, testConfig, nil)
+		defer tearDown()
+
+		sqlSettings := mainHelper.GetSqlSettings()
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, int64(63072000), *ds.Get().ServiceSettings.TLSStrictTransportMaxAge)
+		assert.Empty(t, ds.GetEnvironmentOverrides())
+
+		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
+		defer os.Unsetenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE")
+
+		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, int64(123456), *ds.Get().ServiceSettings.TLSStrictTransportMaxAge)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"TLSStrictTransportMaxAge": true}}, ds.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for a slice variable - one value", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, testConfig, nil)
+		defer tearDown()
+
+		sqlSettings := mainHelper.GetSqlSettings()
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, []string{}, ds.Get().SqlSettings.DataSourceReplicas)
+		assert.Empty(t, ds.GetEnvironmentOverrides())
+
+		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
+		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
+
+		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
+		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for a slice variable - three values", func(t *testing.T) {
+		// This should work, but Viper (or we) don't parse environment variables to turn strings with spaces into slices.
+		t.Skip("not implemented yet")
+
+		_, tearDown := setupConfigDatabase(t, testConfig, nil)
+		defer tearDown()
+
+		sqlSettings := mainHelper.GetSqlSettings()
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, []string{}, ds.Get().SqlSettings.DataSourceReplicas)
+		assert.Empty(t, ds.GetEnvironmentOverrides())
+
+		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db user:pwd@db2:5433/test-db2 user:pwd@db3:5434/test-db3")
+		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
+
+		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}, ds.Get().SqlSettings.DataSourceReplicas)
+		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
+	})
 }
 
 func TestDatabaseStoreSet(t *testing.T) {
@@ -221,7 +346,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("desanitization required", func(t *testing.T) {
@@ -260,7 +385,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("duplicate ignored", func(t *testing.T) {
@@ -326,7 +451,6 @@ func TestDatabaseStoreSet(t *testing.T) {
 	})
 
 	t.Run("persist failed", func(t *testing.T) {
-		t.Skip("skipping persistence test inside Set")
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
@@ -341,11 +465,27 @@ func TestDatabaseStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 
 		_, err = ds.Set(newCfg)
-		if assert.Error(t, err) {
-			assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to write to database"))
-		}
+		require.Error(t, err)
+		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to query active configuration"), "unexpected error: "+err.Error())
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
+	})
+
+	t.Run("persist failed: too long", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
+		defer tearDown()
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		longSiteURL := fmt.Sprintf("http://%s", strings.Repeat("a", config.MaxWriteLength))
+		newCfg := emptyConfig.Clone()
+		newCfg.ServiceSettings.SiteURL = sToP(longSiteURL)
+
+		_, err = ds.Set(newCfg)
+		require.Error(t, err)
+		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: marshalled configuration failed length check: value is too long"), "unexpected error: "+err.Error())
 	})
 
 	t.Run("listeners notified", func(t *testing.T) {
@@ -373,11 +513,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		id, _ := getActualDatabaseConfig(t)
 		assert.NotEqual(t, activeId, id, "new record should have been written")
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 }
 
@@ -410,6 +546,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 		err = ds.Load()
 		require.NoError(t, err)
@@ -417,11 +554,12 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
 	})
 
-	t.Run("do not persist environment variables", func(t *testing.T) {
+	t.Run("do not persist environment variables - string", func(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridePersistEnvVariables")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
@@ -435,6 +573,123 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		// check that in DB config does not include overwritten variable
 		_, actualConfig := getActualDatabaseConfig(t)
 		assert.Equal(t, "http://minimal", *actualConfig.ServiceSettings.SiteURL)
+	})
+
+	t.Run("do not persist environment variables - boolean", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLEUPLOADS")
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, true, *ds.Get().PluginSettings.EnableUploads)
+
+		_, err = ds.Set(ds.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, true, *ds.Get().PluginSettings.EnableUploads)
+		assert.Equal(t, map[string]interface{}{"PluginSettings": map[string]interface{}{"EnableUploads": true}}, ds.GetEnvironmentOverrides())
+		// check that in DB config does not include overwritten variable
+		_, actualConfig := getActualDatabaseConfig(t)
+		assert.Equal(t, false, *actualConfig.PluginSettings.EnableUploads)
+	})
+
+	t.Run("do not persist environment variables - int", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
+		defer os.Unsetenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM")
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, 3000, *ds.Get().TeamSettings.MaxUsersPerTeam)
+
+		_, err = ds.Set(ds.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, 3000, *ds.Get().TeamSettings.MaxUsersPerTeam)
+		assert.Equal(t, map[string]interface{}{"TeamSettings": map[string]interface{}{"MaxUsersPerTeam": true}}, ds.GetEnvironmentOverrides())
+		// check that in DB config does not include overwritten variable
+		_, actualConfig := getActualDatabaseConfig(t)
+		assert.Equal(t, model.TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM, *actualConfig.TeamSettings.MaxUsersPerTeam)
+	})
+
+	t.Run("do not persist environment variables - int64", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
+		defer os.Unsetenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE")
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, int64(123456), *ds.Get().ServiceSettings.TLSStrictTransportMaxAge)
+
+		_, err = ds.Set(ds.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, int64(123456), *ds.Get().ServiceSettings.TLSStrictTransportMaxAge)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"TLSStrictTransportMaxAge": true}}, ds.GetEnvironmentOverrides())
+		// check that in DB config does not include overwritten variable
+		_, actualConfig := getActualDatabaseConfig(t)
+		assert.Equal(t, int64(63072000), *actualConfig.ServiceSettings.TLSStrictTransportMaxAge)
+	})
+
+	t.Run("do not persist environment variables - string slice beginning with default", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
+		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
+
+		_, err = ds.Set(ds.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
+		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
+		// check that in DB config does not include overwritten variable
+		_, actualConfig := getActualDatabaseConfig(t)
+		assert.Equal(t, []string(nil), actualConfig.SqlSettings.DataSourceReplicas)
+	})
+
+	t.Run("do not persist environment variables - string slice beginning with slice of three", func(t *testing.T) {
+		modifiedMinimalConfig := minimalConfig.Clone()
+		modifiedMinimalConfig.SqlSettings.DataSourceReplicas = []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}
+		_, tearDown := setupConfigDatabase(t, modifiedMinimalConfig, nil)
+		defer tearDown()
+
+		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
+		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
+
+		_, err = ds.Set(ds.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
+		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
+		// check that in DB config does not include overwritten variable
+		_, actualConfig := getActualDatabaseConfig(t)
+		assert.Equal(t, []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}, actualConfig.SqlSettings.DataSourceReplicas)
 	})
 
 	t.Run("invalid", func(t *testing.T) {
@@ -495,17 +750,13 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		err = ds.Load()
 		require.NoError(t, err)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config loaded")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config loaded")
 	})
 }
 
 func TestDatabaseGetFile(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, minimalConfig, map[string][]byte{
-		"empty-file": []byte{},
+		"empty-file": {},
 		"test-file":  []byte("test"),
 	})
 	defer tearDown()
@@ -565,6 +816,22 @@ func TestDatabaseSetFile(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []byte("overwritten file"), data)
 	})
+
+	t.Run("max length", func(t *testing.T) {
+		longFile := bytes.Repeat([]byte{0x0}, config.MaxWriteLength)
+
+		err := ds.SetFile("toolong", longFile)
+		require.NoError(t, err)
+	})
+
+	t.Run("too long", func(t *testing.T) {
+		longFile := bytes.Repeat([]byte{0x0}, config.MaxWriteLength+1)
+
+		err := ds.SetFile("toolong", longFile)
+		if assert.Error(t, err) {
+			assert.True(t, strings.HasPrefix(err.Error(), "file data failed length check: value is too long"))
+		}
+	})
 }
 
 func TestDatabaseHasFile(t *testing.T) {
@@ -610,6 +877,19 @@ func TestDatabaseHasFile(t *testing.T) {
 		has, err := ds.HasFile("manual")
 		require.NoError(t, err)
 		require.True(t, has)
+	})
+
+	t.Run("has non-existent empty string", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		has, err := ds.HasFile("")
+		require.NoError(t, err)
+		require.False(t, has)
 	})
 }
 
@@ -677,14 +957,11 @@ func TestDatabaseStoreString(t *testing.T) {
 	sqlSettings := mainHelper.GetSqlSettings()
 	ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 	require.NoError(t, err)
+	require.NotNil(t, ds)
 	defer ds.Close()
 
-	actualStringURL, err := url.Parse(ds.String())
-	require.NoError(t, err)
-
-	assert.Equal(t, *sqlSettings.DriverName, actualStringURL.Scheme)
-	actualUsername := actualStringURL.User.Username()
-	actualPassword, _ := actualStringURL.User.Password()
-	assert.NotEmpty(t, actualUsername)
-	assert.Empty(t, actualPassword, "should mask password")
+	maskedDSN := ds.String()
+	assert.True(t, strings.HasPrefix(maskedDSN, "mysql://"))
+	assert.True(t, strings.Contains(maskedDSN, "mmuser"))
+	assert.False(t, strings.Contains(maskedDSN, "mostest"))
 }

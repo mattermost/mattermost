@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -40,14 +40,12 @@ func testAuditStore(t *testing.T, ss store.Store) {
 	assert.Equal(t, "extra", audits[0].ExtraInfo)
 
 	audits, err = ss.Audit().Get("missing", 0, 100)
-
+	require.Nil(t, err)
 	assert.Len(t, audits, 0)
 
 	audits, err = ss.Audit().Get("", 0, 100)
-
-	if len(audits) < 4 {
-		t.Fatal("Failed to save and retrieve 4 audit logs")
-	}
+	require.Nil(t, err)
+	require.Len(t, audits, 4, "Failed to save and retrieve 4 audit logs")
 
 	require.Nil(t, ss.Audit().PermanentDeleteByUser(audit.UserId))
 }
@@ -65,12 +63,14 @@ func testAuditStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.Nil(t, ss.Audit().Save(a3))
 
 	audits, err := ss.Audit().Get(a1.UserId, 0, 100)
+	require.Nil(t, err)
 	assert.Len(t, audits, 3)
 
 	_, err = ss.Audit().PermanentDeleteBatch(cutoff, 1000000)
 	require.Nil(t, err)
 
 	audits, err = ss.Audit().Get(a1.UserId, 0, 100)
+	require.Nil(t, err)
 	assert.Len(t, audits, 1)
 
 	require.Nil(t, ss.Audit().PermanentDeleteByUser(a1.UserId))

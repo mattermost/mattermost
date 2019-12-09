@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -12,10 +12,10 @@ import (
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type CommandProvider interface {
@@ -39,8 +39,13 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse) (*model.Post, *model.AppError) {
-	post.Message = model.ParseSlackLinksToMarkdown(response.Text)
+func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+	if skipSlackParsing {
+		post.Message = response.Text
+	} else {
+		post.Message = model.ParseSlackLinksToMarkdown(response.Text)
+	}
+
 	post.CreateAt = model.GetMillis()
 
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
@@ -87,12 +92,11 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 	}
 
 	if *a.Config().ServiceSettings.EnableCommands {
-		result := <-a.Srv.Store.Command().GetByTeam(teamId)
-		if result.Err != nil {
-			return nil, result.Err
+		teamCmds, err := a.Srv.Store.Command().GetByTeam(teamId)
+		if err != nil {
+			return nil, err
 		}
 
-		teamCmds := result.Data.([]*model.Command)
 		for _, cmd := range teamCmds {
 			if cmd.AutoComplete && !seen[cmd.Id] {
 				cmd.Sanitize()
@@ -110,12 +114,7 @@ func (a *App) ListTeamCommands(teamId string) ([]*model.Command, *model.AppError
 		return nil, model.NewAppError("ListTeamCommands", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	result := <-a.Srv.Store.Command().GetByTeam(teamId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.([]*model.Command), nil
+	return a.Srv.Store.Command().GetByTeam(teamId)
 }
 
 func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
@@ -140,11 +139,10 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 	}
 
 	if *a.Config().ServiceSettings.EnableCommands {
-		result := <-a.Srv.Store.Command().GetByTeam(teamId)
-		if result.Err != nil {
-			return nil, result.Err
+		teamCmds, err := a.Srv.Store.Command().GetByTeam(teamId)
+		if err != nil {
+			return nil, err
 		}
-		teamCmds := result.Data.([]*model.Command)
 		for _, cmd := range teamCmds {
 			if !seen[cmd.Trigger] {
 				cmd.Sanitize()
@@ -165,7 +163,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
 	if appErr != nil {
-		mlog.Error(appErr.Error())
+		mlog.Error("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
 	}
 
 	args.TriggerId = triggerId
@@ -194,7 +192,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
 }
 
-// tryExecutePluginCommand attempts to run a built in command based on the given arguments. If no such command can be
+// tryExecuteBuiltInCommand attempts to run a built in command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
 func (a *App) tryExecuteBuiltInCommand(args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
 	provider := GetCommandProvider(trigger)
@@ -218,8 +216,20 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		return nil, nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	chanChan := a.Srv.Store.Channel().Get(args.ChannelId, true)
-	teamChan := a.Srv.Store.Team().Get(args.TeamId)
+	chanChan := make(chan store.StoreResult, 1)
+	go func() {
+		channel, err := a.Srv.Store.Channel().Get(args.ChannelId, true)
+		chanChan <- store.StoreResult{Data: channel, Err: err}
+		close(chanChan)
+	}()
+
+	teamChan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(args.TeamId)
+		teamChan <- store.StoreResult{Data: team, Err: err}
+		close(teamChan)
+	}()
+
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(args.UserId)
@@ -227,9 +237,9 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		close(userChan)
 	}()
 
-	result := <-a.Srv.Store.Command().GetByTeam(args.TeamId)
-	if result.Err != nil {
-		return nil, nil, result.Err
+	teamCmds, err := a.Srv.Store.Command().GetByTeam(args.TeamId)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	tr := <-teamChan
@@ -252,7 +262,6 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	var cmd *model.Command
 
-	teamCmds := result.Data.([]*model.Command)
 	for _, teamCmd := range teamCmds {
 		if trigger == teamCmd.Trigger {
 			cmd = teamCmd
@@ -358,7 +367,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	_, err := a.HandleCommandResponsePost(command, args, response, builtIn)
 
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("error occurred in handling command response post", mlog.Err(err))
 		lastError = err
 	}
 
@@ -367,7 +376,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 			_, err := a.HandleCommandResponsePost(command, args, resp, builtIn)
 
 			if err != nil {
-				mlog.Error(err.Error())
+				mlog.Error("error occurred in handling command response post", mlog.Err(err))
 				lastError = err
 			}
 		}
@@ -426,11 +435,16 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		post.AddProp("from_webhook", "true")
 	}
 
-	// Process Slack text replacements
-	response.Text = a.ProcessSlackText(response.Text)
-	response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+	// Do not process text if this is a code block
+	skipSlackParsing := command.Trigger == "code"
 
-	if _, err := a.CreateCommandPost(post, args.TeamId, response); err != nil {
+	// Process Slack text replacements
+	if !skipSlackParsing {
+		response.Text = a.ProcessSlackText(response.Text)
+		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+	}
+
+	if _, err := a.CreateCommandPost(post, args.TeamId, response, skipSlackParsing); err != nil {
 		return post, err
 	}
 
@@ -444,12 +458,11 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 
 	cmd.Trigger = strings.ToLower(cmd.Trigger)
 
-	result := <-a.Srv.Store.Command().GetByTeam(cmd.TeamId)
-	if result.Err != nil {
-		return nil, result.Err
+	teamCmds, err := a.Srv.Store.Command().GetByTeam(cmd.TeamId)
+	if err != nil {
+		return nil, err
 	}
 
-	teamCmds := result.Data.([]*model.Command)
 	for _, existingCommand := range teamCmds {
 		if cmd.Trigger == existingCommand.Trigger {
 			return nil, model.NewAppError("CreateCommand", "api.command.duplicate_trigger.app_error", nil, "", http.StatusBadRequest)
@@ -463,12 +476,7 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 		}
 	}
 
-	result = <-a.Srv.Store.Command().Save(cmd)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.(*model.Command), nil
+	return a.Srv.Store.Command().Save(cmd)
 }
 
 func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
@@ -476,13 +484,13 @@ func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
 		return nil, model.NewAppError("GetCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	result := <-a.Srv.Store.Command().Get(commandId)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusNotFound
-		return nil, result.Err
+	cmd, err := a.Srv.Store.Command().Get(commandId)
+	if err != nil {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
 	}
 
-	return result.Data.(*model.Command), nil
+	return cmd, nil
 }
 
 func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError) {
@@ -499,19 +507,15 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 	updatedCmd.CreatorId = oldCmd.CreatorId
 	updatedCmd.TeamId = oldCmd.TeamId
 
-	result := <-a.Srv.Store.Command().Update(updatedCmd)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Command), nil
+	return a.Srv.Store.Command().Update(updatedCmd)
 }
 
 func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppError {
 	command.TeamId = team.Id
 
-	result := <-a.Srv.Store.Command().Update(command)
-	if result.Err != nil {
-		return result.Err
+	_, err := a.Srv.Store.Command().Update(command)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -524,21 +528,13 @@ func (a *App) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppE
 
 	cmd.Token = model.NewId()
 
-	result := <-a.Srv.Store.Command().Update(cmd)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.(*model.Command), nil
+	return a.Srv.Store.Command().Update(cmd)
 }
 
 func (a *App) DeleteCommand(commandId string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableCommands {
 		return model.NewAppError("DeleteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
-	result := <-a.Srv.Store.Command().Delete(commandId, model.GetMillis())
-	if result.Err != nil {
-		return result.Err
-	}
-	return nil
+
+	return a.Srv.Store.Command().Delete(commandId, model.GetMillis())
 }

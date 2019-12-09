@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -81,10 +81,15 @@ var PERMISSION_CREATE_USER_ACCESS_TOKEN *Permission
 var PERMISSION_READ_USER_ACCESS_TOKEN *Permission
 var PERMISSION_REVOKE_USER_ACCESS_TOKEN *Permission
 var PERMISSION_CREATE_BOT *Permission
+var PERMISSION_ASSIGN_BOT *Permission
 var PERMISSION_READ_BOTS *Permission
 var PERMISSION_READ_OTHERS_BOTS *Permission
 var PERMISSION_MANAGE_BOTS *Permission
 var PERMISSION_MANAGE_OTHERS_BOTS *Permission
+var PERMISSION_VIEW_MEMBERS *Permission
+var PERMISSION_INVITE_GUEST *Permission
+var PERMISSION_PROMOTE_GUEST *Permission
+var PERMISSION_DEMOTE_TO_GUEST *Permission
 
 // General permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
@@ -489,6 +494,12 @@ func initializePermissions() {
 		"authentication.permissions.create_bot.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	PERMISSION_ASSIGN_BOT = &Permission{
+		"assign_bot",
+		"authentication.permissions.assign_bot.name",
+		"authentication.permissions.assign_bot.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
 	PERMISSION_READ_BOTS = &Permission{
 		"read_bots",
 		"authentication.permissions.read_bots.name",
@@ -517,6 +528,31 @@ func initializePermissions() {
 		"manage_jobs",
 		"authentication.permisssions.manage_jobs.name",
 		"authentication.permisssions.manage_jobs.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_VIEW_MEMBERS = &Permission{
+		"view_members",
+		"authentication.permisssions.view_members.name",
+		"authentication.permisssions.view_members.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_INVITE_GUEST = &Permission{
+		"invite_guest",
+		"authentication.permissions.invite_guest.name",
+		"authentication.permissions.invite_guest.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_PROMOTE_GUEST = &Permission{
+		"promote_guest",
+		"authentication.permissions.promote_guest.name",
+		"authentication.permissions.promote_guest.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+
+	PERMISSION_DEMOTE_TO_GUEST = &Permission{
+		"demote_to_guest",
+		"authentication.permissions.demote_to_guest.name",
+		"authentication.permissions.demote_to_guest.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
 
@@ -591,6 +627,10 @@ func initializePermissions() {
 		PERMISSION_MANAGE_BOTS,
 		PERMISSION_MANAGE_OTHERS_BOTS,
 		PERMISSION_MANAGE_SYSTEM,
+		PERMISSION_VIEW_MEMBERS,
+		PERMISSION_INVITE_GUEST,
+		PERMISSION_PROMOTE_GUEST,
+		PERMISSION_DEMOTE_TO_GUEST,
 	}
 }
 

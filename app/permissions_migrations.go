@@ -1,10 +1,10 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type permissionTransformation struct {
@@ -22,6 +22,8 @@ const (
 	MIGRATION_KEY_ADD_BOT_PERMISSIONS                         = "add_bot_permissions"
 	MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER = "apply_channel_manage_delete_to_channel_user"
 	MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER = "remove_channel_manage_delete_from_team_user"
+	MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION                 = "view_members_new_permission"
+	MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS               = "add_manage_guests_permissions"
 
 	PERMISSION_MANAGE_SYSTEM                     = "manage_system"
 	PERMISSION_MANAGE_EMOJIS                     = "manage_emojis"
@@ -49,6 +51,11 @@ const (
 	PERMISSION_DELETE_PRIVATE_CHANNEL            = "delete_private_channel"
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES  = "manage_public_channel_properties"
 	PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES = "manage_private_channel_properties"
+	PERMISSION_VIEW_MEMBERS                      = "view_members"
+	PERMISSION_INVITE_USER                       = "invite_user"
+	PERMISSION_INVITE_GUEST                      = "invite_guest"
+	PERMISSION_PROMOTE_GUEST                     = "promote_guest"
+	PERMISSION_DEMOTE_TO_GUEST                   = "demote_to_guest"
 )
 
 func isRole(role string) func(string, map[string]map[string]bool) bool {
@@ -122,7 +129,7 @@ func applyPermissionsMap(roleName string, roleMap map[string]map[string]bool, mi
 }
 
 func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *model.AppError {
-	if result := <-a.Srv.Store.System().GetByName(key); result.Err == nil {
+	if _, err := a.Srv.Store.System().GetByName(key); err == nil {
 		return nil
 	}
 
@@ -141,13 +148,13 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role.Name, roleMap, migrationMap)
-		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Role().Save(role); err != nil {
+			return err
 		}
 	}
 
-	if result := <-a.Srv.Store.System().Save(&model.System{Name: key, Value: "true"}); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
+		return err
 	}
 	return nil
 }
@@ -258,6 +265,28 @@ func removeChannelManageDeleteFromTeamUser() permissionsMap {
 	}
 }
 
+func getViewMembersPermissionMigration() permissionsMap {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isRole(model.SYSTEM_USER_ROLE_ID),
+			Add: []string{PERMISSION_VIEW_MEMBERS},
+		},
+		permissionTransformation{
+			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add: []string{PERMISSION_VIEW_MEMBERS},
+		},
+	}
+}
+
+func getAddManageGuestsPermissionsMigration() permissionsMap {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add: []string{PERMISSION_PROMOTE_GUEST, PERMISSION_DEMOTE_TO_GUEST, PERMISSION_INVITE_GUEST},
+		},
+	}
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() *model.AppError {
 	PermissionsMigrations := []struct {
@@ -271,6 +300,8 @@ func (a *App) DoPermissionsMigrations() *model.AppError {
 		{Key: MIGRATION_KEY_ADD_BOT_PERMISSIONS, Migration: getAddBotPermissionsMigration},
 		{Key: MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER, Migration: applyChannelManageDeleteToChannelUser},
 		{Key: MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Migration: removeChannelManageDeleteFromTeamUser},
+		{Key: MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: getViewMembersPermissionMigration},
+		{Key: MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: getAddManageGuestsPermissionsMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {

@@ -1,14 +1,20 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,6 +22,10 @@ func TestCreateBot(t *testing.T) {
 	t.Run("create bot without permissions", func(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		_, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -26,6 +36,23 @@ func TestCreateBot(t *testing.T) {
 		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
 	})
 
+	t.Run("create bot without config permissions", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.Config().ServiceSettings.EnableBotAccountCreation = model.NewBool(false)
+
+		_, resp := th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+
+		CheckErrorMessage(t, resp, "api.bot.create_disabled")
+	})
+
 	t.Run("create bot with permissions", func(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
@@ -33,6 +60,9 @@ func TestCreateBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -55,6 +85,9 @@ func TestCreateBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		_, resp := th.Client.CreateBot(&model.Bot{
 			Username:    "username",
@@ -64,6 +97,42 @@ func TestCreateBot(t *testing.T) {
 
 		CheckErrorMessage(t, resp, "model.bot.is_valid.description.app_error")
 	})
+
+	t.Run("bot attempt to create bot fails", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_EDIT_OTHER_USERS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+
+		bot, resp := th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+		th.App.UpdateUserRoles(bot.UserId, model.TEAM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+
+		rtoken, resp := th.Client.CreateUserAccessToken(bot.UserId, "test token")
+		CheckNoError(t, resp)
+		th.Client.AuthToken = rtoken.Token
+
+		_, resp = th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			OwnerId:     bot.UserId,
+			DisplayName: "a bot2",
+			Description: "bot2",
+		})
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+	})
+
 }
 
 func TestPatchBot(t *testing.T) {
@@ -80,6 +149,10 @@ func TestPatchBot(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -100,6 +173,9 @@ func TestPatchBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -120,6 +196,9 @@ func TestPatchBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -150,6 +229,9 @@ func TestPatchBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -177,6 +259,9 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -204,6 +289,9 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -235,6 +323,9 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -266,6 +357,9 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -292,6 +386,10 @@ func TestPatchBot(t *testing.T) {
 func TestGetBot(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
 
 	bot1, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 		Username:    GenerateTestUsername(),
@@ -320,6 +418,10 @@ func TestGetBot(t *testing.T) {
 
 	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 	th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
 	myBot, resp := th.Client.CreateBot(&model.Bot{
 		Username:    GenerateTestUsername(),
 		DisplayName: "my bot",
@@ -428,6 +530,10 @@ func TestGetBot(t *testing.T) {
 func TestGetBots(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
 
 	bot1, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 		Username:    GenerateTestUsername(),
@@ -661,6 +767,9 @@ func TestDisableBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -683,6 +792,9 @@ func TestDisableBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -705,6 +817,9 @@ func TestDisableBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -730,7 +845,6 @@ func TestDisableBot(t *testing.T) {
 		require.Equal(t, bot, enabledBot2)
 	})
 }
-
 func TestEnableBot(t *testing.T) {
 	t.Run("enable non-existent bot", func(t *testing.T) {
 		th := Setup().InitBasic()
@@ -747,6 +861,9 @@ func TestEnableBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -772,6 +889,9 @@ func TestEnableBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -797,6 +917,9 @@ func TestEnableBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -840,6 +963,9 @@ func TestAssignBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -879,6 +1005,9 @@ func TestAssignBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -907,6 +1036,9 @@ func TestAssignBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -931,6 +1063,233 @@ func TestAssignBot(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Equal(t, th.BasicUser2.Id, after.OwnerId)
 	})
+
+	t.Run("bot assigned to bot fails", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+		bot, resp := th.Client.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		bot2, resp := th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(bot2.UserId)
+
+		_, resp = th.Client.AssignBot(bot.UserId, bot2.UserId)
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+
+	})
+}
+
+func TestSetBotIconImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	user := th.BasicUser
+
+	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		Description: "bot",
+	}
+	bot, resp := th.Client.CreateBot(bot)
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+
+	badData, err := testutils.ReadTestFile("test.png")
+	require.Nil(t, err)
+
+	goodData, err := testutils.ReadTestFile("test.svg")
+	require.Nil(t, err)
+
+	// SetBotIconImage only allowed for bots
+	_, resp = th.SystemAdminClient.SetBotIconImage(user.Id, goodData)
+	CheckNotFoundStatus(t, resp)
+
+	// png/jpg is not allowed
+	ok, resp := th.Client.SetBotIconImage(bot.UserId, badData)
+	require.False(t, ok, "Should return false, set icon image only allows svg")
+	CheckBadRequestStatus(t, resp)
+
+	ok, resp = th.Client.SetBotIconImage(model.NewId(), badData)
+	require.False(t, ok, "Should return false, set icon image not allowed")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = th.Client.SetBotIconImage(bot.UserId, goodData)
+	CheckNoError(t, resp)
+
+	// status code returns either forbidden or unauthorized
+	// note: forbidden is set as default at Client4.SetBotIconImage when request is terminated early by server
+	th.Client.Logout()
+	_, resp = th.Client.SetBotIconImage(bot.UserId, badData)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		require.Fail(t, "Should have failed either forbidden or unauthorized")
+	}
+
+	_, resp = th.SystemAdminClient.SetBotIconImage(bot.UserId, goodData)
+	CheckNoError(t, resp)
+
+	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
+	actualData, err := th.App.ReadFile(fpath)
+	require.Nil(t, err)
+	require.NotNil(t, actualData)
+	require.Equal(t, goodData, actualData)
+
+	info := &model.FileInfo{Path: fpath}
+	err = th.cleanupTestFile(info)
+	require.Nil(t, err)
+}
+
+func TestGetBotIconImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		Description: "bot",
+	}
+	bot, resp := th.Client.CreateBot(bot)
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+
+	// Get icon image for user with no icon
+	data, resp := th.Client.GetBotIconImage(bot.UserId)
+	CheckNotFoundStatus(t, resp)
+	require.Equal(t, 0, len(data))
+
+	// Set an icon image
+	path, _ := fileutils.FindDir("tests")
+	svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
+	require.NoError(t, fileErr)
+	defer svgFile.Close()
+
+	expectedData, err := ioutil.ReadAll(svgFile)
+	require.NoError(t, err)
+
+	svgFile.Seek(0, 0)
+	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
+	_, err = th.App.WriteFile(svgFile, fpath)
+	require.Nil(t, err)
+
+	data, resp = th.Client.GetBotIconImage(bot.UserId)
+	CheckNoError(t, resp)
+	require.Equal(t, expectedData, data)
+
+	_, resp = th.Client.GetBotIconImage("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.Client.GetBotIconImage(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	th.Client.Logout()
+	_, resp = th.Client.GetBotIconImage(bot.UserId)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetBotIconImage(bot.UserId)
+	CheckNoError(t, resp)
+
+	info := &model.FileInfo{Path: "/bots/" + bot.UserId + "/icon.svg"}
+	err = th.cleanupTestFile(info)
+	require.Nil(t, err)
+}
+
+func TestDeleteBotIconImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		Description: "bot",
+	}
+	bot, resp := th.Client.CreateBot(bot)
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+
+	// Get icon image for user with no icon
+	data, resp := th.Client.GetBotIconImage(bot.UserId)
+	CheckNotFoundStatus(t, resp)
+	require.Equal(t, 0, len(data))
+
+	// Set an icon image
+	svgData, err := testutils.ReadTestFile("test.svg")
+	require.Nil(t, err)
+
+	_, resp = th.Client.SetBotIconImage(bot.UserId, svgData)
+	CheckNoError(t, resp)
+
+	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
+	exists, err := th.App.FileExists(fpath)
+	require.Nil(t, err)
+	require.True(t, exists, "icon.svg needs to exist for the user")
+
+	data, resp = th.Client.GetBotIconImage(bot.UserId)
+	CheckNoError(t, resp)
+	require.Equal(t, svgData, data)
+
+	success, resp := th.Client.DeleteBotIconImage("junk")
+	CheckBadRequestStatus(t, resp)
+	require.False(t, success)
+
+	success, resp = th.Client.DeleteBotIconImage(model.NewId())
+	CheckNotFoundStatus(t, resp)
+	require.False(t, success)
+
+	success, resp = th.Client.DeleteBotIconImage(bot.UserId)
+	CheckNoError(t, resp)
+	require.True(t, success)
+
+	th.Client.Logout()
+	success, resp = th.Client.DeleteBotIconImage(bot.UserId)
+	CheckUnauthorizedStatus(t, resp)
+	require.False(t, success)
+
+	exists, err = th.App.FileExists(fpath)
+	require.Nil(t, err)
+	require.False(t, exists, "icon.svg should not for the user")
 }
 
 func sToP(s string) *string {

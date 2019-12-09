@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -7,17 +7,20 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 const (
-	LOG_ROTATE_SIZE = 10000
-	LOG_FILENAME    = "mattermost.log"
+	LOG_ROTATE_SIZE           = 10000
+	LOG_FILENAME              = "mattermost.log"
+	LOG_NOTIFICATION_FILENAME = "notifications.log"
 )
 
-func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfiguration {
+type fileLocationFunc func(string) string
+
+func MloggerConfigFromLoggerConfig(s *model.LogSettings, getFileFunc fileLocationFunc) *mlog.LoggerConfiguration {
 	return &mlog.LoggerConfiguration{
 		EnableConsole: *s.EnableConsole,
 		ConsoleJson:   *s.ConsoleJson,
@@ -25,7 +28,7 @@ func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfigurati
 		EnableFile:    *s.EnableFile,
 		FileJson:      *s.FileJson,
 		FileLevel:     strings.ToLower(*s.FileLevel),
-		FileLocation:  GetLogFileLocation(*s.FileLocation),
+		FileLocation:  getFileFunc(*s.FileLocation),
 	}
 }
 
@@ -35,6 +38,26 @@ func GetLogFileLocation(fileLocation string) string {
 	}
 
 	return filepath.Join(fileLocation, LOG_FILENAME)
+}
+
+func GetNotificationsLogFileLocation(fileLocation string) string {
+	if fileLocation == "" {
+		fileLocation, _ = fileutils.FindDir("logs")
+	}
+
+	return filepath.Join(fileLocation, LOG_NOTIFICATION_FILENAME)
+}
+
+func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.NotificationLogSettings) *model.LogSettings {
+	return &model.LogSettings{
+		ConsoleJson:   notificationLogSettings.ConsoleJson,
+		ConsoleLevel:  notificationLogSettings.ConsoleLevel,
+		EnableConsole: notificationLogSettings.EnableConsole,
+		EnableFile:    notificationLogSettings.EnableFile,
+		FileJson:      notificationLogSettings.FileJson,
+		FileLevel:     notificationLogSettings.FileLevel,
+		FileLocation:  notificationLogSettings.FileLocation,
+	}
 }
 
 // DON'T USE THIS Modify the level on the app logger

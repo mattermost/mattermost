@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,7 +27,11 @@ func genRateLimitSettings(useAuth, useIP bool, header string) *model.RateLimitSe
 
 func TestNewRateLimiterSuccess(t *testing.T) {
 	settings := genRateLimitSettings(false, false, "")
-	rateLimiter, err := NewRateLimiter(settings)
+	rateLimiter, err := NewRateLimiter(settings, nil)
+	require.NotNil(t, rateLimiter)
+	require.NoError(t, err)
+
+	rateLimiter, err = NewRateLimiter(settings, []string{"X-Forwarded-For"})
 	require.NotNil(t, rateLimiter)
 	require.NoError(t, err)
 }
@@ -35,7 +39,11 @@ func TestNewRateLimiterSuccess(t *testing.T) {
 func TestNewRateLimiterFailure(t *testing.T) {
 	invalidSettings := genRateLimitSettings(false, false, "")
 	invalidSettings.MaxBurst = model.NewInt(-100)
-	rateLimiter, err := NewRateLimiter(invalidSettings)
+	rateLimiter, err := NewRateLimiter(invalidSettings, nil)
+	require.Nil(t, rateLimiter)
+	require.Error(t, err)
+
+	rateLimiter, err = NewRateLimiter(invalidSettings, []string{"X-Forwarded-For", "X-Real-Ip"})
 	require.Nil(t, rateLimiter)
 	require.Error(t, err)
 }
@@ -73,10 +81,24 @@ func TestGenerateKey(t *testing.T) {
 			req.Header.Set(tc.header, tc.headerResult)
 		}
 
-		rateLimiter, _ := NewRateLimiter(genRateLimitSettings(tc.useAuth, tc.useIP, tc.header))
+		rateLimiter, _ := NewRateLimiter(genRateLimitSettings(tc.useAuth, tc.useIP, tc.header), nil)
 
 		key := rateLimiter.GenerateKey(req)
 
 		require.Equal(t, tc.expectedKey, key, "Wrong key on test "+strconv.Itoa(testnum))
 	}
+}
+
+func TestGenerateKey_TrustedHeader(t *testing.T) {
+	req := httptest.NewRequest("GET", "/", nil)
+	req.RemoteAddr = "10.10.10.5:80"
+	req.Header.Set("X-Forwarded-For", "10.6.3.1, 10.5.1.2")
+
+	rateLimiter, _ := NewRateLimiter(genRateLimitSettings(true, true, ""), []string{"X-Forwarded-For"})
+	key := rateLimiter.GenerateKey(req)
+	require.Equal(t, "10.6.3.1", key, "Wrong key on test with allowed trusted proxy header")
+
+	rateLimiter, _ = NewRateLimiter(genRateLimitSettings(true, true, ""), nil)
+	key = rateLimiter.GenerateKey(req)
+	require.Equal(t, "10.10.10.5", key, "Wrong key on test without allowed trusted proxy header")
 }

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -7,6 +7,7 @@ const (
 	POST_EMBED_IMAGE              PostEmbedType = "image"
 	POST_EMBED_MESSAGE_ATTACHMENT PostEmbedType = "message_attachment"
 	POST_EMBED_OPENGRAPH          PostEmbedType = "opengraph"
+	POST_EMBED_LINK               PostEmbedType = "link"
 )
 
 type PostEmbedType string

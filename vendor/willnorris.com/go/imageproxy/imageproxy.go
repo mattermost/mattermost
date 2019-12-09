@@ -61,6 +61,9 @@ type Proxy struct {
 	// absolute.
 	DefaultBaseURL *url.URL
 
+	// The Logger used by the image proxy
+	Logger *log.Logger
+
 	// SignatureKey is the HMAC key used to verify signed requests.
 	SignatureKey []byte
 
@@ -105,7 +108,7 @@ func NewProxy(transport http.RoundTripper, cache Cache) *Proxy {
 			CachingClient: client,
 			log: func(format string, v ...interface{}) {
 				if proxy.Verbose {
-					log.Printf(format, v...)
+					proxy.logf(format, v...)
 				}
 			},
 		},
@@ -141,19 +144,19 @@ func (p *Proxy) serveImage(w http.ResponseWriter, r *http.Request) {
 	req, err := NewRequest(r, p.DefaultBaseURL)
 	if err != nil {
 		msg := fmt.Sprintf("invalid request URL: %v", err)
-		log.Print(msg)
+		p.log(msg)
 		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+
+	if err := p.allowed(req); err != nil {
+		p.logf("%s: %v", err, req)
+		http.Error(w, msgNotAllowed, http.StatusForbidden)
 		return
 	}
 
 	// assign static settings from proxy to req.Options
 	req.Options.ScaleUp = p.ScaleUp
-
-	if err := p.allowed(req); err != nil {
-		log.Printf("%s: %v", err, req)
-		http.Error(w, msgNotAllowed, http.StatusForbidden)
-		return
-	}
 
 	actualReq, _ := http.NewRequest("GET", req.String(), nil)
 	if p.UserAgent != "" {
@@ -166,7 +169,7 @@ func (p *Proxy) serveImage(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		msg := fmt.Sprintf("error fetching remote image: %v", err)
-		log.Print(msg)
+		p.log(msg)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
@@ -175,7 +178,7 @@ func (p *Proxy) serveImage(w http.ResponseWriter, r *http.Request) {
 
 	cached := resp.Header.Get(httpcache.XFromCache)
 	if p.Verbose {
-		log.Printf("request: %+v (served from cache: %t)", *actualReq, cached == "1")
+		p.logf("request: %+v (served from cache: %t)", *actualReq, cached == "1")
 	}
 
 	copyHeader(w.Header(), resp.Header, "Cache-Control", "Last-Modified", "Expires", "Etag", "Link")
@@ -193,7 +196,7 @@ func (p *Proxy) serveImage(w http.ResponseWriter, r *http.Request) {
 		contentType = peekContentType(b)
 	}
 	if resp.ContentLength != 0 && !contentTypeMatches(p.ContentTypes, contentType) {
-		log.Printf("content-type not allowed: %q", contentType)
+		p.logf("content-type not allowed: %q", contentType)
 		http.Error(w, msgNotAllowed, http.StatusForbidden)
 		return
 	}
@@ -322,10 +325,22 @@ func validSignature(key []byte, r *Request) bool {
 		return false
 	}
 
+	// check signature with URL only
 	mac := hmac.New(sha256.New, key)
 	mac.Write([]byte(r.URL.String()))
 	want := mac.Sum(nil)
+	if hmac.Equal(got, want) {
+		return true
+	}
 
+	// check signature with URL and options
+	u, opt := *r.URL, r.Options // make copies
+	opt.Signature = ""
+	u.Fragment = opt.String()
+
+	mac = hmac.New(sha256.New, key)
+	mac.Write([]byte(u.String()))
+	want = mac.Sum(nil)
 	return hmac.Equal(got, want)
 }
 
@@ -354,6 +369,22 @@ func should304(req *http.Request, resp *http.Response) bool {
 	}
 
 	return false
+}
+
+func (p *Proxy) log(v ...interface{}) {
+	if p.Logger != nil {
+		p.Logger.Print(v...)
+	} else {
+		log.Print(v...)
+	}
+}
+
+func (p *Proxy) logf(format string, v ...interface{}) {
+	if p.Logger != nil {
+		p.Logger.Printf(format, v...)
+	} else {
+		log.Printf(format, v...)
+	}
 }
 
 // TransformingTransport is an implementation of http.RoundTripper that

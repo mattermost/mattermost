@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 // Integration Action Flow
 //
@@ -21,13 +21,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (string, *model.AppError) {
@@ -61,8 +64,27 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	// See if the post exists in the DB, if so ignore the cookie.
 	// Start all queries here for parallel execution
-	pchan := a.Srv.Store.Post().GetSingle(postId)
-	cchan := a.Srv.Store.Channel().GetForPost(postId)
+	pchan := make(chan store.StoreResult, 1)
+	go func() {
+		post, err := a.Srv.Store.Post().GetSingle(postId)
+		pchan <- store.StoreResult{Data: post, Err: err}
+		close(pchan)
+	}()
+
+	cchan := make(chan store.StoreResult, 1)
+	go func() {
+		channel, err := a.Srv.Store.Channel().GetForPost(postId)
+		cchan <- store.StoreResult{Data: channel, Err: err}
+		close(cchan)
+	}()
+
+	userChan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(upstreamRequest.UserId)
+		userChan <- store.StoreResult{Data: user, Err: err}
+		close(userChan)
+	}()
+
 	result := <-pchan
 	if result.Err != nil {
 		if cookie == nil {
@@ -76,7 +98,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
+		channel, err := a.Srv.Store.Channel().Get(cookie.ChannelId, true)
+		if err != nil {
+			return "", err
+		}
+
 		upstreamRequest.ChannelId = cookie.ChannelId
+		upstreamRequest.ChannelName = channel.Name
+		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = cookie.Type
 		upstreamRequest.Context = cookie.Integration.Context
 		datasource = cookie.DataSource
@@ -86,9 +115,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		rootPostId = cookie.RootPostId
 		upstreamURL = cookie.Integration.URL
 	} else {
-		// Get action metadata from the database
 		post := result.Data.(*model.Post)
-
 		result = <-cchan
 		if result.Err != nil {
 			return "", result.Err
@@ -101,6 +128,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		}
 
 		upstreamRequest.ChannelId = post.ChannelId
+		upstreamRequest.ChannelName = channel.Name
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = action.Type
 		upstreamRequest.Context = action.Integration.Context
@@ -128,6 +156,27 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 		upstreamURL = action.Integration.URL
 	}
+
+	teamChan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(upstreamRequest.TeamId)
+		teamChan <- store.StoreResult{Data: team, Err: err}
+		close(teamChan)
+	}()
+
+	ur := <-userChan
+	if ur.Err != nil {
+		return "", ur.Err
+	}
+	user := ur.Data.(*model.User)
+	upstreamRequest.UserName = user.Username
+
+	tr := <-teamChan
+	if tr.Err != nil {
+		return "", tr.Err
+	}
+	team := tr.Data.(*model.Team)
+	upstreamRequest.TeamName = team.Name
 
 	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
 		if selectedOption != "" {
@@ -195,7 +244,18 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
+// For internal requests, requests are routed directly to a plugin ServerHTTP hook
 func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+	inURL, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	rawURLPath := path.Clean(rawURL)
+	if strings.HasPrefix(rawURLPath, "/plugins/") || strings.HasPrefix(rawURLPath, "plugins/") {
+		return a.DoLocalRequest(rawURLPath, body)
+	}
+
 	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -205,10 +265,9 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
-	url, _ := url.Parse(rawURL)
-	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, path.Join(subpath, "plugins")) {
+	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
+	if (inURL.Hostname() == "localhost" || inURL.Hostname() == "127.0.0.1" || inURL.Hostname() == siteURL.Hostname()) && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
 		req.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
 		httpClient = a.HTTPService.MakeClient(true)
 	} else {
@@ -222,6 +281,74 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 
 	if resp.StatusCode != http.StatusOK {
 		return resp, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)
+	}
+
+	return resp, nil
+}
+
+type LocalResponseWriter struct {
+	data    []byte
+	headers http.Header
+	status  int
+}
+
+func (w *LocalResponseWriter) Header() http.Header {
+	if w.headers == nil {
+		w.headers = make(http.Header)
+	}
+	return w.headers
+}
+
+func (w *LocalResponseWriter) Write(bytes []byte) (int, error) {
+	w.data = make([]byte, len(bytes))
+	copy(w.data, bytes)
+	return len(w.data), nil
+}
+
+func (w *LocalResponseWriter) WriteHeader(statusCode int) {
+	w.status = statusCode
+}
+
+func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+	rawURL = strings.TrimPrefix(rawURL, "/")
+	inURL, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+	}
+	result := strings.Split(inURL.Path, "/")
+	if len(result) < 2 {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err=Unable to find pluginId", http.StatusBadRequest)
+	}
+	if result[0] != "plugins" {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err=plugins not in path", http.StatusBadRequest)
+	}
+	pluginId := result[1]
+
+	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginId)
+
+	w := &LocalResponseWriter{}
+	r, err := http.NewRequest("POST", path, bytes.NewReader(body))
+	if err != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+	}
+	r.Header.Set("Mattermost-User-Id", a.Session.UserId)
+	r.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
+	params := make(map[string]string)
+	params["plugin_id"] = pluginId
+	r = mux.SetURLVars(r, params)
+
+	a.ServePluginRequest(w, r)
+
+	resp := &http.Response{
+		StatusCode: w.status,
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header:     w.headers,
+		Body:       ioutil.NopCloser(bytes.NewReader(w.data)),
+	}
+	if resp.StatusCode == 0 {
+		resp.StatusCode = http.StatusOK
 	}
 
 	return resp, nil

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) SyncLdap() {
@@ -52,7 +52,7 @@ func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 		}
 	} else {
 		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
-		mlog.Error(fmt.Sprintf("%v", ae.Error()))
+		mlog.Error("Unable to use ldap", mlog.String("ldap_group_id", ldapGroupID), mlog.Err(ae))
 		return nil, ae
 	}
 
@@ -61,7 +61,7 @@ func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 
 // GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
 // filter.
-func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
 	var groups []*model.Group
 	var total int
 
@@ -73,7 +73,7 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.GroupSearch
 		}
 	} else {
 		ae := model.NewAppError("GetAllLdapGroupsPage", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
-		mlog.Error(fmt.Sprintf("%v", ae.Error()))
+		mlog.Error("Unable to use ldap", mlog.Err(ae))
 		return nil, 0, ae
 	}
 

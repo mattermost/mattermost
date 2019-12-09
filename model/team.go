@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -49,7 +49,6 @@ type TeamPatch struct {
 	Description      *string `json:"description"`
 	CompanyName      *string `json:"company_name"`
 	AllowedDomains   *string `json:"allowed_domains"`
-	InviteId         *string `json:"invite_id"`
 	AllowOpenInvite  *bool   `json:"allow_open_invite"`
 	GroupConstrained *bool   `json:"group_constrained"`
 }
@@ -61,6 +60,11 @@ type TeamForExport struct {
 
 type Invites struct {
 	Invites []map[string]string `json:"invites"`
+}
+
+type TeamsWithCount struct {
+	Teams      []*Team `json:"teams"`
+	TotalCount int64   `json:"total_count"`
 }
 
 func InvitesFromJson(data io.Reader) *Invites {
@@ -109,6 +113,17 @@ func TeamListToJson(t []*Team) string {
 	return string(b)
 }
 
+func TeamsWithCountToJson(tlc *TeamsWithCount) []byte {
+	b, _ := json.Marshal(tlc)
+	return b
+}
+
+func TeamsWithCountFromJson(data io.Reader) *TeamsWithCount {
+	var twc *TeamsWithCount
+	json.NewDecoder(data).Decode(&twc)
+	return twc
+}
+
 func TeamListFromJson(data io.Reader) []*Team {
 	var teams []*Team
 	json.NewDecoder(data).Decode(&teams)
@@ -151,6 +166,10 @@ func (o *Team) IsValid() *AppError {
 
 	if len(o.Description) > TEAM_DESCRIPTION_MAX_LENGTH {
 		return NewAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if len(o.InviteId) == 0 {
+		return NewAppError("Team.IsValid", "model.team.is_valid.invite_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if IsReservedTeamName(o.Name) {
@@ -249,6 +268,7 @@ func CleanTeamName(s string) string {
 
 func (o *Team) Sanitize() {
 	o.Email = ""
+	o.InviteId = ""
 }
 
 func (t *Team) Patch(patch *TeamPatch) {
@@ -268,10 +288,6 @@ func (t *Team) Patch(patch *TeamPatch) {
 		t.AllowedDomains = *patch.AllowedDomains
 	}
 
-	if patch.InviteId != nil {
-		t.InviteId = *patch.InviteId
-	}
-
 	if patch.AllowOpenInvite != nil {
 		t.AllowOpenInvite = *patch.AllowOpenInvite
 	}
@@ -279,6 +295,10 @@ func (t *Team) Patch(patch *TeamPatch) {
 	if patch.GroupConstrained != nil {
 		t.GroupConstrained = patch.GroupConstrained
 	}
+}
+
+func (t *Team) IsGroupConstrained() bool {
+	return t.GroupConstrained != nil && *t.GroupConstrained
 }
 
 func (t *TeamPatch) ToJson() string {

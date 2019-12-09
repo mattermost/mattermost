@@ -1,12 +1,12 @@
-// Copyright (c) 2019-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package config
 
 import (
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // removeEnvOverrides returns a new config without the given environment overrides.
@@ -46,16 +46,26 @@ func getPathsRec(src interface{}, curPath []string) [][]string {
 // and returns the reflect.Value of the leaf at the end `path`
 func getVal(src interface{}, path []string) reflect.Value {
 	var val reflect.Value
-	if reflect.ValueOf(src).Kind() == reflect.Ptr {
-		val = reflect.ValueOf(src).Elem().FieldByName(path[0])
+
+	// If we recursed on a Value, we already have it. If we're calling on an interface{}, get the Value.
+	switch v := src.(type) {
+	case reflect.Value:
+		val = v
+	default:
+		val = reflect.ValueOf(src)
+	}
+
+	// Move into the struct
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem().FieldByName(path[0])
 	} else {
-		val = reflect.ValueOf(src).FieldByName(path[0])
+		val = val.FieldByName(path[0])
 	}
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
 	if val.Kind() == reflect.Struct {
-		return getVal(val.Interface(), path[1:])
+		return getVal(val, path[1:])
 	}
 	return val
 }

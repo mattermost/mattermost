@@ -1,13 +1,13 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package migrations
 
 import (
-	"github.com/mattermost/mattermost-server/app"
-	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/app"
+	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
@@ -36,25 +36,26 @@ func MakeMigrationsList() []string {
 }
 
 func GetMigrationState(migration string, store store.Store) (string, *model.Job, *model.AppError) {
-	if result := <-store.System().GetByName(migration); result.Err == nil {
+	if _, err := store.System().GetByName(migration); err == nil {
 		return MIGRATION_STATE_COMPLETED, nil, nil
 	}
 
-	if result := <-store.Job().GetAllByType(model.JOB_TYPE_MIGRATIONS); result.Err != nil {
-		return "", nil, result.Err
-	} else {
-		for _, job := range result.Data.([]*model.Job) {
-			if key, ok := job.Data[JOB_DATA_KEY_MIGRATION]; ok {
-				if key != migration {
-					continue
-				}
+	jobs, err := store.Job().GetAllByType(model.JOB_TYPE_MIGRATIONS)
+	if err != nil {
+		return "", nil, err
+	}
 
-				switch job.Status {
-				case model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_PENDING:
-					return MIGRATION_STATE_IN_PROGRESS, job, nil
-				default:
-					return MIGRATION_STATE_UNSCHEDULED, job, nil
-				}
+	for _, job := range jobs {
+		if key, ok := job.Data[JOB_DATA_KEY_MIGRATION]; ok {
+			if key != migration {
+				continue
+			}
+
+			switch job.Status {
+			case model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_PENDING:
+				return MIGRATION_STATE_IN_PROGRESS, job, nil
+			default:
+				return MIGRATION_STATE_UNSCHEDULED, job, nil
 			}
 		}
 	}

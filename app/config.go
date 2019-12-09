@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -20,10 +20,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -83,7 +83,7 @@ func (a *App) LimitedClientConfig() map[string]string {
 	return a.Srv.limitedClientConfig
 }
 
-// Registers a function with a given to be called when the config is reloaded and may have changed. The function
+// Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
 // will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
 // for the listener that can later be used to remove it.
 func (s *Server) AddConfigListener(listener func(*model.Config, *model.Config)) string {
@@ -104,7 +104,7 @@ func (a *App) RemoveConfigListener(id string) {
 }
 
 // ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
-// and future calls to PostAcrionCookieSecret will always return a valid key, same on all
+// and future calls to PostActionCookieSecret will always return a valid key, same on all
 // servers in the cluster
 func (a *App) ensurePostActionCookieSecret() error {
 	if a.Srv.postActionCookieSecret != nil {
@@ -113,9 +113,9 @@ func (a *App) ensurePostActionCookieSecret() error {
 
 	var secret *model.SystemPostActionCookieSecret
 
-	result := <-a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
-	if result.Err == nil {
-		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &secret); err != nil {
+	value, err := a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
+	if err == nil {
+		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
 			return err
 		}
 	}
@@ -138,8 +138,10 @@ func (a *App) ensurePostActionCookieSecret() error {
 			return err
 		}
 		system.Value = string(v)
-		if result = <-a.Srv.Store.System().Save(system); result.Err == nil {
-			// If we were able to save the key, use it, otherwise ignore the error.
+		// If we were able to save the key, use it, otherwise log the error.
+		if appErr := a.Srv.Store.System().Save(system); appErr != nil {
+			mlog.Error("Failed to save PostActionCookieSecret", mlog.Err(appErr))
+		} else {
 			secret = newSecret
 		}
 	}
@@ -147,12 +149,12 @@ func (a *App) ensurePostActionCookieSecret() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if secret == nil {
-		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
-		if result.Err != nil {
-			return result.Err
+		value, err := a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
+		if err != nil {
+			return err
 		}
 
-		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &secret); err != nil {
+		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
 			return err
 		}
 	}
@@ -170,9 +172,9 @@ func (a *App) ensureAsymmetricSigningKey() error {
 
 	var key *model.SystemAsymmetricSigningKey
 
-	result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
-	if result.Err == nil {
-		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+	value, err := a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+	if err == nil {
+		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
 			return err
 		}
 	}
@@ -199,8 +201,10 @@ func (a *App) ensureAsymmetricSigningKey() error {
 			return err
 		}
 		system.Value = string(v)
-		if result = <-a.Srv.Store.System().Save(system); result.Err == nil {
-			// If we were able to save the key, use it, otherwise ignore the error.
+		// If we were able to save the key, use it, otherwise log the error.
+		if appErr := a.Srv.Store.System().Save(system); appErr != nil {
+			mlog.Error("Failed to save AsymmetricSigningKey", mlog.Err(appErr))
+		} else {
 			key = newKey
 		}
 	}
@@ -208,12 +212,12 @@ func (a *App) ensureAsymmetricSigningKey() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if key == nil {
-		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
-		if result.Err != nil {
-			return result.Err
+		value, err := a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+		if err != nil {
+			return err
 		}
 
-		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
 			return err
 		}
 	}
@@ -243,20 +247,20 @@ func (a *App) ensureInstallationDate() error {
 		return nil
 	}
 
-	result := <-a.Srv.Store.User().InferSystemInstallDate()
+	installDate, err := a.Srv.Store.User().InferSystemInstallDate()
 	var installationDate int64
-	if result.Err == nil && result.Data.(int64) > 0 {
-		installationDate = result.Data.(int64)
+	if err == nil && installDate > 0 {
+		installationDate = installDate
 	} else {
 		installationDate = utils.MillisFromTime(time.Now())
 	}
 
-	result = <-a.Srv.Store.System().SaveOrUpdate(&model.System{
+	err = a.Srv.Store.System().SaveOrUpdate(&model.System{
 		Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
 		Value: strconv.FormatInt(installationDate, 10),
 	})
-	if result.Err != nil {
-		return result.Err
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -398,4 +402,20 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 	}
 
 	return nil
+}
+
+func (a *App) IsESIndexingEnabled() bool {
+	return a.Elasticsearch != nil && *a.Config().ElasticsearchSettings.EnableIndexing
+}
+
+func (a *App) IsESSearchEnabled() bool {
+	esInterface := a.Elasticsearch
+	license := a.License()
+	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch
+}
+
+func (a *App) IsESAutocompletionEnabled() bool {
+	esInterface := a.Elasticsearch
+	license := a.License()
+	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch
 }

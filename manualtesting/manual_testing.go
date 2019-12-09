@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package manualtesting
 
 import (
-	"fmt"
 	"hash/fnv"
 	"math/rand"
 	"net/http"
@@ -12,12 +11,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/web"
+	"github.com/mattermost/mattermost-server/v5/api4"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/web"
 )
 
 type TestEnvironment struct {
@@ -74,13 +73,10 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		if result := <-c.App.Srv.Store.Team().Save(team); result.Err != nil {
-			c.Err = result.Err
+		if createdTeam, err := c.App.Srv.Store.Team().Save(team); err != nil {
+			c.Err = err
 			return
 		} else {
-
-			createdTeam := result.Data.(*model.Team)
-
 			channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: createdTeam.Id}
 			if _, err := c.App.CreateChannel(channel, false); err != nil {
 				c.Err = err
@@ -102,8 +98,8 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		<-c.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
-		<-c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
+		c.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
+		c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
 
 		userID = user.Id
 
@@ -152,21 +148,19 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelID(a *app.App, channelname string, teamid string, userid string) (id string, err bool) {
+func getChannelID(a *app.App, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
-	result := <-a.Srv.Store.Channel().GetChannels(teamid, userid, false)
-	if result.Err != nil {
+	channels, err := a.Srv.Store.Channel().GetChannels(teamid, userid, false)
+	if err != nil {
 		mlog.Debug("Unable to get channels")
 		return "", false
 	}
 
-	data := result.Data.(model.ChannelList)
-
-	for _, channel := range data {
+	for _, channel := range *channels {
 		if channel.Name == channelname {
 			return channel.Id, true
 		}
 	}
-	mlog.Debug(fmt.Sprintf("Could not find channel: %v, %v possibilities searched", channelname, strconv.Itoa(len(data))))
+	mlog.Debug("Could not find channel", mlog.String("Channel name", channelname), mlog.Int("Possibilities searched", len(*channels)))
 	return "", false
 }

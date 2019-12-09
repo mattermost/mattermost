@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -24,6 +24,7 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 	t.Run("should succeed decoding and validation", func(t *testing.T) {
 		userId := NewId()
 		clientTriggerId, triggerId, err := GenerateTriggerId(userId, key)
+		require.Nil(t, err)
 		decodedClientTriggerId, decodedUserId, err := DecodeAndVerifyTriggerId(triggerId, key)
 		assert.Nil(t, err)
 		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
@@ -35,6 +36,7 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 			UserId: NewId(),
 		}
 		clientTriggerId, triggerId, err := actionReq.GenerateTriggerId(key)
+		require.Nil(t, err)
 		dialogReq := &OpenDialogRequest{TriggerId: triggerId}
 		decodedClientTriggerId, decodedUserId, err := dialogReq.DecodeAndVerifyTriggerId(key)
 		assert.Nil(t, err)
@@ -141,6 +143,7 @@ func TestSubmitDialogRequestToJson(t *testing.T) {
 func TestSubmitDialogResponseToJson(t *testing.T) {
 	t.Run("all fine", func(t *testing.T) {
 		request := SubmitDialogResponse{
+			Error: "some generic error",
 			Errors: map[string]string{
 				"text":  "some text",
 				"float": "1.2",

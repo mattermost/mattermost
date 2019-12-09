@@ -1,15 +1,12 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"fmt"
-
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
@@ -79,11 +76,10 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	if len(missingUserIds) > 0 {
-		result := <-a.Srv.Store.Status().GetByIds(missingUserIds)
-		if result.Err != nil {
-			return nil, result.Err
+		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
-		statuses := result.Data.([]*model.Status)
 
 		for _, s := range statuses {
 			a.AddStatusCacheSkipClusterSend(s)
@@ -127,11 +123,10 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	if len(missingUserIds) > 0 {
-		result := <-a.Srv.Store.Status().GetByIds(missingUserIds)
-		if result.Err != nil {
-			return nil, result.Err
+		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
-		statuses := result.Data.([]*model.Status)
 
 		for _, s := range statuses {
 			a.AddStatusCacheSkipClusterSend(s)
@@ -216,16 +211,14 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	// Only update the database if the status has changed, the status has been manually set,
 	// or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
-
-		var schan store.StoreChannel
 		if broadcast {
-			schan = a.Srv.Store.Status().SaveOrUpdate(status)
+			if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
+				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
+			}
 		} else {
-			schan = a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
-		}
-
-		if result := <-schan; result.Err != nil {
-			mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("user_id", userId))
+			if err := a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
+				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
+			}
 		}
 	}
 
@@ -235,6 +228,10 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 }
 
 func (a *App) BroadcastStatus(status *model.Status) {
+	if a.Srv.Busy.IsBusy() {
+		// this is considered a non-critical service and will be disabled when server busy.
+		return
+	}
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
@@ -308,8 +305,8 @@ func (a *App) SetStatusDoNotDisturb(userId string) {
 func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
-	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", status.UserId, result.Err))
+	if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
+		mlog.Error("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
 	a.BroadcastStatus(status)
@@ -353,11 +350,7 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 		return status, nil
 	}
 
-	result := <-a.Srv.Store.Status().Get(userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Status), nil
+	return a.Srv.Store.Status().Get(userId)
 }
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {

@@ -1,17 +1,21 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestCreateBot(t *testing.T) {
@@ -41,6 +45,20 @@ func TestCreateBot(t *testing.T) {
 			require.NotNil(t, err)
 			require.Equal(t, "model.bot.is_valid.description.app_error", err.Id)
 		})
+
+		t.Run("username contains . character", func(t *testing.T) {
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			bot, err := th.App.CreateBot(&model.Bot{
+				Username:    "username.",
+				Description: "a bot",
+				OwnerId:     th.BasicUser.Id,
+			})
+			require.NotNil(t, err)
+			require.Nil(t, bot)
+			require.Equal(t, "model.user.is_valid.email.app_error", err.Id)
+		})
 	})
 
 	t.Run("create bot", func(t *testing.T) {
@@ -57,6 +75,16 @@ func TestCreateBot(t *testing.T) {
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, "a bot", bot.Description)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
+
+		// Check that a post was created to add bot to team and channels
+		channel, err := th.App.GetOrCreateDirectChannel(bot.UserId, th.BasicUser.Id)
+		require.Nil(t, err)
+		posts, err := th.App.GetPosts(channel.Id, 0, 1)
+		require.Nil(t, err)
+
+		postArray := posts.ToSlice()
+		assert.Len(t, postArray, 1)
+		assert.Equal(t, postArray[0].Type, model.POST_ADD_BOT_TEAMS_CHANNELS)
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {
@@ -143,6 +171,9 @@ func TestPatchBot(t *testing.T) {
 
 		patchedBot, err := th.App.PatchBot(createdBot.UserId, botPatch)
 		require.Nil(t, err)
+
+		// patchedBot should create a new .UpdateAt time
+		require.NotEqual(t, createdBot.UpdateAt, patchedBot.UpdateAt)
 
 		createdBot.Username = "username2"
 		createdBot.DisplayName = "updated bot"
@@ -542,6 +573,343 @@ func TestDisableUserBots(t *testing.T) {
 	// Bad id doesn't do anything or break horribly
 	err = th.App.disableUserBots(model.NewId())
 	require.Nil(t, err)
+}
+
+func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	userBots := []*model.Bot{}
+	defer func() {
+		for _, bot := range userBots {
+			th.App.PermanentDeleteBot(bot.UserId)
+		}
+	}()
+
+	// // Create two sysadmins
+	sysadmin1 := model.User{
+		Email:    "sys1@example.com",
+		Nickname: "nn_sysadmin1",
+		Password: "hello1",
+		Username: "un_sysadmin1",
+		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+	_, err := th.App.CreateUser(&sysadmin1)
+	require.Nil(t, err, "failed to create user")
+	th.App.UpdateUserRoles(sysadmin1.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+
+	sysadmin2 := model.User{
+		Email:    "sys2@example.com",
+		Nickname: "nn_sysadmin2",
+		Password: "hello1",
+		Username: "un_sysadmin2",
+		Roles:    model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+	_, err = th.App.CreateUser(&sysadmin2)
+	require.Nil(t, err, "failed to create user")
+	th.App.UpdateUserRoles(sysadmin2.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+
+	// create user to be disabled
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    "user1@example.com",
+		Username: "user1_disabled",
+		Nickname: "user1",
+		Password: "Password1",
+	})
+	require.Nil(t, err, "failed to create user")
+
+	// create user that doesn't own any bots
+	user2, err := th.App.CreateUser(&model.User{
+		Email:    "user2@example.com",
+		Username: "user2_disabled",
+		Nickname: "user2",
+		Password: "Password1",
+	})
+	require.Nil(t, err, "failed to create user")
+
+	const numBotsToPrint = 10
+
+	// create bots owned by user (equal to numBotsToPrint)
+	var bot *model.Bot
+	for i := 0; i < numBotsToPrint; i++ {
+		bot, err = th.App.CreateBot(&model.Bot{
+			Username:    fmt.Sprintf("bot%v", i),
+			Description: "a bot",
+			OwnerId:     user1.Id,
+		})
+		require.Nil(t, err)
+		userBots = append(userBots, bot)
+	}
+	assert.Len(t, userBots, 10)
+
+	// get DM channels for sysadmin1 and sysadmin2
+	channelSys1, appErr := th.App.GetOrCreateDirectChannel(sysadmin1.Id, sysadmin1.Id)
+	require.Nil(t, appErr)
+	channelSys2, appErr := th.App.GetOrCreateDirectChannel(sysadmin2.Id, sysadmin2.Id)
+	require.Nil(t, appErr)
+
+	// send notification for user without bots
+	err = th.App.notifySysadminsBotOwnerDeactivated(user2.Id)
+	require.Nil(t, err)
+
+	// get posts from sysadmin1 and sysadmin2 DM channels
+	posts1, err := th.App.GetPosts(channelSys1.Id, 0, 5)
+	require.Nil(t, err)
+	assert.Len(t, posts1.Order, 0)
+
+	posts2, err := th.App.GetPosts(channelSys2.Id, 0, 5)
+	require.Nil(t, err)
+	assert.Len(t, posts2.Order, 0)
+
+	// send notification for user with bots
+	err = th.App.notifySysadminsBotOwnerDeactivated(user1.Id)
+	require.Nil(t, err)
+
+	// get posts from sysadmin1  and sysadmin2 DM channels
+	posts1, err = th.App.GetPosts(channelSys1.Id, 0, 5)
+	require.Nil(t, err)
+	assert.Len(t, posts1.Order, 1)
+
+	posts2, err = th.App.GetPosts(channelSys2.Id, 0, 5)
+	require.Nil(t, err)
+	assert.Len(t, posts2.Order, 1)
+
+	post := posts1.Posts[posts1.Order[0]].Message
+	assert.Equal(t, "user1_disabled was deactivated. They managed the following bot accounts which have now been disabled.\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\nYou can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).", post)
+
+	// print all bots
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true })
+	message := th.App.getDisableBotSysadminMessage(user1, userBots)
+	assert.Equal(t, "user1_disabled was deactivated. They managed the following bot accounts which have now been disabled.\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\nYou can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).", message)
+
+	// print all bots
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false })
+	message = th.App.getDisableBotSysadminMessage(user1, userBots)
+	assert.Equal(t, "user1_disabled was deactivated. They managed the following bot accounts which are still enabled.\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\n\nWe strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.", message)
+
+	// create additional bot to go over the printable limit
+	for i := numBotsToPrint; i < numBotsToPrint+1; i++ {
+		bot, err = th.App.CreateBot(&model.Bot{
+			Username:    fmt.Sprintf("bot%v", i),
+			Description: "a bot",
+			OwnerId:     user1.Id,
+		})
+		require.Nil(t, err)
+		userBots = append(userBots, bot)
+	}
+	assert.Len(t, userBots, 11)
+
+	// truncate number bots printed
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true })
+	message = th.App.getDisableBotSysadminMessage(user1, userBots)
+	assert.Equal(t, "user1_disabled was deactivated. They managed 11 bot accounts which have now been disabled, including the following:\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\nYou can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).", message)
+
+	// truncate number bots printed
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false })
+	message = th.App.getDisableBotSysadminMessage(user1, userBots)
+	assert.Equal(t, "user1_disabled was deactivated. They managed 11 bot accounts which are still enabled, including the following:\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\nWe strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.", message)
+}
+
+func TestConvertUserToBot(t *testing.T) {
+	t.Run("invalid user", func(t *testing.T) {
+		t.Run("invalid user id", func(t *testing.T) {
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			_, err := th.App.ConvertUserToBot(&model.User{
+				Username: "username",
+				Id:       "",
+			})
+			require.NotNil(t, err)
+			require.Equal(t, "model.bot.is_valid.user_id.app_error", err.Id)
+		})
+
+		t.Run("invalid username", func(t *testing.T) {
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			_, err := th.App.ConvertUserToBot(&model.User{
+				Username: "invalid username",
+				Id:       th.BasicUser.Id,
+			})
+			require.NotNil(t, err)
+			require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
+		})
+	})
+
+	t.Run("valid user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		bot, err := th.App.ConvertUserToBot(&model.User{
+			Username: "username",
+			Id:       th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+		assert.Equal(t, "username", bot.Username)
+		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
+	})
+}
+
+func TestSetBotIconImage(t *testing.T) {
+	t.Run("invalid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		path, _ := fileutils.FindDir("tests")
+		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
+		require.NoError(t, fileErr)
+		defer svgFile.Close()
+
+		err := th.App.SetBotIconImage("invalid_bot_id", svgFile)
+		require.NotNil(t, err)
+	})
+
+	t.Run("valid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Set an icon image
+		path, _ := fileutils.FindDir("tests")
+		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
+		require.NoError(t, fileErr)
+		defer svgFile.Close()
+
+		expectedData, fileErr := ioutil.ReadAll(svgFile)
+		require.Nil(t, fileErr)
+		require.NotNil(t, expectedData)
+
+		bot, err := th.App.ConvertUserToBot(&model.User{
+			Username: "username",
+			Id:       th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
+		exists, err := th.App.FileExists(fpath)
+		require.Nil(t, err)
+		require.False(t, exists, "icon.svg shouldn't exist for the bot")
+
+		svgFile.Seek(0, 0)
+		err = th.App.SetBotIconImage(bot.UserId, svgFile)
+		require.Nil(t, err)
+
+		exists, err = th.App.FileExists(fpath)
+		require.Nil(t, err)
+		require.True(t, exists, "icon.svg should exist for the bot")
+
+		actualData, err := th.App.ReadFile(fpath)
+		require.Nil(t, err)
+		require.NotNil(t, actualData)
+
+		require.Equal(t, expectedData, actualData)
+	})
+}
+
+func TestGetBotIconImage(t *testing.T) {
+	t.Run("invalid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		actualData, err := th.App.GetBotIconImage("invalid_bot_id")
+		require.NotNil(t, err)
+		require.Nil(t, actualData)
+	})
+
+	t.Run("valid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Set an icon image
+		path, _ := fileutils.FindDir("tests")
+		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
+		require.NoError(t, fileErr)
+		defer svgFile.Close()
+
+		expectedData, fileErr := ioutil.ReadAll(svgFile)
+		require.Nil(t, fileErr)
+		require.NotNil(t, expectedData)
+
+		bot, err := th.App.ConvertUserToBot(&model.User{
+			Username: "username",
+			Id:       th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		svgFile.Seek(0, 0)
+		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
+		_, err = th.App.WriteFile(svgFile, fpath)
+		require.Nil(t, err)
+
+		actualBytes, err := th.App.GetBotIconImage(bot.UserId)
+		require.Nil(t, err)
+		require.NotNil(t, actualBytes)
+
+		actualData, err := th.App.ReadFile(fpath)
+		require.Nil(t, err)
+		require.NotNil(t, actualData)
+
+		require.Equal(t, expectedData, actualData)
+	})
+}
+
+func TestDeleteBotIconImage(t *testing.T) {
+	t.Run("invalid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		err := th.App.DeleteBotIconImage("invalid_bot_id")
+		require.NotNil(t, err)
+	})
+
+	t.Run("valid bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Set an icon image
+		path, _ := fileutils.FindDir("tests")
+		svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
+		require.NoError(t, fileErr)
+		defer svgFile.Close()
+
+		expectedData, fileErr := ioutil.ReadAll(svgFile)
+		require.Nil(t, fileErr)
+		require.NotNil(t, expectedData)
+
+		bot, err := th.App.ConvertUserToBot(&model.User{
+			Username: "username",
+			Id:       th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		// Set icon
+		svgFile.Seek(0, 0)
+		err = th.App.SetBotIconImage(bot.UserId, svgFile)
+		require.Nil(t, err)
+
+		// Get icon
+		actualData, err := th.App.GetBotIconImage(bot.UserId)
+		require.Nil(t, err)
+		require.NotNil(t, actualData)
+		require.Equal(t, expectedData, actualData)
+
+		// Bot icon should exist
+		fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
+		exists, err := th.App.FileExists(fpath)
+		require.Nil(t, err)
+		require.True(t, exists, "icon.svg should exist for the bot")
+
+		// Delete icon
+		err = th.App.DeleteBotIconImage(bot.UserId)
+		require.Nil(t, err)
+
+		// Bot icon should not exist
+		exists, err = th.App.FileExists(fpath)
+		require.Nil(t, err)
+		require.False(t, exists, "icon.svg should be deleted for the bot")
+	})
 }
 
 func sToP(s string) *string {

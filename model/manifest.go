@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -50,9 +50,11 @@ type PluginSetting struct {
 	// "longtext" will result in a multi line string that can be typed in manually.
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
+	//
+	// "custom" will result in a custom defined setting and will load the custom component registered for the Web App System Console.
 	Type string `json:"type" yaml:"type"`
 
-	// The help text to display to the user.
+	// The help text to display to the user. Supports Markdown formatting.
 	HelpText string `json:"help_text" yaml:"help_text"`
 
 	// The help text to display alongside the "Regenerate" button for settings of the "generated" type.
@@ -70,10 +72,10 @@ type PluginSetting struct {
 }
 
 type PluginSettingsSchema struct {
-	// Optional text to display above the settings.
+	// Optional text to display above the settings. Supports Markdown formatting.
 	Header string `json:"header" yaml:"header"`
 
-	// Optional text to display below the settings.
+	// Optional text to display below the settings. Supports Markdown formatting.
 	Footer string `json:"footer" yaml:"footer"`
 
 	// A list of setting definitions.
@@ -91,6 +93,9 @@ type PluginSettingsSchema struct {
 //      "id": "com.mycompany.myplugin",
 //      "name": "My Plugin",
 //      "description": "This is my plugin",
+//      "homepage_url": "https://example.com",
+//      "support_url": "https://example.com/support",
+//      "icon_path": "assets/logo.svg",
 //      "version": "0.1.0",
 //      "min_server_version": "5.6.0",
 //      "server": {
@@ -129,6 +134,16 @@ type Manifest struct {
 
 	// A description of what your plugin is and does.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+
+	// HomepageURL is an optional link to learn more about the plugin.
+	HomepageURL string `json:"homepage_url,omitempty" yaml:"homepage_url,omitempty"`
+
+	// SupportURL is an optional URL where plugin issues can be reported.
+	SupportURL string `json:"support_url,omitempty" yaml:"support_url,omitempty"`
+
+	// A relative file path in the bundle that points to the plugins svg icon for use with the Plugin Marketplace.
+	// This should be relative to the root of your bundle and the location of the manifest file. Bitmap image formats are not supported.
+	IconPath string `json:"icon_path,omitempty" yaml:"icon_path,omitempty"`
 
 	// A version number for your plugin. Semantic versioning is recommended: http://semver.org
 	Version string `json:"version" yaml:"version"`

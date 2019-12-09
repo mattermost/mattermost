@@ -1,17 +1,21 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package httpservice
 
 import (
 	"context"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestHTTPClient(t *testing.T) {
@@ -32,9 +36,7 @@ func TestHTTPClient(t *testing.T) {
 		} {
 			_, err := c.Get(tc.URL)
 			if !tc.IsInternal {
-				if err != nil {
-					t.Fatal("google is down?")
-				}
+				require.Nil(t, err, "google is down?")
 			} else {
 				allowed := !tc.IsInternal || allowInternal
 				success := err == nil
@@ -44,9 +46,7 @@ func TestHTTPClient(t *testing.T) {
 				case *url.Error:
 					success = e.Err != AddressForbidden
 				}
-				if success != allowed {
-					t.Fatalf("failed for %v. allowed: %v, success %v", tc.URL, allowed, success)
-				}
+				require.Equalf(t, success, allowed, "failed for %v. allowed: %v, success %v", tc.URL, allowed, success)
 			}
 		}
 	}
@@ -61,18 +61,12 @@ func TestHTTPClientWithProxy(t *testing.T) {
 	c.Transport.(*MattermostTransport).Transport.(*http.Transport).Proxy = http.ProxyURL(purl)
 
 	resp, err := c.Get("http://acme.com")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(body) != "proxy" {
-		t.FailNow()
-	}
+	require.Nil(t, err)
+	require.Equal(t, "proxy", string(body))
 }
 
 func createProxyServer() *httptest.Server {
@@ -110,11 +104,14 @@ func TestDialContextFilter(t *testing.T) {
 			return nil, nil
 		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) bool { return !IsReservedIP(ip) })
 		_, err := filter(context.Background(), "", tc.Addr)
-		switch {
-		case tc.IsValid == (err == AddressForbidden) || (err != nil && err != AddressForbidden):
-			t.Errorf("unexpected err for %v (%v)", tc.Addr, err)
-		case tc.IsValid != didDial:
-			t.Errorf("unexpected didDial for %v", tc.Addr)
+
+		if tc.IsValid {
+			require.Nil(t, err)
+			require.True(t, didDial)
+		} else {
+			require.NotNil(t, err)
+			require.Equal(t, err, AddressForbidden)
+			require.False(t, didDial)
 		}
 	}
 }
@@ -124,19 +121,15 @@ func TestUserAgentIsSet(t *testing.T) {
 	defaultUserAgent = testUserAgent
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		ua := req.UserAgent()
-		if ua == "" {
-			t.Error("expected user-agent to be non-empty")
-		}
-		if ua != testUserAgent {
-			t.Errorf("expected user-agent to be %q but was %q", testUserAgent, ua)
-		}
+		assert.NotEqual(t, "", ua, "expected user-agent to be non-empty")
+		assert.Equalf(t, testUserAgent, ua, "expected user-agent to be %q but was %q", testUserAgent, ua)
 	}))
 	defer ts.Close()
 	client := NewHTTPClient(NewTransport(true, nil, nil))
 	req, err := http.NewRequest("GET", ts.URL, nil)
-	if err != nil {
-		t.Fatal("NewRequest failed", err)
-	}
+
+	require.Nil(t, err, "NewRequest failed", err)
+
 	client.Do(req)
 }
 
@@ -149,7 +142,7 @@ func NewHTTPClient(transport http.RoundTripper) *http.Client {
 func TestIsReservedIP(t *testing.T) {
 	tests := []struct {
 		name string
-		ip net.IP
+		ip   net.IP
 		want bool
 	}{
 		{"127.8.3.5", net.IPv4(127, 8, 3, 5), true},
@@ -161,9 +154,8 @@ func TestIsReservedIP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsReservedIP(tt.ip); got != tt.want {
-				t.Errorf("IsReservedIP() = %v, want %v", got, tt.want)
-			}
+			got := IsReservedIP(tt.ip)
+			assert.Equalf(t, tt.want, got, "IsReservedIP() = %v, want %v", got, tt.want)
 		})
 	}
 }
@@ -171,7 +163,7 @@ func TestIsReservedIP(t *testing.T) {
 func TestIsOwnIP(t *testing.T) {
 	tests := []struct {
 		name string
-		ip net.IP
+		ip   net.IP
 		want bool
 	}{
 		{"127.0.0.1", net.IPv4(127, 0, 0, 1), true},
@@ -179,10 +171,49 @@ func TestIsOwnIP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, _ := IsOwnIP(tt.ip); got != tt.want {
-				t.Errorf("IsOwnIP() = %v, want %v", got, tt.want)
-				t.Errorf(tt.ip.String());
-			}
+			got, _ := IsOwnIP(tt.ip)
+			assert.Equalf(t, tt.want, got, "IsOwnIP() = %v, want %v for IP %s", got, tt.want, tt.ip.String())
 		})
 	}
+}
+
+func TestSplitHostnames(t *testing.T) {
+	var config string
+	var hostnames []string
+
+	config = ""
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{}, hostnames)
+
+	config = "127.0.0.1 localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1,localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1,,localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1  localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1 , localhost"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1  localhost  "
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = " 127.0.0.1  ,,localhost  , , ,,"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost"}, hostnames)
+
+	config = "127.0.0.1 localhost, 192.168.1.0"
+	hostnames = strings.FieldsFunc(config, splitFields)
+	require.Equal(t, []string{"127.0.0.1", "localhost", "192.168.1.0"}, hostnames)
 }

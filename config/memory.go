@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // memoryStore implements the Store interface. It is meant primarily for testing.
@@ -73,7 +73,7 @@ func (ms *memoryStore) Set(newCfg *model.Config) (*model.Config, error) {
 		validate = nil
 	}
 
-	return ms.commonStore.set(newCfg, validate, ms.persist)
+	return ms.commonStore.set(newCfg, ms.allowEnvironmentOverrides, validate, ms.persist)
 }
 
 // persist copies the active config to the saved config.

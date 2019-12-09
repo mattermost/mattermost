@@ -143,6 +143,12 @@ type StandardLoggerOptions struct {
 	// This supports the strings like [ERROR], [ERR] [TRACE], [WARN], [INFO],
 	// [DEBUG] and strip it off before reapplying it.
 	InferLevels bool
+
+	// ForceLevel is used to force all output from the standard logger to be at
+	// the specified level. Similar to InferLevels, this will strip any level
+	// prefix contained in the logged string before applying the forced level.
+	// If set, this override InferLevels.
+	ForceLevel Level
 }
 
 // LoggerOptions can be used to configure a new logger.

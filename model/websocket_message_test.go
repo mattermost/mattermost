@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWebSocketEvent(t *testing.T) {
@@ -17,21 +18,13 @@ func TestWebSocketEvent(t *testing.T) {
 	result := WebSocketEventFromJson(strings.NewReader(json))
 
 	badresult := WebSocketEventFromJson(strings.NewReader("junk"))
-	if badresult != nil {
-		t.Fatal("should not have parsed")
-	}
+	require.Nil(t, badresult, "should not have parsed")
 
-	if !m.IsValid() {
-		t.Fatal("should be valid")
-	}
+	require.True(t, m.IsValid(), "should be valid")
 
-	if m.Broadcast.TeamId != result.Broadcast.TeamId {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, m.Broadcast.TeamId, result.Broadcast.TeamId, "Ids do not match")
 
-	if m.Data["RootId"] != result.Data["RootId"] {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, m.Data["RootId"], result.Data["RootId"], "Ids do not match")
 }
 
 func TestWebSocketResponse(t *testing.T) {
@@ -44,17 +37,11 @@ func TestWebSocketResponse(t *testing.T) {
 	WebSocketResponseFromJson(strings.NewReader(json2))
 
 	badresult := WebSocketResponseFromJson(strings.NewReader("junk"))
-	if badresult != nil {
-		t.Fatal("should not have parsed")
-	}
+	require.Nil(t, badresult, "should not have parsed")
 
-	if !m.IsValid() {
-		t.Fatal("should be valid")
-	}
+	require.True(t, m.IsValid(), "should be valid")
 
-	if m.Data["RootId"] != result.Data["RootId"] {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, m.Data["RootId"], result.Data["RootId"], "Ids do not match")
 }
 
 func TestWebSocketEvent_PrecomputeJSON(t *testing.T) {

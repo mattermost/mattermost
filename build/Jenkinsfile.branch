@@ -9,7 +9,7 @@ def platformStages = new org.mattermost.PlatformStages()
 
 def rndEE = UUID.randomUUID().toString()
 def rndTE = UUID.randomUUID().toString()
-def mmBuilderServer = 'mattermost/mattermost-build-server:feb-28-2019'
+def mmBuilderServer = 'mattermost/mattermost-build-server:oct-18-2019'
 def mmBuilderWebapp = 'mattermost/mattermost-build-webapp:oct-2-2018'
 
 pipeline {
@@ -115,12 +115,30 @@ pipeline {
       }
     }
 
-    stage ('Build Docker mattermost-enterprise-edition') {
+    stage ('Build Docker Images') {
+      agent {
+        label 'default-mm-builder'
+      }
       steps {
         script {
-          platformStages.platformCheckoutDockerRepo('master')
-          def MMBINARYPATH="https://releases.mattermost.com/mattermost-platform/" + env.BRANCH_NAME + "/mattermost-enterprise-linux-amd64.tar.gz"
-          platformStages.platformBuildDockerImage(MMBINARYPATH, env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT)
+          forcefullyCleanWorkspace(mmBuilderServer)
+          platformStages.platformCheckoutTE(env.BRANCH_NAME)
+        }
+        dir('src/github.com/mattermost/mattermost-server') {
+          withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
+            sh """
+            export TAG='${env.BRANCH_NAME}'
+            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:\${TAG} build
+            docker push mattermost/mattermost-enterprise-edition:\${TAG}
+            """
+            sh """
+            export TAG='${env.BRANCH_NAME}'
+            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-team-linux-amd64.tar.gz -t mattermost/mattermost-team-edition:\${TAG} build
+            docker push mattermost/mattermost-team-edition:\${TAG}
+            docker logout
+            """
+          }
         }
       }
     }

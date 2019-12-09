@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
-import "github.com/mattermost/mattermost-server/model"
+import "github.com/mattermost/mattermost-server/v5/model"
 
 // Import Data Models
 
@@ -169,6 +169,8 @@ type SchemeImportData struct {
 	DefaultTeamUserRole     *RoleImportData `json:"default_team_user_role"`
 	DefaultChannelAdminRole *RoleImportData `json:"default_channel_admin_role"`
 	DefaultChannelUserRole  *RoleImportData `json:"default_channel_user_role"`
+	DefaultTeamGuestRole    *RoleImportData `json:"default_team_guest_role"`
+	DefaultChannelGuestRole *RoleImportData `json:"default_channel_guest_role"`
 }
 
 type RoleImportData struct {

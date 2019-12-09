@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -17,9 +17,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/testlib"
+	"github.com/mattermost/mattermost-server/v5/api4"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
 var coverprofileCounters map[string]int = make(map[string]int)
@@ -81,6 +81,14 @@ func (h *testHelper) ConfigPath() string {
 // SetConfig replaces the configuration passed to a running command.
 func (h *testHelper) SetConfig(config *model.Config) {
 	config.SqlSettings = *mainHelper.GetSqlSettings()
+
+	// Disable strict password requirements for test
+	*config.PasswordSettings.MinimumLength = 5
+	*config.PasswordSettings.Lowercase = false
+	*config.PasswordSettings.Uppercase = false
+	*config.PasswordSettings.Symbol = false
+	*config.PasswordSettings.Number = false
+
 	h.config = config
 
 	if err := ioutil.WriteFile(h.configFilePath, []byte(config.ToJson()), 0600); err != nil {

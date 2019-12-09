@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitAction() {
@@ -76,11 +76,6 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if dialog.URL == "" {
 		c.SetInvalidParam("url")
-		return
-	}
-
-	if dialog.Dialog.Elements == nil || len(dialog.Dialog.Elements) == 0 {
-		c.SetInvalidParam("dialog.elements")
 		return
 	}
 

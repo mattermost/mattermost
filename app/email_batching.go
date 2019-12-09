@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 
 	"net/http"
 
@@ -140,44 +140,40 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 				continue
 			}
 
-			result := <-job.server.Store.Team().GetByName(notifications[0].teamName)
-			if result.Err != nil {
-				mlog.Error(fmt.Sprint("Unable to find Team id for notification", result.Err))
+			team, err := job.server.Store.Team().GetByName(notifications[0].teamName)
+			if err != nil {
+				mlog.Error("Unable to find Team id for notification", mlog.Err(err))
 				continue
 			}
 
-			if team, ok := result.Data.(*model.Team); ok {
+			if team != nil {
 				inspectedTeamNames[notification.teamName] = team.Id
 			}
 
 			// if the user has viewed any channels in this team since the notification was queued, delete
 			// all queued notifications
-			result = <-job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
-			if result.Err != nil {
-				mlog.Error(fmt.Sprint("Unable to find ChannelMembers for user", result.Err))
+			channelMembers, err := job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
+			if err != nil {
+				mlog.Error("Unable to find ChannelMembers for user", mlog.Err(err))
 				continue
 			}
 
-			if channelMembers, ok := result.Data.(*model.ChannelMembers); ok {
-				for _, channelMember := range *channelMembers {
-					if channelMember.LastViewedAt >= batchStartTime {
-						mlog.Debug(fmt.Sprintf("Deleted notifications for user %s", userId), mlog.String("user_id", userId))
-						delete(job.pendingNotifications, userId)
-						break
-					}
+			for _, channelMember := range *channelMembers {
+				if channelMember.LastViewedAt >= batchStartTime {
+					mlog.Debug("Deleted notifications for user", mlog.String("user_id", userId))
+					delete(job.pendingNotifications, userId)
+					break
 				}
 			}
 		}
 
 		// get how long we need to wait to send notifications to the user
 		var interval int64
-		pchan := job.server.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
-		if result := <-pchan; result.Err != nil {
+		preference, err := job.server.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
+		if err != nil {
 			// use the default batching interval if an error ocurrs while fetching user preferences
 			interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)
 		} else {
-			preference := result.Data.(model.Preference)
-
 			if value, err := strconv.ParseInt(preference.Value, 10, 64); err != nil {
 				// // use the default batching interval if an error ocurrs while deserializing user preferences
 				interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)
@@ -216,12 +212,11 @@ func (s *Server) sendBatchedEmailNotification(userId string, notifications []*ba
 			continue
 		}
 
-		result := <-s.Store.Channel().Get(notification.post.ChannelId, true)
-		if result.Err != nil {
+		channel, errCh := s.Store.Channel().Get(notification.post.ChannelId, true)
+		if errCh != nil {
 			mlog.Warn("Unable to find channel of post for batched email notification")
 			continue
 		}
-		channel := result.Data.(*model.Channel)
 
 		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 		if license := s.License(); license != nil && *license.Features.EmailNotificationContents {
@@ -245,8 +240,8 @@ func (s *Server) sendBatchedEmailNotification(userId string, notifications []*ba
 	body.Props["Posts"] = template.HTML(contents)
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
-	if err := s.FakeApp().SendMail(user.Email, subject, body.Render()); err != nil {
-		mlog.Warn(fmt.Sprintf("Unable to send batched email notification err=%v", err), mlog.String("email", user.Email))
+	if err := s.FakeApp().SendNotificationMail(user.Email, subject, body.Render()); err != nil {
+		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(err))
 	}
 }
 

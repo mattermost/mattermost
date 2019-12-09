@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/avct/uasurfer"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
@@ -92,8 +93,8 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	}
 
 	// Try to get the user by username/email
-	if result := <-a.Srv.Store.User().GetForLogin(loginId, enableUsername, enableEmail); result.Err == nil {
-		return result.Data.(*model.User), nil
+	if user, err := a.Srv.Store.User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
+		return user, nil
 	}
 
 	// Try to get the user with LDAP if enabled
@@ -109,7 +110,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
 }
 
-func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) (*model.Session, *model.AppError) {
+func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) *model.AppError {
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
 		pluginContext := a.PluginContext()
@@ -119,13 +120,12 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		}, plugin.UserWillLogInId)
 
 		if rejectionReason != "" {
-			return nil, model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
+			return model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
 		}
 	}
 
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
 	session.GenerateCSRF()
-	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 
 	if len(deviceId) > 0 {
 		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthMobileInDays)
@@ -133,7 +133,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		// A special case where we logout of all other sessions with the same Id
 		if err := a.RevokeSessionsForDeviceId(user.Id, deviceId, ""); err != nil {
 			err.StatusCode = http.StatusInternalServerError
-			return nil, err
+			return err
 		}
 	} else {
 		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthWebInDays)
@@ -149,56 +149,21 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	session.AddProp(model.SESSION_PROP_PLATFORM, plat)
 	session.AddProp(model.SESSION_PROP_OS, os)
 	session.AddProp(model.SESSION_PROP_BROWSER, fmt.Sprintf("%v/%v", bname, bversion))
+	if user.IsGuest() {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
+	} else {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
+	}
 
 	var err *model.AppError
 	if session, err = a.CreateSession(session); err != nil {
 		err.StatusCode = http.StatusInternalServerError
-		return nil, err
+		return err
 	}
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
 
-	secure := false
-	if GetProtocol(r) == "https" {
-		secure = true
-	}
-
-	domain := a.GetCookieDomain()
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
-	sessionCookie := &http.Cookie{
-		Name:     model.SESSION_COOKIE_TOKEN,
-		Value:    session.Token,
-		Path:     "/",
-		MaxAge:   maxAge,
-		Expires:  expiresAt,
-		HttpOnly: true,
-		Domain:   domain,
-		Secure:   secure,
-	}
-
-	userCookie := &http.Cookie{
-		Name:    model.SESSION_COOKIE_USER,
-		Value:   user.Id,
-		Path:    "/",
-		MaxAge:  maxAge,
-		Expires: expiresAt,
-		Domain:  domain,
-		Secure:  secure,
-	}
-
-	csrfCookie := &http.Cookie{
-		Name:    model.SESSION_COOKIE_CSRF,
-		Value:   session.GetCSRF(),
-		Path:    "/",
-		MaxAge:  maxAge,
-		Expires: expiresAt,
-		Domain:  domain,
-		Secure:  secure,
-	}
-
-	http.SetCookie(w, sessionCookie)
-	http.SetCookie(w, userCookie)
-	http.SetCookie(w, csrfCookie)
+	a.Session = *session
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
@@ -210,7 +175,54 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		})
 	}
 
-	return session, nil
+	return nil
+}
+
+func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
+	secure := false
+	if GetProtocol(r) == "https" {
+		secure = true
+	}
+
+	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
+	domain := a.GetCookieDomain()
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+	sessionCookie := &http.Cookie{
+		Name:     model.SESSION_COOKIE_TOKEN,
+		Value:    a.Session.Token,
+		Path:     subpath,
+		MaxAge:   maxAge,
+		Expires:  expiresAt,
+		HttpOnly: true,
+		Domain:   domain,
+		Secure:   secure,
+	}
+
+	userCookie := &http.Cookie{
+		Name:    model.SESSION_COOKIE_USER,
+		Value:   a.Session.UserId,
+		Path:    subpath,
+		MaxAge:  maxAge,
+		Expires: expiresAt,
+		Domain:  domain,
+		Secure:  secure,
+	}
+
+	csrfCookie := &http.Cookie{
+		Name:    model.SESSION_COOKIE_CSRF,
+		Value:   a.Session.GetCSRF(),
+		Path:    subpath,
+		MaxAge:  maxAge,
+		Expires: expiresAt,
+		Domain:  domain,
+		Secure:  secure,
+	}
+
+	http.SetCookie(w, sessionCookie)
+	http.SetCookie(w, userCookie)
+	http.SetCookie(w, csrfCookie)
 }
 
 func GetProtocol(r *http.Request) string {

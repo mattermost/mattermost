@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package testlib
 
@@ -10,11 +10,11 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 const (
@@ -27,6 +27,8 @@ const (
 	actionSymlink
 )
 
+const root = "___mattermost-server"
+
 type testResourceDetails struct {
 	src     string
 	dest    string
@@ -34,11 +36,47 @@ type testResourceDetails struct {
 	action  int8
 }
 
+// commonBaseSearchPaths is a custom version of what fileutils exposes. At some point, consolidate.
+var commonBaseSearchPaths = []string{
+	".",
+	"..",
+	"../..",
+	"../../..",
+	"../../../..",
+}
+
+func findFile(path string) string {
+	return fileutils.FindPath(path, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+		return !fileInfo.IsDir()
+	})
+}
+
+func findDir(dir string) (string, bool) {
+	if dir == root {
+		srcPath := findFile("go.mod")
+		if srcPath == "" {
+			return "./", false
+		}
+
+		return path.Dir(srcPath), true
+	}
+
+	found := fileutils.FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+		return fileInfo.IsDir()
+	})
+	if found == "" {
+		return "./", false
+	}
+
+	return found, true
+}
+
 func getTestResourcesToSetup() []testResourceDetails {
 	var srcPath string
 	var found bool
 
 	var testResourcesToSetup = []testResourceDetails{
+		{root, "mattermost-server", resourceTypeFolder, actionSymlink},
 		{"i18n", "i18n", resourceTypeFolder, actionSymlink},
 		{"templates", "templates", resourceTypeFolder, actionSymlink},
 		{"tests", "tests", resourceTypeFolder, actionSymlink},
@@ -49,15 +87,15 @@ func getTestResourcesToSetup() []testResourceDetails {
 	// Finding resources and setting full path to source to be used for further processing
 	for i, testResource := range testResourcesToSetup {
 		if testResource.resType == resourceTypeFile {
-			srcPath = fileutils.FindFile(testResource.src)
+			srcPath = findFile(testResource.src)
 			if srcPath == "" {
 				panic(fmt.Sprintf("Failed to find file %s", testResource.src))
 			}
 
 			testResourcesToSetup[i].src = srcPath
 		} else if testResource.resType == resourceTypeFolder {
-			srcPath, found = fileutils.FindDir(testResource.src)
-			if found == false {
+			srcPath, found = findDir(testResource.src)
+			if !found {
 				panic(fmt.Sprintf("Failed to find folder %s", testResource.src))
 			}
 
@@ -82,6 +120,12 @@ func SetupTestResources() (string, error) {
 	err = os.Mkdir(pluginsDir, 0700)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to create plugins directory %s", pluginsDir)
+	}
+
+	clientDir := path.Join(tempDir, "client")
+	err = os.Mkdir(clientDir, 0700)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to create client directory %s", clientDir)
 	}
 
 	err = setupConfig(path.Join(tempDir, "config"))
@@ -141,16 +185,10 @@ func setupConfig(configDir string) error {
 		return errors.Wrapf(err, "failed to create config directory %s", configDir)
 	}
 
-	defaultJson := path.Join(configDir, "default.json")
-	err = ioutil.WriteFile(defaultJson, []byte(config.ToJson()), 0644)
+	configJSON := path.Join(configDir, "config.json")
+	err = ioutil.WriteFile(configJSON, []byte(config.ToJson()), 0644)
 	if err != nil {
-		return errors.Wrapf(err, "failed to write config to %s", defaultJson)
-	}
-
-	configJson := path.Join(configDir, "config.json")
-	err = utils.CopyFile(defaultJson, configJson)
-	if err != nil {
-		return errors.Wrapf(err, "failed to copy file %s to %s", defaultJson, configJson)
+		return errors.Wrapf(err, "failed to write config to %s", configJSON)
 	}
 
 	return nil

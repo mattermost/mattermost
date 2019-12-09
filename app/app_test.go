@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 /* Temporarily comment out until MM-11108
@@ -69,7 +69,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	assert.Equal(t, len(roles1), len(roleNames))
 
 	expected1 := map[string][]string{
-		"channel_user": []string{
+		"channel_user": {
 			model.PERMISSION_READ_CHANNEL.Id,
 			model.PERMISSION_ADD_REACTION.Id,
 			model.PERMISSION_REMOVE_REACTION.Id,
@@ -86,10 +86,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_EDIT_POST.Id,
 		},
-		"channel_admin": []string{
+		"channel_admin": {
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 		},
-		"team_user": []string{
+		"team_user": {
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 			model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 			model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
@@ -99,13 +99,13 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_INVITE_USER.Id,
 			model.PERMISSION_ADD_USER_TO_TEAM.Id,
 		},
-		"team_post_all": []string{
+		"team_post_all": {
 			model.PERMISSION_CREATE_POST.Id,
 		},
-		"team_post_all_public": []string{
+		"team_post_all_public": {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
-		"team_admin": []string{
+		"team_admin": {
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM.Id,
 			model.PERMISSION_IMPORT_TEAM.Id,
@@ -120,25 +120,26 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		},
-		"system_user": []string{
+		"system_user": {
 			model.PERMISSION_LIST_PUBLIC_TEAMS.Id,
 			model.PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 			model.PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
+			model.PERMISSION_VIEW_MEMBERS.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
 		},
-		"system_post_all": []string{
+		"system_post_all": {
 			model.PERMISSION_CREATE_POST.Id,
 		},
-		"system_post_all_public": []string{
+		"system_post_all_public": {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
-		"system_user_access_token": []string{
+		"system_user_access_token": {
 			model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
 			model.PERMISSION_READ_USER_ACCESS_TOKEN.Id,
 			model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
 		},
-		"system_admin": []string{
+		"system_admin": {
 			model.PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE.Id,
 			model.PERMISSION_MANAGE_SYSTEM.Id,
 			model.PERMISSION_MANAGE_ROLES.Id,
@@ -157,6 +158,9 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_MANAGE_OAUTH.Id,
 			model.PERMISSION_INVITE_USER.Id,
+			model.PERMISSION_INVITE_GUEST.Id,
+			model.PERMISSION_PROMOTE_GUEST.Id,
+			model.PERMISSION_DEMOTE_TO_GUEST.Id,
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
@@ -176,6 +180,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
 			model.PERMISSION_LIST_PRIVATE_TEAMS.Id,
 			model.PERMISSION_JOIN_PRIVATE_TEAMS.Id,
+			model.PERMISSION_VIEW_MEMBERS.Id,
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 			model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 			model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
@@ -249,7 +254,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 
 	// Check the role permissions.
 	expected2 := map[string][]string{
-		"channel_user": []string{
+		"channel_user": {
 			model.PERMISSION_READ_CHANNEL.Id,
 			model.PERMISSION_ADD_REACTION.Id,
 			model.PERMISSION_REMOVE_REACTION.Id,
@@ -264,10 +269,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_EDIT_POST.Id,
 		},
-		"channel_admin": []string{
+		"channel_admin": {
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 		},
-		"team_user": []string{
+		"team_user": {
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 			model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 			model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
@@ -277,13 +282,13 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_INVITE_USER.Id,
 			model.PERMISSION_ADD_USER_TO_TEAM.Id,
 		},
-		"team_post_all": []string{
+		"team_post_all": {
 			model.PERMISSION_CREATE_POST.Id,
 		},
-		"team_post_all_public": []string{
+		"team_post_all_public": {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
-		"team_admin": []string{
+		"team_admin": {
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM.Id,
 			model.PERMISSION_IMPORT_TEAM.Id,
@@ -300,25 +305,26 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		},
-		"system_user": []string{
+		"system_user": {
 			model.PERMISSION_LIST_PUBLIC_TEAMS.Id,
 			model.PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 			model.PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
+			model.PERMISSION_VIEW_MEMBERS.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
 		},
-		"system_post_all": []string{
+		"system_post_all": {
 			model.PERMISSION_CREATE_POST.Id,
 		},
-		"system_post_all_public": []string{
+		"system_post_all_public": {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
-		"system_user_access_token": []string{
+		"system_user_access_token": {
 			model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
 			model.PERMISSION_READ_USER_ACCESS_TOKEN.Id,
 			model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
 		},
-		"system_admin": []string{
+		"system_admin": {
 			model.PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE.Id,
 			model.PERMISSION_MANAGE_SYSTEM.Id,
 			model.PERMISSION_MANAGE_ROLES.Id,
@@ -337,6 +343,9 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_MANAGE_OAUTH.Id,
 			model.PERMISSION_INVITE_USER.Id,
+			model.PERMISSION_INVITE_GUEST.Id,
+			model.PERMISSION_PROMOTE_GUEST.Id,
+			model.PERMISSION_DEMOTE_TO_GUEST.Id,
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
@@ -356,6 +365,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
 			model.PERMISSION_LIST_PRIVATE_TEAMS.Id,
 			model.PERMISSION_JOIN_PRIVATE_TEAMS.Id,
+			model.PERMISSION_VIEW_MEMBERS.Id,
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 			model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 			model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
@@ -480,6 +490,9 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 		model.PERMISSION_MANAGE_OAUTH.Id,
 		model.PERMISSION_INVITE_USER.Id,
+		model.PERMISSION_INVITE_GUEST.Id,
+		model.PERMISSION_PROMOTE_GUEST.Id,
+		model.PERMISSION_DEMOTE_TO_GUEST.Id,
 		model.PERMISSION_DELETE_POST.Id,
 		model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		model.PERMISSION_CREATE_TEAM.Id,
@@ -523,6 +536,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_CREATE_EMOJIS.Id,
 		model.PERMISSION_DELETE_EMOJIS.Id,
 		model.PERMISSION_DELETE_OTHERS_EMOJIS.Id,
+		model.PERMISSION_VIEW_MEMBERS.Id,
 	}
 	sort.Strings(expectedSystemAdmin)
 
@@ -583,6 +597,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_CREATE_TEAM.Id,
 		model.PERMISSION_CREATE_EMOJIS.Id,
 		model.PERMISSION_DELETE_EMOJIS.Id,
+		model.PERMISSION_VIEW_MEMBERS.Id,
 	}
 	sort.Strings(expected3)
 	sort.Strings(role3.Permissions)

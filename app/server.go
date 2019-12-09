@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -20,20 +20,21 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
+	analytics "github.com/segmentio/analytics-go"
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/httpservice"
-	"github.com/mattermost/mattermost-server/services/imageproxy"
-	"github.com/mattermost/mattermost-server/services/timezones"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/jobs"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
@@ -52,6 +53,7 @@ type Server struct {
 	Server      *http.Server
 	ListenAddr  *net.TCPAddr
 	RateLimiter *RateLimiter
+	Busy        *Busy
 
 	didFinishListen chan struct{}
 
@@ -100,7 +102,9 @@ type Server struct {
 	clientConfig        map[string]string
 	clientConfigHash    string
 	limitedClientConfig map[string]string
-	diagnosticId        string
+
+	diagnosticId     string
+	diagnosticClient analytics.Client
 
 	phase2PermissionsMigrationComplete bool
 
@@ -108,7 +112,8 @@ type Server struct {
 
 	ImageProxy *imageproxy.ImageProxy
 
-	Log *mlog.Logger
+	Log              *mlog.Logger
+	NotificationsLog *mlog.Logger
 
 	joinCluster        bool
 	startMetrics       bool
@@ -122,6 +127,7 @@ type Server struct {
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
+	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
 }
 
@@ -152,7 +158,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.Log == nil {
-		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
+		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
+	}
+
+	if s.NotificationsLog == nil {
+		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
+		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
+			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
 	}
 
 	// Redirect default golang logger to this logger
@@ -162,18 +174,21 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.InitGlobalLogger(s.Log)
 
 	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
-		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
+		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
+
+		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&after.NotificationLogSettings)
+		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
 	})
 
 	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
 
-	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService)
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
 
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	err := s.RunOldAppInitalization()
+	err := s.RunOldAppInitialization()
 	if err != nil {
 		return nil, err
 	}
@@ -188,11 +203,26 @@ func NewServer(options ...Option) (*Server, error) {
 		s.InitEmailBatching()
 	})
 
+	// Start plugin health check job
+	pluginsEnvironment := s.PluginsEnvironment
+	if pluginsEnvironment != nil {
+		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
+	}
+	s.AddConfigListener(func(_, c *model.Config) {
+		pluginsEnvironment := s.PluginsEnvironment
+		if pluginsEnvironment != nil {
+			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
+		}
+	})
+
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
 	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
+
 	pwd, _ := os.Getwd()
-	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
+	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
+
+	s.checkPushNotificationServerUrl()
 
 	license := s.License()
 
@@ -216,8 +246,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
-	if result := <-s.Store.Status().ResetAll(); result.Err != nil {
-		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
+	if err := s.Store.Status().ResetAll(); err != nil {
+		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
 	if s.joinCluster && s.Cluster != nil {
@@ -231,6 +261,21 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if s.startElasticsearch && s.Elasticsearch != nil {
 		s.StartElasticsearch()
+	}
+
+	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
+			if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
+				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+			}
+		}
+	})
+
+	// Disable active guest accounts on first run if guest accounts are disabled
+	if !*s.Config().GuestAccountsSettings.Enable {
+		if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
+			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+		}
 	}
 
 	s.initJobs()
@@ -267,7 +312,7 @@ func NewServer(options ...Option) (*Server, error) {
 	return s, nil
 }
 
-// Global app opptions that should be applied to apps created by this server
+// Global app options that should be applied to apps created by this server
 func (s *Server) AppOptions() []AppOption {
 	return []AppOption{
 		ServerConnector(s),
@@ -283,7 +328,7 @@ func (s *Server) StopHTTPServer() {
 		didShutdown := false
 		for s.didFinishListen != nil && !didShutdown {
 			if err := s.Server.Shutdown(ctx); err != nil {
-				mlog.Warn(err.Error())
+				mlog.Warn("Unable to shutdown server", mlog.Err(err))
 			}
 			timer := time.NewTimer(time.Millisecond * 50)
 			select {
@@ -303,12 +348,13 @@ func (s *Server) Shutdown() error {
 
 	s.RunOldAppShutdown()
 
+	err := s.shutdownDiagnostics()
+	if err != nil {
+		mlog.Error("Unable to cleanly shutdown diagnostic client", mlog.Err(err))
+	}
+
 	s.StopHTTPServer()
 	s.WaitForGoroutines()
-
-	if s.Store != nil {
-		s.Store.Close()
-	}
 
 	if s.htmlTemplateWatcher != nil {
 		s.htmlTemplateWatcher.Close()
@@ -330,6 +376,10 @@ func (s *Server) Shutdown() error {
 	if s.Jobs != nil && s.runjobs {
 		s.Jobs.StopWorkers()
 		s.Jobs.StopSchedulers()
+	}
+
+	if s.Store != nil {
+		s.Store.Close()
 	}
 
 	mlog.Info("Server stopped")
@@ -416,7 +466,7 @@ func (s *Server) Start() error {
 	if *s.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")
 
-		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings)
+		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings, s.Config().ServiceSettings.TrustedProxyIPHeader)
 		if err != nil {
 			return err
 		}
@@ -424,6 +474,7 @@ func (s *Server) Start() error {
 		s.RateLimiter = rateLimiter
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
+	s.Busy = NewBusy(s.Cluster)
 
 	// Creating a logger for logging errors from http.Server at error level
 	errStdLog, err := s.Log.StdLogAt(mlog.LevelError, mlog.String("source", "httpserver"))
@@ -470,7 +521,7 @@ func (s *Server) Start() error {
 
 	if *s.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
-			mlog.Error("Unable to setup forwarding: " + err.Error())
+			mlog.Error("Unable to setup forwarding", mlog.Err(err))
 		} else if port != "443" {
 			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
@@ -487,7 +538,7 @@ func (s *Server) Start() error {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
 					if err != nil {
-						mlog.Error("Unable to setup forwarding: " + err.Error())
+						mlog.Error("Unable to setup forwarding", mlog.Err(err))
 						return
 					}
 					defer redirectListener.Close()
@@ -573,7 +624,7 @@ func (s *Server) Start() error {
 		}
 
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
+			mlog.Critical("Error starting server", mlog.Err(err))
 			time.Sleep(time.Second)
 		}
 
@@ -596,6 +647,13 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 		return utils.OriginChecker(allowed)
 	}
 	return nil
+}
+
+func (s *Server) checkPushNotificationServerUrl() {
+	notificationServer := *s.Config().EmailSettings.PushNotificationServer
+	if strings.HasPrefix(notificationServer, "http://") {
+		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
+	}
 }
 
 func runSecurityJob(s *Server) {
@@ -708,4 +766,32 @@ func (s *Server) StartElasticsearch() {
 			})
 		}
 	})
+}
+
+func (s *Server) initDiagnostics(endpoint string) {
+	if s.diagnosticClient == nil {
+		config := analytics.Config{}
+		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "segment")))
+		// For testing
+		if endpoint != "" {
+			config.Endpoint = endpoint
+			config.Verbose = true
+			config.BatchSize = 1
+		}
+		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
+		client.Enqueue(analytics.Identify{
+			UserId: s.diagnosticId,
+		})
+
+		s.diagnosticClient = client
+	}
+}
+
+// shutdownDiagnostics closes the diagnostic client.
+func (s *Server) shutdownDiagnostics() error {
+	if s.diagnosticClient != nil {
+		return s.diagnosticClient.Close()
+	}
+
+	return nil
 }

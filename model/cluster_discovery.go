@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -46,10 +46,14 @@ func (o *ClusterDiscovery) AutoFillHostname() {
 	}
 }
 
-func (o *ClusterDiscovery) AutoFillIpAddress() {
+func (o *ClusterDiscovery) AutoFillIpAddress(iface string, ipAddress string) {
 	// attempt to set the hostname to the first non-local IP address
 	if len(o.Hostname) == 0 {
-		o.Hostname = GetServerIpAddress()
+		if len(ipAddress) > 0 {
+			o.Hostname = ipAddress
+		} else {
+			o.Hostname = GetServerIpAddress(iface)
+		}
 	}
 }
 

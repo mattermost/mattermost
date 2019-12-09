@@ -1,29 +1,29 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
-	"github.com/mattermost/mattermost-server/services/imageproxy"
-	"github.com/mattermost/mattermost-server/services/timezones"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/jobs"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type App struct {
 	Srv *Server
 
-	Log *mlog.Logger
+	Log              *mlog.Logger
+	NotificationsLog *mlog.Logger
 
 	T              goi18n.TranslateFunc
 	Session        model.Session
@@ -41,6 +41,7 @@ type App struct {
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
+	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
 
 	HTTPService httpservice.HTTPService
@@ -109,18 +110,19 @@ func (a *App) EnsureDiagnosticId() {
 	if a.Srv.diagnosticId != "" {
 		return
 	}
-	if result := <-a.Srv.Store.System().Get(); result.Err == nil {
-		props := result.Data.(model.StringMap)
-
-		id := props[model.SYSTEM_DIAGNOSTIC_ID]
-		if len(id) == 0 {
-			id = model.NewId()
-			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-			<-a.Srv.Store.System().Save(systemId)
-		}
-
-		a.Srv.diagnosticId = id
+	props, err := a.Srv.Store.System().Get()
+	if err != nil {
+		return
 	}
+
+	id := props[model.SYSTEM_DIAGNOSTIC_ID]
+	if len(id) == 0 {
+		id = model.NewId()
+		systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
+		a.Srv.Store.System().Save(systemId)
+	}
+
+	a.Srv.diagnosticId = id
 }
 
 func (a *App) HTMLTemplates() *template.Template {
@@ -132,19 +134,22 @@ func (a *App) HTMLTemplates() *template.Template {
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
-	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
+	ipAddress := utils.GetIpAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
+	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
-	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
+	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
+		http.NotFound(w, r)
+		return
+	}
 
-	utils.RenderWebAppError(a.Config(), w, r, err, a.AsymmetricSigningKey())
+	utils.RenderWebAppError(a.Config(), w, r, model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound), a.AsymmetricSigningKey())
 }
 
 func (a *App) getSystemInstallDate() (int64, *model.AppError) {
-	result := <-a.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
-	if result.Err != nil {
-		return 0, result.Err
+	systemData, appErr := a.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+	if appErr != nil {
+		return 0, appErr
 	}
-	systemData := result.Data.(*model.System)
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
 		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)

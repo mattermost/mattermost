@@ -1,14 +1,15 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTermsOfServiceStore(t *testing.T, ss store.Store) {
@@ -22,23 +23,16 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u1))
+	_, err := ss.User().Save(&u1)
+	require.Nil(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
-	r1 := <-ss.TermsOfService().Save(termsOfService)
+	savedTermsOfService, err := ss.TermsOfService().Save(termsOfService)
+	require.Nil(t, err)
 
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
+	require.Len(t, savedTermsOfService.Id, 26, "Id should have been populated")
 
-	savedTermsOfService := r1.Data.(*model.TermsOfService)
-	if len(savedTermsOfService.Id) != 26 {
-		t.Fatal("Id should have been populated")
-	}
-
-	if savedTermsOfService.CreateAt == 0 {
-		t.Fatal("Create at should have been populated")
-	}
+	require.NotEqual(t, savedTermsOfService.CreateAt, 0, "Create at should have been populated")
 }
 
 func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
@@ -46,17 +40,15 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u1))
+	_, err := ss.User().Save(&u1)
+	require.Nil(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
-	store.Must(ss.TermsOfService().Save(termsOfService))
+	_, err = ss.TermsOfService().Save(termsOfService)
+	require.Nil(t, err)
 
-	r1 := <-ss.TermsOfService().GetLatest(true)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-
-	fetchedTermsOfService := r1.Data.(*model.TermsOfService)
+	fetchedTermsOfService, err := ss.TermsOfService().GetLatest(true)
+	require.Nil(t, err)
 	assert.Equal(t, termsOfService.Text, fetchedTermsOfService.Text)
 	assert.Equal(t, termsOfService.UserId, fetchedTermsOfService.UserId)
 }
@@ -66,18 +58,18 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u1))
+	_, err := ss.User().Save(&u1)
+	require.Nil(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
-	store.Must(ss.TermsOfService().Save(termsOfService))
+	_, err = ss.TermsOfService().Save(termsOfService)
+	require.Nil(t, err)
 
-	r1 := <-ss.TermsOfService().Get("an_invalid_id", true)
-	assert.NotNil(t, r1.Err)
-	assert.Nil(t, r1.Data)
+	r1, err := ss.TermsOfService().Get("an_invalid_id", true)
+	assert.NotNil(t, err)
+	assert.Nil(t, r1)
 
-	r1 = <-ss.TermsOfService().Get(termsOfService.Id, true)
-	assert.Nil(t, r1.Err)
-
-	receivedTermsOfService := r1.Data.(*model.TermsOfService)
+	receivedTermsOfService, err := ss.TermsOfService().Get(termsOfService.Id, true)
+	assert.Nil(t, err)
 	assert.Equal(t, "terms of service", receivedTermsOfService.Text)
 }

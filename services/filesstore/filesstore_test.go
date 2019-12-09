@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package filesstore
 
@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type FileBackendTestSuite struct {
@@ -58,12 +58,12 @@ func TestS3FileBackendTestSuiteWithEncryption(t *testing.T) {
 func runBackendTest(t *testing.T, encrypt bool) {
 	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
-		s3Host = "dockerhost"
+		s3Host = "localhost"
 	}
 
 	s3Port := os.Getenv("CI_MINIO_PORT")
 	if s3Port == "" {
-		s3Port = "9001"
+		s3Port = "9000"
 	}
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
@@ -237,17 +237,29 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	path1 := "19700101/" + model.NewId()
 	path2 := "19800101/" + model.NewId()
 
+	paths, err := s.backend.ListDirectory("19700101")
+	s.Nil(err)
+	s.Len(*paths, 0)
+
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
-	defer s.backend.RemoveFile(path1)
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), path2)
 	s.Nil(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
-	defer s.backend.RemoveFile(path2)
 
-	paths, err := s.backend.ListDirectory("")
+	paths, err = s.backend.ListDirectory("19700101")
+	s.Nil(err)
+	s.Len(*paths, 1)
+	s.Equal(path1, (*paths)[0])
+
+	paths, err = s.backend.ListDirectory("19700101/")
+	s.Nil(err)
+	s.Len(*paths, 1)
+	s.Equal(path1, (*paths)[0])
+
+	paths, err = s.backend.ListDirectory("")
 	s.Nil(err)
 
 	found1 := false
@@ -261,6 +273,9 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	}
 	s.True(found1)
 	s.True(found2)
+
+	s.backend.RemoveFile(path1)
+	s.backend.RemoveFile(path2)
 }
 
 func (s *FileBackendTestSuite) TestRemoveDirectory() {

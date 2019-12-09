@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,9 +10,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestConfigListener(t *testing.T) {
@@ -68,12 +68,10 @@ func TestClientConfigWithComputed(t *testing.T) {
 	defer th.TearDown()
 
 	config := th.App.ClientConfigWithComputed()
-	if _, ok := config["NoAccounts"]; !ok {
-		t.Fatal("expected NoAccounts in returned config")
-	}
-	if _, ok := config["MaxPostSize"]; !ok {
-		t.Fatal("expected MaxPostSize in returned config")
-	}
+	_, ok := config["NoAccounts"]
+	assert.True(t, ok, "expected NoAccounts in returned config")
+	_, ok = config["MaxPostSize"]
+	assert.True(t, ok, "expected MaxPostSize in returned config")
 }
 
 func TestEnsureInstallationDate(t *testing.T) {
@@ -124,9 +122,9 @@ func TestEnsureInstallationDate(t *testing.T) {
 			}
 
 			if tc.PrevInstallationDate == nil {
-				<-th.App.Srv.Store.System().PermanentDeleteByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+				th.App.Srv.Store.System().PermanentDeleteByName(model.SYSTEM_INSTALLATION_DATE_KEY)
 			} else {
-				<-th.App.Srv.Store.System().SaveOrUpdate(&model.System{
+				th.App.Srv.Store.System().SaveOrUpdate(&model.System{
 					Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
 					Value: strconv.FormatInt(*tc.PrevInstallationDate, 10),
 				})
@@ -139,9 +137,8 @@ func TestEnsureInstallationDate(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 
-				result := <-th.App.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
-				assert.Nil(t, result.Err)
-				data, _ := result.Data.(*model.System)
+				data, err := th.App.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+				assert.Nil(t, err)
 				value, _ := strconv.ParseInt(data.Value, 10, 64)
 				assert.True(t, *tc.ExpectedInstallationDate <= value && *tc.ExpectedInstallationDate+1000 >= value)
 			}

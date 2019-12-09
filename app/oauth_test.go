@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -69,9 +69,8 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	if err := th.App.RevokeAccessToken(model.NewRandomString(16)); err == nil {
-		t.Fatal("Should have failed bad token")
-	}
+	err := th.App.RevokeAccessToken(model.NewRandomString(16))
+	require.NotNil(t, err, "Should have failed bad token")
 
 	session := &model.Session{}
 	session.CreateAt = model.GetMillis()
@@ -81,9 +80,8 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.SetExpireInDays(1)
 
 	session, _ = th.App.CreateSession(session)
-	if err := th.App.RevokeAccessToken(session.Token); err == nil {
-		t.Fatal("Should have failed does not have an access token")
-	}
+	err = th.App.RevokeAccessToken(session.Token)
+	require.NotNil(t, err, "Should have failed does not have an access token")
 
 	accessData := &model.AccessData{}
 	accessData.Token = session.Token
@@ -92,13 +90,11 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	accessData.ClientId = model.NewId()
 	accessData.ExpiresAt = session.ExpiresAt
 
-	if result := <-th.App.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err = th.App.Srv.Store.OAuth().SaveAccessData(accessData)
+	require.Nil(t, err)
 
-	if err := th.App.RevokeAccessToken(accessData.Token); err != nil {
-		t.Fatal(err)
-	}
+	err = th.App.RevokeAccessToken(accessData.Token)
+	require.Nil(t, err)
 }
 
 func TestOAuthDeleteApp(t *testing.T) {
@@ -115,9 +111,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 
 	var err *model.AppError
 	a1, err = th.App.CreateOAuthApp(a1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	session := &model.Session{}
 	session.CreateAt = model.GetMillis()
@@ -136,17 +130,14 @@ func TestOAuthDeleteApp(t *testing.T) {
 	accessData.ClientId = a1.Id
 	accessData.ExpiresAt = session.ExpiresAt
 
-	if result := <-th.App.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err = th.App.Srv.Store.OAuth().SaveAccessData(accessData)
+	require.Nil(t, err)
 
-	if err := th.App.DeleteOAuthApp(a1.Id); err != nil {
-		t.Fatal(err)
-	}
+	err = th.App.DeleteOAuthApp(a1.Id)
+	require.Nil(t, err)
 
-	if _, err := th.App.GetSession(session.Token); err == nil {
-		t.Fatal("should not get session from cache or db")
-	}
+	_, err = th.App.GetSession(session.Token)
+	require.NotNil(t, err, "should not get session from cache or db")
 }
 
 func TestAuthorizeOAuthUser(t *testing.T) {
@@ -235,8 +226,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		token := model.NewToken("invalid", "")
-		result := <-th.App.Srv.Store.Token().Save(token)
-		require.Nil(t, result.Err)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 		state := makeState(token)
 
@@ -327,6 +317,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
+		assert.Contains(t, err.DetailedError, "status_code=418")
 	})
 
 	t.Run("with an invalid token response", func(t *testing.T) {
@@ -345,6 +336,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
+		assert.Contains(t, err.DetailedError, "response_body=invalid")
 	})
 
 	t.Run("with an invalid token type", func(t *testing.T) {
@@ -468,43 +460,120 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("enabled and properly configured", func(t *testing.T) {
-		userData := "Hello, World!"
+		testCases := []struct {
+			Description                   string
+			SiteURL                       string
+			ExpectedSetCookieHeaderRegexp string
+		}{
+			{"no subpath", "http://localhost:8065", "^MMOAUTH=; Path=/"},
+			{"subpath", "http://localhost:8065/subpath", "^MMOAUTH=; Path=/subpath"},
+		}
 
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			switch r.URL.Path {
-			case "/token":
-				json.NewEncoder(w).Encode(&model.AccessResponse{
-					AccessToken: model.NewId(),
-					TokenType:   model.ACCESS_TOKEN_TYPE,
+		for _, tc := range testCases {
+			t.Run(tc.Description, func(t *testing.T) {
+				userData := "Hello, World!"
+
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					switch r.URL.Path {
+					case "/token":
+						json.NewEncoder(w).Encode(&model.AccessResponse{
+							AccessToken: model.NewId(),
+							TokenType:   model.ACCESS_TOKEN_TYPE,
+						})
+					case "/user":
+						w.WriteHeader(http.StatusOK)
+						w.Write([]byte(userData))
+					}
+				}))
+				defer server.Close()
+
+				th := setup(true, true, true, server.URL)
+				defer th.TearDown()
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.SiteURL = tc.SiteURL
 				})
-			case "/user":
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(userData))
-			}
-		}))
-		defer server.Close()
 
-		th := setup(true, true, true, server.URL)
+				cookie := model.NewId()
+				request := makeRequest(t, cookie)
+
+				stateProps := map[string]string{
+					"team_id": model.NewId(),
+					"token":   makeToken(th, cookie).Token,
+				}
+				state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+
+				recorder := httptest.ResponseRecorder{}
+				body, receivedTeamId, receivedStateProps, err := th.App.AuthorizeOAuthUser(&recorder, request, model.SERVICE_GITLAB, "", state, "")
+
+				require.NotNil(t, body)
+				bodyBytes, bodyErr := ioutil.ReadAll(body)
+				require.Nil(t, bodyErr)
+				assert.Equal(t, userData, string(bodyBytes))
+
+				assert.Equal(t, stateProps["team_id"], receivedTeamId)
+				assert.Equal(t, stateProps, receivedStateProps)
+				assert.Nil(t, err)
+
+				cookies := recorder.Header().Get("Set-Cookie")
+				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
+			})
+		}
+	})
+}
+
+func TestGetAuthorizationCode(t *testing.T) {
+	t.Run("not enabled", func(t *testing.T) {
+		th := Setup(t)
 		defer th.TearDown()
 
-		cookie := model.NewId()
-		request := makeRequest(t, cookie)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GitLabSettings.Enable = false
+		})
 
-		stateProps := map[string]string{
-			"team_id": model.NewId(),
-			"token":   makeToken(th, cookie).Token,
+		_, err := th.App.GetAuthorizationCode(nil, nil, model.SERVICE_GITLAB, map[string]string{}, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.get_authorization_code.unsupported.app_error", err.Id)
+	})
+
+	t.Run("enabled and properly configured", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GitLabSettings.Enable = true
+		})
+
+		testCases := []struct {
+			Description                   string
+			SiteURL                       string
+			ExpectedSetCookieHeaderRegexp string
+		}{
+			{"no subpath", "http://localhost:8065", "^MMOAUTH=[a-z0-9]+; Path=/"},
+			{"subpath", "http://localhost:8065/subpath", "^MMOAUTH=[a-z0-9]+; Path=/subpath"},
 		}
-		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 
-		body, receivedTeamId, receivedStateProps, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		for _, tc := range testCases {
+			t.Run(tc.Description, func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.SiteURL = tc.SiteURL
+				})
 
-		require.NotNil(t, body)
-		bodyBytes, bodyErr := ioutil.ReadAll(body)
-		require.Nil(t, bodyErr)
-		assert.Equal(t, userData, string(bodyBytes))
+				request, _ := http.NewRequest(http.MethodGet, "https://mattermost.example.com", nil)
 
-		assert.Equal(t, stateProps["team_id"], receivedTeamId)
-		assert.Equal(t, stateProps, receivedStateProps)
-		assert.Nil(t, err)
+				stateProps := map[string]string{
+					"email":  "email@example.com",
+					"action": "action",
+				}
+
+				recorder := httptest.ResponseRecorder{}
+				url, err := th.App.GetAuthorizationCode(&recorder, request, model.SERVICE_GITLAB, stateProps, "")
+				require.Nil(t, err)
+				assert.NotEmpty(t, url)
+
+				cookies := recorder.Header().Get("Set-Cookie")
+				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
+			})
+		}
 	})
 }

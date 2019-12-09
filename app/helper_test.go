@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -12,10 +12,11 @@ import (
 
 	"testing"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -36,7 +37,7 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
-	memoryStore, err := config.NewMemoryStore()
+	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}
@@ -70,6 +71,15 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
+
+	// Disable strict password requirements for test
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PasswordSettings.MinimumLength = 5
+		*cfg.PasswordSettings.Lowercase = false
+		*cfg.PasswordSettings.Uppercase = false
+		*cfg.PasswordSettings.Symbol = false
+		*cfg.PasswordSettings.Number = false
+	})
 
 	if enterprise {
 		th.App.SetLicense(model.NewTestLicense())
@@ -144,6 +154,14 @@ func (me *TestHelper) CreateTeam() *model.Team {
 }
 
 func (me *TestHelper) CreateUser() *model.User {
+	return me.CreateUserOrGuest(false)
+}
+
+func (me *TestHelper) CreateGuest() *model.User {
+	return me.CreateUserOrGuest(true)
+}
+
+func (me *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -156,11 +174,20 @@ func (me *TestHelper) CreateUser() *model.User {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if user, err = me.App.CreateUser(user); err != nil {
-		mlog.Error(err.Error())
+	if guest {
+		if user, err = me.App.CreateGuest(user); err != nil {
+			mlog.Error(err.Error())
 
-		time.Sleep(time.Second)
-		panic(err)
+			time.Sleep(time.Second)
+			panic(err)
+		}
+	} else {
+		if user, err = me.App.CreateUser(user); err != nil {
+			mlog.Error(err.Error())
+
+			time.Sleep(time.Second)
+			panic(err)
+		}
 	}
 	utils.EnableDebugLogForTest()
 	return user
@@ -270,6 +297,26 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	return post
 }
 
+func (me *TestHelper) CreateMessagePost(channel *model.Channel, message string) *model.Post {
+	post := &model.Post{
+		UserId:    me.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   message,
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	if post, err = me.App.CreatePost(post, channel, false); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return post
+}
+
 func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
@@ -316,8 +363,10 @@ func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 	roleNames := []string{
 		scheme.DefaultTeamAdminRole,
 		scheme.DefaultTeamUserRole,
+		scheme.DefaultTeamGuestRole,
 		scheme.DefaultChannelAdminRole,
 		scheme.DefaultChannelUserRole,
+		scheme.DefaultChannelGuestRole,
 	}
 
 	var roles []*model.Role
@@ -359,17 +408,17 @@ func (me *TestHelper) CreateGroup() *model.Group {
 func (me *TestHelper) CreateEmoji() *model.Emoji {
 	utils.DisableDebugLogForTest()
 
-	result := <-me.App.Srv.Store.Emoji().Save(&model.Emoji{
+	emoji, err := me.App.Srv.Store.Emoji().Save(&model.Emoji{
 		CreatorId: me.BasicUser.Id,
 		Name:      model.NewRandomString(10),
 	})
-	if result.Err != nil {
-		panic(result.Err)
+	if err != nil {
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()
 
-	return result.Data.(*model.Emoji)
+	return emoji
 }
 
 func (me *TestHelper) AddReactionToPost(post *model.Post, user *model.User, emojiName string) *model.Reaction {
@@ -450,23 +499,15 @@ func (me *TestHelper) ResetEmojisMigration() {
 }
 
 func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	if r := <-me.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
-		if r.Data.(int64) != expected {
-			t.Fatalf("Unexpected number of teams. Expected: %v, found: %v", expected, r.Data.(int64))
-		}
-	} else {
-		t.Fatalf("Failed to get team count.")
-	}
+	teamCount, err := me.App.Srv.Store.Team().AnalyticsTeamCount(false)
+	require.Nil(t, err, "Failed to get team count.")
+	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 }
 
 func (me *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	if r := <-me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != expected {
-			t.Fatalf("Unexpected number of channels. Expected: %v, found: %v", expected, r.Data.(int64))
-		}
-	} else {
-		t.Fatalf("Failed to get channel count.")
-	}
+	count, err := me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	require.Nilf(t, err, "Failed to get channel count.")
+	require.Equalf(t, count, expected, "Unexpected number of channels. Expected: %v, found: %v", expected, count)
 }
 
 func (me *TestHelper) SetupTeamScheme() *model.Scheme {

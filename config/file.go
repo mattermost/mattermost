@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -13,9 +13,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 var (
@@ -92,9 +92,19 @@ func resolveConfigFilePath(path string) (string, error) {
 	return "", fmt.Errorf("failed to find config file %s", path)
 }
 
+// resolveFilePath uses the name if name is absolute path.
+// otherwise returns the combined path/name
+func (fs *FileStore) resolveFilePath(name string) string {
+	// Absolute paths are explicit and require no resolution.
+	if filepath.IsAbs(name) {
+		return name
+	}
+	return filepath.Join(filepath.Dir(fs.path), name)
+}
+
 // Set replaces the current configuration in its entirety and updates the backing store.
 func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
-	return fs.commonStore.set(newCfg, func(cfg *model.Config) error {
+	return fs.commonStore.set(newCfg, true, func(cfg *model.Config) error {
 		if *fs.config.ClusterSettings.Enable && *fs.config.ClusterSettings.ReadOnlyConfig {
 			return ErrReadOnlyConfiguration
 		}
@@ -160,7 +170,7 @@ func (fs *FileStore) Load() (err error) {
 
 // GetFile fetches the contents of a previously persisted configuration file.
 func (fs *FileStore) GetFile(name string) ([]byte, error) {
-	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
+	resolvedPath := fs.resolveFilePath(name)
 
 	data, err := ioutil.ReadFile(resolvedPath)
 	if err != nil {
@@ -172,7 +182,7 @@ func (fs *FileStore) GetFile(name string) ([]byte, error) {
 
 // SetFile sets or replaces the contents of a configuration file.
 func (fs *FileStore) SetFile(name string, data []byte) error {
-	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
+	resolvedPath := fs.resolveFilePath(name)
 
 	err := ioutil.WriteFile(resolvedPath, data, 0777)
 	if err != nil {
@@ -184,7 +194,11 @@ func (fs *FileStore) SetFile(name string, data []byte) error {
 
 // HasFile returns true if the given file was previously persisted.
 func (fs *FileStore) HasFile(name string) (bool, error) {
-	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
+	if name == "" {
+		return false, nil
+	}
+
+	resolvedPath := fs.resolveFilePath(name)
 
 	_, err := os.Stat(resolvedPath)
 	if err != nil && os.IsNotExist(err) {
@@ -198,6 +212,11 @@ func (fs *FileStore) HasFile(name string) (bool, error) {
 
 // RemoveFile removes a previously persisted configuration file.
 func (fs *FileStore) RemoveFile(name string) error {
+	if filepath.IsAbs(name) {
+		// Don't delete absolute filenames, as may be mounted drive, etc.
+		mlog.Debug("Skipping removal of configuration file with absolute path", mlog.String("filename", name))
+		return nil
+	}
 	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
 
 	err := os.Remove(resolvedPath)

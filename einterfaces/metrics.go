@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package einterfaces
 
@@ -43,4 +43,6 @@ type MetricsInterface interface {
 
 	IncrementPostsSearchCounter()
 	ObservePostsSearchDuration(elapsed float64)
+	ObserveStoreMethodDuration(method string, success string, elapsed float64)
+	ObserveApiEndpointDuration(endpoint string, elapsed float64)
 }

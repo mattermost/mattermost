@@ -1,14 +1,15 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUserTermsOfServiceStore(t *testing.T, ss store.Store) {
@@ -23,12 +24,8 @@ func testSaveUserTermsOfService(t *testing.T, ss store.Store) {
 		TermsOfServiceId: model.NewId(),
 	}
 
-	r1 := <-ss.UserTermsOfService().Save(userTermsOfService)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-
-	savedUserTermsOfService := r1.Data.(*model.UserTermsOfService)
+	savedUserTermsOfService, err := ss.UserTermsOfService().Save(userTermsOfService)
+	require.Nil(t, err)
 	assert.Equal(t, userTermsOfService.UserId, savedUserTermsOfService.UserId)
 	assert.Equal(t, userTermsOfService.TermsOfServiceId, savedUserTermsOfService.TermsOfServiceId)
 	assert.NotEmpty(t, savedUserTermsOfService.CreateAt)
@@ -40,17 +37,11 @@ func testGetByUserTermsOfService(t *testing.T, ss store.Store) {
 		TermsOfServiceId: model.NewId(),
 	}
 
-	r1 := <-ss.UserTermsOfService().Save(userTermsOfService)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
+	_, err := ss.UserTermsOfService().Save(userTermsOfService)
+	require.Nil(t, err)
 
-	r1 = <-ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-
-	fetchedUserTermsOfService := r1.Data.(*model.UserTermsOfService)
+	fetchedUserTermsOfService, err := ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
+	require.Nil(t, err)
 	assert.Equal(t, userTermsOfService.UserId, fetchedUserTermsOfService.UserId)
 	assert.Equal(t, userTermsOfService.TermsOfServiceId, fetchedUserTermsOfService.TermsOfServiceId)
 	assert.NotEmpty(t, fetchedUserTermsOfService.CreateAt)
@@ -62,21 +53,15 @@ func testDeleteUserTermsOfService(t *testing.T, ss store.Store) {
 		TermsOfServiceId: model.NewId(),
 	}
 
-	r1 := <-ss.UserTermsOfService().Save(userTermsOfService)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
+	_, err := ss.UserTermsOfService().Save(userTermsOfService)
+	require.Nil(t, err)
 
-	r1 = <-ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
+	_, err = ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
+	require.Nil(t, err)
 
-	r1 = <-ss.UserTermsOfService().Delete(userTermsOfService.UserId, userTermsOfService.TermsOfServiceId)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
+	err = ss.UserTermsOfService().Delete(userTermsOfService.UserId, userTermsOfService.TermsOfServiceId)
+	require.Nil(t, err)
 
-	r1 = <-ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
-	assert.Equal(t, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error", r1.Err.Id)
+	_, err = ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
+	assert.Equal(t, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error", err.Id)
 }

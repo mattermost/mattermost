@@ -1,15 +1,14 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type webSocketHandler interface {
@@ -89,7 +88,13 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 }
 
 func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
-	mlog.Error(fmt.Sprintf("websocket routing error: seq=%v uid=%v %v [details: %v]", r.Seq, conn.UserId, err.SystemMessage(utils.T), err.DetailedError))
+	mlog.Error(
+		"websocket routing error.",
+		mlog.Int64("seq", r.Seq),
+		mlog.String("user_id", conn.UserId),
+		mlog.String("system_message", err.SystemMessage(utils.T)),
+		mlog.Err(err),
+	)
 
 	err.DetailedError = ""
 	errorResp := model.NewWebSocketError(r.Seq, err)

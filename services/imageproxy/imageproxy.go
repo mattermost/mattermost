@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package imageproxy
 
@@ -7,11 +7,14 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/configservice"
-	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 )
 
 var ErrNotEnabled = Error{errors.New("imageproxy.ImageProxy: image proxy not enabled")}
@@ -23,6 +26,8 @@ type ImageProxy struct {
 	configListenerId string
 
 	HTTPService httpservice.HTTPService
+
+	Logger *mlog.Logger
 
 	lock    sync.RWMutex
 	backend ImageProxyBackend
@@ -36,19 +41,13 @@ type ImageProxyBackend interface {
 
 	// GetImageDirect returns a proxied image along with its content type.
 	GetImageDirect(imageURL string) (io.ReadCloser, string, error)
-
-	// GetProxiedImageURL returns the URL to access a given image through the image proxy, whether the image proxy is
-	// running externally or as part of the Mattermost server itself.
-	GetProxiedImageURL(imageURL string) string
-
-	// GetUnproxiedImageURL returns the original URL of an image from one that has been directed at the image proxy.
-	GetUnproxiedImageURL(proxiedURL string) string
 }
 
-func MakeImageProxy(configService configservice.ConfigService, httpService httpservice.HTTPService) *ImageProxy {
+func MakeImageProxy(configService configservice.ConfigService, httpService httpservice.HTTPService, logger *mlog.Logger) *ImageProxy {
 	proxy := &ImageProxy{
 		ConfigService: configService,
 		HTTPService:   httpService,
+		Logger:        logger,
 	}
 
 	proxy.configListenerId = proxy.ConfigService.AddConfigListener(proxy.OnConfigChange)
@@ -119,24 +118,36 @@ func (proxy *ImageProxy) GetImageDirect(imageURL string) (io.ReadCloser, string,
 // GetProxiedImageURL takes the URL of an image and returns a URL that can be used to view that image through the
 // image proxy.
 func (proxy *ImageProxy) GetProxiedImageURL(imageURL string) string {
-	proxy.lock.RLock()
-	defer proxy.lock.RUnlock()
+	return getProxiedImageURL(imageURL, *proxy.ConfigService.Config().ServiceSettings.SiteURL)
+}
 
-	if proxy.backend == nil {
+func getProxiedImageURL(imageURL, siteURL string) string {
+	if imageURL == "" || imageURL[0] == '/' || strings.HasPrefix(imageURL, siteURL) {
 		return imageURL
 	}
 
-	return proxy.backend.GetProxiedImageURL(imageURL)
+	return siteURL + "/api/v4/image?url=" + url.QueryEscape(imageURL)
 }
 
 // GetUnproxiedImageURL takes the URL of an image on the image proxy and returns the original URL of the image.
 func (proxy *ImageProxy) GetUnproxiedImageURL(proxiedURL string) string {
-	proxy.lock.RLock()
-	defer proxy.lock.RUnlock()
+	return getUnproxiedImageURL(proxiedURL, *proxy.ConfigService.Config().ServiceSettings.SiteURL)
+}
 
-	if proxy.backend == nil {
+func getUnproxiedImageURL(proxiedURL, siteURL string) string {
+	if !strings.HasPrefix(proxiedURL, siteURL+"/api/v4/image?url=") {
 		return proxiedURL
 	}
 
-	return proxy.backend.GetUnproxiedImageURL(proxiedURL)
+	parsed, err := url.Parse(proxiedURL)
+	if err != nil {
+		return proxiedURL
+	}
+
+	u := parsed.Query()["url"]
+	if len(u) == 0 {
+		return proxiedURL
+	}
+
+	return u[0]
 }

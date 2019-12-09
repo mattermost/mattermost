@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,8 +11,18 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+func stopOnError(err LineImportWorkerError) bool {
+	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
+		mlog.Warn("Large image import error", mlog.Err(err.Error))
+		return false
+	}
+	return true
+}
 
 func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
 	for line := range lines {
@@ -45,19 +55,21 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 		}
 
 		if lineNumber == 1 {
-			importDataFileVersion, apperr := processImportDataFileVersionLine(line)
-			if apperr != nil {
-				return apperr, lineNumber
+			importDataFileVersion, appErr := processImportDataFileVersionLine(line)
+			if appErr != nil {
+				return appErr, lineNumber
 			}
 
 			if importDataFileVersion != 1 {
 				return model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest), lineNumber
 			}
+			lastLineType = line.Type
 			continue
 		}
 
 		if line.Type != lastLineType {
-			if lastLineType != "" {
+			// Only clear the worker queue if is not the first data entry
+			if lineNumber != 2 {
 				// Changing type. Clear out the worker queue before continuing.
 				close(linesChan)
 				wg.Wait()
@@ -65,7 +77,9 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 				// Check no errors occurred while waiting for the queue to empty.
 				if len(errorsChan) != 0 {
 					err := <-errorsChan
-					return err.Error, err.LineNumber
+					if stopOnError(err) {
+						return err.Error, err.LineNumber
+					}
 				}
 			}
 
@@ -81,9 +95,11 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 		select {
 		case linesChan <- LineImportWorkerData{line, lineNumber}:
 		case err := <-errorsChan:
-			close(linesChan)
-			wg.Wait()
-			return err.Error, err.LineNumber
+			if stopOnError(err) {
+				close(linesChan)
+				wg.Wait()
+				return err.Error, err.LineNumber
+			}
 		}
 	}
 
@@ -94,7 +110,9 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 	// Check no errors occurred while waiting for the queue to empty.
 	if len(errorsChan) != 0 {
 		err := <-errorsChan
-		return err.Error, err.LineNumber
+		if stopOnError(err) {
+			return err.Error, err.LineNumber
+		}
 	}
 
 	if err := scanner.Err(); err != nil {

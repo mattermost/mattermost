@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -8,8 +8,8 @@ import (
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type InviteProvider struct {
@@ -49,16 +49,15 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 	targetUsername := splitMessage[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	result := <-a.Srv.Store.User().GetByUsername(targetUsername)
-	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+	userProfile, err := a.Srv.Store.User().GetByUsername(targetUsername)
+	if err != nil {
+		mlog.Error(err.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_user.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
 	}
 
-	userProfile := result.Data.(*model.User)
 	if userProfile.DeleteAt != 0 {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_user.app_error"),
@@ -67,7 +66,6 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 	}
 
 	var channelToJoin *model.Channel
-	var err *model.AppError
 	// User set a channel to add the invited user
 	if len(splitMessage) > 1 && splitMessage[1] != "" {
 		targetChannelName := strings.TrimPrefix(strings.TrimSpace(splitMessage[1]), "~")
@@ -141,9 +139,19 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 		}
 	}
 
-	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, args.Session.UserId, "", args.Session.Id); err != nil {
+	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, args.Session.UserId, ""); err != nil {
+		var text string
+		if err.Id == "api.channel.add_members.user_denied" {
+			text = args.T("api.command_invite.group_constrained_user_denied")
+		} else if err.Id == "store.sql_team.get_member.missing.app_error" {
+			text = args.T("api.command_invite.user_not_in_team.app_error", map[string]interface{}{
+				"Username": userProfile.Username,
+			})
+		} else {
+			text = args.T("api.command_invite.fail.app_error")
+		}
 		return &model.CommandResponse{
-			Text:         args.T("api.command_invite.fail.app_error"),
+			Text:         text,
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
 	}

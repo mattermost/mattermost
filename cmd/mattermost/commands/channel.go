@@ -1,13 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -79,7 +79,8 @@ var ListChannelsCmd = &cobra.Command{
 	Use:   "list [teams]",
 	Short: "List all channels on specified teams.",
 	Long: `List all channels on specified teams.
-Archived channels are appended with ' (archived)'.`,
+Archived channels are appended with ' (archived)'.
+Private channels are appended with ' (private)'.`,
 	Example: "  channel list myteam",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    listChannelsCmdF,
@@ -265,8 +266,8 @@ func removeUserFromChannel(a *app.App, channel *model.Channel, user *model.User,
 }
 
 func removeAllUsersFromChannel(a *app.App, channel *model.Channel) {
-	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {
-		CommandPrintErrorln("Unable to remove all users from " + channel.Name + ". Error: " + result.Err.Error())
+	if err := a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {
+		CommandPrintErrorln("Unable to remove all users from " + channel.Name + ". Error: " + err.Error())
 	}
 }
 
@@ -313,8 +314,8 @@ func archiveChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if result := <-a.Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); result.Err != nil {
-			CommandPrintErrorln("Unable to archive channel '" + channel.Name + "' error: " + result.Err.Error())
+		if err := a.Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); err != nil {
+			CommandPrintErrorln("Unable to archive channel '" + channel.Name + "' error: " + err.Error())
 		}
 	}
 
@@ -421,7 +422,7 @@ func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *mod
 		for _, webhook := range outgoingWebhooks {
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
-				if result := <-a.Srv.Store.Webhook().UpdateOutgoing(webhook); result.Err != nil {
+				if _, err := a.Srv.Store.Webhook().UpdateOutgoing(webhook); err != nil {
 					CommandPrintErrorln("Failed to move outgoing webhook '" + webhook.Id + "' to new team.")
 				}
 			}
@@ -444,17 +445,18 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if result := <-a.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
+		if channels, chanErr := a.Srv.Store.Channel().GetAll(team.Id); chanErr != nil {
 			CommandPrintErrorln("Unable to list channels for '" + args[i] + "'")
 		} else {
-			channels := result.Data.([]*model.Channel)
-
 			for _, channel := range channels {
+				output := channel.Name
 				if channel.DeleteAt > 0 {
-					CommandPrettyPrintln(channel.Name + " (archived)")
-				} else {
-					CommandPrettyPrintln(channel.Name)
+					output += " (archived)"
 				}
+				if channel.Type == model.CHANNEL_PRIVATE {
+					output += " (private)"
+				}
+				CommandPrettyPrintln(output)
 			}
 		}
 	}
@@ -475,7 +477,7 @@ func restoreChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if result := <-a.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
+		if err := a.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); err != nil {
 			CommandPrintErrorln("Unable to restore channel '" + args[i] + "'")
 		}
 	}
@@ -593,10 +595,14 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
+	output := fmt.Sprintf(`Channel Name: %s, Display Name: %s, Channel ID: %s`, channel.Name, channel.DisplayName, channel.Id)
 	if channel.DeleteAt > 0 {
-		CommandPrettyPrintln(fmt.Sprintf(`Channel Name :%s, Display Name :%s, Channel ID :%s (archived)`, channel.Name, channel.DisplayName, channel.Id))
-	} else {
-		CommandPrettyPrintln(fmt.Sprintf(`Channel Name :%s, Display Name :%s, Channel ID :%s`, channel.Name, channel.DisplayName, channel.Id))
+		output += " (archived)"
 	}
+	if channel.Type == model.CHANNEL_PRIVATE {
+		output += " (private)"
+	}
+	CommandPrettyPrintln(output)
+
 	return nil
 }

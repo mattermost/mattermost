@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package filesstore
 
@@ -7,13 +7,18 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+type ReadCloseSeeker interface {
+	io.ReadCloser
+	io.Seeker
+}
 
 type FileBackend interface {
 	TestConnection() *model.AppError
 
-	Reader(path string) (io.ReadCloser, *model.AppError)
+	Reader(path string) (ReadCloseSeeker, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
 	FileExists(path string) (bool, *model.AppError)
 	CopyFile(oldPath, newPath string) *model.AppError

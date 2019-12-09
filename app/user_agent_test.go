@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
@@ -5,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/avct/uasurfer"
+	"github.com/stretchr/testify/assert"
 )
 
 type testUserAgent struct {
@@ -53,9 +57,8 @@ func TestGetPlatformName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetPlatformName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getPlatformName(ua); actual != expected[i] {
-				t.Fatalf("%v Got %v, expected %v", userAgent.Name, actual, expected[i])
-			}
+			actual := getPlatformName(ua)
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }
@@ -83,9 +86,8 @@ func TestGetOSName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetOSName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getOSName(ua); actual != expected[i] {
-				t.Fatalf("Got %v, expected %v", actual, expected[i])
-			}
+			actual := getOSName(ua)
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }
@@ -113,9 +115,8 @@ func TestGetBrowserName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetBrowserName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getBrowserName(ua, userAgent.UserAgent); actual != expected[i] {
-				t.Fatalf("Got %v, expected %v", actual, expected[i])
-			}
+			actual := getBrowserName(ua, userAgent.UserAgent)
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }
@@ -143,9 +144,8 @@ func TestGetBrowserVersion(t *testing.T) {
 		t.Run(fmt.Sprintf("GetBrowserVersion_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getBrowserVersion(ua, userAgent.UserAgent); actual != expected[i] {
-				t.Fatalf("Got %v, expected %v", actual, expected[i])
-			}
+			actual := getBrowserVersion(ua, userAgent.UserAgent)
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }

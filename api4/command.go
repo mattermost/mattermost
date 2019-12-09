@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitCommand() {
@@ -145,6 +145,11 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(teamId) == 0 {
 		c.SetInvalidParam("team_id")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
 

@@ -1,9 +1,12 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -89,12 +92,12 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	singer1 := th.BasicUser
 	scientist1 := th.BasicUser2
 
-	_, err = th.App.CreateOrRestoreGroupMember(gleeGroup.Id, singer1.Id)
+	_, err = th.App.UpsertGroupMember(gleeGroup.Id, singer1.Id)
 	if err != nil {
 		t.Errorf("test groupmember not created: %s", err.Error())
 	}
 
-	scientistGroupMember, err := th.App.CreateOrRestoreGroupMember(scienceGroup.Id, scientist1.Id)
+	scientistGroupMember, err := th.App.UpsertGroupMember(scienceGroup.Id, scientist1.Id)
 	if err != nil {
 		t.Errorf("test groupmember not created: %s", err.Error())
 	}
@@ -114,7 +117,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("error retrieving channel member: %s", err.Error())
 	}
 
-	tMembers, err := th.App.GetTeamMembers(singersTeam.Id, 0, 999)
+	tMembers, err := th.App.GetTeamMembers(singersTeam.Id, 0, 999, nil)
 	if err != nil {
 		t.Errorf("error retrieving team members: %s", err.Error())
 	}
@@ -143,7 +146,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("wrong error: %s", err.Id)
 	}
 
-	tMembers, err = th.App.GetTeamMembers(nerdsTeam.Id, 0, 999)
+	tMembers, err = th.App.GetTeamMembers(nerdsTeam.Id, 0, 999, nil)
 	if err != nil {
 		t.Errorf("error retrieving team members: %s", err.Error())
 	}
@@ -185,7 +188,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("wrong error: %s", err.Id)
 	}
 
-	tMembers, err = th.App.GetTeamMembers(nerdsTeam.Id, 0, 999)
+	tMembers, err = th.App.GetTeamMembers(nerdsTeam.Id, 0, 999, nil)
 	if err != nil {
 		t.Errorf("error retrieving team members: %s", err.Error())
 	}
@@ -257,7 +260,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Ensure members are in channel
-	_, err = th.App.AddChannelMember(scientist1.Id, experimentsChannel, "", "", "")
+	_, err = th.App.AddChannelMember(scientist1.Id, experimentsChannel, "", "")
 	if err != nil {
 		t.Errorf("unable to add user to channel: %s", err.Error())
 	}
@@ -267,7 +270,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	if err != nil {
 		t.Errorf("unable to add user to team: %s", err.Error())
 	}
-	_, err = th.App.AddChannelMember(singer1.Id, experimentsChannel, "", "", "")
+	_, err = th.App.AddChannelMember(singer1.Id, experimentsChannel, "", "")
 	if err != nil {
 		t.Errorf("unable to add user to channel: %s", err.Error())
 	}
@@ -294,9 +297,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	timeAfterLeaving := model.GetMillis()
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	result := <-th.App.Srv.Store.ChannelMemberHistory().PermanentDeleteBatch(timeBeforeLeaving, 1000)
-	if result.Err != nil {
-		t.Errorf("error permanently deleting channelmemberhistory: %s", result.Err.Error())
+	_, err = th.App.Srv.Store.ChannelMemberHistory().PermanentDeleteBatch(timeBeforeLeaving, 1000)
+	if err != nil {
+		t.Errorf("error permanently deleting channelmemberhistory: %s", err.Error())
 	}
 
 	pErr = th.App.CreateDefaultMemberships(scienceChannelGroupSyncable.UpdateAt)
@@ -310,9 +313,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	result = <-th.App.Srv.Jobs.Store.ChannelMemberHistory().PermanentDeleteBatch(timeAfterLeaving, 1000)
-	if result.Err != nil {
-		t.Errorf("error permanently deleting channelmemberhistory: %s", result.Err.Error())
+	_, err = th.App.Srv.Jobs.Store.ChannelMemberHistory().PermanentDeleteBatch(timeAfterLeaving, 1000)
+	if err != nil {
+		t.Errorf("error permanently deleting channelmemberhistory: %s", err.Error())
 	}
 
 	pErr = th.App.CreateDefaultMemberships(scienceChannelGroupSyncable.UpdateAt)
@@ -341,7 +344,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 		_, err = th.App.AddTeamMember(th.BasicTeam.Id, userID)
 		require.Nil(t, err)
 
-		_, err = th.App.AddChannelMember(userID, th.BasicChannel, "", "", "")
+		_, err = th.App.AddChannelMember(userID, th.BasicChannel, "", "")
 		require.Nil(t, err)
 	}
 
@@ -366,7 +369,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.Nil(t, err)
 
 	// verify the member count
-	tmembers, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100)
+	tmembers, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100, nil)
 	require.Nil(t, err)
 	require.Len(t, tmembers, 3)
 
@@ -375,7 +378,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.Equal(t, 3, int(cmemberCount))
 
 	// add a user to the group
-	_, err = th.App.CreateOrRestoreGroupMember(group.Id, th.SystemAdminUser.Id)
+	_, err = th.App.UpsertGroupMember(group.Id, th.SystemAdminUser.Id)
 	require.Nil(t, err)
 
 	// run the delete
@@ -383,7 +386,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// verify the new member counts
-	tmembers, err = th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100)
+	tmembers, err = th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100, nil)
 	require.Nil(t, err)
 	require.Len(t, tmembers, 1)
 	require.Equal(t, th.SystemAdminUser.Id, tmembers[0].UserId)

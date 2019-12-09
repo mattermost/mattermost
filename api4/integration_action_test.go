@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,8 +27,11 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assert.NotEmpty(th.t, string(bb))
 	poir := model.PostActionIntegrationRequestFromJson(bytes.NewReader(bb))
 	assert.NotEmpty(th.t, poir.UserId)
+	assert.NotEmpty(th.t, poir.UserName)
 	assert.NotEmpty(th.t, poir.ChannelId)
-	assert.Empty(th.t, poir.TeamId)
+	assert.NotEmpty(th.t, poir.ChannelName)
+	assert.NotEmpty(th.t, poir.TeamId)
+	assert.NotEmpty(th.t, poir.TeamName)
 	assert.NotEmpty(th.t, poir.PostId)
 	assert.NotEmpty(th.t, poir.TriggerId)
 	assert.Equal(th.t, "button", poir.Type)
@@ -43,7 +46,7 @@ func TestPostActionCookies(t *testing.T) {
 	Client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	handler := &testHandler{t}
@@ -99,7 +102,7 @@ func TestOpenDialog(t *testing.T) {
 	Client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
@@ -112,7 +115,7 @@ func TestOpenDialog(t *testing.T) {
 			CallbackId: "callbackid",
 			Title:      "Some Title",
 			Elements: []model.DialogElement{
-				model.DialogElement{
+				{
 					DisplayName: "Element Name",
 					Name:        "element_name",
 					Type:        "text",
@@ -142,16 +145,28 @@ func TestOpenDialog(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
 
-	// At least one element is required
+	// Should pass with markdown formatted introduction text
 	request.URL = "http://localhost:8065"
+	request.Dialog.IntroductionText = "**Some** _introduction text"
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
+
+	// Should pass with empty introduction text
+	request.Dialog.IntroductionText = ""
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
+
+	// Should pass with no elements
 	request.Dialog.Elements = nil
 	pass, resp = Client.OpenInteractiveDialog(request)
-	CheckBadRequestStatus(t, resp)
-	assert.False(t, pass)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
 	request.Dialog.Elements = []model.DialogElement{}
 	pass, resp = Client.OpenInteractiveDialog(request)
-	CheckBadRequestStatus(t, resp)
-	assert.False(t, pass)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
 }
 
 func TestSubmitDialog(t *testing.T) {
@@ -160,7 +175,7 @@ func TestSubmitDialog(t *testing.T) {
 	Client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	submit := model.SubmitDialogRequest{

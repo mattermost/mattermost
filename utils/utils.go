@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/mattermost/mattermost-server/model"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -19,6 +17,15 @@ func StringInSlice(a string, slice []string) bool {
 		}
 	}
 	return false
+}
+
+func RemoveStringFromSlice(a string, slice []string) []string {
+	for i, str := range slice {
+		if str == a {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
 }
 
 func StringArrayIntersection(arr1, arr2 []string) []string {
@@ -68,19 +75,21 @@ func StringSliceDiff(a, b []string) []string {
 	return result
 }
 
-func GetIpAddress(r *http.Request) string {
+func GetIpAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	address := ""
 
-	header := r.Header.Get(model.HEADER_FORWARDED)
-	if len(header) > 0 {
-		addresses := strings.Fields(header)
-		if len(addresses) > 0 {
-			address = strings.TrimRight(addresses[0], ",")
+	for _, proxyHeader := range trustedProxyIPHeader {
+		header := r.Header.Get(proxyHeader)
+		if len(header) > 0 {
+			addresses := strings.Fields(header)
+			if len(addresses) > 0 {
+				address = strings.TrimRight(addresses[0], ",")
+			}
 		}
-	}
 
-	if len(address) == 0 {
-		address = r.Header.Get(model.HEADER_REAL_IP)
+		if len(address) > 0 {
+			return address
+		}
 	}
 
 	if len(address) == 0 {

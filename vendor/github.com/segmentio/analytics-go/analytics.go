@@ -2,307 +2,291 @@ package analytics
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
-	"os"
 	"sync"
 
 	"bytes"
 	"encoding/json"
-	"errors"
-	"log"
 	"net/http"
 	"time"
-
-	"github.com/jehiah/go-strftime"
-	"github.com/segmentio/backo-go"
-	"github.com/xtgo/uuid"
 )
 
 // Version of the client.
-const Version = "2.1.0"
+const Version = "3.0.0"
+const unimplementedError = "not implemented"
 
-// Endpoint for the Segment API.
-const Endpoint = "https://api.segment.io"
+// This interface is the main API exposed by the analytics package.
+// Values that satsify this interface are returned by the client constructors
+// provided by the package and provide a way to send messages via the HTTP API.
+type Client interface {
+	io.Closer
 
-// DefaultContext of message batches.
-var DefaultContext = map[string]interface{}{
-	"library": map[string]interface{}{
-		"name":    "analytics-go",
-		"version": Version,
-	},
+	// Queues a message to be sent by the client when the conditions for a batch
+	// upload are met.
+	// This is the main method you'll be using, a typical flow would look like
+	// this:
+	//
+	//	client := analytics.New(writeKey)
+	//	...
+	//	client.Enqueue(analytics.Track{ ... })
+	//	...
+	//	client.Close()
+	//
+	// The method returns an error if the message queue not be queued, which
+	// happens if the client was already closed at the time the method was
+	// called or if the message was malformed.
+	Enqueue(Message) error
 }
 
-// Backoff policy.
-var Backo = backo.DefaultBacko()
+type client struct {
+	Config
+	key string
 
-// Message interface.
-type message interface {
-	setMessageId(string)
-	setTimestamp(string)
-}
+	// This channel is where the `Enqueue` method writes messages so they can be
+	// picked up and pushed by the backend goroutine taking care of applying the
+	// batching rules.
+	msgs chan Message
 
-// Message fields common to all.
-type Message struct {
-	Type      string `json:"type,omitempty"`
-	MessageId string `json:"messageId,omitempty"`
-	Timestamp string `json:"timestamp,omitempty"`
-	SentAt    string `json:"sentAt,omitempty"`
-}
-
-// Batch message.
-type Batch struct {
-	Context  map[string]interface{} `json:"context,omitempty"`
-	Messages []interface{}          `json:"batch"`
-	Message
-}
-
-// Identify message.
-type Identify struct {
-	Context      map[string]interface{} `json:"context,omitempty"`
-	Integrations map[string]interface{} `json:"integrations,omitempty"`
-	Traits       map[string]interface{} `json:"traits,omitempty"`
-	AnonymousId  string                 `json:"anonymousId,omitempty"`
-	UserId       string                 `json:"userId,omitempty"`
-	Message
-}
-
-// Group message.
-type Group struct {
-	Context      map[string]interface{} `json:"context,omitempty"`
-	Integrations map[string]interface{} `json:"integrations,omitempty"`
-	Traits       map[string]interface{} `json:"traits,omitempty"`
-	AnonymousId  string                 `json:"anonymousId,omitempty"`
-	UserId       string                 `json:"userId,omitempty"`
-	GroupId      string                 `json:"groupId"`
-	Message
-}
-
-// Track message.
-type Track struct {
-	Context      map[string]interface{} `json:"context,omitempty"`
-	Integrations map[string]interface{} `json:"integrations,omitempty"`
-	Properties   map[string]interface{} `json:"properties,omitempty"`
-	AnonymousId  string                 `json:"anonymousId,omitempty"`
-	UserId       string                 `json:"userId,omitempty"`
-	Event        string                 `json:"event"`
-	Message
-}
-
-// Page message.
-type Page struct {
-	Context      map[string]interface{} `json:"context,omitempty"`
-	Integrations map[string]interface{} `json:"integrations,omitempty"`
-	Traits       map[string]interface{} `json:"properties,omitempty"`
-	AnonymousId  string                 `json:"anonymousId,omitempty"`
-	UserId       string                 `json:"userId,omitempty"`
-	Category     string                 `json:"category,omitempty"`
-	Name         string                 `json:"name,omitempty"`
-	Message
-}
-
-// Alias message.
-type Alias struct {
-	PreviousId string `json:"previousId"`
-	UserId     string `json:"userId"`
-	Message
-}
-
-// Client which batches messages and flushes at the given Interval or
-// when the Size limit is exceeded. Set Verbose to true to enable
-// logging output.
-type Client struct {
-	Endpoint string
-	// Interval represents the duration at which messages are flushed. It may be
-	// configured only before any messages are enqueued.
-	Interval time.Duration
-	Size     int
-	Logger   *log.Logger
-	Verbose  bool
-	Client   http.Client
-	key      string
-	msgs     chan interface{}
+	// These two channels are used to synchronize the client shutting down when
+	// `Close` is called.
+	// The first channel is closed to signal the backend goroutine that it has
+	// to stop, then the second one is closed by the backend goroutine to signal
+	// that it has finished flushing all queued messages.
 	quit     chan struct{}
 	shutdown chan struct{}
-	uid      func() string
-	now      func() time.Time
-	once     sync.Once
-	wg       sync.WaitGroup
 
-	// These synchronization primitives are used to control how many goroutines
-	// are spawned by the client for uploads.
-	upmtx   sync.Mutex
-	upcond  sync.Cond
-	upcount int
+	// This HTTP client is used to send requests to the backend, it uses the
+	// HTTP transport provided in the configuration.
+	http http.Client
 }
 
-// New client with write key.
-func New(key string) *Client {
-	c := &Client{
-		Endpoint: Endpoint,
-		Interval: 5 * time.Second,
-		Size:     250,
-		Logger:   log.New(os.Stderr, "segment ", log.LstdFlags),
-		Verbose:  false,
-		Client:   *http.DefaultClient,
-		key:      key,
-		msgs:     make(chan interface{}, 100),
-		quit:     make(chan struct{}),
-		shutdown: make(chan struct{}),
-		now:      time.Now,
-		uid:      uid,
-	}
-
-	c.upcond.L = &c.upmtx
+// Instantiate a new client that uses the write key passed as first argument to
+// send messages to the backend.
+// The client is created with the default configuration.
+func New(writeKey string) Client {
+	// Here we can ignore the error because the default config is always valid.
+	c, _ := NewWithConfig(writeKey, Config{})
 	return c
 }
 
-// Alias buffers an "alias" message.
-func (c *Client) Alias(msg *Alias) error {
-	if msg.UserId == "" {
-		return errors.New("You must pass a 'userId'.")
+// Instantiate a new client that uses the write key and configuration passed as
+// arguments to send messages to the backend.
+// The function will return an error if the configuration contained impossible
+// values (like a negative flush interval for example).
+// When the function returns an error the returned client will always be nil.
+func NewWithConfig(writeKey string, config Config) (cli Client, err error) {
+	if err = config.validate(); err != nil {
+		return
 	}
 
-	if msg.PreviousId == "" {
-		return errors.New("You must pass a 'previousId'.")
+	c := &client{
+		Config:   makeConfig(config),
+		key:      writeKey,
+		msgs:     make(chan Message, 100),
+		quit:     make(chan struct{}),
+		shutdown: make(chan struct{}),
+		http:     makeHttpClient(config.Transport),
 	}
 
-	msg.Type = "alias"
-	c.queue(msg)
-
-	return nil
-}
-
-// Page buffers an "page" message.
-func (c *Client) Page(msg *Page) error {
-	if msg.UserId == "" && msg.AnonymousId == "" {
-		return errors.New("You must pass either an 'anonymousId' or 'userId'.")
-	}
-
-	msg.Type = "page"
-	c.queue(msg)
-
-	return nil
-}
-
-// Group buffers an "group" message.
-func (c *Client) Group(msg *Group) error {
-	if msg.GroupId == "" {
-		return errors.New("You must pass a 'groupId'.")
-	}
-
-	if msg.UserId == "" && msg.AnonymousId == "" {
-		return errors.New("You must pass either an 'anonymousId' or 'userId'.")
-	}
-
-	msg.Type = "group"
-	c.queue(msg)
-
-	return nil
-}
-
-// Identify buffers an "identify" message.
-func (c *Client) Identify(msg *Identify) error {
-	if msg.UserId == "" && msg.AnonymousId == "" {
-		return errors.New("You must pass either an 'anonymousId' or 'userId'.")
-	}
-
-	msg.Type = "identify"
-	c.queue(msg)
-
-	return nil
-}
-
-// Track buffers an "track" message.
-func (c *Client) Track(msg *Track) error {
-	if msg.Event == "" {
-		return errors.New("You must pass 'event'.")
-	}
-
-	if msg.UserId == "" && msg.AnonymousId == "" {
-		return errors.New("You must pass either an 'anonymousId' or 'userId'.")
-	}
-
-	msg.Type = "track"
-	c.queue(msg)
-
-	return nil
-}
-
-func (c *Client) startLoop() {
 	go c.loop()
+
+	cli = c
+	return
 }
 
-// Queue message.
-func (c *Client) queue(msg message) {
-	c.once.Do(c.startLoop)
-	msg.setMessageId(c.uid())
-	msg.setTimestamp(timestamp(c.now()))
+func makeHttpClient(transport http.RoundTripper) http.Client {
+	httpClient := http.Client{
+		Transport: transport,
+	}
+	if supportsTimeout(transport) {
+		httpClient.Timeout = 10 * time.Second
+	}
+	return httpClient
+}
+
+func dereferenceMessage(msg Message) Message {
+	switch m := msg.(type) {
+	case *Alias:
+		if m == nil {
+			return nil
+		}
+		return *m
+	case *Group:
+		if m == nil {
+			return nil
+		}
+		return *m
+	case *Identify:
+		if m == nil {
+			return nil
+		}
+		return *m
+	case *Page:
+		if m == nil {
+			return nil
+		}
+		return *m
+	case *Screen:
+		if m == nil {
+			return nil
+		}
+		return *m
+	case *Track:
+		if m == nil {
+			return nil
+		}
+		return *m
+	}
+
+	return msg
+}
+
+func (c *client) Enqueue(msg Message) (err error) {
+	msg = dereferenceMessage(msg)
+	if err = msg.Validate(); err != nil {
+		return
+	}
+
+	var id = c.uid()
+	var ts = c.now()
+
+	switch m := msg.(type) {
+	case Alias:
+		m.Type = "alias"
+		m.MessageId = makeMessageId(m.MessageId, id)
+		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		msg = m
+
+	case Group:
+		m.Type = "group"
+		m.MessageId = makeMessageId(m.MessageId, id)
+		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		msg = m
+
+	case Identify:
+		m.Type = "identify"
+		m.MessageId = makeMessageId(m.MessageId, id)
+		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		msg = m
+
+	case Page:
+		m.Type = "page"
+		m.MessageId = makeMessageId(m.MessageId, id)
+		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		msg = m
+
+	case Screen:
+		m.Type = "screen"
+		m.MessageId = makeMessageId(m.MessageId, id)
+		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		msg = m
+
+	case Track:
+		m.Type = "track"
+		m.MessageId = makeMessageId(m.MessageId, id)
+		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		msg = m
+
+	default:
+		err = fmt.Errorf("messages with custom types cannot be enqueued: %T", msg)
+		return
+	}
+
+	defer func() {
+		// When the `msgs` channel is closed writing to it will trigger a panic.
+		// To avoid letting the panic propagate to the caller we recover from it
+		// and instead report that the client has been closed and shouldn't be
+		// used anymore.
+		if recover() != nil {
+			err = ErrClosed
+		}
+	}()
+
 	c.msgs <- msg
+	return
 }
 
 // Close and flush metrics.
-func (c *Client) Close() error {
-	c.once.Do(c.startLoop)
-	c.quit <- struct{}{}
-	close(c.msgs)
+func (c *client) Close() (err error) {
+	defer func() {
+		// Always recover, a panic could be raised if `c`.quit was closed which
+		// means the method was called more than once.
+		if recover() != nil {
+			err = ErrClosed
+		}
+	}()
+	close(c.quit)
 	<-c.shutdown
-	return nil
+	return
 }
 
-func (c *Client) sendAsync(msgs []interface{}) {
-	c.upmtx.Lock()
-	for c.upcount == 1000 {
-		c.upcond.Wait()
+// Asychronously send a batched requests.
+func (c *client) sendAsync(msgs []message, wg *sync.WaitGroup, ex *executor) {
+	wg.Add(1)
+
+	if !ex.do(func() {
+		defer wg.Done()
+		defer func() {
+			// In case a bug is introduced in the send function that triggers
+			// a panic, we don't want this to ever crash the application so we
+			// catch it here and log it instead.
+			if err := recover(); err != nil {
+				c.errorf("panic - %s", err)
+			}
+		}()
+		c.send(msgs)
+	}) {
+		wg.Done()
+		c.errorf("sending messages failed - %s", ErrTooManyRequests)
+		c.notifyFailure(msgs, ErrTooManyRequests)
 	}
-	c.upcount++
-	c.upmtx.Unlock()
-	c.wg.Add(1)
-	go func() {
-		err := c.send(msgs)
-		if err != nil {
-			c.logf(err.Error())
-		}
-		c.upmtx.Lock()
-		c.upcount--
-		c.upcond.Signal()
-		c.upmtx.Unlock()
-		c.wg.Done()
-	}()
 }
 
 // Send batch request.
-func (c *Client) send(msgs []interface{}) error {
-	if len(msgs) == 0 {
-		return nil
-	}
+func (c *client) send(msgs []message) {
+	const attempts = 10
 
-	batch := new(Batch)
-	batch.Messages = msgs
-	batch.MessageId = c.uid()
-	batch.SentAt = timestamp(c.now())
-	batch.Context = DefaultContext
+	b, err := json.Marshal(batch{
+		MessageId: c.uid(),
+		SentAt:    c.now(),
+		Messages:  msgs,
+		Context:   c.DefaultContext,
+	})
 
-	b, err := json.Marshal(batch)
 	if err != nil {
-		return fmt.Errorf("error marshalling msgs: %s", err)
+		c.errorf("marshalling messages - %s", err)
+		c.notifyFailure(msgs, err)
+		return
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i != attempts; i++ {
 		if err = c.upload(b); err == nil {
-			return nil
+			c.notifySuccess(msgs)
+			return
 		}
-		Backo.Sleep(i)
+
+		// Wait for either a retry timeout or the client to be closed.
+		select {
+		case <-time.After(c.RetryAfter(i)):
+		case <-c.quit:
+			c.errorf("%d messages dropped because they failed to be sent and the client was closed", len(msgs))
+			c.notifyFailure(msgs, err)
+			return
+		}
 	}
 
-	return err
+	c.errorf("%d messages dropped because they failed to be sent after %d attempts", len(msgs), attempts)
+	c.notifyFailure(msgs, err)
 }
 
 // Upload serialized batch message.
-func (c *Client) upload(b []byte) error {
+func (c *client) upload(b []byte) error {
 	url := c.Endpoint + "/v1/batch"
 	req, err := http.NewRequest("POST", url, bytes.NewReader(b))
 	if err != nil {
-		return fmt.Errorf("error creating request: %s", err)
+		c.errorf("creating request - %s", err)
+		return err
 	}
 
 	req.Header.Add("User-Agent", "analytics-go (version: "+Version+")")
@@ -310,98 +294,138 @@ func (c *Client) upload(b []byte) error {
 	req.Header.Add("Content-Length", string(len(b)))
 	req.SetBasicAuth(c.key, "")
 
-	res, err := c.Client.Do(req)
+	res, err := c.http.Do(req)
+
 	if err != nil {
-		return fmt.Errorf("error sending request: %s", err)
+		c.errorf("sending request - %s", err)
+		return err
 	}
+
 	defer res.Body.Close()
+	return c.report(res)
+}
 
-	if res.StatusCode < 400 {
-		c.verbose("response %s", res.Status)
-		return nil
+// Report on response body.
+func (c *client) report(res *http.Response) (err error) {
+	var body []byte
+
+	if res.StatusCode < 300 {
+		c.debugf("response %s", res.Status)
+		return
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return fmt.Errorf("error reading response body: %s", err)
+	if body, err = ioutil.ReadAll(res.Body); err != nil {
+		c.errorf("response %d %s - %s", res.StatusCode, res.Status, err)
+		return
 	}
 
-	return fmt.Errorf("response %s: %d – %s", res.Status, res.StatusCode, string(body))
+	c.logf("response %d %s – %s", res.StatusCode, res.Status, string(body))
+	return fmt.Errorf("%d %s", res.StatusCode, res.Status)
 }
 
 // Batch loop.
-func (c *Client) loop() {
-	var msgs []interface{}
+func (c *client) loop() {
+	defer close(c.shutdown)
+
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+
 	tick := time.NewTicker(c.Interval)
+	defer tick.Stop()
+
+	ex := newExecutor(c.maxConcurrentRequests)
+	defer ex.close()
+
+	mq := messageQueue{
+		maxBatchSize:  c.BatchSize,
+		maxBatchBytes: c.maxBatchBytes(),
+	}
 
 	for {
 		select {
 		case msg := <-c.msgs:
-			c.verbose("buffer (%d/%d) %v", len(msgs), c.Size, msg)
-			msgs = append(msgs, msg)
-			if len(msgs) == c.Size {
-				c.verbose("exceeded %d messages – flushing", c.Size)
-				c.sendAsync(msgs)
-				msgs = make([]interface{}, 0, c.Size)
-			}
+			c.push(&mq, msg, wg, ex)
+
 		case <-tick.C:
-			if len(msgs) > 0 {
-				c.verbose("interval reached - flushing %d", len(msgs))
-				c.sendAsync(msgs)
-				msgs = make([]interface{}, 0, c.Size)
-			} else {
-				c.verbose("interval reached – nothing to send")
-			}
+			c.flush(&mq, wg, ex)
+
 		case <-c.quit:
-			tick.Stop()
-			c.verbose("exit requested – draining msgs")
-			// drain the msg channel.
+			c.debugf("exit requested – draining messages")
+
+			// Drain the msg channel, we have to close it first so no more
+			// messages can be pushed and otherwise the loop would never end.
+			close(c.msgs)
 			for msg := range c.msgs {
-				c.verbose("buffer (%d/%d) %v", len(msgs), c.Size, msg)
-				msgs = append(msgs, msg)
+				c.push(&mq, msg, wg, ex)
 			}
-			c.verbose("exit requested – flushing %d", len(msgs))
-			c.sendAsync(msgs)
-			c.wg.Wait()
-			c.verbose("exit")
-			c.shutdown <- struct{}{}
+
+			c.flush(&mq, wg, ex)
+			c.debugf("exit")
 			return
 		}
 	}
 }
 
-// Verbose log.
-func (c *Client) verbose(msg string, args ...interface{}) {
+func (c *client) push(q *messageQueue, m Message, wg *sync.WaitGroup, ex *executor) {
+	var msg message
+	var err error
+
+	if msg, err = makeMessage(m, maxMessageBytes); err != nil {
+		c.errorf("%s - %v", err, m)
+		c.notifyFailure([]message{{m, nil}}, err)
+		return
+	}
+
+	c.debugf("buffer (%d/%d) %v", len(q.pending), c.BatchSize, m)
+
+	if msgs := q.push(msg); msgs != nil {
+		c.debugf("exceeded messages batch limit with batch of %d messages – flushing", len(msgs))
+		c.sendAsync(msgs, wg, ex)
+	}
+}
+
+func (c *client) flush(q *messageQueue, wg *sync.WaitGroup, ex *executor) {
+	if msgs := q.flush(); msgs != nil {
+		c.debugf("flushing %d messages", len(msgs))
+		c.sendAsync(msgs, wg, ex)
+	}
+}
+
+func (c *client) debugf(format string, args ...interface{}) {
 	if c.Verbose {
-		c.Logger.Printf(msg, args...)
+		c.logf(format, args...)
 	}
 }
 
-// Unconditional log.
-func (c *Client) logf(msg string, args ...interface{}) {
-	c.Logger.Printf(msg, args...)
+func (c *client) logf(format string, args ...interface{}) {
+	c.Logger.Logf(format, args...)
 }
 
-// Set message timestamp if one is not already set.
-func (m *Message) setTimestamp(s string) {
-	if m.Timestamp == "" {
-		m.Timestamp = s
+func (c *client) errorf(format string, args ...interface{}) {
+	c.Logger.Errorf(format, args...)
+}
+
+func (c *client) maxBatchBytes() int {
+	b, _ := json.Marshal(batch{
+		MessageId: c.uid(),
+		SentAt:    c.now(),
+		Context:   c.DefaultContext,
+	})
+	return maxBatchBytes - len(b)
+}
+
+func (c *client) notifySuccess(msgs []message) {
+	if c.Callback != nil {
+		for _, m := range msgs {
+			c.Callback.Success(m.msg)
+		}
 	}
 }
 
-// Set message id.
-func (m *Message) setMessageId(s string) {
-	if m.MessageId == "" {
-		m.MessageId = s
+func (c *client) notifyFailure(msgs []message, err error) {
+	if c.Callback != nil {
+		for _, m := range msgs {
+			c.Callback.Failure(m.msg, err)
+		}
 	}
-}
-
-// Return formatted timestamp.
-func timestamp(t time.Time) string {
-	return strftime.Format("%Y-%m-%dT%H:%M:%S%z", t)
-}
-
-// Return uuid string.
-func uid() string {
-	return uuid.NewRandom().String()
 }

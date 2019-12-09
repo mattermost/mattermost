@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -11,14 +11,17 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/viper"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/viper"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
+
+const noSettingsNamed = "unable to find a setting named: %s"
 
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
@@ -69,18 +72,26 @@ var ConfigSetCmd = &cobra.Command{
 }
 
 var MigrateConfigCmd = &cobra.Command{
-	Use:     "migrate",
+	Use:     "migrate [from_config] [to_config]",
 	Short:   "Migrate existing config between backends",
 	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it",
-	Example: `config migrate --from=path/to/config.json --to="postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
+	Example: `config migrate path/to/config.json "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
+	Args:    cobra.ExactArgs(2),
 	RunE:    configMigrateCmdF,
+}
+
+var ConfigResetCmd = &cobra.Command{
+	Use:     "reset",
+	Short:   "Reset config setting",
+	Long:    "Resets the value of a config setting by its name in dot notation or a setting section. Accepts multiple values for array settings.",
+	Example: "config reset SqlSettings.DriverName LogSettings",
+	RunE:    configResetCmdF,
 }
 
 func init() {
 	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
-	MigrateConfigCmd.Flags().String("from", "", "Config from which to migrate")
-	MigrateConfigCmd.Flags().String("to", "", "Config to which to migrate")
-	MigrateConfigCmd.MarkFlagRequired("to")
+	ConfigResetCmd.Flags().Bool("confirm", false, "Confirm you really want to reset all configuration settings to its default value")
+	ConfigShowCmd.Flags().Bool("json", false, "Output the configuration as JSON.")
 
 	ConfigCmd.AddCommand(
 		ValidateConfigCmd,
@@ -89,6 +100,7 @@ func init() {
 		ConfigShowCmd,
 		ConfigSetCmd,
 		MigrateConfigCmd,
+		ConfigResetCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -161,9 +173,9 @@ func configGetCmdF(command *cobra.Command, args []string) error {
 }
 
 func configShowCmdF(command *cobra.Command, args []string) error {
-	configStore, err := getConfigStore(command)
+	useJSON, err := command.Flags().GetBool("json")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed reading json parameter")
 	}
 
 	err = cobra.NoArgs(command, args)
@@ -171,7 +183,24 @@ func configShowCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("%s", prettyPrintStruct(*configStore.Get()))
+	configStore, err := getConfigStore(command)
+	if err != nil {
+		return err
+	}
+
+	config := *configStore.Get()
+
+	if useJSON {
+		configJSON, err := json.MarshalIndent(config, "", "    ")
+		if err != nil {
+			return errors.Wrap(err, "failed to marshal config as json")
+		}
+
+		fmt.Printf("%s\n", configJSON)
+	} else {
+		fmt.Printf("%s", prettyPrintStruct(config))
+	}
+
 	return nil
 }
 
@@ -186,7 +215,7 @@ func printConfigValues(configMap map[string]interface{}, configSetting []string,
 	switch value.Kind() {
 	case reflect.Map:
 		if len(configSetting) == 1 {
-			return printMap(value, 0), nil
+			return printStringMap(value, 0), nil
 		}
 		return printConfigValues(res.(map[string]interface{}), configSetting[1:], name)
 	default:
@@ -230,35 +259,16 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 }
 
 func configMigrateCmdF(command *cobra.Command, args []string) error {
-	// Parse source config; defaults to global --config unless overwritten by --from
-	from, err := command.Flags().GetString("from")
-	if err != nil {
-		return errors.Wrap(err, "failed reading source config parameter")
-	}
-	if from == "" {
-		from = viper.GetString("config")
-	}
+	from := args[0]
+	to := args[1]
 
-	// Parse destination config store - MarkFlagRequired handles errors here
-	to, _ := command.Flags().GetString("to")
+	err := config.Migrate(from, to)
 
-	// Get source config store - invalid config will throw error here
-	fromConfigStore, err := config.NewStore(from, false)
-	if err != nil {
-		return errors.Wrap(err, "failed to read --from config")
-	}
-
-	// Get destination config store
-	toConfigStore, err := config.NewStore(to, false)
-	if err != nil {
-		return errors.Wrap(err, "failed to read --to config")
-	}
-
-	// Copy config from source to destination
-	_, err = toConfigStore.Set(fromConfigStore.Get())
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate config")
 	}
+
+	mlog.Info("Successfully migrated config.")
 
 	return nil
 }
@@ -298,7 +308,7 @@ func updateConfigValue(configSetting string, newVal []string, oldConfig, newConf
 func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal []string) error {
 	res, ok := configMap[configSettings[0]]
 	if !ok {
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 	}
 
 	value := reflect.ValueOf(res)
@@ -309,6 +319,9 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 		// we can only change the value of a particular setting, not the whole map, return error
 		if len(configSettings) == 1 {
 			return errors.New("unable to set multiple settings at once")
+		}
+		if value.Len() == 0 {
+			return fmt.Errorf(noSettingsNamed, configSettings[1])
 		}
 		return UpdateMap(res.(map[string]interface{}), configSettings[1:], newVal)
 
@@ -321,7 +334,7 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 			configMap[configSettings[0]] = val
 			return nil
 		}
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 
 	case reflect.Int64:
 		if len(configSettings) == 1 {
@@ -332,7 +345,7 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 			configMap[configSettings[0]] = int64(val)
 			return nil
 		}
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 
 	case reflect.Bool:
 		if len(configSettings) == 1 {
@@ -343,25 +356,111 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 			configMap[configSettings[0]] = val
 			return nil
 		}
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 
 	case reflect.String:
 		if len(configSettings) == 1 {
 			configMap[configSettings[0]] = newVal[0]
 			return nil
 		}
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 
 	case reflect.Slice:
 		if len(configSettings) == 1 {
 			configMap[configSettings[0]] = newVal
 			return nil
 		}
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf(noSettingsNamed, configSettings[0])
 
 	default:
 		return errors.New("type not supported yet")
 	}
+}
+
+func configResetCmdF(command *cobra.Command, args []string) error {
+	configStore, err := getConfigStore(command)
+	if err != nil {
+		return err
+	}
+
+	defaultConfig := &model.Config{}
+	defaultConfig.SetDefaults()
+
+	confirmFlag, _ := command.Flags().GetBool("confirm")
+	if confirmFlag {
+		if _, err = configStore.Set(defaultConfig); err != nil {
+			return errors.Wrap(err, "failed to set config")
+		}
+	}
+
+	if !confirmFlag && len(args) == 0 {
+		var confirmResetAll string
+		CommandPrettyPrintln("Are you sure you want to reset all the configuration settings?(YES/NO): ")
+		fmt.Scanln(&confirmResetAll)
+		if confirmResetAll == "YES" {
+			if _, err = configStore.Set(defaultConfig); err != nil {
+				return errors.Wrap(err, "failed to set config")
+			}
+		}
+	}
+
+	tempConfig := configStore.Get()
+	tempConfigMap := configToMap(*tempConfig)
+	defaultConfigMap := configToMap(*defaultConfig)
+	for _, arg := range args {
+		err = changeMap(tempConfigMap, defaultConfigMap, strings.Split(arg, "."))
+		if err != nil {
+			return errors.Wrap(err, "Failed to reset config")
+		}
+	}
+	bs, err := json.Marshal(tempConfigMap)
+	if err != nil {
+		fmt.Printf("Error while marshalling map to json %s\n", err)
+		os.Exit(1)
+	}
+	err = json.Unmarshal(bs, tempConfig)
+	if err != nil {
+		fmt.Printf("Error while unmarshalling json to struct %s\n", err)
+		os.Exit(1)
+	}
+	if changed := config.FixInvalidLocales(tempConfig); changed {
+		return errors.New("Invalid locale configuration")
+	}
+
+	if _, err := configStore.Set(tempConfig); err != nil {
+		return errors.Wrap(err, "failed to set config")
+	}
+
+	return nil
+}
+
+func changeMap(oldConfigMap, defaultConfigMap map[string]interface{}, configSettings []string) error {
+	resOld, ok := oldConfigMap[configSettings[0]]
+	if !ok {
+		return fmt.Errorf("Unable to find a setting with that name %s", configSettings[0])
+	}
+	resDef := defaultConfigMap[configSettings[0]]
+	valueOld := reflect.ValueOf(resOld)
+
+	if valueOld.Kind() == reflect.Map {
+		if len(configSettings) == 1 {
+			return changeSection(resOld.(map[string]interface{}), resDef.(map[string]interface{}))
+		}
+		return changeMap(resOld.(map[string]interface{}), resDef.(map[string]interface{}), configSettings[1:])
+	}
+	if len(configSettings) == 1 {
+		oldConfigMap[configSettings[0]] = defaultConfigMap[configSettings[0]]
+		return nil
+	}
+	return fmt.Errorf("Unable to find a setting with that name %s", configSettings[0])
+}
+
+func changeSection(oldConfigMap, defaultConfigMap map[string]interface{}) error {
+	valueOld := reflect.ValueOf(oldConfigMap)
+	for _, key := range valueOld.MapKeys() {
+		oldConfigMap[key.String()] = defaultConfigMap[key.String()]
+	}
+	return nil
 }
 
 // configToMap converts our config into a map

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -7,15 +7,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mfa"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mfa"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type TokenLocation int
 
 const (
-	TokenLocationNotFound = iota
+	TokenLocationNotFound TokenLocation = iota
 	TokenLocationHeader
 	TokenLocationCookie
 	TokenLocationQueryString
@@ -37,6 +37,11 @@ func (tl TokenLocation) String() string {
 }
 
 func (a *App) IsPasswordValid(password string) *model.AppError {
+
+	if *a.Config().ServiceSettings.EnableDeveloper {
+		return nil
+	}
+
 	return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
 }
 
@@ -46,8 +51,8 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
-		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
-			return result.Err
+		if passErr := a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+			return passErr
 		}
 		return err
 	}
@@ -56,15 +61,15 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
 		// about the MFA state of the user in question
 		if mfaToken != "" {
-			if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
-				return result.Err
+			if passErr := a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+				return passErr
 			}
 		}
 		return err
 	}
 
-	if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
-		return result.Err
+	if passErr := a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+		return passErr
 	}
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
@@ -81,14 +86,14 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
-		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
-			return result.Err
+		if passErr := a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+			return passErr
 		}
 		return err
 	}
 
-	if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
-		return result.Err
+	if passErr := a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+		return passErr
 	}
 
 	return nil

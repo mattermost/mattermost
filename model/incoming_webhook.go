@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -38,6 +38,7 @@ type IncomingWebhookRequest struct {
 	Props       StringInterface    `json:"props"`
 	Attachments []*SlackAttachment `json:"attachments"`
 	Type        string             `json:"type"`
+	IconEmoji   string             `json:"icon_emoji"`
 }
 
 func (o *IncomingWebhook) ToJson() string {

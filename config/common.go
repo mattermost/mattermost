@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
 import (
 	"bytes"
 	"io"
+	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 )
 
@@ -42,7 +43,7 @@ func (cs *commonStore) GetEnvironmentOverrides() map[string]interface{} {
 // using the persist function argument.
 //
 // This function assumes no lock has been acquired, as it acquires a write lock itself.
-func (cs *commonStore) set(newCfg *model.Config, validate func(*model.Config) error, persist func(*model.Config) error) (*model.Config, error) {
+func (cs *commonStore) set(newCfg *model.Config, allowEnvironmentOverrides bool, validate func(*model.Config) error, persist func(*model.Config) error) (*model.Config, error) {
 	cs.configLock.Lock()
 	var unlockOnce sync.Once
 	defer unlockOnce.Do(cs.configLock.Unlock)
@@ -56,7 +57,14 @@ func (cs *commonStore) set(newCfg *model.Config, validate func(*model.Config) er
 	// 	return nil, errors.New("old configuration modified instead of cloning")
 	// }
 
-	newCfg = newCfg.Clone()
+	// To both clone and re-apply the environment variable overrides we marshal and then
+	// unmarshal the config again.
+	var err error
+	newCfg, _, err = unmarshalConfig(strings.NewReader(newCfg.ToJson()), allowEnvironmentOverrides)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal config with env overrides")
+	}
+
 	newCfg.SetDefaults()
 
 	// Sometimes the config is received with "fake" data in sensitive fields. Apply the real
@@ -110,6 +118,7 @@ func (cs *commonStore) load(f io.ReadCloser, needsSave bool, validate func(*mode
 	needsSave = needsSave || loadedCfg.FileSettings.PublicLinkSalt == nil || len(*loadedCfg.FileSettings.PublicLinkSalt) == 0
 
 	loadedCfg.SetDefaults()
+	loadedCfgWithoutEnvOverrides.SetDefaults()
 
 	if validate != nil {
 		if err = validate(loadedCfg); err != nil {
