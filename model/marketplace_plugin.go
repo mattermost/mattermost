@@ -70,7 +70,7 @@ type MarketplacePluginFilter struct {
 	PerPage       int
 	Filter        string
 	ServerVersion string
-	LocalPlugins  bool
+	LocalOnly     bool
 }
 
 // ApplyToURL modifies the given url to include query string parameters for the request.
