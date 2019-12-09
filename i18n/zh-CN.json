@@ -764,7 +764,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
+    "translation": "此频道由组管理。此用户并不属于同步到此频道的组。"
   },
   {
     "id": "api.command_invite.hint",
@@ -1342,7 +1342,7 @@
   },
   {
     "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
-    "translation": "Invalid/Missing channel ID or Team ID."
+    "translation": "无效或缺少频道 ID 或团队 ID。"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1513,6 +1513,10 @@
     "translation": "传出的 webhooks 已被系统管理员禁用。"
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "打开公钥文件时遇到错误。"
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "下载插件时遇到错误。"
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "multipart/form 请求缺少文件"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "无法验证插件签名。"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,6 +1715,14 @@
     "translation": "此服务器已停用推送。"
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "您有新的消息。"
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "获取 ID 加载的推送发生错误"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "发送接收标记到推送服务出错"
   },
@@ -1859,8 +1875,16 @@
     "translation": "无法打开 Slack 导出的 zip 文件。\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "zip 压缩包中的 {{.Filename}} 过大，无法进行 Slack 导入\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "未找到用户"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "此服务器未配置或支持 ID 加载的推送。"
   },
   {
     "id": "api.team.add_members.error",
@@ -1868,7 +1892,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
+    "translation": "此团队由组管理。此用户并不属于同步到此团队的组。"
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v 已移出团队。"
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "仅搜索私有团队不支持分页。"
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "仅搜索公共团队不支持分页。"
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -2632,7 +2664,7 @@
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+    "translation": "您无法启动访客帐号因为访客功能未启用。"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -3471,6 +3503,10 @@
     "translation": "无法停用插件"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "删除公钥时遇到错误。"
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "日志已停用。请检查您的日志了解详情。"
   },
@@ -3495,6 +3531,10 @@
     "translation": "无法获取已启动的插件"
   },
   {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "从储存获取公钥时遇到错误。"
+  },
+  {
     "id": "app.plugin.get_statuses.app_error",
     "translation": "无法获取插件状态。"
   },
@@ -3516,7 +3556,7 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Plugin version could not be parsed"
+    "translation": "无法解析插件版本"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3531,12 +3571,24 @@
     "translation": "集市已停用。请检查您的日志了解详情。"
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "无法解码集市插件请求。"
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "从集市服务器获取插件失败。"
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "无法找到请求的集市插件。"
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "封装集市插件失败。"
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "无法修改 saml 文件。"
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3559,8 +3611,16 @@
     "translation": "无法升级时重启插件。"
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "无法解码 base64 签名。"
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "无法储存插件到配置的文件储存。"
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "无法储存插件配置到文件储存。"
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
@@ -3577,6 +3637,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "无法生成插件应用包。"
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "读取文件时发生错误。"
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "保存文件时发生错误。"
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3895,6 +3963,10 @@
     "translation": "Elasticsearch 服务端网址或用户名已变更。请重新输入 Elasticsearch 密码测试连接。"
   },
   {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "您的授权不支持 ID Loaded Push Notifications。"
+  },
+  {
     "id": "ent.ldap.app_error",
     "translation": "ldap 接口为 nil"
   },
@@ -3968,7 +4040,7 @@
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": "无效的 AD/LDAP 筛选器"
+    "translation": "无效的 AD/LDAP 访客筛选器"
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -4728,7 +4800,7 @@
   },
   {
     "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
-    "translation": "Invalid Canonical Algorithm."
+    "translation": "无效的规范化算法。"
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
@@ -4736,7 +4808,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
+    "translation": "无效的访客属性。必须为格式 '栏=值'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4760,7 +4832,7 @@
   },
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
-    "translation": "Invalid Signature Algorithm."
+    "translation": "无效的签名算法。"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -5164,11 +5236,7 @@
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
-  },
-  {
-    "id": "model.plugin_kvset_options.serialize_value.app_error",
-    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
+    "translation": "无效的旧值，操作非原子操作时不应该设定。"
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5611,6 +5679,10 @@
     "translation": "更新频道成员失败"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "无法以指定的日期计算消息数"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "无法删除频道"
   },
@@ -5947,6 +6019,10 @@
     "translation": "无法能更新最后查看时间"
   },
   {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "无法标频道为未读"
+  },
+  {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "我们更新频道成员遇到了一个错误"
   },
@@ -6144,7 +6220,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
+    "translation": "无法移除组成员用户 ID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -7168,11 +7244,11 @@
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Unable to get the list of deactivate guests ids"
+    "translation": "无法获取已停用的访客 id 列表"
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "无法停用插件"
+    "translation": "无法停用访客"
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
@@ -7504,11 +7580,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "Mattermost 不再支持此浏览器"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "您的浏览器不再被 Mattermost 支持"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
