@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -432,7 +432,7 @@ func (a *App) GetMarketplacePlugin(request *model.InstallMarketplacePluginReques
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	filter := &model.MarketplacePluginFilter{Filter: request.Id}
+	filter := &model.MarketplacePluginFilter{Filter: request.Id, ServerVersion: model.CurrentVersion}
 	plugin, err := marketplaceClient.GetPlugin(filter, request.Version)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
