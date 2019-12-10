@@ -244,6 +244,7 @@ func (a *App) SyncPlugins() *model.AppError {
 	if appErr != nil {
 		return appErr
 	}
+
 	for _, plugin := range pluginSignaturePathMap {
 		reader, appErr := a.FileReader(plugin.path)
 		if appErr != nil {
@@ -593,27 +594,18 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 	if appErr != nil {
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
+
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
-			helper := &pluginSignaturePath{
+			pluginSignaturePathMap[id] = &pluginSignaturePath{
 				pluginId:      id,
 				path:          path,
-				signaturePath: "",
-			}
-			pluginSignaturePathMap[id] = helper
-		}
-	}
-	for _, path := range fileStorePaths {
-		if strings.HasSuffix(path, ".sig") {
-			id := strings.TrimSuffix(filepath.Base(path), ".sig")
-			if val, ok := pluginSignaturePathMap[id]; !ok {
-				mlog.Error("Unknown signature", mlog.String("path", path))
-			} else {
-				val.signaturePath = path
+				signaturePath: a.getSignatureStorePath(id),
 			}
 		}
 	}
+
 	return pluginSignaturePathMap, nil
 }

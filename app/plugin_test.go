@@ -537,7 +537,7 @@ func TestPluginSync(t *testing.T) {
 			pluginFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
 			require.NoError(t, err)
 			defer pluginFileReader.Close()
-			_, appErr = th.App.WriteFile(pluginFileReader, th.App.getBundleStorePath("testplugin.tar.gz"))
+			_, appErr = th.App.WriteFile(pluginFileReader, th.App.getBundleStorePath("testplugin"))
 			checkNoError(t, appErr)
 			// no signature
 			appErr = th.App.SyncPlugins()
