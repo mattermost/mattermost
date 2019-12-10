@@ -617,6 +617,7 @@ func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		return nil
 	}); err != nil {
 		mlog.Error("Failed to walk prepackaged plugins", mlog.Err(err))
+		return nil
 	}
 
 	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
