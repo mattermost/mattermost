@@ -663,7 +663,7 @@ func (a *App) installPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {
 	manifest, pluginDir, appErr := extractPlugin(pluginFile, tmpDir)
 	if appErr != nil {
-		return nil, pluginDir, errors.Wrapf(appErr, "Failed to extract plugin with path %s", pluginPath.path)
+		return nil, "", errors.Wrapf(appErr, "Failed to extract plugin with path %s", pluginPath.path)
 	}
 
 	plugin := new(plugin.PrepackagedPlugin)

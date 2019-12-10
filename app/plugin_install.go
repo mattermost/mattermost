@@ -215,12 +215,12 @@ func (a *App) installPluginLocally(pluginFile, signature io.ReadSeeker, installa
 func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest, string, *model.AppError) {
 	pluginFile.Seek(0, 0)
 	if err := utils.ExtractTarGz(pluginFile, extractDir); err != nil {
-		return nil, extractDir, model.NewAppError("extractPlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, "", model.NewAppError("extractPlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	dir, err := ioutil.ReadDir(extractDir)
 	if err != nil {
-		return nil, extractDir, model.NewAppError("extractPlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, "", model.NewAppError("extractPlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if len(dir) == 1 && dir[0].IsDir() {
@@ -229,12 +229,13 @@ func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest
 
 	manifest, _, err := model.FindManifest(extractDir)
 	if err != nil {
-		return nil, extractDir, model.NewAppError("extractPlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, "", model.NewAppError("extractPlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	if !plugin.IsValidId(manifest.Id) {
-		return nil, extractDir, model.NewAppError("extractPlugin", "app.plugin.invalid_id.app_error", map[string]interface{}{"Min": plugin.MinIdLength, "Max": plugin.MaxIdLength, "Regex": plugin.ValidIdRegex}, "", http.StatusBadRequest)
+		return nil, "", model.NewAppError("extractPlugin", "app.plugin.invalid_id.app_error", map[string]interface{}{"Min": plugin.MinIdLength, "Max": plugin.MaxIdLength, "Regex": plugin.ValidIdRegex}, "", http.StatusBadRequest)
 	}
+
 	return manifest, extractDir, nil
 }
 
