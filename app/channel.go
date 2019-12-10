@@ -621,9 +621,6 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 			Message:   fmt.Sprintf(T("api.channel.undelete_channel.unarchived"), user.Username),
 			Type:      model.POST_CHANNEL_UNDELETED,
 			UserId:    userId,
-			Props: model.StringInterface{
-				"username": user.Username,
-			},
 		}
 
 		if _, err := a.CreatePost(post, channel, false); err != nil {
