@@ -618,7 +618,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 
 		post := &model.Post{
 			ChannelId: channel.Id,
-			Message:   fmt.Sprintf(T("api.channel.undelete_channel.unarchived"), user.Username),
+			Message:   T("api.channel.undelete_channel.unarchived", map[string]interface{}{"Username": user.Username}),
 			Type:      model.POST_CHANNEL_UNDELETED,
 			UserId:    userId,
 		}
