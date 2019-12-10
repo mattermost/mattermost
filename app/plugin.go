@@ -648,16 +648,16 @@ func (a *App) installPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 	}
 	defer os.RemoveAll(tmpDir)
 
-	plug, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
+	plugin, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)
 	}
 
-	if _, err := a.installExtractedPlugin(plug.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
+	if _, err := a.installExtractedPlugin(plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
 		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path)
 	}
 
-	return plug, nil
+	return plugin, nil
 }
 
 func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {
