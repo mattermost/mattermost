@@ -269,7 +269,7 @@
   },
   {
     "id": "api.channel.undelete_channel.undeleted.app_error",
-    "translation": "The channel has been unarchived"
+    "translation": "Unable to unarchived a not archived channel"
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
