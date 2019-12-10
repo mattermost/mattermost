@@ -169,7 +169,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		bodyPage = a.NewEmailTemplate("post_body_full", recipient.Locale)
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
-		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, teamURL)
+		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
 		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
 		bodyPage = a.NewEmailTemplate("post_body_generic", recipient.Locale)
