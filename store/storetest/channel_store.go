@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SqlSupplier interface {
@@ -57,6 +57,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetChannelCounts", func(t *testing.T) { testChannelStoreGetChannelCounts(t, ss) })
 	t.Run("GetMembersForUser", func(t *testing.T) { testChannelStoreGetMembersForUser(t, ss) })
 	t.Run("GetMembersForUserWithPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithPagination(t, ss) })
+	t.Run("CountPostsAfter", func(t *testing.T) { testCountPostsAfter(t, ss) })
 	t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, ss) })
 	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, ss) })
 	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, ss) })
@@ -1592,6 +1593,150 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	members, err = ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
 	require.Nil(t, err)
 	assert.Len(t, *members, 1)
+}
+
+func testCountPostsAfter(t *testing.T, ss store.Store) {
+	t.Run("should count all posts with or without the given user ID", func(t *testing.T) {
+		userId1 := model.NewId()
+		userId2 := model.NewId()
+
+		channelId := model.NewId()
+
+		p1, err := ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1000,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1001,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId2,
+			ChannelId: channelId,
+			CreateAt:  1002,
+		})
+		require.Nil(t, err)
+
+		count, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		require.Nil(t, err)
+		assert.Equal(t, 3, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		require.Nil(t, err)
+		assert.Equal(t, 2, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, userId1)
+		require.Nil(t, err)
+		assert.Equal(t, 2, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, userId1)
+		require.Nil(t, err)
+		assert.Equal(t, 1, count)
+	})
+
+	t.Run("should not count deleted posts", func(t *testing.T) {
+		userId1 := model.NewId()
+
+		channelId := model.NewId()
+
+		p1, err := ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1000,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1001,
+			DeleteAt:  1001,
+		})
+		require.Nil(t, err)
+
+		count, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		require.Nil(t, err)
+		assert.Equal(t, 1, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		require.Nil(t, err)
+		assert.Equal(t, 0, count)
+	})
+
+	t.Run("should count system/bot messages, but not join/leave messages", func(t *testing.T) {
+		userId1 := model.NewId()
+
+		channelId := model.NewId()
+
+		p1, err := ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1000,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1001,
+			Type:      model.POST_JOIN_CHANNEL,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1002,
+			Type:      model.POST_REMOVE_FROM_CHANNEL,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1003,
+			Type:      model.POST_LEAVE_TEAM,
+		})
+		require.Nil(t, err)
+
+		p5, err := ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1004,
+			Type:      model.POST_HEADER_CHANGE,
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Post().Save(&model.Post{
+			UserId:    userId1,
+			ChannelId: channelId,
+			CreateAt:  1005,
+			Type:      "custom_nps_survey",
+		})
+		require.Nil(t, err)
+
+		count, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		require.Nil(t, err)
+		assert.Equal(t, 3, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		require.Nil(t, err)
+		assert.Equal(t, 2, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt-1, "")
+		require.Nil(t, err)
+		assert.Equal(t, 2, count)
+
+		count, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt, "")
+		require.Nil(t, err)
+		assert.Equal(t, 1, count)
+	})
 }
 
 func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
@@ -3200,12 +3345,6 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 	require.Nil(t, errGet, errGet)
 	require.EqualValues(t, 2, count, "didn't return right count")
 
-	require.EqualValues(
-		t,
-		2,
-		ss.Channel().GetPinnedPostCountFromCache(o1.Id),
-		"should have saved 2 pinned post count")
-
 	ch2 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -3233,12 +3372,6 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 	count, errGet = ss.Channel().GetPinnedPostCount(o2.Id, true)
 	require.Nil(t, errGet, errGet)
 	require.EqualValues(t, 0, count, "should return 0")
-
-	require.EqualValues(
-		t,
-		0,
-		ss.Channel().GetPinnedPostCountFromCache(o2.Id),
-		"should have saved 0 pinned post count")
 }
 
 func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {
