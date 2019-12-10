@@ -597,17 +597,19 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 }
 
 func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
-	var user *model.User
-	if userId != "" {
-		var err *model.AppError
-		user, err = a.Srv.Store.User().Get(userId)
-		if err != nil {
-			return nil, err
-		}
+	if channel.DeleteAt == 0 {
+		return nil, model.NewAppError("undeleteChannel", "api.channel.undelete_channel.undeleted.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if channel.DeleteAt == 0 {
-		err := model.NewAppError("undeleteChannel", "api.channel.undelete_channel.undeleted.app_error", nil, "", http.StatusBadRequest)
+	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
+		return nil, err
+	}
+	a.InvalidateCacheForChannel(channel)
+
+	var user *model.User
+	var err *model.AppError
+	user, err = a.Srv.Store.User().Get(userId)
+	if err != nil {
 		return nil, err
 	}
 
@@ -628,11 +630,6 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 			mlog.Error("Failed to post unarchive message", mlog.Err(err))
 		}
 	}
-
-	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
-		return nil, err
-	}
-	a.InvalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UNDELETED, channel.TeamId, "", "", nil)
 	message.Add("channel_id", channel.Id)
