@@ -608,7 +608,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 
 	var user *model.User
 	var err *model.AppError
-	user, err = a.Srv.Store.User().Get(userId)
+	user, err := a.Srv.Store.User().Get(userId)
 	if err != nil {
 		return nil, err
 	}
