@@ -606,6 +606,10 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 	}
 	a.InvalidateCacheForChannel(channel)
 
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UNDELETED, channel.TeamId, "", "", nil)
+	message.Add("channel_id", channel.Id)
+	a.Publish(message)
+
 	user, err := a.Srv.Store.User().Get(userId)
 	if err != nil {
 		return nil, err
@@ -625,10 +629,6 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 			mlog.Error("Failed to post unarchive message", mlog.Err(err))
 		}
 	}
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UNDELETED, channel.TeamId, "", "", nil)
-	message.Add("channel_id", channel.Id)
-	a.Publish(message)
 
 	return channel, nil
 }
