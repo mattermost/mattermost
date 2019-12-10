@@ -63,7 +63,7 @@ pipeline {
 
 								echo Webapp Commit: \${WEBAPP_GIT_COMMIT}
 
-								curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
+								curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
 							"""
 						}
 					}
@@ -102,6 +102,8 @@ pipeline {
 							cd /go/src/github.com/mattermost/mattermost-server
 							echo "Installing golangci-lint"
 							curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.21.0 # Keep this in sync with .golangci.yml and .circleci/config.yml
+							echo "Installing mattermost-govet"
+							GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
 							make config-reset
 							make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
 							make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
@@ -124,7 +126,7 @@ pipeline {
 					steps {
 						dir('src/github.com/mattermost/mattermost-server/dist') {
 							step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-								bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}",
+								bucket: "pr-builds.mattermost.com/mattermost-server/${CHANGE_ID}",
 								excludedFile: '',
 								flatten: true,
 								gzipFiles: false,
@@ -139,7 +141,7 @@ pipeline {
 								useServerSideEncryption: false,
 								userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
 							], [
-								bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_BRANCH}",
+								bucket: "pr-builds.mattermost.com/mattermost-server/${CHANGE_BRANCH}",
 								excludedFile: '',
 								flatten: true,
 								gzipFiles: false,
@@ -164,7 +166,7 @@ pipeline {
 					steps {
 						dir('src/github.com/mattermost/mattermost-server/dist') {
 							step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-								bucket: "releases.mattermost.com/mattermost-platform-pr/${BRANCH_NAME}",
+								bucket: "pr-builds.mattermost.com/mattermost-server/${BRANCH_NAME}",
 								excludedFile: '',
 								flatten: true,
 								gzipFiles: false,
@@ -223,7 +225,7 @@ pipeline {
 					withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
 						sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
 						sh """
-							docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:${GIT_COMMIT_SHORT} build
+							docker build --no-cache --build-arg MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/${CHANGE_ID}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:${GIT_COMMIT_SHORT} build
 							docker push mattermost/mattermost-enterprise-edition:${GIT_COMMIT_SHORT}
 							docker logout
 						"""
