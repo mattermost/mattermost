@@ -599,10 +599,21 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
-			pluginSignaturePathMap[id] = &pluginSignaturePath{
+			helper := &pluginSignaturePath{
 				pluginId:      id,
 				path:          path,
-				signaturePath: a.getSignatureStorePath(id),
+				signaturePath: "",
+			}
+			pluginSignaturePathMap[id] = helper
+		}
+	}
+	for _, path := range fileStorePaths {
+		if strings.HasSuffix(path, ".tar.gz.sig") {
+			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
+			if val, ok := pluginSignaturePathMap[id]; !ok {
+				mlog.Error("Unknown signature", mlog.String("path", path))
+			} else {
+				val.signaturePath = path
 			}
 		}
 	}
