@@ -228,7 +228,6 @@ func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest
 	}
 
 	manifest, _, err := model.FindManifest(extractDir)
-
 	if err != nil {
 		return nil, extractDir, model.NewAppError("extractPlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
