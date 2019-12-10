@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package localcachelayer
 
@@ -84,6 +84,12 @@ func getMockStore() *mocks.Store {
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
 	mockStore.On("User").Return(&mockUserStore)
+
+	fakeUserTeamIds := []string{"1", "2", "3"}
+	mockTeamStore := mocks.TeamStore{}
+	mockTeamStore.On("GetUserTeamIds", "123", true).Return(fakeUserTeamIds, nil)
+	mockTeamStore.On("GetUserTeamIds", "123", false).Return(fakeUserTeamIds, nil)
+	mockStore.On("Team").Return(&mockTeamStore)
 
 	return &mockStore
 }
