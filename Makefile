@@ -199,10 +199,7 @@ pluginapi: ## Generates api and hooks glue code for plugins
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-style: golangci-lint plugin-checker check-plugin-golint vet ## Runs golangci against all packages and also ensures plugin package golint compliant
-
-check-plugin-golint: # Checks if golint returns any uncompliant code for any file that starts with plugin/helpers
-	@! golint ./plugin/ | grep plugin/helpers
+check-style: golangci-lint plugin-checker vet ## Runs golangci against all packages
 
 test-te-race: ## Checks for race conditions in the team edition.
 	@echo Testing TE race conditions
