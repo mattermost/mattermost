@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.undelete_channel.unarchived",
-    "translation": "%v unarchived the channel."
+    "translation": "{{.Username}} unarchived the channel."
   },
   {
     "id": "api.channel.undelete_channel.undeleted.app_error",

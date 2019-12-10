@@ -606,8 +606,6 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 	}
 	a.InvalidateCacheForChannel(channel)
 
-	var user *model.User
-	var err *model.AppError
 	user, err := a.Srv.Store.User().Get(userId)
 	if err != nil {
 		return nil, err
