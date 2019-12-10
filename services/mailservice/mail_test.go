@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
 	"testing"
 	"time"
@@ -58,6 +59,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpPort:             *cfg.EmailSettings.SMTPPort,
 		},
 	)
+	defer conn.Close()
 
 	require.Nil(t, err, "Should connect to the SMTP Server")
 
@@ -73,12 +75,35 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
 			SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
 			SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
+			SmtpServerTimeout:    1,
 		},
 	)
 
-	require.Nil(t, err2, "Should get new SMTP client")
+	require.NotNil(t, err2, "Should not get new SMTP client due to timeout")
 
-	_, err3 := ConnectToSMTPServerAdvanced(
+	bareConn, err := net.Dial("tcp", conn.RemoteAddr().String()) // remove timeout
+	require.Nil(t, err, "Should establish a new connection")
+	defer bareConn.Close()
+
+	_, err3 := NewSMTPClientAdvanced(
+		bareConn,
+		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
+		&SmtpConnectionInfo{
+			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
+			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
+			SmtpServerName:       *cfg.EmailSettings.SMTPServer,
+			SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
+			SmtpPort:             *cfg.EmailSettings.SMTPPort,
+			Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
+			SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
+			SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
+			SmtpServerTimeout:    1,
+		},
+	)
+
+	require.Nil(t, err3, "Should get new SMTP client")
+
+	_, err4 := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
@@ -87,7 +112,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpPort:             "553",
 		},
 	)
-	require.NotNil(t, err3, "Should not connect to the SMTP Server")
+
+	require.NotNil(t, err4, "Should not connect to the SMTP Server")
 }
 
 func TestSendMailUsingConfig(t *testing.T) {

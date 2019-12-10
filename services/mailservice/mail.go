@@ -136,6 +136,9 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
+	if err := conn.SetDeadline(time.Now().Add(dialer.Timeout)); err != nil {
+		return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	return conn, nil
 }
@@ -207,18 +210,19 @@ func TestConnection(config *model.Config) *model.AppError {
 		return &model.AppError{Message: "SendEmailNotifications is not true"}
 	}
 
-	conn, err1 := ConnectToSMTPServer(config)
-	if err1 != nil {
-		return &model.AppError{Message: "SMTP server settings do not appear to be configured properly"}
+	conn, err := ConnectToSMTPServer(config)
+	if err != nil {
+		return &model.AppError{Message: "Could not connect to SMTP server, check SMTP server settings.", DetailedError: err.DetailedError}
 	}
 	defer conn.Close()
 
-	c, err2 := NewSMTPClient(conn, config)
-	if err2 != nil {
-		return &model.AppError{Message: "SMTP server settings do not appear to be configured properly"}
+	c, err := NewSMTPClient(conn, config)
+	if err != nil {
+		return &model.AppError{Message: "Could not connect to SMTP server, check SMTP server settings.", DetailedError: err.DetailedError}
 	}
-	defer c.Quit()
-	defer c.Close()
+	c.Close()
+	c.Quit()
+
 	return nil
 }
 
