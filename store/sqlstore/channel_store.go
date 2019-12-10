@@ -1759,31 +1759,44 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 }
 
 // CountPostsAfter returns the number of posts in the given channel created after but not including the given timestamp. If given a non-empty user ID, only counts posts made by that user.
-func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int64, *model.AppError) {
-	countUnreadQuery := `
+func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError) {
+	joinLeavePostTypes, params := MapStringsToQueryParams([]string{
+		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
+		model.POST_JOIN_LEAVE,
+		model.POST_ADD_REMOVE,
+		model.POST_JOIN_CHANNEL,
+		model.POST_LEAVE_CHANNEL,
+		model.POST_JOIN_TEAM,
+		model.POST_LEAVE_TEAM,
+		model.POST_ADD_TO_CHANNEL,
+		model.POST_REMOVE_FROM_CHANNEL,
+		model.POST_ADD_TO_TEAM,
+		model.POST_REMOVE_FROM_TEAM,
+	}, "PostType")
+
+	query := `
 	SELECT count(*)
 	FROM Posts
 	WHERE
 		ChannelId = :ChannelId
 		AND CreateAt > :CreateAt
-		AND Type = '' -- This line causes MM-20681
+		AND Type NOT IN ` + joinLeavePostTypes + `
 		AND DeleteAt = 0
 	`
-	countParams := map[string]interface{}{
-		"ChannelId": channelId,
-		"CreateAt":  timestamp,
-	}
+
+	params["ChannelId"] = channelId
+	params["CreateAt"] = timestamp
 
 	if userId != "" {
-		countUnreadQuery += " AND UserId = :UserId"
-		countParams["UserId"] = userId
+		query += " AND UserId = :UserId"
+		params["UserId"] = userId
 	}
 
-	unread, err := s.GetReplica().SelectInt(countUnreadQuery, countParams)
+	unread, err := s.GetReplica().SelectInt(query, params)
 	if err != nil {
-		return 0, model.NewAppError("SqlChannelStore.CountPostsAfter", "store.sql_channel.count_posts_since.app_error", countParams, fmt.Sprintf("channel_id=%s, timestamp=%d, err=%s", channelId, timestamp, err), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlChannelStore.CountPostsAfter", "store.sql_channel.count_posts_since.app_error", nil, fmt.Sprintf("channel_id=%s, timestamp=%d, err=%s", channelId, timestamp, err), http.StatusInternalServerError)
 	}
-	return unread, nil
+	return int(unread), nil
 }
 
 // UpdateLastViewedAtPost updates a ChannelMember as if the user last read the channel at the time of the given post.

@@ -243,6 +243,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	switch o.Type {
 	case
 		POST_DEFAULT,
+		POST_SYSTEM_GENERIC,
 		POST_JOIN_LEAVE,
 		POST_AUTO_RESPONDER,
 		POST_ADD_REMOVE,
@@ -348,6 +349,19 @@ func (o *Post) AddProp(key string, value interface{}) {
 
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(POST_SYSTEM_MESSAGE_PREFIX) && o.Type[:len(POST_SYSTEM_MESSAGE_PREFIX)] == POST_SYSTEM_MESSAGE_PREFIX
+}
+
+func (o *Post) IsJoinLeaveMessage() bool {
+	return o.Type == POST_JOIN_LEAVE ||
+		o.Type == POST_ADD_REMOVE ||
+		o.Type == POST_JOIN_CHANNEL ||
+		o.Type == POST_LEAVE_CHANNEL ||
+		o.Type == POST_JOIN_TEAM ||
+		o.Type == POST_LEAVE_TEAM ||
+		o.Type == POST_ADD_TO_CHANNEL ||
+		o.Type == POST_REMOVE_FROM_CHANNEL ||
+		o.Type == POST_ADD_TO_TEAM ||
+		o.Type == POST_REMOVE_FROM_TEAM
 }
 
 func (p *Post) Patch(patch *PostPatch) {
