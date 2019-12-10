@@ -644,7 +644,7 @@ func (a *App) installPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 	}
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
 	if err != nil {
-		return nil, errors.Wrapf(err, "Failed to create temp dir plugintmp")
+		return nil, errors.Wrap(err, "Failed to create temp dir plugintmp")
 	}
 	defer os.RemoveAll(tmpDir)
 
