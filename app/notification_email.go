@@ -95,7 +95,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 		subjectText = getNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName, useMilitaryTime)
 	}
 
-	landingURL := a.GetSiteURL() + "/vault#/" + team.Name
+	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
 	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
 	a.Srv.Go(func() {
