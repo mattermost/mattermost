@@ -20,7 +20,6 @@ func TestPostStore(t *testing.T) {
 
 func TestPostStoreLastPostTimeCache(t *testing.T) {
 	var fakeLastTime int64 = 1
-	//fakeOptions :=
 	channelId := "channelId"
 	fakeOptions := model.GetPostsSinceOptions{
 		ChannelId:        channelId,
