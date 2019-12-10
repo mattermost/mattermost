@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
@@ -148,7 +148,7 @@ func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []b
 	return true, nil
 }
 
-func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value interface{}, opt model.PluginKVSetOptions) (bool, *model.AppError) {
+func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value []byte, opt model.PluginKVSetOptions) (bool, *model.AppError) {
 	if err := opt.IsValid(); err != nil {
 		return false, err
 	}
@@ -159,13 +159,7 @@ func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value inter
 	}
 
 	if opt.Atomic {
-		var serializedOldValue []byte
-		serializedOldValue, err = opt.GetOldValueSerialized()
-		if err != nil {
-			return false, err
-		}
-
-		return ps.CompareAndSet(kv, serializedOldValue)
+		return ps.CompareAndSet(kv, opt.OldValue)
 	}
 
 	savedKv, err := ps.SaveOrUpdate(kv)

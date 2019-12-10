@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,15 +8,20 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-const REDIRECT_LOCATION_CACHE_SIZE = 10000
+const (
+	REDIRECT_LOCATION_CACHE_SIZE = 10000
+	DEFAULT_SERVER_BUSY_SECONDS  = 3600
+	MAX_SERVER_BUSY_SECONDS      = 86400
+)
 
 var redirectLocationDataCache = utils.NewLru(REDIRECT_LOCATION_CACHE_SIZE)
 
@@ -40,6 +45,10 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/redirect_location", api.ApiSessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 
 	api.BaseRoutes.ApiRoot.Handle("/notifications/ack", api.ApiSessionRequired(pushNotificationAck)).Methods("POST")
+
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy/clear", api.ApiSessionRequired(clearServerBusy)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -443,4 +452,45 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	// number of seconds to keep server marked busy
+	secs := r.URL.Query().Get("seconds")
+	if secs == "" {
+		secs = strconv.FormatInt(DEFAULT_SERVER_BUSY_SECONDS, 10)
+	}
+
+	i, err := strconv.ParseInt(secs, 10, 64)
+	if err != nil || i <= 0 || i > MAX_SERVER_BUSY_SECONDS {
+		c.SetInvalidUrlParam(fmt.Sprintf("seconds must be 1 - %d", MAX_SERVER_BUSY_SECONDS))
+		return
+	}
+
+	c.App.Srv.Busy.Set(time.Second * time.Duration(i))
+	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
+	ReturnStatusOK(w)
+}
+
+func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+	c.App.Srv.Busy.Clear()
+	mlog.Info("server busy state cleared - non-critical services enabled")
+	ReturnStatusOK(w)
+}
+
+func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+	w.Write([]byte(c.App.Srv.Busy.ToJson()))
 }

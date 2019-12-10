@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package main
 
 import (
 	"os"
 
-	"github.com/mattermost/mattermost-server/cmd/mattermost/commands"
+	"github.com/mattermost/mattermost-server/v5/cmd/mattermost/commands"
 
 	// Plugins
-	_ "github.com/mattermost/mattermost-server/model/gitlab"
+	_ "github.com/mattermost/mattermost-server/v5/model/gitlab"
 
 	// Enterprise Imports
-	_ "github.com/mattermost/mattermost-server/imports"
+	_ "github.com/mattermost/mattermost-server/v5/imports"
 
 	// Enterprise Deps
 	_ "github.com/gorilla/handlers"

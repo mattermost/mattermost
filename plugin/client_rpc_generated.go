@@ -8,11 +8,10 @@ package plugin
 
 import (
 	"fmt"
-	"io"
 	"log"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func init() {
@@ -3607,36 +3606,6 @@ func (s *apiRPCServer) GetPluginStatus(args *Z_GetPluginStatusArgs, returns *Z_G
 	return nil
 }
 
-type Z_InstallPluginArgs struct {
-	A io.Reader
-	B bool
-}
-
-type Z_InstallPluginReturns struct {
-	A *model.Manifest
-	B *model.AppError
-}
-
-func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
-	_args := &Z_InstallPluginArgs{file, replace}
-	_returns := &Z_InstallPluginReturns{}
-	if err := g.client.Call("Plugin.InstallPlugin", _args, _returns); err != nil {
-		log.Printf("RPC call to InstallPlugin API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_InstallPluginReturns) error {
-	if hook, ok := s.impl.(interface {
-		InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.InstallPlugin(args.A, args.B)
-	} else {
-		return encodableError(fmt.Errorf("API InstallPlugin called but not implemented."))
-	}
-	return nil
-}
-
 type Z_KVSetArgs struct {
 	A string
 	B []byte
@@ -3729,7 +3698,7 @@ func (s *apiRPCServer) KVCompareAndDelete(args *Z_KVCompareAndDeleteArgs, return
 
 type Z_KVSetWithOptionsArgs struct {
 	A string
-	B interface{}
+	B []byte
 	C model.PluginKVSetOptions
 }
 
@@ -3738,8 +3707,8 @@ type Z_KVSetWithOptionsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) KVSetWithOptions(key string, newValue interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
-	_args := &Z_KVSetWithOptionsArgs{key, newValue, options}
+func (g *apiRPCClient) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	_args := &Z_KVSetWithOptionsArgs{key, value, options}
 	_returns := &Z_KVSetWithOptionsReturns{}
 	if err := g.client.Call("Plugin.KVSetWithOptions", _args, _returns); err != nil {
 		log.Printf("RPC call to KVSetWithOptions API failed: %s", err.Error())
@@ -3749,7 +3718,7 @@ func (g *apiRPCClient) KVSetWithOptions(key string, newValue interface{}, option
 
 func (s *apiRPCServer) KVSetWithOptions(args *Z_KVSetWithOptionsArgs, returns *Z_KVSetWithOptionsReturns) error {
 	if hook, ok := s.impl.(interface {
-		KVSetWithOptions(key string, newValue interface{}, options model.PluginKVSetOptions) (bool, *model.AppError)
+		KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.KVSetWithOptions(args.A, args.B, args.C)
 	} else {
