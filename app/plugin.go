@@ -300,7 +300,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins, err := pluginsEnvironment.Available()
+	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -308,7 +308,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 	id = strings.ToLower(id)
 
 	var manifest *model.Manifest
-	for _, p := range plugins {
+	for _, p := range availablePlugins {
 		if p.Manifest.Id == id {
 			manifest = p.Manifest
 			break
@@ -342,7 +342,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 		return model.NewAppError("DisablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins, err := pluginsEnvironment.Available()
+	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -350,7 +350,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	id = strings.ToLower(id)
 
 	var manifest *model.Manifest
-	for _, p := range plugins {
+	for _, p := range availablePlugins {
 		if p.Manifest.Id == id {
 			manifest = p.Manifest
 			break
@@ -471,12 +471,12 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	}
 
 	// Include all other installed plugins.
-	plugins, err := pluginsEnvironment.Available()
+	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	for _, plugin := range plugins {
+	for _, plugin := range availablePlugins {
 		if plugin.Manifest == nil || pluginSet[plugin.Manifest.Id] || !pluginMatchesFilter(plugin.Manifest, filter.Filter) {
 			continue
 		}
