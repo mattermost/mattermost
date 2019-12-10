@@ -70,6 +70,9 @@ Session.vim
 # Gogland project files
 mattermost-server.iml
 
+# Build files
+*bundle.js
+
 web/sass-files/sass/.sass-cache/
 *config.codekit
 *.sass-cache
