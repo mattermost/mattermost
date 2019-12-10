@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -144,6 +144,15 @@ func NewId() string {
 	encoder.Close()
 	b.Truncate(26) // removes the '==' padding
 	return b.String()
+}
+
+// NewRandomTeamName is a NewId that will be a valid team name.
+func NewRandomTeamName() string {
+	teamName := NewId()
+	for IsReservedTeamName(teamName) {
+		teamName = NewId()
+	}
+	return teamName
 }
 
 func NewRandomString(length int) string {

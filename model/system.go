@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -51,6 +51,7 @@ type SystemECDSAKey struct {
 	D     *big.Int `json:"d,omitempty"`
 }
 
+// ServerBusyState provides serialization for app.Busy.
 type ServerBusyState struct {
 	Busy       bool   `json:"busy"`
 	Expires    int64  `json:"expires"`
