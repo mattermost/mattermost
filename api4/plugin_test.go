@@ -61,6 +61,10 @@ func TestPlugin(t *testing.T) {
 	CheckNoError(t, resp)
 	assert.Equal(t, "testplugin", manifest.Id)
 
+	ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
+	CheckNoError(t, resp)
+	require.True(t, ok)
+
 	t.Run("install plugin from URL with slow response time", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping test to install plugin from a slow response server")
@@ -163,7 +167,7 @@ func TestPlugin(t *testing.T) {
 	assert.False(t, found)
 
 	// Successful activate
-	ok, resp := th.SystemAdminClient.EnablePlugin(manifest.Id)
+	ok, resp = th.SystemAdminClient.EnablePlugin(manifest.Id)
 	CheckNoError(t, resp)
 	assert.True(t, ok)
 
@@ -767,6 +771,15 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "NOFILTER"})
 		CheckNoError(t, resp)
 		require.Nil(t, plugins)
+
+		// cleanup
+		ok, resp := th.SystemAdminClient.RemovePlugin(newPluginV1.Manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		ok, resp = th.SystemAdminClient.RemovePlugin(newPluginV2.Manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
 	})
 }
 
