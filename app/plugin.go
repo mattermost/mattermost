@@ -673,11 +673,11 @@ func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSee
 		sig := pluginPath.signaturePath
 		sigReader, sigErr := os.Open(sig)
 		if sigErr != nil {
-			return nil, pluginDir, errors.Wrapf(sigErr, "Failed to open prepackaged plugin signature %s", sig)
+			return nil, "", errors.Wrapf(sigErr, "Failed to open prepackaged plugin signature %s", sig)
 		}
 		bytes, sigErr := ioutil.ReadAll(sigReader)
 		if sigErr != nil {
-			return nil, pluginDir, errors.Wrapf(sigErr, "Failed to read prepackaged plugin signature %s", sig)
+			return nil, "", errors.Wrapf(sigErr, "Failed to read prepackaged plugin signature %s", sig)
 		}
 		plugin.Signature = bytes
 	}
@@ -685,7 +685,7 @@ func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSee
 	if manifest.IconPath != "" {
 		iconData, err := getIcon(manifest.IconPath)
 		if err != nil {
-			mlog.Error("Failed to get icon", mlog.Err(err), mlog.String("path", manifest.IconPath))
+			return nil, "", errors.Wrapf(err, "Failed to read icon at %s", manifest.IconPath)
 		}
 		plugin.IconData = iconData
 	}
