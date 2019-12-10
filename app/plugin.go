@@ -24,6 +24,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const prepackagedPluginsDir = "prepackaged_plugins"
+
 type pluginSignaturePath struct {
 	pluginId      string
 	path          string
@@ -168,7 +170,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
 	}
 
-	plugins := a.installPrepackagedPlugins("prepackaged_plugins")
+	plugins := a.processPrepackagedPlugins(prepackagedPluginsDir)
 	pluginsEnvironment = a.GetPluginsEnvironment()
 	pluginsEnvironment.SetPrepackagedPlugins(plugins)
 
@@ -605,7 +607,7 @@ func getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignatur
 	return pluginSignaturePathMap
 }
 
-func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.PrepackagedPlugin {
+func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.PrepackagedPlugin {
 	prepackagedPluginsDir, found := fileutils.FindDir(pluginsDir)
 	if !found {
 		return nil
@@ -623,7 +625,7 @@ func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
 	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
 	for _, pluginPaths := range pluginSignaturePathMap {
-		plugin, err := a.installPrepackagedPlugin(pluginPaths)
+		plugin, err := a.processPrepackagedPlugin(pluginPaths)
 		if err != nil {
 			mlog.Error("Failed to install prepackaged plugin %s", mlog.Err(err), mlog.String("path", pluginPaths.path))
 			continue
@@ -635,8 +637,8 @@ func (a *App) installPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 	return plugins
 }
 
-func (a *App) installPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
-	mlog.Debug("Installing prepackaged plugin", mlog.String("path", pluginPath.path))
+func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
+	mlog.Debug("Processing prepackaged plugin", mlog.String("path", pluginPath.path))
 
 	fileReader, err := os.Open(pluginPath.path)
 	if err != nil {
@@ -653,6 +655,12 @@ func (a *App) installPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)
 	}
 
+	// Skip installing the plugin at all if automatic prepackaged plugins is disabled.
+	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
+		return plugin, nil
+	}
+
+	mlog.Debug("Installing prepackaged plugin", mlog.String("path", pluginPath.path))
 	if _, err := a.installExtractedPlugin(plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
 		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path)
 	}

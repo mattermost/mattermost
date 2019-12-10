@@ -606,72 +606,152 @@ func TestPluginSync(t *testing.T) {
 	}
 }
 
-func TestInstallPrepackagedPlugins(t *testing.T) {
-	path, _ := fileutils.FindDir("tests")
-	plugFolder := filepath.Join(path, "prepackaged_plugins")
-	os.Mkdir(plugFolder, os.ModePerm)
-	defer os.RemoveAll(plugFolder)
-	prepackagedPluginsDir, found := fileutils.FindDir(plugFolder)
-	require.True(t, found)
+func TestProcessPrepackagedPlugins(t *testing.T) {
+	t.Run("automatic, single plugin, no signature", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
 
-	pluginPath := filepath.Join(path, "testplugin.tar.gz")
-	err := utils.CopyFile(pluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
-	require.Nil(t, err)
+		testsPath, _ := fileutils.FindDir("tests")
+		prepackagedPluginsPath := filepath.Join(testsPath, prepackagedPluginsDir)
+		err := os.Mkdir(prepackagedPluginsPath, os.ModePerm)
+		require.NoError(t, err)
+		defer os.RemoveAll(prepackagedPluginsPath)
 
-	os.MkdirAll("./test-plugins", os.ModePerm)
-	defer os.RemoveAll("./test-plugins")
+		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
+		require.True(t, found, "failed to find prepackaged plugins directory")
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+		testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
+		err = utils.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		require.NoError(t, err)
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = true
-		*cfg.PluginSettings.Directory = "./test-plugins"
-		*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+		})
+
+		env := th.App.GetPluginsEnvironment()
+
+		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.Len(t, plugins, 1)
+		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
+		require.Empty(t, plugins[0].Signature, 0)
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+		appErr := th.App.RemovePlugin("testplugin")
+		checkNoError(t, appErr)
+
+		pluginStatus, err = env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 0)
 	})
 
-	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, "./test-plugins", "./test-client-plugins", th.App.Log)
-	require.NoError(t, err)
-	th.App.SetPluginsEnvironment(env)
+	t.Run("automatic, multiple plugins", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
 
-	plugins := th.App.installPrepackagedPlugins(prepackagedPluginsDir)
-	require.Len(t, plugins, 1)
-	require.Equal(t, plugins[0].Manifest.Id, "testplugin")
-	require.Empty(t, plugins[0].Signature, 0)
+		testsPath, _ := fileutils.FindDir("tests")
+		prepackagedPluginsPath := filepath.Join(testsPath, prepackagedPluginsDir)
+		err := os.Mkdir(prepackagedPluginsPath, os.ModePerm)
+		require.NoError(t, err)
+		defer os.RemoveAll(prepackagedPluginsPath)
 
-	pluginStatus, err := env.Statuses()
-	require.Nil(t, err)
-	require.Len(t, pluginStatus, 1)
-	require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+		})
 
-	signPath := filepath.Join(path, "testplugin.tar.gz.sig")
-	err = utils.CopyFile(signPath, filepath.Join(prepackagedPluginsDir, "testplugin.sig"))
-	require.Nil(t, err)
-	pluginPath2 := filepath.Join(path, "testplugin2.tar.gz")
-	err = utils.CopyFile(pluginPath2, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
-	require.Nil(t, err)
-	signPath2 := filepath.Join(path, "testplugin2.tar.gz.sig")
-	err = utils.CopyFile(signPath2, filepath.Join(prepackagedPluginsDir, "testplugin2.sig"))
-	require.Nil(t, err)
+		env := th.App.GetPluginsEnvironment()
 
-	plugins = th.App.installPrepackagedPlugins(prepackagedPluginsDir)
-	require.Len(t, plugins, 2)
-	require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
-	require.NotEmpty(t, plugins[0].Signature)
-	require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[1].Manifest.Id)
-	require.NotEmpty(t, plugins[1].Signature)
+		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
+		require.True(t, found, "failed to find prepackaged plugins directory")
 
-	pluginStatus, err = env.Statuses()
-	require.Nil(t, err)
-	require.Len(t, pluginStatus, 2)
+		testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
+		err = utils.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		require.NoError(t, err)
 
-	appErr := th.App.RemovePlugin("testplugin")
-	checkNoError(t, appErr)
-	appErr = th.App.RemovePlugin("testplugin2")
-	checkNoError(t, appErr)
+		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
+		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.sig"))
+		require.NoError(t, err)
 
-	pluginStatus, err = env.Statuses()
-	require.Nil(t, err)
-	require.Len(t, pluginStatus, 0)
+		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
+		err = utils.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
+		require.NoError(t, err)
 
+		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
+		err = utils.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.sig"))
+		require.NoError(t, err)
+
+		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.Len(t, plugins, 2)
+		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
+		require.NotEmpty(t, plugins[0].Signature)
+		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[1].Manifest.Id)
+		require.NotEmpty(t, plugins[1].Signature)
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 2)
+
+		appErr := th.App.RemovePlugin("testplugin")
+		checkNoError(t, appErr)
+
+		appErr = th.App.RemovePlugin("testplugin2")
+		checkNoError(t, appErr)
+
+		pluginStatus, err = env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 0)
+	})
+
+	t.Run("non-automatic, multiple plugins", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		testsPath, _ := fileutils.FindDir("tests")
+		prepackagedPluginsPath := filepath.Join(testsPath, prepackagedPluginsDir)
+		err := os.Mkdir(prepackagedPluginsPath, os.ModePerm)
+		require.NoError(t, err)
+		defer os.RemoveAll(prepackagedPluginsPath)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
+		})
+
+		env := th.App.GetPluginsEnvironment()
+
+		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
+		require.True(t, found, "failed to find prepackaged plugins directory")
+
+		testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
+		err = utils.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		require.NoError(t, err)
+
+		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
+		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.sig"))
+		require.NoError(t, err)
+
+		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
+		err = utils.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
+		require.NoError(t, err)
+
+		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
+		err = utils.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.sig"))
+		require.NoError(t, err)
+
+		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.Len(t, plugins, 2)
+		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
+		require.NotEmpty(t, plugins[0].Signature)
+		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[1].Manifest.Id)
+		require.NotEmpty(t, plugins[1].Signature)
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 0)
+	})
 }
