@@ -68,6 +68,7 @@ type Params struct {
 	NotAssociatedToChannel string
 	Paginate               *bool
 	IncludeMemberCount     bool
+	IncludeSchemeAdmin     bool
 	NotAssociatedToGroup   string
 	ExcludeDefaultChannels bool
 	LimitAfter             int
@@ -282,6 +283,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, err := strconv.ParseBool(query.Get("include_member_count")); err == nil {
 		params.IncludeMemberCount = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("include_scheme_admin")); err == nil {
+		params.IncludeSchemeAdmin = val
 	}
 
 	params.NotAssociatedToGroup = query.Get("not_associated_to_group")

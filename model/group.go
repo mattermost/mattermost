@@ -41,6 +41,7 @@ type Group struct {
 	DeleteAt     int64       `json:"delete_at"`
 	HasSyncables bool        `db:"-" json:"has_syncables"`
 	MemberCount  *int        `db:"-" json:"member_count,omitempty"`
+	SchemeAdmin  bool        `db:"-" json:"scheme_admin,omitempty"`
 }
 
 type GroupPatch struct {
@@ -60,6 +61,7 @@ type GroupSearchOpts struct {
 	NotAssociatedToTeam    string
 	NotAssociatedToChannel string
 	IncludeMemberCount     bool
+	IncludeSchemeAdmin     bool
 	PageOpts               *PageOpts
 }
 

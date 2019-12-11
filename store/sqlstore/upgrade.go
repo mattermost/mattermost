@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_18_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_19_0
+	VERSION_5_19_0           = "5.19.0"
 	VERSION_5_18_0           = "5.18.0"
 	VERSION_5_17_0           = "5.17.0"
 	VERSION_5_16_0           = "5.16.0"
@@ -735,5 +736,13 @@ func upgradeDatabaseToVersion517(sqlStore SqlStore) {
 func upgradeDatabaseToVersion518(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_17_0, VERSION_5_18_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_18_0)
+	}
+}
+
+func UpgradeDatabaseToVersion519(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_18_0, VERSION_5_19_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_19_0)
+		sqlStore.CreateColumnIfNotExistsNoDefault("GroupChannels", "SchemeAdmin", "boolean", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("GroupTeams", "SchemeAdmin", "boolean", "boolean")
 	}
 }

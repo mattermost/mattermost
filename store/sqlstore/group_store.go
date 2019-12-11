@@ -20,6 +20,7 @@ type selectType int
 const (
 	selectGroups selectType = iota
 	selectCountGroups
+	selectSchemeAdmin
 )
 
 type groupTeam struct {
@@ -453,6 +454,7 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 		groupTeam := result.(*groupTeam)
 		groupSyncable.SyncableId = groupTeam.TeamId
 		groupSyncable.GroupId = groupTeam.GroupId
+		groupSyncable.SchemeAdmin = groupTeam.SchemeAdmin
 		groupSyncable.AutoAdd = groupTeam.AutoAdd
 		groupSyncable.CreateAt = groupTeam.CreateAt
 		groupSyncable.DeleteAt = groupTeam.DeleteAt
@@ -462,6 +464,7 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 		groupChannel := result.(*groupChannel)
 		groupSyncable.SyncableId = groupChannel.ChannelId
 		groupSyncable.GroupId = groupChannel.GroupId
+		groupSyncable.SchemeAdmin = groupChannel.SchemeAdmin
 		groupSyncable.AutoAdd = groupChannel.AutoAdd
 		groupSyncable.CreateAt = groupChannel.CreateAt
 		groupSyncable.DeleteAt = groupChannel.DeleteAt
@@ -505,6 +508,7 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 			groupSyncable := &model.GroupSyncable{
 				SyncableId:      result.TeamId,
 				GroupId:         result.GroupId,
+				SchemeAdmin:     result.SchemeAdmin,
 				AutoAdd:         result.AutoAdd,
 				CreateAt:        result.CreateAt,
 				DeleteAt:        result.DeleteAt,
@@ -540,6 +544,7 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 			groupSyncable := &model.GroupSyncable{
 				SyncableId:         result.ChannelId,
 				GroupId:            result.GroupId,
+				SchemeAdmin:        result.SchemeAdmin,
 				AutoAdd:            result.AutoAdd,
 				CreateAt:           result.CreateAt,
 				DeleteAt:           result.DeleteAt,
@@ -865,6 +870,10 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 		selectCountGroups: "COUNT(*)",
 	}
 
+	if opts.IncludeSchemeAdmin {
+		selectStrs[selectSchemeAdmin] = "gs.SchemeAdmin"
+	}
+
 	var table string
 	var idCol string
 	if st == model.GroupSyncableTypeTeam {
@@ -882,12 +891,17 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 		Where(fmt.Sprintf("ug.DeleteAt = 0 AND gs.%s = ? AND gs.DeleteAt = 0", idCol), syncableID)
 
 	if opts.IncludeMemberCount && t == selectGroups {
+		selectFragment := "ug.*, coalesce(Members.MemberCount, 0) AS MemberCount"
+		if opts.IncludeSchemeAdmin {
+			selectFragment += ", gta.SchemeAdmin"
+		}
+
 		query = s.getQueryBuilder().
-			Select("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount").
+			Select(selectFragment).
 			From("UserGroups ug").
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
-			LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.GroupId = ug.Id", table)).
-			Where(fmt.Sprintf("%[1]s.DeleteAt = 0 AND %[1]s.%[2]s = ?", table, idCol), syncableID).
+			LeftJoin(fmt.Sprintf("%[1]s gta ON gta.GroupId = ug.Id", table)).
+			Where(fmt.Sprintf("gta.DeleteAt = 0 AND gta.%[1]s = ?", idCol), syncableID).
 			OrderBy("ug.DisplayName")
 	}
 
@@ -969,12 +983,12 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	if len(opts.NotAssociatedToTeam) == 26 {
 		groupsQuery = groupsQuery.Where(`
 			g.Id NOT IN (
-				SELECT 
-					Id 
-				FROM 
+				SELECT
+					Id
+				FROM
 					UserGroups
 					JOIN GroupTeams ON GroupTeams.GroupId = UserGroups.Id
-				WHERE 
+				WHERE
 					GroupTeams.DeleteAt = 0
 					AND UserGroups.DeleteAt = 0
 					AND GroupTeams.TeamId = ?
@@ -985,12 +999,12 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	if len(opts.NotAssociatedToChannel) == 26 {
 		groupsQuery = groupsQuery.Where(`
 			g.Id NOT IN (
-				SELECT 
-					Id 
-				FROM 
+				SELECT
+					Id
+				FROM
 					UserGroups
 					JOIN GroupChannels ON GroupChannels.GroupId = UserGroups.Id
-				WHERE 
+				WHERE
 					GroupChannels.DeleteAt = 0
 					AND UserGroups.DeleteAt = 0
 					AND GroupChannels.ChannelId = ?

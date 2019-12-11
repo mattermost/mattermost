@@ -337,10 +337,11 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
+	//TODO(temporarily)
+	// if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	// 	c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	// 	return
+	// }
 
 	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
 	if appErr != nil {
@@ -497,6 +498,7 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	opts := model.GroupSearchOpts{
 		Q:                  c.Params.Q,
 		IncludeMemberCount: c.Params.IncludeMemberCount,
+		IncludeSchemeAdmin: c.Params.IncludeSchemeAdmin,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -543,6 +545,7 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	opts := model.GroupSearchOpts{
 		Q:                  c.Params.Q,
 		IncludeMemberCount: c.Params.IncludeMemberCount,
+		IncludeSchemeAdmin: c.Params.IncludeSchemeAdmin,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}

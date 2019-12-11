@@ -29,11 +29,12 @@ type GroupSyncable struct {
 	// TeamId.
 	SyncableId string `db:"-" json:"-"`
 
-	AutoAdd  bool              `json:"auto_add"`
-	CreateAt int64             `json:"create_at"`
-	DeleteAt int64             `json:"delete_at"`
-	UpdateAt int64             `json:"update_at"`
-	Type     GroupSyncableType `db:"-" json:"-"`
+	AutoAdd     bool              `json:"auto_add"`
+	SchemeAdmin bool              `json:"scheme_admin"`
+	CreateAt    int64             `json:"create_at"`
+	DeleteAt    int64             `json:"delete_at"`
+	UpdateAt    int64             `json:"update_at"`
+	Type        GroupSyncableType `db:"-" json:"-"`
 
 	// Values joined in from the associated team and/or channel
 	ChannelDisplayName string `db:"-" json:"-"`
@@ -71,6 +72,8 @@ func (syncable *GroupSyncable) UnmarshalJSON(b []byte) error {
 			syncable.GroupId = value.(string)
 		case "auto_add":
 			syncable.AutoAdd = value.(bool)
+		case "scheme_admin":
+			syncable.SchemeAdmin = value.(bool)
 		default:
 		}
 	}
@@ -123,12 +126,16 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 }
 
 type GroupSyncablePatch struct {
-	AutoAdd *bool `json:"auto_add"`
+	AutoAdd     *bool `json:"auto_add"`
+	SchemeAdmin *bool `json:"scheme_admin"`
 }
 
 func (syncable *GroupSyncable) Patch(patch *GroupSyncablePatch) {
 	if patch.AutoAdd != nil {
 		syncable.AutoAdd = *patch.AutoAdd
+	}
+	if patch.SchemeAdmin != nil {
+		syncable.SchemeAdmin = *patch.SchemeAdmin
 	}
 }
 
@@ -158,18 +165,20 @@ func GroupSyncablesFromJson(data io.Reader) []*GroupSyncable {
 
 func NewGroupTeam(groupID, teamID string, autoAdd bool) *GroupSyncable {
 	return &GroupSyncable{
-		GroupId:    groupID,
-		SyncableId: teamID,
-		Type:       GroupSyncableTypeTeam,
-		AutoAdd:    autoAdd,
+		GroupId:     groupID,
+		SyncableId:  teamID,
+		Type:        GroupSyncableTypeTeam,
+		AutoAdd:     autoAdd,
+		SchemeAdmin: false,
 	}
 }
 
 func NewGroupChannel(groupID, channelID string, autoAdd bool) *GroupSyncable {
 	return &GroupSyncable{
-		GroupId:    groupID,
-		SyncableId: channelID,
-		Type:       GroupSyncableTypeChannel,
-		AutoAdd:    autoAdd,
+		GroupId:     groupID,
+		SyncableId:  channelID,
+		Type:        GroupSyncableTypeChannel,
+		AutoAdd:     autoAdd,
+		SchemeAdmin: false,
 	}
 }
