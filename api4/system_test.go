@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -242,8 +243,7 @@ func TestGetLogs(t *testing.T) {
 	Client := th.Client
 
 	for i := 0; i < 20; i++ {
-		logMessage := fmt.Sprint(i)
-		mlog.Info(logMessage)
+		mlog.Info(strconv.Itoa(i))
 	}
 
 	logs, resp := th.SystemAdminClient.GetLogs(0, 10)
