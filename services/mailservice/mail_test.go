@@ -5,11 +5,13 @@ package mailservice
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -32,7 +34,7 @@ func TestMailConnectionFromConfig(t *testing.T) {
 	conn, err := ConnectToSMTPServer(cfg)
 	require.Nil(t, err, "Should connect to the SMTP Server %v", err)
 
-	_, err = NewSMTPClient(conn, cfg)
+	_, err = NewSMTPClient(context.Background(), conn, cfg)
 
 	require.Nil(t, err, "Should get new SMTP client")
 
@@ -64,6 +66,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	require.Nil(t, err, "Should connect to the SMTP Server")
 
 	_, err2 := NewSMTPClientAdvanced(
+		context.Background(),
 		conn,
 		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
 		&SmtpConnectionInfo{
@@ -79,29 +82,40 @@ func TestMailConnectionAdvanced(t *testing.T) {
 		},
 	)
 
-	require.NotNil(t, err2, "Should not get new SMTP client due to timeout")
+	require.Nil(t, err2, "Should get new SMTP client")
 
-	bareConn, err := net.Dial("tcp", conn.RemoteAddr().String()) // remove timeout
-	require.Nil(t, err, "Should establish a new connection")
-	defer bareConn.Close()
+	l, err := net.Listen("tcp", "localhost:42356") // emulate nc -l 42356
+	require.Nil(t, err, "Should've open a network socket and listen")
+	defer l.Close()
+
+	connInfo := &SmtpConnectionInfo{
+		ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
+		SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
+		SmtpServerName:       *cfg.EmailSettings.SMTPServer,
+		SmtpServerHost:       strings.Split(l.Addr().String(), ":")[0],
+		SmtpPort:             strings.Split(l.Addr().String(), ":")[1],
+		Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
+		SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
+		SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
+		SmtpServerTimeout:    1,
+	}
+
+	conn, err = ConnectToSMTPServerAdvanced(connInfo)
+	defer conn.Close()
+	require.Nil(t, err, "Should connect to the SMTP Server")
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 
 	_, err3 := NewSMTPClientAdvanced(
-		bareConn,
+		ctx,
+		conn,
 		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
-		&SmtpConnectionInfo{
-			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
-			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       *cfg.EmailSettings.SMTPServer,
-			SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
-			SmtpPort:             *cfg.EmailSettings.SMTPPort,
-			Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
-			SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
-			SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
-			SmtpServerTimeout:    1,
-		},
+		connInfo,
 	)
 
-	require.Nil(t, err3, "Should get new SMTP client")
+	require.NotNil(t, err3, "Should get new SMTP client")
 
 	_, err4 := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
