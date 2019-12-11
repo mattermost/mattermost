@@ -32,17 +32,18 @@ type TestHelper struct {
 	Server      *app.Server
 	ConfigStore config.Store
 
-	Client              *model.Client4
-	BasicUser           *model.User
-	BasicUser2          *model.User
-	TeamAdminUser       *model.User
-	BasicTeam           *model.Team
-	BasicChannel        *model.Channel
-	BasicPrivateChannel *model.Channel
-	BasicDeletedChannel *model.Channel
-	BasicChannel2       *model.Channel
-	BasicPost           *model.Post
-	Group               *model.Group
+	Client               *model.Client4
+	BasicUser            *model.User
+	BasicUser2           *model.User
+	TeamAdminUser        *model.User
+	BasicTeam            *model.Team
+	BasicChannel         *model.Channel
+	BasicPrivateChannel  *model.Channel
+	BasicPrivateChannel2 *model.Channel
+	BasicDeletedChannel  *model.Channel
+	BasicChannel2        *model.Channel
+	BasicPost            *model.Post
+	Group                *model.Group
 
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
@@ -193,6 +194,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()
+	me.BasicPrivateChannel2 = me.CreatePrivateChannel()
 	me.BasicDeletedChannel = me.CreatePublicChannel()
 	me.BasicChannel2 = me.CreatePublicChannel()
 	me.BasicPost = me.CreatePost()
