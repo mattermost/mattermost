@@ -26,7 +26,7 @@ jobs:
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
           export CURL_FAILED=0
-          curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || export CURL_FAILED=1
+          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || export CURL_FAILED=1
 
           if [ $CURL_FAILED -eq 1 ]
           then
@@ -265,7 +265,7 @@ jobs:
             rm -rf mattermost
       - aws-s3/copy:
           from: ~/go/src/github.com/mattermost/mattermost-server/dist/
-          to: "s3://releases.mattermost.com/mattermost-platform-pr/commit/${CIRCLE_SHA1}/"
+          to: "s3://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/"
           arguments: --acl public-read --cache-control "no-cache" --recursive
 
   upload-s3:
@@ -281,7 +281,7 @@ jobs:
             rm -rf mattermost
       - aws-s3/copy:
           from: ~/go/src/github.com/mattermost/mattermost-server/dist/
-          to: s3://releases.mattermost.com/mattermost-platform-pr/$(echo "${CIRCLE_BRANCH}" | sed 's/pull\//PR-/g')/
+          to: s3://pr-builds.mattermost.com/mattermost-server/$(echo "${CIRCLE_BRANCH}" | sed 's/pull\//PR-/g')/
           arguments: --acl public-read --cache-control "no-cache" --recursive
 
   build-docker:
@@ -296,7 +296,7 @@ jobs:
           command: |
             export TAG="${CIRCLE_SHA1:0:7}"
             cd mattermost-server
-            export MM_PACKAGE=https://releases.mattermost.com/mattermost-platform-pr/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
+            export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
             docker build --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-team-edition:${TAG} build
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
             docker push mattermost/mattermost-team-edition:${TAG}
@@ -314,11 +314,11 @@ workflows:
           requires:
             - setup
       - upload-s3-sha:
-          context: mattermost-ci-s3
+          context: mattermost-ci-pr-builds-s3
           requires:
             - build
       - upload-s3:
-          context: mattermost-ci-s3
+          context: mattermost-ci-pr-builds-s3
           requires:
             - build
       - build-docker:
