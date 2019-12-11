@@ -347,12 +347,14 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 
 	filter := u.Query().Get("filter")
 	serverVersion := u.Query().Get("server_version")
+	localOnly := u.Query().Get("local_only") == "true"
 
 	return &model.MarketplacePluginFilter{
 		Page:          page,
 		PerPage:       perPage,
 		Filter:        filter,
 		ServerVersion: serverVersion,
+		LocalOnly:     localOnly,
 	}, nil
 }
 

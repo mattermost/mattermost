@@ -61,6 +61,10 @@ func TestPlugin(t *testing.T) {
 	CheckNoError(t, resp)
 	assert.Equal(t, "testplugin", manifest.Id)
 
+	ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
+	CheckNoError(t, resp)
+	require.True(t, ok)
+
 	t.Run("install plugin from URL with slow response time", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping test to install plugin from a slow response server")
@@ -163,7 +167,7 @@ func TestPlugin(t *testing.T) {
 	assert.False(t, found)
 
 	// Successful activate
-	ok, resp := th.SystemAdminClient.EnablePlugin(manifest.Id)
+	ok, resp = th.SystemAdminClient.EnablePlugin(manifest.Id)
 	CheckNoError(t, resp)
 	assert.True(t, ok)
 
@@ -767,6 +771,163 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "NOFILTER"})
 		CheckNoError(t, resp)
 		require.Nil(t, plugins)
+
+		// cleanup
+		ok, resp := th.SystemAdminClient.RemovePlugin(newPluginV1.Manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		ok, resp = th.SystemAdminClient.RemovePlugin(newPluginV2.Manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+	})
+}
+
+func TestGetLocalPluginInMarketplace(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	samplePlugins := []*model.MarketplacePlugin{
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
+				IconData:    "https://example.com/icon.svg",
+				DownloadURL: "www.github.com/example",
+				Manifest: &model.Manifest{
+					Id:               "testplugin_v2",
+					Name:             "testplugin_v2",
+					Description:      "dsgsdg_v2",
+					Version:          "1.2.2",
+					MinServerVersion: "",
+				},
+			},
+			InstalledVersion: "",
+		},
+	}
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
+		require.NoError(t, err)
+		res.Write(json)
+	}))
+	defer testServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableMarketplace = true
+		*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+	})
+
+	t.Run("Get plugins with EnableRemoteMarketplace enabled", func(t *testing.T) {
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+
+		require.Len(t, plugins, len(samplePlugins))
+		require.Equal(t, samplePlugins, plugins)
+	})
+
+	t.Run("get remote and local plugins", func(t *testing.T) {
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		// Upload one local plugin
+		path, _ := fileutils.FindDir("tests")
+		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+		require.NoError(t, err)
+
+		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		CheckNoError(t, resp)
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+
+		require.Len(t, plugins, 2)
+
+		ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+	})
+
+	t.Run("EnableRemoteMarketplace disabled", func(t *testing.T) {
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = false
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		// No marketplace plugins returned
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+
+		require.Len(t, plugins, 0)
+
+		// Upload one local plugin
+		path, _ := fileutils.FindDir("tests")
+		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+		require.NoError(t, err)
+
+		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		CheckNoError(t, resp)
+
+		newPlugin := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: manifest,
+			},
+			InstalledVersion: manifest.Version,
+		}
+
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+
+		// Only get the local plugins
+		require.Len(t, plugins, 1)
+		require.Equal(t, newPlugin, plugins[0])
+
+		ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+	})
+
+	t.Run("local_only true", func(t *testing.T) {
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		// Upload one local plugin
+		path, _ := fileutils.FindDir("tests")
+		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+		require.NoError(t, err)
+
+		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+		CheckNoError(t, resp)
+
+		newPlugin := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: manifest,
+			},
+			InstalledVersion: manifest.Version,
+		}
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{LocalOnly: true})
+		CheckNoError(t, resp)
+
+		require.Len(t, plugins, 1)
+		require.Equal(t, newPlugin, plugins[0])
+
+		ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
 	})
 }
 

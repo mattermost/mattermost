@@ -444,7 +444,39 @@ func (a *App) GetMarketplacePlugin(request *model.InstallMarketplacePluginReques
 // and plugins that are installed locally.
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
 	var result []*model.MarketplacePlugin
-	pluginSet := map[string]bool{}
+
+	var plugins []*model.MarketplacePlugin
+	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
+		p, appErr := a.getRemotePlugins(filter)
+		if appErr != nil {
+			return nil, appErr
+		}
+		plugins = p
+	}
+
+	plugins, appErr := a.addLocalPlugins(plugins)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Filter plugins.
+	for _, p := range plugins {
+		if pluginMatchesFilter(p.Manifest, filter.Filter) {
+			result = append(result, p)
+		}
+	}
+
+	// Sort result alphabetically.
+	sort.SliceStable(result, func(i, j int) bool {
+		return strings.ToLower(result[i].Manifest.Name) < strings.ToLower(result[j].Manifest.Name)
+	})
+
+	return result, nil
+}
+
+func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
+	var result []*model.MarketplacePlugin
+
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
@@ -468,49 +500,61 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	}
 
 	for _, p := range marketplacePlugins {
-		if p.Manifest == nil || !pluginMatchesFilter(p.Manifest, filter.Filter) {
+		if p.Manifest == nil {
 			continue
 		}
 
-		marketplacePlugin := &model.MarketplacePlugin{
-			BaseMarketplacePlugin: p,
-		}
+		result = append(result, &model.MarketplacePlugin{BaseMarketplacePlugin: p})
+	}
 
-		var manifest *model.Manifest
-		if manifest, err = pluginsEnvironment.GetManifest(p.Manifest.Id); err != nil && err != plugin.ErrNotFound {
-			return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else if err == nil {
-			// Plugin is installed.
-			marketplacePlugin.InstalledVersion = manifest.Version
-		}
+	return result, nil
+}
 
-		pluginSet[p.Manifest.Id] = true
-		result = append(result, marketplacePlugin)
+// addLocalPlugins returns a merged list of locally installed and remote marketplace plugins.
+func (a *App) addLocalPlugins(remoteMarketplacePlugins []*model.MarketplacePlugin) ([]*model.MarketplacePlugin, *model.AppError) {
+	allPlugins := map[string]*model.MarketplacePlugin{}
+
+	for _, p := range remoteMarketplacePlugins {
+		if p.Manifest == nil {
+			continue
+		}
+		allPlugins[p.Manifest.Id] = p
 	}
 
 	// Include all other installed plugins.
-	plugins, err := pluginsEnvironment.Available()
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	localPlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	for _, plugin := range plugins {
-		if plugin.Manifest == nil || pluginSet[plugin.Manifest.Id] || !pluginMatchesFilter(plugin.Manifest, filter.Filter) {
+	for _, plugin := range localPlugins {
+		if plugin.Manifest == nil {
 			continue
 		}
 
-		result = append(result, &model.MarketplacePlugin{
+		if allPlugins[plugin.Manifest.Id] != nil {
+			// Remote plugin is installed.
+			allPlugins[plugin.Manifest.Id].InstalledVersion = plugin.Manifest.Version
+			continue
+		}
+
+		allPlugins[plugin.Manifest.Id] = &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				Manifest: plugin.Manifest,
 			},
 			InstalledVersion: plugin.Manifest.Version,
-		})
+		}
 	}
 
-	// Sort result alphabetically.
-	sort.SliceStable(result, func(i, j int) bool {
-		return strings.ToLower(result[i].Manifest.Name) < strings.ToLower(result[j].Manifest.Name)
-	})
+	var result []*model.MarketplacePlugin
+	for _, p := range allPlugins {
+		result = append(result, p)
+	}
 
 	return result, nil
 }
