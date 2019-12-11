@@ -769,22 +769,22 @@ func (a *App) AddTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 	return teamMember, nil
 }
 
-func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId string, graceful bool) ([]*model.TeamMember, *model.AppError) {
+func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId string, graceful bool) ([]*model.TeamMember, []*model.AppError) {
 	var members []*model.TeamMember
-	errors := make(map[string]string)
+	var errors []*model.AppError
 
 	for _, userId := range userIds {
 		if _, err := a.AddUserToTeam(teamId, userId, userRequestorId); err != nil {
 			if graceful {
-				errors[userId] = err.Error()
+				errors = append(errors, model.NewAppError(userId, "api.team.add_team_members_graceful.app_error", nil, err.Error(), http.StatusOK))
 				continue
 			}
-			return nil, err
+			return nil, []*model.AppError{err}
 		}
 
 		teamMember, err := a.GetTeamMember(teamId, userId)
 		if err != nil {
-			return nil, err
+			return nil, []*model.AppError{err}
 		}
 		members = append(members, teamMember)
 
@@ -794,13 +794,7 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 		a.Publish(message)
 	}
 
-	if graceful {
-		return members, model.NewAppError("AddTeamMembers", "api.team.add_team_members_graceful.app_error", map[string]interface{}{
-			"sub-errors": errors,
-		}, "", http.StatusOK)
-	}
-
-	return members, nil
+	return members, errors
 }
 
 func (a *App) AddTeamMemberByToken(userId, tokenId string) (*model.TeamMember, *model.AppError) {
