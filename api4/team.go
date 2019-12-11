@@ -522,6 +522,8 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	graceful := r.URL.Query().Get("graceful") != ""
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -587,15 +589,23 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err = c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session.UserId)
+	members, err = c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session.UserId, graceful)
 
-	if err != nil {
-		c.Err = err
-		return
+	if graceful { // in 'graceful' mode we allow a different return value, notifying the client which users were not added
+		result := model.TeamMembersWithErrors{
+			AddedMembers: members,
+			Errors:       err.GetParam("sub-errors").(map[string]string),
+		}
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(result.ToJson()))
+	} else {
+		if err != nil {
+			c.Err = err
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(model.TeamMembersToJson(members)))
 	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(model.TeamMembersToJson(members)))
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -174,7 +174,11 @@ func (api *PluginAPI) CreateTeamMember(teamId, userId string) (*model.TeamMember
 }
 
 func (api *PluginAPI) CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
-	return api.app.AddTeamMembers(teamId, userIds, requestorId)
+	return api.app.AddTeamMembers(teamId, userIds, requestorId, false)
+}
+
+func (api *PluginAPI) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
+	return api.app.AddTeamMembers(teamId, userIds, requestorId, true)
 }
 
 func (api *PluginAPI) DeleteTeamMember(teamId, userId, requestorId string) *model.AppError {

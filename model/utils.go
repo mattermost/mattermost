@@ -94,6 +94,10 @@ func (er *AppError) SystemMessage(T goi18n.TranslateFunc) string {
 	}
 }
 
+func (er *AppError) GetParam(key string) interface{} {
+	return er.params[key]
+}
+
 func (er *AppError) ToJson() string {
 	b, _ := json.Marshal(er)
 	return string(b)

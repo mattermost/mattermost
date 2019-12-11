@@ -769,11 +769,16 @@ func (a *App) AddTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 	return teamMember, nil
 }
 
-func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId string) ([]*model.TeamMember, *model.AppError) {
+func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId string, graceful bool) ([]*model.TeamMember, *model.AppError) {
 	var members []*model.TeamMember
+	errors := make(map[string]string)
 
 	for _, userId := range userIds {
 		if _, err := a.AddUserToTeam(teamId, userId, userRequestorId); err != nil {
+			if graceful {
+				errors[userId] = err.Error()
+				continue
+			}
 			return nil, err
 		}
 
@@ -787,6 +792,12 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 		message.Add("team_id", teamId)
 		message.Add("user_id", userId)
 		a.Publish(message)
+	}
+
+	if graceful {
+		return members, model.NewAppError("AddTeamMembers", "api.team.add_team_members_graceful.app_error", map[string]interface{}{
+			"sub-errors": errors,
+		}, "", http.StatusOK)
 	}
 
 	return members, nil

@@ -32,6 +32,11 @@ type TeamMemberForExport struct {
 	TeamName string
 }
 
+type TeamMembersWithErrors struct {
+	AddedMembers []*TeamMember     `json:"added_members"`
+	Errors       map[string]string `json:"errors"`
+}
+
 func (o *TeamMember) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
@@ -52,6 +57,17 @@ func TeamUnreadFromJson(data io.Reader) *TeamUnread {
 	var o *TeamUnread
 	json.NewDecoder(data).Decode(&o)
 	return o
+}
+
+func TeamMembersWithErrorsFromJson(data io.Reader) *TeamMembersWithErrors {
+	var o *TeamMembersWithErrors
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+func (o *TeamMembersWithErrors) ToJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func TeamMembersToJson(o []*TeamMember) string {
