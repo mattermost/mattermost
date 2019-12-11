@@ -776,7 +776,7 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 	for _, userId := range userIds {
 		if _, err := a.AddUserToTeam(teamId, userId, userRequestorId); err != nil {
 			if graceful {
-				errors = append(errors, model.NewAppError(userId, "api.team.add_team_members_graceful.app_error", nil, err.Error(), http.StatusOK))
+				errors = append(errors, model.NewAppError(userId, "api.team.add_team_members_graceful.app_error", nil, err.Message, http.StatusOK))
 				continue
 			}
 			return nil, []*model.AppError{err}
