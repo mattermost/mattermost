@@ -4,6 +4,7 @@
 package mailservice
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"io"
@@ -136,9 +137,6 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	if err := conn.SetDeadline(time.Now().Add(dialer.Timeout)); err != nil {
-		return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
 
 	return conn, nil
 }
@@ -156,15 +154,34 @@ func ConnectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 	)
 }
 
-func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpConnectionInfo) (*smtp.Client, *model.AppError) {
-	c, err := smtp.NewClient(conn, connectionInfo.SmtpServerName+":"+connectionInfo.SmtpPort)
-	if err != nil {
-		mlog.Error("Failed to open a connection to SMTP server", mlog.Err(err))
+func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, hostname string, connectionInfo *SmtpConnectionInfo) (*smtp.Client, *model.AppError) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	var c *smtp.Client
+	ec := make(chan error)
+	go func() {
+		var err error
+		c, err = smtp.NewClient(conn, connectionInfo.SmtpServerName+":"+connectionInfo.SmtpPort)
+		if err != nil {
+			ec <- err
+			return
+		}
+		cancel()
+	}()
+
+	select {
+	case <-ctx.Done():
+		err := ctx.Err()
+		if err != nil && err.Error() != "context canceled" {
+			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	case err := <-ec:
 		return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if hostname != "" {
-		err = c.Hello(hostname)
+		err := c.Hello(hostname)
 		if err != nil {
 			mlog.Error("Failed to to set the HELO to SMTP server", mlog.Err(err))
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -180,15 +197,16 @@ func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpC
 	}
 
 	if connectionInfo.Auth {
-		if err = c.Auth(&authChooser{connectionInfo: connectionInfo}); err != nil {
+		if err := c.Auth(&authChooser{connectionInfo: connectionInfo}); err != nil {
 			return nil, model.NewAppError("SendMail", "utils.mail.new_client.auth.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 	return c, nil
 }
 
-func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.AppError) {
+func NewSMTPClient(ctx context.Context, conn net.Conn, config *model.Config) (*smtp.Client, *model.AppError) {
 	return NewSMTPClientAdvanced(
+		ctx,
 		conn,
 		utils.GetHostnameFromSiteURL(*config.ServiceSettings.SiteURL),
 		&SmtpConnectionInfo{
@@ -216,9 +234,15 @@ func TestConnection(config *model.Config) *model.AppError {
 	}
 	defer conn.Close()
 
-	c, err := NewSMTPClient(conn, config)
+	sec := *config.EmailSettings.SMTPServerTimeout
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(sec)*time.Second)
+	defer cancel()
+
+	c, err := NewSMTPClient(ctx, conn, config)
 	if err != nil {
-		return &model.AppError{Message: "Could not connect to SMTP server, check SMTP server settings.", DetailedError: err.DetailedError}
+		return &model.AppError{Message: "Could not connect to SMTP server, check SMTP server settings."}
 	}
 	c.Close()
 	c.Quit()
@@ -259,7 +283,13 @@ func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComp
 	}
 	defer conn.Close()
 
-	c, err := NewSMTPClient(conn, config)
+	sec := *config.EmailSettings.SMTPServerTimeout
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(sec)*time.Second)
+	defer cancel()
+
+	c, err := NewSMTPClient(ctx, conn, config)
 	if err != nil {
 		return err
 	}
