@@ -828,8 +828,8 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 
-		require.Equal(t, len(samplePlugins), len(plugins))
-		require.Equal(t, samplePlugins[0].Manifest.Id, plugins[0].Manifest.Id)
+		require.Len(t, plugins, len(samplePlugins))
+		require.Equal(t, samplePlugins, plugins)
 	})
 
 	t.Run("get remote and local plugins", func(t *testing.T) {
@@ -850,7 +850,7 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 
-		require.Equal(t, 2, len(plugins))
+		require.Len(t, plugins, 2)
 
 		ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
 		CheckNoError(t, resp)
@@ -864,6 +864,12 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 			*cfg.PluginSettings.EnableUploads = true
 		})
 
+		// No marketplace plugins returned
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+
+		require.Len(t, plugins, 0)
+
 		// Upload one local plugin
 		path, _ := fileutils.FindDir("tests")
 		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
@@ -874,20 +880,17 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "HomepageURL",
-				IconData:    "IconData",
-				DownloadURL: "DownloadURL",
-				Manifest:    manifest,
+				Manifest: manifest,
 			},
 			InstalledVersion: manifest.Version,
 		}
 
-		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{LocalOnly: true})
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 
 		// Only get the local plugins
-		require.Equal(t, 1, len(plugins))
-		require.Equal(t, newPlugin.Manifest.Id, plugins[0].Manifest.Id)
+		require.Len(t, plugins, 1)
+		require.Equal(t, newPlugin, plugins[0])
 
 		ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
 		CheckNoError(t, resp)
@@ -911,10 +914,7 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "HomepageURL",
-				IconData:    "IconData",
-				DownloadURL: "DownloadURL",
-				Manifest:    manifest,
+				Manifest: manifest,
 			},
 			InstalledVersion: manifest.Version,
 		}
@@ -922,8 +922,8 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{LocalOnly: true})
 		CheckNoError(t, resp)
 
-		require.Equal(t, 1, len(plugins))
-		require.Equal(t, newPlugin.Manifest.Id, plugins[0].Manifest.Id)
+		require.Len(t, plugins, 1)
+		require.Equal(t, newPlugin, plugins[0])
 
 		ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
 		CheckNoError(t, resp)
