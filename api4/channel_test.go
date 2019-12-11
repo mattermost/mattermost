@@ -850,7 +850,7 @@ func TestGetAllChannelsWithCount(t *testing.T) {
 	for _, c := range *channels {
 		require.NotEqual(t, c.TeamId, "")
 	}
-	require.Equal(t, int64(5), total)
+	require.Equal(t, int64(6), total)
 
 	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(0, 10, "")
 	CheckNoError(t, resp)
