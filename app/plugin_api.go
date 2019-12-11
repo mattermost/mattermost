@@ -176,7 +176,7 @@ func (api *PluginAPI) CreateTeamMember(teamId, userId string) (*model.TeamMember
 func (api *PluginAPI) CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
 	if members, err := api.app.AddTeamMembers(teamId, userIds, requestorId, false); len(err) > 0 {
 		return nil, err[0]
-	}else{
+	} else {
 		return members, nil
 	}
 }

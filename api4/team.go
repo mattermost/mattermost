@@ -593,7 +593,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if graceful { // in 'graceful' mode we allow a different return value, notifying the client which users were not added
 		errorDetails := make(map[string]string)
-		for _, e := range errors{
+		for _, e := range errors {
 			errorDetails[e.Where] = e.DetailedError
 		}
 		result := model.TeamMembersWithErrors{
@@ -603,8 +603,8 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(result.ToJson()))
 	} else {
-		if err != nil {
-			c.Err = err
+		if len(errors) > 0 {
+			c.Err = errors[0]
 			return
 		}
 		w.WriteHeader(http.StatusCreated)
