@@ -24,6 +24,9 @@ gofmt: ## Runs gofmt against all packages. This is now subsumed by make golangci
 	done
 	@echo "gofmt success"; \
 
+# check-licenses was used to check the license of the files, but now is done through mattermost-govet
+check-licenses: vet
+
 # clean old docker images
 clean-old-docker:
 	@echo Removing docker containers
