@@ -922,6 +922,9 @@ func (ss *SqlSupplier) Close() {
 	for _, replica := range ss.replicas {
 		replica.Db.Close()
 	}
+
+	mlog.Info("Closing CacheProvider")
+	ss.cacheProvider.Close()
 }
 
 func (ss *SqlSupplier) LockToMaster() {
