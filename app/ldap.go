@@ -18,8 +18,7 @@ func (a *App) SyncLdap() {
 			if ldapI := a.Ldap; ldapI != nil {
 				ldapI.StartSynchronizeJob(false)
 			} else {
-				err := model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
-				mlog.Error("Not executing ldap sync because ldap is not available", mlog.Err(err))
+				mlog.Error("Not executing ldap sync because ldap is not available")
 			}
 		}
 	})
