@@ -1690,10 +1690,10 @@ type Z_CreateTeamMembersGracefullyArgs struct {
 
 type Z_CreateTeamMembersGracefullyReturns struct {
 	A []*model.TeamMember
-	B *model.AppError
+	B []*model.AppError
 }
 
-func (g *apiRPCClient) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
+func (g *apiRPCClient) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, []*model.AppError) {
 	_args := &Z_CreateTeamMembersGracefullyArgs{teamId, userIds, requestorId}
 	_returns := &Z_CreateTeamMembersGracefullyReturns{}
 	if err := g.client.Call("Plugin.CreateTeamMembersGracefully", _args, _returns); err != nil {
@@ -1704,7 +1704,7 @@ func (g *apiRPCClient) CreateTeamMembersGracefully(teamId string, userIds []stri
 
 func (s *apiRPCServer) CreateTeamMembersGracefully(args *Z_CreateTeamMembersGracefullyArgs, returns *Z_CreateTeamMembersGracefullyReturns) error {
 	if hook, ok := s.impl.(interface {
-		CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError)
+		CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, []*model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.CreateTeamMembersGracefully(args.A, args.B, args.C)
 	} else {
