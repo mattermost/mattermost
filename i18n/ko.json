@@ -1513,6 +1513,10 @@
     "translation": "Outgoing webhook은 관리자에 의해 제한되었습니다."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "공개 키 파일을 여는 동안 오류가 발생함"
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "플러그인을 다운로드하는 동안 오류가 발생하였습니다."
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "in multipart/form request 파일이 누락되었습니다."
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "플러그인 서명을 확인할 수 없음"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,12 +1715,20 @@
     "translation": "푸쉬 알림이 이 서버에서 비활성화 되었습니다."
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "새로운 메세지 받음"
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "ID가 로드된 푸시 알림을 가져오는 중 오류가 발생함"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "푸시 알림 서비스에 수신 내용을 전달 하던 중 오류가 발생했습니다."
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
-    "translation": "보관 된 채널에서는 반응을 제거 할 수 없습니다."
+    "translation": "보관된 채널에서는 반응을 제거할 수 없습니다."
   },
   {
     "id": "api.reaction.save.archived_channel.app_error",
@@ -1859,8 +1875,16 @@
     "translation": "Slack에서 불러온 zip파일을 열 수 없습니다.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "Slack 가져오기를 처리하기에 zip 파일 {{.Filename}} 이 너무 큽니다."
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "사용자를 찾을 수 업습니다."
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "이 서버에서는 ID 로드 된 푸시 알림이 구성되거나 지원되지 않습니다."
   },
   {
     "id": "api.team.add_members.error",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v가 팀에서 제외되었습니다."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "개인 전용의 팀 검색에는 페이지가 구현되지 않았읍니다."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "공개전용 팀 검색에는 페이징이 구현되지 않았습니다."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -2420,7 +2452,7 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "게스트 계정이 비활성화됨."
+    "translation": "게스트 계정이 비활성화되었습니다."
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
@@ -3288,15 +3320,15 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-    "translation": "Invalid post formatting setting for User"
+    "translation": "사용자에 대한 잘못된 게시물 형식 설정입니다"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": "Invalid show unread section setting for User"
+    "translation": "사용자에 대한 읽지 않은 섹션 표시 설정이 무효화 됨"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "User AuthData and Password are mutually exclusive."
+    "translation": "사용자 권한 데이터와 패스워드가 상호 배타적입니다."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -3324,31 +3356,31 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
-    "translation": "Invalid Channel Trigger Notify Prop for user."
+    "translation": "사용자의 맨션 알림이 설정되지 않음"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": "Invalid Comments Prop value for user."
+    "translation": "사용자의 답글 알림이 설정되지 않음"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
-    "translation": "Invalid Desktop Notify Prop value for user."
+    "translation": "사용자의 데스크탑 알림이 설정되지 않음"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": "Invalid Desktop Sound Notify Prop value for user."
+    "translation": "사용자의 데스크탑 소리 알림이 설정되지 않음"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
-    "translation": "Invalid Email Notify Prop value for user."
+    "translation": "사용자의 이메일 알림이 설정되지 않음"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
-    "translation": "Invalid Mobile Notify Prop value for user."
+    "translation": "사용자의 모바일 알림이 설정되지 않음"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
-    "translation": "Invalid Mobile Push Status Notify Prop for user."
+    "translation": "사용자의 모바일 푸시 알림이 설정되지 않음"
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
@@ -3471,6 +3503,10 @@
     "translation": "플러그인을 비활성화 할 수 없습니다"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "인증서를 삭제하는 동안 오류가 발생하였습니다."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "플러그인이 비활성화됐습니다. 로그에서 상세 사유를 확인하세요"
   },
@@ -3495,6 +3531,10 @@
     "translation": "활성화된 플러그인을 가져 올 수 없습니다"
   },
   {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "공개키를 가져 오는동안 오류가 발생했습니다."
+  },
+  {
     "id": "app.plugin.get_statuses.app_error",
     "translation": "플러그인 상태를 가져올 수 없습니다"
   },
@@ -3516,7 +3556,7 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Plugin version could not be parsed"
+    "translation": "플러그인 버전을 파싱하지 못했습니다."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3524,19 +3564,31 @@
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Failed to create marketplace client."
+    "translation": "마켓 플레이스 클라이언트를 생성하지 못했습니다."
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
     "translation": "플러그인이 비활성화됐습니다. 로그에서 상세 사유를 확인하세요"
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "마켓 플레이스 플러그인 요청을 디코딩하지 못했습니다."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
-    "translation": "Failed to get plugins from the marketplace server."
+    "translation": "마켓 플레이스 서버에서 플러그인을 가져 오지 못했습니다."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin."
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Failed to marshal marketplace plugins."
+    "translation": "마켓 플레이스 플러그인을 마샬링하지 못했습니다."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "saml(sso) 파일을 수정할 수 없습니다."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3556,10 +3608,18 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Unable to restart plugin on upgrade."
+    "translation": "업그레이드시 플러그인을 다시 시작할 수 없습니다."
+  },
+  {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "base64 서명을 디코딩 할 수 없습니다."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
+    "translation": "구성된 파일 저장소에 플러그인을 저장할 수 없습니다."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
     "translation": "구성된 파일 저장소에 플러그인을 저장할 수 없습니다."
   },
   {
@@ -3576,7 +3636,15 @@
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
-    "translation": "Unable to generate plugin webapp bundle."
+    "translation": "플러그인 webapp 번들을 생성 할 수 없습니다."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "채널에서 나가는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "채널에서 나가는 중 오류가 발생했습니다."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3600,11 +3668,11 @@
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by invite."
+    "translation": "초대에 의해서는 그룹 제한된 팀에 참여할 수 없습니다."
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by token."
+    "translation": "토큰에 의한 그룹 제한된팀에 참여할 수 없습니다."
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3664,11 +3732,11 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
+    "translation": "id={{ .id }}에 대한 클러스터 구성이 변경되었습니다. 클러스터가 불안정해질 수 있으며 다시 시작해야합니다. 클러스터가 올바르게 구성되도록하려면 롤링 재시작을 즉시 수행해야합니다."
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
+    "translation": "환경 설정 파일의 ReadOnlyConfig가 비활성화되어 있지 않으면 고 가용성(HA)이 활성화되면 시스템 콘솔이 읽기 전용으로 설정됩니다."
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -3700,7 +3768,7 @@
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Unable to export a post."
+    "translation": "게시물을 내보낼수 없습니다."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
@@ -3708,7 +3776,7 @@
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
+    "translation": "업로드 한 파일이 전송하기에 너무 커서 글로벌 릴레이 내보내기에서 제거되었습니다."
   },
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
@@ -3716,7 +3784,7 @@
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
+    "translation": "글로벌 릴레이 임시 내보내기 파일을 다시 읽을 수 없습니다."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3736,19 +3804,19 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+    "translation": "Elasticsearch 애그리 게이터 작업자가 인덱싱 작업을 생성하지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+    "translation": "Elasticsearch 애그리 게이터 작업자가 인덱스를 삭제하지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
+    "translation": "Elasticsearch 애그리 게이터 작업자가 인덱스를 가져 오지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+    "translation": "Elasticsearch 애그리 게이터 작업자가 인덱싱 작업을 생성하지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
@@ -3804,15 +3872,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "The oldest post could not be retrieved from the database."
+    "translation": "데이터베이스에서 가장 오래된 게시물을 조회 할 수 없습니다"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
+    "translation": "Elasticsearch 인덱싱 워커가 종료시간을 구문 분석하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
+    "translation": "Elasticsearch 인덱싱 워커가 시작시간을 구문 분석 하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -3836,7 +3904,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-    "translation": "Failed to decode search results"
+    "translation": "검색 결과 디코딩 실패"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3852,7 +3920,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": "Failed to decode search results"
+    "translation": "검색 결과 디코딩 실패"
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
@@ -3860,7 +3928,7 @@
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
-    "translation": "Failed to decode search results"
+    "translation": "검색 결과 디코딩 실패"
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
@@ -3868,11 +3936,11 @@
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor"
+    "translation": "Elastic Search 벌크 프로세서 생성 실패"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor"
+    "translation": "Elastic Search 벌크 프로세서 시작에 실패"
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -3893,6 +3961,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "라이센스는 ID Loaded 푸시 알림을 지원하지 않습니다."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3952,7 +4024,7 @@
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "Ldap 동기화 채우기 오류"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -4148,7 +4220,7 @@
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
+    "translation": "메시지 내보내기 작업의 BatchSize를 구문 분석 할 수 없습니다."
   },
   {
     "id": "jobs.do_job.batch_start_timestamp.parse_error",
@@ -5167,10 +5239,6 @@
     "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
   },
   {
-    "id": "model.plugin_kvset_options.serialize_value.app_error",
-    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
-  },
-  {
     "id": "model.post.is_valid.channel_id.app_error",
     "translation": "유효하지 않은 채널 id"
   },
@@ -5611,6 +5679,10 @@
     "translation": "채널 멤버를 업데이트 하지 못했습니다"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "채널을 삭제하지 못했습니다"
   },
@@ -5816,7 +5888,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "보관 된 채널에서는 반응을 추가할 수 없습니다."
+    "translation": "보관된 채널에서는 수정할 수 없습니다."
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5900,7 +5972,7 @@
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "트랜잭션 커밋 실패"
   },
   {
     "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
@@ -5916,7 +5988,7 @@
   },
   {
     "id": "store.sql_channel.update.archived_channel.app_error",
-    "translation": "보관 된 채널에서는 반응을 추가할 수 없습니다."
+    "translation": "보관된 채널에서는 수정할 수 없습니다"
   },
   {
     "id": "store.sql_channel.update.commit_transaction.app_error",
@@ -5945,6 +6017,10 @@
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "We couldn't update the last viewed at time"
+  },
+  {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread"
   },
   {
     "id": "store.sql_channel.update_member.app_error",

@@ -764,7 +764,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
+    "translation": "Este canal é gerenciado por grupos.  Este usuário não faz parte de um grupo sincronizado com este canal."
   },
   {
     "id": "api.command_invite.hint",
@@ -1342,7 +1342,7 @@
   },
   {
     "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
-    "translation": "Invalid/Missing channel ID or Team ID."
+    "translation": "ID do canal ou ID da equipe Inválido/Ausente."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1513,6 +1513,10 @@
     "translation": "Webhooks de saída foram desabilitados pelo administrador do sistema."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "Ocorreu um erro ao abrir o arquivo de chave pública."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "Ocorreu um erro durante o download do plugin."
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Arquivo faltando na requisição multipart/form"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Não foi possível verificar a assinatura do plugin."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,6 +1715,14 @@
     "translation": "As Notificações Push estão desativadas neste servidor."
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "Você recebeu uma nova mensagem."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "Ocorreu um erro ao buscar a notificação push carregada por ID"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "Ocorreu um erro ao enviar a entrega de recibo para o serviço de notificação por push"
   },
@@ -1859,8 +1875,16 @@
     "translation": "Não é possível abrir o arquivo zip de exportação Slack.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} no arquivo zip muito grande para processar na importação do Slack\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Usuário não localizado"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "Notificações Push Carregada por ID não está configurada ou suportada neste servidor."
   },
   {
     "id": "api.team.add_members.error",
@@ -1868,7 +1892,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
+    "translation": "Essa equipe é gerenciada por grupos.  Este usuário não faz parte de um grupo sincronizado com esta equipe."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v foi removido da equipe."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Paginação não implementada para pesquisa de equipe somente particular."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Paginação não implementada para pesquisa de equipe somente pública."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -2632,7 +2664,7 @@
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+    "translation": "Você não pode ativar uma conta convidado devido ai recurso Conta Convidado não estar ativo."
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -3471,6 +3503,10 @@
     "translation": "Não é possível desativar o plugin"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Ocorreu um erro ao deletar a chave pública."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Os plugins foram desativados. Verifique os seus logs para obter detalhes."
   },
@@ -3495,6 +3531,10 @@
     "translation": "Não é possível obter os plugins ativos"
   },
   {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "Ocorreu um erro enquanto obtinha a chave pública do armazenamento."
+  },
+  {
     "id": "app.plugin.get_statuses.app_error",
     "translation": "Não foi possível obter os status dos plugins"
   },
@@ -3516,7 +3556,7 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Plugin version could not be parsed"
+    "translation": "Versão do plugin não pode ser lida"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3531,12 +3571,24 @@
     "translation": "Os plugins foram desativados. Verifique os seus logs para obter detalhes."
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Falha ao decodificar a solicitação do marketplace plugin."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "Falha ao obter plugins do servidor marketplace."
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Não é possível encontrar a solicitação do marketplace plugin."
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "Falha ao decodificar os plugins do marketplace."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Não é possível modificar arquivos saml."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3559,8 +3611,16 @@
     "translation": "Não é possível reiniciar o plugin na atualização."
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Não foi possível decodificar assinatura base64."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Não é possível armazenar o plugin no armazenamento de arquivos configurado."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Não é possível armazenar assinatura do plugin no armazenamento de arquivos configurado."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
@@ -3577,6 +3637,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "Não é possível gerar o pacote plugin webapp."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Ocorreu um erro enquanto o arquivo era lido."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Ocorreu um erro enquanto o arquivo era salvo."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3893,6 +3961,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "URL do servidor Elasticsearch ou o nome do usuário mudou. Por favor atualize a senha do Elasticsearch para testar a conexão."
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Sua licença não suporta ID Loaded Push Notifications."
   },
   {
     "id": "ent.ldap.app_error",
@@ -4728,7 +4800,7 @@
   },
   {
     "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
-    "translation": "Invalid Canonical Algorithm."
+    "translation": "Algoritmo Canônico Inválido."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
@@ -4736,7 +4808,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
+    "translation": "Atributo Convidado inválido. Deve estar no formato 'campo=valor'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4760,7 +4832,7 @@
   },
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
-    "translation": "Invalid Signature Algorithm."
+    "translation": "Algoritmo de Assinatura Inválido."
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -5164,11 +5236,7 @@
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
-  },
-  {
-    "id": "model.plugin_kvset_options.serialize_value.app_error",
-    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
+    "translation": "Valor antigo inválido, não deve ser definido quando a operação não é atômica."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5611,6 +5679,10 @@
     "translation": "Falha ao atualizar o membro do canal"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Não foi possível contar mensagens desde a data especificada"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Não foi possível excluir o canal"
   },
@@ -5947,6 +6019,10 @@
     "translation": "Não foi possível atualizar a última visualização no tempo"
   },
   {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Não foi possível marcar o canal como não lido"
+  },
+  {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "Encontramos um erro ao atualizar o membro do canal"
   },
@@ -6144,7 +6220,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
+    "translation": "Não foi possível remover os membros do grupo com o UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -7168,11 +7244,11 @@
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Unable to get the list of deactivate guests ids"
+    "translation": "Não foi possível obter a lista de ids de convidados desativados"
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Não é possível desativar o plugin"
+    "translation": "Não é possível desativar os convidados"
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
@@ -7504,11 +7580,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "Esse navegador não é mais suportado pelo Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "A versão do seu navegador não é mais suportada pelo Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",

@@ -1513,6 +1513,10 @@
     "translation": "Додаткові смайли були відключені системним адміністратором.  "
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "Під час видалення додатка OAuth2 сталася помилка"
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -1539,6 +1543,10 @@
   {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Відсутній файл у форматі запиту у багатосторонній формі"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1707,6 +1715,14 @@
     "translation": "Push Notifications are disabled on this server."
   },
   {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "You've received a new message."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "An error occurred fetching the ID-loaded push notification"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "An error occurred sending the receipt delivery to the push notification service"
   },
@@ -1859,8 +1875,16 @@
     "translation": "Неможливо відкрити файл zip-експорту Slack.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Користувача не знайдено"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
     "id": "api.team.add_members.error",
@@ -2009,6 +2033,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v вилучено з каналу. "
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -3471,6 +3503,10 @@
     "translation": "Неможливо вимкнути плагін"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Під час видалення додатка OAuth2 сталася помилка"
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Плагіни відключені. Будь ласка, перевірте свої журнали на деталі."
   },
@@ -3493,6 +3529,10 @@
   {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Не вдається отримати активні плагіни"
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "An error occurred while getting the public key from the store."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3531,12 +3571,24 @@
     "translation": "Плагіни відключені. Будь ласка, перевірте свої журнали на деталі."
   },
   {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
+  },
+  {
     "id": "app.plugin.marketplace_plugins.app_error",
     "translation": "Failed to get plugins from the marketplace server."
   },
   {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin."
+  },
+  {
     "id": "app.plugin.marshal.app_error",
     "translation": "Failed to marshal marketplace plugins."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3559,8 +3611,16 @@
     "translation": "Unable to restart plugin on upgrade."
   },
   {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
+  },
+  {
     "id": "app.plugin.store_bundle.app_error",
     "translation": "Unable to store the plugin to the configured file store."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Unable to store the plugin signature to the configured file store."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
@@ -3577,6 +3637,14 @@
   {
     "id": "app.plugin.webapp_bundle.app_error",
     "translation": "Unable to generate plugin webapp bundle."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Під час виходу з каналу сталася помилка."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Під час виходу з каналу сталася помилка."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3893,6 +3961,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "URL-адреса сервера Elasticsearch або ім'я користувача змінено. Будь ласка, повторно введіть пароль Elasticsearch, щоб перевірити з'єднання."
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
     "id": "ent.ldap.app_error",
@@ -5167,10 +5239,6 @@
     "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
   },
   {
-    "id": "model.plugin_kvset_options.serialize_value.app_error",
-    "translation": "Could not deserialize a value. EncodeJSON: {{.EncodeJSON}}."
-  },
-  {
     "id": "model.post.is_valid.channel_id.app_error",
     "translation": "Неприпустимий ідентифікатор каналу"
   },
@@ -5611,6 +5679,10 @@
     "translation": "Не вдалося оновити заголовок прямого каналу"
   },
   {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Не вдається видалити канал"
   },
@@ -5945,6 +6017,10 @@
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "Ну вдалося встановити час останнього перегляду на"
+  },
+  {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread"
   },
   {
     "id": "store.sql_channel.update_member.app_error",
