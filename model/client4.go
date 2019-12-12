@@ -27,6 +27,7 @@ const (
 	HEADER_REAL_IP            = "X-Real-IP"
 	HEADER_FORWARDED_PROTO    = "X-Forwarded-Proto"
 	HEADER_TOKEN              = "token"
+	HEADER_CSRF_TOKEN         = "X-CSRF-Token"
 	HEADER_BEARER             = "BEARER"
 	HEADER_AUTH               = "Authorization"
 	HEADER_REQUESTED_WITH     = "X-Requested-With"

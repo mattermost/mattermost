@@ -200,3 +200,125 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/ 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
 	})
 }
+
+func handlerForCSRFToken(c *Context, w http.ResponseWriter, r *http.Request) {
+}
+
+func TestHandlerServeCSRFToken(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	session := &model.Session{
+		UserId:   th.BasicUser.Id,
+		CreateAt: model.GetMillis(),
+		Roles:    model.SYSTEM_USER_ROLE_ID,
+		IsOAuth:  false,
+	}
+	session.GenerateCSRF()
+	session.SetExpireInDays(1)
+	session, err := th.App.CreateSession(session)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+
+	web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+
+	handler := Handler{
+		GetGlobalAppOptions: web.GetGlobalAppOptions,
+		HandleFunc:          handlerForCSRFToken,
+		RequireSession:      true,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+
+	cookie := &http.Cookie{
+		Name:  model.SESSION_COOKIE_USER,
+		Value: th.BasicUser.Username,
+	}
+	cookie2 := &http.Cookie{
+		Name:  model.SESSION_COOKIE_TOKEN,
+		Value: session.Token,
+	}
+	cookie3 := &http.Cookie{
+		Name:  model.SESSION_COOKIE_CSRF,
+		Value: session.GetCSRF(),
+	}
+
+	// CSRF Token Used - Success Expected
+
+	request := httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.AddCookie(cookie)
+	request.AddCookie(cookie2)
+	request.AddCookie(cookie3)
+	request.Header.Add(model.HEADER_CSRF_TOKEN, session.GetCSRF())
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	if response.Code != 200 {
+		t.Errorf("Expected status 200, got %d", response.Code)
+	}
+
+	// No CSRF Token Used - Failure Expected
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.AddCookie(cookie)
+	request.AddCookie(cookie2)
+	request.AddCookie(cookie3)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	if response.Code != 401 {
+		t.Errorf("Expected status 401, got %d", response.Code)
+	}
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.AddCookie(cookie)
+	request.AddCookie(cookie2)
+	request.AddCookie(cookie3)
+	request.Header.Add(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	if response.Code != 200 {
+		t.Errorf("Expected status 200, got %d", response.Code)
+	}
+
+	// Handler with RequireSession set to false
+
+	handlerNoSession := Handler{
+		GetGlobalAppOptions: web.GetGlobalAppOptions,
+		HandleFunc:          handlerForCSRFToken,
+		RequireSession:      false,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+
+	// CSRF Token Used - Success Expected
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.AddCookie(cookie)
+	request.AddCookie(cookie2)
+	request.AddCookie(cookie3)
+	request.Header.Add(model.HEADER_CSRF_TOKEN, session.GetCSRF())
+	response = httptest.NewRecorder()
+	handlerNoSession.ServeHTTP(response, request)
+
+	if response.Code != 200 {
+		t.Errorf("Expected status 200, got %d", response.Code)
+	}
+
+	// No CSRF Token Used - Failure Expected
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.AddCookie(cookie)
+	request.AddCookie(cookie2)
+	request.AddCookie(cookie3)
+	response = httptest.NewRecorder()
+	handlerNoSession.ServeHTTP(response, request)
+
+	if response.Code != 401 {
+		t.Errorf("Expected status 401, got %d", response.Code)
+	}
+}
