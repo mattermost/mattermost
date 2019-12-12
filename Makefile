@@ -196,13 +196,10 @@ einterfaces-mocks: ## Creates mock files for einterfaces.
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
 
-check-licenses: ## Checks license status.
-	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
-
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-style: golangci-lint plugin-checker check-licenses ## Runs golangci against all packages
+check-style: golangci-lint plugin-checker vet ## Runs golangci against all packages
 
 test-te-race: ## Checks for race conditions in the team edition.
 	@echo Testing TE race conditions
@@ -451,6 +448,16 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Copy everything to vendor directory
 	$(GO) mod vendor
 
+vet: ## Run mattermost go vet specific checks
+	@if ! [ -x "$$(command -v mattermost-govet)" ]; then \
+		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off go get -u github.com/mattermost/mattermost-govet\""; \
+		exit 1; \
+	fi; \
+
+	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license ./...
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -enterpriseLicense ./enterprise/...
+endif
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
