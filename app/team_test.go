@@ -67,14 +67,13 @@ func TestAddUserToTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	
 	t.Run("invite users by multiple domains", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "foo.com, bar.com"
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.EmailSettings.SendEmailNotifications = true
 			*cfg.ServiceSettings.EnableEmailInvitations = true
 		})
-	
+
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 
@@ -91,7 +90,7 @@ func TestAddUserToTeam(t *testing.T) {
 		defer th.App.PermanentDeleteUser(&user2)
 		defer th.App.PermanentDeleteUser(&user3)
 
-		err =  th.App.InviteNewUsersToTeam([]string{user3.Email,user1.Email,user2.Email}, th.BasicTeam.Id, th.BasicUser.Id)
+		err = th.App.InviteNewUsersToTeam([]string{user3.Email, user1.Email, user2.Email}, th.BasicTeam.Id, th.BasicUser.Id)
 		require.NotNil(t, err)
 		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser1.Id, "")
 		require.Nil(t, err, "Should have allowed whitelisted user1")
@@ -104,7 +103,7 @@ func TestAddUserToTeam(t *testing.T) {
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 
 	})
-	
+
 	t.Run("add user", func(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
