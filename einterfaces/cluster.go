@@ -23,4 +23,5 @@ type ClusterInterface interface {
 	GetLogs(page, perPage int) ([]string, *model.AppError)
 	GetPluginStatuses() (model.PluginStatuses, *model.AppError)
 	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError
+	GetUserConnectionCount(userId string) (int, *model.AppError)
 }

@@ -66,3 +66,7 @@ func (c *FakeClusterInterface) GetMessages() []*model.ClusterMessage {
 func (c *FakeClusterInterface) ClearMessages() {
 	c.messages = nil
 }
+
+func (c *FakeClusterInterface) GetUserConnectionCount(userId string) (int, *model.AppError) {
+	return 0, nil
+}

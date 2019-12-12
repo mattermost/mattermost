@@ -172,14 +172,32 @@ func (a *App) SetStatusLastActivityAt(userId string, activityAt int64) {
 	a.SetStatusAwayIfNeeded(userId, false)
 }
 
+func (a *App) GetUserConnectionCount(userId string) int {
+	hub := a.GetHubForUserId(userId)
+	if hub != nil {
+		return hub.UserConnectionCount(userId)
+	}
+	return 0
+}
+
 func (a *App) SetStatusOnline(userId string, manual bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
-	hub := a.GetHubForUserId(userId)
+
+	clusterCount := 0
+	if a.Cluster != nil {
+		count, err := a.Cluster.GetUserConnectionCount(userId)
+		if err != nil {
+			mlog.Error("Failed to get user connection count from cluster", mlog.String("user_id", userId), mlog.Err(err))
+		} else {
+			clusterCount = count
+		}
+	}
+
 	// No need to set status if the user does not have any
 	// active websocket connections.
-	if hub != nil && hub.UserConnectionCount(userId) == 0 {
+	if a.GetUserConnectionCount(userId)+clusterCount == 0 {
 		return
 	}
 
