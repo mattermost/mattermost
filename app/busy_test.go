@@ -124,3 +124,6 @@ func (c *ClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError
 func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil
 }
+func (c *ClusterMock) GetUserConnectionCount(userId string) (int, *model.AppError) {
+	return 0, nil
+}
