@@ -201,37 +201,39 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 	csrfCheckNeeded := session != nil && c.Err == nil && tokenLocation == app.TokenLocationCookie && !h.TrustRequester && r.Method != "GET"
 	csrfCheckPassed := false
 
-	if csrfCheckNeeded {
-		csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
+	if !csrfCheckNeeded {
+		return csrfCheckNeeded, csrfCheckPassed
+	}
 
-		if csrfHeader == session.GetCSRF() {
-			csrfCheckPassed = true
-		} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
-			csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
+	csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
 
-			sid := ""
-			userId := ""
+	if csrfHeader == session.GetCSRF() {
+		csrfCheckPassed = true
+	} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+		csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
 
-			if session != nil {
-				sid = session.Id
-				userId = session.UserId
-			}
+		sid := ""
+		userId := ""
 
-			fields := []mlog.Field{
-				mlog.String("path", r.URL.Path),
-				mlog.String("ip", r.RemoteAddr),
-				mlog.String("session_id", sid),
-				mlog.String("user_id", userId),
-			}
-
-			c.Log.Debug(csrfErrorMessage, fields...)
-			csrfCheckPassed = true
+		if session != nil {
+			sid = session.Id
+			userId = session.UserId
 		}
 
-		if !csrfCheckPassed {
-			c.App.Session = model.Session{}
-			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
+		fields := []mlog.Field{
+			mlog.String("path", r.URL.Path),
+			mlog.String("ip", r.RemoteAddr),
+			mlog.String("session_id", sid),
+			mlog.String("user_id", userId),
 		}
+
+		c.Log.Debug(csrfErrorMessage, fields...)
+		csrfCheckPassed = true
+	}
+
+	if !csrfCheckPassed {
+		c.App.Session = model.Session{}
+		c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 	}
 
 	return csrfCheckNeeded, csrfCheckPassed
