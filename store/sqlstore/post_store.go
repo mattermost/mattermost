@@ -24,29 +24,20 @@ import (
 type SqlPostStore struct {
 	SqlStore
 	metrics           einterfaces.MetricsInterface
-	lastPostTimeCache cache.Cache
+
+  lastPostTimeCache cache.Cache
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
 }
 
-const (
-	LAST_POST_TIME_CACHE_SIZE = 25000
-	LAST_POST_TIME_CACHE_SEC  = 900 // 15 minutes
-)
-
 func (s *SqlPostStore) ClearCaches() {
-	s.lastPostTimeCache.Purge()
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Purge")
-	}
 }
 
 func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
-		lastPostTimeCache: lru.NewLru(LAST_POST_TIME_CACHE_SIZE),
+	  lastPostTimeCache: lru.NewLru(LAST_POST_TIME_CACHE_SIZE),
 		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
@@ -103,11 +94,7 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 
 	time := post.UpdateAt
 
-	if post.Type != model.POST_JOIN_LEAVE && post.Type != model.POST_ADD_REMOVE &&
-		post.Type != model.POST_JOIN_CHANNEL && post.Type != model.POST_LEAVE_CHANNEL &&
-		post.Type != model.POST_JOIN_TEAM && post.Type != model.POST_LEAVE_TEAM &&
-		post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL &&
-		post.Type != model.POST_ADD_TO_TEAM && post.Type != model.POST_REMOVE_FROM_TEAM {
+	if !post.IsJoinLeaveMessage() {
 		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
 			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
@@ -321,31 +308,9 @@ type etagPosts struct {
 }
 
 func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
-	s.lastPostTimeCache.Remove(channelId)
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Remove by Channel Id")
-	}
 }
 
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
-	if allowFromCache {
-		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Last Post Time")
-			}
-			return fmt.Sprintf("%v.%v", model.CurrentVersion, cacheItem.(int64))
-		} else {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheMissCounter("Last Post Time")
-			}
-		}
-	} else {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter("Last Post Time")
-		}
-	}
-
 	var et etagPosts
 	err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = :ChannelId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"ChannelId": channelId})
 	var result string
@@ -355,7 +320,6 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
 		result = fmt.Sprintf("%v.%v", model.CurrentVersion, et.UpdateAt)
 	}
 
-	s.lastPostTimeCache.AddWithExpiresInSecs(channelId, et.UpdateAt, LAST_POST_TIME_CACHE_SEC)
 	return result
 }
 
@@ -490,22 +454,6 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.P
 }
 
 func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
-	if allowFromCache {
-		// If the last post in the channel's time is less than or equal to the time we are getting posts since,
-		// we can safely return no posts.
-		if cacheItem, ok := s.lastPostTimeCache.Get(options.ChannelId); ok && cacheItem.(int64) <= options.Time {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Last Post Time")
-			}
-			list := model.NewPostList()
-			return list, nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Last Post Time")
-	}
-
 	var posts []*model.Post
 
 	replyCountQuery1 := ""
@@ -549,19 +497,12 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 
 	list := model.NewPostList()
 
-	latestUpdate := options.Time
-
 	for _, p := range posts {
 		list.AddPost(p)
 		if p.UpdateAt > options.Time {
 			list.AddOrder(p.Id)
 		}
-		if latestUpdate < p.UpdateAt {
-			latestUpdate = p.UpdateAt
-		}
 	}
-
-	s.lastPostTimeCache.AddWithExpiresInSecs(options.ChannelId, latestUpdate, LAST_POST_TIME_CACHE_SEC)
 
 	return list, nil
 }

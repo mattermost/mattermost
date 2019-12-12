@@ -360,10 +360,11 @@ func TestGetAnalyticsOld(t *testing.T) {
 
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.Nil(t, err)
+	time.Sleep(100 * time.Millisecond)
 	rows2, resp2 = th.SystemAdminClient.GetAnalyticsOld("standard", "")
 	CheckNoError(t, resp2)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
-	assert.Equal(t, float64(th.App.TotalWebsocketConnections()), rows2[5].Value)
+	assert.Equal(t, float64(1), rows2[5].Value)
 
 	WebSocketClient.Close()
 

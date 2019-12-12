@@ -198,6 +198,117 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 	return nil
 }
 
+func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError {
+	perPage := 25
+	botOptions := &model.BotGetOptions{
+		OwnerId:        userId,
+		IncludeDeleted: false,
+		OnlyOrphaned:   false,
+		Page:           0,
+		PerPage:        perPage,
+	}
+	// get owner bots
+	var userBots []*model.Bot
+	for {
+		bots, err := a.GetBots(botOptions)
+		if err != nil {
+			return err
+		}
+
+		userBots = append(userBots, bots...)
+
+		if len(bots) < perPage {
+			break
+		}
+
+		botOptions.Page += 1
+	}
+
+	// user does not own bots
+	if len(userBots) == 0 {
+		return nil
+	}
+
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  perPage,
+		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Inactive: false,
+	}
+	// get sysadmins
+	var sysAdmins []*model.User
+	for {
+		sysAdminsList, err := a.GetUsers(userOptions)
+		if err != nil {
+			return err
+		}
+
+		sysAdmins = append(sysAdmins, sysAdminsList...)
+
+		if len(sysAdminsList) < perPage {
+			break
+		}
+
+		userOptions.Page += 1
+	}
+
+	// user being disabled
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	// for each sysadmin, notify user that owns bots was disabled
+	for _, sysAdmin := range sysAdmins {
+		channel, appErr := a.GetOrCreateDirectChannel(sysAdmin.Id, sysAdmin.Id)
+		if appErr != nil {
+			return appErr
+		}
+
+		post := &model.Post{
+			UserId:    sysAdmin.Id,
+			ChannelId: channel.Id,
+			Message:   a.getDisableBotSysadminMessage(user, userBots),
+			Type:      model.POST_SYSTEM_GENERIC,
+		}
+
+		_, appErr = a.CreatePost(post, channel, false)
+		if appErr != nil {
+			return appErr
+		}
+	}
+	return nil
+}
+
+func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotList) string {
+	disableBotsSetting := *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
+
+	var printAllBots = true
+	numBotsToPrint := len(userBots)
+
+	if numBotsToPrint > 10 {
+		numBotsToPrint = 10
+		printAllBots = false
+	}
+
+	var message, botList string
+	for _, bot := range userBots[:numBotsToPrint] {
+		botList += fmt.Sprintf("* %v\n", bot.Username)
+	}
+
+	T := utils.GetUserTranslations(user.Locale)
+	message = T("app.bot.get_disable_bot_sysadmin_message",
+		map[string]interface{}{
+			"UserName":           user.Username,
+			"NumBots":            len(userBots),
+			"BotNames":           botList,
+			"disableBotsSetting": disableBotsSetting,
+			"printAllBots":       printAllBots,
+		})
+
+	return message
+}
+
 // ConvertUserToBot converts a user to bot.
 func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
 	return a.Srv.Store.Bot().Save(model.BotFromUser(user))
