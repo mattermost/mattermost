@@ -4,8 +4,12 @@
 package app
 
 import (
+	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/gorilla/websocket"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
@@ -58,6 +62,9 @@ func TestResctrictedViewMembers(t *testing.T) {
 	th.AddUserToChannel(user3, channel3)
 	th.AddUserToChannel(user4, channel1)
 	th.AddUserToChannel(user4, channel3)
+
+	cleanup := setupWebSocketConnection(th, t, user1.Id, user2.Id, user3.Id, user4.Id, user5.Id)
+	defer cleanup()
 
 	th.App.SetStatusOnline(user1.Id, true)
 	th.App.SetStatusOnline(user2.Id, true)
@@ -1100,4 +1107,32 @@ func TestResctrictedViewMembers(t *testing.T) {
 			})
 		}
 	})
+}
+
+func setupWebSocketConnection(th *TestHelper, t *testing.T, userIDs ...string) func() {
+	th.App.HubStart()
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+
+	conns := make([]*WebConn, 0, len(userIDs))
+	for _, id := range userIDs {
+		session, appErr := th.App.CreateSession(&model.Session{
+			UserId: id,
+		})
+		require.Nil(t, appErr)
+		d := websocket.Dialer{}
+		c, _, err := d.Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
+		require.NoError(t, err)
+		wc := th.App.NewWebConn(c, *session, goi18n.IdentityTfunc(), "en")
+		go wc.Pump()
+		th.App.HubRegister(wc)
+		conns = append(conns, wc)
+	}
+
+	time.Sleep(500 * time.Millisecond)
+	return func() {
+		for _, c := range conns {
+			c.Close()
+		}
+		s.Close()
+	}
 }

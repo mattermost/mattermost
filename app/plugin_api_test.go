@@ -294,11 +294,18 @@ func TestPluginAPIUpdateUserStatus(t *testing.T) {
 
 	statuses := []string{model.STATUS_ONLINE, model.STATUS_AWAY, model.STATUS_DND, model.STATUS_OFFLINE}
 
+	var cleanup func()
 	for _, s := range statuses {
+		if s == model.STATUS_ONLINE {
+			cleanup = setupWebSocketConnection(th, t, th.BasicUser.Id)
+		}
 		status, err := api.UpdateUserStatus(th.BasicUser.Id, s)
 		require.Nil(t, err)
 		require.NotNil(t, status)
 		assert.Equal(t, s, status.Status)
+		if s == model.STATUS_ONLINE {
+			cleanup()
+		}
 	}
 
 	status, err := api.UpdateUserStatus(th.BasicUser.Id, "notrealstatus")

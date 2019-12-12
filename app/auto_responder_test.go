@@ -18,6 +18,8 @@ func TestSetAutoResponderStatus(t *testing.T) {
 	user := th.CreateUser()
 	defer th.App.PermanentDeleteUser(user)
 
+	cleanup := setupWebSocketConnection(th, t, user.Id)
+	defer cleanup()
 	th.App.SetStatusOnline(user.Id, true)
 
 	patch := &model.UserPatch{}

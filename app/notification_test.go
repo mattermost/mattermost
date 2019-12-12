@@ -2028,6 +2028,8 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the status is ONLINE", func(t *testing.T) {
 		user := th.CreateUser()
 
+		cleanup := setupWebSocketConnection(th, t, user.Id)
+		defer cleanup()
 		th.App.SetStatusOnline(user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
