@@ -977,7 +977,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	}
 
 	if len(opts.ExcludeChannelNames) > 0 {
-		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+		query = query.Where(sq.NotEq{"c.Name", opts.ExcludeChannelNames})
 	}
 
 	return query
@@ -2401,7 +2401,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 	}
 
 	if len(opts.ExcludeChannelNames) > 0 {
-		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
 
 	if len(opts.NotAssociatedToGroup) > 0 {
