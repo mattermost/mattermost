@@ -56,6 +56,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa/generate", api.ApiSessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
 	api.BaseRoutes.Users.Handle("/login", api.ApiHandler(login)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/cas_login", api.ApiHandler(casLogin)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/login/switch", api.ApiHandler(switchAccountType)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.ApiHandler(logout)).Methods("POST")
 
@@ -1425,6 +1426,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	user.Sanitize(map[string]bool{})
 
 	w.Write([]byte(user.ToJson()))
+}
+
+func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIsAuthenticated, userName := utils.UserIsAuthenticated(w, r)
+	fmt.Println("UserIsAuthenticated? ", userIsAuthenticated)
+	fmt.Println("user name is? ", userName)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
