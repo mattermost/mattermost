@@ -927,6 +927,7 @@ func TestFileSetFile(t *testing.T) {
 	t.Run("should set right permissions", func(t *testing.T) {
 		absolutePath := filepath.Join(filepath.Dir(path), "new")
 		err := fs.SetFile(absolutePath, []byte("data"))
+		require.NoError(t, err)
 		fi, err := os.Stat(absolutePath)
 		require.NoError(t, err)
 		require.Equal(t, os.FileMode(0600), fi.Mode().Perm())
