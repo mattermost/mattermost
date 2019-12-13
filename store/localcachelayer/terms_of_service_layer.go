@@ -38,7 +38,7 @@ func (s LocalCacheTermsOfServiceStore) Save(termsOfService *model.TermsOfService
 
 	if err == nil {
 		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, tos.Id, tos)
-		s.rootStore.termsOfServiceCache.Remove(LATEST_KEY)
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.termsOfServiceCache, LATEST_KEY)
 	}
 	return tos, err
 }
@@ -73,7 +73,6 @@ func (s LocalCacheTermsOfServiceStore) Get(id string, allowFromCache bool) (*mod
 
 	if allowFromCache && err == nil {
 		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, termsOfService.Id, termsOfService)
-		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, LATEST_KEY, termsOfService)
 	}
 
 	return termsOfService, err

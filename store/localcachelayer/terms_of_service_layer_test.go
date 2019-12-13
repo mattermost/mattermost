@@ -93,16 +93,6 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "GetLatest", 2)
 	})
 
-	t.Run("first call by id, second call latest cached", func(t *testing.T) {
-		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
-
-		cachedStore.TermsOfService().Get("123", true)
-		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "Get", 1)
-		cachedStore.TermsOfService().GetLatest(true)
-		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "GetLatest", 0)
-	})
-
 	t.Run("first call latest, second call by id cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
@@ -122,5 +112,16 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 		cachedStore.TermsOfService().Save(&fakeTermsOfService)
 		cachedStore.TermsOfService().Get("123", false)
 		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "Get", 2)
+	})
+
+	t.Run("first get latest not cached, save new, then get latest, returning different data", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		cachedStore.TermsOfService().GetLatest(true)
+		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "GetLatest", 1)
+		cachedStore.TermsOfService().Save(&fakeTermsOfService)
+		cachedStore.TermsOfService().GetLatest(true)
+		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "GetLatest", 2)
 	})
 }
