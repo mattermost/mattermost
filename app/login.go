@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
@@ -173,6 +174,8 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request, sessi
 
 	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 	domain := a.GetCookieDomain()
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
@@ -195,8 +198,19 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request, sessi
 		Secure:  secure,
 	}
 
+	csrfCookie := &http.Cookie{
+		Name:    model.SESSION_COOKIE_CSRF,
+		Value:   a.Session.GetCSRF(),
+		Path:    subpath,
+		MaxAge:  maxAge,
+		Expires: expiresAt,
+		Domain:  domain,
+		Secure:  secure,
+	}
+
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
+	http.SetCookie(w, csrfCookie)
 }
 
 func GetProtocol(r *http.Request) string {
