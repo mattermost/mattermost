@@ -26,8 +26,8 @@ func TestInviteProvider(t *testing.T) {
 	basicUser4 := th.CreateUser()
 	deactivatedUser := th.CreateUser()
 	th.App.UpdateActive(deactivatedUser, false)
-	var err *model.AppError
 
+	var err *model.AppError
 	_, err = th.App.CreateBot(&model.Bot{
 		Username:    "bot1",
 		OwnerId:     basicUser3.Id,
@@ -41,7 +41,6 @@ func TestInviteProvider(t *testing.T) {
 		Description: "a test bot",
 	})
 	require.Nil(t, err)
-
 	_, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot2.UserId, basicUser3.Id)
 	require.Nil(t, err)
 
