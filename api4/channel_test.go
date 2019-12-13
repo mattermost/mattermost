@@ -169,6 +169,18 @@ func TestUpdateChannel(t *testing.T) {
 	require.Equal(t, private.Header, newPrivateChannel.Header, "Update failed for Header in private channel")
 	require.Equal(t, private.Purpose, newPrivateChannel.Purpose, "Update failed for Purpose in private channel")
 
+	// Test that changing the type fails and returns error
+
+	private.Type = model.CHANNEL_OPEN
+	newPrivateChannel, resp = Client.UpdateChannel(private)
+	CheckBadRequestStatus(t, resp)
+
+	// Test that keeping the same type succeeds
+
+	private.Type = model.CHANNEL_PRIVATE
+	newPrivateChannel, resp = Client.UpdateChannel(private)
+	CheckNoError(t, resp)
+
 	//Non existing channel
 	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	_, resp = Client.UpdateChannel(channel1)
