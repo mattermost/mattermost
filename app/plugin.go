@@ -496,7 +496,7 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) ([]*model.
 		ServerVersion: model.CurrentVersion,
 	})
 	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_server.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, p := range marketplacePlugins {

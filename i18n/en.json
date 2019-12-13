@@ -3587,12 +3587,12 @@
     "translation": "Failed to decode the marketplace plugin request."
   },
   {
-    "id": "app.plugin.marketplace_plugins.app_error",
-    "translation": "Failed to get plugins from the marketplace server."
-  },
-  {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
     "translation": "Could not find the requested marketplace plugin."
+  },
+  {
+    "id": "app.plugin.marketplace_server.app_error",
+    "translation": "Failed to get plugins from the marketplace server."
   },
   {
     "id": "app.plugin.marshal.app_error",
