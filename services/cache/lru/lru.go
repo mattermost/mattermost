@@ -43,7 +43,7 @@ func (c *LruCacheProvider) NewCacheWithParams(size int, name string, defaultExpi
 }
 
 func (c *LruCacheProvider) Close() {
-	
+
 }
 
 // entry is used to hold a value in the evictList.
