@@ -184,7 +184,7 @@ func (fs *FileStore) GetFile(name string) ([]byte, error) {
 func (fs *FileStore) SetFile(name string, data []byte) error {
 	resolvedPath := fs.resolveFilePath(name)
 
-	err := ioutil.WriteFile(resolvedPath, data, 0777)
+	err := ioutil.WriteFile(resolvedPath, data, 0600)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write file to %s", resolvedPath)
 	}

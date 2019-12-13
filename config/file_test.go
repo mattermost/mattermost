@@ -924,6 +924,13 @@ func TestFileSetFile(t *testing.T) {
 		require.Equal(t, []byte("new file"), data)
 	})
 
+	t.Run("should set right permissions", func(t *testing.T) {
+		absolutePath := filepath.Join(filepath.Dir(path), "new")
+		err := fs.SetFile(absolutePath, []byte("data"))
+		fi, err := os.Stat(absolutePath)
+		require.NoError(t, err)
+		require.Equal(t, os.FileMode(0600), fi.Mode().Perm())
+	})
 }
 
 func TestFileHasFile(t *testing.T) {
