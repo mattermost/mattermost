@@ -16,16 +16,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlPostStore struct {
 	SqlStore
-	metrics einterfaces.MetricsInterface
-
-	lastPostTimeCache cache.Cache
+	metrics           einterfaces.MetricsInterface
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
 }
