@@ -216,7 +216,14 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
-	mlog.Info(logCurrentVersion)
+	mlog.Info(
+		logCurrentVersion,
+		mlog.String("current_version", model.CurrentVersion),
+		mlog.String("build_number", model.BuildNumber),
+		mlog.String("build_date", model.BuildDate),
+		mlog.String("build_hash", model.BuildHash),
+		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
+	)
 	logEnterpriseEnabled := fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady)
 	mlog.Info(logEnterpriseEnabled)
 
@@ -508,7 +515,7 @@ func (s *Server) Start() error {
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
-	mlog.Info(logListeningPort)
+	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
 	// Migration from old let's encrypt library
 	if *s.Config().ServiceSettings.UseLetsEncrypt {

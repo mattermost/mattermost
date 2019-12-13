@@ -107,7 +107,7 @@ func (job *EmailBatchingJob) CheckPendingEmails() {
 	// without actually sending emails
 	job.checkPendingNotifications(time.Now(), job.server.sendBatchedEmailNotification)
 
-	mlog.Debug("Email batching job ran. User(s) still have notifications pending.", mlog.Int("number_of_users", len(job.pendingNotifications)))
+	mlog.Debug("Email batching job ran. Some users still have notifications pending.", mlog.Int("number_of_users", len(job.pendingNotifications)))
 }
 
 func (job *EmailBatchingJob) handleNewNotifications() {
