@@ -960,7 +960,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	}
 
 	if len(opts.ExcludeChannelNames) > 0 {
-		query = query.Where(sq.NotEq{"c.Name", opts.ExcludeChannelNames})
+		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
 
 	return query
