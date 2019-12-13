@@ -17,15 +17,15 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils")
+	"github.com/mattermost/mattermost-server/v5/utils"
+)
 
 type SqlPostStore struct {
 	SqlStore
-	metrics           einterfaces.MetricsInterface
+	metrics einterfaces.MetricsInterface
 
-  lastPostTimeCache cache.Cache
+	lastPostTimeCache cache.Cache
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
 }
@@ -37,7 +37,6 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
-	  lastPostTimeCache: lru.NewLru(LAST_POST_TIME_CACHE_SIZE),
 		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
