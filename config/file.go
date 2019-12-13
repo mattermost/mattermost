@@ -122,7 +122,7 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to serialize")
 	}
 
-	err = ioutil.WriteFile(fs.path, b, 0644)
+	err = ioutil.WriteFile(fs.path, b, 0600)
 	if err != nil {
 		return errors.Wrap(err, "failed to write file")
 	}
