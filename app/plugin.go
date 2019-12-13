@@ -245,6 +245,7 @@ func (a *App) SyncPlugins() *model.AppError {
 	if appErr != nil {
 		return appErr
 	}
+
 	for _, plugin := range pluginSignaturePathMap {
 		reader, appErr := a.FileReader(plugin.path)
 		if appErr != nil {
@@ -433,7 +434,7 @@ func (a *App) GetMarketplacePlugin(request *model.InstallMarketplacePluginReques
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	filter := &model.MarketplacePluginFilter{Filter: request.Id}
+	filter := &model.MarketplacePluginFilter{Filter: request.Id, ServerVersion: model.CurrentVersion}
 	plugin, err := marketplaceClient.GetPlugin(filter, request.Version)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -594,6 +595,7 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 	if appErr != nil {
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
+
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
 	populatePluginSignatureMap(pluginSignaturePathMap, fileStorePaths, ".tar.gz")
 
@@ -604,8 +606,8 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 	}
 
 	for _, path := range fileStorePaths {
-		if strings.HasSuffix(path, ".sig") {
-			id := strings.TrimSuffix(filepath.Base(path), ".sig")
+		if strings.HasSuffix(path, ".tar.gz.sig") {
+			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
 			if val, ok := pluginSignaturePathMap[id]; !ok {
 				mlog.Error("Unknown signature", mlog.String("path", path))
 			} else {
@@ -613,6 +615,7 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 			}
 		}
 	}
+
 	return pluginSignaturePathMap, nil
 }
 
