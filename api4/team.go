@@ -589,26 +589,18 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, errors := c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session.UserId, graceful)
+	membersWithErrors, err := c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session.UserId, graceful)
 
 	if graceful { // in 'graceful' mode we allow a different return value, notifying the client which users were not added
-		errorDetails := make(map[string]string)
-		for _, e := range errors {
-			errorDetails[e.Where] = e.DetailedError
-		}
-		result := model.TeamMembersWithErrors{
-			AddedMembers: members,
-			Errors:       errorDetails,
-		}
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(result.ToJson()))
+		w.Write([]byte(membersWithErrors.ToJson()))
 	} else {
-		if len(errors) > 0 {
-			c.Err = errors[0]
+		if err != nil {
+			c.Err = err
 			return
 		}
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(model.TeamMembersToJson(members)))
+		w.Write([]byte(model.TeamMembersToJson(membersWithErrors.AddedMembers)))
 	}
 }
 

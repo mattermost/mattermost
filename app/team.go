@@ -769,24 +769,25 @@ func (a *App) AddTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 	return teamMember, nil
 }
 
-func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId string, graceful bool) ([]*model.TeamMember, []*model.AppError) {
-	var members []*model.TeamMember
-	var errors []*model.AppError
+func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId string, graceful bool) (*model.TeamMembersWithErrors, *model.AppError) {
+	membersWithErrors := &model.TeamMembersWithErrors{
+		Errors: map[string]string{},
+	}
 
 	for _, userId := range userIds {
 		if _, err := a.AddUserToTeam(teamId, userId, userRequestorId); err != nil {
 			if graceful {
-				errors = append(errors, model.NewAppError(userId, "api.team.add_team_members_graceful.app_error", nil, err.Message, http.StatusOK))
+				membersWithErrors.Errors[userId] = err.Message
 				continue
 			}
-			return nil, []*model.AppError{err}
+			return nil, err
 		}
 
 		teamMember, err := a.GetTeamMember(teamId, userId)
 		if err != nil {
-			return nil, []*model.AppError{err}
+			return nil, err
 		}
-		members = append(members, teamMember)
+		membersWithErrors.AddedMembers = append(membersWithErrors.AddedMembers, teamMember)
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userId, nil)
 		message.Add("team_id", teamId)
@@ -794,7 +795,7 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 		a.Publish(message)
 	}
 
-	return members, errors
+	return membersWithErrors, nil
 }
 
 func (a *App) AddTeamMemberByToken(userId, tokenId string) (*model.TeamMember, *model.AppError) {

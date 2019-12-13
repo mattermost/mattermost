@@ -1899,10 +1899,6 @@
     "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
   },
   {
-    "id": "api.team.add_team_members_graceful.app_error",
-    "translation": "Member couldn't be added"
-  },
-  {
     "id": "api.team.add_user_to_team.added",
     "translation": "%v added to the team by %v."
   },

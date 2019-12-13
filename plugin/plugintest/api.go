@@ -269,24 +269,24 @@ func (_m *API) CreateTeamMembers(teamId string, userIds []string, requestorId st
 }
 
 // CreateTeamMembersGracefully provides a mock function with given fields: teamId, userIds, requestorId
-func (_m *API) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, []*model.AppError) {
+func (_m *API) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) (*model.TeamMembersWithErrors, *model.AppError) {
 	ret := _m.Called(teamId, userIds, requestorId)
 
-	var r0 []*model.TeamMember
-	if rf, ok := ret.Get(0).(func(string, []string, string) []*model.TeamMember); ok {
+	var r0 *model.TeamMembersWithErrors
+	if rf, ok := ret.Get(0).(func(string, []string, string) *model.TeamMembersWithErrors); ok {
 		r0 = rf(teamId, userIds, requestorId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.TeamMember)
+			r0 = ret.Get(0).(*model.TeamMembersWithErrors)
 		}
 	}
 
-	var r1 []*model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string, string) []*model.AppError); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string, string) *model.AppError); ok {
 		r1 = rf(teamId, userIds, requestorId)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]*model.AppError)
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
