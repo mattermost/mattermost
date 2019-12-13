@@ -149,7 +149,7 @@ pipeline {
                     steps {
                         dir('src/github.com/mattermost/mattermost-server/dist') {
                             step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-                                bucket: "pr-builds.mattermost.com/mattermost-server-pr/${CHANGE_ID}",
+                                bucket: "pr-builds.mattermost.com/mattermost-server/${CHANGE_ID}",
                                 excludedFile: '',
                                 flatten: true,
                                 gzipFiles: false,
@@ -164,7 +164,7 @@ pipeline {
                                 useServerSideEncryption: false,
                                 userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
                             ], [
-                                bucket: "pr-builds.mattermost.com/mattermost-server-pr/${CHANGE_BRANCH}",
+                                bucket: "pr-builds.mattermost.com/mattermost-server/${CHANGE_BRANCH}",
                                 excludedFile: '',
                                 flatten: true,
                                 gzipFiles: false,
@@ -189,7 +189,7 @@ pipeline {
                     steps {
                         dir('src/github.com/mattermost/mattermost-server/dist') {
                             step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-                                bucket: "pr-builds.mattermost.com/mattermost-server-pr/${BRANCH_NAME}",
+                                bucket: "pr-builds.mattermost.com/mattermost-server/${BRANCH_NAME}",
                                 excludedFile: '',
                                 flatten: true,
                                 gzipFiles: false,
