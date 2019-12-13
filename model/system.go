@@ -51,6 +51,7 @@ type SystemECDSAKey struct {
 	D     *big.Int `json:"d,omitempty"`
 }
 
+// ServerBusyState provides serialization for app.Busy.
 type ServerBusyState struct {
 	Busy       bool   `json:"busy"`
 	Expires    int64  `json:"expires"`
