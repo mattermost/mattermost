@@ -13,7 +13,7 @@ It's written in Golang and React and runs as a single Linux binary with MySQL or
 ## Try out Mattermost
 
 - [Join the Mattermost Contributor's server](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676) to join community discussions about contributions, development and more
-- [Join the Mattermost Demo server](https://demo.mattermost.com/signup_email) (latest stable version. Use this server to generally play with Mattermost and take everything for a spin.)
+- [Join the Mattermost Demo server](https://demo.mattermost.com/signup_email) to try out Mattermost and explore sample use cases
 
 ## Deploy on Heroku
 
