@@ -516,7 +516,8 @@ func TestPatchGroupTeam(t *testing.T) {
 	assert.Nil(t, err)
 
 	patch := &model.GroupSyncablePatch{
-		AutoAdd: model.NewBool(true),
+		AutoAdd:     model.NewBool(true),
+		SchemeAdmin: model.NewBool(true),
 	}
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
@@ -525,6 +526,7 @@ func TestPatchGroupTeam(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupSyncable)
 	assert.True(t, groupSyncable.AutoAdd)
+	assert.True(t, groupSyncable.SchemeAdmin)
 
 	_, response = th.Client.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusForbidden, response.StatusCode)
@@ -537,15 +539,19 @@ func TestPatchGroupTeam(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	patch.AutoAdd = model.NewBool(false)
+	patch.SchemeAdmin = model.NewBool(false)
+
 	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	CheckOKStatus(t, response)
 	assert.False(t, groupSyncable.AutoAdd)
+	assert.False(t, groupSyncable.SchemeAdmin)
 
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicTeam.Id, groupSyncable.SyncableId)
 	assert.Equal(t, model.GroupSyncableTypeTeam, groupSyncable.Type)
 
 	patch.AutoAdd = model.NewBool(true)
+	patch.SchemeAdmin = model.NewBool(true)
 	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	CheckOKStatus(t, response)
 
@@ -581,7 +587,8 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.Nil(t, err)
 
 	patch := &model.GroupSyncablePatch{
-		AutoAdd: model.NewBool(true),
+		AutoAdd:     model.NewBool(true),
+		SchemeAdmin: model.NewBool(true),
 	}
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
@@ -590,6 +597,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupSyncable)
 	assert.True(t, groupSyncable.AutoAdd)
+	assert.True(t, groupSyncable.SchemeAdmin)
 
 	_, response = th.Client.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusForbidden, response.StatusCode)
@@ -602,15 +610,18 @@ func TestPatchGroupChannel(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	patch.AutoAdd = model.NewBool(false)
+	patch.SchemeAdmin = model.NewBool(false)
 	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	CheckOKStatus(t, response)
 	assert.False(t, groupSyncable.AutoAdd)
+	assert.False(t, groupSyncable.SchemeAdmin)
 
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicChannel.Id, groupSyncable.SyncableId)
 	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Type)
 
 	patch.AutoAdd = model.NewBool(true)
+	patch.SchemeAdmin = model.NewBool(true)
 	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	CheckOKStatus(t, response)
 

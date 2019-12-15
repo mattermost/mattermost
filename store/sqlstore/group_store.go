@@ -454,8 +454,8 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 		groupTeam := result.(*groupTeam)
 		groupSyncable.SyncableId = groupTeam.TeamId
 		groupSyncable.GroupId = groupTeam.GroupId
-		groupSyncable.SchemeAdmin = groupTeam.SchemeAdmin
 		groupSyncable.AutoAdd = groupTeam.AutoAdd
+		groupSyncable.SchemeAdmin = groupTeam.SchemeAdmin
 		groupSyncable.CreateAt = groupTeam.CreateAt
 		groupSyncable.DeleteAt = groupTeam.DeleteAt
 		groupSyncable.UpdateAt = groupTeam.UpdateAt
@@ -464,8 +464,8 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 		groupChannel := result.(*groupChannel)
 		groupSyncable.SyncableId = groupChannel.ChannelId
 		groupSyncable.GroupId = groupChannel.GroupId
-		groupSyncable.SchemeAdmin = groupChannel.SchemeAdmin
 		groupSyncable.AutoAdd = groupChannel.AutoAdd
+		groupSyncable.SchemeAdmin = groupChannel.SchemeAdmin
 		groupSyncable.CreateAt = groupChannel.CreateAt
 		groupSyncable.DeleteAt = groupChannel.DeleteAt
 		groupSyncable.UpdateAt = groupChannel.UpdateAt

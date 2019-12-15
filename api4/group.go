@@ -337,11 +337,11 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//TODO(temporarily)
-	// if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-	// 	c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-	// 	return
-	// }
+	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
 	if appErr != nil {
