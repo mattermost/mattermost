@@ -598,13 +598,13 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 
-	if graceful { 
+	if graceful {
 		// in 'graceful' mode we allow a different return value, notifying the client which users were not added
 		w.Write([]byte(membersWithErrors.ToJson()))
 	} else {
 		w.Write([]byte(model.TeamMembersToJson(membersWithErrors.AddedMembers)))
 	}
-	
+
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
