@@ -826,7 +826,7 @@ func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPr
 	return "AND Id IN (" + clause + ")", queryParams
 }
 
-func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byUsername bool) (string, map[string]interface{}) {
 	if len(users) == 0 {
 		return "", queryParams
 	}
@@ -837,13 +837,19 @@ func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix s
 		queryParams[paramName] = user
 	}
 	clause := strings.Join(clauseSlice, ", ")
-	if exclusion {
-		return "AND Username NOT IN (" + clause + ")", queryParams
+	if byUsername {
+		if exclusion {
+			return "AND Username NOT IN (" + clause + ")", queryParams
+		}
+		return "AND Username IN (" + clause + ")", queryParams
 	}
-	return "AND Username IN (" + clause + ")", queryParams
+	if exclusion {
+		return "AND Id NOT IN (" + clause + ")", queryParams
+	}
+	return "AND Id IN (" + clause + ")", queryParams
 }
 
-func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}, userByUsername bool) (string, map[string]interface{}) {
 	if len(fromUsers) == 0 && len(excludedUsers) == 0 {
 		return "", queryParams
 	}
@@ -861,20 +867,20 @@ func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedU
 				FROM_USER_FILTER
 				EXCLUDED_USER_FILTER)`
 
-	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams)
+	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams, userByUsername)
 	filterQuery = strings.Replace(filterQuery, "FROM_USER_FILTER", fromUserClause, 1)
 
-	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams)
+	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams, userByUsername)
 	filterQuery = strings.Replace(filterQuery, "EXCLUDED_USER_FILTER", excludedUserClause, 1)
 
 	return filterQuery, queryParams
 }
 
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
-	return s.search(teamId, userId, params, true)
+	return s.search(teamId, userId, params, true, true)
 }
 
-func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool, userByUsername bool) (*model.PostList, *model.AppError) {
 	queryParams := map[string]interface{}{
 		"TeamId": teamId,
 		"UserId": userId,
@@ -933,7 +939,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	excludedChannelClause, queryParams := s.buildSearchChannelFilterClause(params.ExcludedChannels, "ExcludedChannel", true, queryParams, channelsByName)
 	searchQuery = strings.Replace(searchQuery, "EXCLUDED_CHANNEL_FILTER", excludedChannelClause, 1)
 
-	postFilterClause, queryParams := s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams)
+	postFilterClause, queryParams := s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams, userByUsername)
 	searchQuery = strings.Replace(searchQuery, "POST_FILTER", postFilterClause, 1)
 
 	createDateFilterClause, queryParams := s.buildCreateDateFilterClause(params, queryParams)
@@ -1503,7 +1509,7 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 
 		go func(params *model.SearchParams) {
 			defer wg.Done()
-			postList, err := s.search(teamId, userId, params, false)
+			postList, err := s.search(teamId, userId, params, false, false)
 			pchan <- store.StoreResult{Data: postList, Err: err}
 		}(params)
 	}

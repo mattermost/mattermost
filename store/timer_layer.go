@@ -568,7 +568,7 @@ func (s *TimerLayerChannelStore) ClearCaches() {
 	return
 }
 
-func (s *TimerLayerChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int64, *model.AppError) {
+func (s *TimerLayerChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.CountPostsAfter(channelId, timestamp, userId)
