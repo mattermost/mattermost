@@ -325,6 +325,7 @@ func (a *App) trackConfig() {
 		"max_channels_per_team":                     *cfg.TeamSettings.MaxChannelsPerTeam,
 		"teammate_name_display":                     *cfg.TeamSettings.TeammateNameDisplay,
 		"experimental_view_archived_channels":       *cfg.TeamSettings.ExperimentalViewArchivedChannels,
+		"lock_teammate_name_display":                *cfg.TeamSettings.LockTeammateNameDisplay,
 		"isdefault_site_name":                       isDefault(cfg.TeamSettings.SiteName, "Mattermost"),
 		"isdefault_custom_brand_text":               isDefault(*cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
 		"isdefault_custom_description_text":         isDefault(*cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
@@ -511,6 +512,8 @@ func (a *App) trackConfig() {
 		"verify":                              *cfg.SamlSettings.Verify,
 		"encrypt":                             *cfg.SamlSettings.Encrypt,
 		"sign_request":                        *cfg.SamlSettings.SignRequest,
+		"isdefault_signature_algorithm":       isDefault(*cfg.SamlSettings.SignatureAlgorithm, ""),
+		"isdefault_canonical_algorithm":       isDefault(*cfg.SamlSettings.CanonicalAlgorithm, ""),
 		"isdefault_scoping_idp_provider_id":   isDefault(*cfg.SamlSettings.ScopingIDPProviderId, ""),
 		"isdefault_scoping_idp_name":          isDefault(*cfg.SamlSettings.ScopingIDPName, ""),
 		"isdefault_id_attribute":              isDefault(*cfg.SamlSettings.IdAttribute, model.SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE),
@@ -608,7 +611,9 @@ func (a *App) trackConfig() {
 		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
 		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
 		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
+		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
 		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
