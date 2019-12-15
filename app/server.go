@@ -120,7 +120,7 @@ type Server struct {
 	startMetrics      bool
 	startSearchEngine bool
 
-	SearchEngine searchengine.SearchEngineBroker
+	SearchEngine *searchengine.SearchEngineBroker
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
@@ -194,7 +194,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.SearchEngine = *searchEngineBroker
+	s.SearchEngine = searchEngineBroker
 
 	err = s.RunOldAppInitialization()
 	if err != nil {

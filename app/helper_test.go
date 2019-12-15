@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -69,8 +68,7 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	searchEngineBroker, _ := searchengine.NewSearchEngineBroker(th.App.Config(), th.App.Srv.Jobs)
-	th.App.Srv.SearchEngine = *searchEngineBroker
+	th.App.Srv.SearchEngine = mainHelper.SearchEngine
 
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 

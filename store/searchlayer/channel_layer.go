@@ -63,7 +63,7 @@ func (c *SearchChannelStore) Update(channel *model.Channel) (*model.Channel, *mo
 
 func (c *SearchChannelStore) SaveMember(cm *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	member, err := c.ChannelStore.SaveMember(cm)
-	if err != nil {
+	if err == nil {
 		channel, channelErr := c.ChannelStore.Get(member.ChannelId, true)
 		if channelErr != nil {
 			mlog.Error("Encountered error indexing user in channel", mlog.String("channel_id", member.ChannelId), mlog.Err(err))

@@ -23,6 +23,7 @@ import (
 type MainHelper struct {
 	Settings         *model.SqlSettings
 	Store            store.Store
+	SearchEngine     *searchengine.SearchEngineBroker
 	SqlSupplier      *sqlstore.SqlSupplier
 	ClusterInterface *FakeClusterInterface
 
@@ -106,6 +107,7 @@ func (h *MainHelper) setupStore() {
 	config.SetDefaults()
 	searchEngineBroker, _ := searchengine.NewSearchEngineBroker(config, nil)
 
+	h.SearchEngine = searchEngineBroker
 	h.ClusterInterface = &FakeClusterInterface{}
 	h.SqlSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{

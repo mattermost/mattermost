@@ -840,7 +840,10 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 		es.On("GetName").Return("mock")
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.SearchEngine.ElasticsearchEngine = es
+		th.App.Srv.SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv.SearchEngine.ElasticsearchEngine = nil
+		}()
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -864,7 +867,10 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 		es.On("GetName").Return("mock")
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.SearchEngine.ElasticsearchEngine = es
+		th.App.Srv.SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv.SearchEngine.ElasticsearchEngine = nil
+		}()
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -884,7 +890,10 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 		es.On("GetName").Return("mock")
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.SearchEngine.ElasticsearchEngine = es
+		th.App.Srv.SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv.SearchEngine.ElasticsearchEngine = nil
+		}()
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -912,7 +921,10 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 		es.On("GetName").Return("mock")
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.SearchEngine.ElasticsearchEngine = es
+		th.App.Srv.SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv.SearchEngine.ElasticsearchEngine = nil
+		}()
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 

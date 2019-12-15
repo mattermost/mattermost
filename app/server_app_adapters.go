@@ -69,7 +69,7 @@ func (s *Server) RunOldAppInitialization() error {
 						s.Metrics,
 						s.Cluster,
 					),
-					&s.SearchEngine,
+					s.SearchEngine,
 				),
 				s.Metrics,
 			)
