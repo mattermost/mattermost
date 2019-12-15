@@ -69,8 +69,10 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) *
 
 	if err == nil {
 		postList, err2 := s.PostStore.Get(postId, true)
-		if err2 != nil {
-			s.deletePostIndex(postList.Posts[postList.Order[0]])
+		if postList != nil && len(postList.Order) > 0 {
+			if err2 != nil {
+				s.deletePostIndex(postList.Posts[postList.Order[0]])
+			}
 		}
 	}
 	return err
