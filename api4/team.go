@@ -591,17 +591,20 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	membersWithErrors, err := c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session.UserId, graceful)
 
-	if graceful { // in 'graceful' mode we allow a different return value, notifying the client which users were not added
-		w.WriteHeader(http.StatusCreated)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+
+	if graceful { 
+		// in 'graceful' mode we allow a different return value, notifying the client which users were not added
 		w.Write([]byte(membersWithErrors.ToJson()))
 	} else {
-		if err != nil {
-			c.Err = err
-			return
-		}
-		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(model.TeamMembersToJson(membersWithErrors.AddedMembers)))
 	}
+	
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
