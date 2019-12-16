@@ -497,7 +497,7 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 				GroupId = :GroupId AND GroupTeams.DeleteAt = 0`
 
 		results := []*groupTeamJoin{}
-		_, err := s.GetMaster().Select(&results, sqlQuery, args)
+		_, err := s.GetReplica().Select(&results, sqlQuery, args)
 		if err != nil {
 			return nil, appErrF(err.Error())
 		}
@@ -512,6 +512,7 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 				Type:            syncableType,
 				TeamDisplayName: result.TeamDisplayName,
 				TeamType:        result.TeamType,
+				SchemeAdmin:     result.SchemeAdmin,
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)
 		}
@@ -532,7 +533,7 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 				GroupId = :GroupId AND GroupChannels.DeleteAt = 0`
 
 		results := []*groupChannelJoin{}
-		_, err := s.GetMaster().Select(&results, sqlQuery, args)
+		_, err := s.GetReplica().Select(&results, sqlQuery, args)
 		if err != nil {
 			return nil, appErrF(err.Error())
 		}
@@ -550,6 +551,7 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 				TeamDisplayName:    result.TeamDisplayName,
 				TeamType:           result.TeamType,
 				TeamID:             result.TeamID,
+				SchemeAdmin:        result.SchemeAdmin,
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)
 		}
@@ -883,7 +885,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 
 	if opts.IncludeMemberCount && t == selectGroups {
 		query = s.getQueryBuilder().
-			Select(fmt.Sprintf("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, Group%ss.SchemeAdmin", st)).
+			Select(fmt.Sprintf("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, Group%ss.SchemeAdmin AS SyncableSchemeAdmin", st)).
 			From("UserGroups ug").
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
 			LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.GroupId = ug.Id", table)).
