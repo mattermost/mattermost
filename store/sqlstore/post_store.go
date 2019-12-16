@@ -732,6 +732,10 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 }
 
 func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, *model.AppError) {
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		return s.getParentsPostsPostgreSQL(channelId, offset, limit, skipFetchThreads)
+	}
+
 	// query parent Ids first
 	var roots []*struct {
 		RootId string
@@ -785,6 +789,45 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 				AND DeleteAt = 0
 		ORDER BY CreateAt`,
 		params)
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
+}
+
+func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, *model.AppError) {
+	var posts []*model.Post
+	replyCountQuery := ""
+	onStatement := "q1.RootId = q2.Id"
+	if skipFetchThreads {
+		replyCountQuery = ` ,(SELECT COUNT(Posts.Id) FROM Posts WHERE q2.RootId = '' AND Posts.RootId = q2.Id AND Posts.DeleteAt = 0) as ReplyCount`
+	} else {
+		onStatement += " OR q1.RootId = q2.RootId"
+	}
+	_, err := s.GetReplica().Select(&posts,
+		`SELECT q2.*`+replyCountQuery+`
+        FROM
+            Posts q2
+                INNER JOIN
+            (SELECT DISTINCT
+                q3.RootId
+            FROM
+                (SELECT
+                    RootId
+                FROM
+                    Posts
+                WHERE
+                    ChannelId = :ChannelId1
+                        AND DeleteAt = 0
+                ORDER BY CreateAt DESC
+                LIMIT :Limit OFFSET :Offset) q3
+            WHERE q3.RootId != '') q1
+            ON `+onStatement+`
+        WHERE
+            ChannelId = :ChannelId2
+                AND DeleteAt = 0
+        ORDER BY CreateAt`,
+		map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
 	}
