@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_18_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_19_0
+	VERSION_5_19_0           = "5.19.0"
 	VERSION_5_18_0           = "5.18.0"
 	VERSION_5_17_0           = "5.17.0"
 	VERSION_5_16_0           = "5.16.0"
@@ -167,6 +168,7 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion516(sqlStore)
 	upgradeDatabaseToVersion517(sqlStore)
 	upgradeDatabaseToVersion518(sqlStore)
+	upgradeDatabaseToVersion519(sqlStore)
 
 	return nil
 }
@@ -735,5 +737,11 @@ func upgradeDatabaseToVersion517(sqlStore SqlStore) {
 func upgradeDatabaseToVersion518(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_17_0, VERSION_5_18_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_18_0)
+	}
+}
+
+func upgradeDatabaseToVersion519(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_18_0, VERSION_5_19_0) {
+		sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
 	}
 }
