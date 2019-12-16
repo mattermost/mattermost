@@ -368,12 +368,12 @@
     "translation": "You cannot rename a group message channel"
   },
   {
-    "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} unarchived the channel."
-  },
-  {
     "id": "api.channel.restore_channel.restored.app_error",
     "translation": "Unable to unarchived a not archived channel"
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} unarchived the channel."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
