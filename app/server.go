@@ -224,8 +224,11 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("build_hash", model.BuildHash),
 		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
 	)
-	logEnterpriseEnabled := fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady)
-	mlog.Info(logEnterpriseEnabled)
+	if model.BuildEnterpriseReady == "true" {
+		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
+	} else {
+		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
+	}
 
 	pwd, _ := os.Getwd()
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
