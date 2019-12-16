@@ -121,7 +121,6 @@ func (env *Environment) GetPluginState(id string) int {
 func (env *Environment) SetPluginState(id string, state int) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {
 		rp.(*registeredPlugin).State = state
-		env.registeredPlugins.Store(id, rp)
 	}
 }
 
