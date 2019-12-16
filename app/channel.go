@@ -598,7 +598,7 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 
 func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
 	if channel.DeleteAt == 0 {
-		return nil, model.NewAppError("undeleteChannel", "api.channel.undelete_channel.undeleted.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("restoreChannel", "api.channel.restore_channel.restored.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
@@ -620,7 +620,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 
 		post := &model.Post{
 			ChannelId: channel.Id,
-			Message:   T("api.channel.undelete_channel.unarchived", map[string]interface{}{"Username": user.Username}),
+			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
 			Type:      model.POST_CHANNEL_UNDELETED,
 			UserId:    userId,
 		}
