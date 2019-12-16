@@ -34,7 +34,16 @@ func (s *SearchUserStore) deleteUserIndex(user *model.User) {
 func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsSearchEnabled() {
-			usersIds, err := engine.SearchUsersInTeam(teamId, options.ListOfAllowedChannels, term, options)
+			listOfAllowedChannels, err := s.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
+			if err != nil {
+				mlog.Error("Encountered error on Search.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+				continue
+			}
+			if len(listOfAllowedChannels) == 0 {
+				return []*model.User{}, nil
+			}
+
+			usersIds, err := engine.SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
 			if err != nil {
 				continue
 			}

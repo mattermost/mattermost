@@ -1685,16 +1685,6 @@ func (a *App) SearchUsersInTeam(teamId, term string, options *model.UserSearchOp
 	var err *model.AppError
 	term = strings.TrimSpace(term)
 
-	listOfAllowedChannels, err := a.GetViewUsersRestrictionsForTeam(a.Session.UserId, teamId)
-	if err != nil {
-		return nil, err
-	}
-
-	if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
-		return []*model.User{}, nil
-	}
-
-	options.ListOfAllowedChannels = listOfAllowedChannels
 	users, err = a.Srv.Store.User().Search(teamId, term, options)
 	if err != nil {
 		return nil, err
@@ -1758,17 +1748,6 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model
 	var err *model.AppError
 
 	term = strings.TrimSpace(term)
-
-	listOfAllowedChannels, err := a.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(listOfAllowedChannels) == 0 {
-		return &model.UserAutocompleteInTeam{}, nil
-	}
-
-	options.ListOfAllowedChannels = listOfAllowedChannels
 
 	users, err := a.Srv.Store.User().Search(teamId, term, options)
 	if err != nil {
@@ -1986,61 +1965,6 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 	}
 
 	return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission, Channels: channelIds}, nil
-}
-
-/**
- * Returns a list with the channel ids that the user has permissions to view on a
- * team. If the result is an empty list, the user can't view any channel; if it's
- * nil, there are no restrictions for the user in the specified team.
- */
-func (a *App) GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]string, *model.AppError) {
-	if a.HasPermissionTo(userId, model.PERMISSION_VIEW_MEMBERS) {
-		return nil, nil
-	}
-
-	if a.HasPermissionToTeam(userId, teamId, model.PERMISSION_VIEW_MEMBERS) {
-		return nil, nil
-	}
-
-	members, err := a.Srv.Store.Channel().GetMembersForUser(teamId, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	channelIds := []string{}
-	for _, membership := range *members {
-		channelIds = append(channelIds, membership.ChannelId)
-	}
-
-	return channelIds, nil
-}
-
-func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *model.ViewUsersRestrictions) ([]string, *model.AppError) {
-	var listOfAllowedChannels []string
-	if viewRestrictions == nil || strings.Contains(strings.Join(viewRestrictions.Teams, "."), teamId) {
-		channels, err := a.Srv.Store.Channel().GetTeamChannels(teamId)
-		if err != nil {
-			return nil, err
-		}
-		channelIds := []string{}
-		for _, channel := range *channels {
-			channelIds = append(channelIds, channel.Id)
-		}
-
-		return channelIds, nil
-	}
-
-	channels, err := a.Srv.Store.Channel().GetChannelsByIds(viewRestrictions.Channels)
-	if err != nil {
-		return nil, err
-	}
-	for _, c := range channels {
-		if c.TeamId == teamId {
-			listOfAllowedChannels = append(listOfAllowedChannels, c.Id)
-		}
-	}
-
-	return listOfAllowedChannels, nil
 }
 
 // PromoteGuestToUser Convert user's roles and all his mermbership's roles from
