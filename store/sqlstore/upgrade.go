@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_19_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_18_0
 	VERSION_5_19_0           = "5.19.0"
 	VERSION_5_18_0           = "5.18.0"
 	VERSION_5_17_0           = "5.17.0"
@@ -741,7 +741,9 @@ func upgradeDatabaseToVersion518(sqlStore SqlStore) {
 }
 
 func upgradeDatabaseToVersion519(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_5_18_0, VERSION_5_19_0) {
-		sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
-	}
+	// TODO: Uncomment following condition when version 5.19.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_18_0, VERSION_5_19_0) {
+	sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
+	//  saveSchemaVersion(sqlStore, VERSION_5_19_0)
+	// }
 }
