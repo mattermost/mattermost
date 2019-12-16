@@ -922,7 +922,9 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 
 		// create groupteam
 		var groupTeam *model.GroupSyncable
-		groupTeam, err = ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, false))
+		gt := model.NewGroupTeam(group.Id, team.Id, false)
+		gt.SchemeAdmin = true
+		groupTeam, err = ss.Group().CreateGroupSyncable(gt)
 		require.Nil(t, err)
 		groupTeams = append(groupTeams, groupTeam)
 	}
@@ -935,6 +937,7 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 		present := false
 		for _, dbGroupTeam := range d1 {
 			if dbGroupTeam.GroupId == expectedGroupTeam.GroupId && dbGroupTeam.SyncableId == expectedGroupTeam.SyncableId {
+				require.True(t, dbGroupTeam.SchemeAdmin)
 				present = true
 				break
 			}
