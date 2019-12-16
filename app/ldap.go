@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -19,7 +18,7 @@ func (a *App) SyncLdap() {
 			if ldapI := a.Ldap; ldapI != nil {
 				ldapI.StartSynchronizeJob(false)
 			} else {
-				mlog.Error(fmt.Sprintf("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error()))
+				mlog.Error("Not executing ldap sync because ldap is not available")
 			}
 		}
 	})
