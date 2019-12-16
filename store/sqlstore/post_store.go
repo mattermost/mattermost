@@ -491,7 +491,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 					  LIMIT 1000) temp_tab))
 			) j ON p1.Id = j.Id
           ORDER BY CreateAt DESC`
-	} else {
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query = `
 			(SELECT
                        *` + replyCountQuery1 + `
@@ -522,7 +522,6 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": options.ChannelId, "Time": options.Time})
 
 	if err != nil {
-		fmt.Println(err)
 		return nil, model.NewAppError("SqlPostStore.GetPostsSince", "store.sql_post.get_posts_since.app_error", nil, "channelId="+options.ChannelId+err.Error(), http.StatusInternalServerError)
 	}
 
