@@ -376,6 +376,10 @@
     "translation": "기본 채널 {{.Channel}}에 적절하지 않은 갱신을 시도했습니다"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "잘못된 채널 멤버 수정 : 손님 역할을 수동으로 추가하거나 삭제 할수 없습니다."
   },

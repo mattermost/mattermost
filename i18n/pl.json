@@ -376,6 +376,10 @@
     "translation": "Próbowano wykonać nieprawidłową aktualizację domyślnego kanału {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Nieprawidłowa aktualizacja członka kanału: Nie możesz dodać ani usunąć roli gościa ręcznie"
   },
@@ -1514,7 +1518,7 @@
   },
   {
     "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Wystąpił błąd podczas usuwania certyfikatu."
+    "translation": "Wystąpił błąd podczas otwierania pliku klucza publicznego."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -1546,7 +1550,7 @@
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Unable to verify plugin signature."
+    "translation": "Nie można zweryfikować sygnatury."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -1716,11 +1720,11 @@
   },
   {
     "id": "api.push_notification.id_loaded.default_message",
-    "translation": "You've received a new message."
+    "translation": "Otrzymano nową wiadomość."
   },
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
-    "translation": "An error occurred fetching the ID-loaded push notification"
+    "translation": "Wystąpił błąd podczas pobierania ID Loaded Push Notification."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -1876,7 +1880,7 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+    "translation": "{{.Filename}} w archiwum zip jest za duże aby przetworzyć importowanie ze Slacka\r\n"
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -1884,7 +1888,7 @@
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
-    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+    "translation": "ID Loaded Push Notifications nie są skonfigurowane lub wspierane na tym serwerze."
   },
   {
     "id": "api.team.add_members.error",
@@ -2036,11 +2040,11 @@
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
-    "translation": "Pagination not implemented for private-only team search."
+    "translation": "Stronicowanie nie jest zaimplementowane dla wyszukiwania tylko prywatnych zespołów."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
-    "translation": "Pagination not implemented for public-only team search."
+    "translation": "Stronicowanie nie jest zaimplementowane dla wyszukiwania tylko publicznych zespołów."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -3504,7 +3508,7 @@
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
-    "translation": "Wystąpił błąd podczas usuwania certyfikatu."
+    "translation": "Wystąpił błąd podczas usuwania klucza publicznego."
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -3532,7 +3536,7 @@
   },
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
-    "translation": "An error occurred while getting the public key from the store."
+    "translation": "Wystąpił błąd podczas pobierania klucza publicznego ze sklepu."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3556,7 +3560,7 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Plugin version could not be parsed"
+    "translation": "Wersja wtyczki nie mogła zostać poddana parsowaniu."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3572,7 +3576,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
-    "translation": "Failed to decode the marketplace plugin request."
+    "translation": "Nie udało się zdekodować żądania wtyczki ze sklepu."
   },
   {
     "id": "app.plugin.marketplace_plugins.app_error",
@@ -3580,7 +3584,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
-    "translation": "Could not find the requested marketplace plugin."
+    "translation": "Nie udało się znaleźć żądanej wtyczki w sklepie."
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -3588,7 +3592,7 @@
   },
   {
     "id": "app.plugin.modify_saml.app_error",
-    "translation": "Can't modify saml files."
+    "translation": "Nie można modyfikować plików saml."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3612,7 +3616,7 @@
   },
   {
     "id": "app.plugin.signature_decode.app_error",
-    "translation": "Unable to decode base64 signature."
+    "translation": "Nie można zdekodować sygnatury base64."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
@@ -3620,7 +3624,7 @@
   },
   {
     "id": "app.plugin.store_signature.app_error",
-    "translation": "Nie można zachować wtyczki w skonfigurowanym magazynie plików."
+    "translation": "Nie można zapisać sygnatury wtyczki do skonfigurowanego magazynu plików."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
@@ -3640,11 +3644,11 @@
   },
   {
     "id": "app.plugin.write_file.read.app_error",
-    "translation": "Wystąpił błąd podczas wychodzenia z kanału."
+    "translation": "Podczas odczytu pliku wystąpił błąd."
   },
   {
     "id": "app.plugin.write_file.saving.app_error",
-    "translation": "Wystąpił błąd podczas wychodzenia z kanału."
+    "translation": "Podczas zapisywania pliku wystąpił błąd."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3964,7 +3968,7 @@
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
-    "translation": "Your license does not support ID Loaded Push Notifications."
+    "translation": "Twoja licencja nie obsługuje powiadomień ID Loaded Push Notifications."
   },
   {
     "id": "ent.ldap.app_error",
@@ -5680,7 +5684,7 @@
   },
   {
     "id": "store.sql_channel.count_posts_since.app_error",
-    "translation": "Unable to count messages since given date"
+    "translation": "Nie można zliczać wiadomości od podanej daty."
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
@@ -6020,7 +6024,7 @@
   },
   {
     "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-    "translation": "Unable to mark channel as unread"
+    "translation": "Nie można oznaczyć kanału jako nieprzeczytany."
   },
   {
     "id": "store.sql_channel.update_member.app_error",

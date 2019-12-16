@@ -376,6 +376,10 @@
     "translation": "Versuch einer ungültigen Änderung am Standardkanal {{.Channel}} durchzuführen."
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Ungültige Aktualisierung von Kanalmitglied: Sie können die Gastrolle nicht manuell hinzufügen oder entfernen."
   },

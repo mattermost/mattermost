@@ -376,6 +376,10 @@
     "translation": "{{.Channel}} varsayılan kanalı için geçersiz bir güncelleme denendi"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Kanal üyesi güncellemesi geçersiz: Ziyaretçi rolünü el ile ekleyemez ya da çıkaramazsınız"
   },

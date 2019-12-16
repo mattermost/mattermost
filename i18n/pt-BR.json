@@ -376,6 +376,10 @@
     "translation": "Tentou executar uma atualização inválida para o canal padrão {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Atualização de membro do canal inválida: Você não pode adicionar ou remover a função de convidado manualmente"
   },
