@@ -64,6 +64,17 @@ func TestWebSocket(t *testing.T) {
 	resp = <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")
 	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
+
+	WebSocketClient.UserTyping(th.BasicChannel.Id, "")
+	time.Sleep(300 * time.Millisecond)
+	resp = <-WebSocketClient.ResponseChannel
+	require.Nil(t, resp.Error)
+
+	WebSocketClient.UserTyping(th.BasicPrivateChannel2.Id, "")
+	time.Sleep(300 * time.Millisecond)
+	resp = <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")
+	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
 }
 
 func TestWebSocketTrailingSlash(t *testing.T) {
