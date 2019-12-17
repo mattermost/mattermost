@@ -369,7 +369,7 @@
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "Unable to unarchived a not archived channel"
+    "translation": "Unable to unarchive channel. The channel is not archived."
   },
   {
     "id": "api.channel.restore_channel.unarchived",
