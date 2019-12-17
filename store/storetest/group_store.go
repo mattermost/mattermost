@@ -61,7 +61,8 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("AdminRoleGroupsForSyncableMember_Team", func(t *testing.T) { groupTestAdminRoleGroupsForSyncableMemberTeam(t, ss) })
 	t.Run("PermittedSyncableAdmins_Team", func(t *testing.T) { groupTestPermittedSyncableAdminsTeam(t, ss) })
 	t.Run("PermittedSyncableAdmins_Channel", func(t *testing.T) { groupTestPermittedSyncableAdminsChannel(t, ss) })
-	t.Run("UpdateMembersRole", func(t *testing.T) { groupTestpUpdateMembersRole(t, ss) })
+	t.Run("UpdateMembersRole_Team", func(t *testing.T) { groupTestpUpdateMembersRoleTeam(t, ss) })
+	t.Run("UpdateMembersRole_Channel", func(t *testing.T) { groupTestpUpdateMembersRoleChannel(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -3164,6 +3165,201 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, ss store.Store) {
 	require.ElementsMatch(t, []string{user3.Id}, actualUserIDs)
 }
 
-func groupTestpUpdateMembersRole(t *testing.T, ss store.Store) {
-	t.Fail()
+func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	team, err := ss.Team().Save(team)
+	require.Nil(t, err)
+
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+
+	user2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err = ss.User().Save(user2)
+	require.Nil(t, err)
+
+	user3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err = ss.User().Save(user3)
+	require.Nil(t, err)
+
+	for _, user := range []*model.User{user1, user2, user3} {
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id}, 9999)
+		require.Nil(t, err)
+	}
+
+	tests := []struct {
+		testName               string
+		inUserIDs              []string
+		equality               store.Equality
+		targetSchemeAdminValue bool
+	}{
+		{
+			"Given users are admins",
+			[]string{user1.Id, user2.Id},
+			store.Equals,
+			true,
+		},
+		{
+			"Given users are members",
+			[]string{user2.Id},
+			store.Equals,
+			false,
+		},
+		{
+			"Non-given users are admins",
+			[]string{user2.Id},
+			store.Equals,
+			false,
+		},
+		{
+			"Non-given users are members",
+			[]string{user2.Id},
+			store.Equals,
+			false,
+		},
+	}
+
+	includes := func(list []string, item string) bool {
+		for _, it := range list {
+			if it == item {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			err = ss.Team().UpdateMembersRole(team.Id, tt.inUserIDs, tt.equality, tt.targetSchemeAdminValue)
+			require.Nil(t, err)
+
+			members, err := ss.Team().GetMembers(team.Id, 0, 100, nil)
+			require.Nil(t, err)
+			require.GreaterOrEqual(t, len(members), 3) // sanity check for team membership
+
+			for _, member := range members {
+				if (includes(tt.inUserIDs, member.UserId) && tt.equality == store.Equals) || !includes(tt.inUserIDs, member.UserId) && tt.equality == store.NotEquals {
+					require.Equal(t, member.SchemeAdmin, tt.targetSchemeAdminValue)
+				}
+			}
+		})
+	}
+}
+
+func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "A Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
+	}
+	channel, err := ss.Channel().Save(channel, 9999)
+	require.Nil(t, err)
+
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+
+	user2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err = ss.User().Save(user2)
+	require.Nil(t, err)
+
+	user3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err = ss.User().Save(user3)
+	require.Nil(t, err)
+
+	for _, user := range []*model.User{user1, user2, user3} {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      user.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+	}
+
+	tests := []struct {
+		testName               string
+		inUserIDs              []string
+		equality               store.Equality
+		targetSchemeAdminValue bool
+	}{
+		{
+			"Given users are admins",
+			[]string{user1.Id, user2.Id},
+			store.Equals,
+			true,
+		},
+		{
+			"Given users are members",
+			[]string{user2.Id},
+			store.Equals,
+			false,
+		},
+		{
+			"Non-given users are admins",
+			[]string{user2.Id},
+			store.Equals,
+			false,
+		},
+		{
+			"Non-given users are members",
+			[]string{user2.Id},
+			store.Equals,
+			false,
+		},
+	}
+
+	includes := func(list []string, item string) bool {
+		for _, it := range list {
+			if it == item {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			err = ss.Channel().UpdateMembersRole(channel.Id, tt.inUserIDs, tt.equality, tt.targetSchemeAdminValue)
+			require.Nil(t, err)
+
+			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)
+			require.Nil(t, err)
+
+			require.GreaterOrEqual(t, len(*members), 3) // sanity check for channel membership
+
+			for _, member := range *members {
+				if (includes(tt.inUserIDs, member.UserId) && tt.equality == store.Equals) || !includes(tt.inUserIDs, member.UserId) && tt.equality == store.NotEquals {
+					require.Equal(t, member.SchemeAdmin, tt.targetSchemeAdminValue)
+				}
+			}
+		})
+	}
 }

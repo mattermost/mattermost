@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost-server/v5/model"
+	store "github.com/mattermost/mattermost-server/v5/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -1054,6 +1055,22 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, 
 	}
 
 	return r0, r1
+}
+
+// UpdateMembersRole provides a mock function with given fields: teamID, userIDs, idEquality, newSchemeAdminValue
+func (_m *TeamStore) UpdateMembersRole(teamID string, userIDs []string, idEquality store.Equality, newSchemeAdminValue bool) *model.AppError {
+	ret := _m.Called(teamID, userIDs, idEquality, newSchemeAdminValue)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string, store.Equality, bool) *model.AppError); ok {
+		r0 = rf(teamID, userIDs, idEquality, newSchemeAdminValue)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // UserBelongsToTeams provides a mock function with given fields: userId, teamIds

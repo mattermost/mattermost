@@ -6,7 +6,6 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost-server/v5/model"
-	store "github.com/mattermost/mattermost-server/v5/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -844,22 +843,6 @@ func (_m *GroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*
 	}
 
 	return r0, r1
-}
-
-// UpdateMembersRole provides a mock function with given fields: syncableID, syncableType, userIDs, idEquality, newSchemeAdminValue
-func (_m *GroupStore) UpdateMembersRole(syncableID string, syncableType model.GroupSyncableType, userIDs []string, idEquality store.Equality, newSchemeAdminValue bool) *model.AppError {
-	ret := _m.Called(syncableID, syncableType, userIDs, idEquality, newSchemeAdminValue)
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, model.GroupSyncableType, []string, store.Equality, bool) *model.AppError); ok {
-		r0 = rf(syncableID, syncableType, userIDs, idEquality, newSchemeAdminValue)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
 }
 
 // UpsertMember provides a mock function with given fields: groupID, userID

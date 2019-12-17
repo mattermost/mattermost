@@ -113,6 +113,10 @@ type TeamStore interface {
 	GetUserTeamIds(userId string, allowFromCache bool) ([]string, *model.AppError)
 	InvalidateAllTeamIdsForUser(userId string)
 	ClearCaches()
+
+	// UpdateMembersRole updates the SchemeAdmin field value of the given list of team members (equals)
+	// or those that are not in the given list (not equals).
+	UpdateMembersRole(teamID string, userIDs []string, idEquality Equality, newSchemeAdminValue bool) *model.AppError
 }
 
 type ChannelStore interface {
@@ -197,6 +201,10 @@ type ChannelStore interface {
 	RemoveAllDeactivatedMembers(channelId string) *model.AppError
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
 	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)
+
+	// UpdateMembersRole updates the SchemeAdmin field value of the given list of channel members (equals)
+	// or those that are not in the given list (not equals).
+	UpdateMembersRole(channelID string, userIDs []string, idEquality Equality, newSchemeAdminValue bool) *model.AppError
 }
 
 type ChannelMemberHistoryStore interface {
@@ -627,9 +635,6 @@ type GroupStore interface {
 	// PermittedSyncableAdmins returns the IDs of all of the user who are permitted by the group syncable to have
 	// the admin role for the given syncable.
 	PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
-
-	// UpdateMembersRole updates the SchemeAdmin field value of a list of channel members or team members.
-	UpdateMembersRole(syncableID string, syncableType model.GroupSyncableType, userIDs []string, idEquality Equality, newSchemeAdminValue bool) *model.AppError
 }
 
 type LinkMetadataStore interface {
