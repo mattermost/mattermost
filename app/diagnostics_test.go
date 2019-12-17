@@ -29,18 +29,29 @@ func TestPluginSetting(t *testing.T) {
 	assert.Equal(t, "asd", pluginSetting(settings, "test", "qwe", "asd"))
 }
 
-func TestPluginActivated(t *testing.T) {
-	states := map[string]*model.PluginState{
-		"foo": {
-			Enable: true,
-		},
-		"bar": {
-			Enable: false,
-		},
+func TestPluginData(t *testing.T) {
+
+	fooPluginData := map[string]interface{}{
+		"enabled": true,
+		"version": "1.2.0",
 	}
-	assert.True(t, pluginActivated(states, "foo"))
-	assert.False(t, pluginActivated(states, "bar"))
-	assert.False(t, pluginActivated(states, "none"))
+	barPluginData := map[string]interface{}{
+		"enabled": false,
+		"version": "0.1.2",
+	}
+	unavailablePluginData := map[string]interface{}{
+		"enabled": false,
+		"version": "",
+	}
+
+	pluginsData := map[string]interface{}{
+		"foo": fooPluginData,
+		"bar": barPluginData,
+	}
+
+	assert.Equal(t, fooPluginData, pluginData(pluginsData, "foo"))
+	assert.Equal(t, barPluginData, pluginData(pluginsData, "bar"))
+	assert.Equal(t, unavailablePluginData, pluginData(pluginsData, "none"))
 }
 
 func TestDiagnostics(t *testing.T) {
