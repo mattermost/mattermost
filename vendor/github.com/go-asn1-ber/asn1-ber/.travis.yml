@@ -18,12 +18,14 @@ matrix:
         - go: 1.9.x
         - go: 1.10.x
         - go: 1.11.x
+        - go: 1.12.x
+        - go: 1.13.x
           env: GOOS=linux GOARCH=amd64
-        - go: 1.11.x
+        - go: 1.13.x
           env: GOOS=linux GOARCH=386
-        - go: 1.11.x
+        - go: 1.13.x
           env: GOOS=windows GOARCH=amd64
-        - go: 1.11.x
+        - go: 1.13.x
           env: GOOS=windows GOARCH=386
         - go: tip
 go_import_path: gopkg.in/asn-ber.v1
