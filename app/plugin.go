@@ -714,6 +714,7 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 	return plugin, nil
 }
 
+// getPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
 func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {
 	manifest, pluginDir, appErr := extractPlugin(pluginFile, tmpDir)
 	if appErr != nil {
