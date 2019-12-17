@@ -49,7 +49,7 @@ func CommandResponseFromHTTPBody(contentType string, body io.Reader) (*CommandRe
 
 func CommandResponseFromPlainText(text string) *CommandResponse {
 	return &CommandResponse{
-		Text: text,
+		Text:             text,
 		SkipSlackParsing: false,
 	}
 }
@@ -60,8 +60,8 @@ func CommandResponseFromJson(data io.Reader) (*CommandResponse, error) {
 		return nil, err
 	}
 
-	var o CommandResponse{
-		SkipSlackParsing: false,
+	var o = CommandResponse{
+			SkipSlackParsing: false,
 	}
 	err = json.Unmarshal(b, &o)
 	if err != nil {
