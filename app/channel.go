@@ -606,7 +606,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 	}
 	a.InvalidateCacheForChannel(channel)
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UNDELETED, channel.TeamId, "", "", nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_RESTORED, channel.TeamId, "", "", nil)
 	message.Add("channel_id", channel.Id)
 	a.Publish(message)
 
@@ -621,7 +621,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 		post := &model.Post{
 			ChannelId: channel.Id,
 			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
-			Type:      model.POST_CHANNEL_UNDELETED,
+			Type:      model.POST_CHANNEL_RESTORED,
 			UserId:    userId,
 		}
 
