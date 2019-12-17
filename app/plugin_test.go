@@ -537,7 +537,7 @@ func TestPluginSync(t *testing.T) {
 			pluginFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
 			require.NoError(t, err)
 			defer pluginFileReader.Close()
-			_, appErr = th.App.WriteFile(pluginFileReader, th.App.getBundleStorePath("testplugin.tar.gz"))
+			_, appErr = th.App.WriteFile(pluginFileReader, th.App.getBundleStorePath("testplugin"))
 			checkNoError(t, appErr)
 			// no signature
 			appErr = th.App.SyncPlugins()
@@ -562,6 +562,11 @@ func TestPluginSync(t *testing.T) {
 			require.Len(t, pluginStatus, 0)
 
 			// Correct signature
+			key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
+			require.NoError(t, err)
+			appErr = th.App.AddPublicKey("pub_key", key)
+			checkNoError(t, appErr)
+
 			signatureFileReader, err = os.Open(filepath.Join(path, "testplugin.tar.gz.sig"))
 			require.NoError(t, err)
 			defer signatureFileReader.Close()
@@ -576,6 +581,12 @@ func TestPluginSync(t *testing.T) {
 			require.Nil(t, err)
 			require.Len(t, pluginStatus, 1)
 			require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+			appErr = th.App.DeletePublicKey("pub_key")
+			checkNoError(t, appErr)
+
+			appErr = th.App.RemovePlugin("testplugin")
+			checkNoError(t, appErr)
 		})
 	}
 }

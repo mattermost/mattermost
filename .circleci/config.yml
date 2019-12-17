@@ -30,7 +30,7 @@ jobs:
 
           if [ $CURL_FAILED -eq 1 ]
           then
-            npm ci && make build
+            npm ci && cd node_modules/mattermost-redux && npm install && npm run build && cd ../.. && make build
           fi
       - persist_to_workspace:
           root: ~/go/mattermost
@@ -65,6 +65,8 @@ jobs:
           command: |
             echo "Installing golangci-lint"
             curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.21.0 # Keep this in sync with .golangci.yml and Jenkinsfile.pr
+            echo "Installing mattermost-govet"
+            GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
             cd mattermost-server
             make config-reset
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
@@ -306,7 +308,12 @@ workflows:
   version: 2
   untagged-build:
     jobs:
-      - setup
+      - setup:
+          filters:
+            branches:
+                ignore:
+                  - master
+                  - /^release-.*/
       # - check-i18n:
       #     requires:
       #       - setup
