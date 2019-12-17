@@ -20,7 +20,7 @@ func TestCommandResponseFromHTTPBody(t *testing.T) {
 		{"text/plain", "foo", "foo"},
 		{"application/json", `{"text": "foo"}`, "foo"},
 		{"application/json; charset=utf-8", `{"text": "foo"}`, "foo"},
-		{"application/json", `{"text": "` + "```" + `haskell\nlet\n\nf1 = [ 3 | a <- [1]]\nf2 = [ 4 | b <- [2]]\nf3 = \\p -> 5\n\nin 1\n` + "```" + `", "skip_slack_parsing":"true"}`,
+		{"application/json", `{"text": "` + "```" + `haskell\nlet\n\nf1 = [ 3 | a <- [1]]\nf2 = [ 4 | b <- [2]]\nf3 = \\p -> 5\n\nin 1\n` + "```" + `", "skip_slack_parsing": true}`,
 			"```haskell\nlet\n\nf1 = [ 3 | a <- [1]]\nf2 = [ 4 | b <- [2]]\nf3 = \\p -> 5\n\nin 1\n```",
 		},
 	} {
