@@ -909,16 +909,21 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	receiver := th.CreateUser()
 	th.LinkUserToTeam(sender, team)
 	th.LinkUserToTeam(receiver, team)
-	channel := th.CreateChannel(team)
-	th.AddUserToChannel(sender, channel)
-	th.AddUserToChannel(receiver, channel)
+	channel1 := th.CreateChannel(team)
+	th.AddUserToChannel(sender, channel1)
+	th.AddUserToChannel(receiver, channel1)
+
+	channel2 := th.CreateChannel(team)
+	th.AddUserToChannel(sender, channel2)
+	th.AddUserToChannel(receiver, channel2)
 
 	// Create three mention posts and two non-mention posts
-	th.CreateMessagePost(channel, "@channel Hello")
-	th.CreateMessagePost(channel, "@all Hello")
-	th.CreateMessagePost(channel, fmt.Sprintf("@%s Hello", receiver.Username))
-	th.CreatePost(channel)
-	post := th.CreatePost(channel)
+	th.CreateMessagePost(channel1, "@channel Hello")
+	th.CreateMessagePost(channel1, "@all Hello")
+	th.CreateMessagePost(channel1, fmt.Sprintf("@%s Hello in channel 1", receiver.Username))
+	th.CreateMessagePost(channel2, fmt.Sprintf("@%s Hello in channel 2", receiver.Username))
+	th.CreatePost(channel1)
+	post := th.CreatePost(channel1)
 
 	for name, tc := range map[string]struct {
 		explicitMention    bool
@@ -927,24 +932,24 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 		pushNotifyProps    string
 		expectedBadge      int
 	}{
-		"only mentions included in badge count": {
+		"only mentions included for notify_props=mention": {
 			explicitMention:    false,
 			channelWideMention: true,
 			replyToThreadType:  "",
 			pushNotifyProps:    "mention",
-			expectedBadge:      3,
+			expectedBadge:      4,
 		},
-		"mentions and non-mentions included in badge count": {
+		"only mentions included for notify_props=all": {
 			explicitMention:    false,
 			channelWideMention: true,
 			replyToThreadType:  "",
 			pushNotifyProps:    "all",
-			expectedBadge:      5,
+			expectedBadge:      4,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			receiver.NotifyProps["push"] = tc.pushNotifyProps
-			msg, err := th.App.BuildPushNotificationMessage(model.FULL_NOTIFICATION, post, receiver, channel, channel.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			msg, err := th.App.BuildPushNotificationMessage(model.FULL_NOTIFICATION, post, receiver, channel1, channel1.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
 			require.Nil(t, err)
 			assert.Equal(t, tc.expectedBadge, msg.Badge)
 		})
