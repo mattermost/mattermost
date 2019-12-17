@@ -674,7 +674,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 
 		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
-		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.sig"))
+		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
 		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
@@ -682,7 +682,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 
 		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
-		err = utils.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.sig"))
+		err = utils.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
 		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
@@ -732,7 +732,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 
 		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
-		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.sig"))
+		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
 		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
@@ -740,7 +740,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 
 		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
-		err = utils.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.sig"))
+		err = utils.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
 		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)

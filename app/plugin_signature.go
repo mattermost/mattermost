@@ -119,6 +119,7 @@ func verifyBinarySignature(publicKey, signedFile, signature io.Reader) error {
 	}
 	return nil
 }
+
 func decodeIfArmored(reader io.Reader) (io.Reader, error) {
 	readBytes, err := ioutil.ReadAll(reader)
 	if err != nil {

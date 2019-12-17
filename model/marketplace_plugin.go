@@ -70,6 +70,7 @@ type MarketplacePluginFilter struct {
 	PerPage       int
 	Filter        string
 	ServerVersion string
+	LocalOnly     bool
 }
 
 // ApplyToURL modifies the given url to include query string parameters for the request.
@@ -81,6 +82,7 @@ func (filter *MarketplacePluginFilter) ApplyToURL(u *url.URL) {
 	}
 	q.Add("filter", filter.Filter)
 	q.Add("server_version", filter.ServerVersion)
+	q.Add("local_only", strconv.FormatBool(filter.LocalOnly))
 	u.RawQuery = q.Encode()
 }
 
