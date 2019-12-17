@@ -252,9 +252,9 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("username", u.Id)
 	}
 
-	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 || !IsValidEmail(u.Email) {
-		return InvalidUserError("email", u.Id)
-	}
+	// if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 || !IsValidEmail(u.Email) {
+	// 	return InvalidUserError("email", u.Id)
+	// }
 
 	if utf8.RuneCountInString(u.Nickname) > USER_NICKNAME_MAX_RUNES {
 		return InvalidUserError("nickname", u.Id)
