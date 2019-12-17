@@ -38,7 +38,7 @@ const (
 	POST_CONVERT_CHANNEL        = "system_convert_channel"
 	POST_PURPOSE_CHANGE         = "system_purpose_change"
 	POST_CHANNEL_DELETED        = "system_channel_deleted"
-	POST_CHANNEL_UNDELETED      = "system_channel_undeleted"
+	POST_CHANNEL_RESTORED      = "system_channel_restored"
 	POST_EPHEMERAL              = "system_ephemeral"
 	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
 	POST_ADD_BOT_TEAMS_CHANNELS = "add_bot_teams_channels"
