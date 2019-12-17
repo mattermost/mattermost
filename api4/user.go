@@ -1429,9 +1429,27 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIsAuthenticated, userName := utils.UserIsAuthenticated(w, r)
+	userIsAuthenticated, userName := utils.CheckIfUserIsAuthenticated(w, r)
 	fmt.Println("UserIsAuthenticated? ", userIsAuthenticated)
 	fmt.Println("user name is? ", userName)
+	if userIsAuthenticated {
+		if len(userName) > 0 {
+			// try to find user by user name first
+			user, err := c.App.GetUserByUsername(userName)
+			fmt.Println("user found? ", user)
+			fmt.Println("any get user by name error? ", err)
+			if user != nil {
+				// if user is found
+			} else {
+				// if user not found, create a new one
+				user, err := c.App.CreateCasUser(userName)
+				fmt.Println("newly created user: ", user)
+				fmt.Println("any create user by name error? ", err)
+			}
+		}
+	} else {
+
+	}
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {

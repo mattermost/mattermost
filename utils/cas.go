@@ -11,9 +11,9 @@ import (
 const CasServerURL string = "https://www.youshengyun.com/sso"
 
 /*
-UserIsAuthenticated 判断当前访问是否已认证
+CheckIfUserIsAuthenticated 判断当前访问是否已认证
 */
-func UserIsAuthenticated(w http.ResponseWriter, r *http.Request) (bool, string) {
+func CheckIfUserIsAuthenticated(w http.ResponseWriter, r *http.Request) (bool, string) {
 	var ticketIsValid bool = false
 	var userName string
 	if !hasTicket(r) {
