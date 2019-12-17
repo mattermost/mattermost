@@ -667,7 +667,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
-		newPlugin.InstalledVersion = manifest.Version
+		newPlugin.InstalledVersion = ""
 		require.Equal(t, expectedPlugins, plugins)
 	})
 }
@@ -695,7 +695,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	require.NoError(t, err)
 
-	tarDataV2, err := ioutil.ReadFile(filepath.Join(path, "testpluginv2.tar.gz"))
+	tarDataV2, err := ioutil.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
 	require.NoError(t, err)
 
 	t.Run("search installed plugin", func(t *testing.T) {
@@ -724,7 +724,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 		CheckNoError(t, resp)
 
-		newPluginV1 := &model.MarketplacePlugin{
+		plugin1 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL: "",
 				IconData:    "",
@@ -733,11 +733,11 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			},
 			InstalledVersion: manifest.Version,
 		}
-		expectedPlugins := append(samplePlugins, newPluginV1)
+		expectedPlugins := append(samplePlugins, plugin1)
 
 		manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarDataV2))
 		CheckNoError(t, resp)
-		newPluginV2 := &model.MarketplacePlugin{
+		plugin2 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL: "",
 				IconData:    "",
@@ -746,7 +746,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			},
 			InstalledVersion: manifest.Version,
 		}
-		expectedPlugins = append(expectedPlugins, newPluginV2)
+		expectedPlugins = append(expectedPlugins, plugin2)
 		sort.SliceStable(expectedPlugins, func(i, j int) bool {
 			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
 		})
@@ -756,13 +756,13 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		require.Equal(t, expectedPlugins, plugins)
 
 		// Search for plugins from the server
-		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "testplugin_v2"})
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "testplugin2"})
 		CheckNoError(t, resp)
-		require.Equal(t, []*model.MarketplacePlugin{newPluginV2}, plugins)
+		require.Equal(t, []*model.MarketplacePlugin{plugin2}, plugins)
 
-		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "dsgsdg_v2"})
+		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "a second plugin"})
 		CheckNoError(t, resp)
-		require.Equal(t, []*model.MarketplacePlugin{newPluginV2}, plugins)
+		require.Equal(t, []*model.MarketplacePlugin{plugin2}, plugins)
 
 		plugins, resp = th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: "User Satisfaction Surveys"})
 		CheckNoError(t, resp)
@@ -773,11 +773,11 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		require.Nil(t, plugins)
 
 		// cleanup
-		ok, resp := th.SystemAdminClient.RemovePlugin(newPluginV1.Manifest.Id)
+		ok, resp := th.SystemAdminClient.RemovePlugin(plugin1.Manifest.Id)
 		CheckNoError(t, resp)
 		assert.True(t, ok)
 
-		ok, resp = th.SystemAdminClient.RemovePlugin(newPluginV2.Manifest.Id)
+		ok, resp = th.SystemAdminClient.RemovePlugin(plugin2.Manifest.Id)
 		CheckNoError(t, resp)
 		assert.True(t, ok)
 	})
@@ -794,9 +794,9 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 				IconData:    "https://example.com/icon.svg",
 				DownloadURL: "www.github.com/example",
 				Manifest: &model.Manifest{
-					Id:               "testplugin_v2",
-					Name:             "testplugin_v2",
-					Description:      "dsgsdg_v2",
+					Id:               "testplugin2",
+					Name:             "testplugin2",
+					Description:      "a second plugin",
 					Version:          "1.2.2",
 					MinServerVersion: "",
 				},
@@ -820,7 +820,6 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 	})
 
 	t.Run("Get plugins with EnableRemoteMarketplace enabled", func(t *testing.T) {
-
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
 		})
@@ -833,7 +832,6 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 	})
 
 	t.Run("get remote and local plugins", func(t *testing.T) {
-
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
 			*cfg.PluginSettings.EnableUploads = true
@@ -858,7 +856,6 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 	})
 
 	t.Run("EnableRemoteMarketplace disabled", func(t *testing.T) {
-
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 			*cfg.PluginSettings.EnableUploads = true
@@ -898,7 +895,6 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 	})
 
 	t.Run("local_only true", func(t *testing.T) {
-
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
 			*cfg.PluginSettings.EnableUploads = true
@@ -940,15 +936,16 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		*cfg.PluginSettings.EnableUploads = true
 		*cfg.PluginSettings.EnableMarketplace = false
 	})
+
 	path, _ := fileutils.FindDir("tests")
-	signatureFilename := "testpluginv2.tar.gz.sig"
+	signatureFilename := "testplugin2.tar.gz.sig"
 	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
 	require.Nil(t, err)
 	sigFile, err := ioutil.ReadAll(signatureFileReader)
 	require.Nil(t, err)
 	pluginSignature := base64.StdEncoding.EncodeToString(sigFile)
 
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testpluginv2.tar.gz"))
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
 	require.NoError(t, err)
 	pluginServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
@@ -963,9 +960,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 				IconData:    "https://example.com/icon.svg",
 				DownloadURL: pluginServer.URL,
 				Manifest: &model.Manifest{
-					Id:               "testplugin_v2",
-					Name:             "testplugin_v2",
-					Description:      "dsgsdg_v2",
+					Id:               "testplugin2",
+					Name:             "testplugin2",
+					Description:      "a second plugin",
 					Version:          "1.2.2",
 					MinServerVersion: "",
 				},
@@ -978,9 +975,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 				IconData:    "https://example.com/icon.svg",
 				DownloadURL: pluginServer.URL,
 				Manifest: &model.Manifest{
-					Id:               "testplugin_v2",
-					Name:             "testplugin_v2",
-					Description:      "dsgsdg_v2",
+					Id:               "testplugin2",
+					Name:             "testplugin2",
+					Description:      "a second plugin",
 					Version:          "1.2.3",
 					MinServerVersion: "",
 				},
@@ -989,7 +986,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			InstalledVersion: "",
 		},
 	}
+
 	request := &model.InstallMarketplacePluginRequest{Id: "", Version: ""}
+
 	t.Run("marketplace disabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableMarketplace = false
@@ -999,6 +998,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 		require.Nil(t, plugin)
 	})
+
 	t.Run("RequirePluginSignature enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
@@ -1068,7 +1068,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 			*cfg.PluginSettings.AllowInsecureDownloadUrl = true
 		})
-		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin_v2", Version: "1.2.2"}
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin2", Version: "1.2.2"}
 		plugin, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, plugin)
@@ -1096,14 +1096,14 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		appErr := th.App.AddPublicKey("pub_key", key)
 		require.Nil(t, appErr)
 
-		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin_v2", Version: "1.2.3"}
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin2", Version: "1.2.3"}
 		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckNoError(t, resp)
 		require.NotNil(t, manifest)
-		require.Equal(t, "testplugin_v2", manifest.Id)
+		require.Equal(t, "testplugin2", manifest.Id)
 		require.Equal(t, "1.2.3", manifest.Version)
 
-		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "testplugin_v2.tar.gz.sig")
+		filePath := filepath.Join("plugins", "testplugin2.tar.gz.sig")
 		savedSigFile, err := th.App.ReadFile(filePath)
 		require.Nil(t, err)
 		require.EqualValues(t, sigFile, savedSigFile)

@@ -3524,7 +3524,7 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Encountered error extracting plugin"
+    "translation": "An error occurred extracting the plugin bundle."
   },
   {
     "id": "app.plugin.filesystem.app_error",
