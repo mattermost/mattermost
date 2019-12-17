@@ -61,7 +61,7 @@ func CommandResponseFromJson(data io.Reader) (*CommandResponse, error) {
 	}
 
 	var o = CommandResponse{
-			SkipSlackParsing: false,
+            SkipSlackParsing: false,
 	}
 	err = json.Unmarshal(b, &o)
 	if err != nil {
