@@ -453,7 +453,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api := setupAPI()
 		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
 		p.API = api
-		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 
 		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "true"}}, plugin.AllowBots())
 
@@ -466,7 +466,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api := setupAPI()
 		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
 		p.API = api
-		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 
 		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "true"}}, plugin.AllowBots(), plugin.AllowWebhook())
 		assert.Nil(t, err)
@@ -479,7 +479,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api := setupAPI()
 		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
 		p.API = api
-		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 
 		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID}, plugin.AllowBots())
 		assert.Nil(t, err)
@@ -492,7 +492,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api := setupAPI()
 		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
 		p.API = api
-		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 
 		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "false"}}, plugin.AllowBots())
 		assert.Nil(t, err)
