@@ -102,6 +102,8 @@ pipeline {
 							cd /go/src/github.com/mattermost/mattermost-server
 							echo "Installing golangci-lint"
 							curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.21.0 # Keep this in sync with .golangci.yml and .circleci/config.yml
+							echo "Installing mattermost-govet"
+							GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
 							make config-reset
 							make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
 							make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'

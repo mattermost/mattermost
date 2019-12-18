@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -58,16 +59,11 @@ func getMockStore() *mocks.Store {
 	mockStore.On("Emoji").Return(&mockEmojiStore)
 
 	mockCount := int64(10)
-	teamIdString := "teamID123"
-	nameString := "nameId987"
-	fakeChannel := model.Channel{Name: nameString, TeamId: teamIdString}
 	mockGuestCount := int64(12)
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
-	mockChannelStore.On("GetByName", teamIdString, nameString, true).Return(&fakeChannel, nil)
-	mockChannelStore.On("GetByName", teamIdString, nameString, false).Return(&fakeChannel, nil)
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", false).Return(mockGuestCount, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
@@ -82,6 +78,20 @@ func getMockStore() *mocks.Store {
 	mockPostStore.On("GetPosts", fakeOptions, true).Return(fakePosts, nil)
 	mockPostStore.On("GetPosts", fakeOptions, false).Return(fakePosts, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "12360")
+
+	mockPostStoreOptions := model.GetPostsSinceOptions{
+		ChannelId:        "channelId",
+		Time:             1,
+		SkipFetchThreads: false,
+	}
+
+	mockPostStoreEtagResult := fmt.Sprintf("%v.%v", model.CurrentVersion, 1)
+	mockPostStore.On("ClearCaches")
+	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
+	mockPostStore.On("GetEtag", "channelId", true).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false).Return(model.NewPostList(), nil)
 	mockStore.On("Post").Return(&mockPostStore)
 
 	fakeUser := []*model.User{{Id: "123"}}

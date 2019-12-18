@@ -243,6 +243,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	switch o.Type {
 	case
 		POST_DEFAULT,
+		POST_SYSTEM_GENERIC,
 		POST_JOIN_LEAVE,
 		POST_AUTO_RESPONDER,
 		POST_ADD_REMOVE,

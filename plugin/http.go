@@ -83,8 +83,8 @@ func (w *httpResponseWriterRPCClient) WriteHeader(statusCode int) {
 	w.client.Call("Plugin.WriteHeader", statusCode, nil)
 }
 
-func (h *httpResponseWriterRPCClient) Close() error {
-	return h.client.Close()
+func (w *httpResponseWriterRPCClient) Close() error {
+	return w.client.Close()
 }
 
 func connectHTTPResponseWriter(conn io.ReadWriteCloser) *httpResponseWriterRPCClient {
