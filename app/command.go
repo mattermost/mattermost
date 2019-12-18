@@ -435,7 +435,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	}
 
 	// Do not process text if the command is built in or the response contains "skip_slack_parsing": true.
-	skipSlackParsing := response.SkipSlackParsing || builtIn
+	skipSlackParsing := builtIn || response.SkipSlackParsing
 
 	// Process Slack text replacements
 	if !skipSlackParsing {
