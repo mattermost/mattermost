@@ -32,6 +32,7 @@ const (
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_PINNEDPOSTS_COUNTS   = "inv_channel_pinnedposts_counts"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS        = "inv_channel_member_counts"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS                   = "inv_last_posts"
+	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POST_TIME               = "inv_last_post_time"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS                        = "inv_teams"
 	CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS                 = "inv_all_user_sessions"
 	CLUSTER_EVENT_INSTALL_PLUGIN                                    = "install_plugin"
