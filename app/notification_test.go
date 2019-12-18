@@ -275,7 +275,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		constrainedChannel, appErr = th.App.UpdateChannel(constrainedChannel)
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 			GroupId:    group.Id,
 			Type:       model.GroupSyncableTypeChannel,
 			SyncableId: constrainedChannel.Id,

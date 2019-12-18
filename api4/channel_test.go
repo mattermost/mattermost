@@ -169,6 +169,18 @@ func TestUpdateChannel(t *testing.T) {
 	require.Equal(t, private.Header, newPrivateChannel.Header, "Update failed for Header in private channel")
 	require.Equal(t, private.Purpose, newPrivateChannel.Purpose, "Update failed for Purpose in private channel")
 
+	// Test that changing the type fails and returns error
+
+	private.Type = model.CHANNEL_OPEN
+	newPrivateChannel, resp = Client.UpdateChannel(private)
+	CheckBadRequestStatus(t, resp)
+
+	// Test that keeping the same type succeeds
+
+	private.Type = model.CHANNEL_PRIVATE
+	newPrivateChannel, resp = Client.UpdateChannel(private)
+	CheckNoError(t, resp)
+
 	//Non existing channel
 	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	_, resp = Client.UpdateChannel(channel1)
@@ -850,7 +862,7 @@ func TestGetAllChannelsWithCount(t *testing.T) {
 	for _, c := range *channels {
 		require.NotEqual(t, c.TeamId, "")
 	}
-	require.Equal(t, int64(5), total)
+	require.Equal(t, int64(6), total)
 
 	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(0, 10, "")
 	CheckNoError(t, resp)
@@ -2257,7 +2269,7 @@ func TestAddChannelMember(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.channel.add_members.user_denied")
 
 	// Associate group to team
-	_, appErr = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: privateChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,

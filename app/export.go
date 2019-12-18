@@ -532,12 +532,6 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 				continue
 			}
 
-			// There's no import support for single member channels yet.
-			if len(*channel.Members) == 1 {
-				mlog.Debug("Bulk export for direct channels containing a single member is not supported.")
-				continue
-			}
-
 			channelLine := ImportLineFromDirectChannel(channel)
 			if err := a.ExportWriteLine(writer, channelLine); err != nil {
 				return err
@@ -565,12 +559,6 @@ func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 
 			// Skip deleted.
 			if post.DeleteAt != 0 {
-				continue
-			}
-
-			// There's no import support for single member channels yet.
-			if len(*post.ChannelMembers) == 1 {
-				mlog.Debug("Bulk export for posts containing a single member is not supported.")
 				continue
 			}
 
