@@ -1,21 +1,7 @@
-[![GoDoc](https://godoc.org/gopkg.in/ldap.v3?status.svg)](https://godoc.org/gopkg.in/ldap.v3)
+[![GoDoc](https://godoc.org/github.com/go-ldap/ldap?status.svg)](https://godoc.org/github.com/go-ldap/ldap)
 [![Build Status](https://travis-ci.org/go-ldap/ldap.svg)](https://travis-ci.org/go-ldap/ldap)
 
 # Basic LDAP v3 functionality for the GO programming language.
-
-## Install
-
-For the latest version use:
-
-    go get gopkg.in/ldap.v3
-
-Import the latest version with:
-
-    import "gopkg.in/ldap.v3"
-
-## Required Libraries:
-
- - gopkg.in/asn1-ber.v1
 
 ## Features:
 
@@ -33,6 +19,27 @@ Import the latest version with:
 
  - search
  - modify
+
+## Go Modules:
+
+`go get github.com/go-ldap/ldap/v3`
+
+As go-ldap was v2+ when Go Modules came out, updating to Go Modules would be considered a breaking change.
+
+To maintain backwards compatability, we ultimately decided to use subfolders (as v3 was already a branch).
+Whilst this duplicates the code, we can move toward implementing a backwards-compatible versioning system that allows for code reuse.
+The alternative would be to increment the version number, however we believe that this would confuse users as v3 is in line with LDAPv3 (RFC-4511)
+https://tools.ietf.org/html/rfc4511
+
+
+For more info, please visit the pull request that updated to modules.
+https://github.com/go-ldap/ldap/pull/247
+
+To install with `GOMODULE111=off`, use `go get github.com/go-ldap/ldap`
+https://golang.org/cmd/go/#hdr-Legacy_GOPATH_go_get
+
+As always, we are looking for contributors with great ideas on how to best move forward.
+
 
 ## Contributing:
 
