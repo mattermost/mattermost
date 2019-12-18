@@ -1438,17 +1438,59 @@ func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 			user, err := c.App.GetUserByUsername(userName)
 			fmt.Println("user found? ", user)
 			fmt.Println("any get user by name error? ", err)
-			if user != nil {
-				// if user is found
-			} else {
-				// if user not found, create a new one
-				user, err := c.App.CreateCasUser(userName)
+			// if user not found, create a new one
+			if user == nil {
+				user, err = c.App.CreateCasUser(userName)
 				fmt.Println("newly created user: ", user)
 				fmt.Println("any create user by name error? ", err)
 			}
+
+			if err != nil {
+				c.Err = err
+				mlog.Error(err.Error())
+				return
+			}
+
+			if user.IsGuest() {
+				if c.App.License() == nil {
+					c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
+					return
+				}
+				if !*c.App.Config().GuestAccountsSettings.Enable {
+					c.Err = model.NewAppError("login", "api.user.login.guest_accounts.disabled.error", nil, "", http.StatusUnauthorized)
+					return
+				}
+			}
+
+			c.LogAuditWithUserId(user.Id, "authenticated")
+
+			c.LogAuditWithUserId(user.Id, "success")
+
+			if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+				c.App.AttachSessionCookies(w, r)
+			}
+
+			userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
+			if err != nil && err.StatusCode != http.StatusNotFound {
+				c.Err = err
+				mlog.Error(err.Error())
+				return
+			}
+
+			if userTermsOfService != nil {
+				user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
+				user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
+			}
+
+			user.Sanitize(map[string]bool{})
+
+			w.Write([]byte(user.ToJson()))
+		} else {
+			// TODO: Handle case when userName is empty
 		}
 	} else {
-
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Error: Unauthorized"))
 	}
 }
 
