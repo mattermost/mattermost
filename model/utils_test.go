@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -14,6 +15,56 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestIsValidIpOrCidr(t *testing.T) {
+	for _, item := range []string{"", "192.168.1.1/34", "2001:db8:a0b:12f0::1/129", "0:", "0:::"} {
+		require.False(t, IsValidIpOrCidr(item), "valid ip or cidr in invalid test list")
+	}
+
+	for _, item := range []string{"1.1.1.1", "192.168.1.1/32", "2001:db8:a0b:12f0::1/128", "0::"} {
+		require.True(t, IsValidIpOrCidr(item), "invalid ip or cidr in valid test list")
+	}
+}
+
+func TestIsValidIpList(t *testing.T) {
+	for _, ipList := range []StringArray{{"192.168.1.1", ""}, {"0::", "0:::"}, {"1.1.1.1/32", "2001:db8:a0b:12f0::1/129"}} {
+		require.False(t, IsValidIpList(ipList), "valid ipList in expected invalid list")
+	}
+}
+
+func TestIsInWhitelist(t *testing.T) {
+	whiteList := []string{"192.168.1.1", "172.100.1.1/24", "1.1.1.1/32"}
+	for _, whiteIp := range []string{"192.168.1.1", "172.100.1.15", "1.1.1.1"} {
+		require.True(t, IsInWhitelist(whiteIp, whiteList), "ip should be in whitelist")
+	}
+	for _, whiteIp := range []string{"192.168.1.0", "172.100.0.15", "1.1.1.0"} {
+		require.False(t, IsInWhitelist(whiteIp, whiteList), "ip should not be in whitelist")
+	}
+}
+
+func TestGetRemoteAddress(t *testing.T) {
+	// for _, address := range []string{"","1.1.r.1","1.1.1.1:", "1.1.257.1"} {
+	for _, address := range []string{"", "1.1.r.1", "1.1.1.257", "1.1..1:80", "1000.1.1.1:me", "localhost:80"} {
+		require.Equal(t, "", GetRemoteAddress(address), "should be equal to empty string")
+	}
+
+	for _, address := range []string{"1.1.1.1:584990", "1.1.1.1:80", "1.1.1.1:8080"} {
+		require.Equal(t, "1.1.1.1", GetRemoteAddress(address), "should be equal to host")
+	}
+}
+
+func TestIsValidTimeWindow(t *testing.T) {
+
+	stamp := strconv.FormatInt(time.Now().Unix(), 10)
+	fmt.Printf("---gf---time %v\n", stamp)
+	require.True(t, IsValidTimeWindow(stamp))
+	stamp = strconv.FormatInt(int64(1576642361), 10)
+	require.False(t, IsValidTimeWindow(stamp))
+
+	stamp = "stamp"
+	require.False(t, IsValidTimeWindow(stamp))
+
+}
 
 func TestNewId(t *testing.T) {
 	for i := 0; i < 1000; i++ {

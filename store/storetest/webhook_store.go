@@ -40,6 +40,10 @@ func TestWebhookStore(t *testing.T, ss store.Store) {
 	t.Run("CountOutgoing", func(t *testing.T) { testWebhookStoreCountOutgoing(t, ss) })
 }
 
+func TestWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
+	t.Run("SaveIncoming1", func(t *testing.T) { testWebhookStoreSaveIncoming(t, ss) })
+}
+
 func testWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
 	o1 := buildIncomingWebhook()
 

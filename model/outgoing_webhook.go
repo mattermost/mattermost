@@ -4,6 +4,9 @@
 package model
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -30,6 +33,7 @@ type OutgoingWebhook struct {
 	ContentType  string      `json:"content_type"`
 	Username     string      `json:"username"`
 	IconURL      string      `json:"icon_url"`
+	SecretToken  string      `json:"secret_token"`
 }
 
 type OutgoingWebhookPayload struct {
@@ -261,4 +265,13 @@ func (o *OutgoingWebhook) GetTriggerWord(word string, isExactMatch bool) (trigge
 	}
 
 	return triggerWord
+}
+
+func GenerateHmacSignature(payLoad *[]byte, timestamp, secret string) string {
+	contentToSign := append(*payLoad, []byte(timestamp)...)
+
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write(contentToSign)
+
+	return hex.EncodeToString(mac.Sum(nil))
 }

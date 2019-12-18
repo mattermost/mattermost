@@ -1353,8 +1353,16 @@
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.incoming_webhook.invalid_signing_model.app_error",
+    "translation": "Invalid wehook authentication information."
+  },
+  {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Invalid username."
+  },
+  {
+    "id": "api.incoming_webhook.invalid_white_ip_list.app_error",
+    "translation": "The white ip list contains an invalid IP address or CIDR."
   },
   {
     "id": "api.io_error",
@@ -2807,8 +2815,28 @@
     "translation": "Either trigger_words or channel_id must be set"
   },
   {
+    "id": "api.webhook.incoming.empty_webhook.app_error",
+    "translation": "Webhook payload is empty or cannot be read in."
+  },
+  {
     "id": "api.webhook.incoming.error",
     "translation": "Could not decode the multipart payload of incoming webhook."
+  },
+  {
+    "id": "api.webhook.incoming.invalid_hook_id.app_error",
+    "translation": "You posted to an invalid webhook URL."
+  },
+  {
+    "id": "api.webhook.incoming.invalid_hook_ip.app_error",
+    "translation": "Your IP is not listed in the white list."
+  },
+  {
+    "id": "api.webhook.incoming.invalid_webhook_Hmac.app_error",
+    "translation": "Your webhook signature failed to verify."
+  },
+  {
+    "id": "api.webhook.incoming.webhook_expired.app_error",
+    "translation": "Your webhook is expired."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -5075,8 +5103,16 @@
     "translation": "Invalid Id"
   },
   {
+    "id": "model.incoming_hook.insufficient_header.app_error",
+    "translation": "Required headers are not supplied."
+  },
+  {
     "id": "model.incoming_hook.parse_data.app_error",
     "translation": "Unable to parse incoming data"
+  },
+  {
+    "id": "model.incoming_hook.secret_token.app_error",
+    "translation": "Secret token for webhook signature is invalid."
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
@@ -5093,6 +5129,10 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username"
+  },
+  {
+    "id": "model.incoming_hook.white_ip_list_too_long.app_error",
+    "translation": "Too many IPs or CIDRs for the white list."
   },
   {
     "id": "model.job.is_valid.create_at.app_error",

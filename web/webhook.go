@@ -4,7 +4,9 @@
 package web
 
 import (
+	"bytes"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -24,10 +26,53 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	r.ParseForm()
-
 	var err *model.AppError
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
+
+	if len(id) != 26 {
+		c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.invalid_hook_id.app_error", nil, "webhookId length don't match", http.StatusBadRequest)
+		return
+	}
+	validIncomingHook, err := c.App.GetIncomingWebhook(id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if len(validIncomingHook.WhiteIpList) > 0 {
+		if !(model.IsInWhitelist(model.GetRemoteAddress(r.RemoteAddr), validIncomingHook.WhiteIpList)) {
+			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.invalid_hook_ip.app_error", nil, "Ip is not found in whitelist", http.StatusBadRequest)
+			return
+		}
+	} else if len(validIncomingHook.SecretToken) > 0 {
+		payLoad, err := ioutil.ReadAll(r.Body)
+		if err != nil || len(payLoad) == 0 {
+			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.empty_webhook.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		signedWebhook := model.SignedIncomingHook{Algorithm: validIncomingHook.HmacAlgorithm, Payload: &payLoad}
+		parsingErr := validIncomingHook.ParseHeader(&signedWebhook, r)
+		if parsingErr != nil {
+			c.Err = parsingErr
+			return
+		}
+
+		if !signedWebhook.VerifySignature(validIncomingHook.SecretToken) {
+			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.invalid_webhook_Hmac.app_error", nil, "Hmac signature don't match.", http.StatusBadRequest)
+			return
+		}
+
+		if len(signedWebhook.Timestamp) > 0 {
+			if !model.IsValidTimeWindow(signedWebhook.Timestamp) {
+				c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.webhook_expired.app_error", nil, "Webhook is expired or timestamp is malformed.", http.StatusBadRequest)
+				return
+			}
+		}
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(payLoad))
+		// mlog.Info("signing passssssssssssssssssssssssssssssssssssssssssssssssssss")
+	}
+	r.ParseForm()
+
 	contentType := r.Header.Get("Content-Type")
 
 	defer func() {
