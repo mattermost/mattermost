@@ -434,8 +434,8 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		post.AddProp("from_webhook", "true")
 	}
 
-	// Do not process text if the response contains "skip_slack_parsing": true
-	skipSlackParsing := response.SkipSlackParsing
+	// Do not process text if the command is built in or the response contains "skip_slack_parsing": true.
+	skipSlackParsing := response.SkipSlackParsing || builtIn
 
 	// Process Slack text replacements
 	if !skipSlackParsing {
