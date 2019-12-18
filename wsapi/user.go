@@ -24,6 +24,10 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 	}
 
+	if !api.App.SessionHasPermissionToChannel(req.Session, channelId, model.PERMISSION_CREATE_POST) {
+		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
+	}
+
 	var parentId string
 	if parentId, ok = req.Data["parent_id"].(string); !ok {
 		parentId = ""
