@@ -44,7 +44,7 @@ require (
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/mattermost/go-i18n v1.11.0
 	github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
-	github.com/mattermost/ldap v3.0.4+incompatible
+	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/viper v1.0.4
 	github.com/mattn/go-runewidth v0.0.4 // indirect
@@ -95,7 +95,6 @@ require (
 	google.golang.org/genproto v0.0.0-20190927181202-20e1ac93f88c // indirect
 	google.golang.org/grpc v1.24.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/ini.v1 v1.48.0 // indirect
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
