@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -168,6 +168,18 @@ func TestUpdateChannel(t *testing.T) {
 	require.Equal(t, private.DisplayName, newPrivateChannel.DisplayName, "Update failed for DisplayName in private channel")
 	require.Equal(t, private.Header, newPrivateChannel.Header, "Update failed for Header in private channel")
 	require.Equal(t, private.Purpose, newPrivateChannel.Purpose, "Update failed for Purpose in private channel")
+
+	// Test that changing the type fails and returns error
+
+	private.Type = model.CHANNEL_OPEN
+	newPrivateChannel, resp = Client.UpdateChannel(private)
+	CheckBadRequestStatus(t, resp)
+
+	// Test that keeping the same type succeeds
+
+	private.Type = model.CHANNEL_PRIVATE
+	newPrivateChannel, resp = Client.UpdateChannel(private)
+	CheckNoError(t, resp)
 
 	//Non existing channel
 	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -850,7 +862,7 @@ func TestGetAllChannelsWithCount(t *testing.T) {
 	for _, c := range *channels {
 		require.NotEqual(t, c.TeamId, "")
 	}
-	require.Equal(t, int64(5), total)
+	require.Equal(t, int64(6), total)
 
 	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(0, 10, "")
 	CheckNoError(t, resp)

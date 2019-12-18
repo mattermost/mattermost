@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -915,6 +915,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 	t.Run("verify, install and remove plugin", func(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			serverVersion := req.URL.Query().Get("server_version")
+			require.NotEmpty(t, serverVersion)
+			require.Equal(t, model.CurrentVersion, serverVersion)
 			res.WriteHeader(http.StatusOK)
 			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[1]})
 			require.NoError(t, err)
@@ -927,6 +930,11 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
+		key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
+		require.NoError(t, err)
+		appErr := th.App.AddPublicKey("pub_key", key)
+		require.Nil(t, appErr)
+
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin_v2", Version: "1.2.3"}
 		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckNoError(t, resp)
@@ -934,7 +942,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Equal(t, "testplugin_v2", manifest.Id)
 		require.Equal(t, "1.2.3", manifest.Version)
 
-		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "testplugin_v2.sig")
+		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "testplugin_v2.tar.gz.sig")
 		savedSigFile, err := th.App.ReadFile(filePath)
 		require.Nil(t, err)
 		require.EqualValues(t, sigFile, savedSigFile)
@@ -945,6 +953,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		exists, err := th.App.FileExists(filePath)
 		require.Nil(t, err)
 		require.False(t, exists)
+
+		appErr = th.App.DeletePublicKey("pub_key")
+		require.Nil(t, appErr)
 	})
 }
 
