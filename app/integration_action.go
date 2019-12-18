@@ -21,12 +21,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+
+	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -158,10 +159,17 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	}
 
 	teamChan := make(chan store.StoreResult, 1)
+
 	go func() {
+		defer close(teamChan)
+
+		// Direct and group channels won't have teams.
+		if upstreamRequest.TeamId == "" {
+			return
+		}
+
 		team, err := a.Srv.Store.Team().Get(upstreamRequest.TeamId)
 		teamChan <- store.StoreResult{Data: team, Err: err}
-		close(teamChan)
 	}()
 
 	ur := <-userChan
@@ -171,12 +179,15 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	user := ur.Data.(*model.User)
 	upstreamRequest.UserName = user.Username
 
-	tr := <-teamChan
-	if tr.Err != nil {
-		return "", tr.Err
+	tr, ok := <-teamChan
+	if ok {
+		if tr.Err != nil {
+			return "", tr.Err
+		}
+
+		team := tr.Data.(*model.Team)
+		upstreamRequest.TeamName = team.Name
 	}
-	team := tr.Data.(*model.Team)
-	upstreamRequest.TeamName = team.Name
 
 	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
 		if selectedOption != "" {

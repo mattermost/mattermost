@@ -405,5 +405,5 @@ func (a *App) getBundleStorePath(id string) string {
 }
 
 func (a *App) getSignatureStorePath(id string) string {
-	return filepath.Join(fileStorePluginFolder, fmt.Sprintf("%s.sig", id))
+	return filepath.Join(fileStorePluginFolder, fmt.Sprintf("%s.tar.gz.sig", id))
 }
