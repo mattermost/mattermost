@@ -335,7 +335,7 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 
 // CreateCasUser returns a new created user object
 func (a *App) CreateCasUser(userName string) (*model.User, *model.AppError) {
-	user := model.User{Nickname: userName, Username: userName}
+	user := model.User{Nickname: userName, Username: userName, Locale: "zh-CN"}
 	user.MakeNonNil()
 
 	ruser, err := a.Srv.Store.User().Save(&user)
