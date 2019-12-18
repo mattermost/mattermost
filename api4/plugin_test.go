@@ -18,8 +18,10 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -924,6 +926,105 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
 		CheckNoError(t, resp)
 		assert.True(t, ok)
+	})
+}
+
+func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	samplePlugins := []*model.MarketplacePlugin{
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
+				IconData:    "https://example.com/icon.svg",
+				DownloadURL: "www.github.com/example",
+				Manifest: &model.Manifest{
+					Id:               "marketplace.test",
+					Name:             "marketplacetest",
+					Description:      "a marketplace plugin",
+					Version:          "0.1.2",
+					MinServerVersion: "",
+				},
+			},
+			InstalledVersion: "",
+		},
+	}
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
+		require.NoError(t, err)
+		res.Write(json)
+	}))
+	defer testServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableMarketplace = true
+		*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+	})
+
+	t.Run("get remote and prepackaged plugins", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		manifest := &model.Manifest{
+			Version: "0.0.1",
+			Id:      "prepackaged.test",
+		}
+		newerPrepackagePlugin := &plugin.PrepackagedPlugin{
+			Manifest: manifest,
+		}
+
+		env := th.App.GetPluginsEnvironment()
+		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+
+		require.Len(t, plugins, 2)
+	})
+
+	t.Run("EnableRemoteMarketplace disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = false
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		// No marketplace plugins returned
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+
+		// Only returns the prepackaged plugins
+		require.Len(t, plugins, 1)
+	})
+
+	t.Run("get prepackaged plugin if newer", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		manifest := &model.Manifest{
+			Version: "1.2.3",
+			Id:      "marketplace.test",
+		}
+
+		newerPrepackagePlugin := &plugin.PrepackagedPlugin{
+			Manifest: manifest,
+		}
+
+		env := th.App.GetPluginsEnvironment()
+		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+
+		require.Len(t, plugins, 1)
+		require.Equal(t, newerPrepackagePlugin.Manifest.Version, plugins[0].Manifest.Version)
 	})
 }
 
