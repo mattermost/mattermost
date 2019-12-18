@@ -65,10 +65,8 @@ func (s *SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
 	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
 
-	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_update_at_root_id", "Posts", []string{"ChannelId", "UpdateAt", "RootId"})
-	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_delete_at_create_at_root_id", "Posts", []string{"ChannelId", "DeleteAt", "CreateAt", "RootId"})
-	s.RemoveIndexIfExists("idx_posts_channel_id_update_at", "Posts")
-	s.RemoveIndexIfExists("idx_posts_channel_id_delete_at_create_at", "Posts")
+	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_update_at", "Posts", []string{"ChannelId", "UpdateAt"})
+	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_delete_at_create_at", "Posts", []string{"ChannelId", "DeleteAt", "CreateAt"})
 
 	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
