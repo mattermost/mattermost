@@ -122,7 +122,7 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 	o1.Type = model.CHANNEL_OPEN
 
 	_, err = ss.Channel().Save(&o1, -1)
-	require.Nil(t, err, "should have saved channel", err)
+	require.Nil(t, err, "should have saved channel")
 
 	o2 := o1
 	o2.Id = ""
@@ -132,7 +132,7 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 	require.Equal(t, store.CHANNEL_EXISTS_ERROR, err.Id)
 
 	err = ss.Channel().Delete(o1.Id, 100)
-	require.Nil(t, err, "should have deleted channel", err)
+	require.Nil(t, err, "should have deleted channel")
 
 	o2.Id = ""
 	_, err = ss.Channel().Save(&o2, -1)
