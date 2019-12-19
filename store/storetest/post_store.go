@@ -22,7 +22,6 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("SaveAndUpdateChannelMsgCounts", func(t *testing.T) { testPostStoreSaveChannelMsgCounts(t, ss) })
 	t.Run("Get", func(t *testing.T) { testPostStoreGet(t, ss) })
 	t.Run("GetSingle", func(t *testing.T) { testPostStoreGetSingle(t, ss) })
-	t.Run("GetEtagCache", func(t *testing.T) { testGetEtagCache(t, ss) })
 	t.Run("Update", func(t *testing.T) { testPostStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testPostStoreDelete(t, ss) })
 	t.Run("Delete1Level", func(t *testing.T) { testPostStoreDelete1Level(t, ss) })
@@ -170,41 +169,6 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 
 	if _, err := ss.Post().GetSingle("123"); err == nil {
 		t.Fatal("Missing id should have failed")
-	}
-}
-
-func testGetEtagCache(t *testing.T, ss store.Store) {
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = "zz" + model.NewId() + "b"
-
-	etag1 := ss.Post().GetEtag(o1.ChannelId, true)
-	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
-		t.Fatal("Invalid Etag")
-	}
-
-	// This one should come from the cache
-	etag2 := ss.Post().GetEtag(o1.ChannelId, true)
-	if strings.Index(etag2, model.CurrentVersion+".") != 0 {
-		t.Fatal("Invalid Etag")
-	}
-
-	o1, err := ss.Post().Save(o1)
-	require.Nil(t, err)
-
-	// We have not invalidated the cache so this should be the same as above
-	etag3 := ss.Post().GetEtag(o1.ChannelId, true)
-	if strings.Index(etag3, etag2) != 0 {
-		t.Fatal("Invalid Etag")
-	}
-
-	ss.Post().InvalidateLastPostTimeCache(o1.ChannelId)
-
-	// Invalidated cache so we should get a good result
-	etag4 := ss.Post().GetEtag(o1.ChannelId, true)
-	if strings.Index(etag4, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)) != 0 {
-		t.Fatal("Invalid Etag")
 	}
 }
 
