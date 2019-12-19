@@ -189,8 +189,8 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 }
 
 func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
-	if message.Broadcast().UserId != "" {
-		hub := a.GetHubForUserId(message.Broadcast().UserId)
+	if message.GetBroadcast().UserId != "" {
+		hub := a.GetHubForUserId(message.GetBroadcast().UserId)
 		if hub != nil {
 			hub.Broadcast(message)
 		}
@@ -485,8 +485,8 @@ func (h *Hub) Start() {
 				}
 			case msg := <-h.broadcast:
 				candidates := connections.All()
-				if msg.Broadcast().UserId != "" {
-					candidates = connections.ForUser(msg.Broadcast().UserId)
+				if msg.GetBroadcast().UserId != "" {
+					candidates = connections.ForUser(msg.GetBroadcast().UserId)
 				}
 				msg = msg.PrecomputeJSON()
 				for _, webCon := range candidates {

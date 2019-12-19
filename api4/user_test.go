@@ -1687,7 +1687,7 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 
 func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSocketClient, email string) {
 	assertExpectedWebsocketEvent(t, client, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
-		eventUser, ok := event.Data()["user"].(map[string]interface{})
+		eventUser, ok := event.GetData()["user"].(map[string]interface{})
 		require.True(t, ok, "expected user")
 		userEmail, ok := eventUser["email"].(string)
 		require.Truef(t, ok, "expected email %s, but got nil", email)

@@ -511,7 +511,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 				continue
 			}
 
-			wpost := model.PostFromJson(strings.NewReader(event.Data()["post"].(string)))
+			wpost := model.PostFromJson(strings.NewReader(event.GetData()["post"].(string)))
 
 			acm, ok := wpost.Props[model.PROPS_ADD_CHANNEL_MEMBER].(map[string]interface{})
 			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")

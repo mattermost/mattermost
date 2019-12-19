@@ -1367,7 +1367,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.EventType() == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED && resp.Data()["channel_id"].(string) == publicChannel2.Id {
+				if resp.EventType() == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED && resp.GetData()["channel_id"].(string) == publicChannel2.Id {
 					eventHit = true
 				}
 			case <-stop:
@@ -2416,7 +2416,7 @@ func TestRemoveChannelMember(t *testing.T) {
 			for {
 				select {
 				case event := <-wsClient.EventChannel:
-					postData, ok := event.Data()["post"]
+					postData, ok := event.GetData()["post"]
 					if !ok {
 						continue
 					}

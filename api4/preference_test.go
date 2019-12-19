@@ -274,7 +274,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 				continue
 			}
 
-			received, err := model.PreferencesFromJson(strings.NewReader(event.Data()["preferences"].(string)))
+			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
 			require.NoError(t, err)
 
 			for i, p := range *preferences {
@@ -382,7 +382,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 				continue
 			}
 
-			received, err := model.PreferencesFromJson(strings.NewReader(event.Data()["preferences"].(string)))
+			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
 			if err != nil {
 				t.Fatal(err)
 			}
