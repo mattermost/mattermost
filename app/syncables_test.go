@@ -74,17 +74,17 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("test group not created: %s", err.Error())
 	}
 
-	_, err = th.App.CreateGroupSyncable(model.NewGroupChannel(gleeGroup.Id, practiceChannel.Id, true))
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(gleeGroup.Id, practiceChannel.Id, true))
 	if err != nil {
 		t.Errorf("test groupchannel not created: %s", err.Error())
 	}
 
-	scienceTeamGroupSyncable, err := th.App.CreateGroupSyncable(model.NewGroupTeam(scienceGroup.Id, nerdsTeam.Id, false))
+	scienceTeamGroupSyncable, err := th.App.UpsertGroupSyncable(model.NewGroupTeam(scienceGroup.Id, nerdsTeam.Id, false))
 	if err != nil {
 		t.Errorf("test groupteam not created: %s", err.Error())
 	}
 
-	scienceChannelGroupSyncable, err := th.App.CreateGroupSyncable(model.NewGroupChannel(scienceGroup.Id, experimentsChannel.Id, false))
+	scienceChannelGroupSyncable, err := th.App.UpsertGroupSyncable(model.NewGroupChannel(scienceGroup.Id, experimentsChannel.Id, false))
 	if err != nil {
 		t.Errorf("test groupchannel not created: %s", err.Error())
 	}
@@ -363,9 +363,9 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.True(t, *channel.GroupConstrained)
 
 	// create groupteam and groupchannel
-	_, err = th.App.CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, true))
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group.Id, team.Id, true))
 	require.Nil(t, err)
-	_, err = th.App.CreateGroupSyncable(model.NewGroupChannel(group.Id, channel.Id, true))
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group.Id, channel.Id, true))
 	require.Nil(t, err)
 
 	// verify the member count
