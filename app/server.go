@@ -131,18 +131,18 @@ type Server struct {
 	Metrics          einterfaces.MetricsInterface
 	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
+
+	CacheProvider cache.Provider
 }
 
 func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
 
 	s := &Server{
-		goroutineExitSignal:     make(chan struct{}, 1),
-		RootRouter:              rootRouter,
-		licenseListeners:        map[string]func(){},
-		sessionCache:            lru.New(model.SESSION_CACHE_SIZE),
-		seenPendingPostIdsCache: lru.New(PENDING_POST_IDS_CACHE_SIZE),
-		clientConfig:            make(map[string]string),
+		goroutineExitSignal: make(chan struct{}, 1),
+		RootRouter:          rootRouter,
+		licenseListeners:    map[string]func(){},
+		clientConfig:        make(map[string]string),
 	}
 	for _, option := range options {
 		if err := option(s); err != nil {
@@ -223,6 +223,13 @@ func NewServer(options ...Option) (*Server, error) {
 	pwd, _ := os.Getwd()
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
+
+	// at the moment we only have this implementation
+	// in the future the cache provider will be built based on the loaded config
+	s.CacheProvider = new(lru.CacheProvider)
+
+	s.sessionCache = s.CacheProvider.NewCache(model.SESSION_CACHE_SIZE)
+	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
 
 	s.checkPushNotificationServerUrl()
 
@@ -382,6 +389,10 @@ func (s *Server) Shutdown() error {
 
 	if s.Store != nil {
 		s.Store.Close()
+	}
+
+	if s.CacheProvider != nil {
+		s.CacheProvider.Close()
 	}
 
 	mlog.Info("Server stopped")

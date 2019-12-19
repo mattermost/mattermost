@@ -23,8 +23,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -114,20 +112,13 @@ type SqlSupplier struct {
 	stores         SqlSupplierStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
-	cacheProvider  cache.Provider
 }
 
-func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface, cacheProvider cache.Provider) *SqlSupplier {
+func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlSupplier {
 	supplier := &SqlSupplier{
-		rrCounter:     0,
-		srCounter:     0,
-		settings:      &settings,
-		cacheProvider: cacheProvider,
-	}
-
-	//default to LRU if no cache factory injected
-	if supplier.cacheProvider == nil {
-		supplier.cacheProvider = new(lru.CacheProvider)
+		rrCounter: 0,
+		srCounter: 0,
+		settings:  &settings,
 	}
 
 	supplier.initConnection()
@@ -261,10 +252,6 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	}
 
 	return dbmap
-}
-
-func (s *SqlSupplier) CacheProvider() cache.Provider {
-	return s.cacheProvider
 }
 
 func (s *SqlSupplier) initConnection() {
@@ -922,9 +909,6 @@ func (ss *SqlSupplier) Close() {
 	for _, replica := range ss.replicas {
 		replica.Db.Close()
 	}
-
-	mlog.Info("Closing CacheProvider")
-	ss.cacheProvider.Close()
 }
 
 func (ss *SqlSupplier) LockToMaster() {

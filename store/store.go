@@ -7,7 +7,6 @@ package store
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
 )
 
 type StoreResult struct {
@@ -16,7 +15,6 @@ type StoreResult struct {
 }
 
 type Store interface {
-	CacheProvider() cache.Provider
 	Team() TeamStore
 	Channel() ChannelStore
 	Post() PostStore

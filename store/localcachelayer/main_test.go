@@ -17,9 +17,7 @@ import (
 
 var mainHelper *testlib.MainHelper
 
-func getMockStore() *mocks.Store {
-	mockStore := mocks.Store{}
-
+func getMockCacheProvider() *mocks.CacheProvider {
 	mockCacheProvider := mocks.CacheProvider{}
 	//todo: replace this line with mocks for all tests
 	mockCache := lru.New(128)
@@ -30,7 +28,11 @@ func getMockStore() *mocks.Store {
 		mock.AnythingOfType("int64"),
 		mock.AnythingOfType("string")).Return(mockCache)
 
-	mockStore.On("CacheProvider").Return(&mockCacheProvider)
+	return &mockCacheProvider
+}
+
+func getMockStore() *mocks.Store {
+	mockStore := mocks.Store{}
 
 	fakeReaction := model.Reaction{PostId: "123"}
 	mockReactionsStore := mocks.ReactionStore{}

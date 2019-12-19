@@ -101,7 +101,7 @@ func (h *MainHelper) setupStore() {
 	h.Settings = storetest.MakeSqlSettings(driverName)
 
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SqlSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil, nil)
+	h.SqlSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = &TestStore{
 		h.SqlSupplier,
 	}

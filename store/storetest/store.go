@@ -4,16 +4,13 @@
 package storetest
 
 import (
-	"github.com/stretchr/testify/mock"
-
-	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/stretchr/testify/mock"
 )
 
 // Store can be used to provide mock stores for testing.
 type Store struct {
-	Cache                     mocks.CacheProvider
 	TeamStore                 mocks.TeamStore
 	ChannelStore              mocks.ChannelStore
 	PostStore                 mocks.PostStore
@@ -47,7 +44,6 @@ type Store struct {
 	LinkMetadataStore         mocks.LinkMetadataStore
 }
 
-func (s *Store) CacheProvider() cache.Provider                     { return &s.Cache }
 func (s *Store) Team() store.TeamStore                             { return &s.TeamStore }
 func (s *Store) Channel() store.ChannelStore                       { return &s.ChannelStore }
 func (s *Store) Post() store.PostStore                             { return &s.PostStore }
@@ -96,7 +92,6 @@ func (s *Store) CheckIntegrity() <-chan store.IntegrityCheckResult {
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
-		&s.Cache,
 		&s.TeamStore,
 		&s.ChannelStore,
 		&s.PostStore,
