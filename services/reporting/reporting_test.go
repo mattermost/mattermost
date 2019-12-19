@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
+	"github.com/stretchr/testify/assert"
 )
 
 type TestingError struct {
@@ -56,15 +57,10 @@ func TestCaptureException(t *testing.T) {
 	eventID := CaptureException(TestingError{"some error"})
 	event := <-env.events
 	lastEventID := &event.EventID
+	eventErrorMsg := event.Exception[0].Value
 
-	if lastEventID != eventID {
-		t.Error("Event IDs do not match.")
-	}
-
-	exception := event.Exception[0]
-	if exception.Value != "some error" {
-		t.Error("Exception message does not match error message.")
-	}
+	assert.Equal(t, eventID, lastEventID, "Returned event id should be the same as reported event id.")
+	assert.Equal(t, "some error", eventErrorMsg, "Event error message should be the same as the message of the captured error.")
 }
 
 // Reporting a recovered panic should capture the panic message and
@@ -77,23 +73,18 @@ func TestRecover(t *testing.T) {
 	}()
 
 	event := <-env.events
-	if event.Message != "some panic" {
-		t.Error("Event message should match panic message.")
-	}
-	if event.Level != "fatal" {
-		t.Error("Events in case of a panic should have level: fatal.")
-	}
+	assert.EqualValues(t, "some panic", event.Message, "Event message should be the same as panic message.")
+	assert.EqualValues(t, "fatal", event.Level, "Event level should be fatal in the case of panic exceptions.")
 }
 
 // Flushing should call the appropriate transport Flush method with
 // the given timeout.
 func TestFlush(t *testing.T) {
+	timeout := 5 * time.Second
 	env := InitForTesting()
 	CaptureException(TestingError{"some error"})
-	Flush(5 * time.Second)
-	timeout := <-env.flushes
+	Flush(timeout)
+	transportTimeout := <-env.flushes
 
-	if timeout != 5*time.Second {
-		t.Error("Flush is not receiving the specified timeout.")
-	}
+	assert.Equal(t, timeout, transportTimeout, "Timeout passed to client transport should be the same passed to Flush.")
 }
