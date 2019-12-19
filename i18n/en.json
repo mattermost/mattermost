@@ -432,10 +432,6 @@
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
   },
   {
-    "id": "api.command.execute_command.debug",
-    "translation": "Executing cmd=%v userId=%v"
-  },
-  {
     "id": "api.command.execute_command.failed.app_error",
     "translation": "Command with a trigger of '{{.Trigger}}' failed"
   },
