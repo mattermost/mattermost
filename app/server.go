@@ -190,6 +190,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
+	// at the moment we only have this implementation
+	// in the future the cache provider will be built based on the loaded config
+	s.CacheProvider = new(lru.CacheProvider)
+
+	s.sessionCache = s.CacheProvider.NewCache(model.SESSION_CACHE_SIZE)
+	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
+
 	err := s.RunOldAppInitialization()
 	if err != nil {
 		return nil, err
@@ -223,13 +230,6 @@ func NewServer(options ...Option) (*Server, error) {
 	pwd, _ := os.Getwd()
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
-
-	// at the moment we only have this implementation
-	// in the future the cache provider will be built based on the loaded config
-	s.CacheProvider = new(lru.CacheProvider)
-
-	s.sessionCache = s.CacheProvider.NewCache(model.SESSION_CACHE_SIZE)
-	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
 
 	s.checkPushNotificationServerUrl()
 
