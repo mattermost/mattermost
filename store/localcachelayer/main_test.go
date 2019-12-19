@@ -22,7 +22,7 @@ func getMockStore() *mocks.Store {
 
 	mockCacheProvider := mocks.CacheProvider{}
 	//todo: replace this line with mocks for all tests
-	mockCache := lru.NewLru(128)
+	mockCache := lru.New(128)
 
 	mockCacheProvider.On("NewCacheWithParams",
 		mock.AnythingOfType("int"),

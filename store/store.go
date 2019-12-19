@@ -16,7 +16,7 @@ type StoreResult struct {
 }
 
 type Store interface {
-	CacheProvider() cache.CacheProvider
+	CacheProvider() cache.Provider
 	Team() TeamStore
 	Channel() ChannelStore
 	Post() PostStore

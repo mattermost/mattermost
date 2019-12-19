@@ -12,7 +12,7 @@ import (
 
 const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
 
-var openGraphDataCache = lru.NewLru(OPEN_GRAPH_METADATA_CACHE_SIZE)
+var openGraphDataCache = lru.New(OPEN_GRAPH_METADATA_CACHE_SIZE)
 
 func (api *API) InitOpenGraph() {
 	api.BaseRoutes.OpenGraph.Handle("", api.ApiSessionRequired(getOpenGraphMetadata)).Methods("POST")

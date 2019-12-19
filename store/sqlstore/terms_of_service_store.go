@@ -18,7 +18,7 @@ type SqlTermsOfServiceStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
-var termsOfServiceCache = lru.NewLru(model.TERMS_OF_SERVICE_CACHE_SIZE)
+var termsOfServiceCache = lru.New(model.TERMS_OF_SERVICE_CACHE_SIZE)
 
 const (
 	termsOfServiceCacheName = "TermsOfServiceStore"

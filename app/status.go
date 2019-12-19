@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 )
 
-var statusCache *lru.LruCache = lru.NewLru(model.STATUS_CACHE_SIZE)
+var statusCache *lru.Cache = lru.New(model.STATUS_CACHE_SIZE)
 
 func ClearStatusCache() {
 	statusCache.Purge()

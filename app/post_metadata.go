@@ -24,7 +24,7 @@ const LINK_CACHE_SIZE = 10000
 const LINK_CACHE_DURATION = 3600
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
-var linkCache = lru.NewLru(LINK_CACHE_SIZE)
+var linkCache = lru.New(LINK_CACHE_SIZE)
 
 func (a *App) InitPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated

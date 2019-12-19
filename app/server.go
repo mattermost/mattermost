@@ -140,8 +140,8 @@ func NewServer(options ...Option) (*Server, error) {
 		goroutineExitSignal:     make(chan struct{}, 1),
 		RootRouter:              rootRouter,
 		licenseListeners:        map[string]func(){},
-		sessionCache:            lru.NewLru(model.SESSION_CACHE_SIZE),
-		seenPendingPostIdsCache: lru.NewLru(PENDING_POST_IDS_CACHE_SIZE),
+		sessionCache:            lru.New(model.SESSION_CACHE_SIZE),
+		seenPendingPostIdsCache: lru.New(PENDING_POST_IDS_CACHE_SIZE),
 		clientConfig:            make(map[string]string),
 	}
 	for _, option := range options {

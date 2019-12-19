@@ -114,10 +114,10 @@ type SqlSupplier struct {
 	stores         SqlSupplierStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
-	cacheProvider  cache.CacheProvider
+	cacheProvider  cache.Provider
 }
 
-func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface, cacheProvider cache.CacheProvider) *SqlSupplier {
+func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface, cacheProvider cache.Provider) *SqlSupplier {
 	supplier := &SqlSupplier{
 		rrCounter:     0,
 		srCounter:     0,
@@ -127,7 +127,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	//default to LRU if no cache factory injected
 	if supplier.cacheProvider == nil {
-		supplier.cacheProvider = new(lru.LruCacheProvider)
+		supplier.cacheProvider = new(lru.CacheProvider)
 	}
 
 	supplier.initConnection()
@@ -263,7 +263,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	return dbmap
 }
 
-func (s *SqlSupplier) CacheProvider() cache.CacheProvider {
+func (s *SqlSupplier) CacheProvider() cache.Provider {
 	return s.cacheProvider
 }
 

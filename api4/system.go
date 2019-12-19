@@ -23,7 +23,7 @@ const (
 	MAX_SERVER_BUSY_SECONDS      = 86400
 )
 
-var redirectLocationDataCache = lru.NewLru(REDIRECT_LOCATION_CACHE_SIZE)
+var redirectLocationDataCache = lru.New(REDIRECT_LOCATION_CACHE_SIZE)
 
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
