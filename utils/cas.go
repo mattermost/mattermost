@@ -17,12 +17,12 @@ func CheckIfUserIsAuthenticated(w http.ResponseWriter, r *http.Request) (bool, s
 	var ticketIsValid bool = false
 	var userName string
 	if !hasTicket(r) {
-		redirectToCasServer(w, r)
-		return false, userName
+		// redirectToCasServer(w, r)
+		return ticketIsValid, userName
 	}
 	ticketIsValid, userName = verifyTicket(r)
 	if !ticketIsValid {
-		redirectToCasServer(w, r)
+		// redirectToCasServer(w, r)
 		return false, userName
 	}
 	return ticketIsValid, userName
@@ -42,8 +42,7 @@ func redirectToCasServer(w http.ResponseWriter, r *http.Request) {
 */
 func verifyTicket(r *http.Request) (bool, string) {
 	var userName string
-	localURL := getLocalURL(r)
-	var casAuthCenterURL string = CasServerURL + "/serviceValidate?service=" + localURL
+	var casAuthCenterURL string = CasServerURL + "/serviceValidate?" + r.URL.RawQuery
 	res, err := http.Get(casAuthCenterURL)
 	if err != nil {
 		return false, userName
