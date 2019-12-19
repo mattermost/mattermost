@@ -22,6 +22,8 @@ github.com/disintegration/imaging
 github.com/dyatlov/go-opengraph/opengraph
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
+# github.com/go-asn1-ber/asn1-ber v1.3.2-0.20191121212151-29be175fc3a3
+github.com/go-asn1-ber/asn1-ber
 # github.com/go-sql-driver/mysql v1.4.1
 github.com/go-sql-driver/mysql
 # github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
@@ -116,7 +118,7 @@ github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
 # github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
 github.com/mattermost/gorp
-# github.com/mattermost/ldap v3.0.4+incompatible
+# github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 github.com/mattermost/ldap
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 github.com/mattermost/rsc/gf256
@@ -157,6 +159,9 @@ github.com/nfnt/resize
 github.com/oklog/run
 # github.com/olekukonko/tablewriter v0.0.1
 github.com/olekukonko/tablewriter
+# github.com/olivere/elastic v6.2.23+incompatible
+github.com/olivere/elastic/config
+github.com/olivere/elastic/uritemplates
 # github.com/pborman/uuid v1.2.0
 github.com/pborman/uuid
 # github.com/pelletier/go-toml v1.4.0
@@ -230,15 +235,22 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20191001170739-f9e2070545dc
+# golang.org/x/crypto v0.0.0-20191119213627-4f8c1d86b1ba
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blake2b
 golang.org/x/crypto/blowfish
+golang.org/x/crypto/cast5
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/openpgp
+golang.org/x/crypto/openpgp/armor
+golang.org/x/crypto/openpgp/elgamal
+golang.org/x/crypto/openpgp/errors
+golang.org/x/crypto/openpgp/packet
+golang.org/x/crypto/openpgp/s2k
 # golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a
 golang.org/x/image/bmp
 golang.org/x/image/ccitt
@@ -252,7 +264,7 @@ golang.org/x/image/tiff/lzw
 golang.org/x/image/vp8
 golang.org/x/image/vp8l
 golang.org/x/image/webp
-# golang.org/x/net v0.0.0-20191002035440-2ec189313ef0
+# golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914
 golang.org/x/net/bpf
 golang.org/x/net/context
 golang.org/x/net/html
@@ -344,18 +356,14 @@ google.golang.org/grpc/status
 google.golang.org/grpc/tap
 # gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
 gopkg.in/alexcesaro/quotedprintable.v3
-# gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d
-gopkg.in/asn1-ber.v1
 # gopkg.in/ini.v1 v1.48.0
 gopkg.in/ini.v1
 # gopkg.in/mail.v2 v2.3.1
 gopkg.in/mail.v2
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 gopkg.in/natefinch/lumberjack.v2
-# gopkg.in/olivere/elastic.v5 v5.0.82
-gopkg.in/olivere/elastic.v5
-gopkg.in/olivere/elastic.v5/config
-gopkg.in/olivere/elastic.v5/uritemplates
+# gopkg.in/olivere/elastic.v6 v6.2.23
+gopkg.in/olivere/elastic.v6
 # gopkg.in/yaml.v2 v2.2.3
 gopkg.in/yaml.v2
 # willnorris.com/go/gifresize v1.0.0

@@ -1,13 +1,13 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package migrations
 
 import (
-	"github.com/mattermost/mattermost-server/app"
-	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/app"
+	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (

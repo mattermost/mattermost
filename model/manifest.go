@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -50,6 +50,8 @@ type PluginSetting struct {
 	// "longtext" will result in a multi line string that can be typed in manually.
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
+	//
+	// "custom" will result in a custom defined setting and will load the custom component registered for the Web App System Console.
 	Type string `json:"type" yaml:"type"`
 
 	// The help text to display to the user. Supports Markdown formatting.

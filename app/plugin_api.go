@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -14,8 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type PluginAPI struct {
@@ -149,7 +149,8 @@ func (api *PluginAPI) GetTeam(teamId string) (*model.Team, *model.AppError) {
 }
 
 func (api *PluginAPI) SearchTeams(term string) ([]*model.Team, *model.AppError) {
-	return api.app.SearchAllTeams(term)
+	teams, _, err := api.app.SearchAllTeams(&model.TeamSearch{Term: term})
+	return teams, err
 }
 
 func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) {
@@ -696,7 +697,7 @@ func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manife
 
 // KV Store Section
 
-func (api *PluginAPI) KVSetWithOptions(key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
+func (api *PluginAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	return api.app.SetPluginKeyWithOptions(api.id, key, value, options)
 }
 

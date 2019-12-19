@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -14,6 +14,8 @@ type ChannelSearch struct {
 	Term                   string `json:"term"`
 	ExcludeDefaultChannels bool   `json:"exclude_default_channels"`
 	NotAssociatedToGroup   string `json:"not_associated_to_group"`
+	Page                   *int   `json:"page,omitempty"`
+	PerPage                *int   `json:"per_page,omitempty"`
 }
 
 // ToJson convert a Channel to a json string

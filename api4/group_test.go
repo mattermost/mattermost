@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,11 +8,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetGroup(t *testing.T) {
@@ -647,7 +645,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -700,7 +698,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -765,6 +763,20 @@ func TestGetGroups(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
+	_, response = th.SystemAdminClient.GetGroups(opts)
+	CheckBadRequestStatus(t, response)
+
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
+	require.Nil(t, response.Error)
+
+	opts.NotAssociatedToChannel = th.BasicChannel.Id
+
+	_, response = th.Client.GetGroups(opts)
+	CheckForbiddenStatus(t, response)
+
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
+	require.Nil(t, response.Error)
+
 	groups, response := th.SystemAdminClient.GetGroups(opts)
 	assert.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
@@ -787,7 +799,7 @@ func TestGetGroups(t *testing.T) {
 	_, response = th.Client.GetGroups(opts)
 	CheckForbiddenStatus(t, response)
 
-	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user")
+	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
 	require.Nil(t, response.Error)
 
 	_, response = th.Client.GetGroups(opts)
