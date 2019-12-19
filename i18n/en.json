@@ -120,6 +120,14 @@
     "translation": "Invalid certificate text."
   },
   {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Missing content type."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Invalid content type."
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "It appears your Mattermost email is setup correctly!"
   },

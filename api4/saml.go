@@ -5,6 +5,7 @@ package api4
 
 import (
 	"io/ioutil"
+	"mime"
 	"mime/multipart"
 	"net/http"
 
@@ -25,7 +26,6 @@ func (api *API) InitSaml() {
 	api.BaseRoutes.SAML.Handle("/certificate/status", api.ApiSessionRequired(getSamlCertificateStatus)).Methods("GET")
 
 	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.ApiHandler(getSamlMetadataFromIdp)).Methods("POST")
-	api.BaseRoutes.SAML.Handle("/certificate/idp/frommetadata", api.ApiSessionRequired(setSamlIdpCertificateFromMetadata)).Methods("POST")
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -104,16 +104,41 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileData, err := parseSamlCertificateRequest(r, *c.App.Config().FileSettings.MaxFileSize)
+	v := r.Header.Get("Content-Type")
+	if v == "" {
+		c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+	d, _, err := mime.ParseMediaType(v)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := c.App.AddSamlIdpCertificate(fileData); err != nil {
-		c.Err = err
-		return
+	if d == "application/x-pem-file" {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err := c.App.SetSamlIdpCertificateFromMetadata(body); err != nil {
+			c.Err = err
+			return
+		}
+	} else if d == "multipart/form-data" {
+		fileData, err := parseSamlCertificateRequest(r, *c.App.Config().FileSettings.MaxFileSize)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if err := c.App.AddSamlIdpCertificate(fileData); err != nil {
+			c.Err = err
+			return
+		}
 	}
+
 	ReturnStatusOK(w)
 }
 
@@ -189,24 +214,4 @@ func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Write([]byte(metadata.ToJson()))
-}
-
-func setSamlIdpCertificateFromMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
-
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		c.Err = model.NewAppError("setSamlIdpCertificateFromMetadata", "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if err := c.App.SetSamlIdpCertificateFromMetadata(body); err != nil {
-		c.Err = err
-		return
-	}
-
-	ReturnStatusOK(w)
 }

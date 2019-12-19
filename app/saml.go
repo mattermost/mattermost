@@ -182,37 +182,20 @@ func (a *App) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadata
 		return nil, err
 	}
 
-	idpMetadata, err := a.FetchSamlMetadataFromIdp(idpMetadataUrl)
+	idpMetadataRaw, err := a.FetchSamlMetadataFromIdp(idpMetadataUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	data := &model.SamlMetadataResponse{}
-	data.IdpDescriptorUrl = idpMetadata.EntityID
-
-	if idpMetadata.IDPSSODescriptors == nil || len(idpMetadata.IDPSSODescriptors) == 0 {
-		err := model.NewAppError("GetSamlMetadataFromIdp", "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error", nil, "", http.StatusInternalServerError)
+	data, err := a.BuildSamlMetadataObject(idpMetadataRaw)
+	if err != nil {
 		return nil, err
 	}
-
-	idpSSODescriptor := idpMetadata.IDPSSODescriptors[0]
-	if idpSSODescriptor.SingleSignOnServices == nil || len(idpSSODescriptor.SingleSignOnServices) == 0 {
-		err := model.NewAppError("GetSamlMetadataFromIdp", "api.admin.saml.invalid_xml_missing_ssoservices.app_error", nil, "", http.StatusInternalServerError)
-		return nil, err
-	}
-
-	data.IdpUrl = idpSSODescriptor.SingleSignOnServices[0].Location
-	if idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors == nil || len(idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors) == 0 {
-		err := model.NewAppError("GetSamlMetadataFromIdp", "api.admin.saml.invalid_xml_missing_keydescriptor.app_error", nil, "", http.StatusInternalServerError)
-		return nil, err
-	}
-	keyDescriptor := idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors[0]
-	data.IdpPublicCertificate = keyDescriptor.KeyInfo.X509Data.X509Certificate.Cert
 
 	return data, nil
 }
 
-func (a *App) FetchSamlMetadataFromIdp(url string) (*model.EntityDescriptor, *model.AppError) {
+func (a *App) FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
 	resp, err := http.Get(url)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.invalid_response_from_idp.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -224,13 +207,39 @@ func (a *App) FetchSamlMetadataFromIdp(url string) (*model.EntityDescriptor, *mo
 		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_read_response_body_from_idp.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	return bodyXML, nil
+}
+
+func (a *App) BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError) {
 	entityDescriptor := model.EntityDescriptor{}
-	err = xml.Unmarshal(bodyXML, &entityDescriptor)
+	err := xml.Unmarshal(idpMetadata, &entityDescriptor)
 	if err != nil {
-		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BuildSamlMetadataObject", "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return &entityDescriptor, nil
+	data := &model.SamlMetadataResponse{}
+	data.IdpDescriptorUrl = entityDescriptor.EntityID
+
+	if entityDescriptor.IDPSSODescriptors == nil || len(entityDescriptor.IDPSSODescriptors) == 0 {
+		err := model.NewAppError("BuildSamlMetadataObject", "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error", nil, "", http.StatusInternalServerError)
+		return nil, err
+	}
+
+	idpSSODescriptor := entityDescriptor.IDPSSODescriptors[0]
+	if idpSSODescriptor.SingleSignOnServices == nil || len(idpSSODescriptor.SingleSignOnServices) == 0 {
+		err := model.NewAppError("BuildSamlMetadataObject", "api.admin.saml.invalid_xml_missing_ssoservices.app_error", nil, "", http.StatusInternalServerError)
+		return nil, err
+	}
+
+	data.IdpUrl = idpSSODescriptor.SingleSignOnServices[0].Location
+	if idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors == nil || len(idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors) == 0 {
+		err := model.NewAppError("BuildSamlMetadataObject", "api.admin.saml.invalid_xml_missing_keydescriptor.app_error", nil, "", http.StatusInternalServerError)
+		return nil, err
+	}
+	keyDescriptor := idpSSODescriptor.SSODescriptor.RoleDescriptor.KeyDescriptors[0]
+	data.IdpPublicCertificate = keyDescriptor.KeyInfo.X509Data.X509Certificate.Cert
+
+	return data, nil
 }
 
 func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
