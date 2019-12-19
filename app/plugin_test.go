@@ -585,11 +585,6 @@ func TestPluginSync(t *testing.T) {
 			appErr = th.App.RemovePlugin("testplugin")
 			checkNoError(t, appErr)
 
-			appErr = th.App.RemoveFile(th.App.getBundleStorePath("testplugin.tar.gz"))
-			checkNoError(t, appErr)
-			appErr = th.App.RemoveFile(fmt.Sprintf("%s.sig", th.App.getBundleStorePath("testplugin")))
-			checkNoError(t, appErr)
-
 			appErr = th.App.DeletePublicKey("pub_key")
 			checkNoError(t, appErr)
 		})

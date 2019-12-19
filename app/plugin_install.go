@@ -367,11 +367,11 @@ func (a *App) installPluginWithNoCanaryTag(id string, pluginEnabled bool) {
 	signaturePath := a.getSignatureStorePath(id)
 	bundleExist, appErr := a.FileExists(pluginPath)
 	if appErr != nil {
-		mlog.Error("No plugin without canary tag", mlog.Err(appErr))
+		mlog.Warn("No plugin without canary tag", mlog.Err(appErr))
 		return
 	}
 	if !bundleExist {
-		mlog.Error("No plugin without canary tag")
+		mlog.Warn("No plugin without canary tag")
 		return
 	}
 	pluginReader, err := os.Open(pluginPath)
