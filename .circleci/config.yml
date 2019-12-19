@@ -30,7 +30,7 @@ jobs:
 
           if [ $CURL_FAILED -eq 1 ]
           then
-            npm ci && make build
+            npm ci && cd node_modules/mattermost-redux && npm install && npm run build && cd ../.. && make build
           fi
       - persist_to_workspace:
           root: ~/go/mattermost
