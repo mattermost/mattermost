@@ -470,7 +470,7 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[strin
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	marketplaceClient, err := marketplace.NewClient(
@@ -478,7 +478,7 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[strin
 		a.HTTPService,
 	)
 	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Fetch all plugins from marketplace.
@@ -487,7 +487,7 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[strin
 		ServerVersion: model.CurrentVersion,
 	})
 	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, p := range marketplacePlugins {
