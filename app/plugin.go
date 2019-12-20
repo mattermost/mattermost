@@ -414,7 +414,8 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 	prepackagedPlugin, appErr := a.getPrepackagedPlugin(request.Id, request.Version)
 	if appErr != nil && appErr.Id != "app.plugin.marketplace_plugins.not_found.app_error" {
 		return nil, appErr
-	} else if prepackagedPlugin != nil {
+	}
+	if prepackagedPlugin != nil {
 		fileReader, err := os.Open(prepackagedPlugin.Path)
 		if err != nil {
 			err = errors.Wrapf(err, "failed to open prepackaged plugin %s", prepackagedPlugin.Path)
