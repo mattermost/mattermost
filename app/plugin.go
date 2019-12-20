@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/blang/semver"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -462,9 +463,8 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 // and plugins that are installed locally.
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
-	var result []*model.MarketplacePlugin
+	plugins := map[string]*model.MarketplacePlugin{}
 
-	var plugins []*model.MarketplacePlugin
 	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
 		p, appErr := a.getRemotePlugins(filter)
 		if appErr != nil {
@@ -473,12 +473,18 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 		plugins = p
 	}
 
-	plugins, appErr := a.addLocalPlugins(plugins)
+	appErr := a.mergePrepackagePlugins(plugins)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	appErr = a.mergeLocalPlugins(plugins)
 	if appErr != nil {
 		return nil, appErr
 	}
 
 	// Filter plugins.
+	var result []*model.MarketplacePlugin
 	for _, p := range plugins {
 		if pluginMatchesFilter(p.Manifest, filter.Filter) {
 			result = append(result, p)
@@ -529,12 +535,12 @@ func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseM
 	return plugin, nil
 }
 
-func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
-	var result []*model.MarketplacePlugin
+func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[string]*model.MarketplacePlugin, *model.AppError) {
+	result := map[string]*model.MarketplacePlugin{}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	marketplaceClient, err := marketplace.NewClient(
@@ -542,7 +548,7 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) ([]*model.
 		a.HTTPService,
 	)
 	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Fetch all plugins from marketplace.
@@ -551,7 +557,7 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) ([]*model.
 		ServerVersion: model.CurrentVersion,
 	})
 	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, p := range marketplacePlugins {
@@ -559,32 +565,66 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) ([]*model.
 			continue
 		}
 
-		result = append(result, &model.MarketplacePlugin{BaseMarketplacePlugin: p})
+		result[p.Manifest.Id] = &model.MarketplacePlugin{BaseMarketplacePlugin: p}
 	}
 
 	return result, nil
 }
 
-// addLocalPlugins returns a merged list of locally installed and remote marketplace plugins.
-func (a *App) addLocalPlugins(remoteMarketplacePlugins []*model.MarketplacePlugin) ([]*model.MarketplacePlugin, *model.AppError) {
-	allPlugins := map[string]*model.MarketplacePlugin{}
-
-	for _, p := range remoteMarketplacePlugins {
-		if p.Manifest == nil {
-			continue
-		}
-		allPlugins[p.Manifest.Id] = p
-	}
-
-	// Include all other installed plugins.
+// mergePrepackagePlugins merges pre-packaged plugins to remote marketplace plugins list.
+func (a *App) mergePrepackagePlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("mergePrepackagePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	for _, prepackaged := range pluginsEnvironment.PrepackagedPlugins() {
+		if prepackaged.Manifest == nil {
+			continue
+		}
+
+		prepackagedMarketplace := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: prepackaged.Manifest,
+			},
+		}
+
+		// If not available in marketplace, add the prepackaged
+		if remoteMarketplacePlugins[prepackaged.Manifest.Id] == nil {
+			remoteMarketplacePlugins[prepackaged.Manifest.Id] = prepackagedMarketplace
+			continue
+		}
+
+		// If available in the markteplace, only overwrite if newer.
+		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
+		if err != nil {
+			return model.NewAppError("mergePrepackagePlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
+		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
+		if err != nil {
+			return model.NewAppError("mergePrepackagePlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if prepackagedVersion.GT(marketplaceVersion) {
+			remoteMarketplacePlugins[prepackaged.Manifest.Id] = prepackagedMarketplace
+		}
+	}
+
+	return nil
+}
+
+// mergeLocalPlugins merges locally installed plugins to remote marketplace plugins list.
+func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	localPlugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, plugin := range localPlugins {
@@ -592,13 +632,13 @@ func (a *App) addLocalPlugins(remoteMarketplacePlugins []*model.MarketplacePlugi
 			continue
 		}
 
-		if allPlugins[plugin.Manifest.Id] != nil {
+		if remoteMarketplacePlugins[plugin.Manifest.Id] != nil {
 			// Remote plugin is installed.
-			allPlugins[plugin.Manifest.Id].InstalledVersion = plugin.Manifest.Version
+			remoteMarketplacePlugins[plugin.Manifest.Id].InstalledVersion = plugin.Manifest.Version
 			continue
 		}
 
-		allPlugins[plugin.Manifest.Id] = &model.MarketplacePlugin{
+		remoteMarketplacePlugins[plugin.Manifest.Id] = &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				Manifest: plugin.Manifest,
 			},
@@ -606,12 +646,7 @@ func (a *App) addLocalPlugins(remoteMarketplacePlugins []*model.MarketplacePlugi
 		}
 	}
 
-	var result []*model.MarketplacePlugin
-	for _, p := range allPlugins {
-		result = append(result, p)
-	}
-
-	return result, nil
+	return nil
 }
 
 func pluginMatchesFilter(manifest *model.Manifest, filter string) bool {

@@ -97,6 +97,10 @@ func (env *Environment) Available() ([]*model.BundleInfo, error) {
 	return scanSearchPath(env.pluginDir)
 }
 
+func (env *Environment) PrepackagedPlugins() []*PrepackagedPlugin {
+	return env.prepackagedPlugins
+}
+
 // Returns a list of all currently active plugins within the environment.
 func (env *Environment) Active() []*model.BundleInfo {
 	activePlugins := []*model.BundleInfo{}
