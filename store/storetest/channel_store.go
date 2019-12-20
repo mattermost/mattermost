@@ -114,6 +114,30 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 	o1.Type = model.CHANNEL_DIRECT
 	_, err = ss.Channel().Save(&o1, -1)
 	require.NotNil(t, err, "should not be able to save direct channel")
+
+	o1 = model.Channel{}
+	o1.TeamId = teamId
+	o1.DisplayName = "Name"
+	o1.Name = "zz" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+
+	_, err = ss.Channel().Save(&o1, -1)
+	require.Nil(t, err, "should have saved channel")
+
+	o2 := o1
+	o2.Id = ""
+
+	_, err = ss.Channel().Save(&o2, -1)
+	require.NotNil(t, err, "should have failed to save a duplicate channel")
+	require.Equal(t, store.CHANNEL_EXISTS_ERROR, err.Id)
+
+	err = ss.Channel().Delete(o1.Id, 100)
+	require.Nil(t, err, "should have deleted channel")
+
+	o2.Id = ""
+	_, err = ss.Channel().Save(&o2, -1)
+	require.NotNil(t, err, "should have failed to save a duplicate of an archived channel")
+	require.Equal(t, store.CHANNEL_EXISTS_ERROR, err.Id)
 }
 
 func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSupplier) {
