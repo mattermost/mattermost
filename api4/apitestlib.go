@@ -77,6 +77,9 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	config := memoryStore.Get()
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	if updateConfig != nil {
+		updateConfig(config)
+	}
 	memoryStore.Set(config)
 
 	var options []app.Option

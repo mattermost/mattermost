@@ -38,6 +38,7 @@ type registeredPlugin struct {
 
 // PrepackagedPlugin is a plugin prepackaged with the server and found on startup.
 type PrepackagedPlugin struct {
+	Path      string
 	IconData  string
 	Manifest  *model.Manifest
 	Signature []byte
@@ -448,11 +449,15 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 	})
 }
 
-// SetPrepackagedPlugins saves prepackaged plugins in the environment
+// SetPrepackagedPlugins saves prepackaged plugins in the environment.
 func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
 	env.prepackagedPluginsLock.Lock()
 	env.prepackagedPlugins = plugins
 	env.prepackagedPluginsLock.Unlock()
+}
+
+func (env *Environment) GetPrepackagedPlugins() []*PrepackagedPlugin {
+	return env.prepackagedPlugins
 }
 
 func newRegisteredPlugin(bundle *model.BundleInfo) *registeredPlugin {

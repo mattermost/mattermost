@@ -132,28 +132,13 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	plugin, appErr := c.App.GetMarketplacePlugin(pluginRequest)
+
+	manifest, appErr := c.App.InstallMarketplacePlugin(pluginRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	pluginFile, appErr := downloadFromUrl(c, plugin.DownloadURL)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	signature, err := plugin.DecodeSignature()
-	if err != nil {
-		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
-		return
-	}
-
-	manifest, appErr := c.App.InstallPluginWithSignature(pluginFile, signature)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(manifest.ToJson()))
 }

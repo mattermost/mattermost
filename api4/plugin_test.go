@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1088,6 +1089,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
@@ -1115,6 +1117,221 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Nil(t, err)
 		require.False(t, exists)
 
+		appErr = th.App.DeletePublicKey("pub_key")
+		require.Nil(t, appErr)
+	})
+
+	t.Run("install prepackaged and remote plugins through marketplace", func(t *testing.T) {
+		prepackagedPluginsDir := "prepackaged_plugins"
+
+		os.RemoveAll(prepackagedPluginsDir)
+		err := os.Mkdir(prepackagedPluginsDir, os.ModePerm)
+		require.NoError(t, err)
+		defer os.RemoveAll(prepackagedPluginsDir)
+
+		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsDir)
+		require.True(t, found, "failed to find prepackaged plugins directory")
+
+		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		require.NoError(t, err)
+		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz.asc"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
+		require.NoError(t, err)
+
+		th := SetupConfig(func(cfg *model.Config) {
+			// Disable auto-installing prepackged plugins
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
+		}).InitBasic()
+		defer th.TearDown()
+
+		pluginSignatureFile, err := os.Open(filepath.Join(path, "testplugin.tar.gz.asc"))
+		require.Nil(t, err)
+		pluginSignatureData, err := ioutil.ReadAll(pluginSignatureFile)
+		require.Nil(t, err)
+
+		key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
+		require.NoError(t, err)
+		appErr := th.App.AddPublicKey("pub_key", key)
+		require.Nil(t, appErr)
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			serverVersion := req.URL.Query().Get("server_version")
+			require.NotEmpty(t, serverVersion)
+			require.Equal(t, model.CurrentVersion, serverVersion)
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[1]})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer testServer.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.EnableRemoteMarketplace = false
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+			*cfg.PluginSettings.AllowInsecureDownloadUrl = false
+		})
+
+		env := th.App.GetPluginsEnvironment()
+
+		pluginsResp, resp := th.SystemAdminClient.GetPlugins()
+		CheckNoError(t, resp)
+		require.Len(t, pluginsResp.Active, 0)
+		require.Len(t, pluginsResp.Inactive, 0)
+
+		// Should fail to install unknown prepackged plugin
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin", Version: "0.0.2"}
+		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, manifest)
+
+		plugins := env.GetPrepackagedPlugins()
+		require.Len(t, plugins, 1)
+		require.Equal(t, "testplugin", plugins[0].Manifest.Id)
+		require.Equal(t, pluginSignatureData, plugins[0].Signature)
+
+		pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+		CheckNoError(t, resp)
+		require.Len(t, pluginsResp.Active, 0)
+		require.Len(t, pluginsResp.Inactive, 0)
+
+		pRequest = &model.InstallMarketplacePluginRequest{Id: "testplugin", Version: "0.0.1"}
+		manifest1, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckNoError(t, resp)
+		require.NotNil(t, manifest1)
+		require.Equal(t, "testplugin", manifest1.Id)
+		require.Equal(t, "0.0.1", manifest1.Version)
+
+		pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+		CheckNoError(t, resp)
+		require.Len(t, pluginsResp.Active, 0)
+		require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
+			Manifest: *manifest1,
+		}})
+
+		// Try to install remote marketplace plugin
+		pRequest = &model.InstallMarketplacePluginRequest{Id: "testplugin2", Version: "1.2.3"}
+		manifest, resp = th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, manifest)
+
+		// Enable remote marketplace
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+			*cfg.PluginSettings.AllowInsecureDownloadUrl = true
+		})
+
+		pRequest = &model.InstallMarketplacePluginRequest{Id: "testplugin2", Version: "1.2.3"}
+		manifest2, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckNoError(t, resp)
+		require.NotNil(t, manifest2)
+		require.Equal(t, "testplugin2", manifest2.Id)
+		require.Equal(t, "1.2.3", manifest2.Version)
+
+		pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+		CheckNoError(t, resp)
+		require.Len(t, pluginsResp.Active, 0)
+		require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{
+			{
+				Manifest: *manifest1,
+			},
+			{
+				Manifest: *manifest2,
+			},
+		})
+
+		// Clean up
+		ok, resp := th.SystemAdminClient.RemovePlugin(manifest1.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		ok, resp = th.SystemAdminClient.RemovePlugin(manifest2.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		appErr = th.App.DeletePublicKey("pub_key")
+		require.Nil(t, appErr)
+	})
+
+	t.Run("missing prepackged and remote plugin signatures", func(t *testing.T) {
+		prepackagedPluginsDir := "prepackaged_plugins"
+
+		os.RemoveAll(prepackagedPluginsDir)
+		err := os.Mkdir(prepackagedPluginsDir, os.ModePerm)
+		require.NoError(t, err)
+		defer os.RemoveAll(prepackagedPluginsDir)
+
+		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsDir)
+		require.True(t, found, "failed to find prepackaged plugins directory")
+
+		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		require.NoError(t, err)
+
+		th := SetupConfig(func(cfg *model.Config) {
+			// Disable auto-installing prepackged plugins
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
+		}).InitBasic()
+		defer th.TearDown()
+
+		key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
+		require.NoError(t, err)
+		appErr := th.App.AddPublicKey("pub_key", key)
+		require.Nil(t, appErr)
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			serverVersion := req.URL.Query().Get("server_version")
+			require.NotEmpty(t, serverVersion)
+			require.Equal(t, model.CurrentVersion, serverVersion)
+
+			mPlugins := []*model.MarketplacePlugin{samplePlugins[0]}
+			require.Empty(t, mPlugins[0].Signature)
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal(mPlugins)
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer testServer.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+			*cfg.PluginSettings.AllowInsecureDownloadUrl = true
+		})
+
+		env := th.App.GetPluginsEnvironment()
+		plugins := env.GetPrepackagedPlugins()
+		require.Len(t, plugins, 1)
+		require.Equal(t, "testplugin", plugins[0].Manifest.Id)
+		require.Empty(t, plugins[0].Signature)
+
+		pluginsResp, resp := th.SystemAdminClient.GetPlugins()
+		CheckNoError(t, resp)
+		require.Len(t, pluginsResp.Active, 0)
+		require.Len(t, pluginsResp.Inactive, 0)
+
+		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin", Version: "0.0.1"}
+		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, manifest)
+
+		pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+		CheckNoError(t, resp)
+		require.Len(t, pluginsResp.Active, 0)
+		require.Len(t, pluginsResp.Inactive, 0)
+
+		pRequest = &model.InstallMarketplacePluginRequest{Id: "testplugin2", Version: "1.2.3"}
+		manifest, resp = th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, manifest)
+
+		pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+		CheckNoError(t, resp)
+		require.Len(t, pluginsResp.Active, 0)
+		require.Len(t, pluginsResp.Inactive, 0)
+
+		// Clean up
 		appErr = th.App.DeletePublicKey("pub_key")
 		require.Nil(t, appErr)
 	})

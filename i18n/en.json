@@ -3563,6 +3563,10 @@
     "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
   },
   {
+    "id": "app.plugin.install_marketplace_plugin.app_error",
+    "translation": "Failed to install marketplace plugin."
+  },
+  {
     "id": "app.plugin.invalid_id.app_error",
     "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
@@ -3593,6 +3597,10 @@
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
     "translation": "Could not find the requested marketplace plugin."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+    "translation": ""
   },
   {
     "id": "app.plugin.marshal.app_error",
