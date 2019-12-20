@@ -6,13 +6,10 @@
 package api4
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -20,9 +17,6 @@ import (
 
 const (
 	MAXIMUM_PLUGIN_FILE_SIZE = 50 * 1024 * 1024
-	// INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT defines a high timeout for installing plugins
-	// from an external URL to avoid slow connections or large plugins from failing to install.
-	INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT = 60 * time.Minute
 )
 
 func (api *API) InitPlugin() {
@@ -100,11 +94,11 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	force := r.URL.Query().Get("force") == "true"
-	downloadUrl := r.URL.Query().Get("plugin_download_url")
+	downloadURL := r.URL.Query().Get("plugin_download_url")
 
-	pluginFile, err := downloadFromUrl(c, downloadUrl)
+	pluginFile, err := c.App.DownloadFromUrl(downloadURL)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -341,36 +335,6 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 		ServerVersion: serverVersion,
 		LocalOnly:     localOnly,
 	}, nil
-}
-
-func downloadFromUrl(c *Context, downloadUrl string) (io.ReadSeeker, *model.AppError) {
-	if !model.IsValidHttpUrl(downloadUrl) {
-		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	u, err := url.ParseRequestURI(downloadUrl)
-	if err != nil {
-		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-	}
-	if !*c.App.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
-		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	client := c.App.HTTPService.MakeClient(true)
-	client.Timeout = INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT
-
-	resp, err := client.Get(downloadUrl)
-	if err != nil {
-		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	defer resp.Body.Close()
-
-	fileBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	return bytes.NewReader(fileBytes), nil
 }
 
 func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {

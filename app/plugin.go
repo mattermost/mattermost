@@ -10,12 +10,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
 
 	svg "github.com/h2non/go-is-svg"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -25,12 +23,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/marketplace"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/pkg/errors"
-)
-
-const (
-	// INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT defines a high timeout for installing plugins
-	// from an external URL to avoid slow connections or large plugins from failing to install.
-	INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT = 1 * time.Hour
 )
 
 const prepackagedPluginsDir = "prepackaged_plugins"
@@ -432,14 +424,14 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
 	}
 
-	if pluginFile == nil && *a.Config().PluginSettings.EnableRemoteMarketplace {
+	if *a.Config().PluginSettings.EnableRemoteMarketplace && pluginFile == nil {
 		var plugin *model.BaseMarketplacePlugin
 		plugin, appErr = a.getRemoteMarketplacePlugin(request.Id, request.Version)
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		downloadedPlugin, err := a.downloadFromUrl(plugin.DownloadURL)
+		downloadedPlugin, err := a.DownloadFromUrl(plugin.DownloadURL)
 		if err != nil {
 			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -464,45 +456,6 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 	}
 
 	return manifest, nil
-}
-
-// GetMarketplacePlugin returns plugin from marketplace-server
-func (a *App) getPrepackagedPlugin(pluginId, version string) (*plugin.PrepackagedPlugin, *model.AppError) {
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return nil, model.NewAppError("getPrepackagedPlugin", "app.plugin.config.app_error", nil, "plugin environment is nil", http.StatusInternalServerError)
-	}
-
-	prepackagedPlugins := pluginsEnvironment.GetPrepackagedPlugins()
-	for _, p := range prepackagedPlugins {
-		if p.Manifest.Id == pluginId && p.Manifest.Version == version {
-			return p, nil
-		}
-	}
-
-	return nil, model.NewAppError("getPrepackagedPlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, "", http.StatusInternalServerError)
-}
-
-// getRemoteMarketplacePlugin returns plugin from marketplace-server.
-func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseMarketplacePlugin, *model.AppError) {
-	if *a.Config().PluginSettings.EnableRemoteMarketplace {
-		marketplaceClient, err := marketplace.NewClient(
-			*a.Config().PluginSettings.MarketplaceUrl,
-			a.HTTPService,
-		)
-		if err != nil {
-			return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
-		filter := &model.MarketplacePluginFilter{Filter: pluginId, ServerVersion: model.CurrentVersion}
-		plugin, err := marketplaceClient.GetPlugin(filter, version)
-		if err != nil {
-			return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		return plugin, nil
-	}
-
-	return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, "", http.StatusInternalServerError)
 }
 
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
@@ -537,6 +490,42 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	})
 
 	return result, nil
+}
+
+// getPrepackagedPlugin returns a pre-packaged plugin.
+func (a *App) getPrepackagedPlugin(pluginId, version string) (*plugin.PrepackagedPlugin, *model.AppError) {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("getPrepackagedPlugin", "app.plugin.config.app_error", nil, "plugin environment is nil", http.StatusInternalServerError)
+	}
+
+	prepackagedPlugins := pluginsEnvironment.GetPrepackagedPlugins()
+	for _, p := range prepackagedPlugins {
+		if p.Manifest.Id == pluginId && p.Manifest.Version == version {
+			return p, nil
+		}
+	}
+
+	return nil, model.NewAppError("getPrepackagedPlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, "", http.StatusInternalServerError)
+}
+
+// getRemoteMarketplacePlugin returns plugin from marketplace-server.
+func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseMarketplacePlugin, *model.AppError) {
+	marketplaceClient, err := marketplace.NewClient(
+		*a.Config().PluginSettings.MarketplaceUrl,
+		a.HTTPService,
+	)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	filter := &model.MarketplacePluginFilter{Filter: pluginId, ServerVersion: model.CurrentVersion}
+	plugin, err := marketplaceClient.GetPlugin(filter, version)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return plugin, nil
 }
 
 func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
@@ -792,36 +781,6 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 	}
 
 	return plugin, nil
-}
-
-func (a *App) downloadFromUrl(downloadUrl string) (io.ReadSeeker, error) {
-	if !model.IsValidHttpUrl(downloadUrl) {
-		return nil, errors.Errorf("invalid url %s", downloadUrl)
-	}
-
-	u, err := url.ParseRequestURI(downloadUrl)
-	if err != nil {
-		return nil, errors.Errorf("failed to parse url %s", downloadUrl)
-	}
-	if !*a.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
-		return nil, errors.Errorf("insecure url not allowed %s", downloadUrl)
-	}
-
-	client := a.HTTPService.MakeClient(true)
-	client.Timeout = INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT
-
-	resp, err := client.Get(downloadUrl)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to fetch from %s", downloadUrl)
-	}
-	defer resp.Body.Close()
-
-	fileBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read from response")
-	}
-
-	return bytes.NewReader(fileBytes), nil
 }
 
 // getPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
