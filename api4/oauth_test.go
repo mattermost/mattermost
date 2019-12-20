@@ -220,7 +220,17 @@ func TestUpdateOAuthApp(t *testing.T) {
 	userOapp.IsTrusted = true
 	userOapp, resp = Client.UpdateOAuthApp(userOapp)
 	CheckNoError(t, resp)
-	require.False(t, userOapp.IsTrusted)
+	assert.False(t, userOapp.IsTrusted)
+
+	userOapp.IsTrusted = true
+	userOapp, resp = AdminClient.UpdateOAuthApp(userOapp)
+	CheckNoError(t, resp)
+	assert.True(t, userOapp.IsTrusted)
+
+	userOapp.IsTrusted = false
+	userOapp, resp = Client.UpdateOAuthApp(userOapp)
+	CheckNoError(t, resp)
+	assert.True(t, userOapp.IsTrusted)
 }
 
 func TestGetOAuthApps(t *testing.T) {
