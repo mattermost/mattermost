@@ -274,11 +274,9 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
-
 var allChannelMembersForUserCache = lru.New(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = lru.New(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
 var channelByNameCache = lru.New(model.CHANNEL_CACHE_SIZE)
-
 
 func (s SqlChannelStore) ClearCaches() {
 	allChannelMembersForUserCache.Purge()
