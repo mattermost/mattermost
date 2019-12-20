@@ -501,7 +501,7 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[strin
 	return result, nil
 }
 
-// mergePrepackagePlugins returns a merged list of pre-packaged plugins and remote marketplace plugins.
+// mergePrepackagePlugins merges pre-packaged plugins to remote marketplace plugins list.
 func (a *App) mergePrepackagePlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -545,7 +545,7 @@ func (a *App) mergePrepackagePlugins(remoteMarketplacePlugins map[string]*model.
 	return nil
 }
 
-// addLocalPlugins returns a merged list of locally installed and remote marketplace plugins.
+// mergeLocalPlugins merges locally installed plugins to remote marketplace plugins list.
 func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
