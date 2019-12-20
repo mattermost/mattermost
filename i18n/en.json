@@ -3600,7 +3600,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": ""
+    "translation": "Could not find the requested marketplace plugin signature."
   },
   {
     "id": "app.plugin.marshal.app_error",
