@@ -90,6 +90,7 @@ type Server struct {
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
 	sessionCache            cache.Cache
 	seenPendingPostIdsCache cache.Cache
+	statusCache             cache.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
@@ -196,6 +197,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.sessionCache = s.CacheProvider.NewCache(model.SESSION_CACHE_SIZE)
 	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
+	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)
 
 	err := s.RunOldAppInitialization()
 	if err != nil {
