@@ -38,8 +38,10 @@ const (
 	LAST_POSTS_CACHE_SIZE = 20000
 	LAST_POSTS_CACHE_SEC  = 30 * 60
 
-	LAST_POST_TIME_CACHE_SIZE = 25000
-	LAST_POST_TIME_CACHE_SEC  = 15 * 60
+	TERMS_OF_SERVICE_CACHE_SIZE = 20000
+	TERMS_OF_SERVICE_CACHE_SEC  = 30 * 60
+	LAST_POST_TIME_CACHE_SIZE   = 25000
+	LAST_POST_TIME_CACHE_SEC    = 15 * 60
 
 	USER_PROFILE_BY_ID_CACHE_SIZE = 20000
 	USER_PROFILE_BY_ID_SEC        = 30 * 60
@@ -79,6 +81,8 @@ type LocalCacheStore struct {
 	userProfileByIdsCache        *utils.Cache
 	team                         LocalCacheTeamStore
 	teamAllTeamIdsForUserCache   *utils.Cache
+	termsOfService               LocalCacheTermsOfServiceStore
+	termsOfServiceCache          *utils.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) LocalCacheStore {
@@ -106,6 +110,8 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.lastPostTimeCache = utils.NewLruWithParams(LAST_POST_TIME_CACHE_SIZE, "LastPostTime", LAST_POST_TIME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POST_TIME)
 	localCacheStore.postLastPostsCache = utils.NewLruWithParams(LAST_POSTS_CACHE_SIZE, "LastPost", LAST_POSTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS)
 	localCacheStore.post = LocalCachePostStore{PostStore: baseStore.Post(), rootStore: &localCacheStore}
+	localCacheStore.termsOfServiceCache = utils.NewLruWithParams(TERMS_OF_SERVICE_CACHE_SIZE, "TermsOfService", TERMS_OF_SERVICE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TERMS_OF_SERVICE)
+	localCacheStore.termsOfService = LocalCacheTermsOfServiceStore{TermsOfServiceStore: baseStore.TermsOfService(), rootStore: &localCacheStore}
 	localCacheStore.userProfileByIdsCache = utils.NewLruWithParams(USER_PROFILE_BY_ID_CACHE_SIZE, "UserProfileByIds", USER_PROFILE_BY_ID_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS)
 	localCacheStore.user = LocalCacheUserStore{UserStore: baseStore.User(), rootStore: &localCacheStore}
 	localCacheStore.teamAllTeamIdsForUserCache = utils.NewLruWithParams(TEAM_CACHE_SIZE, "Team", TEAM_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS)
@@ -124,6 +130,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT, localCacheStore.channel.handleClusterInvalidateChannelGuestCounts)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL, localCacheStore.channel.handleClusterInvalidateChannelById)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS, localCacheStore.post.handleClusterInvalidateLastPosts)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TERMS_OF_SERVICE, localCacheStore.termsOfService.handleClusterInvalidateTermsOfService)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS, localCacheStore.user.handleClusterInvalidateScheme)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS, localCacheStore.team.handleClusterInvalidateTeam)
 	}
@@ -156,6 +163,10 @@ func (s LocalCacheStore) Channel() store.ChannelStore {
 
 func (s LocalCacheStore) Post() store.PostStore {
 	return s.post
+}
+
+func (s LocalCacheStore) TermsOfService() store.TermsOfServiceStore {
+	return s.termsOfService
 }
 
 func (s LocalCacheStore) User() store.UserStore {
@@ -224,6 +235,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.channelGuestCountCache)
 	s.doClearCacheCluster(s.channelByIdCache)
 	s.doClearCacheCluster(s.postLastPostsCache)
+	s.doClearCacheCluster(s.termsOfServiceCache)
 	s.doClearCacheCluster(s.lastPostTimeCache)
 	s.doClearCacheCluster(s.userProfileByIdsCache)
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
