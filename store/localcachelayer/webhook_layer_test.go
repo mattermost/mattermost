@@ -36,7 +36,7 @@ func TestWebhookStoreCache(t *testing.T) {
 		mockStore.Webhook().(*mocks.WebhookStore).AssertNumberOfCalls(t, "GetIncoming", 1)
 	})
 
-	t.Run("first call not cached, second force no cached", func(t *testing.T) {
+	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)

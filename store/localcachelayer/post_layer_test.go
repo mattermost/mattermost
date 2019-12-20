@@ -150,7 +150,7 @@ func TestPostStoreCache(t *testing.T) {
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetPosts", 1)
 	})
 
-	t.Run("first call not cached, second force no cached", func(t *testing.T) {
+	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
