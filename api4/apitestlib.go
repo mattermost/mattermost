@@ -108,9 +108,6 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	if updateConfig != nil {
-		th.App.UpdateConfig(updateConfig)
-	}
 	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
