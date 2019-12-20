@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"github.com/mattermost/mattermost-server/v5/model"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,7 +35,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMemberCount", 1)
 	})
 
-	t.Run("first call not cached, second force no cached", func(t *testing.T) {
+	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 
@@ -44,7 +45,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMemberCount", 2)
 	})
 
-	t.Run("first call force no cached, second not cached, third cached", func(t *testing.T) {
+	t.Run("first call force not cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 
@@ -108,7 +109,7 @@ func TestChannelStoreChannelPinnedPostsCountsCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetPinnedPostCount", 1)
 	})
 
-	t.Run("first call not cached, second force no cached", func(t *testing.T) {
+	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 
@@ -118,7 +119,7 @@ func TestChannelStoreChannelPinnedPostsCountsCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetPinnedPostCount", 2)
 	})
 
-	t.Run("first call force no cached, second not cached, third cached", func(t *testing.T) {
+	t.Run("first call force not cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 
@@ -170,7 +171,7 @@ func TestChannelStoreGuestCountCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetGuestCount", 1)
 	})
 
-	t.Run("first call not cached, second force no cached", func(t *testing.T) {
+	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 
@@ -180,7 +181,7 @@ func TestChannelStoreGuestCountCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetGuestCount", 2)
 	})
 
-	t.Run("first call force no cached, second not cached, third cached", func(t *testing.T) {
+	t.Run("first call force not cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 
@@ -212,5 +213,65 @@ func TestChannelStoreGuestCountCache(t *testing.T) {
 		cachedStore.Channel().InvalidateGuestCount("id")
 		cachedStore.Channel().GetGuestCount("id", true)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetGuestCount", 2)
+	})
+}
+
+func TestChannelStoreChannel(t *testing.T) {
+	channelId := "channel1"
+	fakeChannel := model.Channel{Id: channelId}
+	t.Run("first call by id not cached, second cached and returning same data", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		channel, err := cachedStore.Channel().Get(channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, channel, &fakeChannel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
+		channel, err = cachedStore.Channel().Get(channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, channel, &fakeChannel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
+	})
+
+	t.Run("first call not cached, second force no cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		cachedStore.Channel().Get(channelId, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
+		cachedStore.Channel().Get(channelId, false)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 2)
+	})
+
+	t.Run("first call force no cached, second not cached, third cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore.Channel().Get(channelId, false)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
+		cachedStore.Channel().Get(channelId, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 2)
+		cachedStore.Channel().Get(channelId, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 2)
+	})
+
+	t.Run("first call not cached, clear cache, second call not cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		cachedStore.Channel().Get(channelId, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
+		cachedStore.Channel().ClearCaches()
+		cachedStore.Channel().Get(channelId, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 2)
+	})
+
+	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore.Channel().Get(channelId, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
+		cachedStore.Channel().InvalidateChannel(channelId)
+		cachedStore.Channel().Get(channelId, true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 2)
 	})
 }

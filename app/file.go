@@ -145,10 +145,11 @@ func (a *App) getInfoForFilename(post *model.Post, teamId, channelId, userId, ol
 	data, err := a.ReadFile(path)
 	if err != nil {
 		mlog.Error(
-			fmt.Sprintf("File not found when migrating post to use FileInfos, err=%v", err),
+			"File not found when migrating post to use FileInfos",
 			mlog.String("post_id", post.Id),
 			mlog.String("filename", filename),
 			mlog.String("path", path),
+			mlog.Err(err),
 		)
 		return nil
 	}

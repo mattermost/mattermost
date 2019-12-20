@@ -5179,10 +5179,6 @@
     "translation": "已达到分页限制"
   },
   {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "批量永久删除审计时遇到错误"
-  },
-  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "我们删除审计时遇到了一个错误"
   },
