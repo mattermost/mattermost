@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -17,7 +16,6 @@ type SqlTermsOfServiceStore struct {
 	SqlStore
 	metrics einterfaces.MetricsInterface
 }
-
 
 func NewSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
 	s := SqlTermsOfServiceStore{sqlStore, metrics}
