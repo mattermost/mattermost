@@ -743,6 +743,7 @@ func TestRenameChannel(t *testing.T) {
 		Name                string
 		Channel             *model.Channel
 		ExpectError         bool
+		ChannelName         string
 		ExpectedName        string
 		ExpectedDisplayName string
 	}{
@@ -751,19 +752,30 @@ func TestRenameChannel(t *testing.T) {
 			th.createChannel(th.BasicTeam, model.CHANNEL_OPEN),
 			false,
 			"newchannelname",
+			"newchannelname",
 			"New Display Name",
+		},
+		{
+			"Fail on rename open channel with bad name",
+			th.createChannel(th.BasicTeam, model.CHANNEL_OPEN),
+			true,
+			"abc__def",
+			"",
+			"",
 		},
 		{
 			"Fail on rename direct message channel",
 			th.CreateDmChannel(th.BasicUser2),
 			true,
+			"newchannelname",
 			"",
 			"",
 		},
 		{
-			"Fail on rename direct message channel",
+			"Fail on rename group message channel",
 			th.CreateGroupChannel(th.BasicUser2, th.CreateUser()),
 			true,
+			"newchannelname",
 			"",
 			"",
 		},
@@ -771,7 +783,7 @@ func TestRenameChannel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			channel, err := th.App.RenameChannel(tc.Channel, "newchannelname", "New Display Name")
+			channel, err := th.App.RenameChannel(tc.Channel, tc.ChannelName, "New Display Name")
 			if tc.ExpectError {
 				assert.NotNil(t, err)
 			} else {
