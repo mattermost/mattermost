@@ -1500,7 +1500,7 @@ func TestGetChannelByName(t *testing.T) {
 
 	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 	_, resp = Client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "")
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.GetChannelByName(GenerateTestChannelName(), th.BasicTeam.Id, "")
 	CheckNotFoundStatus(t, resp)
@@ -1553,7 +1553,7 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	user := th.CreateUser()
 	Client.Login(user.Email, user.Password)
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestGetChannelMembers(t *testing.T) {
