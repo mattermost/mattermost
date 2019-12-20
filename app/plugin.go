@@ -198,7 +198,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				if err := hooks.OnConfigurationChange(); err != nil {
-					a.Log.Error(err.Error())
+					a.Log.Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
 				}
 				return true
 			}, plugin.OnConfigurationChangeId)
