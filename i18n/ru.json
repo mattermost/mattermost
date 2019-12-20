@@ -5179,10 +5179,6 @@
     "translation": "Превышено ограничение количества страниц"
   },
   {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of audits"
-  },
-  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "Обнаружены проблемы с удалением аудитов"
   },
