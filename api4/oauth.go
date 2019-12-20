@@ -87,6 +87,10 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		oauthApp.IsTrusted = oldOauthApp.IsTrusted
+	}
+
 	updatedOauthApp, err := c.App.UpdateOauthApp(oldOauthApp, oauthApp)
 	if err != nil {
 		c.Err = err
