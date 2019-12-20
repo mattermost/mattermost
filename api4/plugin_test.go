@@ -1300,7 +1300,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
 
-		plugins := env.GetPrepackagedPlugins()
+		plugins := env.PrepackagedPlugins()
 		require.Len(t, plugins, 1)
 		require.Equal(t, "testplugin", plugins[0].Manifest.Id)
 		require.Equal(t, pluginSignatureData, plugins[0].Signature)
@@ -1417,7 +1417,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		})
 
 		env := th.App.GetPluginsEnvironment()
-		plugins := env.GetPrepackagedPlugins()
+		plugins := env.PrepackagedPlugins()
 		require.Len(t, plugins, 1)
 		require.Equal(t, "testplugin", plugins[0].Manifest.Id)
 		require.Empty(t, plugins[0].Signature)

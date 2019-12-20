@@ -506,7 +506,7 @@ func (a *App) getPrepackagedPlugin(pluginId, version string) (*plugin.Prepackage
 		return nil, model.NewAppError("getPrepackagedPlugin", "app.plugin.config.app_error", nil, "plugin environment is nil", http.StatusInternalServerError)
 	}
 
-	prepackagedPlugins := pluginsEnvironment.GetPrepackagedPlugins()
+	prepackagedPlugins := pluginsEnvironment.PrepackagedPlugins()
 	for _, p := range prepackagedPlugins {
 		if p.Manifest.Id == pluginId && p.Manifest.Version == version {
 			return p, nil

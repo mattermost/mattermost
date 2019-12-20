@@ -460,10 +460,6 @@ func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
 	env.prepackagedPluginsLock.Unlock()
 }
 
-func (env *Environment) GetPrepackagedPlugins() []*PrepackagedPlugin {
-	return env.prepackagedPlugins
-}
-
 func newRegisteredPlugin(bundle *model.BundleInfo) *registeredPlugin {
 	state := model.PluginStateNotRunning
 	return &registeredPlugin{failTimeStamps: []time.Time{}, State: &state, BundleInfo: bundle}
