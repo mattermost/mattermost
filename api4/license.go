@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitLicense() {
@@ -30,11 +30,6 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := c.App.GetClientLicenseEtag(true)
-	if c.HandleEtag(etag, "Get Client License", w, r) {
-		return
-	}
-
 	var clientLicense map[string]string
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
@@ -43,7 +38,6 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		clientLicense = c.App.GetSanitizedClientLicense()
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Write([]byte(model.MapToJson(clientLicense)))
 }
 

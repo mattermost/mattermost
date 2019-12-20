@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -107,6 +107,33 @@ func TestChangeUserEmail(t *testing.T) {
 	// should fail because email already in use
 	require.Error(t, th.RunCommand(t, "user", "email", th.BasicUser.Username, th.BasicUser2.Email))
 
+}
+
+func TestDeleteUserBotUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.CheckCommand(t, "user", "delete", th.BasicUser.Username, "--confirm")
+	_, err := th.App.Srv.Store.User().Get(th.BasicUser.Id)
+	require.Error(t, err)
+
+	// Make a bot
+	bot := &model.Bot{
+		Username:    "bottodelete",
+		Description: "Delete me!",
+		OwnerId:     model.NewId(),
+	}
+	user, err := th.App.Srv.Store.User().Save(model.UserFromBot(bot))
+	require.Nil(t, err)
+	bot.UserId = user.Id
+	bot, err = th.App.Srv.Store.Bot().Save(bot)
+	require.Nil(t, err)
+
+	th.CheckCommand(t, "user", "delete", bot.Username, "--confirm")
+	_, err = th.App.Srv.Store.User().Get(user.Id)
+	require.Error(t, err)
+	_, err = th.App.Srv.Store.Bot().Get(user.Id, true)
+	require.Error(t, err)
 }
 
 func TestConvertUser(t *testing.T) {

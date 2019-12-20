@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -716,6 +716,48 @@ func TestBotListEtag(t *testing.T) {
 			} else {
 				assert.NotEqual(t, testCase.BotListA.Etag(), testCase.BotListB.Etag())
 			}
+		})
+	}
+}
+
+func TestIsBotChannel(t *testing.T) {
+	for _, test := range []struct {
+		Name     string
+		Channel  *Channel
+		Expected bool
+	}{
+		{
+			Name:     "not a direct channel",
+			Channel:  &Channel{Type: CHANNEL_OPEN},
+			Expected: false,
+		},
+		{
+			Name: "a direct channel with another user",
+			Channel: &Channel{
+				Name: "user1__user2",
+				Type: CHANNEL_DIRECT,
+			},
+			Expected: false,
+		},
+		{
+			Name: "a direct channel with the name containing the bot's ID first",
+			Channel: &Channel{
+				Name: "botUserID__user2",
+				Type: CHANNEL_DIRECT,
+			},
+			Expected: true,
+		},
+		{
+			Name: "a direct channel with the name containing the bot's ID second",
+			Channel: &Channel{
+				Name: "user1__botUserID",
+				Type: CHANNEL_DIRECT,
+			},
+			Expected: true,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			assert.Equal(t, test.Expected, IsBotDMChannel(test.Channel, "botUserID"))
 		})
 	}
 }

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -48,6 +48,7 @@ const (
 	GENERIC_NOTIFICATION            = "generic"
 	GENERIC_NOTIFICATION_SERVER     = "https://push-test.mattermost.com"
 	FULL_NOTIFICATION               = "full"
+	ID_LOADED_NOTIFICATION          = "id_loaded"
 
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
@@ -141,13 +142,8 @@ const (
 
 	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1    = "RSAwithSHA1"
 	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256  = "RSAwithSHA256"
-	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA384  = "RSAwithSHA384"
 	SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512  = "RSAwithSHA512"
 	SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM = SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1
-
-	SAML_SETTINGS_DIGEST_ALGORITHM_SHA1    = "SHA1"
-	SAML_SETTINGS_DIGEST_ALGORITHM_SHA256  = "SHA256"
-	SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM = SAML_SETTINGS_DIGEST_ALGORITHM_SHA1
 
 	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N    = "Canonical1.0"
 	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11  = "Canonical1.1"
@@ -801,6 +797,7 @@ type ExperimentalSettings struct {
 	EnableClickToReply              *bool  `restricted:"true"`
 	LinkMetadataTimeoutMilliseconds *int64 `restricted:"true"`
 	RestrictSystemAdmin             *bool  `restricted:"true"`
+	UseNewSAMLLibrary               *bool
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -822,6 +819,9 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.RestrictSystemAdmin == nil {
 		s.RestrictSystemAdmin = NewBool(false)
+	}
+	if s.UseNewSAMLLibrary == nil {
+		s.UseNewSAMLLibrary = NewBool(false)
 	}
 }
 
@@ -1526,6 +1526,7 @@ type TeamSettings struct {
 	ExperimentalEnableAutomaticReplies                        *bool
 	ExperimentalHideTownSquareinLHS                           *bool
 	ExperimentalTownSquareIsReadOnly                          *bool
+	LockTeammateNameDisplay                                   *bool
 	ExperimentalPrimaryTeam                                   *string
 	ExperimentalDefaultChannels                               []string
 }
@@ -1671,6 +1672,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.ExperimentalViewArchivedChannels == nil {
 		s.ExperimentalViewArchivedChannels = NewBool(false)
+	}
+
+	if s.LockTeammateNameDisplay == nil {
+		s.LockTeammateNameDisplay = NewBool(false)
 	}
 }
 
@@ -1911,7 +1916,6 @@ type SamlSettings struct {
 	AssertionConsumerServiceURL *string
 
 	SignatureAlgorithm *string
-	DigestAlgorithm    *string
 	CanonicalAlgorithm *string
 
 	ScopingIDPProviderId *string
@@ -1966,10 +1970,6 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.SignatureAlgorithm == nil {
 		s.SignatureAlgorithm = NewString(SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM)
-	}
-
-	if s.DigestAlgorithm == nil {
-		s.DigestAlgorithm = NewString(SAML_SETTINGS_DEFAULT_DIGEST_ALGORITHM)
 	}
 
 	if s.CanonicalAlgorithm == nil {
@@ -2249,7 +2249,9 @@ type PluginSettings struct {
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
 	EnableMarketplace        *bool
+	RequirePluginSignature   *bool
 	MarketplaceUrl           *string
+	SignaturePublicKeyFiles  []string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2296,6 +2298,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" || *s.MarketplaceUrl == PLUGIN_SETTINGS_OLD_MARKETPLACE_URL {
 		s.MarketplaceUrl = NewString(PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
+	}
+
+	if s.RequirePluginSignature == nil {
+		s.RequirePluginSignature = NewBool(false)
+	}
+
+	if s.SignaturePublicKeyFiles == nil {
+		s.SignaturePublicKeyFiles = []string{}
 	}
 }
 
@@ -2852,11 +2862,8 @@ func (ss *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if !(*ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA384 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512) {
+		if !(*ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256 || *ss.SignatureAlgorithm == SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_signature_algorithm.app_error", nil, "", http.StatusBadRequest)
-		}
-		if !(*ss.DigestAlgorithm == SAML_SETTINGS_DIGEST_ALGORITHM_SHA1 || *ss.DigestAlgorithm == SAML_SETTINGS_DIGEST_ALGORITHM_SHA256) {
-			return NewAppError("Config.IsValid", "model.config.is_valid.saml_digest_algorithm.app_error", nil, "", http.StatusBadRequest)
 		}
 		if !(*ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N || *ss.CanonicalAlgorithm == SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)

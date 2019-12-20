@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -8,8 +8,8 @@ import (
 
 	"github.com/avct/uasurfer"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 // MattermostApp describes downloads for the Mattermost App
@@ -44,7 +44,7 @@ type SystemBrowser struct {
 	MakeDefaultString      string
 }
 
-func renderUnsuppportedBrowser(app *app.App, w http.ResponseWriter, r *http.Request) {
+func renderUnsupportedBrowser(app *app.App, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	page := utils.NewHTMLTemplate(app.HTMLTemplates(), "unsupported_browser")
 

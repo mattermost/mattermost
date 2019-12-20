@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config_test
 
@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
@@ -477,11 +477,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "callback should have been called when config written")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 
 	t.Run("watcher restarted", func(t *testing.T) {
@@ -513,11 +509,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "callback should have been called when config written")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 }
 
@@ -749,11 +741,7 @@ func TestFileStoreLoad(t *testing.T) {
 		err = fs.Load()
 		require.NoError(t, err)
 
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "callback should have been called when config loaded")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config loaded")
 	})
 }
 
@@ -786,11 +774,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
-		select {
-		case <-called:
-			require.Fail(t, "callback should not have been called since watching disabled")
-		case <-time.After(1 * time.Second):
-		}
+		require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called since watching disabled")
 	})
 
 	t.Run("enabled", func(t *testing.T) {
@@ -809,11 +793,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "callback should have been called when config written")
-		}
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 }
 
@@ -944,6 +924,14 @@ func TestFileSetFile(t *testing.T) {
 		require.Equal(t, []byte("new file"), data)
 	})
 
+	t.Run("should set right permissions", func(t *testing.T) {
+		absolutePath := filepath.Join(filepath.Dir(path), "new")
+		err := fs.SetFile(absolutePath, []byte("data"))
+		require.NoError(t, err)
+		fi, err := os.Stat(absolutePath)
+		require.NoError(t, err)
+		require.Equal(t, os.FileMode(0600), fi.Mode().Perm())
+	})
 }
 
 func TestFileHasFile(t *testing.T) {
@@ -1125,4 +1113,15 @@ func TestFileStoreString(t *testing.T) {
 	defer fs.Close()
 
 	assert.Equal(t, "file://"+path, fs.String())
+}
+
+// wasCalled reports whether a given callback channel was called
+// within the specified time duration or not.
+func wasCalled(c chan bool, duration time.Duration) bool {
+	select {
+	case <-c:
+		return true
+	case <-time.After(duration):
+	}
+	return false
 }

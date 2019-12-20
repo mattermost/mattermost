@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package testutils
 
@@ -8,9 +8,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"time"
 
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func ReadTestFile(name string) ([]byte, error) {
@@ -27,16 +26,4 @@ func ReadTestFile(name string) ([]byte, error) {
 	} else {
 		return data.Bytes(), nil
 	}
-}
-
-// WasCalled reports whether a given callback channel was called
-// within the specified time duration or not.
-func WasCalled(c chan bool, duration time.Duration) bool {
-	wasCalled := false
-	select {
-	case <-c:
-		wasCalled = true
-	case <-time.After(duration):
-	}
-	return wasCalled
 }
