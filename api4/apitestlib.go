@@ -77,6 +77,9 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	config := memoryStore.Get()
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	if updateConfig != nil {
+		updateConfig(config)
+	}
 	memoryStore.Set(config)
 
 	var options []app.Option
@@ -105,9 +108,6 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	if updateConfig != nil {
-		th.App.UpdateConfig(updateConfig)
-	}
 	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)

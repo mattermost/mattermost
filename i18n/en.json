@@ -1525,18 +1525,6 @@
     "translation": "An error occurred while downloading the plugin."
   },
   {
-    "id": "api.plugin.install.insecure_url.app_error",
-    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
-  },
-  {
-    "id": "api.plugin.install.invalid_url.app_error",
-    "translation": "An invalid url was given to download the plugin."
-  },
-  {
-    "id": "api.plugin.install.reading_stream_failed.app_error",
-    "translation": "An error ocurred reading the plugin file stream."
-  },
-  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request"
   },
@@ -3563,6 +3551,10 @@
     "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
   },
   {
+    "id": "app.plugin.install_marketplace_plugin.app_error",
+    "translation": "Failed to install marketplace plugin."
+  },
+  {
     "id": "app.plugin.invalid_id.app_error",
     "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
@@ -3593,6 +3585,10 @@
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
     "translation": "Could not find the requested marketplace plugin."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin signature."
   },
   {
     "id": "app.plugin.marshal.app_error",
