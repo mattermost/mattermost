@@ -933,7 +933,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	samplePlugins := []*model.MarketplacePlugin{
+	marketplacePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
@@ -953,7 +953,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
-		json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
+		json, err := json.Marshal([]*model.MarketplacePlugin{marketplacePlugins[0]})
 		require.NoError(t, err)
 		res.Write(json)
 	}))
@@ -965,26 +965,40 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 	})
 
+	prepackagePlugin := &plugin.PrepackagedPlugin{
+		Manifest: &model.Manifest{
+			Version: "0.0.1",
+			Id:      "prepackaged.test",
+		},
+	}
+
+	env := th.App.GetPluginsEnvironment()
+	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin})
+
 	t.Run("get remote and prepackaged plugins", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = true
 			*cfg.PluginSettings.EnableUploads = true
 		})
 
-		manifest := &model.Manifest{
-			Version: "0.0.1",
-			Id:      "prepackaged.test",
-		}
-		newerPrepackagePlugin := &plugin.PrepackagedPlugin{
-			Manifest: manifest,
-		}
-
-		env := th.App.GetPluginsEnvironment()
-		env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{newerPrepackagePlugin})
-
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 
+		expectedPlugins := marketplacePlugins
+		expectedPlugins = append(expectedPlugins, &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: prepackagePlugin.Manifest,
+			},
+		})
+
+		sort.SliceStable(expectedPlugins, func(i, j int) bool {
+			return strings.ToLower(expectedPlugins[i].Manifest.Id) < strings.ToLower(expectedPlugins[j].Manifest.Id)
+		})
+		sort.SliceStable(plugins, func(i, j int) bool {
+			return strings.ToLower(plugins[i].Manifest.Id) < strings.ToLower(plugins[j].Manifest.Id)
+		})
+
+		require.EqualValues(t, expectedPlugins, plugins)
 		require.Len(t, plugins, 2)
 	})
 
@@ -1000,6 +1014,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 
 		// Only returns the prepackaged plugins
 		require.Len(t, plugins, 1)
+		require.Equal(t, prepackagePlugin.Manifest, plugins[0].Manifest)
 	})
 
 	t.Run("get prepackaged plugin if newer", func(t *testing.T) {
@@ -1024,7 +1039,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		CheckNoError(t, resp)
 
 		require.Len(t, plugins, 1)
-		require.Equal(t, newerPrepackagePlugin.Manifest.Version, plugins[0].Manifest.Version)
+		require.Equal(t, newerPrepackagePlugin.Manifest, plugins[0].Manifest)
 	})
 }
 

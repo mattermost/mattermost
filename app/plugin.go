@@ -505,7 +505,7 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[strin
 func (a *App) mergePrepackagePlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		return model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("mergePrepackagePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	for _, prepackaged := range pluginsEnvironment.PrepackagedPlugins() {
@@ -526,17 +526,17 @@ func (a *App) mergePrepackagePlugins(remoteMarketplacePlugins map[string]*model.
 		}
 
 		// If available in the markteplace, only overwrite if newer.
-		var prepackagedVersion, marketplaceVersion semver.Version
-
 		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("GetMarketplacePlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagePlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
+
+		var marketplaceVersion semver.Version
 		marketplaceVersion, err = semver.Parse(marketplacePlugin.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("GetMarketplacePlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagePlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if prepackagedVersion.GT(marketplaceVersion) {
