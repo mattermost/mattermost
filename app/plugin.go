@@ -532,9 +532,7 @@ func (a *App) mergePrepackagePlugins(remoteMarketplacePlugins map[string]*model.
 		}
 
 		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
-
-		var marketplaceVersion semver.Version
-		marketplaceVersion, err = semver.Parse(marketplacePlugin.Manifest.Version)
+		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
 		if err != nil {
 			return model.NewAppError("mergePrepackagePlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
 		}
