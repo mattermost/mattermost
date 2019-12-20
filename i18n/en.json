@@ -5943,10 +5943,6 @@
     "translation": "You've reached the limit of the number of allowed channels."
   },
   {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "A channel with that URL was previously created"
-  },
-  {
     "id": "store.sql_channel.save_channel.save.app_error",
     "translation": "Unable to save the channel"
   },

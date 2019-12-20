@@ -75,12 +75,11 @@ var ResetUserPasswordCmd = &cobra.Command{
 }
 
 var updateUserEmailCmd = &cobra.Command{
-	Use:   "email [user] [new email]",
-	Short: "Change email of the user",
-	Long:  "Change email of the user.",
-	Example: `  user email test user@example.com
-  user activate username`,
-	RunE: updateUserEmailCmdF,
+	Use:     "email [user] [new email]",
+	Short:   "Change email of the user",
+	Long:    "Change email of the user.",
+	Example: "  user email testuser user@example.com",
+	RunE:    updateUserEmailCmdF,
 }
 
 var ResetUserMfaCmd = &cobra.Command{
