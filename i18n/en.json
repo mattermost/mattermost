@@ -372,16 +372,16 @@
     "translation": "The channel has been archived or deleted"
   },
   {
+    "id": "api.channel.update_channel.invalid_character.app_error",
+    "translation": "Invalid character '__' in channel name. Reserved for system use."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
     "translation": "Channel type cannot be updated"
-  },
-  {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Invalid character '__' in channel name. Reserved for system use."
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
