@@ -7,6 +7,7 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878 // indirect
 	github.com/avct/uasurfer v0.0.0-20190821150637-906cc7dc6197
+	github.com/beevik/etree v1.1.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/corpix/uarand v0.1.1 // indirect
@@ -38,12 +39,14 @@ require (
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/jaytaylor/html2text v0.0.0-20190408195923-01ec452cbe43
 	github.com/jmoiron/sqlx v1.2.0
+	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lib/pq v1.2.0
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/mattermost/go-i18n v1.11.0
 	github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
+	github.com/mattermost/gosaml2 v0.3.2
 	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/viper v1.0.4
@@ -65,6 +68,7 @@ require (
 	github.com/prometheus/common v0.7.0 // indirect
 	github.com/prometheus/procfs v0.0.5 // indirect
 	github.com/rs/cors v1.7.0
+	github.com/russellhaering/goxmldsig v0.0.0-20180430223755-7acd5e4a6ef7 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/segmentio/analytics-go v3.1.0+incompatible
 	github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c // indirect

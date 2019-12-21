@@ -344,22 +344,6 @@ func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerAuditStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.AuditStore.PermanentDeleteBatch(endTime, limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AuditStore.PermanentDeleteBatch", success, elapsed)
-	}
-	return resultVar0, resultVar1
-}
-
 func (s *TimerLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppError {
 	start := timemodule.Now()
 
