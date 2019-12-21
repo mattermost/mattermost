@@ -6,35 +6,26 @@ package searchengine
 import (
 	"github.com/mattermost/mattermost-server/v5/jobs"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine/nullengine"
 )
 
-func NewSearchEngineBroker(cfg *model.Config, jobServer *jobs.JobServer) (*SearchEngineBroker, error) {
-	broker := &SearchEngineBroker{
+func NewBroker(cfg *model.Config, jobServer *jobs.JobServer) *Broker {
+	return &Broker{
 		cfg:       cfg,
 		jobServer: jobServer,
 	}
-
-	nullEngine, err := nullengine.NewNullEngine()
-	if err != nil {
-		return nil, err
-	}
-	broker.NullEngine = nullEngine
-	return broker, nil
 }
 
-func (seb *SearchEngineBroker) RegisterElasticsearchEngine(es SearchEngineInterface) {
+func (seb *Broker) RegisterElasticsearchEngine(es SearchEngineInterface) {
 	seb.ElasticsearchEngine = es
 }
 
-type SearchEngineBroker struct {
+type Broker struct {
 	cfg                 *model.Config
 	jobServer           *jobs.JobServer
 	ElasticsearchEngine SearchEngineInterface
-	NullEngine          SearchEngineInterface
 }
 
-func (seb *SearchEngineBroker) UpdateConfig(cfg *model.Config) *model.AppError {
+func (seb *Broker) UpdateConfig(cfg *model.Config) *model.AppError {
 	seb.cfg = cfg
 	if seb.ElasticsearchEngine != nil {
 		seb.ElasticsearchEngine.UpdateConfig(cfg)
@@ -43,10 +34,10 @@ func (seb *SearchEngineBroker) UpdateConfig(cfg *model.Config) *model.AppError {
 	return nil
 }
 
-func (seb *SearchEngineBroker) GetActiveEngines() []SearchEngineInterface {
+func (seb *Broker) GetActiveEngines() []SearchEngineInterface {
 	engines := []SearchEngineInterface{}
 	if seb.ElasticsearchEngine != nil && seb.ElasticsearchEngine.IsActive() {
 		engines = append(engines, seb.ElasticsearchEngine)
 	}
-	return append(engines, seb.NullEngine)
+	return engines
 }

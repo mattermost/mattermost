@@ -120,7 +120,7 @@ type Server struct {
 	startMetrics      bool
 	startSearchEngine bool
 
-	SearchEngine *searchengine.SearchEngineBroker
+	SearchEngine *searchengine.Broker
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
@@ -190,13 +190,9 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	searchEngineBroker, err := searchengine.NewSearchEngineBroker(s.Config(), s.Jobs)
-	if err != nil {
-		return nil, err
-	}
-	s.SearchEngine = searchEngineBroker
+	s.SearchEngine = searchengine.NewBroker(s.Config(), s.Jobs)
 
-	err = s.RunOldAppInitialization()
+	err := s.RunOldAppInitialization()
 	if err != nil {
 		return nil, err
 	}

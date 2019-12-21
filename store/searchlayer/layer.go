@@ -12,14 +12,14 @@ import (
 
 type SearchStore struct {
 	store.Store
-	searchEngine *searchengine.SearchEngineBroker
+	searchEngine *searchengine.Broker
 	user         *SearchUserStore
 	team         *SearchTeamStore
 	channel      *SearchChannelStore
 	post         *SearchPostStore
 }
 
-func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.SearchEngineBroker) SearchStore {
+func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker) SearchStore {
 	searchStore := SearchStore{
 		Store:        baseStore,
 		searchEngine: searchEngine,
