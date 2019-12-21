@@ -373,7 +373,7 @@
   },
   {
     "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Invalid character '__' in channel name. Reserved for system use."
+    "translation": "Invalid channel name for non-direct channels. Cannot have user id."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",

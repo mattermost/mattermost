@@ -759,7 +759,7 @@ func TestRenameChannel(t *testing.T) {
 			"Fail on rename open channel with bad name",
 			th.createChannel(th.BasicTeam, model.CHANNEL_OPEN),
 			true,
-			"abc__def",
+			"6zii9a9g6pruzj451x3esok54h__wr4j4g8zqtnhmkw771pfpynqwo",
 			"",
 			"",
 		},
