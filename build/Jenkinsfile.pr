@@ -93,6 +93,7 @@ pipeline {
 		stage('Build') {
 			environment {
 				GOPATH = "/go"
+				GOBIN = "/go/src/github.com/mattermost/mattermost-server/bin"
 			}
 
 			steps {

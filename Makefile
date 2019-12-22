@@ -47,7 +47,7 @@ endif
 
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
-export GOBIN=$(PWD)/bin
+GOBIN=$(PWD)/bin
 GO=go
 DELVE=dlv
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)"
