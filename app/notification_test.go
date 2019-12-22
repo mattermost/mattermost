@@ -67,7 +67,7 @@ func TestSendNotifications(t *testing.T) {
 	th.BasicChannel.DeleteAt = 1
 	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
 	require.NoError(t, err)
-	require.Len(t, mentions, 0)
+	require.Empty(t, mentions)
 }
 
 func TestSendNotificationsWithManyUsers(t *testing.T) {

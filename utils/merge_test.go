@@ -517,7 +517,7 @@ func TestMergeWithSlices(t *testing.T) {
 		// of course this won't change merged, even if it did copy... but just in case.
 		m2 = append(m2, "test")
 		assert.Len(t, m2, 1)
-		assert.Len(t, merged, 0)
+		assert.Empty(t, merged)
 	})
 
 	t.Run("slice is not copied. change in patch will not affect merged", func(t *testing.T) {

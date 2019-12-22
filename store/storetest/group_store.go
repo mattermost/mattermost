@@ -1107,7 +1107,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	// Time after syncable was created
 	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.CreateAt + 1)
 	require.Nil(t, err)
-	require.Len(t, teamMembers, 0)
+	require.Empty(t, teamMembers)
 
 	// Delete and restore GroupMember should return result
 	_, err = ss.Group().DeleteMember(group.Id, user.Id)
@@ -1133,7 +1133,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	// Time after syncable was updated
 	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.UpdateAt + 1)
 	require.Nil(t, err)
-	require.Len(t, teamMembers, 0)
+	require.Empty(t, teamMembers)
 
 	// Only includes if auto-add
 	syncable.AutoAdd = false
@@ -1141,7 +1141,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, teamMembers, 0)
+	require.Empty(t, teamMembers)
 
 	// reset state of syncable and verify
 	_, err = ss.Group().UpdateGroupSyncable(&pristineSyncable)
@@ -1155,7 +1155,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, teamMembers, 0)
+	require.Empty(t, teamMembers)
 
 	// reset state of group and verify
 	group.DeleteAt = 0
@@ -1171,7 +1171,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, teamMembers, 0)
+	require.Empty(t, teamMembers)
 
 	// reset state of team and verify
 	team.DeleteAt = 0
@@ -1186,7 +1186,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, teamMembers, 0)
+	require.Empty(t, teamMembers)
 
 	// reset GroupTeam and verify
 	_, err = ss.Group().UpdateGroupSyncable(&pristineSyncable)
@@ -1200,7 +1200,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, teamMembers, 0)
+	require.Empty(t, teamMembers)
 
 	// restore group member and verify
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
@@ -1217,7 +1217,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, teamMembers, 0)
+	require.Empty(t, teamMembers)
 }
 
 func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
@@ -1266,7 +1266,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	// Time after syncable was created
 	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.CreateAt + 1)
 	require.Nil(t, err)
-	require.Len(t, channelMembers, 0)
+	require.Empty(t, channelMembers)
 
 	// Delete and restore GroupMember should return result
 	_, err = ss.Group().DeleteMember(group.Id, user.Id)
@@ -1292,7 +1292,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	// Time after syncable was updated
 	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.UpdateAt + 1)
 	require.Nil(t, err)
-	require.Len(t, channelMembers, 0)
+	require.Empty(t, channelMembers)
 
 	// Only includes if auto-add
 	syncable.AutoAdd = false
@@ -1300,7 +1300,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, channelMembers, 0)
+	require.Empty(t, channelMembers)
 
 	// reset state of syncable and verify
 	_, err = ss.Group().UpdateGroupSyncable(&pristineSyncable)
@@ -1314,7 +1314,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, channelMembers, 0)
+	require.Empty(t, channelMembers)
 
 	// reset state of group and verify
 	group.DeleteAt = 0
@@ -1329,7 +1329,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, channelMembers, 0)
+	require.Empty(t, channelMembers)
 
 	// reset state of channel and verify
 	channel.DeleteAt = 0
@@ -1344,7 +1344,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, channelMembers, 0)
+	require.Empty(t, channelMembers)
 
 	// reset GroupChannel and verify
 	_, err = ss.Group().UpdateGroupSyncable(&pristineSyncable)
@@ -1358,7 +1358,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, channelMembers, 0)
+	require.Empty(t, channelMembers)
 
 	// restore group member and verify
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
@@ -1372,14 +1372,14 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, channelMembers, 0)
+	require.Empty(t, channelMembers)
 
 	// Leaving Channel (ChannelMemberHistory) should still not return result
 	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
 	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
-	require.Len(t, channelMembers, 0)
+	require.Empty(t, channelMembers)
 
 	// Purging ChannelMemberHistory re-returns the result
 	_, err = ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis()+1, 100)
