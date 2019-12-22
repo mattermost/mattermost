@@ -70,6 +70,11 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 //
 // Uses MEDIUMTEXT on MySQL, and TEXT on sane databases.
 func initializeConfigurationsTable(db *sqlx.DB) error {
+	mysqlCharset := ""
+	if db.DriverName() == "mysql" {
+		mysqlCharset = "DEFAULT CHARACTER SET utf8mb4"
+	}
+
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS Configurations (
 		    Id VARCHAR(26) PRIMARY KEY,
@@ -77,7 +82,8 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 		    CreateAt BIGINT NOT NULL,
 		    Active BOOLEAN NULL UNIQUE
 		)
-	`)
+	` + mysqlCharset)
+
 	if err != nil {
 		return errors.Wrap(err, "failed to create Configurations table")
 	}
@@ -89,22 +95,31 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 		    CreateAt BIGINT NOT NULL,
 		    UpdateAt BIGINT NOT NULL
 		)
-	`)
+	` + mysqlCharset)
 	if err != nil {
 		return errors.Wrap(err, "failed to create ConfigurationFiles table")
 	}
 
 	// Change from TEXT (65535 limit) to MEDIUM TEXT (16777215) on MySQL. This is a
 	// backwards-compatible migration for any existing schema.
+	// Also fix using the wrong encoding initally
 	if db.DriverName() == "mysql" {
 		_, err = db.Exec(`ALTER TABLE Configurations MODIFY Value MEDIUMTEXT`)
 		if err != nil {
 			return errors.Wrap(err, "failed to alter Configurations table")
 		}
+		_, err = db.Exec(`ALTER TABLE Configurations CONVERT TO CHARACTER SET utf8mb4`)
+		if err != nil {
+			return errors.Wrap(err, "failed to alter Configurations table character set")
+		}
 
 		_, err = db.Exec(`ALTER TABLE ConfigurationFiles MODIFY Data MEDIUMTEXT`)
 		if err != nil {
 			return errors.Wrap(err, "failed to alter ConfigurationFiles table")
+		}
+		_, err = db.Exec(`ALTER TABLE ConfigurationFiles CONVERT TO CHARACTER SET utf8mb4`)
+		if err != nil {
+			return errors.Wrap(err, "failed to alter ConfigurationFiles table character set")
 		}
 	}
 
