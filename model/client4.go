@@ -1862,7 +1862,7 @@ func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember
 }
 
 // AddTeamMembers adds a number of users to a team and returns the team members.
-func (c *Client4) AddTeamMembersGracefully(teamId string, userIds []string) (*TeamMembersWithErrors, *Response) {
+func (c *Client4) AddTeamMembersGracefully(teamId string, userIds []string) ([]*TeamMemberWithError, *Response) {
 	var members []*TeamMember
 	for _, userId := range userIds {
 		member := &TeamMember{TeamId: teamId, UserId: userId}
@@ -1874,7 +1874,7 @@ func (c *Client4) AddTeamMembersGracefully(teamId string, userIds []string) (*Te
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return TeamMembersWithErrorsFromJson(r.Body), BuildResponse(r)
+	return TeamMembersWithErrorFromJson(r.Body), BuildResponse(r)
 }
 
 // RemoveTeamMember will remove a user from a team.

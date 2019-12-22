@@ -600,9 +600,9 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if graceful {
 		// in 'graceful' mode we allow a different return value, notifying the client which users were not added
-		w.Write([]byte(membersWithErrors.ToJson()))
+		w.Write([]byte(model.TeamMembersWithErrorToJson(membersWithErrors)))
 	} else {
-		w.Write([]byte(model.TeamMembersToJson(membersWithErrors.AddedMembers)))
+		w.Write([]byte(model.TeamMembersToJson(model.TeamMembersWithErrorToTeamMembers(membersWithErrors))))
 	}
 
 }

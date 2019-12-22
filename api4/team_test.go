@@ -1702,9 +1702,9 @@ func TestAddTeamMembersDomainConstrained(t *testing.T) {
 	// validate that one user can be added gracefully
 	members, response := client.AddTeamMembersGracefully(team.Id, userList)
 	require.Nil(t, response.Error)
-	require.NotNil(t, members)
-	require.Len(t, members.AddedMembers, 1)
-	require.Len(t, members.Errors, 1)
+	require.Len(t, members, 2)
+	require.NotNil(t, members[0].Member)
+	require.NotNil(t, members[1].Error)
 }
 
 func TestAddTeamMembers(t *testing.T) {

@@ -293,7 +293,7 @@ type API interface {
 	// @tag Team
 	// @tag User
 	// Minimum server version: 5.18
-	CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) (*model.TeamMembersWithErrors, *model.AppError)
+	CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError)
 
 	// DeleteTeamMember deletes a team membership.
 	//

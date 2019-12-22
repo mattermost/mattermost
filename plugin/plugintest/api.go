@@ -269,15 +269,15 @@ func (_m *API) CreateTeamMembers(teamId string, userIds []string, requestorId st
 }
 
 // CreateTeamMembersGracefully provides a mock function with given fields: teamId, userIds, requestorId
-func (_m *API) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) (*model.TeamMembersWithErrors, *model.AppError) {
+func (_m *API) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
 	ret := _m.Called(teamId, userIds, requestorId)
 
-	var r0 *model.TeamMembersWithErrors
-	if rf, ok := ret.Get(0).(func(string, []string, string) *model.TeamMembersWithErrors); ok {
+	var r0 []*model.TeamMemberWithError
+	if rf, ok := ret.Get(0).(func(string, []string, string) []*model.TeamMemberWithError); ok {
 		r0 = rf(teamId, userIds, requestorId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.TeamMembersWithErrors)
+			r0 = ret.Get(0).([]*model.TeamMemberWithError)
 		}
 	}
 

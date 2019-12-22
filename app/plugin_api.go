@@ -177,11 +177,11 @@ func (api *PluginAPI) CreateTeamMembers(teamId string, userIds []string, request
 	if members, err := api.app.AddTeamMembers(teamId, userIds, requestorId, false); err != nil {
 		return nil, err
 	} else {
-		return members.AddedMembers, nil
+		return model.TeamMembersWithErrorToTeamMembers(members), nil
 	}
 }
 
-func (api *PluginAPI) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) (*model.TeamMembersWithErrors, *model.AppError) {
+func (api *PluginAPI) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
 	return api.app.AddTeamMembers(teamId, userIds, requestorId, true)
 }
 

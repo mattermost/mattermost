@@ -32,9 +32,10 @@ type TeamMemberForExport struct {
 	TeamName string
 }
 
-type TeamMembersWithErrors struct {
-	AddedMembers []*TeamMember     `json:"added_members"`
-	Errors       map[string]string `json:"errors"`
+type TeamMemberWithError struct {
+	UserId string
+	Member *TeamMember `json:"member"`
+	Error  *AppError   `json:"error"`
 }
 
 func (o *TeamMember) ToJson() string {
@@ -59,15 +60,28 @@ func TeamUnreadFromJson(data io.Reader) *TeamUnread {
 	return o
 }
 
-func TeamMembersWithErrorsFromJson(data io.Reader) *TeamMembersWithErrors {
-	var o *TeamMembersWithErrors
-	json.NewDecoder(data).Decode(&o)
-	return o
+func TeamMembersWithErrorToTeamMembers(o []*TeamMemberWithError) []*TeamMember {
+	var ret []*TeamMember
+	for _, o := range o {
+		if o.Error == nil {
+			ret = append(ret, o.Member)
+		}
+	}
+	return ret
 }
 
-func (o *TeamMembersWithErrors) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
+func TeamMembersWithErrorToJson(o []*TeamMemberWithError) string {
+	if b, err := json.Marshal(o); err != nil {
+		return "[]"
+	} else {
+		return string(b)
+	}
+}
+
+func TeamMembersWithErrorFromJson(data io.Reader) []*TeamMemberWithError {
+	var o []*TeamMemberWithError
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func TeamMembersToJson(o []*TeamMember) string {
