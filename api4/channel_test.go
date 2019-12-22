@@ -703,7 +703,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Len(t, channels, 0, "should be no channel")
+	require.Empty(t, channels, "should be no channel")
 
 	_, resp = Client.GetPublicChannelsForTeam("junk", 0, 100, "")
 	CheckBadRequestStatus(t, resp)
@@ -843,7 +843,7 @@ func TestGetAllChannels(t *testing.T) {
 
 	channels, resp = th.SystemAdminClient.GetAllChannels(10000, 10000, "")
 	CheckNoError(t, resp)
-	require.Len(t, *channels, 0)
+	require.Empty(t, *channels)
 
 	_, resp = Client.GetAllChannels(0, 20, "")
 	CheckForbiddenStatus(t, resp)
@@ -874,7 +874,7 @@ func TestGetAllChannelsWithCount(t *testing.T) {
 
 	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(10000, 10000, "")
 	CheckNoError(t, resp)
-	require.Len(t, *channels, 0)
+	require.Empty(t, *channels)
 
 	_, _, resp = Client.GetAllChannelsWithCount(0, 20, "")
 	CheckForbiddenStatus(t, resp)
@@ -1155,7 +1155,7 @@ func TestSearchGroupChannels(t *testing.T) {
 	channels, resp = Client.SearchGroupChannels(search)
 	CheckNoError(t, resp)
 
-	assert.Len(t, channels, 0)
+	assert.Empty(t, channels)
 
 	// search unprivileged, forbidden
 	th.Client.Logout()
@@ -1575,7 +1575,7 @@ func TestGetChannelMembers(t *testing.T) {
 
 	members, resp = Client.GetChannelMembers(th.BasicChannel.Id, 1000, 100000, "")
 	CheckNoError(t, resp)
-	require.Len(t, *members, 0, "should be 0 users")
+	require.Empty(t, *members, "should be 0 users")
 
 	_, resp = Client.GetChannelMembers("", 0, 60, "")
 	CheckBadRequestStatus(t, resp)
@@ -1613,7 +1613,7 @@ func TestGetChannelMembersByIds(t *testing.T) {
 
 	cm1, resp := Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk"})
 	CheckNoError(t, resp)
-	require.Len(t, *cm1, 0, "no users should be returned")
+	require.Empty(t, *cm1, "no users should be returned")
 
 	cm1, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk", th.BasicUser.Id})
 	CheckNoError(t, resp)
@@ -1874,7 +1874,7 @@ func TestGetPinnedPosts(t *testing.T) {
 
 	posts, resp := Client.GetPinnedPosts(channel.Id, "")
 	CheckNoError(t, resp)
-	require.Len(t, posts.Posts, 0, "should not have gotten a pinned post")
+	require.Empty(t, posts.Posts, "should not have gotten a pinned post")
 
 	pinnedPost := th.CreatePinnedPost()
 	posts, resp = Client.GetPinnedPosts(channel.Id, "")
@@ -1976,6 +1976,10 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	SystemAdminClient := th.SystemAdminClient
+	WebSocketClient, err := th.CreateWebSocketClient()
+	WebSocketClient.Listen()
+	require.Nil(t, err)
+
 	th.LoginBasic()
 
 	s1 := &model.SchemeRoles{
@@ -1985,6 +1989,21 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	}
 	_, r1 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s1)
 	CheckNoError(t, r1)
+
+	timeout := time.After(600 * time.Millisecond)
+	waiting := true
+	for waiting {
+		select {
+		case event := <-WebSocketClient.EventChannel:
+			if event.Event == model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED {
+				require.Equal(t, model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, event.Event)
+				waiting = false
+			}
+		case <-timeout:
+			require.Fail(t, "Should have received event channel member websocket event and not timedout")
+			waiting = false
+		}
+	}
 
 	tm1, rtm1 := SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckNoError(t, rtm1)
@@ -2269,7 +2288,7 @@ func TestAddChannelMember(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.channel.add_members.user_denied")
 
 	// Associate group to team
-	_, appErr = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: privateChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -2856,7 +2875,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 
 	timezone, resp = Client.GetChannelMembersTimezones(th.BasicChannel.Id)
 	CheckNoError(t, resp)
-	require.Len(t, timezone, 0, "should return 0 timezone")
+	require.Empty(t, timezone, "should return 0 timezone")
 }
 
 func TestChannelMembersMinusGroupMembers(t *testing.T) {

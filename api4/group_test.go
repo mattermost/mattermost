@@ -645,7 +645,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -698,7 +698,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,

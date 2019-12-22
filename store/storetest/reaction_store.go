@@ -125,7 +125,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 	reactions, rErr := ss.Reaction().GetForPost(post.Id, false)
 	require.Nil(t, rErr)
 
-	assert.Len(t, reactions, 0, "should've deleted reaction")
+	assert.Empty(t, reactions, "should've deleted reaction")
 
 	postList, err := ss.Post().Get(post.Id, false)
 	require.Nil(t, err)
@@ -285,7 +285,7 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 
 	returned, err = ss.Reaction().GetForPost(post3.Id, false)
 	require.Nil(t, err)
-	assert.Len(t, returned, 0, "should've only removed reactions with emoji name")
+	assert.Empty(t, returned, "should've only removed reactions with emoji name")
 
 	// check that the posts are updated
 	postList, err := ss.Post().Get(post.Id, false)
