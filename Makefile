@@ -45,8 +45,7 @@ else
 	BUILD_CLIENT = false
 endif
 
-# Golang Flags
-GOPATH ?= $(shell go env GOPATH)
+# Go Flags
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
 GOBIN=$(PWD)/bin
 GO=go
