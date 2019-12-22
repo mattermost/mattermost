@@ -1074,7 +1074,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 
 		rusers, resp = th.Client.AutocompleteUsersInChannel(teamId, channelId, "", model.USER_SEARCH_DEFAULT_LIMIT, "")
 		CheckNoError(t, resp)
-		assert.Len(t, rusers.OutOfChannel, 0)
+		assert.Empty(t, rusers.OutOfChannel)
 
 		th.App.GetOrCreateDirectChannel(permissionsUser.Id, otherUser.Id)
 
@@ -2025,11 +2025,11 @@ func TestGetUsersNotInTeam(t *testing.T) {
 
 	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 1, 1, "")
 	CheckNoError(t, resp)
-	require.Len(t, rusers, 0, "should be no users")
+	require.Empty(t, rusers, "should be no users")
 
 	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Len(t, rusers, 0, "should be no users")
+	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
 	_, resp = th.Client.GetUsersNotInTeam(teamId, 0, 60, "")
@@ -2065,7 +2065,7 @@ func TestGetUsersInChannel(t *testing.T) {
 
 	rusers, resp = th.Client.GetUsersInChannel(channelId, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Len(t, rusers, 0, "should be no users")
+	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
 	_, resp = th.Client.GetUsersInChannel(channelId, 0, 60, "")
@@ -2101,7 +2101,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 
 	rusers, resp = th.Client.GetUsersNotInChannel(teamId, channelId, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Len(t, rusers, 0, "should be no users")
+	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
 	_, resp = th.Client.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
@@ -3648,7 +3648,7 @@ func TestSearchUserAccessToken(t *testing.T) {
 	rtokens, resp = th.SystemAdminClient.SearchUserAccessTokens(&model.UserAccessTokenSearch{Term: "not found"})
 	CheckNoError(t, resp)
 
-	require.Len(t, rtokens, 0, "should have 1 tokens")
+	require.Empty(t, rtokens, "should have 1 tokens")
 }
 
 func TestRevokeUserAccessToken(t *testing.T) {
