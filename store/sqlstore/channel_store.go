@@ -276,19 +276,16 @@ type publicChannel struct {
 
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
-var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func (s SqlChannelStore) ClearCaches() {
 	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
-	channelCache.Purge()
 	channelByNameCache.Purge()
 
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props for Channel - Purge")
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
 		s.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
 	}
 }
@@ -575,9 +572,6 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
 			dupChannel := model.Channel{}
 			s.GetMaster().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
-			if dupChannel.DeleteAt > 0 {
-				return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.previously.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
-			}
 			return &dupChannel, model.NewAppError("SqlChannelStore.Save", store.CHANNEL_EXISTS_ERROR, nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
 		}
 		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.save.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
@@ -664,10 +658,6 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.Chan
 }
 
 func (s SqlChannelStore) InvalidateChannel(id string) {
-	channelCache.Remove(id)
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Remove by ChannelId")
-	}
 }
 
 func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
@@ -708,20 +698,6 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*mode
 		db = s.GetReplica()
 	}
 
-	if allowFromCache {
-		if cacheItem, ok := channelCache.Get(id); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Channel")
-			}
-			ch := cacheItem.(*model.Channel).DeepCopy()
-			return ch, nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Channel")
-	}
-
 	obj, err := db.Get(model.Channel{}, id)
 	if err != nil {
 		return nil, model.NewAppError("SqlChannelStore.Get", "store.sql_channel.get.find.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
@@ -732,7 +708,6 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*mode
 	}
 
 	ch := obj.(*model.Channel)
-	channelCache.AddWithExpiresInSecs(id, ch, CHANNEL_CACHE_SEC)
 	return ch, nil
 }
 
@@ -960,7 +935,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	}
 
 	if len(opts.ExcludeChannelNames) > 0 {
-		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
 
 	return query
@@ -1132,14 +1107,8 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 			}
 			visited[name] = struct{}{}
 			if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Channel By Name")
-				}
 				channels = append(channels, cacheItem.(*model.Channel))
 			} else {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter("Channel By Name")
-				}
 				misses = append(misses, name)
 			}
 		}
@@ -1170,6 +1139,15 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 		for _, channel := range dbChannels {
 			channelByNameCache.AddWithExpiresInSecs(teamId+channel.Name, channel, CHANNEL_CACHE_SEC)
 			channels = append(channels, channel)
+		}
+		// Not all channels are in cache. Increment aggregate miss counter.
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter("Channel By Name - Aggregate")
+		}
+	} else {
+		// All of the channel names are in cache. Increment aggregate hit counter.
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheHitCounter("Channel By Name - Aggregate")
 		}
 	}
 
@@ -2253,15 +2231,19 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 	}
 
 	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
-	if len(likeTerm) > 0 {
-		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "'"+likeTerm+"'")
+	if likeTerm != "" {
+		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
 		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "'"+fulltextTerm+"'")
-		query = query.Where("(" + likeClause + " OR " + fulltextClause + ")")
+		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "?")
+		query = query.Where(sq.Or{
+			sq.Expr(likeClause, likeTerm, likeTerm, likeTerm), // Keep the number of likeTerms same as the number
+			// of columns (c.Name, c.DisplayName, c.Purpose)
+			sq.Expr(fulltextClause, fulltextTerm),
+		})
 	}
 
 	if len(opts.ExcludeChannelNames) > 0 {
-		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
 
 	if len(opts.NotAssociatedToGroup) > 0 {
