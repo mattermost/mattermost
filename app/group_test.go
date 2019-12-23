@@ -296,7 +296,7 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    group1.Id,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
@@ -304,7 +304,7 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	groupSyncable2, err := th.App.CreateGroupSyncable(&model.GroupSyncable{
+	groupSyncable2, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    group2.Id,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,

@@ -714,7 +714,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
 		require.Nil(t, err)
 
-		gs, err := th.App.CreateGroupSyncable(&model.GroupSyncable{
+		gs, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
 			AutoAdd:     true,
 			SyncableId:  team.Id,
 			Type:        model.GroupSyncableTypeTeam,
