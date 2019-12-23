@@ -127,6 +127,7 @@ jobs:
               --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              --env GOBIN=/mattermost/mattermost-server/bin \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:oct-18-2019 \
