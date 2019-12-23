@@ -395,7 +395,7 @@ func testFileInfoDeleteForPost(t *testing.T, ss store.Store) {
 
 	infos, err = ss.FileInfo().GetForPost(postId, true, false, false)
 	require.Nil(t, err)
-	assert.Len(t, infos, 0)
+	assert.Empty(t, infos)
 }
 
 func testFileInfoPermanentDelete(t *testing.T, ss store.Store) {
