@@ -4,8 +4,10 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -55,8 +57,12 @@ type Store interface {
 // NewStore creates a database or file store given a data source name by which to connect.
 func NewStore(dsn string, watch bool) (Store, error) {
 	if strings.HasPrefix(dsn, "mysql://") || strings.HasPrefix(dsn, "postgres://") {
+		msg := fmt.Sprintf("Loading configuration from the database. DSN: %s", dsn)
+		mlog.Info(msg)
 		return NewDatabaseStore(dsn)
 	}
 
+	msg := fmt.Sprintf("Loading configuration from a file. Path: %s", dsn)
+	mlog.Info(msg)
 	return NewFileStore(dsn, watch)
 }
