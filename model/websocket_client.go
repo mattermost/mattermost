@@ -17,18 +17,18 @@ const (
 )
 
 // WebSocketClient stores the necessary information required to
-// communicate with a websocket endpoint.
+// communicate with a WebSocket endpoint.
 type WebSocketClient struct {
 	Url                string                  // The location of the server like "ws://localhost:8065"
-	ApiUrl             string                  // The Api location of the server like "ws://localhost:8065/api/v3"
-	ConnectUrl         string                  // The websocket URL to connect to like "ws://localhost:8065/api/v3/path/to/websocket"
-	Conn               *websocket.Conn         // The webSocket connection
-	AuthToken          string                  // The token used to open the webSocket connection
+	ApiUrl             string                  // The API location of the server like "ws://localhost:8065/api/v3"
+	ConnectUrl         string                  // The WebSocket URL to connect to like "ws://localhost:8065/api/v3/path/to/websocket"
+	Conn               *websocket.Conn         // The WebSocket connection
+	AuthToken          string                  // The token used to open the WebSocket connection
 	Sequence           int64                   // The ever-incrementing sequence attached to each WebSocket action
 	PingTimeoutChannel chan bool               // The channel used to signal ping timeouts
 	EventChannel       chan *WebSocketEvent    // The channel used to receive various events pushed from the server. For example: typing, posted
 	ResponseChannel    chan *WebSocketResponse // The channel used to receive responses for requests made to the server
-	ListenError        *AppError               // This field will be set if there was an abnormal closure of the websocket connection
+	ListenError        *AppError               // A field that is set if there was an abnormal closure of the WebSocket connection
 	pingTimeoutTimer   *time.Timer
 }
 

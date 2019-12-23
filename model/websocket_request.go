@@ -14,7 +14,7 @@ import (
 type WebSocketRequest struct {
 	// Client-provided fields
 	Seq    int64                  `json:"seq"`    // A counter which is incremented for every request made.
-	Action string                 `json:"action"` // The action to perform for a request. For eg: get_statuses, user_typing.
+	Action string                 `json:"action"` // The action to perform for a request. For example: get_statuses, user_typing.
 	Data   map[string]interface{} `json:"data"`   // The metadata for an action.
 
 	// Server-provided fields

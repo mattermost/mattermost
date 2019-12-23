@@ -129,11 +129,11 @@ func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
 	return o
 }
 
-// WebSocketResponse represents a response received through the websocket
+// WebSocketResponse represents a response received through the WebSocket
 // for a request made to the server. This is available through the ResponseChannel
 // channel in WebSocketClient.
 type WebSocketResponse struct {
-	Status   string                 `json:"status"`              // The status of the response. For eg: OK, FAIL.
+	Status   string                 `json:"status"`              // The status of the response. For example: OK, FAIL.
 	SeqReply int64                  `json:"seq_reply,omitempty"` // A counter which is incremented for every response sent.
 	Data     map[string]interface{} `json:"data,omitempty"`      // The data contained in the response.
 	Error    *AppError              `json:"error,omitempty"`     // A field that is set if any error has occurred.
