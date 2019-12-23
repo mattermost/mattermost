@@ -10,6 +10,7 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
+    resource_class: "large"
 
 jobs:
   setup:
