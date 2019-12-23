@@ -92,11 +92,15 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
 	cacheItem := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id)
 	if cacheItem != nil {
-		s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
+		if s.rootStore.metrics != nil {
+			s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
+		}
 		u := *cacheItem.(*model.User)
 		return &u, nil
 	}
-	s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
+	}
 	user, err := s.UserStore.Get(id)
 	if err != nil {
 		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
