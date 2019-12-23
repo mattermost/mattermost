@@ -376,6 +376,10 @@
     "translation": "A încercat să efectueze o actualizare invalidă a canalului implicit {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Tipul de canal nu poate fi actualizat"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Actualizare membru al canalului nevalid: Nu puteți adăuga sau elimina manual rolul de invitat"
   },
@@ -1876,7 +1880,7 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+    "translation": "{{.Filename}} în arhiva zip prea mare pentru a procesa importul Slack\r\n"
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -2036,11 +2040,11 @@
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
-    "translation": "Pagination not implemented for private-only team search."
+    "translation": "Paginarea nu este implementată pentru căutarea în echipă doar privată."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
-    "translation": "Pagination not implemented for public-only team search."
+    "translation": "Paginarea nu este implementată pentru căutarea în echipă doar publică."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -3580,7 +3584,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
-    "translation": "Could not find the requested marketplace plugin."
+    "translation": "Nu a putut găsi pluginul solicitat pentru piață."
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -5921,10 +5925,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "Aţi atins limita numărului de permise canale."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Un canal cu că URL-ul a fost creat anterior"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",

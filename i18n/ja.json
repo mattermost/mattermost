@@ -376,6 +376,10 @@
     "translation": "デフォルトのチャンネル{{.Channel}}に不正な更新をしようとしました"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "チャンネル種別を更新できません"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "不正なチャンネルメンバー更新: 手動でゲストの役割を追加/削除することはできません"
   },
@@ -3060,7 +3064,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "チャンネルの種類が不正です。"
+    "translation": "チャンネル種別が不正です。"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
@@ -5656,11 +5660,11 @@
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "削除済みのチャンネル形式数を取得できませんでした"
+    "translation": "削除済みのチャンネル種別数を取得できませんでした"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "チャンネル形式数を取得できませんでした"
+    "translation": "チャンネル種別数を取得できませんでした"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -5921,10 +5925,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "許可されたチャンネルのメンバーの上限に達しました"
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "そのURLのチャンネルは以前に作成されました"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",

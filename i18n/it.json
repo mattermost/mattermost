@@ -376,6 +376,10 @@
     "translation": "Tentativo di esecuzione di un aggiornamento non valido per il canale predefinito {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Il tipo del canale non può essere aggiornato"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Aggiornamento membro del canale non valido. Non si può aggiungere o rimuovere il ruolo ospite manualmente"
   },
@@ -5921,10 +5925,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "Hai raggiunto il limite di numero di canali consentiti."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Un canale con quell'URL è stato creato precedentemente"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
