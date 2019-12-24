@@ -98,6 +98,11 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *c.App.Config().JobSettings.RunJobs {
+		c.App.Srv.Jobs.Workers = c.App.Srv.Jobs.InitWorkers()
+		c.App.Srv.Jobs.StartWorkers()
+	}
+
 	c.LogAudit("success")
 	w.Write([]byte(license.ToJson()))
 }
