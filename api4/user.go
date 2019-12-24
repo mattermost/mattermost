@@ -1430,19 +1430,15 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIsAuthenticated, userName := utils.CheckIfUserIsAuthenticated(w, r)
-	fmt.Println("UserIsAuthenticated? ", userIsAuthenticated)
-	fmt.Println("user name is? ", userName)
+
 	if userIsAuthenticated {
 		if len(userName) > 0 {
 			// try to find user by user name first
 			user, err := c.App.GetUserByUsername(userName)
-			fmt.Println("user found? ", user)
-			fmt.Println("any get user by name error? ", err)
+
 			// if user not found, create a new one
 			if user == nil {
 				user, err = c.App.CreateCasUser(userName)
-				fmt.Println("newly created user: ", user)
-				fmt.Println("any create user by name error? ", err)
 			}
 
 			if err != nil {
@@ -1463,6 +1459,12 @@ func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			c.LogAuditWithUserId(user.Id, "authenticated")
+
+			err = c.App.DoLogin(w, r, user, "")
+			if err != nil {
+				c.Err = err
+				return
+			}
 
 			c.LogAuditWithUserId(user.Id, "success")
 
