@@ -632,6 +632,10 @@ func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SYSTEM_GUEST_ROLE_ID)
 }
 
+func (u *User) IsAdmin() bool {
+	return IsInRole(u.Roles, SYSTEM_ADMIN_ROLE_ID)
+}
+
 // Make sure you acually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsInRole(inRole string) bool {

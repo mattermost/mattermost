@@ -1703,6 +1703,7 @@ type LdapSettings struct {
 	UserFilter  *string
 	GroupFilter *string
 	GuestFilter *string
+	AdminFilter *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string
@@ -1776,6 +1777,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.GuestFilter == nil {
 		s.GuestFilter = NewString("")
+	}
+
+	if s.AdminFilter == nil {
+		s.AdminFilter = NewString("")
 	}
 
 	if s.GroupFilter == nil {
@@ -2813,6 +2818,12 @@ func (ls *LdapSettings) isValid() *AppError {
 		if *ls.GuestFilter != "" {
 			if _, err := ldap.CompileFilter(*ls.GuestFilter); err != nil {
 				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+		}
+
+		if *ls.AdminFilter != "" {
+			if _, err := ldap.CompileFilter(*ls.AdminFilter); err != nil {
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_admin_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
 	}
