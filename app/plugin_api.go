@@ -734,11 +734,9 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
-	api.app.Publish(&model.WebSocketEvent{
-		Event:     fmt.Sprintf("custom_%v_%v", api.id, event),
-		Data:      payload,
-		Broadcast: broadcast,
-	})
+	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil)
+	ev = ev.SetBroadcast(broadcast).SetData(payload)
+	api.app.Publish(ev)
 }
 
 func (api *PluginAPI) HasPermissionTo(userId string, permission *model.Permission) bool {
