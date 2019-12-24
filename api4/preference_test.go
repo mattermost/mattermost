@@ -259,6 +259,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 			Name:     model.NewId(),
 		},
 	}
+
 	_, resp := th.Client.UpdatePreferences(userId, preferences)
 	CheckNoError(t, resp)
 
@@ -268,12 +269,12 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.Event != model.WEBSOCKET_EVENT_PREFERENCES_CHANGED {
+			if event.EventType() != model.WEBSOCKET_EVENT_PREFERENCES_CHANGED {
 				// Ignore any other events
 				continue
 			}
 
-			received, err := model.PreferencesFromJson(strings.NewReader(event.Data["preferences"].(string)))
+			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
 			require.NoError(t, err)
 
 			for i, p := range *preferences {
@@ -376,12 +377,12 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.Event != model.WEBSOCKET_EVENT_PREFERENCES_DELETED {
+			if event.EventType() != model.WEBSOCKET_EVENT_PREFERENCES_DELETED {
 				// Ignore any other events
 				continue
 			}
 
-			received, err := model.PreferencesFromJson(strings.NewReader(event.Data["preferences"].(string)))
+			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
 			if err != nil {
 				t.Fatal(err)
 			}
