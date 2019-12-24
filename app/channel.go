@@ -373,9 +373,11 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
 		return nil, err
 	}
-	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
-		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
-		return nil, err
+	if userId != otherUserId {
+		if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
+			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+			return nil, err
+		}
 	}
 
 	return channel, nil
