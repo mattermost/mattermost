@@ -38,7 +38,6 @@ func TestPostIsValid(t *testing.T) {
 	require.NotNil(t, err)
 
 	o.CreateAt = GetMillis()
-
 	err = o.IsValid(maxPostSize)
 	require.NotNil(t, err)
 
