@@ -933,8 +933,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		SchemeUser:  !user.IsGuest(),
 	}
 
-	var userShouldBeAdmin bool
 	if !user.IsGuest() {
+		var userShouldBeAdmin bool
 		userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, channel.Id, model.GroupSyncableTypeChannel)
 		if err != nil {
 			return nil, err

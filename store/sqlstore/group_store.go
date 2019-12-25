@@ -1203,7 +1203,7 @@ func (s *SqlGroupStore) PermittedSyncableAdmins(syncableID string, syncableType 
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.PermittedSyncableAdmins", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	fmt.Println(sql)
+
 	var userIDs []string
 	if _, err = s.GetReplica().Select(&userIDs, sql, args...); err != nil {
 		return nil, model.NewAppError("SqlGroupStore.PermittedSyncableAdmins", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
