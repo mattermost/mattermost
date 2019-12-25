@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -55,6 +56,7 @@ func verifyTicket(r *http.Request) (bool, string) {
 	}
 
 	dataStr := string(data)
+	fmt.Println("ticket verification results: ", dataStr)
 	if !strings.Contains(dataStr, "cas:authenticationSuccess") {
 		return false, userName
 	}

@@ -1430,12 +1430,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIsAuthenticated, userName := utils.CheckIfUserIsAuthenticated(w, r)
-
 	if userIsAuthenticated {
 		if len(userName) > 0 {
 			// try to find user by user name first
 			user, err := c.App.GetUserByUsername(userName)
 
+			fmt.Println("CAS authentication results: ", userIsAuthenticated, userName)
 			// if user not found, create a new one
 			if user == nil {
 				user, err = c.App.CreateCasUser(userName)
