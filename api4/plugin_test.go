@@ -315,7 +315,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-webSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED && len(resp.Data["plugin_statuses"].([]interface{})) == 0 {
+				if resp.EventType() == model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED && len(resp.GetData()["plugin_statuses"].([]interface{})) == 0 {
 					done <- true
 					return
 				}
