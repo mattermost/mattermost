@@ -1174,7 +1174,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.False(t, ok, "should not have mentioned any user with @channel")
 	_, ok = mentions["@all"]
 	require.False(t, ok, "should not have mentioned any user with @all")
-	ids, ok = mentions["@here"]
+	_, ok = mentions["@here"]
 	require.False(t, ok, "should not have mentioned any user with @here")
 
 	// user with empty mention keys
