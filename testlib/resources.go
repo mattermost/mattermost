@@ -46,7 +46,7 @@ var commonBaseSearchPaths = []string{
 }
 
 func findFile(path string) string {
-	return fileutils.FindPath(path, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+	return fileutils.FindPath(path, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool { //nolint
 		return !fileInfo.IsDir()
 	})
 }
@@ -61,7 +61,7 @@ func findDir(dir string) (string, bool) {
 		return path.Dir(srcPath), true
 	}
 
-	found := fileutils.FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+	found := fileutils.FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool { //nolint
 		return fileInfo.IsDir()
 	})
 	if found == "" {
