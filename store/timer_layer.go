@@ -1736,10 +1736,10 @@ func (s *TimerLayerChannelStore) UpdateMember(member *model.ChannelMember) (*mod
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string, idEquality Equality, newSchemeAdminValue bool) *model.AppError {
+func (s *TimerLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) *model.AppError {
 	start := timemodule.Now()
 
-	resultVar0 := s.ChannelStore.UpdateMembersRole(channelID, userIDs, idEquality, newSchemeAdminValue)
+	resultVar0 := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5928,10 +5928,10 @@ func (s *TimerLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.Tea
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string, idEquality Equality, newSchemeAdminValue bool) *model.AppError {
+func (s *TimerLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.AppError {
 	start := timemodule.Now()
 
-	resultVar0 := s.TeamStore.UpdateMembersRole(teamID, userIDs, idEquality, newSchemeAdminValue)
+	resultVar0 := s.TeamStore.UpdateMembersRole(teamID, userIDs)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
