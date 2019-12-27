@@ -3208,31 +3208,26 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 	tests := []struct {
 		testName               string
 		inUserIDs              []string
-		equality               store.Equality
 		targetSchemeAdminValue bool
 	}{
 		{
 			"Given users are admins",
 			[]string{user1.Id, user2.Id},
-			store.Equals,
 			true,
 		},
 		{
 			"Given users are members",
 			[]string{user2.Id},
-			store.Equals,
 			false,
 		},
 		{
 			"Non-given users are admins",
 			[]string{user2.Id},
-			store.Equals,
 			false,
 		},
 		{
 			"Non-given users are members",
 			[]string{user2.Id},
-			store.Equals,
 			false,
 		},
 	}
@@ -3256,8 +3251,10 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 			require.GreaterOrEqual(t, len(members), 3) // sanity check for team membership
 
 			for _, member := range members {
-				if (includes(tt.inUserIDs, member.UserId) && tt.equality == store.Equals) || !includes(tt.inUserIDs, member.UserId) && tt.equality == store.NotEquals {
-					require.Equal(t, member.SchemeAdmin, tt.targetSchemeAdminValue)
+				if includes(tt.inUserIDs, member.UserId) {
+					require.True(t, member.SchemeAdmin)
+				} else {
+					require.False(t, member.SchemeAdmin)
 				}
 			}
 		})
@@ -3307,31 +3304,26 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 	tests := []struct {
 		testName               string
 		inUserIDs              []string
-		equality               store.Equality
 		targetSchemeAdminValue bool
 	}{
 		{
 			"Given users are admins",
 			[]string{user1.Id, user2.Id},
-			store.Equals,
 			true,
 		},
 		{
 			"Given users are members",
 			[]string{user2.Id},
-			store.Equals,
 			false,
 		},
 		{
 			"Non-given users are admins",
 			[]string{user2.Id},
-			store.Equals,
 			false,
 		},
 		{
 			"Non-given users are members",
 			[]string{user2.Id},
-			store.Equals,
 			false,
 		},
 	}
@@ -3356,8 +3348,10 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 			require.GreaterOrEqual(t, len(*members), 3) // sanity check for channel membership
 
 			for _, member := range *members {
-				if (includes(tt.inUserIDs, member.UserId) && tt.equality == store.Equals) || !includes(tt.inUserIDs, member.UserId) && tt.equality == store.NotEquals {
-					require.Equal(t, member.SchemeAdmin, tt.targetSchemeAdminValue)
+				if includes(tt.inUserIDs, member.UserId) {
+					require.True(t, member.SchemeAdmin)
+				} else {
+					require.False(t, member.SchemeAdmin)
 				}
 			}
 		})

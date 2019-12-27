@@ -2848,8 +2848,7 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, userIDs []string) *
 				FALSE
 			END
 		WHERE
-			ChannelId = :ChannelId
-			AND DeleteAt = 0`, strings.Join(userIDs, "', '"))
+			ChannelId = :ChannelId`, strings.Join(userIDs, "', '"))
 
 	if _, err := s.GetMaster().Exec(sql, map[string]interface{}{"ChannelId": channelID}); err != nil {
 		return model.NewAppError("SqlChannelStore.UpdateMembersRole", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
