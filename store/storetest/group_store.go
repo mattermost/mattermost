@@ -3248,7 +3248,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
-			err = ss.Team().UpdateMembersRole(team.Id, tt.inUserIDs, tt.equality, tt.targetSchemeAdminValue)
+			err = ss.Team().UpdateMembersRole(team.Id, tt.inUserIDs)
 			require.Nil(t, err)
 
 			members, err := ss.Team().GetMembers(team.Id, 0, 100, nil)
@@ -3347,7 +3347,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
-			err = ss.Channel().UpdateMembersRole(channel.Id, tt.inUserIDs, tt.equality, tt.targetSchemeAdminValue)
+			err = ss.Channel().UpdateMembersRole(channel.Id, tt.inUserIDs)
 			require.Nil(t, err)
 
 			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)

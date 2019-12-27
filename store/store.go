@@ -9,13 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-type Equality int
-
-const (
-	Equals Equality = iota
-	NotEquals
-)
-
 type StoreResult struct {
 	Data interface{}
 	Err  *model.AppError
@@ -114,9 +107,9 @@ type TeamStore interface {
 	InvalidateAllTeamIdsForUser(userId string)
 	ClearCaches()
 
-	// UpdateMembersRole updates the SchemeAdmin field value of the given list of team members (equals)
-	// or those that are not in the given list (not equals).
-	UpdateMembersRole(teamID string, userIDs []string, idEquality Equality, newSchemeAdminValue bool) *model.AppError
+	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
+	// non-admin members.
+	UpdateMembersRole(teamID string, userIDs []string) *model.AppError
 }
 
 type ChannelStore interface {
@@ -202,9 +195,9 @@ type ChannelStore interface {
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
 	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)
 
-	// UpdateMembersRole updates the SchemeAdmin field value of the given list of channel members (equals)
-	// or those that are not in the given list (not equals).
-	UpdateMembersRole(channelID string, userIDs []string, idEquality Equality, newSchemeAdminValue bool) *model.AppError
+	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
+	// non-admin members.
+	UpdateMembersRole(channelID string, userIDs []string) *model.AppError
 }
 
 type ChannelMemberHistoryStore interface {

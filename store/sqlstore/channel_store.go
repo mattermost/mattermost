@@ -2837,25 +2837,21 @@ func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []strin
 	return c > 0, nil
 }
 
-func (s SqlChannelStore) UpdateMembersRole(channelID string, userIDs []string, idEquality store.Equality, newSchemeAdminValue bool) *model.AppError {
-	query := s.getQueryBuilder().
-		Update("ChannelMembers").
-		Set("SchemeAdmin", newSchemeAdminValue).
-		Where(sq.Eq{"ChannelId": channelID})
+func (s SqlChannelStore) UpdateMembersRole(channelID string, userIDs []string) *model.AppError {
+	sql := fmt.Sprintf(`
+		UPDATE
+			ChannelMembers
+		SET
+			SchemeAdmin = CASE WHEN UserId IN ('%s') THEN
+				TRUE
+			ELSE
+				FALSE
+			END
+		WHERE
+			ChannelId = :ChannelId
+			AND DeleteAt = 0`, strings.Join(userIDs, "', '"))
 
-	if idEquality == store.Equals {
-		query = query.Where(sq.Eq{"UserId": userIDs})
-	}
-	if idEquality == store.NotEquals {
-		query = query.Where(sq.NotEq{"UserId": userIDs})
-	}
-
-	sql, params, err := query.ToSql()
-	if err != nil {
-		return model.NewAppError("SqlChannelStore.UpdateMembersRole", "store.sql_team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if _, err = s.GetMaster().Exec(sql, params...); err != nil {
+	if _, err := s.GetMaster().Exec(sql, map[string]interface{}{"ChannelId": channelID}); err != nil {
 		return model.NewAppError("SqlChannelStore.UpdateMembersRole", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

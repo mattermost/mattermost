@@ -1707,13 +1707,13 @@ func (_m *ChannelStore) UpdateMember(member *model.ChannelMember) (*model.Channe
 	return r0, r1
 }
 
-// UpdateMembersRole provides a mock function with given fields: channelID, userIDs, idEquality, newSchemeAdminValue
-func (_m *ChannelStore) UpdateMembersRole(channelID string, userIDs []string, idEquality store.Equality, newSchemeAdminValue bool) *model.AppError {
-	ret := _m.Called(channelID, userIDs, idEquality, newSchemeAdminValue)
+// UpdateMembersRole provides a mock function with given fields: channelID, userIDs
+func (_m *ChannelStore) UpdateMembersRole(channelID string, userIDs []string) *model.AppError {
+	ret := _m.Called(channelID, userIDs)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, []string, store.Equality, bool) *model.AppError); ok {
-		r0 = rf(channelID, userIDs, idEquality, newSchemeAdminValue)
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(channelID, userIDs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
