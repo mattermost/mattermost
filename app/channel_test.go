@@ -1149,26 +1149,3 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		assert.Nil(t, response)
 	})
 }
-
-func TestRestoreChannel(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-
-	publicChannel1 := th.CreatePublicChannel()
-	Client.DeleteChannel(publicChannel1.Id)
-
-	privateChannel1 := th.CreatePrivateChannel()
-	Client.DeleteChannel(privateChannel1.Id)
-
-	th.LoginTeamAdmin()
-
-	_, resp = Client.RestoreChannel(publicChannel1.Id)
-	CheckOKStatus(t, resp)
-
-	_, resp = Client.RestoreChannel(privateChannel1.Id)
-	CheckOKStatus(t, resp)
-
-	ch, err := th.App.GetChannel(publicChannel1.Id)
-	require.True(t, err != nil || ch.DeleteAt == 0, "should have restored channel with variable DeleteAt = 0.")
-}
