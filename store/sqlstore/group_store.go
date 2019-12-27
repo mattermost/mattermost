@@ -724,16 +724,6 @@ func groupSyncableToGroupChannel(groupSyncable *model.GroupSyncable) *groupChann
 }
 
 func (s *SqlGroupStore) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
-	selectStmt := `
-		TeamMembers.TeamId,
-		TeamMembers.UserId,
-		TeamMembers.Roles,
-		TeamMembers.DeleteAt,
-		TeamMembers.SchemeUser,
-		TeamMembers.SchemeAdmin,
-		(TeamMembers.SchemeGuest IS NOT NULL
-			AND TeamMembers.SchemeGuest) AS SchemeGuest`
-
 	whereStmt := `
 		(TeamMembers.TeamId,
 			TeamMembers.UserId)
@@ -756,7 +746,15 @@ func (s *SqlGroupStore) TeamMembersToRemove(teamID *string) ([]*model.TeamMember
 				Teams.Id,
 				GroupMembers.UserId)`
 
-	query := s.getQueryBuilder().Select(selectStmt).
+	query := s.getQueryBuilder().Select(
+		"TeamMembers.TeamId",
+		"TeamMembers.UserId",
+		"TeamMembers.Roles",
+		"TeamMembers.DeleteAt",
+		"TeamMembers.SchemeUser",
+		"TeamMembers.SchemeAdmin",
+		"(TeamMembers.SchemeGuest IS NOT NULL AND TeamMembers.SchemeGuest) AS SchemeGuest",
+	).
 		From("TeamMembers").
 		Join("Teams ON Teams.Id = TeamMembers.TeamId").
 		LeftJoin("Bots ON Bots.UserId = TeamMembers.UserId").
@@ -822,20 +820,6 @@ func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSea
 }
 
 func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, *model.AppError) {
-	selectStmt := `
-		ChannelMembers.ChannelId,
-		ChannelMembers.UserId,
-		ChannelMembers.LastViewedAt,
-		ChannelMembers.MsgCount,
-		ChannelMembers.MentionCount,
-		ChannelMembers.NotifyProps,
-		ChannelMembers.LastUpdateAt,
-		ChannelMembers.LastUpdateAt,
-		ChannelMembers.SchemeUser,
-		ChannelMembers.SchemeAdmin,
-		(ChannelMembers.SchemeGuest IS NOT NULL
-			AND ChannelMembers.SchemeGuest) AS SchemeGuest`
-
 	whereStmt := `
 		(ChannelMembers.ChannelId,
 			ChannelMembers.UserId)
@@ -858,7 +842,19 @@ func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.Chan
 				Channels.Id,
 				GroupMembers.UserId)`
 
-	query := s.getQueryBuilder().Select(selectStmt).
+	query := s.getQueryBuilder().Select(
+		"ChannelMembers.ChannelId",
+		"ChannelMembers.UserId",
+		"ChannelMembers.LastViewedAt",
+		"ChannelMembers.MsgCount",
+		"ChannelMembers.MentionCount",
+		"ChannelMembers.NotifyProps",
+		"ChannelMembers.LastUpdateAt",
+		"ChannelMembers.LastUpdateAt",
+		"ChannelMembers.SchemeUser",
+		"ChannelMembers.SchemeAdmin",
+		"(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) AS SchemeGuest",
+	).
 		From("ChannelMembers").
 		Join("Channels ON Channels.Id = ChannelMembers.ChannelId").
 		LeftJoin("Bots ON Bots.UserId = ChannelMembers.UserId").
