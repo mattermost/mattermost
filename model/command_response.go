@@ -27,7 +27,7 @@ type CommandResponse struct {
 	Props            StringInterface    `json:"props"`
 	GotoLocation     string             `json:"goto_location"`
 	TriggerId        string             `json:"trigger_id"`
-	SkipSlackParsing bool               `json:"skip_slack_parsing"`
+	SkipSlackParsing bool               `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
 	Attachments      []*SlackAttachment `json:"attachments"`
 	ExtraResponses   []*CommandResponse `json:"extra_responses"`
 }
