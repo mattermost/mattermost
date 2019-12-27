@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"github.com/mattermost/mattermost-server/v5/model"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -212,5 +213,58 @@ func TestChannelStoreGuestCountCache(t *testing.T) {
 		cachedStore.Channel().InvalidateGuestCount("id")
 		cachedStore.Channel().GetGuestCount("id", true)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetGuestCount", 2)
+	})
+}
+
+func TestAllChannelMembersNotifyPropsForChannel(t *testing.T) {
+	t.Run("get cached info", func(t *testing.T) {
+		allChannelMembersNotifyPropsForChannelResult := map[string]model.StringMap{
+			"id": {
+				"member": "role",
+			},
+		}
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore,nil, nil)
+		allChannelMembersNotifyPropsForChannel, err := cachedStore.Channel().
+			GetAllChannelMembersNotifyPropsForChannel("id", true)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersNotifyPropsForChannel, allChannelMembersNotifyPropsForChannelResult)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersNotifyPropsForChannel", 1)
+	})
+	t.Run("get cached info after invalidate method called", func(t *testing.T) {
+
+		allChannelMembersNotifyPropsForChannelResult := map[string]model.StringMap{
+			"id": {
+				"member": "role",
+			},
+		}
+
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore,nil, nil)
+
+		allChannelMembersNotifyPropsForChannel, err := cachedStore.Channel().
+			GetAllChannelMembersNotifyPropsForChannel("id", true)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersNotifyPropsForChannel, allChannelMembersNotifyPropsForChannelResult)
+
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersNotifyPropsForChannel", 1)
+		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersNotifyPropsForChannel", "id", true)
+
+		cachedStore.Channel().ClearCaches()
+
+		allChannelMembersNotifyPropsForChannel, err = cachedStore.Channel().
+			GetAllChannelMembersNotifyPropsForChannel("id", true)
+		require.Nil(t, err)
+		assert.Equal(t, allChannelMembersNotifyPropsForChannel, allChannelMembersNotifyPropsForChannelResult)
+	})
+	t.Run("first call not cached, clear cache, second call not cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		cachedStore.Channel().GetAllChannelMembersNotifyPropsForChannel("id", true)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersNotifyPropsForChannel", 1)
+		cachedStore.Channel().ClearCaches()
+		cachedStore.Channel().GetAllChannelMembersNotifyPropsForChannel("id", false)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersNotifyPropsForChannel", 2)
 	})
 }

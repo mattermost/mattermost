@@ -106,6 +106,14 @@ func getMockStore() *mocks.Store {
 	mockTeamStore.On("GetUserTeamIds", "123", false).Return(fakeUserTeamIds, nil)
 	mockStore.On("Team").Return(&mockTeamStore)
 
+	fakeAllChannelMembersNotifyPropsForChannel := map[string]model.StringMap{
+		"id": {
+			"member":"role",
+		},
+	}
+	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "id", true).Return(
+		fakeAllChannelMembersNotifyPropsForChannel, nil)
+	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "id", false).Return(fakeAllChannelMembersNotifyPropsForChannel, nil)
 	return &mockStore
 }
 

@@ -21,6 +21,14 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberCounts(msg 
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateAllChannelMembersNotifyPropsCount(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		s.rootStore.allChannelMembersNotifyPropsForChannelCache.Purge()
+	} else {
+		s.rootStore.allChannelMembersNotifyPropsForChannelCache.Remove(msg.Data)
+	}
+}
+
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelPinnedPostCount(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
 		s.rootStore.channelPinnedPostCountsCache.Purge()
@@ -41,11 +49,13 @@ func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelPinnedPostCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.allChannelMembersNotifyPropsForChannelCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Count - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props For Channel - Purge")
 	}
 }
 
@@ -68,6 +78,30 @@ func (s LocalCacheChannelStore) InvalidateGuestCount(channelId string) {
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guests Count - Remove by channelId")
 	}
+}
+
+func (s LocalCacheChannelStore) InvalidateAllChannelMembersNotifyPropsForChannel(channelId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.allChannelMembersNotifyPropsForChannelCache, channelId)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(
+			"All Channel Members Notify Props For Channel - Remove by channelId")
+	}
+}
+
+func (s LocalCacheChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string,
+	allowFromCache bool) (map[string]model.StringMap, *model.AppError) {
+	if !allowFromCache {
+		return s.ChannelStore.GetAllChannelMembersNotifyPropsForChannel(channelId, allowFromCache)
+	}
+	if data := s.rootStore.doStandardReadCache(s.rootStore.allChannelMembersNotifyPropsForChannelCache,
+		channelId); data != nil {
+		return data.(map[string]model.StringMap), nil
+	}
+	id, err := s.ChannelStore.GetAllChannelMembersNotifyPropsForChannel(channelId, allowFromCache)
+	if err == nil {
+		s.rootStore.doStandardAddToCache(s.rootStore.allChannelMembersNotifyPropsForChannelCache, channelId, id)
+	}
+	return id, err
 }
 
 func (s LocalCacheChannelStore) GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
