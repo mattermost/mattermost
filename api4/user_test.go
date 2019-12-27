@@ -323,11 +323,11 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
-					if ev.Event == model.WEBSOCKET_EVENT_NEW_USER {
+					if ev.EventType() == model.WEBSOCKET_EVENT_NEW_USER {
 						userHasReceived = true
 					}
 				case ev := <-guestWSClient.EventChannel:
-					if ev.Event == model.WEBSOCKET_EVENT_NEW_USER {
+					if ev.EventType() == model.WEBSOCKET_EVENT_NEW_USER {
 						guestHasReceived = true
 					}
 				case <-time.After(2 * time.Second):
@@ -1675,7 +1675,7 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 		select {
 		case resp, ok := <-client.EventChannel:
 			require.Truef(t, ok, "channel closed before receiving expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
-			if resp.Event == model.WEBSOCKET_EVENT_USER_UPDATED {
+			if resp.EventType() == model.WEBSOCKET_EVENT_USER_UPDATED {
 				test(resp)
 				return
 			}
@@ -1687,7 +1687,7 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 
 func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSocketClient, email string) {
 	assertExpectedWebsocketEvent(t, client, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
-		eventUser, ok := event.Data["user"].(map[string]interface{})
+		eventUser, ok := event.GetData()["user"].(map[string]interface{})
 		require.True(t, ok, "expected user")
 		userEmail, ok := eventUser["email"].(string)
 		require.Truef(t, ok, "expected email %s, but got nil", email)
