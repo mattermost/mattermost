@@ -5179,10 +5179,6 @@
     "translation": "Die Grenze für Paging wurde überschritten"
   },
   {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Audits aufgetreten"
-  },
-  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "Es trat ein Fehler beim Löschen der Audits auf"
   },

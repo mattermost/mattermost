@@ -447,4 +447,57 @@ func TestShouldProcessMessage(t *testing.T) {
 
 		assert.True(t, shouldProcessMessage)
 	})
+
+	t.Run("should not process the message which have from_webhook", func(t *testing.T) {
+		channelID := "1"
+		api := setupAPI()
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
+		p.API = api
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+
+		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "true"}}, plugin.AllowBots())
+
+		assert.False(t, shouldProcessMessage)
+		assert.Nil(t, err)
+	})
+
+	t.Run("should process the message which have from_webhook with allow webhook plugin", func(t *testing.T) {
+		channelID := "1"
+		api := setupAPI()
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
+		p.API = api
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+
+		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "true"}}, plugin.AllowBots(), plugin.AllowWebhook())
+		assert.Nil(t, err)
+
+		assert.True(t, shouldProcessMessage)
+	})
+
+	t.Run("should process the message where from_webhook is not set", func(t *testing.T) {
+		channelID := "1"
+		api := setupAPI()
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
+		p.API = api
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+
+		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID}, plugin.AllowBots())
+		assert.Nil(t, err)
+
+		assert.True(t, shouldProcessMessage)
+	})
+
+	t.Run("should process the message which have from_webhook false", func(t *testing.T) {
+		channelID := "1"
+		api := setupAPI()
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
+		p.API = api
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+
+		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "false"}}, plugin.AllowBots())
+		assert.Nil(t, err)
+
+		assert.True(t, shouldProcessMessage)
+	})
+
 }
