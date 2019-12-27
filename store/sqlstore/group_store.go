@@ -724,12 +724,44 @@ func groupSyncableToGroupChannel(groupSyncable *model.GroupSyncable) *groupChann
 }
 
 func (s *SqlGroupStore) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
-	query := s.getQueryBuilder().Select("TeamMembers.TeamId, TeamMembers.UserId, TeamMembers.Roles, TeamMembers.DeleteAt, TeamMembers.SchemeUser, TeamMembers.SchemeAdmin, (TeamMembers.SchemeGuest IS NOT NULL AND TeamMembers.SchemeGuest) as SchemeGuest").
+	selectStmt := `
+		TeamMembers.TeamId,
+		TeamMembers.UserId,
+		TeamMembers.Roles,
+		TeamMembers.DeleteAt,
+		TeamMembers.SchemeUser,
+		TeamMembers.SchemeAdmin,
+		(TeamMembers.SchemeGuest IS NOT NULL
+			AND TeamMembers.SchemeGuest) AS SchemeGuest`
+
+	whereStmt := `
+		(TeamMembers.TeamId,
+			TeamMembers.UserId)
+		NOT IN (
+			SELECT
+				Teams.Id AS TeamId,
+				GroupMembers.UserId
+			FROM
+				Teams
+				JOIN GroupTeams ON GroupTeams.TeamId = Teams.Id
+				JOIN UserGroups ON UserGroups.Id = GroupTeams.GroupId
+				JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
+			WHERE
+				Teams.GroupConstrained = TRUE
+				AND GroupTeams.DeleteAt = 0
+				AND UserGroups.DeleteAt = 0
+				AND Teams.DeleteAt = 0
+				AND GroupMembers.DeleteAt = 0
+			GROUP BY
+				Teams.Id,
+				GroupMembers.UserId)`
+
+	query := s.getQueryBuilder().Select(selectStmt).
 		From("TeamMembers").
 		Join("Teams ON Teams.Id = TeamMembers.TeamId").
 		LeftJoin("Bots ON Bots.UserId = TeamMembers.UserId").
 		Where(sq.Eq{"TeamMembers.DeleteAt": 0, "Teams.DeleteAt": 0, "Teams.GroupConstrained": true, "Bots.UserId": nil}).
-		Where("(TeamMembers.TeamId, TeamMembers.UserId) NOT IN (SELECT Teams.Id AS TeamId, GroupMembers.UserId FROM Teams JOIN GroupTeams ON GroupTeams.TeamId = Teams.Id JOIN UserGroups ON UserGroups.Id = GroupTeams.GroupId JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id WHERE Teams.GroupConstrained = TRUE AND GroupTeams.DeleteAt = 0 AND UserGroups.DeleteAt = 0 AND Teams.DeleteAt = 0 AND GroupMembers.DeleteAt = 0 GROUP BY Teams.Id, GroupMembers.UserId)")
+		Where(whereStmt)
 
 	if teamID != nil {
 		query = query.Where(sq.Eq{"TeamMembers.TeamId": *teamID})
@@ -790,12 +822,48 @@ func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSea
 }
 
 func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, *model.AppError) {
-	query := s.getQueryBuilder().Select("ChannelMembers.ChannelId, ChannelMembers.UserId, ChannelMembers.LastViewedAt, ChannelMembers.MsgCount, ChannelMembers.MentionCount, ChannelMembers.NotifyProps, ChannelMembers.LastUpdateAt, ChannelMembers.LastUpdateAt, ChannelMembers.SchemeUser, ChannelMembers.SchemeAdmin, (ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest").
+	selectStmt := `
+		ChannelMembers.ChannelId,
+		ChannelMembers.UserId,
+		ChannelMembers.LastViewedAt,
+		ChannelMembers.MsgCount,
+		ChannelMembers.MentionCount,
+		ChannelMembers.NotifyProps,
+		ChannelMembers.LastUpdateAt,
+		ChannelMembers.LastUpdateAt,
+		ChannelMembers.SchemeUser,
+		ChannelMembers.SchemeAdmin,
+		(ChannelMembers.SchemeGuest IS NOT NULL
+			AND ChannelMembers.SchemeGuest) AS SchemeGuest`
+
+	whereStmt := `
+		(ChannelMembers.ChannelId,
+			ChannelMembers.UserId)
+		NOT IN (
+			SELECT
+				Channels.Id AS ChannelId,
+				GroupMembers.UserId
+			FROM
+				Channels
+				JOIN GroupChannels ON GroupChannels.ChannelId = Channels.Id
+				JOIN UserGroups ON UserGroups.Id = GroupChannels.GroupId
+				JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
+			WHERE
+				Channels.GroupConstrained = TRUE
+				AND GroupChannels.DeleteAt = 0
+				AND UserGroups.DeleteAt = 0
+				AND Channels.DeleteAt = 0
+				AND GroupMembers.DeleteAt = 0
+			GROUP BY
+				Channels.Id,
+				GroupMembers.UserId)`
+
+	query := s.getQueryBuilder().Select(selectStmt).
 		From("ChannelMembers").
 		Join("Channels ON Channels.Id = ChannelMembers.ChannelId").
 		LeftJoin("Bots ON Bots.UserId = ChannelMembers.UserId").
 		Where(sq.Eq{"Channels.DeleteAt": 0, "Channels.GroupConstrained": true, "Bots.UserId": nil}).
-		Where("(ChannelMembers.ChannelId, ChannelMembers.UserId) NOT IN (SELECT Channels.Id AS ChannelId, GroupMembers.UserId FROM Channels JOIN GroupChannels ON GroupChannels.ChannelId = Channels.Id JOIN UserGroups ON UserGroups.Id = GroupChannels.GroupId JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id WHERE Channels.GroupConstrained = TRUE AND GroupChannels.DeleteAt = 0 AND UserGroups.DeleteAt = 0 AND Channels.DeleteAt = 0 AND GroupMembers.DeleteAt = 0 GROUP BY Channels.Id, GroupMembers.UserId)")
+		Where(whereStmt)
 
 	if channelID != nil {
 		query = query.Where(sq.Eq{"ChannelMembers.ChannelId": *channelID})
