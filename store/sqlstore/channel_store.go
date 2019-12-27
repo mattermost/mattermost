@@ -1662,6 +1662,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	}
 
 	query := ""
+	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query = `WITH c AS (
 	SELECT Id, LastPostAt, TotalMsgCount
