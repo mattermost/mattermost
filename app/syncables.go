@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 // createDefaultChannelMemberships adds users to channels based on their group memberships and how those groups are
@@ -190,7 +189,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 		mlog.Any("permitted_admins", permittedAdmins),
 	)
 
-	var updateFunc func(string, []string, store.Equality, bool) *model.AppError
+	var updateFunc func(string, []string) *model.AppError
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
@@ -201,12 +200,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]interface{}{"Value": syncableType}, "", http.StatusInternalServerError)
 	}
 
-	err = updateFunc(syncableID, permittedAdmins, store.Equals, true)
-	if err != nil {
-		return err
-	}
-
-	err = updateFunc(syncableID, permittedAdmins, store.NotEquals, false)
+	err = updateFunc(syncableID, permittedAdmins)
 	if err != nil {
 		return err
 	}
