@@ -17,7 +17,7 @@ var (
 	}
 )
 
-func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bool) string {
+func FindPath(path string, baseSearchPaths []string, filter func(_ os.FileInfo) bool) string {
 	if filepath.IsAbs(path) {
 		if _, err := os.Stat(path); err == nil {
 			return path
