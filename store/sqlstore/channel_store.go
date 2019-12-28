@@ -1661,29 +1661,27 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		TotalMsgCount int64
 	}
 
-	query := ""
+	query := `SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE Id IN ` + keys
 	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `WITH c AS (
-	SELECT Id, LastPostAt, TotalMsgCount
-	FROM Channels
-	WHERE Id in ` + keys + `
- ), updated AS (
-	UPDATE ChannelMembers cm
-	SET MentionCount = 0,
-	MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
-	LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
-	LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
+		query = `WITH c AS ( ` + query + `),
+	updated AS (
+	UPDATE
+		ChannelMembers cm
+	SET
+		MentionCount = 0,
+		MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
+		LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
+		LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
 	FROM c
-	WHERE cm.UserId = :UserId
-	AND c.Id=cm.ChannelId
+		WHERE cm.UserId = :UserId
+		AND c.Id=cm.ChannelId
 )
-SELECT Id, LastPostAt FROM c`
-	} else {
-		query = `SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE Id IN ` + keys
+	SELECT Id, LastPostAt FROM c`
 	}
+
 	_, err := s.GetMaster().Select(&lastPostAtTimes, query, props)
-	if err != nil || len(lastPostAtTimes) <= 0 {
+	if err != nil || len(lastPostAtTimes) == 0 {
 		status := http.StatusInternalServerError
 		var extra string
 		if err == nil {
