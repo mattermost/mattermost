@@ -69,7 +69,7 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 	fakeChannelId := "123"
 	fakeUserId := "456"
 	fakeMap := map[string]*model.User{
-		fakeUserId: &model.User{Id: "456"},
+		fakeUserId: {Id: "456"},
 	}
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
