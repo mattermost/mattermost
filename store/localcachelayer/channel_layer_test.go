@@ -224,7 +224,7 @@ func TestAllChannelMembersNotifyPropsForChannel(t *testing.T) {
 			},
 		}
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore,nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 		allChannelMembersNotifyPropsForChannel, err := cachedStore.Channel().
 			GetAllChannelMembersNotifyPropsForChannel("id", true)
 		require.Nil(t, err)
@@ -232,7 +232,6 @@ func TestAllChannelMembersNotifyPropsForChannel(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersNotifyPropsForChannel", 1)
 	})
 	t.Run("get cached info after invalidate method called", func(t *testing.T) {
-
 		allChannelMembersNotifyPropsForChannelResult := map[string]model.StringMap{
 			"id": {
 				"member": "role",
@@ -240,7 +239,7 @@ func TestAllChannelMembersNotifyPropsForChannel(t *testing.T) {
 		}
 
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore,nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 
 		allChannelMembersNotifyPropsForChannel, err := cachedStore.Channel().
 			GetAllChannelMembersNotifyPropsForChannel("id", true)
@@ -249,7 +248,6 @@ func TestAllChannelMembersNotifyPropsForChannel(t *testing.T) {
 
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersNotifyPropsForChannel", 1)
 		mockStore.Channel().(*mocks.ChannelStore).AssertCalled(t, "GetAllChannelMembersNotifyPropsForChannel", "id", true)
-
 		cachedStore.Channel().ClearCaches()
 
 		allChannelMembersNotifyPropsForChannel, err = cachedStore.Channel().

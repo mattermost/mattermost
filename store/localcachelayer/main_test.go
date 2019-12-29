@@ -108,7 +108,7 @@ func getMockStore() *mocks.Store {
 
 	fakeAllChannelMembersNotifyPropsForChannel := map[string]model.StringMap{
 		"id": {
-			"member":"role",
+			"member": "role",
 		},
 	}
 	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "id", true).Return(
