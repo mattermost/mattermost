@@ -49,5 +49,5 @@ func TestSecurityBulletinsToFromJson(t *testing.T) {
 	s2 := `{"wat"`
 	b2 := SecurityBulletinsFromJson(strings.NewReader(s2))
 
-	require.Len(t, b2, 0)
+	require.Empty(t, b2)
 }

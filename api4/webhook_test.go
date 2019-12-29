@@ -150,7 +150,7 @@ func TestGetIncomingWebhooks(t *testing.T) {
 	hooks, resp = th.SystemAdminClient.GetIncomingWebhooksForTeam(model.NewId(), 0, 1000, "")
 	CheckNoError(t, resp)
 
-	require.Len(t, hooks, 0, "no hooks should be returned")
+	require.Empty(t, hooks, "no hooks should be returned")
 
 	_, resp = Client.GetIncomingWebhooks(0, 1000, "")
 	CheckForbiddenStatus(t, resp)
@@ -437,7 +437,7 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooksForTeam(model.NewId(), 0, 1000, "")
 	CheckNoError(t, resp)
 
-	require.Len(t, hooks, 0, "no hooks should be returned")
+	require.Empty(t, hooks, "no hooks should be returned")
 
 	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
 	CheckNoError(t, resp)
