@@ -2896,10 +2896,10 @@ func (ss *SamlSettings) isValid() *AppError {
 
 		if len(*ss.AdminAttribute) > 0 {
 			if !(strings.Contains(*ss.AdminAttribute, "=")) {
-				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
 			if len(strings.Split(*ss.AdminAttribute, "=")) != 2 {
-				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 	}

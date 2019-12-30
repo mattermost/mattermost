@@ -4819,6 +4819,10 @@
     "translation": "Invalid direct message restriction. Must be 'any', or 'team'"
   },
   {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "Invalid Admin attribute. Must be in the form 'field=value'"
+  },
+  {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
     "translation": "Service Provider Login URL must be a valid URL and start with http:// or https://."
   },
