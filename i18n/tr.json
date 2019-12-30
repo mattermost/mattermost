@@ -376,6 +376,10 @@
     "translation": "{{.Channel}} varsayılan kanalı için geçersiz bir güncelleme denendi"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Kanal türü güncellenemedi"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Kanal üyesi güncellemesi geçersiz: Ziyaretçi rolünü el ile ekleyemez ya da çıkaramazsınız"
   },
@@ -5921,10 +5925,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "İzin verilen kanal sayısına ulaştınız."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Aynı adresi kullanan bir kanal daha önce eklenmiş"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",

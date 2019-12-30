@@ -376,6 +376,10 @@
     "translation": "Een ongeldige bijwerkings-poging van het standaard kanaal {{.Channel}} is geprobeerd"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Invalid channel member update: You can't add or remove the guest role manually"
   },
@@ -5921,10 +5925,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "Het maximum aantal toegestane kanalen is bereikt."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Een kanaal met die URL is eerder aangemaakt"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",

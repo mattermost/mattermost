@@ -376,6 +376,10 @@
     "translation": "기본 채널 {{.Channel}}에 적절하지 않은 갱신을 시도했습니다"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "채널 타입을 변경할 수 없습니다"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "잘못된 채널 멤버 수정 : 손님 역할을 수동으로 추가하거나 삭제 할수 없습니다."
   },
@@ -1876,7 +1880,7 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "Slack 가져오기를 처리하기에 zip 파일 {{.Filename}} 이 너무 큽니다."
+    "translation": "Slack 가져오기를 처리하기에 zip 파일 {{.Filename}} 이 너무 큽니다\r\n"
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -3424,7 +3428,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "@{{.SenderName}}으로부터 새로운 개인 메시지 알림이 왔습니다."
+    "translation": "{{.SenderName}}으로부터 새로운 개인 메시지 알림이 왔습니다"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
@@ -3432,7 +3436,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "@{{.SenderName}}으로부터 새로운 그룹 메세지가 있습니다."
+    "translation": "{{.SenderName}}으로부터 새로운 그룹 메세지가 있습니다"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3440,11 +3444,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "@{{.SenderName}}으로부터 새로운 알림이 있습니다."
+    "translation": "{{.SenderName}}으로부터 새로운 알림이 있습니다"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}일"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3456,7 +3460,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}일"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3468,7 +3472,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}일"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3580,7 +3584,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
-    "translation": "Could not find the requested marketplace plugin."
+    "translation": "요청한 마켓플레이스 플러그인을 찾을수 없습니다."
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -3848,7 +3852,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "메세지를 삭제하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
@@ -3916,7 +3920,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "검색을 완료하지 못했습니다."
+    "translation": "검색을 완료하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
@@ -3924,7 +3928,7 @@
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
-    "translation": "검색을 완료하지 못했습니다."
+    "translation": "검색을 완료하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4284,7 +4288,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "올바르지 않은 MFA 토큰"
+    "translation": "올바르지 않은 MFA 토큰."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4936,7 +4940,7 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": "read timeout 항목의 허용되지 않는 값입니다."
+    "translation": "create_at 값이 잘못됐습니다."
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
@@ -5921,10 +5925,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "허용 된 채널 수의 한도에 도달했습니다."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "해당 URL을 가진 채널이 이전에 생성되었습니다"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",

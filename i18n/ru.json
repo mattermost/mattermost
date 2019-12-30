@@ -376,6 +376,10 @@
     "translation": "Попытка выполнения недопустимого обновления канала по умолчанию {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Недопустимое обновление участника канала: вы не можете добавлять или удалять гостевую роль вручную"
   },
@@ -5921,10 +5925,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "Вы достигли предела количества разрешённых каналов."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Канал с таким URL был создан ранее"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
