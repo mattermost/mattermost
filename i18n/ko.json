@@ -4457,11 +4457,7 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "Unable to enable email batching when SiteURL isn't set."
-  },
-  {
-    "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
-  },
+  },  
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."

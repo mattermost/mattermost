@@ -4457,11 +4457,7 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "Impossibile abilitare il servizio spedizione programmata email quando SiteURL non è impostato."
-  },
-  {
-    "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
-  },
+  },  
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Il nome sito deve avere lunghezza minore o uguale a {{.MaxLength}} caratteri."

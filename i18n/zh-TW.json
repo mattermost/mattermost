@@ -4457,11 +4457,7 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "站台網址設定完畢之前無法啟用批次郵件"
-  },
-  {
-    "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
-  },
+  },  
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "站台名稱至多{{.MaxLength}}個字"

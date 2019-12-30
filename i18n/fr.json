@@ -4459,10 +4459,6 @@
     "translation": "Impossible d'activer l'envoi d'e-mails par lot si l'URL de site n'est pas définie."
   },
   {
-    "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
-  },
-  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Le nom du site doit contenir au maximum {{.MaxLength}} caractères."
   },
