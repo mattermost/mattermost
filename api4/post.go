@@ -68,11 +68,11 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	setOnline := r.URL.Query().Get("set_online")
-	setOnlineBool, err := strconv.ParseBool(setOnline)
-	if err != nil { // By default, always set online.
+	setOnlineBool, err2 := strconv.ParseBool(setOnline)
+	if err2 != nil { // By default, always set online.
 		setOnlineBool = true
 	}
-	if setOnline {
+	if setOnlineBool {
 		c.App.SetStatusOnline(c.App.Session.UserId, false)
 	}
 
