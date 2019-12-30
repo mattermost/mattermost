@@ -67,7 +67,15 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SetStatusOnline(c.App.Session.UserId, false)
+	setOnline := r.URL.Query().Get("set_online")
+	setOnlineBool, err := strconv.ParseBool(setOnline)
+	if err != nil { // By default, always set online.
+		setOnlineBool = true
+	}
+	if setOnline {
+		c.App.SetStatusOnline(c.App.Session.UserId, false)
+	}
+
 	c.App.UpdateLastActivityAtIfNeeded(c.App.Session)
 
 	w.WriteHeader(http.StatusCreated)
