@@ -4,9 +4,10 @@
 package app
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
@@ -25,10 +26,10 @@ func TestHandleNewNotifications(t *testing.T) {
 
 	job.handleNewNotifications()
 
-	require.Len(t, job.pendingNotifications, 0, "shouldn't have added any pending notifications")
+	require.Empty(t, job.pendingNotifications, "shouldn't have added any pending notifications")
 
 	job.Add(&model.User{Id: id1}, &model.Post{UserId: id1, Message: "test"}, &model.Team{Name: "team"})
-	require.Len(t, job.pendingNotifications, 0, "shouldn't have added any pending notifications")
+	require.Empty(t, job.pendingNotifications, "shouldn't have added any pending notifications")
 
 	job.handleNewNotifications()
 	require.Len(t, job.pendingNotifications, 1, "should have received posts for 1 user")
@@ -117,7 +118,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	job.checkPendingNotifications(time.Unix(10002, 0), func(string, []*batchedNotification) {})
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
-	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 0, "should've remove queued post since user acted")
+	require.Empty(t, job.pendingNotifications[th.BasicUser.Id], "should've remove queued post since user acted")
 
 	// test that notifications are sent if enough time passes since the first message
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
@@ -210,7 +211,7 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 	// notifications should be sent 901s after post was created, because default batch interval is 15mins
 	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
-	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 0, "should have sent queued post")
+	require.Empty(t, job.pendingNotifications[th.BasicUser.Id], "should have sent queued post")
 }
 
 /**
