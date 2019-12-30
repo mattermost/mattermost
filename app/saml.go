@@ -7,9 +7,11 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"encoding/xml"
+	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -182,6 +184,10 @@ func (a *App) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadata
 		return nil, err
 	}
 
+	if !strings.HasPrefix(idpMetadataUrl, "http://") && !strings.HasPrefix(idpMetadataUrl, "https://") {
+		idpMetadataUrl = "https://" + idpMetadataUrl
+	}
+
 	idpMetadataRaw, err := a.FetchSamlMetadataFromIdp(idpMetadataUrl)
 	if err != nil {
 		return nil, err
@@ -197,8 +203,12 @@ func (a *App) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadata
 
 func (a *App) FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
 	resp, err := http.Get(url)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.invalid_response_from_idp.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err != nil {
+		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.invalid_response_from_idp.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.invalid_response_from_idp.app_error", nil, fmt.Sprintf("status_code=%d", resp.StatusCode), http.StatusBadRequest)
 	}
 	defer resp.Body.Close()
 
