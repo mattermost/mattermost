@@ -2671,10 +2671,6 @@ func (ts *TeamSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*ts.SiteName) == 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_empty.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if len(*ts.SiteName) > SITENAME_MAX_LENGTH {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SITENAME_MAX_LENGTH}, "", http.StatusBadRequest)
 	}
