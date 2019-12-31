@@ -355,9 +355,9 @@ workflows:
           requires:
             - test
             - test-schema
-            - upload-s3
-            - upload-s3-sha
             - build-docker
           filters:
             branches:
-              only: /^pull\/.*$/
+              ignore:
+                - master
+                - /^release-.*/
