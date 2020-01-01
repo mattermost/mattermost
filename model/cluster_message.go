@@ -32,10 +32,12 @@ const (
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_PINNEDPOSTS_COUNTS   = "inv_channel_pinnedposts_counts"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS        = "inv_channel_member_counts"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS                   = "inv_last_posts"
+	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POST_TIME               = "inv_last_post_time"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS                        = "inv_teams"
 	CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS                 = "inv_all_user_sessions"
 	CLUSTER_EVENT_INSTALL_PLUGIN                                    = "install_plugin"
 	CLUSTER_EVENT_REMOVE_PLUGIN                                     = "remove_plugin"
+	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TERMS_OF_SERVICE             = "inv_terms_of_service"
 	CLUSTER_EVENT_BUSY_STATE_CHANGED                                = "busy_state_change"
 
 	// SendTypes for ClusterMessage.
