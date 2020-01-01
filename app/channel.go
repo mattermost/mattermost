@@ -755,6 +755,11 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 		return nil, err
 	}
 
+	// Notify the clients that the member notify props changed
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
+	message.Add("channelMember", member.ToJson())
+	a.Publish(message)
+
 	a.InvalidateCacheForUser(userId)
 	return member, nil
 }

@@ -353,7 +353,7 @@ func TestCheckIntegrity(t *testing.T) {
 				require.Nil(t, result.Err)
 				switch data := result.Data.(type) {
 				case store.RelationalIntegrityCheckData:
-					require.Len(t, data.Records, 0)
+					require.Empty(t, data.Records)
 				}
 			}
 		})
@@ -386,7 +386,7 @@ func TestCheckChannelsCommandWebhooksIntegrity(t *testing.T) {
 			result := checkChannelsCommandWebhooksIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -414,7 +414,7 @@ func TestCheckChannelsChannelMemberHistoryIntegrity(t *testing.T) {
 			result := checkChannelsChannelMemberHistoryIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -444,7 +444,7 @@ func TestCheckChannelsChannelMembersIntegrity(t *testing.T) {
 			result := checkChannelsChannelMembersIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -472,7 +472,7 @@ func TestCheckChannelsIncomingWebhooksIntegrity(t *testing.T) {
 			result := checkChannelsIncomingWebhooksIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -500,7 +500,7 @@ func TestCheckChannelsOutgoingWebhooksIntegrity(t *testing.T) {
 			result := checkChannelsOutgoingWebhooksIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -530,7 +530,7 @@ func TestCheckChannelsPostsIntegrity(t *testing.T) {
 			result := checkChannelsPostsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -557,7 +557,7 @@ func TestCheckCommandsCommandWebhooksIntegrity(t *testing.T) {
 			result := checkCommandsCommandWebhooksIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -585,7 +585,7 @@ func TestCheckPostsFileInfoIntegrity(t *testing.T) {
 			result := checkPostsFileInfoIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -613,7 +613,7 @@ func TestCheckPostsPostsParentIdIntegrity(t *testing.T) {
 			result := checkPostsPostsParentIdIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -623,7 +623,7 @@ func TestCheckPostsPostsParentIdIntegrity(t *testing.T) {
 			result := checkPostsPostsParentIdIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 			dbmap.Delete(parent)
 			dbmap.Delete(root)
 			dbmap.Delete(post)
@@ -658,7 +658,7 @@ func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
 			result := checkPostsPostsRootIdIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -688,7 +688,7 @@ func TestCheckPostsReactionsIntegrity(t *testing.T) {
 			result := checkPostsReactionsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -715,7 +715,7 @@ func TestCheckSchemesChannelsIntegrity(t *testing.T) {
 			result := checkSchemesChannelsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -746,7 +746,7 @@ func TestCheckSchemesTeamsIntegrity(t *testing.T) {
 			result := checkSchemesTeamsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -777,7 +777,7 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 			result := checkSessionsAuditsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -808,7 +808,7 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			result := checkTeamsChannelsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -835,7 +835,7 @@ func TestCheckTeamsCommandsIntegrity(t *testing.T) {
 			result := checkTeamsCommandsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -863,7 +863,7 @@ func TestCheckTeamsIncomingWebhooksIntegrity(t *testing.T) {
 			result := checkTeamsIncomingWebhooksIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -891,7 +891,7 @@ func TestCheckTeamsOutgoingWebhooksIntegrity(t *testing.T) {
 			result := checkTeamsOutgoingWebhooksIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -919,7 +919,7 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 			result := checkTeamsTeamMembersIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -947,7 +947,7 @@ func TestCheckUsersAuditsIntegrity(t *testing.T) {
 			result := checkUsersAuditsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -977,7 +977,7 @@ func TestCheckUsersCommandWebhooksIntegrity(t *testing.T) {
 			result := checkUsersCommandWebhooksIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1005,7 +1005,7 @@ func TestCheckUsersChannelsIntegrity(t *testing.T) {
 			result := checkUsersChannelsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1032,7 +1032,7 @@ func TestCheckUsersChannelMemberHistoryIntegrity(t *testing.T) {
 			result := checkUsersChannelMemberHistoryIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1062,7 +1062,7 @@ func TestCheckUsersChannelMembersIntegrity(t *testing.T) {
 			result := checkUsersChannelMembersIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1092,7 +1092,7 @@ func TestCheckUsersCommandsIntegrity(t *testing.T) {
 			result := checkUsersCommandsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1120,7 +1120,7 @@ func TestCheckUsersCompliancesIntegrity(t *testing.T) {
 			result := checkUsersCompliancesIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1150,7 +1150,7 @@ func TestCheckUsersEmojiIntegrity(t *testing.T) {
 			result := checkUsersEmojiIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1180,7 +1180,7 @@ func TestCheckUsersFileInfoIntegrity(t *testing.T) {
 			result := checkUsersFileInfoIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1210,7 +1210,7 @@ func TestCheckUsersIncomingWebhooksIntegrity(t *testing.T) {
 			result := checkUsersIncomingWebhooksIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1238,7 +1238,7 @@ func TestCheckUsersOAuthAccessDataIntegrity(t *testing.T) {
 			result := checkUsersOAuthAccessDataIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1268,7 +1268,7 @@ func TestCheckUsersOAuthAppsIntegrity(t *testing.T) {
 			result := checkUsersOAuthAppsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1298,7 +1298,7 @@ func TestCheckUsersOAuthAuthDataIntegrity(t *testing.T) {
 			result := checkUsersOAuthAuthDataIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1328,7 +1328,7 @@ func TestCheckUsersOutgoingWebhooksIntegrity(t *testing.T) {
 			result := checkUsersOutgoingWebhooksIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1356,7 +1356,7 @@ func TestCheckUsersPostsIntegrity(t *testing.T) {
 			result := checkUsersPostsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1383,7 +1383,7 @@ func TestCheckUsersPreferencesIntegrity(t *testing.T) {
 			result := checkUsersPreferencesIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
@@ -1395,7 +1395,7 @@ func TestCheckUsersPreferencesIntegrity(t *testing.T) {
 			result := checkUsersPreferencesIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 			dbmap.Exec(`DELETE FROM Preferences`)
 			dbmap.Delete(user)
 		})
@@ -1429,7 +1429,7 @@ func TestCheckUsersReactionsIntegrity(t *testing.T) {
 			result := checkUsersReactionsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1458,7 +1458,7 @@ func TestCheckUsersSessionsIntegrity(t *testing.T) {
 			result := checkUsersSessionsIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1486,7 +1486,7 @@ func TestCheckUsersStatusIntegrity(t *testing.T) {
 			result := checkUsersStatusIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1515,7 +1515,7 @@ func TestCheckUsersTeamMembersIntegrity(t *testing.T) {
 			result := checkUsersTeamMembersIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
@@ -1545,7 +1545,7 @@ func TestCheckUsersUserAccessTokensIntegrity(t *testing.T) {
 			result := checkUsersUserAccessTokensIntegrity(supplier)
 			require.Nil(t, result.Err)
 			data := result.Data.(store.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 0)
+			require.Empty(t, data.Records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {

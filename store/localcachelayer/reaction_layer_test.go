@@ -34,7 +34,7 @@ func TestReactionStoreCache(t *testing.T) {
 		mockStore.Reaction().(*mocks.ReactionStore).AssertNumberOfCalls(t, "GetForPost", 1)
 	})
 
-	t.Run("first call not cached, second force no cached", func(t *testing.T) {
+	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
 
