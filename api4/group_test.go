@@ -651,7 +651,6 @@ func TestGetGroupsByChannel(t *testing.T) {
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
-		SchemeAdmin: model.NewBool(false),
 	})
 	assert.Nil(t, err)
 
@@ -699,7 +698,6 @@ func TestGetGroupsByChannel(t *testing.T) {
 	// ensure that SchemeAdmin field is updated
 	groups, _, response = th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	assert.Nil(t, response.Error)
-	group.SchemeAdmin = model.NewBool(true)
 	assert.ElementsMatch(t, []*model.Group{group}, groups)
 	require.NotNil(t, groups[0].SchemeAdmin)
 	require.True(t, *groups[0].SchemeAdmin)
@@ -720,7 +718,6 @@ func TestGetGroupsByTeam(t *testing.T) {
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
-		SchemeAdmin: model.NewBool(false),
 	})
 	assert.Nil(t, err)
 
@@ -766,7 +763,6 @@ func TestGetGroupsByTeam(t *testing.T) {
 	// ensure that SchemeAdmin field is updated
 	groups, _, response = th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
 	assert.Nil(t, response.Error)
-	group.SchemeAdmin = model.NewBool(true)
 	assert.ElementsMatch(t, []*model.Group{group}, groups)
 	require.NotNil(t, groups[0].SchemeAdmin)
 	require.True(t, *groups[0].SchemeAdmin)

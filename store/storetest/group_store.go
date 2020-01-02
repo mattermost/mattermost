@@ -1814,9 +1814,9 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	group2WithMemberCount := *group2
 	group2WithMemberCount.MemberCount = model.NewInt(0)
 
-	group1WSA := &model.GroupWithSchemeAdmin{*group1, model.NewBool(false)}
-	group2WSA := &model.GroupWithSchemeAdmin{*group2, model.NewBool(false)}
-	group3WSA := &model.GroupWithSchemeAdmin{*group3, model.NewBool(false)}
+	group1WSA := &model.GroupWithSchemeAdmin{Group: *group1, SchemeAdmin: model.NewBool(false)}
+	group2WSA := &model.GroupWithSchemeAdmin{Group: *group2, SchemeAdmin: model.NewBool(false)}
+	group3WSA := &model.GroupWithSchemeAdmin{Group: *group3, SchemeAdmin: model.NewBool(false)}
 
 	testCases := []struct {
 		Name       string
@@ -1903,8 +1903,8 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Page:      0,
 			PerPage:   2,
 			Result: []*model.GroupWithSchemeAdmin{
-				&model.GroupWithSchemeAdmin{group1WithMemberCount, model.NewBool(false)},
-				&model.GroupWithSchemeAdmin{group2WithMemberCount, model.NewBool(false)},
+				{Group: group1WithMemberCount, SchemeAdmin: model.NewBool(false)},
+				{Group: group2WithMemberCount, SchemeAdmin: model.NewBool(false)},
 			},
 		},
 	}
@@ -2035,9 +2035,9 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	group2WithMemberCount := *group2
 	group2WithMemberCount.MemberCount = model.NewInt(0)
 
-	group1WSA := &model.GroupWithSchemeAdmin{*group1, model.NewBool(false)}
-	group2WSA := &model.GroupWithSchemeAdmin{*group2, model.NewBool(false)}
-	group3WSA := &model.GroupWithSchemeAdmin{*group3, model.NewBool(false)}
+	group1WSA := &model.GroupWithSchemeAdmin{Group: *group1, SchemeAdmin: model.NewBool(false)}
+	group2WSA := &model.GroupWithSchemeAdmin{Group: *group2, SchemeAdmin: model.NewBool(false)}
+	group3WSA := &model.GroupWithSchemeAdmin{Group: *group3, SchemeAdmin: model.NewBool(false)}
 
 	testCases := []struct {
 		Name       string
@@ -2125,8 +2125,8 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Page:    0,
 			PerPage: 2,
 			Result: []*model.GroupWithSchemeAdmin{
-				&model.GroupWithSchemeAdmin{group1WithMemberCount, model.NewBool(false)},
-				&model.GroupWithSchemeAdmin{group2WithMemberCount, model.NewBool(false)},
+				{Group: group1WithMemberCount, SchemeAdmin: model.NewBool(false)},
+				{Group: group2WithMemberCount, SchemeAdmin: model.NewBool(false)},
 			},
 		},
 	}
