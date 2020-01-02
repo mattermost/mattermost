@@ -286,13 +286,22 @@ func (a *App) InvalidateCacheForChannelPostsSkipClusterSend(channelId string) {
 
 func (a *App) InvalidateCacheForUser(userId string) {
 	a.InvalidateCacheForUserSkipClusterSend(userId)
+
+	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
+	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
+
+	if a.Cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER,
+			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			Data:     userId,
+		}
+		a.Cluster.SendClusterMessage(msg)
+	}
 }
 
 func (a *App) InvalidateCacheForUserTeams(userId string) {
 	a.InvalidateCacheForUserTeamsSkipClusterSend(userId)
-
-	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
-	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
 
 	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
