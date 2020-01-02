@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,8 +11,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -185,7 +185,7 @@ func (c *WebConn) writePump() {
 						"websocket.slow: dropping message",
 						mlog.String("user_id", c.UserId),
 						mlog.String("type", msg.EventType()),
-						mlog.String("channel_id", evt.Broadcast.ChannelId),
+						mlog.String("channel_id", evt.GetBroadcast().ChannelId),
 					)
 					skipSend = true
 				}
@@ -194,9 +194,7 @@ func (c *WebConn) writePump() {
 			if !skipSend {
 				var msgBytes []byte
 				if evtOk {
-					cpyEvt := &model.WebSocketEvent{}
-					*cpyEvt = *evt
-					cpyEvt.Sequence = c.Sequence
+					cpyEvt := evt.SetSequence(c.Sequence)
 					msgBytes = []byte(cpyEvt.ToJson())
 					c.Sequence++
 				} else {
@@ -209,7 +207,7 @@ func (c *WebConn) writePump() {
 							"websocket.full",
 							mlog.String("user_id", c.UserId),
 							mlog.String("type", msg.EventType()),
-							mlog.String("channel_id", evt.Broadcast.ChannelId),
+							mlog.String("channel_id", evt.GetBroadcast().ChannelId),
 							mlog.Int("size", len(msg.ToJson())),
 						)
 					} else {
@@ -301,6 +299,28 @@ func (webCon *WebConn) SendHello() {
 	webCon.Send <- msg
 }
 
+func (webCon *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
+	var userId string
+	var canSee bool
+
+	switch msg.EventType() {
+	case model.WEBSOCKET_EVENT_USER_UPDATED:
+		userId = msg.GetData()["user"].(*model.User).Id
+	case model.WEBSOCKET_EVENT_NEW_USER:
+		userId = msg.GetData()["user_id"].(string)
+	default:
+		return true
+	}
+
+	canSee, err := webCon.App.UserCanSeeOtherUser(webCon.UserId, userId)
+	if err != nil {
+		mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
+		return false
+	}
+
+	return canSee
+}
+
 func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session
 	if !webCon.IsAuthenticated() {
@@ -310,7 +330,7 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
-	if msg.Broadcast.ContainsSanitizedData {
+	if msg.GetBroadcast().ContainsSanitizedData {
 		hasReadPrivateDataPermission = model.NewBool(webCon.App.RolesGrantPermission(webCon.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
 
 		if *hasReadPrivateDataPermission {
@@ -319,7 +339,7 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	// If the event contains sensitive data, only send to users with permission to see it
-	if msg.Broadcast.ContainsSensitiveData {
+	if msg.GetBroadcast().ContainsSensitiveData {
 		if hasReadPrivateDataPermission == nil {
 			hasReadPrivateDataPermission = model.NewBool(webCon.App.RolesGrantPermission(webCon.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
 		}
@@ -330,19 +350,19 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	// If the event is destined to a specific user
-	if len(msg.Broadcast.UserId) > 0 {
-		return webCon.UserId == msg.Broadcast.UserId
+	if len(msg.GetBroadcast().UserId) > 0 {
+		return webCon.UserId == msg.GetBroadcast().UserId
 	}
 
 	// if the user is omitted don't send the message
-	if len(msg.Broadcast.OmitUsers) > 0 {
-		if _, ok := msg.Broadcast.OmitUsers[webCon.UserId]; ok {
+	if len(msg.GetBroadcast().OmitUsers) > 0 {
+		if _, ok := msg.GetBroadcast().OmitUsers[webCon.UserId]; ok {
 			return false
 		}
 	}
 
 	// Only report events to users who are in the channel for the event
-	if len(msg.Broadcast.ChannelId) > 0 {
+	if len(msg.GetBroadcast().ChannelId) > 0 {
 		if model.GetMillis()-webCon.LastAllChannelMembersTime > WEBCONN_MEMBER_CACHE_TIME {
 			webCon.AllChannelMembers = nil
 			webCon.LastAllChannelMembersTime = 0
@@ -358,24 +378,19 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			webCon.LastAllChannelMembersTime = model.GetMillis()
 		}
 
-		if _, ok := webCon.AllChannelMembers[msg.Broadcast.ChannelId]; ok {
+		if _, ok := webCon.AllChannelMembers[msg.GetBroadcast().ChannelId]; ok {
 			return true
 		}
 		return false
 	}
 
 	// Only report events to users who are in the team for the event
-	if len(msg.Broadcast.TeamId) > 0 {
-		return webCon.IsMemberOfTeam(msg.Broadcast.TeamId)
+	if len(msg.GetBroadcast().TeamId) > 0 {
+		return webCon.IsMemberOfTeam(msg.GetBroadcast().TeamId)
 	}
 
-	if msg.Event == model.WEBSOCKET_EVENT_USER_UPDATED && webCon.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
-		canSee, err := webCon.App.UserCanSeeOtherUser(webCon.UserId, msg.Data["user"].(*model.User).Id)
-		if err != nil {
-			mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
-			return false
-		}
-		return canSee
+	if webCon.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
+		return webCon.shouldSendEventToGuest(msg)
 	}
 
 	return true

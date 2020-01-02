@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 
 	"net/http"
 
@@ -71,7 +71,7 @@ func NewEmailBatchingJob(s *Server, bufferSize int) *EmailBatchingJob {
 }
 
 func (job *EmailBatchingJob) Start() {
-	mlog.Debug(fmt.Sprintf("Email batching job starting. Checking for pending emails every %v seconds.", *job.server.Config().EmailSettings.EmailBatchingInterval))
+	mlog.Debug("Email batching job starting. Checking for pending emails periodically.", mlog.Int("interval_in_seconds", *job.server.Config().EmailSettings.EmailBatchingInterval))
 	newTask := model.CreateRecurringTask(EMAIL_BATCHING_TASK_NAME, job.CheckPendingEmails, time.Duration(*job.server.Config().EmailSettings.EmailBatchingInterval)*time.Second)
 
 	job.taskMutex.Lock()
@@ -107,7 +107,7 @@ func (job *EmailBatchingJob) CheckPendingEmails() {
 	// without actually sending emails
 	job.checkPendingNotifications(time.Now(), job.server.sendBatchedEmailNotification)
 
-	mlog.Debug(fmt.Sprintf("Email batching job ran. %v user(s) still have notifications pending.", len(job.pendingNotifications)))
+	mlog.Debug("Email batching job ran. Some users still have notifications pending.", mlog.Int("number_of_users", len(job.pendingNotifications)))
 }
 
 func (job *EmailBatchingJob) handleNewNotifications() {

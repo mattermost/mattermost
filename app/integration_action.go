@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 // Integration Action Flow
 //
@@ -21,16 +21,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/gorilla/mux"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (string, *model.AppError) {
@@ -158,10 +159,17 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	}
 
 	teamChan := make(chan store.StoreResult, 1)
+
 	go func() {
+		defer close(teamChan)
+
+		// Direct and group channels won't have teams.
+		if upstreamRequest.TeamId == "" {
+			return
+		}
+
 		team, err := a.Srv.Store.Team().Get(upstreamRequest.TeamId)
 		teamChan <- store.StoreResult{Data: team, Err: err}
-		close(teamChan)
 	}()
 
 	ur := <-userChan
@@ -171,12 +179,15 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	user := ur.Data.(*model.User)
 	upstreamRequest.UserName = user.Username
 
-	tr := <-teamChan
-	if tr.Err != nil {
-		return "", tr.Err
+	tr, ok := <-teamChan
+	if ok {
+		if tr.Err != nil {
+			return "", tr.Err
+		}
+
+		team := tr.Data.(*model.Team)
+		upstreamRequest.TeamName = team.Name
 	}
-	team := tr.Data.(*model.Team)
-	upstreamRequest.TeamName = team.Name
 
 	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
 		if selectedOption != "" {

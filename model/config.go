@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -797,6 +797,7 @@ type ExperimentalSettings struct {
 	EnableClickToReply              *bool  `restricted:"true"`
 	LinkMetadataTimeoutMilliseconds *int64 `restricted:"true"`
 	RestrictSystemAdmin             *bool  `restricted:"true"`
+	UseNewSAMLLibrary               *bool
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -818,6 +819,9 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.RestrictSystemAdmin == nil {
 		s.RestrictSystemAdmin = NewBool(false)
+	}
+	if s.UseNewSAMLLibrary == nil {
+		s.UseNewSAMLLibrary = NewBool(false)
 	}
 }
 

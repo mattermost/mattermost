@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestSendNotifications(t *testing.T) {
@@ -67,7 +67,7 @@ func TestSendNotifications(t *testing.T) {
 	th.BasicChannel.DeleteAt = 1
 	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
 	require.NoError(t, err)
-	require.Len(t, mentions, 0)
+	require.Empty(t, mentions)
 }
 
 func TestSendNotificationsWithManyUsers(t *testing.T) {
@@ -275,7 +275,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		constrainedChannel, appErr = th.App.UpdateChannel(constrainedChannel)
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 			GroupId:    group.Id,
 			Type:       model.GroupSyncableTypeChannel,
 			SyncableId: constrainedChannel.Id,

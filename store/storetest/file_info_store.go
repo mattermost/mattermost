@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -8,8 +8,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -395,7 +395,7 @@ func testFileInfoDeleteForPost(t *testing.T, ss store.Store) {
 
 	infos, err = ss.FileInfo().GetForPost(postId, true, false, false)
 	require.Nil(t, err)
-	assert.Len(t, infos, 0)
+	assert.Empty(t, infos)
 }
 
 func testFileInfoPermanentDelete(t *testing.T, ss store.Store) {
