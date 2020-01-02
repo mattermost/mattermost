@@ -686,7 +686,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	groups, _, response := th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	assert.Nil(t, response.Error)
-	assert.ElementsMatch(t, []*model.Group{group}, groups)
+	assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(false)}}, groups)
 	require.NotNil(t, groups[0].SchemeAdmin)
 	require.False(t, *groups[0].SchemeAdmin)
 
@@ -698,7 +698,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 	// ensure that SchemeAdmin field is updated
 	groups, _, response = th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	assert.Nil(t, response.Error)
-	assert.ElementsMatch(t, []*model.Group{group}, groups)
+	assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
 	require.NotNil(t, groups[0].SchemeAdmin)
 	require.True(t, *groups[0].SchemeAdmin)
 
@@ -751,7 +751,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 
 	groups, _, response := th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
 	assert.Nil(t, response.Error)
-	assert.ElementsMatch(t, []*model.Group{group}, groups)
+	assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(false)}}, groups)
 	require.NotNil(t, groups[0].SchemeAdmin)
 	require.False(t, *groups[0].SchemeAdmin)
 
@@ -763,7 +763,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 	// ensure that SchemeAdmin field is updated
 	groups, _, response = th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
 	assert.Nil(t, response.Error)
-	assert.ElementsMatch(t, []*model.Group{group}, groups)
+	assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
 	require.NotNil(t, groups[0].SchemeAdmin)
 	require.True(t, *groups[0].SchemeAdmin)
 
