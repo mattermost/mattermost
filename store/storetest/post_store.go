@@ -1118,7 +1118,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 		assert.Nil(t, err)
 
 		assert.Equal(t, []string{}, postList.Order)
-		assert.Len(t, postList.Posts, 0)
+		assert.Empty(t, postList.Posts)
 	})
 
 	t.Run("should not cache a timestamp of 0 when nothing has changed", func(t *testing.T) {

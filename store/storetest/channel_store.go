@@ -679,7 +679,7 @@ func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
 
 	channels, err := ss.Channel().GetByNames(o1.TeamId, []string{o1.Name}, false)
 	require.Nil(t, err)
-	assert.Len(t, channels, 0)
+	assert.Empty(t, channels)
 }
 
 func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
@@ -3335,7 +3335,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 
 	pl, errGet = ss.Channel().GetPinnedPosts(o2.Id)
 	require.Nil(t, errGet, errGet)
-	require.Len(t, pl.Posts, 0, "wasn't supposed to return posts")
+	require.Empty(t, pl.Posts, "wasn't supposed to return posts")
 }
 
 func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
@@ -3471,12 +3471,12 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 	// Get the channels by a valid Scheme ID where there aren't any matching Channel.
 	d2, err := ss.Channel().GetChannelsByScheme(s2.Id, 0, 100)
 	assert.Nil(t, err)
-	assert.Len(t, d2, 0)
+	assert.Empty(t, d2)
 
 	// Get the channels by an invalid Scheme ID.
 	d3, err := ss.Channel().GetChannelsByScheme(model.NewId(), 0, 100)
 	assert.Nil(t, err)
-	assert.Len(t, d3, 0)
+	assert.Empty(t, d3)
 }
 
 func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {

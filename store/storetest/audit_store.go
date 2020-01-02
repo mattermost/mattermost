@@ -40,7 +40,7 @@ func testAuditStore(t *testing.T, ss store.Store) {
 
 	audits, err = ss.Audit().Get("missing", 0, 100)
 	require.Nil(t, err)
-	assert.Len(t, audits, 0)
+	assert.Empty(t, audits)
 
 	audits, err = ss.Audit().Get("", 0, 100)
 	require.Nil(t, err)
