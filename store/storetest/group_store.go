@@ -1730,7 +1730,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
-		SchemeAdmin: model.NewBool(false),
+		// SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -1739,7 +1739,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		DisplayName: "group-2",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
-		SchemeAdmin: model.NewBool(false),
+		// SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -1770,7 +1770,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		DisplayName: "group-3",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
-		SchemeAdmin: model.NewBool(false),
+		// SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -1814,12 +1814,16 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	group2WithMemberCount := *group2
 	group2WithMemberCount.MemberCount = model.NewInt(0)
 
+	group1WSA := &model.GroupWithSchemeAdmin{*group1, model.NewBool(false)}
+	group2WSA := &model.GroupWithSchemeAdmin{*group2, model.NewBool(false)}
+	group3WSA := &model.GroupWithSchemeAdmin{*group3, model.NewBool(false)}
+
 	testCases := []struct {
 		Name       string
 		ChannelId  string
 		Page       int
 		PerPage    int
-		Result     []*model.Group
+		Result     []*model.GroupWithSchemeAdmin
 		Opts       model.GroupSearchOpts
 		TotalCount *int64
 	}{
@@ -1829,7 +1833,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{},
 			Page:       0,
 			PerPage:    60,
-			Result:     []*model.Group{group1, group2},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA, group2WSA},
 			TotalCount: model.NewInt64(2),
 		},
 		{
@@ -1838,7 +1842,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:      model.GroupSearchOpts{},
 			Page:      0,
 			PerPage:   1,
-			Result:    []*model.Group{group1},
+			Result:    []*model.GroupWithSchemeAdmin{group1WSA},
 		},
 		{
 			Name:      "Get second Group for Channel1 with page 1 with 1 element",
@@ -1846,7 +1850,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:      model.GroupSearchOpts{},
 			Page:      1,
 			PerPage:   1,
-			Result:    []*model.Group{group2},
+			Result:    []*model.GroupWithSchemeAdmin{group2WSA},
 		},
 		{
 			Name:      "Get third Group for Channel2",
@@ -1854,7 +1858,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:      model.GroupSearchOpts{},
 			Page:      0,
 			PerPage:   60,
-			Result:    []*model.Group{group3},
+			Result:    []*model.GroupWithSchemeAdmin{group3WSA},
 		},
 		{
 			Name:       "Get empty Groups for a fake id",
@@ -1862,7 +1866,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{},
 			Page:       0,
 			PerPage:    60,
-			Result:     []*model.Group{},
+			Result:     []*model.GroupWithSchemeAdmin{},
 			TotalCount: model.NewInt64(0),
 		},
 		{
@@ -1871,7 +1875,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: string([]rune(group1.Name)[2:10])}, // very low change of a name collision
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
 			TotalCount: model.NewInt64(1),
 		},
 		{
@@ -1880,7 +1884,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: "rouP-1"},
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
 			TotalCount: model.NewInt64(1),
 		},
 		{
@@ -1889,7 +1893,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: "roUp-"},
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1, group2},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA, group2WSA},
 			TotalCount: model.NewInt64(2),
 		},
 		{
@@ -1898,7 +1902,10 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:      model.GroupSearchOpts{IncludeMemberCount: true},
 			Page:      0,
 			PerPage:   2,
-			Result:    []*model.Group{&group1WithMemberCount, &group2WithMemberCount},
+			Result: []*model.GroupWithSchemeAdmin{
+				&model.GroupWithSchemeAdmin{group1WithMemberCount, model.NewBool(false)},
+				&model.GroupWithSchemeAdmin{group2WithMemberCount, model.NewBool(false)},
+			},
 		},
 	}
 
@@ -1943,7 +1950,6 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
-		SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -1952,7 +1958,6 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		DisplayName: "group-2",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
-		SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -1987,7 +1992,6 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		DisplayName: "group-3",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
-		SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -2031,13 +2035,17 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	group2WithMemberCount := *group2
 	group2WithMemberCount.MemberCount = model.NewInt(0)
 
+	group1WSA := &model.GroupWithSchemeAdmin{*group1, model.NewBool(false)}
+	group2WSA := &model.GroupWithSchemeAdmin{*group2, model.NewBool(false)}
+	group3WSA := &model.GroupWithSchemeAdmin{*group3, model.NewBool(false)}
+
 	testCases := []struct {
 		Name       string
 		TeamId     string
 		Page       int
 		PerPage    int
 		Opts       model.GroupSearchOpts
-		Result     []*model.Group
+		Result     []*model.GroupWithSchemeAdmin
 		TotalCount *int64
 	}{
 		{
@@ -2046,7 +2054,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{},
 			Page:       0,
 			PerPage:    60,
-			Result:     []*model.Group{group1, group2},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA, group2WSA},
 			TotalCount: model.NewInt64(2),
 		},
 		{
@@ -2055,7 +2063,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:    model.GroupSearchOpts{},
 			Page:    0,
 			PerPage: 1,
-			Result:  []*model.Group{group1},
+			Result:  []*model.GroupWithSchemeAdmin{group1WSA},
 		},
 		{
 			Name:    "Get second Group for Team1 with page 1 with 1 element",
@@ -2063,7 +2071,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:    model.GroupSearchOpts{},
 			Page:    1,
 			PerPage: 1,
-			Result:  []*model.Group{group2},
+			Result:  []*model.GroupWithSchemeAdmin{group2WSA},
 		},
 		{
 			Name:       "Get third Group for Team2",
@@ -2071,7 +2079,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{},
 			Page:       0,
 			PerPage:    60,
-			Result:     []*model.Group{group3},
+			Result:     []*model.GroupWithSchemeAdmin{group3WSA},
 			TotalCount: model.NewInt64(1),
 		},
 		{
@@ -2080,7 +2088,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{},
 			Page:       0,
 			PerPage:    60,
-			Result:     []*model.Group{},
+			Result:     []*model.GroupWithSchemeAdmin{},
 			TotalCount: model.NewInt64(0),
 		},
 		{
@@ -2089,7 +2097,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: string([]rune(group1.Name)[2:10])}, // very low change of a name collision
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
 			TotalCount: model.NewInt64(1),
 		},
 		{
@@ -2098,7 +2106,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: "rouP-1"},
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
 			TotalCount: model.NewInt64(1),
 		},
 		{
@@ -2107,7 +2115,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: "roUp-"},
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1, group2},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA, group2WSA},
 			TotalCount: model.NewInt64(2),
 		},
 		{
@@ -2116,7 +2124,10 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:    model.GroupSearchOpts{IncludeMemberCount: true},
 			Page:    0,
 			PerPage: 2,
-			Result:  []*model.Group{&group1WithMemberCount, &group2WithMemberCount},
+			Result: []*model.GroupWithSchemeAdmin{
+				&model.GroupWithSchemeAdmin{group1WithMemberCount, model.NewBool(false)},
+				&model.GroupWithSchemeAdmin{group2WithMemberCount, model.NewBool(false)},
+			},
 		},
 	}
 

@@ -41,9 +41,10 @@ type Group struct {
 	DeleteAt     int64       `json:"delete_at"`
 	HasSyncables bool        `db:"-" json:"has_syncables"`
 	MemberCount  *int        `db:"-" json:"member_count,omitempty"`
+}
 
-	// SchemeAdmin is significant only if the group is retrieved from the perspective of an associated syncable.
-	// Ex: "get groups by channel" or "get groups by team".
+type GroupWithSchemeAdmin struct {
+	Group
 	SchemeAdmin *bool `db:"SyncableSchemeAdmin" json:"scheme_admin,omitempty"`
 }
 
