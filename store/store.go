@@ -1,16 +1,12 @@
 //go:generate go run layer_generators/main.go
 
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package store
 
 import (
-	"github.com/mattermost/mattermost-server/model"
-)
-
-const (
-	MentionAllPosts = -1
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type StoreResult struct {
@@ -68,6 +64,7 @@ type TeamStore interface {
 	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) (*model.Team, *model.AppError)
 	SearchAll(term string) ([]*model.Team, *model.AppError)
+	SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError)
 	SearchOpen(term string) ([]*model.Team, *model.AppError)
 	SearchPrivate(term string) ([]*model.Team, *model.AppError)
 	GetAll() ([]*model.Team, *model.AppError)
@@ -80,7 +77,7 @@ type TeamStore interface {
 	GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError)
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
 	PermanentDelete(teamId string) *model.AppError
-	AnalyticsTeamCount() (int64, *model.AppError)
+	AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError)
 	AnalyticsPublicTeamCount() (int64, *model.AppError)
 	AnalyticsPrivateTeamCount() (int64, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError)
@@ -156,10 +153,8 @@ type ChannelStore interface {
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidatePinnedPostCount(channelId string)
-	GetPinnedPostCountFromCache(channelId string) int64
 	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidateGuestCount(channelId string)
-	GetGuestCountFromCache(channelId string) int64
 	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	GetPinnedPosts(channelId string) (*model.PostList, *model.AppError)
 	RemoveMember(channelId string, userId string) *model.AppError
@@ -167,6 +162,7 @@ type ChannelStore interface {
 	PermanentDeleteMembersByChannel(channelId string) *model.AppError
 	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError)
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError)
+	CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError)
 	IncrementMentionCount(channelId string, userId string) *model.AppError
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError)
@@ -332,7 +328,6 @@ type AuditStore interface {
 	Save(audit *model.Audit) *model.AppError
 	Get(user_id string, offset int, limit int) (model.Audits, *model.AppError)
 	PermanentDeleteByUser(userId string) *model.AppError
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
 }
 
 type ClusterDiscoveryStore interface {
@@ -535,7 +530,7 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)
 	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
-	SetWithOptions(pluginId string, key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError)
+	SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
 	Delete(pluginId, key string) *model.AppError
 	DeleteAllForPlugin(PluginId string) *model.AppError
@@ -656,8 +651,8 @@ type UserGetByIdsOpts struct {
 }
 
 type OrphanedRecord struct {
-	ParentId string
-	ChildId  string
+	ParentId *string
+	ChildId  *string
 }
 
 type RelationalIntegrityCheckData struct {

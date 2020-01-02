@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -418,6 +418,10 @@ func (c *Client4) GetTotalUsersStatsRoute() string {
 
 func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
+}
+
+func (c *Client4) GetServerBusyRoute() string {
+	return "/server_busy"
 }
 
 func (c *Client4) GetUserTermsOfServiceRoute(userId string) string {
@@ -1655,6 +1659,23 @@ func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response) {
 	}
 	defer closeBody(r)
 	return TeamListFromJson(r.Body), BuildResponse(r)
+}
+
+// SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
+func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Response) {
+	if search.Page == nil {
+		search.Page = NewInt(0)
+	}
+	if search.PerPage == nil {
+		search.PerPage = NewInt(100)
+	}
+	r, err := c.DoApiPost(c.GetTeamsRoute()+"/search", search.ToJson())
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	twc := TeamsWithCountFromJson(r.Body)
+	return twc.Teams, twc.TotalCount, BuildResponse(r)
 }
 
 // TeamExists returns true or false if the team exist or not.
@@ -4620,6 +4641,41 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	}
 	defer closeBody(r)
 	return MapFromJson(r.Body)["location"], BuildResponse(r)
+}
+
+// SetServerBusy will mark the server as busy, which disables non-critical services for `secs` seconds.
+func (c *Client4) SetServerBusy(secs int) (bool, *Response) {
+	url := fmt.Sprintf("%s?seconds=%d", c.GetServerBusyRoute(), secs)
+	r, err := c.DoApiPost(url, "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// ClearServerBusy will mark the server as not busy.
+func (c *Client4) ClearServerBusy() (bool, *Response) {
+	r, err := c.DoApiPost(c.GetServerBusyRoute()+"/clear", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// GetServerBusyExpires returns the time when a server marked busy
+// will automatically have the flag cleared.
+func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
+	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	sbs := ServerBusyStateFromJson(r.Body)
+	expires := time.Unix(sbs.Expires, 0)
+	return &expires, BuildResponse(r)
 }
 
 // RegisterTermsOfServiceAction saves action performed by a user against a specific terms of service.

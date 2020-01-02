@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -13,14 +13,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/web"
-	"github.com/mattermost/mattermost-server/wsapi"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/web"
+	"github.com/mattermost/mattermost-server/v5/wsapi"
 
 	s3 "github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/credentials"
@@ -32,17 +32,18 @@ type TestHelper struct {
 	Server      *app.Server
 	ConfigStore config.Store
 
-	Client              *model.Client4
-	BasicUser           *model.User
-	BasicUser2          *model.User
-	TeamAdminUser       *model.User
-	BasicTeam           *model.Team
-	BasicChannel        *model.Channel
-	BasicPrivateChannel *model.Channel
-	BasicDeletedChannel *model.Channel
-	BasicChannel2       *model.Channel
-	BasicPost           *model.Post
-	Group               *model.Group
+	Client               *model.Client4
+	BasicUser            *model.User
+	BasicUser2           *model.User
+	TeamAdminUser        *model.User
+	BasicTeam            *model.Team
+	BasicChannel         *model.Channel
+	BasicPrivateChannel  *model.Channel
+	BasicPrivateChannel2 *model.Channel
+	BasicDeletedChannel  *model.Channel
+	BasicChannel2        *model.Channel
+	BasicPost            *model.Post
+	Group                *model.Group
 
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
@@ -193,6 +194,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()
+	me.BasicPrivateChannel2 = me.CreatePrivateChannel()
 	me.BasicDeletedChannel = me.CreatePublicChannel()
 	me.BasicChannel2 = me.CreatePublicChannel()
 	me.BasicPost = me.CreatePost()
@@ -238,6 +240,10 @@ func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.Ap
 
 func (me *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, *model.AppError) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.SystemAdminClient.AuthToken)
+}
+
+func (me *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), client.AuthToken)
 }
 
 func (me *TestHelper) CreateUser() *model.User {
@@ -634,6 +640,11 @@ func CheckRequestEntityTooLargeStatus(t *testing.T, resp *model.Response) {
 func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusInternalServerError, true)
+}
+
+func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusServiceUnavailable, true)
 }
 
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {

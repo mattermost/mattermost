@@ -1,12 +1,12 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -56,23 +56,6 @@ func TestSetLicense(t *testing.T) {
 	l3.ExpiresAt = model.GetMillis() + 100000
 	ok = th.App.SetLicense(l3)
 	require.True(t, ok, "license should have passed")
-}
-
-func TestClientLicenseEtag(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	etag1 := th.App.GetClientLicenseEtag(false)
-
-	th.App.SetClientLicense(map[string]string{"SomeFeature": "true", "IsLicensed": "true"})
-
-	etag2 := th.App.GetClientLicenseEtag(false)
-	require.NotEqual(t, etag1, etag2, "etags should not match")
-
-	th.App.SetClientLicense(map[string]string{"SomeFeature": "true", "IsLicensed": "false"})
-
-	etag3 := th.App.GetClientLicenseEtag(false)
-	require.NotEqual(t, etag2, etag3, "etags should not match")
 }
 
 func TestGetSanitizedClientLicense(t *testing.T) {

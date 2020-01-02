@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -1118,7 +1118,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 		assert.Nil(t, err)
 
 		assert.Equal(t, []string{}, postList.Order)
-		assert.Len(t, postList.Posts, 0)
+		assert.Empty(t, postList.Posts)
 	})
 
 	t.Run("should not cache a timestamp of 0 when nothing has changed", func(t *testing.T) {

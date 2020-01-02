@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -17,9 +17,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/testlib"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -315,7 +315,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-webSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED && len(resp.Data["plugin_statuses"].([]interface{})) == 0 {
+				if resp.EventType() == model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED && len(resp.GetData()["plugin_statuses"].([]interface{})) == 0 {
 					done <- true
 					return
 				}
@@ -387,7 +387,7 @@ func TestDisableOnRemove(t *testing.T) {
 			// Check initial status
 			pluginsResp, resp := th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
-			require.Len(t, pluginsResp.Active, 0)
+			require.Empty(t, pluginsResp.Active)
 			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
@@ -400,7 +400,7 @@ func TestDisableOnRemove(t *testing.T) {
 			// Confirm enabled status
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
-			require.Len(t, pluginsResp.Inactive, 0)
+			require.Empty(t, pluginsResp.Inactive)
 			require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
@@ -414,7 +414,7 @@ func TestDisableOnRemove(t *testing.T) {
 				// Plugin should remain active
 				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 				CheckNoError(t, resp)
-				require.Len(t, pluginsResp.Inactive, 0)
+				require.Empty(t, pluginsResp.Inactive)
 				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 					Manifest: *manifest,
 				}})
@@ -428,8 +428,8 @@ func TestDisableOnRemove(t *testing.T) {
 			// Plugin should have no status
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
-			require.Len(t, pluginsResp.Inactive, 0)
-			require.Len(t, pluginsResp.Active, 0)
+			require.Empty(t, pluginsResp.Inactive)
+			require.Empty(t, pluginsResp.Active)
 
 			// Upload same plugin
 			manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
@@ -439,7 +439,7 @@ func TestDisableOnRemove(t *testing.T) {
 			// Plugin should be inactive
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
-			require.Len(t, pluginsResp.Active, 0)
+			require.Empty(t, pluginsResp.Active)
 			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
@@ -511,7 +511,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
-		require.Len(t, plugins, 0)
+		require.Empty(t, plugins)
 	})
 
 	t.Run("verify server version is passed through", func(t *testing.T) {
@@ -536,7 +536,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
-		require.Len(t, plugins, 0)
+		require.Empty(t, plugins)
 	})
 }
 
@@ -915,6 +915,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 	t.Run("verify, install and remove plugin", func(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			serverVersion := req.URL.Query().Get("server_version")
+			require.NotEmpty(t, serverVersion)
+			require.Equal(t, model.CurrentVersion, serverVersion)
 			res.WriteHeader(http.StatusOK)
 			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[1]})
 			require.NoError(t, err)
@@ -927,6 +930,11 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
+		key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
+		require.NoError(t, err)
+		appErr := th.App.AddPublicKey("pub_key", key)
+		require.Nil(t, appErr)
+
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin_v2", Version: "1.2.3"}
 		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckNoError(t, resp)
@@ -934,7 +942,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Equal(t, "testplugin_v2", manifest.Id)
 		require.Equal(t, "1.2.3", manifest.Version)
 
-		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "testplugin_v2.sig")
+		filePath := filepath.Join(*th.App.Config().PluginSettings.Directory, "testplugin_v2.tar.gz.sig")
 		savedSigFile, err := th.App.ReadFile(filePath)
 		require.Nil(t, err)
 		require.EqualValues(t, sigFile, savedSigFile)
@@ -945,6 +953,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		exists, err := th.App.FileExists(filePath)
 		require.Nil(t, err)
 		require.False(t, exists)
+
+		appErr = th.App.DeletePublicKey("pub_key")
+		require.Nil(t, appErr)
 	})
 }
 

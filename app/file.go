@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -27,11 +27,11 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -145,10 +145,11 @@ func (a *App) getInfoForFilename(post *model.Post, teamId, channelId, userId, ol
 	data, err := a.ReadFile(path)
 	if err != nil {
 		mlog.Error(
-			fmt.Sprintf("File not found when migrating post to use FileInfos, err=%v", err),
+			"File not found when migrating post to use FileInfos",
 			mlog.String("post_id", post.Id),
 			mlog.String("filename", filename),
 			mlog.String("path", path),
+			mlog.Err(err),
 		)
 		return nil
 	}

@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestRoleStore(t *testing.T, ss store.Store) {
@@ -263,7 +263,7 @@ func testRoleStoreGetByNames(t *testing.T, ss store.Store) {
 	n5 := []string{model.NewId(), model.NewId()}
 	roles5, err := ss.Role().GetByNames(n5)
 	assert.Nil(t, err)
-	assert.Len(t, roles5, 0)
+	assert.Empty(t, roles5)
 
 	// Get one valid one and one invalid one.
 	n6 := []string{r1.Name, model.NewId()}
@@ -354,5 +354,5 @@ func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 
 	roles, err = ss.Role().GetByNames([]string{r1.Name, r2.Name})
 	assert.Nil(t, err)
-	assert.Len(t, roles, 0)
+	assert.Empty(t, roles)
 }

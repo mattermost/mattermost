@@ -1,12 +1,12 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,7 +36,7 @@ func TestChannelGroupEnable(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -80,7 +80,7 @@ func TestChannelGroupDisable(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -127,7 +127,7 @@ func TestChannelGroupStatus(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -170,7 +170,7 @@ func TestChannelGroupList(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -188,7 +188,7 @@ func TestChannelGroupList(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -229,7 +229,7 @@ func TestTeamGroupEnable(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -270,7 +270,7 @@ func TestTeamGroupDisable(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -314,7 +314,7 @@ func TestTeamGroupStatus(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -354,7 +354,7 @@ func TestTeamGroupList(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -372,7 +372,7 @@ func TestTeamGroupList(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,

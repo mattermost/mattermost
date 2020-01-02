@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,12 +10,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/services/marketplace"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/services/marketplace"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/pkg/errors"
 )
 
@@ -244,6 +244,7 @@ func (a *App) SyncPlugins() *model.AppError {
 	if appErr != nil {
 		return appErr
 	}
+
 	for _, plugin := range pluginSignaturePathMap {
 		reader, appErr := a.FileReader(plugin.path)
 		if appErr != nil {
@@ -432,7 +433,7 @@ func (a *App) GetMarketplacePlugin(request *model.InstallMarketplacePluginReques
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	filter := &model.MarketplacePluginFilter{Filter: request.Id}
+	filter := &model.MarketplacePluginFilter{Filter: request.Id, ServerVersion: model.CurrentVersion}
 	plugin, err := marketplaceClient.GetPlugin(filter, request.Version)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -593,6 +594,7 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 	if appErr != nil {
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
+
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
@@ -606,8 +608,8 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 		}
 	}
 	for _, path := range fileStorePaths {
-		if strings.HasSuffix(path, ".sig") {
-			id := strings.TrimSuffix(filepath.Base(path), ".sig")
+		if strings.HasSuffix(path, ".tar.gz.sig") {
+			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
 			if val, ok := pluginSignaturePathMap[id]; !ok {
 				mlog.Error("Unknown signature", mlog.String("path", path))
 			} else {
@@ -615,5 +617,6 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 			}
 		}
 	}
+
 	return pluginSignaturePathMap, nil
 }

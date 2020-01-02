@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
@@ -9,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestReactionsOfPost(t *testing.T) {
@@ -281,10 +284,11 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	// Ensure no channels were imported
 	channels, err = th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
-	assert.Equal(t, 0, len(channels))
+	assert.Equal(t, 1, len(channels))
+	assert.Equal(t, 1, len((*channels[0].Members)))
+	assert.Equal(t, th1.BasicUser.Username, (*channels[0].Members)[0])
 }
 
 func TestExportGMChannel(t *testing.T) {
@@ -475,5 +479,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 
 	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)
-	assert.Equal(t, 0, len(posts))
+	assert.Equal(t, 1, len(posts))
+	assert.Equal(t, 1, len((*posts[0].ChannelMembers)))
+	assert.Equal(t, th1.BasicUser.Username, (*posts[0].ChannelMembers)[0])
 }
