@@ -303,6 +303,18 @@ jobs:
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
             docker push mattermost/mattermost-team-edition:${TAG}
 
+  trigger-ee-tests:
+    machine: true
+    steps:
+      - run:
+          name: Trigger enterprise
+          command: |
+            curl \
+              --request POST \
+              --url https://circleci.com/api/v2/project/gh/mattermost/enterprise/pipeline \
+              --user ${CIRCLECI_TOKEN} \
+              --data parameters[external_branch]=$CIRCLE_BRANCH \
+              --data parameters[external_sha]=$CIRCLE_SHA1
 
 workflows:
   version: 2
@@ -338,3 +350,14 @@ workflows:
       - test-schema:
           requires:
             - setup
+      - trigger-ee-tests:
+          context: matterbuild-circleci-token
+          requires:
+            - test
+            - test-schema
+            - upload-s3
+            - upload-s3-sha
+            - build-docker
+          filters:
+            branches:
+              only: /^pull\/.*$/

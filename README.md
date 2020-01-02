@@ -12,8 +12,8 @@ It's written in Golang and React and runs as a single Linux binary with MySQL or
 
 ## Try out Mattermost
 
-- [Join the Mattermost Contributor's server](https://pre-release.mattermost.com/) (latest nightly builds, unstable)
-- [Join the Mattermost Demo server](https://demo.mattermost.com/signup_email) (latest stable version)
+- [Join the Mattermost Contributor's server](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676) to join community discussions about contributions, development and more
+- [Join the Mattermost Demo server](https://demo.mattermost.com/signup_email) to try out Mattermost and explore sample use cases
 
 ## Deploy on Heroku
 
@@ -48,7 +48,7 @@ Receive notifications of critical security updates. The sophistication of online
 
 - [Contribute Code](https://developers.mattermost.com/contribute/getting-started/)
 - [Find "Help Wanted" projects](https://github.com/mattermost/mattermost-server/issues?page=1&q=is%3Aissue+is%3Aopen+%22Help+Wanted%22&utf8=%E2%9C%93)
-- [Join Developer Discussion on a Mattermost Server for contributors](https://pre-release.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676)
+- [Join Developer Discussion on a Mattermost Server for contributors](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676)
 - [File Bugs](http://www.mattermost.org/filing-issues/)
 - [Share Feature Ideas](https://www.mattermost.org/feature-ideas/)
 - [Get Troubleshooting Help](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150)
@@ -65,6 +65,7 @@ Receive notifications of critical security updates. The sophistication of online
 - **Twitter** - Follow [Mattermost](https://twitter.com/mattermost)
 - **Blog** - Get the latest updates from the [Mattermost blog](https://mattermost.com/blog/).
 - **Email** - Subscribe to our [newsletter](http://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month)
-- **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd))
+- **Mattermost** - Join the ~contributors channel on [the Mattermost Community Server](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676). 
+- **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd)).
 
 Any other questions, mail us at info@mattermost.com. We’d love to meet you!

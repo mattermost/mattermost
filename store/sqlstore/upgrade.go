@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_18_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_19_0
+	VERSION_5_20_0           = "5.20.0"
 	VERSION_5_19_0           = "5.19.0"
 	VERSION_5_18_0           = "5.18.0"
 	VERSION_5_17_0           = "5.17.0"
@@ -169,6 +170,7 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion517(sqlStore)
 	upgradeDatabaseToVersion518(sqlStore)
 	upgradeDatabaseToVersion519(sqlStore)
+	upgradeDatabaseToVersion520(sqlStore)
 
 	return nil
 }
@@ -741,9 +743,18 @@ func upgradeDatabaseToVersion518(sqlStore SqlStore) {
 }
 
 func upgradeDatabaseToVersion519(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.19.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_18_0, VERSION_5_19_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_18_0, VERSION_5_19_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_19_0)
+	}
+}
+
+func upgradeDatabaseToVersion520(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.20.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_19_0, VERSION_5_20_0) {
+
+	sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
 	sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
-	//  saveSchemaVersion(sqlStore, VERSION_5_19_0)
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_20_0)
 	// }
 }

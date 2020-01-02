@@ -132,11 +132,11 @@ func TestPreparePostForClient(t *testing.T) {
 		t.Run("populates all fields", func(t *testing.T) {
 			assert.Equal(t, message, clientPost.Message, "shouldn't have changed Message")
 			assert.NotEqual(t, nil, clientPost.Metadata, "should've populated Metadata")
-			assert.Len(t, clientPost.Metadata.Embeds, 0, "should've populated Embeds")
-			assert.Len(t, clientPost.Metadata.Reactions, 0, "should've populated Reactions")
-			assert.Len(t, clientPost.Metadata.Files, 0, "should've populated Files")
-			assert.Len(t, clientPost.Metadata.Emojis, 0, "should've populated Emojis")
-			assert.Len(t, clientPost.Metadata.Images, 0, "should've populated Images")
+			assert.Empty(t, clientPost.Metadata.Embeds, "should've populated Embeds")
+			assert.Empty(t, clientPost.Metadata.Reactions, "should've populated Reactions")
+			assert.Empty(t, clientPost.Metadata.Files, "should've populated Files")
+			assert.Empty(t, clientPost.Metadata.Emojis, "should've populated Emojis")
+			assert.Empty(t, clientPost.Metadata.Images, "should've populated Images")
 		})
 	})
 
