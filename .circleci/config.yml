@@ -350,14 +350,38 @@ workflows:
       - test-schema:
           requires:
             - setup
+
+  pr:
+    when: $CIRLCLE_PULL_REQUEST
+    jobs:
+      - setup
+      # - check-i18n:
+      #     requires:
+      #       - setup
+      - build:
+          requires:
+            - setup
+      - upload-s3-sha:
+          context: mattermost-ci-pr-builds-s3
+          requires:
+            - build
+      - upload-s3:
+          context: mattermost-ci-pr-builds-s3
+          requires:
+            - build
+      - build-docker:
+          context: matterbuild-docker
+          requires:
+            - upload-s3-sha
+      - test:
+          requires:
+            - setup
+      - test-schema:
+          requires:
+            - setup
       - trigger-ee-tests:
           context: matterbuild-circleci-token
           requires:
             - test
             - test-schema
             - build-docker
-          filters:
-            branches:
-              ignore:
-                - master
-                - /^release-.*/
