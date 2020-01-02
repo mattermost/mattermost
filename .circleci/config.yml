@@ -309,6 +309,7 @@ jobs:
       - run:
           name: Trigger enterprise
           command: |
+            echo "$CIRCLE_PULL_REQUEST"
             if [[ "$CIRCLE_PULL_REQUEST" ]]
             then
             curl \
