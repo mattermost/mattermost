@@ -591,8 +591,17 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.NotNil(t, groupSyncable)
 	assert.True(t, groupSyncable.AutoAdd)
 
+	role, err := th.App.GetRoleByName("channel_user")
+	require.Nil(t, err)
+	originalPermissions := role.Permissions
+	_, err = th.App.PatchRole(role, &model.RolePatch{Permissions: &[]string{}})
+	require.Nil(t, err)
+
 	_, response = th.Client.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusForbidden, response.StatusCode)
+
+	_, err = th.App.PatchRole(role, &model.RolePatch{Permissions: &originalPermissions})
+	require.Nil(t, err)
 
 	th.App.SetLicense(nil)
 
