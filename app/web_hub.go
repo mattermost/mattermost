@@ -236,10 +236,6 @@ func (a *App) InvalidateCacheForChannelSkipClusterSend(channelId string) {
 }
 
 func (a *App) InvalidateCacheForChannelMembers(channelId string) {
-	a.InvalidateCacheForChannelMembersSkipClusterSend(channelId)
-}
-
-func (a *App) InvalidateCacheForChannelMembersSkipClusterSend(channelId string) {
 	a.Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
 	a.Srv.Store.Channel().InvalidateMemberCount(channelId)
 	a.Srv.Store.Channel().InvalidateGuestCount(channelId)
@@ -295,6 +291,9 @@ func (a *App) InvalidateCacheForUser(userId string) {
 func (a *App) InvalidateCacheForUserTeams(userId string) {
 	a.InvalidateCacheForUserTeamsSkipClusterSend(userId)
 
+	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
+	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
+
 	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER_TEAMS,
@@ -307,8 +306,6 @@ func (a *App) InvalidateCacheForUserTeams(userId string) {
 
 func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
 	a.Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
-	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
-	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
 
 	hub := a.GetHubForUserId(userId)
 	if hub != nil {
