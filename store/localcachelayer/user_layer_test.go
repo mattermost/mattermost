@@ -74,7 +74,8 @@ func TestUserStoreGetCache(t *testing.T) {
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		gotUser, err := cachedStore.User().Get(fakeUserId)
 		require.Nil(t, err)
@@ -87,7 +88,8 @@ func TestUserStoreGetCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		gotUser, err := cachedStore.User().Get(fakeUserId)
 		require.Nil(t, err)
