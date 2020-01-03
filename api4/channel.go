@@ -143,8 +143,13 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(channel.Type) > 0 && channel.Type != oldChannel.Type {
+		c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.typechange.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if oldChannel.Name == model.DEFAULT_CHANNEL {
-		if (len(channel.Name) > 0 && channel.Name != oldChannel.Name) || (len(channel.Type) > 0 && channel.Type != oldChannel.Type) {
+		if len(channel.Name) > 0 && channel.Name != oldChannel.Name {
 			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 			return
 		}
@@ -161,10 +166,6 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(channel.Name) > 0 {
 		oldChannel.Name = channel.Name
-	}
-
-	if len(channel.Type) > 0 {
-		oldChannel.Type = channel.Type
 	}
 
 	if channel.GroupConstrained != nil {
@@ -991,7 +992,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			c.Err = model.NewAppError("getChannelByName", store.MISSING_CHANNEL_ERROR, nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 			return
 		}
 	}
@@ -1020,7 +1021,7 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		c.Err = model.NewAppError("getChannelByNameForTeamName", store.MISSING_CHANNEL_ERROR, nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 		return
 	}
 

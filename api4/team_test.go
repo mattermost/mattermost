@@ -890,12 +890,12 @@ func TestSearchAllTeams(t *testing.T) {
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
 	CheckNoError(t, resp)
 
-	require.Len(t, rteams, 0, "should have not returned team")
+	require.Empty(t, rteams, "should have not returned team")
 
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 	CheckNoError(t, resp)
 
-	require.Len(t, rteams, 0, "should have not returned team")
+	require.Empty(t, rteams, "should have not returned team")
 
 	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
 	CheckNoError(t, resp)
@@ -910,7 +910,7 @@ func TestSearchAllTeams(t *testing.T) {
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: "junk"})
 	CheckNoError(t, resp)
 
-	require.Len(t, rteams, 0, "should have not returned team")
+	require.Empty(t, rteams, "should have not returned team")
 
 	Client.Logout()
 
@@ -1252,7 +1252,7 @@ func TestGetTeamMembers(t *testing.T) {
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Len(t, rmembers, 0, "should be no member")
+	require.Empty(t, rmembers, "should be no member")
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 2, "")
 	CheckNoError(t, resp)
@@ -1546,7 +1546,7 @@ func TestAddTeamMember(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
 
 	// Associate group to team
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -1754,7 +1754,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
 
 	// Associate group to team
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -2050,7 +2050,7 @@ func TestGetMyTeamsUnread(t *testing.T) {
 
 	teams, resp = Client.GetTeamsUnreadForUser(user.Id, th.BasicTeam.Id)
 	CheckNoError(t, resp)
-	require.Len(t, teams, 0, "should not have results")
+	require.Empty(t, teams, "should not have results")
 
 	_, resp = Client.GetTeamsUnreadForUser("fail", "")
 	CheckBadRequestStatus(t, resp)

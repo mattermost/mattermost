@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -181,32 +180,16 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
-	if appErr != nil && appErr.DetailedError != sql.ErrNoRows.Error() {
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    c.Params.GroupId,
+		SyncableId: syncableID,
+		Type:       syncableType,
+	}
+	groupSyncable.Patch(patch)
+	groupSyncable, appErr = c.App.UpsertGroupSyncable(groupSyncable)
+	if appErr != nil {
 		c.Err = appErr
 		return
-	}
-
-	if groupSyncable == nil {
-		groupSyncable = &model.GroupSyncable{
-			GroupId:    c.Params.GroupId,
-			SyncableId: syncableID,
-			Type:       syncableType,
-		}
-		groupSyncable.Patch(patch)
-		groupSyncable, appErr = c.App.CreateGroupSyncable(groupSyncable)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-	} else {
-		groupSyncable.DeleteAt = 0
-		groupSyncable.Patch(patch)
-		groupSyncable, appErr = c.App.UpdateGroupSyncable(groupSyncable)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
 	}
 
 	w.WriteHeader(http.StatusCreated)

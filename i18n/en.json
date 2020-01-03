@@ -376,6 +376,10 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Invalid channel member update: You can't add or remove the guest role manually"
   },
@@ -426,10 +430,6 @@
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
-  },
-  {
-    "id": "api.command.execute_command.debug",
-    "translation": "Executing cmd=%v userId=%v"
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -5635,10 +5635,6 @@
     "translation": "Limit exceeded for paging"
   },
   {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of audits"
-  },
-  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "We encountered an error deleting the audits"
   },
@@ -5941,10 +5937,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "You've reached the limit of the number of allowed channels."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "A channel with that URL was previously created"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",

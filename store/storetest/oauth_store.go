@@ -71,7 +71,7 @@ func testOAuthStoreGetApp(t *testing.T, ss store.Store) {
 	// Lets try and get the app from a user that hasn't created any apps
 	apps, err := ss.OAuth().GetAppByUser("fake0123456789abcderfgret1", 0, 1000)
 	require.Nil(t, err)
-	assert.Len(t, apps, 0, "Should have failed. Fake user hasn't created any apps")
+	assert.Empty(t, apps, "Should have failed. Fake user hasn't created any apps")
 
 	_, err = ss.OAuth().GetAppByUser(a1.CreatorId, 0, 1000)
 	require.Nil(t, err)
@@ -294,7 +294,7 @@ func testOAuthGetAuthorizedApps(t *testing.T, ss store.Store) {
 	// Lets try and get an Authorized app for a user who hasn't authorized it
 	apps, err := ss.OAuth().GetAuthorizedApps("fake0123456789abcderfgret1", 0, 1000)
 	require.Nil(t, err)
-	assert.Len(t, apps, 0, "Should have failed. Fake user hasn't authorized the app")
+	assert.Empty(t, apps, "Should have failed. Fake user hasn't authorized the app")
 
 	// allow the app
 	p := model.Preference{}
