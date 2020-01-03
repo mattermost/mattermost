@@ -195,6 +195,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// in the future the cache provider will be built based on the loaded config
 	s.CacheProvider = new(lru.CacheProvider)
 
+	s.CacheProvider.Connect()
+
 	s.sessionCache = s.CacheProvider.NewCache(model.SESSION_CACHE_SIZE)
 	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
 	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)

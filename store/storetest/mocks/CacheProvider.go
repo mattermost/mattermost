@@ -30,6 +30,11 @@ func (_m *CacheProvider) NewCache(size int) cache.Cache {
 	return r0
 }
 
+// Connect provides a mock function with given fields:
+func (_m *CacheProvider) Connect() {
+	_m.Called()
+}
+
 // Close provides a mock function with given fields:
 func (_m *CacheProvider) Close() {
 	_m.Called()

@@ -44,6 +44,11 @@ func (c *CacheProvider) NewCacheWithParams(size int, name string, defaultExpiry 
 	return NewWithParams(size, name, defaultExpiry, invalidateClusterEvent)
 }
 
+// Connect opens a new connection to the cache using specific provider parameters.
+func (c *CacheProvider) Connect() {
+
+}
+
 // Close releases any resources used by the cache provider.
 func (c *CacheProvider) Close() {
 

@@ -46,6 +46,9 @@ type Cache interface {
 
 // Provider defines how to create new caches
 type Provider interface {
+	// Connect opens a new connection to the cache using specific provider parameters.
+	Connect()
+
 	// NewCache creates a new cache with given size.
 	NewCache(size int) Cache
 
