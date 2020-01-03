@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateOAuthApp(t *testing.T) {
