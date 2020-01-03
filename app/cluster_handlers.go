@@ -9,6 +9,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+// RegisterAllClusterMessageHandlers register the cluster message handlers that are handled by the App layer
+//
+// The cluster event handlers are spread across this function and
+// NewLocalCacheLayer. Be careful to not have duplicated handlers here and
+// there.
 func (a *App) RegisterAllClusterMessageHandlers() {
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_PUBLISH, a.ClusterPublishHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_UPDATE_STATUS, a.ClusterUpdateStatusHandler)
@@ -24,7 +29,6 @@ func (a *App) RegisterAllClusterMessageHandlers() {
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INSTALL_PLUGIN, a.ClusterInstallPluginHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_REMOVE_PLUGIN, a.ClusterRemovePluginHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_BUSY_STATE_CHANGED, a.ClusterBusyStateChgHandler)
-
 }
 
 func (a *App) ClusterPublishHandler(msg *model.ClusterMessage) {
