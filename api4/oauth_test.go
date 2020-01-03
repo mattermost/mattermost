@@ -211,7 +211,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
 	CheckBadRequestStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 	th.LoginBasic()
 
