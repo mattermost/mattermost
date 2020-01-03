@@ -344,7 +344,7 @@ func (a *App) CreateCasUser(userName string) (*model.User, *model.AppError) {
 		return nil, err
 	}
   // Assign System Admin role to mattermost user from Y9 CAS
-  if userName == 'mattermost' {
+  if userName == "mattermost" {
 		if _, err := a.UpdateUserRoles(ruser.Id, "system_user system_admin", false); err != nil {
       mlog.Error("Unable to make user system admin. Error: ", mlog.Err(err))
 		}
