@@ -1367,7 +1367,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED && resp.Data["channel_id"].(string) == publicChannel2.Id {
+				if resp.EventType() == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED && resp.GetData()["channel_id"].(string) == publicChannel2.Id {
 					eventHit = true
 				}
 			case <-stop:
@@ -1500,7 +1500,7 @@ func TestGetChannelByName(t *testing.T) {
 
 	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 	_, resp = Client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "")
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.GetChannelByName(GenerateTestChannelName(), th.BasicTeam.Id, "")
 	CheckNotFoundStatus(t, resp)
@@ -1553,7 +1553,7 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	user := th.CreateUser()
 	Client.Login(user.Email, user.Password)
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestGetChannelMembers(t *testing.T) {
@@ -2426,7 +2426,7 @@ func TestRemoveChannelMember(t *testing.T) {
 		})
 
 		wsr := <-wsClient.EventChannel
-		require.Equal(t, model.WEBSOCKET_EVENT_HELLO, wsr.Event)
+		require.Equal(t, model.WEBSOCKET_EVENT_HELLO, wsr.EventType())
 
 		// requirePost listens for websocket events and tries to find the post matching
 		// the expected post's channel and message.
@@ -2435,7 +2435,7 @@ func TestRemoveChannelMember(t *testing.T) {
 			for {
 				select {
 				case event := <-wsClient.EventChannel:
-					postData, ok := event.Data["post"]
+					postData, ok := event.GetData()["post"]
 					if !ok {
 						continue
 					}

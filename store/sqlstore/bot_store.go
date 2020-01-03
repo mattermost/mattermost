@@ -15,22 +15,24 @@ import (
 
 // bot is a subset of the model.Bot type, omitting the model.User fields.
 type bot struct {
-	UserId      string `json:"user_id"`
-	Description string `json:"description"`
-	OwnerId     string `json:"owner_id"`
-	CreateAt    int64  `json:"create_at"`
-	UpdateAt    int64  `json:"update_at"`
-	DeleteAt    int64  `json:"delete_at"`
+	UserId         string `json:"user_id"`
+	Description    string `json:"description"`
+	OwnerId        string `json:"owner_id"`
+	LastIconUpdate int64  `json:"last_icon_update"`
+	CreateAt       int64  `json:"create_at"`
+	UpdateAt       int64  `json:"update_at"`
+	DeleteAt       int64  `json:"delete_at"`
 }
 
 func botFromModel(b *model.Bot) *bot {
 	return &bot{
-		UserId:      b.UserId,
-		Description: b.Description,
-		OwnerId:     b.OwnerId,
-		CreateAt:    b.CreateAt,
-		UpdateAt:    b.UpdateAt,
-		DeleteAt:    b.DeleteAt,
+		UserId:         b.UserId,
+		Description:    b.Description,
+		OwnerId:        b.OwnerId,
+		LastIconUpdate: b.LastIconUpdate,
+		CreateAt:       b.CreateAt,
+		UpdateAt:       b.UpdateAt,
+		DeleteAt:       b.DeleteAt,
 	}
 }
 
@@ -89,6 +91,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *m
 			u.FirstName AS DisplayName,
 			b.Description,
 			b.OwnerId,
+			b.LastIconUpdate,
 			b.CreateAt,
 			b.UpdateAt,
 			b.DeleteAt
@@ -145,6 +148,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model
 			    u.FirstName AS DisplayName,
 			    b.Description,
 			    b.OwnerId,
+				b.LastIconUpdate,
 			    b.CreateAt,
 			    b.UpdateAt,
 			    b.DeleteAt
@@ -205,6 +209,7 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
 
 	oldBot.Description = bot.Description
 	oldBot.OwnerId = bot.OwnerId
+	oldBot.LastIconUpdate = bot.LastIconUpdate
 	oldBot.UpdateAt = bot.UpdateAt
 	oldBot.DeleteAt = bot.DeleteAt
 	bot = oldBot
