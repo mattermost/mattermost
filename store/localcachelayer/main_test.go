@@ -60,12 +60,16 @@ func getMockStore() *mocks.Store {
 
 	mockCount := int64(10)
 	mockGuestCount := int64(12)
+	channelId := "channel1"
+	fakeChannelId := model.Channel{Id: channelId}
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", false).Return(mockGuestCount, nil)
+	mockChannelStore.On("Get", channelId, true).Return(&fakeChannelId, nil)
+	mockChannelStore.On("Get", channelId, false).Return(&fakeChannelId, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
 	mockPinnedPostsCount := int64(10)
@@ -94,10 +98,21 @@ func getMockStore() *mocks.Store {
 	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false).Return(model.NewPostList(), nil)
 	mockStore.On("Post").Return(&mockPostStore)
 
+	fakeTermsOfService := model.TermsOfService{Id: "123", CreateAt: 11111, UserId: "321", Text: "Terms of service test"}
+	mockTermsOfServiceStore := mocks.TermsOfServiceStore{}
+	mockTermsOfServiceStore.On("InvalidateTermsOfService", "123")
+	mockTermsOfServiceStore.On("Save", &fakeTermsOfService).Return(&fakeTermsOfService, nil)
+	mockTermsOfServiceStore.On("GetLatest", true).Return(&fakeTermsOfService, nil)
+	mockTermsOfServiceStore.On("GetLatest", false).Return(&fakeTermsOfService, nil)
+	mockTermsOfServiceStore.On("Get", "123", true).Return(&fakeTermsOfService, nil)
+	mockTermsOfServiceStore.On("Get", "123", false).Return(&fakeTermsOfService, nil)
+	mockStore.On("TermsOfService").Return(&mockTermsOfServiceStore)
+
 	fakeUser := []*model.User{{Id: "123"}}
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
+	mockUserStore.On("Get", "123").Return(fakeUser[0], nil)
 	mockStore.On("User").Return(&mockUserStore)
 
 	fakeUserTeamIds := []string{"1", "2", "3"}

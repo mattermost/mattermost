@@ -64,8 +64,42 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 	return a.Srv.Store.Group().DeleteMember(groupID, userID)
 }
 
-func (a *App) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().CreateGroupSyncable(groupSyncable)
+func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	gs, err := a.Srv.Store.Group().GetGroupSyncable(groupSyncable.GroupId, groupSyncable.SyncableId, groupSyncable.Type)
+	if err != nil && err.Id != "store.sql_group.no_rows" {
+		return nil, err
+	}
+
+	if gs == nil {
+		gs, err = a.Srv.Store.Group().CreateGroupSyncable(groupSyncable)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		gs, err = a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// if the type is channel, then upsert the associated GroupTeam [MM-14675]
+	if gs.Type == model.GroupSyncableTypeChannel {
+		channel, err := a.Srv.Store.Channel().Get(gs.SyncableId, true)
+		if err != nil {
+			return nil, err
+		}
+		_, err = a.UpsertGroupSyncable(&model.GroupSyncable{
+			GroupId:    gs.GroupId,
+			SyncableId: channel.TeamId,
+			Type:       model.GroupSyncableTypeTeam,
+			AutoAdd:    gs.AutoAdd,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return gs, nil
 }
 
 func (a *App) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
@@ -77,11 +111,45 @@ func (a *App) GetGroupSyncables(groupID string, syncableType model.GroupSyncable
 }
 
 func (a *App) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
+	var gs *model.GroupSyncable
+	var err *model.AppError
+
+	if groupSyncable.DeleteAt == 0 {
+		// updating a *deleted* GroupSyncable, so no need to ensure the GroupTeam is present (as done in the upsert)
+		gs, err = a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
+	} else {
+		// do an upsert to ensure that there's an associated GroupTeam
+		gs, err = a.UpsertGroupSyncable(groupSyncable)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return gs, nil
 }
 
 func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
+	gs, err := a.Srv.Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
+	if err != nil {
+		return nil, err
+	}
+
+	// if a GroupTeam is being deleted delete all associated GroupChannels
+	if gs.Type == model.GroupSyncableTypeTeam {
+		allGroupChannels, err := a.Srv.Store.Group().GetAllGroupSyncablesByGroupId(gs.GroupId, model.GroupSyncableTypeChannel)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, groupChannel := range allGroupChannels {
+			_, err = a.Srv.Store.Group().DeleteGroupSyncable(groupChannel.GroupId, groupChannel.SyncableId, groupChannel.Type)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return gs, nil
 }
 
 func (a *App) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
