@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// RegisterAllClusterMessageHandlers register the cluster message handlers that are handled by the App layer
+// RegisterAllClusterMessageHandlers registers the cluster message handlers that are handled by the App layer.
 //
 // The cluster event handlers are spread across this function and
 // NewLocalCacheLayer. Be careful to not have duplicated handlers here and
