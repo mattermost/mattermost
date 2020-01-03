@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -12,13 +12,16 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_17_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_19_0
+	VERSION_5_20_0           = "5.20.0"
+	VERSION_5_19_0           = "5.19.0"
+	VERSION_5_18_0           = "5.18.0"
 	VERSION_5_17_0           = "5.17.0"
 	VERSION_5_16_0           = "5.16.0"
 	VERSION_5_15_0           = "5.15.0"
@@ -165,6 +168,9 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion515(sqlStore)
 	upgradeDatabaseToVersion516(sqlStore)
 	upgradeDatabaseToVersion517(sqlStore)
+	upgradeDatabaseToVersion518(sqlStore)
+	upgradeDatabaseToVersion519(sqlStore)
+	upgradeDatabaseToVersion520(sqlStore)
 
 	return nil
 }
@@ -728,4 +734,26 @@ func upgradeDatabaseToVersion517(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_16_0, VERSION_5_17_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_17_0)
 	}
+}
+
+func upgradeDatabaseToVersion518(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_17_0, VERSION_5_18_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_18_0)
+	}
+}
+
+func upgradeDatabaseToVersion519(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_18_0, VERSION_5_19_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_19_0)
+	}
+}
+
+func upgradeDatabaseToVersion520(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.20.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_19_0, VERSION_5_20_0) {
+
+	sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_20_0)
+	// }
 }

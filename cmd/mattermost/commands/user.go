@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
 
@@ -75,12 +75,11 @@ var ResetUserPasswordCmd = &cobra.Command{
 }
 
 var updateUserEmailCmd = &cobra.Command{
-	Use:   "email [user] [new email]",
-	Short: "Change email of the user",
-	Long:  "Change email of the user.",
-	Example: `  user email test user@example.com
-  user activate username`,
-	RunE: updateUserEmailCmdF,
+	Use:     "email [user] [new email]",
+	Short:   "Change email of the user",
+	Long:    "Change email of the user.",
+	Example: "  user email testuser user@example.com",
+	RunE:    updateUserEmailCmdF,
 }
 
 var ResetUserMfaCmd = &cobra.Command{
@@ -724,8 +723,14 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if err := a.PermanentDeleteUser(user); err != nil {
-			return err
+		if user.IsBot {
+			if err := a.PermanentDeleteBot(user.Id); err != nil {
+				return err
+			}
+		} else {
+			if err := a.PermanentDeleteUser(user); err != nil {
+				return err
+			}
 		}
 	}
 

@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestSchemeStore(t *testing.T, ss store.Store) {
@@ -484,5 +484,5 @@ func testSchemeStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 
 	schemes, err := ss.Scheme().GetAllPage("", 0, 100000)
 	assert.Nil(t, err)
-	assert.Len(t, schemes, 0)
+	assert.Empty(t, schemes)
 }

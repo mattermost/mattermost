@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -505,7 +505,7 @@ func TestImportImportTeam(t *testing.T) {
 	scheme2 := th.SetupTeamScheme()
 
 	// Check how many teams are in the database.
-	teamsCount, err := th.App.Srv.Store.Team().AnalyticsTeamCount()
+	teamsCount, err := th.App.Srv.Store.Team().AnalyticsTeamCount(false)
 	require.Nil(t, err, "Failed to get team count.")
 
 	data := TeamImportData{
@@ -595,7 +595,7 @@ func TestImportImportChannel(t *testing.T) {
 	scheme2 := th.SetupChannelScheme()
 
 	// Import a Team.
-	teamName := model.NewId()
+	teamName := model.NewRandomTeamName()
 	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
@@ -834,7 +834,7 @@ func TestImportImportUser(t *testing.T) {
 
 	require.Equal(t, user.AuthData, data.AuthData, "Expected AuthData to be set.")
 
-	require.Len(t, user.Password, 0, "Expected password to be empty.")
+	require.Empty(t, user.Password, "Expected password to be empty.")
 
 	require.True(t, user.EmailVerified, "Expected EmailVerified to be true.")
 
@@ -862,7 +862,7 @@ func TestImportImportUser(t *testing.T) {
 	data.Password = ptrStr("TestPassword")
 
 	// Test team and channel memberships
-	teamName := model.NewId()
+	teamName := model.NewRandomTeamName()
 	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
@@ -1570,7 +1570,7 @@ func TestImportImportPost(t *testing.T) {
 	defer th.TearDown()
 
 	// Create a Team.
-	teamName := model.NewId()
+	teamName := model.NewRandomTeamName()
 	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
@@ -2190,7 +2190,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err := th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post := posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2205,7 +2205,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2233,7 +2233,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2262,7 +2262,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
@@ -2361,7 +2361,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2376,7 +2376,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2404,7 +2404,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2434,7 +2434,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
@@ -2497,7 +2497,7 @@ func TestImportAttachment(t *testing.T) {
 	assert.Nil(t, err, "sample run without errors")
 
 	attachments := GetAttachments(userId, th, t)
-	assert.Equal(t, len(attachments), 1)
+	assert.Len(t, attachments, 1)
 
 	data = AttachmentImportData{Path: &invalidPath}
 	_, err = th.App.ImportAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team", true)
@@ -2510,7 +2510,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	defer th.TearDown()
 
 	// Create a Team.
-	teamName := model.NewId()
+	teamName := model.NewRandomTeamName()
 	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
@@ -2569,17 +2569,28 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		}},
 	}
 
+	// import with attachments
 	err = th.App.ImportPost(data, false)
 	assert.Nil(t, err)
 
 	attachments := GetAttachments(user3.Id, th, t)
-	assert.Equal(t, len(attachments), 2)
+	assert.Len(t, attachments, 2)
 	assert.Contains(t, attachments[0].Path, team.Id)
 	assert.Contains(t, attachments[1].Path, team.Id)
 	AssertFileIdsInPost(attachments, th, t)
 
+	// import existing post with new attachments
+	data.Attachments = &[]AttachmentImportData{{Path: &testImage}}
+	err = th.App.ImportPost(data, false)
+	assert.Nil(t, err)
+
+	attachments = GetAttachments(user3.Id, th, t)
+	assert.Len(t, attachments, 1)
+	assert.Contains(t, attachments[0].Path, team.Id)
+	AssertFileIdsInPost(attachments, th, t)
+
 	attachments = GetAttachments(user4.Id, th, t)
-	assert.Equal(t, len(attachments), 1)
+	assert.Len(t, attachments, 1)
 	assert.Contains(t, attachments[0].Path, team.Id)
 	AssertFileIdsInPost(attachments, th, t)
 
@@ -2624,7 +2635,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, err, "Expected success.")
 
 	attachments = GetAttachments(user4.Id, th, t)
-	assert.Equal(t, len(attachments), 1)
+	assert.Len(t, attachments, 1)
 	assert.Contains(t, attachments[0].Path, "noteam")
 	AssertFileIdsInPost(attachments, th, t)
 }
@@ -2679,7 +2690,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Equal(t, len(attachments), 1)
+		assert.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, "noteam")
 		AssertFileIdsInPost(attachments, th, t)
 	})
@@ -2689,7 +2700,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Equal(t, len(attachments), 1)
+		assert.Len(t, attachments, 1)
 	})
 
 	t.Run("Attempt to import again with same name and size but different content, SHOULD add an attachment", func(t *testing.T) {
@@ -2708,7 +2719,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Equal(t, len(attachments), 2)
+		assert.Len(t, attachments, 2)
 	})
 
 	t.Run("Attempt to import again with same data, SHOULD add an attachment, since it's different name", func(t *testing.T) {
@@ -2727,6 +2738,6 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Equal(t, len(attachments), 3)
+		assert.Len(t, attachments, 3)
 	})
 }

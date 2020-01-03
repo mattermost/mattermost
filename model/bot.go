@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -22,14 +22,15 @@ const (
 // Note that the primary key of a bot is the UserId, and matches the primary key of the
 // corresponding user.
 type Bot struct {
-	UserId      string `json:"user_id"`
-	Username    string `json:"username"`
-	DisplayName string `json:"display_name,omitempty"`
-	Description string `json:"description,omitempty"`
-	OwnerId     string `json:"owner_id"`
-	CreateAt    int64  `json:"create_at"`
-	UpdateAt    int64  `json:"update_at"`
-	DeleteAt    int64  `json:"delete_at"`
+	UserId         string `json:"user_id"`
+	Username       string `json:"username"`
+	DisplayName    string `json:"display_name,omitempty"`
+	Description    string `json:"description,omitempty"`
+	OwnerId        string `json:"owner_id"`
+	LastIconUpdate int64  `json:"last_icon_update,omitempty"`
+	CreateAt       int64  `json:"create_at"`
+	UpdateAt       int64  `json:"update_at"`
+	DeleteAt       int64  `json:"delete_at"`
 }
 
 // BotPatch is a description of what fields to update on an existing bot.

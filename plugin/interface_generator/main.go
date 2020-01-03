@@ -84,18 +84,18 @@ func FieldListToEncodedErrors(structPrefix string, fieldList *ast.FieldList, fil
 		}
 
 		if typeNameBuffer.String() != "error" {
-			nextLetter += 1
+			nextLetter++
 			continue
 		}
 
 		name := ""
 		if len(field.Names) == 0 {
 			name = string(nextLetter)
-			nextLetter += 1
+			nextLetter++
 		} else {
 			for range field.Names {
 				name += string(nextLetter)
-				nextLetter += 1
+				nextLetter++
 			}
 		}
 
@@ -125,11 +125,11 @@ func FieldListDestruct(structPrefix string, fieldList *ast.FieldList, fileset *t
 		}
 		if len(field.Names) == 0 {
 			result = append(result, structPrefix+string(nextLetter)+suffix)
-			nextLetter += 1
+			nextLetter++
 		} else {
 			for range field.Names {
 				result = append(result, structPrefix+string(nextLetter)+suffix)
-				nextLetter += 1
+				nextLetter++
 			}
 		}
 	}
@@ -155,11 +155,11 @@ func FieldListToStructList(fieldList *ast.FieldList, fileset *token.FileSet) str
 		}
 		if len(field.Names) == 0 {
 			result = append(result, string(nextLetter)+" "+typeName)
-			nextLetter += 1
+			nextLetter++
 		} else {
 			for range field.Names {
 				result = append(result, string(nextLetter)+" "+typeName)
-				nextLetter += 1
+				nextLetter++
 			}
 		}
 	}
@@ -379,7 +379,7 @@ func generateGlue(info *PluginInterfaceInfo) {
 }
 
 func getPluginPackageDir() string {
-	dirs, err := goList("github.com/mattermost/mattermost-server/plugin")
+	dirs, err := goList("github.com/mattermost/mattermost-server/v5/plugin")
 	if err != nil {
 		panic(err)
 	} else if len(dirs) != 1 {
@@ -395,6 +395,7 @@ func removeExcluded(info *PluginInterfaceInfo) *PluginInterfaceInfo {
 			"FileWillBeUploaded",
 			"Implemented",
 			"LoadPluginConfiguration",
+			"InstallPlugin",
 			"LogDebug",
 			"LogError",
 			"LogInfo",

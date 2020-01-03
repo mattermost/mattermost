@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -169,7 +169,7 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 
 	data, err := ss.Session().GetSessions(s1.UserId)
 	require.Nil(t, err)
-	require.Len(t, data, 0, "should match len")
+	require.Empty(t, data, "should match len")
 }
 
 func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCreateIncomingWebhook(t *testing.T) {
@@ -150,7 +150,7 @@ func TestGetIncomingWebhooks(t *testing.T) {
 	hooks, resp = th.SystemAdminClient.GetIncomingWebhooksForTeam(model.NewId(), 0, 1000, "")
 	CheckNoError(t, resp)
 
-	require.Len(t, hooks, 0, "no hooks should be returned")
+	require.Empty(t, hooks, "no hooks should be returned")
 
 	_, resp = Client.GetIncomingWebhooks(0, 1000, "")
 	CheckForbiddenStatus(t, resp)
@@ -437,7 +437,7 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooksForTeam(model.NewId(), 0, 1000, "")
 	CheckNoError(t, resp)
 
-	require.Len(t, hooks, 0, "no hooks should be returned")
+	require.Empty(t, hooks, "no hooks should be returned")
 
 	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
 	CheckNoError(t, resp)

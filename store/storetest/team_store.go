@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func cleanupTeamStore(t *testing.T, ss store.Store) {
@@ -778,12 +778,29 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
-	_, err := ss.Team().Save(&o1)
+	team, err := ss.Team().Save(&o1)
 	require.Nil(t, err)
 
-	teamCount, err := ss.Team().AnalyticsTeamCount()
+	// not including deleted teams
+	teamCount, err := ss.Team().AnalyticsTeamCount(false)
 	require.Nil(t, err)
 	require.NotEqual(t, 0, int(teamCount), "should be at least 1 team")
+
+	// delete the team for the next check
+	team.DeleteAt = model.GetMillis()
+	_, err = ss.Team().Update(team)
+	require.Nil(t, err)
+
+	// get the count of teams not including deleted
+	countNotIncludingDeleted, err := ss.Team().AnalyticsTeamCount(false)
+	require.Nil(t, err)
+
+	// get the count of teams including deleted
+	countIncludingDeleted, err := ss.Team().AnalyticsTeamCount(true)
+	require.Nil(t, err)
+
+	// count including deleted should be one greater than not including deleted
+	require.Equal(t, countNotIncludingDeleted+1, countIncludingDeleted)
 }
 
 func testTeamMembers(t *testing.T, ss store.Store) {
@@ -831,7 +848,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 
 	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
-	require.Len(t, ms, 0)
+	require.Empty(t, ms)
 
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
@@ -850,7 +867,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 
 	ms, err = ss.Team().GetTeamsForUser(m1.UserId)
 	require.Nil(t, err)
-	require.Len(t, ms, 0)
+	require.Empty(t, ms)
 }
 
 func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
@@ -907,7 +924,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 
 	result, err = ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
 	require.Nil(t, err)
-	require.Len(t, result, 0)
+	require.Empty(t, result)
 }
 
 func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
@@ -1323,12 +1340,12 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	// Get the teams by a valid Scheme ID where there aren't any matching Teams.
 	d, err = ss.Team().GetTeamsByScheme(s2.Id, 0, 100)
 	assert.Nil(t, err)
-	assert.Len(t, d, 0)
+	assert.Empty(t, d)
 
 	// Get the teams by an invalid Scheme ID.
 	d, err = ss.Team().GetTeamsByScheme(model.NewId(), 0, 100)
 	assert.Nil(t, err)
-	assert.Len(t, d, 0)
+	assert.Empty(t, d)
 }
 
 func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {

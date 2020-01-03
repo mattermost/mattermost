@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package plugin
 
@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	plugin "github.com/hashicorp/go-plugin"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // The API can be used to retrieve data or perform actions on behalf of the plugin. Most methods
@@ -758,13 +758,12 @@ type API interface {
 	KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError)
 
 	// KVSetWithOptions stores a key-value pair, unique per plugin, according to the given options.
-	// If options.EncodeJSON is not true, the type of newValue must be of type []byte.
 	// Returns (false, err) if DB error occurred
 	// Returns (false, nil) if the value was not set
 	// Returns (true, nil) if the value was set
 	//
-	// Minimum server version: 5.18
-	KVSetWithOptions(key string, newValue interface{}, options model.PluginKVSetOptions) (bool, *model.AppError)
+	// Minimum server version: 5.20
+	KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 
 	// KVSet stores a key-value pair with an expiry time, unique per plugin.
 	//

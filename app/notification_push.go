@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,9 +11,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type NotificationType string
@@ -453,11 +453,11 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 		msg = a.buildFullPushNotificationMessage(contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
 
-	badge, err := a.getPushNotificationBadge(user, channel)
+	unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id)
 	if err != nil {
 		return nil, err
 	}
-	msg.Badge = badge
+	msg.Badge = int(unreadCount)
 
 	return msg, nil
 }
@@ -518,17 +518,4 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	msg.Message = a.getPushNotificationMessage(contentsConfig, post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
 
 	return msg
-}
-
-func (a *App) getPushNotificationBadge(user *model.User, channel *model.Channel) (int, *model.AppError) {
-	var unreadCount int64
-	var err *model.AppError
-
-	if user.NotifyProps["push"] == "all" {
-		unreadCount, err = a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id)
-	} else {
-		unreadCount, err = a.Srv.Store.User().GetUnreadCount(user.Id)
-	}
-
-	return int(unreadCount), err
 }
