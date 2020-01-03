@@ -3211,10 +3211,20 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 	user3, err = ss.User().Save(user3)
 	require.Nil(t, err)
 
+	user4 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user4, err = ss.User().Save(user4)
+	require.Nil(t, err)
+
 	for _, user := range []*model.User{user1, user2, user3} {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id}, 9999)
 		require.Nil(t, err)
 	}
+
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user4.Id, SchemeGuest: true}, 9999)
+	require.Nil(t, err)
 
 	tests := []struct {
 		testName               string
@@ -3259,13 +3269,20 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 
 			members, err := ss.Team().GetMembers(team.Id, 0, 100, nil)
 			require.Nil(t, err)
-			require.GreaterOrEqual(t, len(members), 3) // sanity check for team membership
+			require.GreaterOrEqual(t, len(members), 4) // sanity check for team membership
 
 			for _, member := range members {
 				if includes(tt.inUserIDs, member.UserId) {
 					require.True(t, member.SchemeAdmin)
 				} else {
 					require.False(t, member.SchemeAdmin)
+				}
+
+				// Ensure guest account never changes.
+				if member.UserId == user4.Id {
+					require.False(t, member.SchemeUser)
+					require.False(t, member.SchemeAdmin)
+					require.True(t, member.SchemeGuest)
 				}
 			}
 		})
@@ -3303,6 +3320,13 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 	user3, err = ss.User().Save(user3)
 	require.Nil(t, err)
 
+	user4 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user4, err = ss.User().Save(user4)
+	require.Nil(t, err)
+
 	for _, user := range []*model.User{user1, user2, user3} {
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   channel.Id,
@@ -3311,6 +3335,14 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 		})
 		require.Nil(t, err)
 	}
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      user4.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	})
+	require.Nil(t, err)
 
 	tests := []struct {
 		testName               string
@@ -3356,13 +3388,20 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)
 			require.Nil(t, err)
 
-			require.GreaterOrEqual(t, len(*members), 3) // sanity check for channel membership
+			require.GreaterOrEqual(t, len(*members), 4) // sanity check for channel membership
 
 			for _, member := range *members {
 				if includes(tt.inUserIDs, member.UserId) {
 					require.True(t, member.SchemeAdmin)
 				} else {
 					require.False(t, member.SchemeAdmin)
+				}
+
+				// Ensure guest account never changes.
+				if member.UserId == user4.Id {
+					require.False(t, member.SchemeUser)
+					require.False(t, member.SchemeAdmin)
+					require.True(t, member.SchemeGuest)
 				}
 			}
 		})

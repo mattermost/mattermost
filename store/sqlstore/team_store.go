@@ -1092,6 +1092,7 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.
 			END
 		WHERE
 			TeamId = :TeamId
+			AND (SchemeGuest = false OR SchemeGuest IS NULL)
 			AND DeleteAt = 0`, strings.Join(userIDs, "', '"))
 
 	if _, err := s.GetMaster().Exec(sql, map[string]interface{}{"TeamId": teamID}); err != nil {
