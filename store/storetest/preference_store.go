@@ -251,7 +251,7 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	preferences, err = ss.Preference().GetAll(preference.UserId)
 	require.Nil(t, err)
-	assert.Len(t, preferences, 0, "should've returned no preferences")
+	assert.Empty(t, preferences, "should've returned no preferences")
 }
 
 func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
@@ -284,7 +284,7 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 
 	preferences, err = ss.Preference().GetAll(userId)
 	require.Nil(t, err)
-	assert.Len(t, preferences, 0, "should've returned no preferences")
+	assert.Empty(t, preferences, "should've returned no preferences")
 }
 
 func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
@@ -323,11 +323,11 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 
 	preferences, err = ss.Preference().GetAll(userId)
 	require.Nil(t, err)
-	assert.Len(t, preferences, 0, "should've returned no preference")
+	assert.Empty(t, preferences, "should've returned no preference")
 
 	preferences, err = ss.Preference().GetAll(userId2)
 	require.Nil(t, err)
-	assert.Len(t, preferences, 0, "should've returned no preference")
+	assert.Empty(t, preferences, "should've returned no preference")
 }
 
 func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {

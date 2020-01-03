@@ -23,7 +23,7 @@ func TestStringArrayIntersection(t *testing.T) {
 		"def",
 	}
 
-	assert.Len(t, StringArrayIntersection(a, b), 0)
+	assert.Empty(t, StringArrayIntersection(a, b))
 	assert.Len(t, StringArrayIntersection(a, c), 1)
 }
 
