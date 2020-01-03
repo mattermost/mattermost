@@ -48,7 +48,7 @@ func (api *API) InitSystem() {
 
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/server_busy/clear", api.ApiSessionRequired(clearServerBusy)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
