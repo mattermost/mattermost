@@ -34,7 +34,7 @@ package:
 	@# Resource directories
 	mkdir -p $(DIST_PATH)/config
 	cp -L config/README.md $(DIST_PATH)/config
-	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json go generate ./config
+	#OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json go generate ./config
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
@@ -74,11 +74,11 @@ endif
 	@# Make linux package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
-	cp $(GOPATH)/bin/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+	cp /home/justin/go/bin/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+	cp /home/justin/go/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
-	cp $(GOPATH)/bin/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
-	cp $(GOPATH)/bin/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
+	cp /home/justin/go/bin/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
+	cp /home/justin/go/bin/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
 	@# Strip and prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
