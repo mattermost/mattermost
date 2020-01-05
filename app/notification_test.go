@@ -871,7 +871,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 	m := getExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}})
 	require.True(t, m.HereMentioned, "should've mentioned @here with \"@here @user\"")
 	require.Len(t, m.Mentions, 1)
-	require.False(t, m.Mentions[id] != KeywordMention, "should've mentioned @user with \"@here @user\"")
+	require.Equal(t, KeywordMention, m.Mentions[id], "should've mentioned @user with \"@here @user\"")
 	require.LessOrEqual(t, len(m.OtherPotentialMentions), 1, "should've potential mentions for @potential")
 }
 
@@ -947,13 +947,13 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	ids, ok := mentions["user"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user1.Id, "should've returned mention key of user")
+	require.Equal(t, user1.Id, ids[0], "should've returned mention key of user")
 	ids, ok = mentions["@user"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user1.Id, "should've returned mention key of @user")
+	require.Equal(t, user1.Id, ids[0], "should've returned mention key of @user")
 	ids, ok = mentions["mention"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user1.Id, "should've returned mention key of mention")
+	require.Equal(t, user1.Id, ids[0], "should've returned mention key of mention")
 
 	// user with first name mention enabled
 	user2 := &model.User{
@@ -977,7 +977,7 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	ids, ok = mentions["First"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user2.Id, "should've returned mention key of First")
+	require.Equal(t, user2.Id, ids[0], "should've returned mention key of First")
 
 	// user with @channel/@all mentions enabled
 	user3 := &model.User{
@@ -1000,10 +1000,10 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.Len(t, mentions, 3, "should've returned three mention keywords")
 	ids, ok = mentions["@channel"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user3.Id, "should've returned mention key of @channel")
+	require.Equal(t, user3.Id, ids[0], "should've returned mention key of @channel")
 	ids, ok = mentions["@all"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user3.Id, "should've returned mention key of @all")
+	require.Equal(t, user3.Id, ids[0], "should've returned mention key of @all")
 
 	// Channel member notify props is set to default
 	channelMemberNotifyPropsMapDefault := map[string]model.StringMap{
@@ -1016,10 +1016,10 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.Len(t, mentions, 3, "should've returned three mention keywords")
 	ids, ok = mentions["@channel"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user3.Id, "should've returned mention key of @channel")
+	require.Equal(t, user3.Id, ids[0], "should've returned mention key of @channel")
 	ids, ok = mentions["@all"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user3.Id, "should've returned mention key of @all")
+	require.Equal(t, user3.Id, ids[0], "should've returned mention key of @all")
 
 	// Channel member notify props is empty
 	channelMemberNotifyPropsMapEmpty := map[string]model.StringMap{}
@@ -1028,10 +1028,10 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.Len(t, mentions, 3, "should've returned three mention keywords")
 	ids, ok = mentions["@channel"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user3.Id, "should've returned mention key of @channel")
+	require.Equal(t, user3.Id, ids[0], "should've returned mention key of @channel")
 	ids, ok = mentions["@all"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user3.Id, "should've returned mention key of @all")
+	require.Equal(t, user3.Id, ids[0], "should've returned mention key of @all")
 
 	// Channel-wide mentions are ignored channel level
 	channelMemberNotifyPropsMap3On := map[string]model.StringMap{
@@ -1066,22 +1066,22 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.Len(t, mentions, 6, "should've returned six mention keywords")
 	ids, ok = mentions["user"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user4.Id, "should've returned mention key of user")
+	require.Equal(t, user4.Id, ids[0], "should've returned mention key of user")
 	ids, ok = mentions["@user"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user4.Id, "should've returned mention key of @user")
+	require.Equal(t, user4.Id, ids[0], "should've returned mention key of @user")
 	ids, ok = mentions["mention"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user4.Id, "should've returned mention key of mention")
+	require.Equal(t, user4.Id, ids[0], "should've returned mention key of mention")
 	ids, ok = mentions["First"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user4.Id, "should've returned mention key of First")
+	require.Equal(t, user4.Id, ids[0], "should've returned mention key of First")
 	ids, ok = mentions["@channel"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user4.Id, "should've returned mention key of @channel")
+	require.Equal(t, user4.Id, ids[0], "should've returned mention key of @channel")
 	ids, ok = mentions["@all"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user4.Id, "should've returned mention key of @all")
+	require.Equal(t, user4.Id, ids[0], "should've returned mention key of @all")
 
 	// Channel-wide mentions are ignored on channel level
 	channelMemberNotifyPropsMap4On := map[string]model.StringMap{
@@ -1093,16 +1093,16 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.Len(t, mentions, 4, "should've returned four mention keywords")
 	ids, ok = mentions["user"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user4.Id, "should've returned mention key of user")
+	require.Equal(t, user4.Id, ids[0], "should've returned mention key of user")
 	ids, ok = mentions["@user"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user4.Id, "should've returned mention key of @user")
+	require.Equal(t, user4.Id, ids[0], "should've returned mention key of @user")
 	ids, ok = mentions["mention"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user4.Id, "should've returned mention key of mention")
+	require.Equal(t, user4.Id, ids[0], "should've returned mention key of mention")
 	ids, ok = mentions["First"]
 	require.True(t, ok)
-	require.False(t, ids[0] != user4.Id, "should've returned mention key of First")
+	require.Equal(t, user4.Id, ids[0], "should've returned mention key of First")
 	dup_count := func(list []string) map[string]int {
 
 		duplicate_frequency := make(map[string]int)
@@ -1154,8 +1154,8 @@ func TestGetMentionKeywords(t *testing.T) {
 	idsMap := dup_count(mentions["@user"])
 	require.True(t, ok)
 	require.Len(t, idsMap, 4)
-	require.False(t, idsMap[user1.Id] != 2, "should've mentioned user1  with @user")
-	require.False(t, idsMap[user4.Id] != 2, "should've mentioned user4  with @user")
+	require.Equal(t, idsMap[user1.Id], 2, "should've mentioned user1 with @user")
+	require.Equal(t, idsMap[user4.Id], 2, "should've mentioned user4 with @user")
 
 	ids, ok = mentions["mention"]
 	require.True(t, ok)
