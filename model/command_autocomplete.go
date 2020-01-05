@@ -181,8 +181,7 @@ func (ad *AutocompleteData) IsValid() error {
 					}
 				}
 			} else if arg.Type == TextInputArgumentType {
-				_, ok := arg.Data.(*TextInputArgument)
-				if !ok {
+				if _, ok := arg.Data.(*TextInputArgument); !ok {
 					return errors.New("Not a proper TextInput type argument")
 				}
 			}
@@ -207,8 +206,7 @@ func (ad *AutocompleteData) ToJSON() ([]byte, error) {
 
 func AutocompleteDataFromJSON(data []byte) (*AutocompleteData, error) {
 	var ad AutocompleteData
-	err := json.Unmarshal(data, &ad)
-	if err != nil {
+	if err := json.Unmarshal(data, &ad); err != nil {
 		return nil, errors.Wrap(err, "can't unmarshal slash command data")
 	}
 	return &ad, nil
@@ -217,8 +215,7 @@ func AutocompleteDataFromJSON(data []byte) (*AutocompleteData, error) {
 // UnmarshalJSON will unmarshal argument
 func (a *Argument) UnmarshalJSON(b []byte) error {
 	var arg map[string]interface{}
-	err := json.Unmarshal(b, &arg)
-	if err != nil {
+	if err := json.Unmarshal(b, &arg); err != nil {
 		return errors.Wrapf(err, "Can't unmarshal argument %s", string(b))
 	}
 	name, ok := arg["Name"]
