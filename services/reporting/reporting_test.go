@@ -40,13 +40,13 @@ func InitForTesting() TestingEnvironment {
 	events := make(chan *sentry.Event, 1)
 	flushes := make(chan time.Duration, 1)
 	transport := TestingTransport{flushes}
-	opts := Options()
+	opts := sentry.ClientOptions{}
 	opts.Transport = transport
 	opts.BeforeSend = func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
 		events <- event
 		return event
 	}
-	Init(opts)
+	sentry.Init(opts)
 
 	return TestingEnvironment{events, flushes}
 }
@@ -54,7 +54,7 @@ func InitForTesting() TestingEnvironment {
 // Reporting an error should capture its error message.
 func TestCaptureException(t *testing.T) {
 	env := InitForTesting()
-	eventID := CaptureException(TestingError{"some error"})
+	eventID := (*sentry.EventID) (CaptureException(TestingError{"some error"}))
 	event := <-env.events
 	lastEventID := &event.EventID
 	eventErrorMsg := event.Exception[0].Value
