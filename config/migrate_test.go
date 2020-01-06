@@ -52,7 +52,7 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 	assert.Equal(t, ds.Get(), fs.Get())
 }
 
-func TestMigrateFileToDatabase(t *testing.T) {
+func TestMigrateFileToDatabaseWhenFilePathIsNotSpecified(t *testing.T) {
 	helper := testlib.NewMainHelper()
 	sqlSettings := helper.GetSqlSettings()
 	defer storetest.CleanupSqlSettings(sqlSettings)
