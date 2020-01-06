@@ -230,7 +230,7 @@ func TestGetAllConns(t *testing.T) {
 			}
 			supplier := sqlstore.NewSqlSupplier(settings, nil)
 
-			assert.Equal(t, testCase.ExpectedNumConnections, len(supplier.GetAllConns()))
+			assert.Len(t, supplier.GetAllConns(), testCase.ExpectedNumConnections)
 		})
 	}
 }

@@ -315,7 +315,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-webSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED && len(resp.Data["plugin_statuses"].([]interface{})) == 0 {
+				if resp.EventType() == model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED && len(resp.GetData()["plugin_statuses"].([]interface{})) == 0 {
 					done <- true
 					return
 				}
@@ -387,7 +387,7 @@ func TestDisableOnRemove(t *testing.T) {
 			// Check initial status
 			pluginsResp, resp := th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
-			require.Len(t, pluginsResp.Active, 0)
+			require.Empty(t, pluginsResp.Active)
 			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
@@ -400,7 +400,7 @@ func TestDisableOnRemove(t *testing.T) {
 			// Confirm enabled status
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
-			require.Len(t, pluginsResp.Inactive, 0)
+			require.Empty(t, pluginsResp.Inactive)
 			require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
@@ -414,7 +414,7 @@ func TestDisableOnRemove(t *testing.T) {
 				// Plugin should remain active
 				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 				CheckNoError(t, resp)
-				require.Len(t, pluginsResp.Inactive, 0)
+				require.Empty(t, pluginsResp.Inactive)
 				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 					Manifest: *manifest,
 				}})
@@ -428,8 +428,8 @@ func TestDisableOnRemove(t *testing.T) {
 			// Plugin should have no status
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
-			require.Len(t, pluginsResp.Inactive, 0)
-			require.Len(t, pluginsResp.Active, 0)
+			require.Empty(t, pluginsResp.Inactive)
+			require.Empty(t, pluginsResp.Active)
 
 			// Upload same plugin
 			manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
@@ -439,7 +439,7 @@ func TestDisableOnRemove(t *testing.T) {
 			// Plugin should be inactive
 			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 			CheckNoError(t, resp)
-			require.Len(t, pluginsResp.Active, 0)
+			require.Empty(t, pluginsResp.Active)
 			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
 				Manifest: *manifest,
 			}})
@@ -511,7 +511,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
-		require.Len(t, plugins, 0)
+		require.Empty(t, plugins)
 	})
 
 	t.Run("verify server version is passed through", func(t *testing.T) {
@@ -536,7 +536,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
-		require.Len(t, plugins, 0)
+		require.Empty(t, plugins)
 	})
 }
 
