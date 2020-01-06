@@ -14,7 +14,7 @@ import (
 
 func (w *Web) InitSaml() {
 	w.MainRouter.Handle("/login/sso/saml", w.NewHandler(loginWithSaml)).Methods("GET")
-	w.MainRouter.Handle("/login/sso/saml", w.NewHandler(completeSaml)).Methods("POST")
+	w.MainRouter.Handle("/login/sso/saml", w.NewHandlerTrustRequester(completeSaml)).Methods("POST")
 }
 
 func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {

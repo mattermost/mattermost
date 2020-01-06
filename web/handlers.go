@@ -25,6 +25,17 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 	}
 }
 
+func (w *Web) NewHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      true,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+}
+
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
 	// on server start and intentionally requires a restart to take effect.
