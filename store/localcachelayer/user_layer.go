@@ -80,8 +80,31 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 		for _, user := range remainingUsers {
 			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
 		}
-
 	}
 
 	return users, nil
+}
+
+// Get is a cache wrapper around the SqlStore method to get a user profile by id.
+// It checks if the user entry is present in the cache, returning the entry from cache
+// if it is present. Otherwise, it fetches the entry from the store and stores it in the
+// cache.
+func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
+	cacheItem := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id)
+	if cacheItem != nil {
+		if s.rootStore.metrics != nil {
+			s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
+		}
+		u := *cacheItem.(*model.User)
+		return &u, nil
+	}
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
+	}
+	user, err := s.UserStore.Get(id)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, user)
+	return user, nil
 }
