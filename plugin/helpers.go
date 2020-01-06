@@ -71,7 +71,7 @@ type Helpers interface {
 	// InstallPluginFromURL installs the plugin from the provided url.
 	//
 	// Minimum server version: 5.18
-	InstallPluginFromURL(url string, replace bool) (*model.Manifest, error)
+	InstallPluginFromURL(downloadURL string, replace bool) (*model.Manifest, error)
 }
 
 // HelpersImpl implements the helpers interface with an API that retrieves data on behalf of the plugin.
