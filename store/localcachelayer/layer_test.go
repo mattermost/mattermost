@@ -91,6 +91,9 @@ func tearDownStores() {
 				if st.Store != nil {
 					st.Store.Close()
 				}
+				if st.SqlSettings != nil {
+					storetest.CleanupSqlSettings(st.SqlSettings)
+				}
 				wg.Done()
 			}()
 		}
