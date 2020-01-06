@@ -1196,17 +1196,19 @@ func TestGetMentionKeywords(t *testing.T) {
 	ids, ok = mentions["user"]
 	require.True(t, ok)
 	require.Len(t, ids, 1)
-	require.False(t, ids[0] != user1.Id, "should've mentioned user3 with user")
+	require.Equal(t, user1.Id, ids[0], "should've mentioned user1 with user")
 	ids, ok = mentions["@user"]
 
 	require.True(t, ok)
 	require.Len(t, ids, 2)
-	require.False(t, ids[0] != user1.Id, "should've mentioned user1 with @user")
-	require.False(t, ids[1] != user1.Id, "should've mentioned user1 twice with @user")
+	require.Equal(t, user1.Id, ids[0], "should've mentioned user1 twice with @user")
+	require.Equal(t, user1.Id, ids[1], "should've mentioned user1 twice with @user")
+
 	ids, ok = mentions["mention"]
 	require.True(t, ok)
 	require.Len(t, ids, 1)
-	require.False(t, ids[0] != user1.Id, "should've mentioned user3 with mention")
+	require.Equal(t, user1.Id, ids[0], "should've mentioned user1 with user")
+
 	_, ok = mentions["First"]
 	require.False(t, ok, "should not have mentioned user1 with First")
 	_, ok = mentions["@channel"]
