@@ -633,7 +633,7 @@ func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SYSTEM_GUEST_ROLE_ID)
 }
 
-func (u *User) IsAdmin() bool {
+func (u *User) IsSystemAdmin() bool {
 	return IsInRole(u.Roles, SYSTEM_ADMIN_ROLE_ID)
 }
 
