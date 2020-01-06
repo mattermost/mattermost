@@ -372,12 +372,16 @@
     "translation": "Der Kanal wurde archiviert oder gelöscht."
   },
   {
+    "id": "api.channel.update_channel.invalid_character.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Versuch einer ungültigen Änderung am Standardkanal {{.Channel}} durchzuführen."
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
-    "translation": "Channel type cannot be updated"
+    "translation": "Kanaltyp kann nicht aktualisiert werden."
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
