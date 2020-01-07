@@ -4,6 +4,7 @@
 package plugin_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -458,14 +459,13 @@ func TestKVListWithOptions(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.6.0")
-		api.On("KVList", 0, 1).Return([]string{"key1"}, nil)
-		api.On("KVList", 1, 1).Return([]string{"key2"}, nil)
-		api.On("KVList", 2, 1).Return([]string{}, nil)
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
 		p.API = api
 
-		keys, err := p.KVListWithOptions(plugin.WithKVListPerPage(1))
+		keys, err := p.KVListWithOptions()
 		api.AssertExpectations(t)
-		assert.ElementsMatch(t, keys, []string{"key1", "key2"})
+		assert.ElementsMatch(t, keys, getKeys(101))
 		assert.Nil(t, err)
 	})
 
@@ -474,11 +474,11 @@ func TestKVListWithOptions(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.6.0")
-		api.On("KVList", 0, 1).Return([]string{"key1"}, nil)
-		api.On("KVList", 1, 1).Return([]string{"key2"}, &model.AppError{})
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, &model.AppError{})
 		p.API = api
 
-		keys, err := p.KVListWithOptions(plugin.WithKVListPerPage(1))
+		keys, err := p.KVListWithOptions()
 		api.AssertExpectations(t)
 		assert.Empty(t, keys)
 		assert.Error(t, err)
@@ -489,14 +489,13 @@ func TestKVListWithOptions(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.6.0")
-		api.On("KVList", 0, 1).Return([]string{"key1"}, nil)
-		api.On("KVList", 1, 1).Return([]string{"notkey2"}, nil)
-		api.On("KVList", 2, 1).Return([]string{}, nil)
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
 		p.API = api
 
-		keys, err := p.KVListWithOptions(plugin.WithKVListPerPage(1), plugin.WithPrefix("key"))
+		keys, err := p.KVListWithOptions(plugin.WithPrefix("key99"))
 		api.AssertExpectations(t)
-		assert.ElementsMatch(t, keys, []string{"key1"})
+		assert.ElementsMatch(t, keys, []string{"key99"})
 		assert.Nil(t, err)
 	})
 
@@ -505,12 +504,11 @@ func TestKVListWithOptions(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.6.0")
-		api.On("KVList", 0, 1).Return([]string{"notkey1"}, nil)
-		api.On("KVList", 1, 1).Return([]string{"notkey2"}, nil)
-		api.On("KVList", 2, 1).Return([]string{}, nil)
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
 		p.API = api
 
-		keys, err := p.KVListWithOptions(plugin.WithKVListPerPage(1), plugin.WithPrefix("key"))
+		keys, err := p.KVListWithOptions(plugin.WithPrefix("notkey"))
 		api.AssertExpectations(t)
 		assert.Empty(t, keys)
 		assert.Nil(t, err)
@@ -521,14 +519,13 @@ func TestKVListWithOptions(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.6.0")
-		api.On("KVList", 0, 1).Return([]string{"key1"}, nil)
-		api.On("KVList", 1, 1).Return([]string{"key2"}, nil)
-		api.On("KVList", 2, 1).Return([]string{}, nil)
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
 		p.API = api
 
-		keys, err := p.KVListWithOptions(plugin.WithKVListPerPage(1), plugin.WithPrefix("key"))
+		keys, err := p.KVListWithOptions(plugin.WithPrefix("key"))
 		api.AssertExpectations(t)
-		assert.ElementsMatch(t, keys, []string{"key1", "key2"})
+		assert.ElementsMatch(t, keys, getKeys(101))
 		assert.Nil(t, err)
 	})
 
@@ -537,9 +534,8 @@ func TestKVListWithOptions(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.6.0")
-		api.On("KVList", 0, 1).Return([]string{"key1"}, nil)
-		api.On("KVList", 1, 1).Return([]string{"notkey2"}, nil)
-		api.On("KVList", 2, 1).Return([]string{}, nil)
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
 		p.API = api
 
 		check := func(key string) (bool, error) {
@@ -549,7 +545,7 @@ func TestKVListWithOptions(t *testing.T) {
 			return false, nil
 		}
 
-		keys, err := p.KVListWithOptions(plugin.WithKVListPerPage(1), plugin.WithChecker(check))
+		keys, err := p.KVListWithOptions(plugin.WithChecker(check))
 		api.AssertExpectations(t)
 		assert.ElementsMatch(t, keys, []string{"key1"})
 		assert.Nil(t, err)
@@ -560,16 +556,15 @@ func TestKVListWithOptions(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.6.0")
-		api.On("KVList", 0, 1).Return([]string{"key1"}, nil)
-		api.On("KVList", 1, 1).Return([]string{"notkey2"}, nil)
-		api.On("KVList", 2, 1).Return([]string{}, nil)
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
 		p.API = api
 
 		check := func(key string) (bool, error) {
 			return false, nil
 		}
 
-		keys, err := p.KVListWithOptions(plugin.WithKVListPerPage(1), plugin.WithChecker(check))
+		keys, err := p.KVListWithOptions(plugin.WithChecker(check))
 		api.AssertExpectations(t)
 		assert.Empty(t, keys)
 		assert.Nil(t, err)
@@ -580,18 +575,17 @@ func TestKVListWithOptions(t *testing.T) {
 
 		api := &plugintest.API{}
 		api.On("GetServerVersion").Return("5.6.0")
-		api.On("KVList", 0, 1).Return([]string{"key1"}, nil)
-		api.On("KVList", 1, 1).Return([]string{"notkey2"}, nil)
-		api.On("KVList", 2, 1).Return([]string{}, nil)
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
 		p.API = api
 
 		check := func(key string) (bool, error) {
 			return true, nil
 		}
 
-		keys, err := p.KVListWithOptions(plugin.WithKVListPerPage(1), plugin.WithChecker(check))
+		keys, err := p.KVListWithOptions(plugin.WithChecker(check))
 		api.AssertExpectations(t)
-		assert.ElementsMatch(t, keys, []string{"key1", "notkey2"})
+		assert.ElementsMatch(t, keys, getKeys(101))
 		assert.Nil(t, err)
 	})
 
@@ -633,4 +627,12 @@ func TestKVListWithOptions(t *testing.T) {
 		assert.ElementsMatch(t, keys, []string{"key2", "key4"})
 		assert.Nil(t, err)
 	})
+}
+
+func getKeys(count int) []string {
+	ret := make([]string, count)
+	for i := 0; i < count; i++ {
+		ret[i] = "key" + strconv.Itoa(i)
+	}
+	return ret
 }

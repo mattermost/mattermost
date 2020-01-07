@@ -132,9 +132,22 @@ func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireI
 }
 
 type kvListOptions struct {
-	KVListPerPage int
-	Prefix        string
-	Checker       func(key string) (keep bool, err error)
+	Checkers []func(key string) (keep bool, err error)
+}
+
+func (o *kvListOptions) CheckAll(key string) (keep bool, err error) {
+	for _, check := range o.Checkers {
+		keep, err := check(key)
+		if err != nil {
+			return false, err
+		}
+		if !keep {
+			return false, nil
+		}
+	}
+
+	// key made it through all checkers
+	return true, nil
 }
 
 // KVListOption represents a single input option for KVListWithOptions
@@ -142,9 +155,9 @@ type KVListOption func(*kvListOptions)
 
 // WithPrefix only return keys that start with the given string.
 func WithPrefix(prefix string) KVListOption {
-	return func(args *kvListOptions) {
-		args.Prefix = prefix
-	}
+	return WithChecker(func(key string) (keep bool, err error) {
+		return strings.HasPrefix(key, prefix), nil
+	})
 }
 
 // WithChecker allows for a custom filter function to determine which keys to return.
@@ -152,17 +165,12 @@ func WithPrefix(prefix string) KVListOption {
 // will halt KVListWithOptions immediately and pass the error up (with no other results).
 func WithChecker(f func(key string) (keep bool, err error)) KVListOption {
 	return func(args *kvListOptions) {
-		args.Checker = f
+		args.Checkers = append(args.Checkers, f)
 	}
 }
 
-// WithKVListPerPage is for unit testing KVListWithOptions. This value defaults to 100 and shouldn't
-// be overriden outside of testing.
-func WithKVListPerPage(count int) KVListOption {
-	return func(args *kvListOptions) {
-		args.KVListPerPage = count
-	}
-}
+// kvListPerPage is the number of keys KVListWithOptions gets per request
+const kvListPerPage = 100
 
 // KVListWithOptions implements Helpers.KVListWithOptions.
 func (p *HelpersImpl) KVListWithOptions(options ...KVListOption) ([]string, error) {
@@ -170,48 +178,42 @@ func (p *HelpersImpl) KVListWithOptions(options ...KVListOption) ([]string, erro
 	if err != nil {
 		return nil, err
 	}
-
 	// convert functional options into args struct
-	args := &kvListOptions{
-		KVListPerPage: 100,
-	}
-
+	args := &kvListOptions{}
 	for _, opt := range options {
 		opt(args)
 	}
-
 	ret := make([]string, 0)
 
 	// get our keys a batch at a time, filter out the ones we don't want based on our args
 	// any errors will hault the whole process and return the error raw
 	for i := 0; ; i++ {
-		keys, appErr := p.API.KVList(i, args.KVListPerPage)
+		keys, appErr := p.API.KVList(i, kvListPerPage)
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		for _, key := range keys {
-			// simple prefix filter if we have one
-			if args.Prefix != "" && !strings.HasPrefix(key, args.Prefix) {
-				continue
-			}
-
-			// checker func if we have one
-			if args.Checker != nil {
-				keep, err := args.Checker(key)
+		if len(args.Checkers) == 0 {
+			// no checkers, just append the whole block at once
+			ret = append(ret, keys...)
+		} else {
+			// we have a filter, so check each key, all checkers must say key
+			// for us to keep a key
+			for _, key := range keys {
+				keep, err := args.CheckAll(key)
 				if err != nil {
 					return nil, err
 				}
 				if !keep {
 					continue
 				}
-			}
 
-			// didn't get filtered out, add to our return
-			ret = append(ret, key)
+				// didn't get filtered out, add to our return
+				ret = append(ret, key)
+			}
 		}
 
-		if len(keys) < args.KVListPerPage {
+		if len(keys) < kvListPerPage {
 			break
 		}
 	}
