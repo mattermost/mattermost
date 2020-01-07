@@ -372,6 +372,10 @@
     "translation": "The channel has been archived or deleted"
   },
   {
+    "id": "api.channel.update_channel.invalid_character.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
@@ -5925,10 +5929,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "You've reached the limit of the number of allowed channels."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "A channel with that URL was previously created"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",

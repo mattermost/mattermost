@@ -376,6 +376,10 @@
     "translation": "Tentou executar uma atualização inválida para o canal padrão {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Tipo do canal não pode ser atualizado"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Atualização de membro do canal inválida: Você não pode adicionar ou remover a função de convidado manualmente"
   },
@@ -5921,10 +5925,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "Você atingiu o limite do número de canais autorizados."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Um canal com essa URL foi criado anteriormente"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",

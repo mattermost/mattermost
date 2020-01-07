@@ -592,9 +592,6 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
 			dupChannel := model.Channel{}
 			s.GetMaster().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
-			if dupChannel.DeleteAt > 0 {
-				return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.previously.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
-			}
 			return &dupChannel, model.NewAppError("SqlChannelStore.Save", store.CHANNEL_EXISTS_ERROR, nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
 		}
 		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.save.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
@@ -1220,7 +1217,7 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 
 	if err := s.GetReplica().SelectOne(&channel, query, map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlChannelStore.GetByName", store.MISSING_CHANNEL_ERROR, nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("SqlChannelStore.GetByName", store.MISSING_CHANNEL_ERROR, nil, "teamId="+teamId+", "+"name="+name+"", http.StatusNotFound)
 		}
 		return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusInternalServerError)
 	}

@@ -376,6 +376,10 @@
     "translation": "Intento de realizar una actualización inválida al canal predeterminado {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Actualización del miembro de canal invalido: No puedes agregar o eliminar el rol de huésped manualmente"
   },
@@ -5921,10 +5925,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "Se ha alcanzado el límite de canales permitidos."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Un canal con este URL fue creado previamente"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
