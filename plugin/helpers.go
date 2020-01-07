@@ -58,6 +58,12 @@ type Helpers interface {
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 
+	// CheckRequiredServerConfiguration checks if the server is configured according to
+	// plugin requirements.
+	//
+	// Minimum server version: 5.2
+	CheckRequiredServerConfiguration(req *model.Config) (bool, error)
+
 	// ShouldProcessMessage returns if the message should be processed by a message hook.
 	//
 	// Use this method to avoid processing unnecessary messages in a MessageHasBeenPosted
