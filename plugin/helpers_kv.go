@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -128,4 +129,92 @@ func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireI
 	}
 
 	return nil
+}
+
+type kvListOptions struct {
+	KVListPerPage int
+	Prefix        string
+	Checker       func(key string) (keep bool, err error)
+}
+
+// KVListOption represents a single input option for KVListWithOptions
+type KVListOption func(*kvListOptions)
+
+// WithPrefix will filter out any key that doesn't start with the given string.
+func WithPrefix(prefix string) KVListOption {
+	return func(args *kvListOptions) {
+		args.Prefix = prefix
+	}
+}
+
+// WithChecker allows for a custom filter function to determine which keys to return.
+// Returning true will keep the key and false will filter it out.  Returning an error
+// will halt KVListWithOptions immediately and pass the error up (with no other results).
+func WithChecker(f func(key string) (keep bool, err error)) KVListOption {
+	return func(args *kvListOptions) {
+		args.Checker = f
+	}
+}
+
+// WithKVListPerPage is for unit testing KVListWithOptions.  This value defaults to 100 and shouldn't
+// be overriden outside of testing.
+func WithKVListPerPage(count int) KVListOption {
+	return func(args *kvListOptions) {
+		args.KVListPerPage = count
+	}
+}
+
+// KVListWithOptions implements Helpers.KVListWithOptions.
+func (p *HelpersImpl) KVListWithOptions(options ...KVListOption) ([]string, error) {
+	err := p.ensureServerVersion("5.6.0")
+	if err != nil {
+		return nil, err
+	}
+
+	// convert functional options into args struct
+	args := &kvListOptions{
+		KVListPerPage: 100,
+	}
+
+	for _, opt := range options {
+		opt(args)
+	}
+
+	ret := make([]string, 0)
+
+	// get our keys a batch at a time, filter out the ones we don't want based on our args
+	// any errors will hault the whole process and return the error raw
+	for i := 0; ; i++ {
+		keys, appErr := p.API.KVList(i, args.KVListPerPage)
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		for _, key := range keys {
+			// simple prefix filter if we have one
+			if args.Prefix != "" && !strings.HasPrefix(key, args.Prefix) {
+				continue
+			}
+
+			// checker func if we have one
+			if args.Checker != nil {
+				keep, err := args.Checker(key)
+				if err != nil {
+					return nil, err
+				}
+				if !keep {
+					continue
+				}
+			}
+
+			// didn't get filtered out, add to our return
+			ret = append(ret, key)
+		}
+
+		if len(keys) < args.KVListPerPage {
+			break
+		}
+	}
+
+	return ret, nil
 }
