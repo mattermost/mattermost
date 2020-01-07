@@ -64,6 +64,29 @@ func (_m *Helpers) EnsureBot(bot *model.Bot, options ...plugin.EnsureBotOption) 
 	return r0, r1
 }
 
+// InstallPluginFromURL provides a mock function with given fields: downloadURL, replace
+func (_m *Helpers) InstallPluginFromURL(downloadURL string, replace bool) (*model.Manifest, error) {
+	ret := _m.Called(downloadURL, replace)
+
+	var r0 *model.Manifest
+	if rf, ok := ret.Get(0).(func(string, bool) *model.Manifest); ok {
+		r0 = rf(downloadURL, replace)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Manifest)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(downloadURL, replace)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // KVCompareAndDeleteJSON provides a mock function with given fields: key, oldValue
 func (_m *Helpers) KVCompareAndDeleteJSON(key string, oldValue interface{}) (bool, error) {
 	ret := _m.Called(key, oldValue)

@@ -4,9 +4,7 @@
 package plugin
 
 import (
-	"github.com/blang/semver"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/pkg/errors"
 )
 
 // Helpers provide a common patterns plugins use.
@@ -75,20 +73,14 @@ type Helpers interface {
 	//
 	// Minimum server version: 5.2
 	ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error)
+
+	// InstallPluginFromURL installs the plugin from the provided url.
+	//
+	// Minimum server version: 5.18
+	InstallPluginFromURL(downloadURL string, replace bool) (*model.Manifest, error)
 }
 
 // HelpersImpl implements the helpers interface with an API that retrieves data on behalf of the plugin.
 type HelpersImpl struct {
 	API API
-}
-
-func (p *HelpersImpl) ensureServerVersion(required string) error {
-	serverVersion := p.API.GetServerVersion()
-	currentVersion := semver.MustParse(serverVersion)
-	requiredVersion := semver.MustParse(required)
-
-	if currentVersion.LT(requiredVersion) {
-		return errors.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
-	}
-	return nil
 }
