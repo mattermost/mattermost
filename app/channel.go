@@ -508,7 +508,16 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 	return channel, nil
 }
 
+// UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+	userIds := strings.Split(channel.Name, "__")
+	if channel.Type != model.CHANNEL_DIRECT &&
+		len(userIds) == 2 &&
+		model.IsValidId(userIds[0]) &&
+		model.IsValidId(userIds[1]) {
+		return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.invalid_character.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	_, err := a.Srv.Store.Channel().Update(channel)
 	if err != nil {
 		return nil, err
