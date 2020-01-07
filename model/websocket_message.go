@@ -221,16 +221,16 @@ func NewWebSocketError(seqReply int64, err *AppError) *WebSocketResponse {
 	return &WebSocketResponse{Status: STATUS_FAIL, SeqReply: seqReply, Error: err}
 }
 
-func (o *WebSocketResponse) IsValid() bool {
-	return o.Status != ""
+func (m *WebSocketResponse) IsValid() bool {
+	return m.Status != ""
 }
 
-func (o *WebSocketResponse) EventType() string {
+func (m *WebSocketResponse) EventType() string {
 	return WEBSOCKET_EVENT_RESPONSE
 }
 
-func (o *WebSocketResponse) ToJson() string {
-	b, _ := json.Marshal(o)
+func (m *WebSocketResponse) ToJson() string {
+	b, _ := json.Marshal(m)
 	return string(b)
 }
 
