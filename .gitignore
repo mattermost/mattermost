@@ -53,6 +53,7 @@ _testmain.go
 *.prof
 
 # Log files
+*.log
 *mattermost.log*
 *mattermost.log.jsonl
 *npm-debug.log*
