@@ -156,7 +156,7 @@ func WithChecker(f func(key string) (keep bool, err error)) KVListOption {
 	}
 }
 
-// WithKVListPerPage is for unit testing KVListWithOptions.  This value defaults to 100 and shouldn't
+// WithKVListPerPage is for unit testing KVListWithOptions. This value defaults to 100 and shouldn't
 // be overriden outside of testing.
 func WithKVListPerPage(count int) KVListOption {
 	return func(args *kvListOptions) {
