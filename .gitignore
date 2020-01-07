@@ -54,9 +54,7 @@ _testmain.go
 
 # Log files
 *.log
-*mattermost.log*
-*mattermost.log.jsonl
-*npm-debug.log*
+*.log.jsonl
 
 .tmp
 
