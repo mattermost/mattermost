@@ -288,11 +288,11 @@ type API interface {
 	// Minimum server version: 5.2
 	CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError)
 
-	// CreateTeamMembersGracefully creates a team membership for all provided user ids and reports the users that were not added
+	// CreateTeamMembersGracefully creates a team membership for all provided user ids and reports the users that were not added.
 	//
 	// @tag Team
 	// @tag User
-	// Minimum server version: 5.18
+	// Minimum server version: 5.20
 	CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError)
 
 	// DeleteTeamMember deletes a team membership.

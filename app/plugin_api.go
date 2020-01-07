@@ -174,11 +174,11 @@ func (api *PluginAPI) CreateTeamMember(teamId, userId string) (*model.TeamMember
 }
 
 func (api *PluginAPI) CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
-	if members, err := api.app.AddTeamMembers(teamId, userIds, requestorId, false); err != nil {
+	members, err := api.app.AddTeamMembers(teamId, userIds, requestorId, false)
+	if err != nil {
 		return nil, err
-	} else {
-		return model.TeamMembersWithErrorToTeamMembers(members), nil
 	}
+	return model.TeamMembersWithErrorToTeamMembers(members), nil
 }
 
 func (api *PluginAPI) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
