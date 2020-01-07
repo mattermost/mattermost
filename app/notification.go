@@ -738,31 +738,31 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 }
 
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
-func (e *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
+func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
 	var mentionType MentionType
 
 	switch strings.ToLower(word) {
 	case "@here":
-		e.HereMentioned = true
+		m.HereMentioned = true
 		mentionType = ChannelMention
 	case "@channel":
-		e.ChannelMentioned = true
+		m.ChannelMentioned = true
 		mentionType = ChannelMention
 	case "@all":
-		e.AllMentioned = true
+		m.AllMentioned = true
 		mentionType = ChannelMention
 	default:
 		mentionType = KeywordMention
 	}
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
-		e.addMentions(ids, mentionType)
+		m.addMentions(ids, mentionType)
 		return true
 	}
 
 	// Case-sensitive check for first name
 	if ids, match := keywords[word]; match {
-		e.addMentions(ids, mentionType)
+		m.addMentions(ids, mentionType)
 		return true
 	}
 
@@ -791,7 +791,7 @@ func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bo
 }
 
 // Processes text to filter mentioned users and other potential mentions
-func (e *ExplicitMentions) processText(text string, keywords map[string][]string) {
+func (m *ExplicitMentions) processText(text string, keywords map[string][]string) {
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 
 	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
@@ -805,7 +805,7 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 
 		word = strings.TrimLeft(word, ":.-_")
 
-		if e.checkForMention(word, keywords) {
+		if m.checkForMention(word, keywords) {
 			continue
 		}
 
@@ -814,7 +814,7 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
-			if e.checkForMention(wordWithoutSuffix, keywords) {
+			if m.checkForMention(wordWithoutSuffix, keywords) {
 				foundWithoutSuffix = true
 				break
 			}
@@ -825,7 +825,7 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 		}
 
 		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-			e.OtherPotentialMentions = append(e.OtherPotentialMentions, word[1:])
+			m.OtherPotentialMentions = append(m.OtherPotentialMentions, word[1:])
 		} else if strings.ContainsAny(word, ".-:") {
 			// This word contains a character that may be the end of a sentence, so split further
 			splitWords := strings.FieldsFunc(word, func(c rune) bool {
@@ -833,17 +833,17 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 			})
 
 			for _, splitWord := range splitWords {
-				if e.checkForMention(splitWord, keywords) {
+				if m.checkForMention(splitWord, keywords) {
 					continue
 				}
 				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-					e.OtherPotentialMentions = append(e.OtherPotentialMentions, splitWord[1:])
+					m.OtherPotentialMentions = append(m.OtherPotentialMentions, splitWord[1:])
 				}
 			}
 		}
 
 		if ids, match := isKeywordMultibyte(keywords, word); match {
-			e.addMentions(ids, KeywordMention)
+			m.addMentions(ids, KeywordMention)
 		}
 	}
 }
