@@ -59,7 +59,7 @@ type Helpers interface {
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 
 	// KVListWithOptions returns all keys that match the given options.  If no options are provided then all keys are returned.
-	// 
+	//
 	// Minimum server version: 5.6
 	KVListWithOptions(options ...KVListOption) ([]string, error)
 
