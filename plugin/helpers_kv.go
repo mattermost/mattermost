@@ -148,7 +148,7 @@ func WithPrefix(prefix string) KVListOption {
 }
 
 // WithChecker allows for a custom filter function to determine which keys to return.
-// Returning true will keep the key and false will filter it out.  Returning an error
+// Returning true will keep the key and false will filter it out. Returning an error
 // will halt KVListWithOptions immediately and pass the error up (with no other results).
 func WithChecker(f func(key string) (keep bool, err error)) KVListOption {
 	return func(args *kvListOptions) {
