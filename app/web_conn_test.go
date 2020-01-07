@@ -72,9 +72,9 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		// needs more cases to get full coverage
 	}
 
-	event := &model.WebSocketEvent{Event: "some_event"}
+	event := model.NewWebSocketEvent("some_event", "", "", "", nil)
 	for _, c := range cases {
-		event.Broadcast = c.Broadcast
+		event = event.SetBroadcast(c.Broadcast)
 		assert.Equal(t, c.User1Expected, basicUserWc.ShouldSendEvent(event), c.Description)
 		assert.Equal(t, c.User2Expected, basicUser2Wc.ShouldSendEvent(event), c.Description)
 		assert.Equal(t, c.AdminExpected, adminUserWc.ShouldSendEvent(event), c.Description)
