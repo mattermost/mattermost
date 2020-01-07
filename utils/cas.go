@@ -22,6 +22,7 @@ func CheckIfUserIsAuthenticated(w http.ResponseWriter, r *http.Request) (bool, s
 		return ticketIsValid, userName
 	}
 	ticketIsValid, userName = verifyTicket(r)
+    fmt.Println("verifyTicket: ", ticketIsValid, userName)
 	if !ticketIsValid {
 		// redirectToCasServer(w, r)
 		return false, userName

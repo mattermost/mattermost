@@ -1439,6 +1439,7 @@ func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 			// if user not found, create a new one
 			if user == nil {
 				user, err = c.App.CreateCasUser(userName)
+                fmt.Println("Create Cas User: ", user.ToJson(), userName)
 			}
 
 			if err != nil {
@@ -1486,9 +1487,11 @@ func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			user.Sanitize(map[string]bool{})
 
+            fmt.Println("Return user json: ", user.ToJson())
 			w.Write([]byte(user.ToJson()))
 		} else {
 			// TODO: Handle case when userName is empty
+            fmt.Println("userName < 0")
 		}
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
