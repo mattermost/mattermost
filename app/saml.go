@@ -202,9 +202,9 @@ func (a *App) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadata
 }
 
 func (a *App) FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
-	resp, err := http.Get(url)
+	resp, err := a.HTTPService.MakeClient(false).Get(url)
 	if err != nil {
-		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.invalid_response_from_idp.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.invalid_response_from_idp.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	if resp.StatusCode != http.StatusOK {
