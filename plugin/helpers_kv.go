@@ -140,7 +140,7 @@ type kvListOptions struct {
 // KVListOption represents a single input option for KVListWithOptions
 type KVListOption func(*kvListOptions)
 
-// WithPrefix will filter out any key that doesn't start with the given string.
+// WithPrefix only return keys that start with the given string.
 func WithPrefix(prefix string) KVListOption {
 	return func(args *kvListOptions) {
 		args.Prefix = prefix
