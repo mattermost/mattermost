@@ -19,7 +19,7 @@ func TestUserStore(t *testing.T) {
 	StoreTestWithSqlSupplier(t, storetest.TestUserStore)
 }
 
-func TestUserStoreCache(t *testing.T) {
+func TestUserStoreGetProfileByIdsCache(t *testing.T) {
 	fakeUserIds := []string{"123"}
 	fakeUser := []*model.User{{Id: "123"}}
 
@@ -62,5 +62,38 @@ func TestUserStoreCache(t *testing.T) {
 
 		_, _ = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 2)
+	})
+}
+
+func TestUserStoreGetCache(t *testing.T) {
+	fakeUserId := "123"
+	fakeUser := &model.User{Id: "123"}
+
+	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		gotUser, err := cachedStore.User().Get(fakeUserId)
+		require.Nil(t, err)
+		assert.Equal(t, fakeUser, gotUser)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
+
+		_, _ = cachedStore.User().Get(fakeUserId)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
+	})
+
+	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		gotUser, err := cachedStore.User().Get(fakeUserId)
+		require.Nil(t, err)
+		assert.Equal(t, fakeUser, gotUser)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
+
+		cachedStore.User().InvalidatProfileCacheForUser("123")
+
+		_, _ = cachedStore.User().Get(fakeUserId)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 2)
 	})
 }
