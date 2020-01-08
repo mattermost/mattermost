@@ -35,7 +35,7 @@ type Command struct {
 	DisplayName      string            `json:"display_name"`
 	Description      string            `json:"description"`
 	URL              string            `json:"url"`
-	AutocompleteData *AutocompleteData `db:"-" json:"-"`
+	AutocompleteData *AutocompleteData `db:"-" json:"autocomplete_data,omitempty"`
 }
 
 func (o *Command) ToJson() string {
