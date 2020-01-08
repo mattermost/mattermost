@@ -52,6 +52,8 @@ type Argument struct {
 
 // TextInputArgument describes text user can input as an argument.
 type TextInputArgument struct {
+	// Hint of the input text
+	Hint string
 	// Regex pattern to match
 	Pattern string
 }
@@ -73,6 +75,14 @@ type FetchListArgument struct {
 	FetchURL string
 }
 
+// Suggestion describes single suggestion item sent to front
+type Suggestion struct {
+	// Hint describes what user might want to input
+	Hint string
+	// Description of the command
+	Description string
+}
+
 // NewAutocompleteData returns new Autocomplete data.
 func NewAutocompleteData(name string, helpText string) *AutocompleteData {
 	return &AutocompleteData{
@@ -90,12 +100,12 @@ func (ad *AutocompleteData) AddCommand(command *AutocompleteData) {
 }
 
 // AddTextInputArgument adds TextInput argument to the command.
-func (ad *AutocompleteData) AddTextInputArgument(name, helpText, pattern string) {
+func (ad *AutocompleteData) AddTextInputArgument(name, helpText, hint, pattern string) {
 	argument := Argument{
 		Name:     name,
 		HelpText: helpText,
 		Type:     TextInputArgumentType,
-		Data:     &TextInputArgument{Pattern: pattern},
+		Data:     &TextInputArgument{Hint: hint, Pattern: pattern},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
@@ -196,6 +206,7 @@ func (ad *AutocompleteData) IsValid() error {
 	return nil
 }
 
+// ToJSON encodes AutocompleteData struct to the json
 func (ad *AutocompleteData) ToJSON() ([]byte, error) {
 	b, err := json.Marshal(ad)
 	if err != nil {
@@ -204,6 +215,7 @@ func (ad *AutocompleteData) ToJSON() ([]byte, error) {
 	return b, nil
 }
 
+// AutocompleteDataFromJSON decodes AutocompleteData struct form the json
 func AutocompleteDataFromJSON(data []byte) (*AutocompleteData, error) {
 	var ad AutocompleteData
 	if err := json.Unmarshal(data, &ad); err != nil {
@@ -247,7 +259,11 @@ func (a *Argument) UnmarshalJSON(b []byte) error {
 		if !ok {
 			return errors.Errorf("No field Pattern in the TextInput argument %s", string(b))
 		}
-		a.Data = &TextInputArgument{Pattern: pattern.(string)}
+		hint, ok := m["Hint"]
+		if !ok {
+			return errors.Errorf("No field Hint in the TextInput argument %s", string(b))
+		}
+		a.Data = &TextInputArgument{Hint: hint.(string), Pattern: pattern.(string)}
 	} else if a.Type == FixedListArgumentType {
 		m := data.(map[string]interface{})
 		listInterface, ok := m["PossibleArguments"]
@@ -311,4 +327,68 @@ func stringNotInSlice(a string, slice []string) bool {
 		}
 	}
 	return true
+}
+
+// CreateJiraAutocompleteData will create autocomplete data for jira plugin. For testing purposes only.
+func CreateJiraAutocompleteData() *AutocompleteData {
+	jira := NewAutocompleteData("jira", "Available commands: connect, assign, disconnect, create, transition, view, subscribe, settings, install cloud/server, uninstall cloud/server, help")
+
+	connect := NewAutocompleteData("connect", "Connect your Mattermost account to your Jira account")
+	jira.AddCommand(connect)
+
+	disconnect := NewAutocompleteData("disconnect", "Disconnect your Mattermost account from your Jira account")
+	jira.AddCommand(disconnect)
+
+	assign := NewAutocompleteData("assign", "Change the assignee of a Jira issue")
+	assign.AddFetchListArgument("", "List of issues is downloading from your Jira account", "/url/issue-key")
+	assign.AddFetchListArgument("", "List of assignees is downloading from your Jira account", "/url/assignee")
+	jira.AddCommand(assign)
+
+	create := NewAutocompleteData("create", "Create a new Issue")
+	create.AddTextInputArgument("", "This text is optional, will be inserted into the description field", "[text]", "")
+	jira.AddCommand(create)
+
+	transition := NewAutocompleteData("transition", "Change the state of a Jira issue")
+	assign.AddFetchListArgument("", "List of issues is downloading from your Jira account", "/url/issue-key")
+	assign.AddFetchListArgument("", "List of states is downloading from your Jira account", "/url/states")
+	jira.AddCommand(transition)
+
+	subscribe := NewAutocompleteData("subscribe", "Configure the Jira notifications sent to this channel")
+	jira.AddCommand(subscribe)
+
+	view := NewAutocompleteData("view", "View the details of a specific Jira issue")
+	assign.AddFetchListArgument("", "List of issues is downloading from your Jira account", "/url/issue-key")
+	jira.AddCommand(view)
+
+	settings := NewAutocompleteData("settings", "Update your user settings")
+	notifications := NewAutocompleteData("notifications", "Turn notifications on or off")
+	argument := NewFixedListArgument()
+	argument.AddArgument("on", "Turn notifications on")
+	argument.AddArgument("off", "Turn notifications off")
+	notifications.AddFixedListArgument("", "Turn notifications on or off", argument)
+	settings.AddCommand(notifications)
+	jira.AddCommand(settings)
+
+	install := NewAutocompleteData("install", "Connect Mattermost to a Jira instance")
+	install.RoleID = SYSTEM_ADMIN_ROLE_ID
+	cloud := NewAutocompleteData("cloud", "Connect to a Jira Cloud instance")
+	urlPattern := "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)"
+	cloud.AddTextInputArgument("", "input URL of the Jira Cloud instance", "[URL]", urlPattern)
+	install.AddCommand(cloud)
+	server := NewAutocompleteData("server", "Connect to a Jira Server or Data Center instance")
+	server.AddTextInputArgument("", "input URL of the Jira Server or Data Center instance", "[URL]", urlPattern)
+	install.AddCommand(server)
+	jira.AddCommand(install)
+
+	uninstall := NewAutocompleteData("uninstall", "Disconnect Mattermost from a Jira instance")
+	uninstall.RoleID = SYSTEM_ADMIN_ROLE_ID
+	cloud = NewAutocompleteData("cloud", "Disconnect from a Jira Cloud instance")
+	cloud.AddTextInputArgument("", "input URL of the Jira Cloud instance", "[URL]", urlPattern)
+	uninstall.AddCommand(cloud)
+	server = NewAutocompleteData("server", "Disconnect from a Jira Server or Data Center instance")
+	server.AddTextInputArgument("", "input URL of the Jira Server or Data Center instance", "[URL]", urlPattern)
+	uninstall.AddCommand(server)
+	jira.AddCommand(uninstall)
+
+	return jira
 }
