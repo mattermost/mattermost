@@ -364,25 +364,25 @@ func (o *Post) IsJoinLeaveMessage() bool {
 		o.Type == POST_REMOVE_FROM_TEAM
 }
 
-func (p *Post) Patch(patch *PostPatch) {
+func (o *Post) Patch(patch *PostPatch) {
 	if patch.IsPinned != nil {
-		p.IsPinned = *patch.IsPinned
+		o.IsPinned = *patch.IsPinned
 	}
 
 	if patch.Message != nil {
-		p.Message = *patch.Message
+		o.Message = *patch.Message
 	}
 
 	if patch.Props != nil {
-		p.Props = *patch.Props
+		o.Props = *patch.Props
 	}
 
 	if patch.FileIds != nil {
-		p.FileIds = *patch.FileIds
+		o.FileIds = *patch.FileIds
 	}
 
 	if patch.HasReactions != nil {
-		p.HasReactions = *patch.HasReactions
+		o.HasReactions = *patch.HasReactions
 	}
 }
 

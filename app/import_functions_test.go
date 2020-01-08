@@ -834,7 +834,7 @@ func TestImportImportUser(t *testing.T) {
 
 	require.Equal(t, user.AuthData, data.AuthData, "Expected AuthData to be set.")
 
-	require.Len(t, user.Password, 0, "Expected password to be empty.")
+	require.Empty(t, user.Password, "Expected password to be empty.")
 
 	require.True(t, user.EmailVerified, "Expected EmailVerified to be true.")
 
@@ -2190,7 +2190,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err := th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post := posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2205,7 +2205,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2233,7 +2233,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2262,7 +2262,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
@@ -2361,7 +2361,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2376,7 +2376,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2404,7 +2404,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	require.Equal(t, post.Message, *data.Message)
@@ -2434,7 +2434,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// Check the post values.
 	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
 	require.Nil(t, err)
-	require.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 
 	post = posts[0]
 	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
@@ -2497,7 +2497,7 @@ func TestImportAttachment(t *testing.T) {
 	assert.Nil(t, err, "sample run without errors")
 
 	attachments := GetAttachments(userId, th, t)
-	assert.Equal(t, len(attachments), 1)
+	assert.Len(t, attachments, 1)
 
 	data = AttachmentImportData{Path: &invalidPath}
 	_, err = th.App.ImportAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team", true)
@@ -2574,7 +2574,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	assert.Nil(t, err)
 
 	attachments := GetAttachments(user3.Id, th, t)
-	assert.Equal(t, len(attachments), 2)
+	assert.Len(t, attachments, 2)
 	assert.Contains(t, attachments[0].Path, team.Id)
 	assert.Contains(t, attachments[1].Path, team.Id)
 	AssertFileIdsInPost(attachments, th, t)
@@ -2585,12 +2585,12 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	assert.Nil(t, err)
 
 	attachments = GetAttachments(user3.Id, th, t)
-	assert.Equal(t, len(attachments), 1)
+	assert.Len(t, attachments, 1)
 	assert.Contains(t, attachments[0].Path, team.Id)
 	AssertFileIdsInPost(attachments, th, t)
 
 	attachments = GetAttachments(user4.Id, th, t)
-	assert.Equal(t, len(attachments), 1)
+	assert.Len(t, attachments, 1)
 	assert.Contains(t, attachments[0].Path, team.Id)
 	AssertFileIdsInPost(attachments, th, t)
 
@@ -2635,7 +2635,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, err, "Expected success.")
 
 	attachments = GetAttachments(user4.Id, th, t)
-	assert.Equal(t, len(attachments), 1)
+	assert.Len(t, attachments, 1)
 	assert.Contains(t, attachments[0].Path, "noteam")
 	AssertFileIdsInPost(attachments, th, t)
 }
@@ -2690,7 +2690,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Equal(t, len(attachments), 1)
+		assert.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, "noteam")
 		AssertFileIdsInPost(attachments, th, t)
 	})
@@ -2700,7 +2700,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Equal(t, len(attachments), 1)
+		assert.Len(t, attachments, 1)
 	})
 
 	t.Run("Attempt to import again with same name and size but different content, SHOULD add an attachment", func(t *testing.T) {
@@ -2719,7 +2719,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Equal(t, len(attachments), 2)
+		assert.Len(t, attachments, 2)
 	})
 
 	t.Run("Attempt to import again with same data, SHOULD add an attachment, since it's different name", func(t *testing.T) {
@@ -2738,6 +2738,6 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Equal(t, len(attachments), 3)
+		assert.Len(t, attachments, 3)
 	})
 }
