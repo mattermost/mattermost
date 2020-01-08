@@ -61,7 +61,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 	t.Helper()
 
 	var actual struct {
-		Id    string `db:"Id"`
+		ID    string `db:"Id"`
 		Value []byte `db:"Value"`
 	}
 	db := sqlx.NewDb(mainHelper.GetSqlSupplier().GetMaster().Db, *mainHelper.GetSqlSettings().DriverName)
@@ -71,7 +71,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 	actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actual.Value), false)
 	require.Nil(t, err)
 
-	return actual.Id, actualCfg
+	return actual.ID, actualCfg
 }
 
 // assertDatabaseEqualsConfig verifies the active in-database configuration equals the given config.
@@ -399,12 +399,12 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
-		beforeId, _ := getActualDatabaseConfig(t)
+		beforeID, _ := getActualDatabaseConfig(t)
 		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
-		afterId, _ := getActualDatabaseConfig(t)
-		assert.Equal(t, beforeId, afterId, "new record should not have been written")
+		afterID, _ := getActualDatabaseConfig(t)
+		assert.Equal(t, beforeID, afterID, "new record should not have been written")
 	})
 
 	t.Run("read-only ignored", func(t *testing.T) {
@@ -489,7 +489,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 	})
 
 	t.Run("listeners notified", func(t *testing.T) {
-		activeId, tearDown := setupConfigDatabase(t, emptyConfig, nil)
+		activeID, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
@@ -511,7 +511,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		assert.Equal(t, oldCfg, retCfg)
 
 		id, _ := getActualDatabaseConfig(t)
-		assert.NotEqual(t, activeId, id, "new record should have been written")
+		assert.NotEqual(t, activeID, id, "new record should have been written")
 
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})

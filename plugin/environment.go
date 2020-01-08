@@ -29,7 +29,7 @@ type apiImplCreatorFunc func(*model.Manifest) API
 // plugin is configured as disabled and has not been activated during this server run.
 type registeredPlugin struct {
 	BundleInfo *model.BundleInfo
-	State      *int
+	State      int
 
 	failTimeStamps []time.Time
 	lastError      error
@@ -114,13 +114,13 @@ func (env *Environment) GetPluginState(id string) int {
 		return model.PluginStateNotRunning
 	}
 
-	return *rp.(*registeredPlugin).State
+	return rp.(*registeredPlugin).State
 }
 
 // SetPluginState sets the current state of a plugin (disabled, running, or error)
 func (env *Environment) SetPluginState(id string, state int) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {
-		*rp.(*registeredPlugin).State = state
+		rp.(*registeredPlugin).State = state
 	}
 }
 
@@ -441,5 +441,5 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 
 func newRegisteredPlugin(bundle *model.BundleInfo) *registeredPlugin {
 	state := model.PluginStateNotRunning
-	return &registeredPlugin{failTimeStamps: []time.Time{}, State: &state, BundleInfo: bundle}
+	return &registeredPlugin{failTimeStamps: []time.Time{}, State: state, BundleInfo: bundle}
 }
