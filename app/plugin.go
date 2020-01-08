@@ -422,7 +422,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 		plugins = p
 	}
 
-	appErr := a.mergePrepackagePlugins(plugins)
+	appErr := a.mergePrepackagedPlugins(plugins)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -520,11 +520,11 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[strin
 	return result, nil
 }
 
-// mergePrepackagePlugins merges pre-packaged plugins to remote marketplace plugins list.
-func (a *App) mergePrepackagePlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
+// mergePrepackagedPlugins merges pre-packaged plugins to remote marketplace plugins list.
+func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		return model.NewAppError("mergePrepackagePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("mergePrepackagedPlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	for _, prepackaged := range pluginsEnvironment.PrepackagedPlugins() {
@@ -547,13 +547,13 @@ func (a *App) mergePrepackagePlugins(remoteMarketplacePlugins map[string]*model.
 		// If available in the markteplace, only overwrite if newer.
 		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("mergePrepackagePlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
 		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("mergePrepackagePlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if prepackagedVersion.GT(marketplaceVersion) {
