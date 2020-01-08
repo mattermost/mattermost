@@ -727,7 +727,7 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 	for _, pluginPaths := range pluginSignaturePathMap {
 		plugin, err := a.processPrepackagedPlugin(pluginPaths)
 		if err != nil {
-			mlog.Error("Failed to install prepackaged plugin %s", mlog.Err(err), mlog.String("path", pluginPaths.path))
+			mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPaths.path), mlog.Err(err))
 			continue
 		}
 
