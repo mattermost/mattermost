@@ -1,7 +1,7 @@
 Security
 ========
 
-Safety and data security is of utmost priority for the Mattermost community. If you are a security researcher and have discovered a security vulnerability in our code base, we appreciate your help in disclosing it to us in a responsible manner.
+Safety and data security is of the utmost priority for the Mattermost community. If you are a security researcher and have discovered a security vulnerability in our codebase, we would appreciate your help in disclosing it to us in a responsible manner.
 
 Reporting security issues
 -------------------------
