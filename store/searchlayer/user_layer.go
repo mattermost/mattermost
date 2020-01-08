@@ -95,7 +95,7 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 	var err *model.AppError
 	uchanIds := []string{}
 	nuchanIds := []string{}
-	if !strings.Contains(strings.Join(options.ListOfAllowedChannels, "."), channelId) {
+	if options.ListOfAllowedChannels != nil && !strings.Contains(strings.Join(options.ListOfAllowedChannels, "."), channelId) {
 		nuchanIds, err = engine.SearchUsersInTeam(teamId, options.ListOfAllowedChannels, term, options)
 	} else {
 		uchanIds, nuchanIds, err = engine.SearchUsersInChannel(teamId, channelId, options.ListOfAllowedChannels, term, options)
@@ -124,15 +124,15 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	users := result.Data.([]*model.User)
-	autocomplete.InChannel = users
+	inUsers := result.Data.([]*model.User)
+	autocomplete.InChannel = inUsers
 
 	result = <-nuchan
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	users = result.Data.([]*model.User)
-	autocomplete.OutOfChannel = users
+	outUsers := result.Data.([]*model.User)
+	autocomplete.OutOfChannel = outUsers
 
 	return autocomplete, nil
 }
@@ -176,6 +176,7 @@ func (s *SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term str
 			if len(listOfAllowedChannels) == 0 {
 				return &model.UserAutocompleteInChannel{}, nil
 			}
+			options.ListOfAllowedChannels = listOfAllowedChannels
 			autocomplete, err := s.autocompleteUsersInChannelByEngine(engine, teamId, channelId, term, options)
 			if err != nil {
 				mlog.Error("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))

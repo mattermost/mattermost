@@ -13,10 +13,34 @@ type SearchTeamStore struct {
 	rootStore *SearchStore
 }
 
+func (s SearchTeamStore) SaveMember(teamMember *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError) {
+	member, err := s.TeamStore.SaveMember(teamMember, maxUsersPerTeam)
+	if err == nil {
+		s.rootStore.indexUserFromID(member.UserId)
+	}
+	return member, err
+}
+
 func (s SearchTeamStore) UpdateMember(teamMember *model.TeamMember) (*model.TeamMember, *model.AppError) {
 	member, err := s.TeamStore.UpdateMember(teamMember)
 	if err == nil {
 		s.rootStore.indexUserFromID(member.UserId)
 	}
 	return member, err
+}
+
+func (s SearchTeamStore) RemoveMember(teamId string, userId string) *model.AppError {
+	err := s.TeamStore.RemoveMember(teamId, userId)
+	if err == nil {
+		s.rootStore.indexUserFromID(userId)
+	}
+	return err
+}
+
+func (s SearchTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
+	err := s.TeamStore.RemoveAllMembersByUser(userId)
+	if err == nil {
+		s.rootStore.indexUserFromID(userId)
+	}
+	return err
 }

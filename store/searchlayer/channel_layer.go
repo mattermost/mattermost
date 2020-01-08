@@ -61,9 +61,24 @@ func (c *SearchChannelStore) Update(channel *model.Channel) (*model.Channel, *mo
 	return updatedChannel, err
 }
 
+func (c *SearchChannelStore) UpdateMember(cm *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	member, err := c.ChannelStore.UpdateMember(cm)
+	if err == nil {
+		c.rootStore.indexUserFromID(cm.UserId)
+		channel, channelErr := c.ChannelStore.Get(member.ChannelId, true)
+		if channelErr != nil {
+			mlog.Error("Encountered error indexing user in channel", mlog.String("channel_id", member.ChannelId), mlog.Err(err))
+		} else {
+			c.rootStore.indexUserFromID(channel.CreatorId)
+		}
+	}
+	return member, err
+}
+
 func (c *SearchChannelStore) SaveMember(cm *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	member, err := c.ChannelStore.SaveMember(cm)
 	if err == nil {
+		c.rootStore.indexUserFromID(cm.UserId)
 		channel, channelErr := c.ChannelStore.Get(member.ChannelId, true)
 		if channelErr != nil {
 			mlog.Error("Encountered error indexing user in channel", mlog.String("channel_id", member.ChannelId), mlog.Err(err))
@@ -142,23 +157,44 @@ func (c *SearchChannelStore) esAutocompleteChannels(engine searchengine.SearchEn
 	return &channelList, nil
 }
 
-func (c *SearchChannelStore) PermanentDeleteMembersByChannel(channelId string) *model.AppError {
-	err := c.ChannelStore.PermanentDeleteMembersByChannel(channelId)
+func (c *SearchChannelStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
+	err := c.ChannelStore.PermanentDeleteMembersByUser(userId)
+	if err == nil {
+		c.rootStore.indexUserFromID(userId)
+	}
+	return err
+}
 
-	if err != nil {
-		return err
+func (c *SearchChannelStore) RemoveAllDeactivatedMembers(channelId string) *model.AppError {
+	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(channelId, true)
+	if errProfiles != nil {
+		mlog.Error("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))
 	}
 
-	profiles, err := c.rootStore.User().GetAllProfilesInChannel(channelId, false)
-	if err != nil {
-		mlog.Error("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(err))
-	} else {
+	err := c.ChannelStore.RemoveAllDeactivatedMembers(channelId)
+	if err == nil && errProfiles == nil {
+		for _, user := range profiles {
+			if user.DeleteAt != 0 {
+				c.rootStore.indexUser(user)
+			}
+		}
+	}
+	return err
+}
+
+func (c *SearchChannelStore) PermanentDeleteMembersByChannel(channelId string) *model.AppError {
+	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(channelId, true)
+	if errProfiles != nil {
+		mlog.Error("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))
+	}
+
+	err := c.ChannelStore.PermanentDeleteMembersByChannel(channelId)
+	if err == nil && errProfiles == nil {
 		for _, user := range profiles {
 			c.rootStore.indexUser(user)
 		}
 	}
-
-	return nil
+	return err
 }
 
 func (c *SearchChannelStore) PermanentDelete(channelId string) *model.AppError {
