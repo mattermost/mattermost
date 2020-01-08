@@ -198,7 +198,7 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 			return nil, appErr
 		}
 
-		downloadedPlugin, err := a.DownloadFromUrl(plugin.DownloadURL)
+		downloadedPluginBytes, err := a.DownloadFromURL(plugin.DownloadURL)
 		if err != nil {
 			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -206,7 +206,7 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 		if err != nil {
 			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
 		}
-		pluginFile = downloadedPlugin
+		pluginFile = bytes.NewReader(downloadedPluginBytes)
 		signatureFile = signature
 	}
 

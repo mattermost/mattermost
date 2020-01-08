@@ -4,8 +4,6 @@
 package app
 
 import (
-	"bytes"
-	"io"
 	"io/ioutil"
 	"net/url"
 	"time"
@@ -20,32 +18,27 @@ const (
 	HTTP_REQUEST_TIMEOUT = 1 * time.Hour
 )
 
-func (a *App) DownloadFromUrl(downloadUrl string) (io.ReadSeeker, error) {
-	if !model.IsValidHttpUrl(downloadUrl) {
-		return nil, errors.Errorf("invalid url %s", downloadUrl)
+func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
+	if !model.IsValidHttpUrl(downloadURL) {
+		return nil, errors.Errorf("invalid url %s", downloadURL)
 	}
 
-	u, err := url.ParseRequestURI(downloadUrl)
+	u, err := url.ParseRequestURI(downloadURL)
 	if err != nil {
-		return nil, errors.Errorf("failed to parse url %s", downloadUrl)
+		return nil, errors.Errorf("failed to parse url %s", downloadURL)
 	}
 	if !*a.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
-		return nil, errors.Errorf("insecure url not allowed %s", downloadUrl)
+		return nil, errors.Errorf("insecure url not allowed %s", downloadURL)
 	}
 
 	client := a.HTTPService.MakeClient(true)
 	client.Timeout = HTTP_REQUEST_TIMEOUT
 
-	resp, err := client.Get(downloadUrl)
+	resp, err := client.Get(downloadURL)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to fetch from %s", downloadUrl)
+		return nil, errors.Wrapf(err, "failed to fetch from %s", downloadURL)
 	}
 	defer resp.Body.Close()
 
-	fileBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read from response")
-	}
-
-	return bytes.NewReader(fileBytes), nil
+	return ioutil.ReadAll(resp.Body)
 }

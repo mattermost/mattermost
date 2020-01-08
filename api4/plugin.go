@@ -6,6 +6,7 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -97,13 +98,13 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	force := r.URL.Query().Get("force") == "true"
 	downloadURL := r.URL.Query().Get("plugin_download_url")
 
-	pluginFile, err := c.App.DownloadFromUrl(downloadURL)
+	pluginFileBytes, err := c.App.DownloadFromURL(downloadURL)
 	if err != nil {
 		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	installPlugin(c, w, pluginFile, force)
+	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force)
 }
 
 func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
