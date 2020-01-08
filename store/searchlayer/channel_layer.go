@@ -203,7 +203,7 @@ func (c *SearchChannelStore) PermanentDelete(channelId string) *model.AppError {
 		mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channelId), mlog.Err(channelErr))
 	}
 	err := c.ChannelStore.PermanentDelete(channelId)
-	if err == nil {
+	if err == nil && channelErr == nil {
 		c.deleteChannelIndex(channel)
 	}
 	return err
