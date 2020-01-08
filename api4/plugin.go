@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -326,7 +327,10 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 
 	filter := u.Query().Get("filter")
 	serverVersion := u.Query().Get("server_version")
-	localOnly := u.Query().Get("local_only") == "true"
+	localOnly, err := strconv.ParseBool(u.Query().Get("local_only"))
+	if err != nil {
+		localOnly = false
+	}
 
 	return &model.MarketplacePluginFilter{
 		Page:          page,

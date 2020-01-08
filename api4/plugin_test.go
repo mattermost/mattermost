@@ -992,14 +992,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 			},
 		})
 
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Id) < strings.ToLower(expectedPlugins[j].Manifest.Id)
-		})
-		sort.SliceStable(plugins, func(i, j int) bool {
-			return strings.ToLower(plugins[i].Manifest.Id) < strings.ToLower(plugins[j].Manifest.Id)
-		})
-
-		require.EqualValues(t, expectedPlugins, plugins)
+		require.ElementsMatch(t, expectedPlugins, plugins)
 		require.Len(t, plugins, 2)
 	})
 
@@ -1254,7 +1247,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.NoError(t, err)
 
 		th := SetupConfig(func(cfg *model.Config) {
-			// Disable auto-installing prepackged plugins
+			// Disable auto-installing prepackaged plugins
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
 		}).InitBasic()
 		defer th.TearDown()
@@ -1294,7 +1287,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Len(t, pluginsResp.Active, 0)
 		require.Len(t, pluginsResp.Inactive, 0)
 
-		// Should fail to install unknown prepackged plugin
+		// Should fail to install unknown prepackaged plugin
 		pRequest := &model.InstallMarketplacePluginRequest{Id: "testplugin", Version: "0.0.2"}
 		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckInternalErrorStatus(t, resp)
@@ -1348,7 +1341,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 		CheckNoError(t, resp)
 		require.Len(t, pluginsResp.Active, 0)
-		require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{
+		require.ElementsMatch(t, pluginsResp.Inactive, []*model.PluginInfo{
 			{
 				Manifest: *manifest1,
 			},
@@ -1370,7 +1363,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Nil(t, appErr)
 	})
 
-	t.Run("missing prepackged and remote plugin signatures", func(t *testing.T) {
+	t.Run("missing prepackaged and remote plugin signatures", func(t *testing.T) {
 		prepackagedPluginsDir := "prepackaged_plugins"
 
 		os.RemoveAll(prepackagedPluginsDir)

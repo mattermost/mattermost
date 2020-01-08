@@ -37,6 +37,7 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -45,6 +46,8 @@ import (
 	"path/filepath"
 
 	"github.com/blang/semver"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -164,6 +167,59 @@ func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, installationStr
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
 		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
+	}
+
+	return manifest, nil
+}
+
+// InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
+// from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
+func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
+	var pluginFile, signatureFile io.ReadSeeker
+
+	prepackagedPlugin, appErr := a.getPrepackagedPlugin(request.Id, request.Version)
+	if appErr != nil && appErr.Id != "app.plugin.marketplace_plugins.not_found.app_error" {
+		return nil, appErr
+	}
+	if prepackagedPlugin != nil {
+		fileReader, err := os.Open(prepackagedPlugin.Path)
+		if err != nil {
+			err = errors.Wrapf(err, "failed to open prepackaged plugin %s", prepackagedPlugin.Path)
+			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		pluginFile = fileReader
+		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
+	}
+
+	if *a.Config().PluginSettings.EnableRemoteMarketplace && pluginFile == nil {
+		var plugin *model.BaseMarketplacePlugin
+		plugin, appErr = a.getRemoteMarketplacePlugin(request.Id, request.Version)
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		downloadedPlugin, err := a.DownloadFromUrl(plugin.DownloadURL)
+		if err != nil {
+			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		signature, err := plugin.DecodeSignature()
+		if err != nil {
+			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
+		}
+		pluginFile = downloadedPlugin
+		signatureFile = signature
+	}
+
+	if pluginFile == nil {
+		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, "", http.StatusInternalServerError)
+	}
+	if signatureFile == nil {
+		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	manifest, appErr := a.InstallPluginWithSignature(pluginFile, signatureFile)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	return manifest, nil
