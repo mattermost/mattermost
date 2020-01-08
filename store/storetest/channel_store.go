@@ -3967,7 +3967,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 
 	// Deactivate users 1 & 2.
 	u1.DeleteAt = model.GetMillis()
-	u2.DeleteAt = model.GetMillis()
+	u2.DeleteAt = u1.DeleteAt
 	_, err = ss.User().Update(&u1, true)
 	require.Nil(t, err)
 	_, err = ss.User().Update(&u2, true)
