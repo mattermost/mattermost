@@ -19,8 +19,8 @@ func (t *TeamSearch) IsPaginated() bool {
 }
 
 // ToJson convert a TeamSearch to json string
-func (c *TeamSearch) ToJson() string {
-	b, err := json.Marshal(c)
+func (t *TeamSearch) ToJson() string {
+	b, err := json.Marshal(t)
 	if err != nil {
 		return ""
 	}
