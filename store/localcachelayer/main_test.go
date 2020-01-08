@@ -75,6 +75,13 @@ func getMockStore() *mocks.Store {
 	mockPinnedPostsCount := int64(10)
 	mockChannelStore.On("GetPinnedPostCount", "id", true).Return(mockPinnedPostsCount, nil)
 	mockChannelStore.On("GetPinnedPostCount", "id", false).Return(mockPinnedPostsCount, nil)
+	fakeChannelMembers := model.ChannelMembers([]model.ChannelMember{
+		{
+			UserId: "123",
+		},
+	})
+	mockChannelStore.On("GetMembersForUser", "teamId", "userId1").Return(&fakeChannelMembers, nil)
+	mockChannelStore.On("GetMembersForUser", "teamId", "userId2").Return(&fakeChannelMembers, nil)
 
 	fakePosts := &model.PostList{}
 	fakeOptions := model.GetPostsOptions{ChannelId: "123", PerPage: 30}

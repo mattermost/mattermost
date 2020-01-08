@@ -4,6 +4,8 @@
 package localcachelayer
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -45,17 +47,29 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.C
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMembersForUser(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		s.rootStore.channelMembersForUserCache.Purge()
+		return
+	}
+
+	// Remove keys with prefix msg.Data
+	s.removeByPrefixFromChannelMembersForUserCache(msg.Data)
+}
+
 func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelPinnedPostCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersForUserCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Count - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Members For User - Purge")
 	}
 }
 
@@ -70,6 +84,56 @@ func (s LocalCacheChannelStore) InvalidateMemberCount(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberCountsCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Remove by ChannelId")
+	}
+}
+
+// removeByPrefixFromChannelMembersForUserCache removes all keys from
+// channelMembersForUserCache with the prefix of the given userId.
+func (s LocalCacheChannelStore) removeByPrefixFromChannelMembersForUserCache(userId string) {
+	keys := s.rootStore.channelMembersForUserCache.Keys()
+	for _, key := range keys {
+		keyString := key.(string)
+		if strings.HasPrefix(keyString, userId) {
+			s.rootStore.channelMembersForUserCache.Remove(keyString)
+		}
+	}
+}
+
+// InvalidateMembersForUser removes all keys from channelMembersForUserCache
+// with the prefix of the given userID.
+// We cannot simply call doInvalidateCacheCluster because we need to remove
+// keys with a prefix rather than remove a single key.
+func (s LocalCacheChannelStore) InvalidateMembersForUser(userId string) {
+	s.removeByPrefixFromChannelMembersForUserCache(userId)
+	if s.rootStore.cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_FOR_USER,
+			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			Data:     userId,
+		}
+		s.rootStore.cluster.SendClusterMessage(msg)
+	}
+
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Members For User - Remove by UserId")
+	}
+}
+
+// InvalidateMembersForAllUsers purges the entire channelMembersForUserCache cache.
+func (s LocalCacheChannelStore) InvalidateMembersForAllUsers() {
+	s.rootStore.channelMembersForUserCache.Purge()
+
+	if s.rootStore.cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_FOR_USER,
+			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			Data:     CLEAR_CACHE_MESSAGE_DATA,
+		}
+		s.rootStore.cluster.SendClusterMessage(msg)
+	}
+
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Members For User - Purge")
 	}
 }
 
@@ -148,6 +212,22 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 	}
 
 	return count, nil
+}
+
+// GetMembersForUser is a cache wrapper method for ChannelStore.
+func (s LocalCacheChannelStore) GetMembersForUser(teamId, userId string) (*model.ChannelMembers, *model.AppError) {
+	key := userId + "-" + teamId
+	if members := s.rootStore.doStandardReadCache(s.rootStore.channelMembersForUserCache, key); members != nil {
+		return members.(*model.ChannelMembers), nil
+	}
+
+	members, err := s.ChannelStore.GetMembersForUser(teamId, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	s.rootStore.doStandardAddToCache(s.rootStore.channelMembersForUserCache, key, members)
+	return members, nil
 }
 
 func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {

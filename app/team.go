@@ -961,6 +961,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 			if err = a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
 				return err
 			}
+			a.Srv.Store.Channel().InvalidateMembersForUser(user.Id)
 		}
 	}
 

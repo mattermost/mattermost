@@ -4,8 +4,9 @@
 package localcachelayer
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -273,5 +274,65 @@ func TestChannelStoreChannel(t *testing.T) {
 		cachedStore.Channel().InvalidateChannel(channelId)
 		cachedStore.Channel().Get(channelId, true)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 2)
+	})
+}
+
+func TestChannelStoreChannelMembersForUserCache(t *testing.T) {
+	fakeChannelMembers := model.ChannelMembers([]model.ChannelMember{
+		{
+			UserId: "123",
+		},
+	})
+
+	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		gotMembers, err := cachedStore.Channel().GetMembersForUser("teamId", "userId1")
+		require.Nil(t, err)
+		assert.Equal(t, &fakeChannelMembers, gotMembers)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 1)
+
+		_, _ = cachedStore.Channel().GetMembersForUser("teamId", "userId1")
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 1)
+	})
+
+	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		gotMembers, err := cachedStore.Channel().GetMembersForUser("teamId", "userId1")
+		require.Nil(t, err)
+		assert.Equal(t, &fakeChannelMembers, gotMembers)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 1)
+
+		// invalidate
+		cachedStore.Channel().InvalidateMembersForUser("userId1")
+
+		_, _ = cachedStore.Channel().GetMembersForUser("teamId", "userId1")
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 2)
+	})
+
+	t.Run("cache multiple items, invalidate all, then nothing cached ", func(t *testing.T) {
+		mockStore := getMockStore()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+
+		gotMembers, err := cachedStore.Channel().GetMembersForUser("teamId", "userId1")
+		require.Nil(t, err)
+		assert.Equal(t, &fakeChannelMembers, gotMembers)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 1)
+
+		gotMembers, err = cachedStore.Channel().GetMembersForUser("teamId", "userId2")
+		require.Nil(t, err)
+		assert.Equal(t, &fakeChannelMembers, gotMembers)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 2)
+
+		// invalidate all
+		cachedStore.Channel().InvalidateMembersForAllUsers()
+
+		_, _ = cachedStore.Channel().GetMembersForUser("teamId", "userId1")
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 3)
+		_, _ = cachedStore.Channel().GetMembersForUser("teamId", "userId2")
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 4)
 	})
 }
