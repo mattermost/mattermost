@@ -132,11 +132,11 @@ func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireI
 }
 
 type kvListOptions struct {
-	Checkers []func(key string) (keep bool, err error)
+	checkers []func(key string) (keep bool, err error)
 }
 
-func (o *kvListOptions) CheckAll(key string) (keep bool, err error) {
-	for _, check := range o.Checkers {
+func (o *kvListOptions) checkAll(key string) (keep bool, err error) {
+	for _, check := range o.checkers {
 		keep, err := check(key)
 		if err != nil {
 			return false, err
@@ -165,7 +165,7 @@ func WithPrefix(prefix string) KVListOption {
 // will halt KVListWithOptions immediately and pass the error up (with no other results).
 func WithChecker(f func(key string) (keep bool, err error)) KVListOption {
 	return func(args *kvListOptions) {
-		args.Checkers = append(args.Checkers, f)
+		args.checkers = append(args.checkers, f)
 	}
 }
 
@@ -193,14 +193,14 @@ func (p *HelpersImpl) KVListWithOptions(options ...KVListOption) ([]string, erro
 			return nil, appErr
 		}
 
-		if len(args.Checkers) == 0 {
+		if len(args.checkers) == 0 {
 			// no checkers, just append the whole block at once
 			ret = append(ret, keys...)
 		} else {
 			// we have a filter, so check each key, all checkers must say key
 			// for us to keep a key
 			for _, key := range keys {
-				keep, err := args.CheckAll(key)
+				keep, err := args.checkAll(key)
 				if err != nil {
 					return nil, err
 				}
