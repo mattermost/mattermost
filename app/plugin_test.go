@@ -532,7 +532,7 @@ func TestPluginSync(t *testing.T) {
 				// Check if removed
 				pluginStatus, err := env.Statuses()
 				require.Nil(t, err)
-				require.Len(t, pluginStatus, 0)
+				require.Empty(t, pluginStatus)
 			})
 
 			t.Run("plugin signatures required, no signature", func(t *testing.T) {

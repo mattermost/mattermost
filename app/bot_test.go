@@ -653,11 +653,11 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	// get posts from sysadmin1 and sysadmin2 DM channels
 	posts1, err := th.App.GetPosts(channelSys1.Id, 0, 5)
 	require.Nil(t, err)
-	assert.Len(t, posts1.Order, 0)
+	assert.Empty(t, posts1.Order)
 
 	posts2, err := th.App.GetPosts(channelSys2.Id, 0, 5)
 	require.Nil(t, err)
-	assert.Len(t, posts2.Order, 0)
+	assert.Empty(t, posts2.Order)
 
 	// send notification for user with bots
 	err = th.App.notifySysadminsBotOwnerDeactivated(user1.Id)

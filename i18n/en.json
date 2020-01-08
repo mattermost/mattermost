@@ -372,6 +372,10 @@
     "translation": "The channel has been archived or deleted"
   },
   {
+    "id": "api.channel.update_channel.invalid_character.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
@@ -3731,6 +3735,10 @@
     "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
   },
   {
+    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
+    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
+  },
+  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
   },
@@ -5631,10 +5639,6 @@
     "translation": "Limit exceeded for paging"
   },
   {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of audits"
-  },
-  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "We encountered an error deleting the audits"
   },
@@ -5937,10 +5941,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "You've reached the limit of the number of allowed channels."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "A channel with that URL was previously created"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
