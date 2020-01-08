@@ -74,7 +74,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if setOnline != "" {
 		setOnlineBool, err2 = strconv.ParseBool(setOnline)
 		if err2 != nil {
-			mlog.Error(err2.Error())
+			mlog.Warn("Failed to parse set_online URL query parameter from createPost request", mlog.Err(err2))
 			setOnlineBool = true // Set online nevertheless.
 		}
 	}
