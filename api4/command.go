@@ -197,8 +197,8 @@ func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check for permissions to view this command; must have perms to view team, and if custom
-	// command then PERMISSION_MANAGE_SLASH_COMMANDS is needed as well.
+	// check for permissions to view this command; must have perms to view team and
+	// PERMISSION_MANAGE_SLASH_COMMANDS for the team the command belongs to.
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return

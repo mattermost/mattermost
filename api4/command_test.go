@@ -399,8 +399,6 @@ func TestGetCommand(t *testing.T) {
 		Client.Login(user.Email, user.Password)
 		_, resp := Client.GetCommand(newCmd.Id)
 		CheckForbiddenStatus(t, resp)
-		_, resp = Client.GetCommand(newCmd.Id)
-		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
