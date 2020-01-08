@@ -16,6 +16,7 @@ func (api *API) InitCommand() {
 	api.BaseRoutes.Commands.Handle("", api.ApiSessionRequired(listCommands)).Methods("GET")
 	api.BaseRoutes.Commands.Handle("/execute", api.ApiSessionRequired(executeCommand)).Methods("POST")
 
+	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(getCommand)).Methods("GET")
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(updateCommand)).Methods("PUT")
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(deleteCommand)).Methods("DELETE")
 
@@ -142,7 +143,6 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	teamId := r.URL.Query().Get("team_id")
-
 	if len(teamId) == 0 {
 		c.SetInvalidParam("team_id")
 		return
@@ -183,6 +183,31 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.CommandListToJson(commands)))
+}
+
+func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireCommandId()
+	if c.Err != nil {
+		return
+	}
+
+	cmd, err := c.App.GetCommand(c.Params.CommandId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// check for permissions to view this command; must have perms to view team, and if custom
+	// command then PERMISSION_MANAGE_SLASH_COMMANDS is needed as well.
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+	if !cmd.AutoComplete && !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+	w.Write([]byte(cmd.ToJson()))
 }
 
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
