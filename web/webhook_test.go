@@ -262,9 +262,10 @@ func TestCommandWebhooks(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		response, appErr2 := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
-		require.False(t, appErr2 != nil || response.StatusCode != http.StatusOK)
+		require.Equal(t, http.StatusOK, response.StatusCode)
+		require.Nil(t, appErr2)
 	}
 
 	resp, _ = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
-	require.False(t, resp.StatusCode != http.StatusBadRequest)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
