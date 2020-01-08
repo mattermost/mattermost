@@ -4459,6 +4459,10 @@
     "translation": "No puede habilitar el correo electrónico por lotes cuando SiteURL no está configurado."
   },
   {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "El nombre del Sitio no puede quedar en blanco."
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Nombre del sitio debe ser menor o igual a {{.MaxLength}} caracteres."
   },

@@ -4457,7 +4457,11 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "Невозможно включить почтовые объединения, если не задан SiteURL."
-  },  
+  },
+  {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
+  },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Название сайта должно быть меньше или равно {{.MaxLength}} символов."

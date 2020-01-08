@@ -4457,7 +4457,11 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "E-Mail-Stapelverarbeitung lässt sich nicht aktivieren, wenn SiteURL nicht gesetzt ist."
-  },  
+  },
+  {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
+  },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Der Name der Site darf bis zu {{.MaxLength}} Zeichen lang sein."

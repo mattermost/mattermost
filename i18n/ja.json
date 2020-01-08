@@ -4457,7 +4457,11 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "SiteURLが設定されていないため電子メールのバッチ処理は有効化できません。"
-  },  
+  },
+  {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
+  },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "サイト名は {{.MaxLength}} 文字以内にしてください。"

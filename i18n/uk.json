@@ -4459,6 +4459,10 @@
     "translation": "Неможливо включити поштові об'єднання, якщо не заданий SiteURL."
   },
   {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Назва сайту має бути менше або дорівнює {{.MaxLength}} символів."
   },

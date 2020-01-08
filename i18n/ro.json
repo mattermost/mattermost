@@ -4459,6 +4459,10 @@
     "translation": "Imposibilitatea de a permite e-mail dozare când SiteURL nu este setată."
   },
   {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Numele site-ului trebuie să fie mai mic sau egal cu {{.MaxLength}} caractere."
   },

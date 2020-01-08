@@ -4457,7 +4457,11 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "Niet mogelijk om bulk email aan te zetten als de SiteURL niet is ingevuld."
-  },  
+  },
+  {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
+  },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Site naam moet minder dan of gelijk aan {{.MaxLength}} karakters."
