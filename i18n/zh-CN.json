@@ -372,6 +372,10 @@
     "translation": "该频道已归档或者被删除"
   },
   {
+    "id": "api.channel.update_channel.invalid_character.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "对默认频道试图执行一个无效的更新 {{.Channel}}"
   },
