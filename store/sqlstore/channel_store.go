@@ -1652,19 +1652,8 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) *model.AppE
 }
 
 func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError) {
-	props := make(map[string]interface{})
-
-	updateIdQuery := ""
-	for index, channelId := range channelIds {
-		if len(updateIdQuery) > 0 {
-			updateIdQuery += " OR "
-		}
-
-		props["channelId"+strconv.Itoa(index)] = channelId
-		updateIdQuery += "ChannelId = :channelId" + strconv.Itoa(index)
-	}
-
-	selectIdQuery := strings.Replace(updateIdQuery, "ChannelId", "Id", -1)
+	keys, props := MapStringsToQueryParams(channelIds, "Channel")
+	props["UserId"] = userId
 
 	var lastPostAtTimes []struct {
 		Id            string
@@ -1672,21 +1661,51 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		TotalMsgCount int64
 	}
 
-	selectQuery := "SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE (" + selectIdQuery + ")"
+	query := `SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE Id IN ` + keys
+	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = `WITH c AS ( ` + query + `),
+	updated AS (
+	UPDATE
+		ChannelMembers cm
+	SET
+		MentionCount = 0,
+		MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
+		LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
+		LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
+	FROM c
+		WHERE cm.UserId = :UserId
+		AND c.Id=cm.ChannelId
+)
+	SELECT Id, LastPostAt FROM c`
+	}
 
-	if _, err := s.GetMaster().Select(&lastPostAtTimes, selectQuery, props); err != nil || len(lastPostAtTimes) <= 0 {
-		var extra string
+	_, err := s.GetMaster().Select(&lastPostAtTimes, query, props)
+	if err != nil || len(lastPostAtTimes) == 0 {
 		status := http.StatusInternalServerError
+		var extra string
 		if err == nil {
 			status = http.StatusBadRequest
 			extra = "No channels found"
 		} else {
 			extra = err.Error()
 		}
-		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+extra, status)
+
+		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt",
+			"store.sql_channel.update_last_viewed_at.app_error",
+			nil,
+			"channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+extra,
+			status)
 	}
 
 	times := map[string]int64{}
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		for _, t := range lastPostAtTimes {
+			times[t.Id] = t.LastPostAt
+		}
+		return times, nil
+	}
+
 	msgCountQuery := ""
 	lastViewedQuery := ""
 	for index, t := range lastPostAtTimes {
@@ -1701,33 +1720,16 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		props["channelId"+strconv.Itoa(index)] = t.Id
 	}
 
-	var updateQuery string
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		updateQuery = `UPDATE
-			ChannelMembers
-		SET
-			MentionCount = 0,
-			MsgCount = CAST(CASE ChannelId ` + msgCountQuery + ` END AS BIGINT),
-			LastViewedAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT),
-			LastUpdateAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT)
-		WHERE
-				UserId = :UserId
-				AND (` + updateIdQuery + `)`
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		updateQuery = `UPDATE
+	updateQuery := `UPDATE
 			ChannelMembers
 		SET
 			MentionCount = 0,
 			MsgCount = CASE ChannelId ` + msgCountQuery + ` END,
 			LastViewedAt = CASE ChannelId ` + lastViewedQuery + ` END,
-			LastUpdateAt = CASE ChannelId ` + lastViewedQuery + ` END
+			LastUpdateAt = LastViewedAt
 		WHERE
 				UserId = :UserId
-				AND (` + updateIdQuery + `)`
-	}
-
-	props["UserId"] = userId
+				AND ChannelId IN ` + keys
 
 	if _, err := s.GetMaster().Exec(updateQuery, props); err != nil {
 		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
