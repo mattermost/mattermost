@@ -89,9 +89,7 @@ func testComplianceStore(t *testing.T, ss store.Store) {
 
 	compliances, _ = ss.Compliance().GetAll(1, 1)
 
-	if len(compliances) != 1 {
-		t.Fatal("should only have returned 1")
-	}
+	require.Len(t, compliances, 1)
 
 	rc2, _ := ss.Compliance().Get(compliance2.Id)
 	require.Equal(t, compliance2.Status, rc2.Status)
