@@ -371,7 +371,7 @@ func TestGetCommand(t *testing.T) {
 	CheckNoError(t, resp)
 
 	t.Run("ValidId", func(t *testing.T) {
-		cmd, resp := th.SystemAdminClient.GetCommand(newCmd.Id)
+		cmd, resp := th.SystemAdminClient.GetCommandById(newCmd.Id)
 		CheckNoError(t, resp)
 
 		require.Equal(t, newCmd.Id, cmd.Id)
@@ -383,12 +383,12 @@ func TestGetCommand(t *testing.T) {
 	})
 
 	t.Run("InvalidId", func(t *testing.T) {
-		_, resp := th.SystemAdminClient.GetCommand(strings.Repeat("z", len(newCmd.Id)))
+		_, resp := th.SystemAdminClient.GetCommandById(strings.Repeat("z", len(newCmd.Id)))
 		require.Error(t, resp.Error)
 	})
 
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
-		_, resp := Client.GetCommand(newCmd.Id)
+		_, resp := Client.GetCommandById(newCmd.Id)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -397,13 +397,13 @@ func TestGetCommand(t *testing.T) {
 		user := th.CreateUser()
 		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
 		Client.Login(user.Email, user.Password)
-		_, resp := Client.GetCommand(newCmd.Id)
+		_, resp := Client.GetCommandById(newCmd.Id)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
 		Client.Logout()
-		_, resp := Client.GetCommand(newCmd.Id)
+		_, resp := Client.GetCommandById(newCmd.Id)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
