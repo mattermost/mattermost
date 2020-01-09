@@ -9,12 +9,15 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+// RegisterAllClusterMessageHandlers registers the cluster message handlers that are handled by the App layer.
+//
+// The cluster event handlers are spread across this function and
+// NewLocalCacheLayer. Be careful to not have duplicated handlers here and
+// there.
 func (a *App) RegisterAllClusterMessageHandlers() {
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_PUBLISH, a.ClusterPublishHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_UPDATE_STATUS, a.ClusterUpdateStatusHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES, a.ClusterInvalidateAllCachesHandler)
-	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOK, a.ClusterInvalidateCacheForWebhookHandler)
-	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_POSTS, a.ClusterInvalidateCacheForChannelPostsHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS, a.ClusterInvalidateCacheForChannelMembersNotifyPropHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS, a.ClusterInvalidateCacheForChannelMembersHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME, a.ClusterInvalidateCacheForChannelByNameHandler)
@@ -25,7 +28,6 @@ func (a *App) RegisterAllClusterMessageHandlers() {
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INSTALL_PLUGIN, a.ClusterInstallPluginHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_REMOVE_PLUGIN, a.ClusterRemovePluginHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_BUSY_STATE_CHANGED, a.ClusterBusyStateChgHandler)
-
 }
 
 func (a *App) ClusterPublishHandler(msg *model.ClusterMessage) {
@@ -40,14 +42,6 @@ func (a *App) ClusterUpdateStatusHandler(msg *model.ClusterMessage) {
 
 func (a *App) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
 	a.InvalidateAllCachesSkipSend()
-}
-
-func (a *App) ClusterInvalidateCacheForWebhookHandler(msg *model.ClusterMessage) {
-	a.InvalidateCacheForWebhookSkipClusterSend(msg.Data)
-}
-
-func (a *App) ClusterInvalidateCacheForChannelPostsHandler(msg *model.ClusterMessage) {
-	a.InvalidateCacheForChannelPostsSkipClusterSend(msg.Data)
 }
 
 func (a *App) ClusterInvalidateCacheForChannelMembersNotifyPropHandler(msg *model.ClusterMessage) {

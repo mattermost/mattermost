@@ -68,6 +68,7 @@ func (s *Server) RunOldAppInitialization() error {
 						sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics),
 						s.Metrics,
 						s.Cluster,
+						s.CacheProvider,
 					),
 					s.SearchEngine,
 				),

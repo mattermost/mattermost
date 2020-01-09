@@ -18,6 +18,7 @@ const (
 	WEBSOCKET_EVENT_CHANNEL_CONVERTED       = "channel_converted"
 	WEBSOCKET_EVENT_CHANNEL_CREATED         = "channel_created"
 	WEBSOCKET_EVENT_CHANNEL_DELETED         = "channel_deleted"
+	WEBSOCKET_EVENT_CHANNEL_RESTORED        = "channel_restored"
 	WEBSOCKET_EVENT_CHANNEL_UPDATED         = "channel_updated"
 	WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED  = "channel_member_updated"
 	WEBSOCKET_EVENT_DIRECT_ADDED            = "direct_added"
