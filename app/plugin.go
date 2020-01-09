@@ -714,10 +714,11 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 	}
 
 	fileStorePaths := []string{}
-	if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
+	err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
 		fileStorePaths = append(fileStorePaths, walkPath)
 		return nil
-	}); err != nil {
+	})
+	if err != nil {
 		mlog.Error("Failed to walk prepackaged plugins", mlog.Err(err))
 		return nil
 	}
