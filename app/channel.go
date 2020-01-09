@@ -1662,7 +1662,6 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 	if err := a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); err != nil {
 		return err
 	}
-
 	if err := a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); err != nil {
 		return err
 	}
