@@ -30,6 +30,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
@@ -86,8 +88,9 @@ type Server struct {
 	newStore func() store.Store
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            *utils.Cache
-	seenPendingPostIdsCache *utils.Cache
+	sessionCache            cache.Cache
+	seenPendingPostIdsCache cache.Cache
+	statusCache             cache.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
@@ -129,18 +132,18 @@ type Server struct {
 	Metrics          einterfaces.MetricsInterface
 	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
+
+	CacheProvider cache.Provider
 }
 
 func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
 
 	s := &Server{
-		goroutineExitSignal:     make(chan struct{}, 1),
-		RootRouter:              rootRouter,
-		licenseListeners:        map[string]func(){},
-		sessionCache:            utils.NewLru(model.SESSION_CACHE_SIZE),
-		seenPendingPostIdsCache: utils.NewLru(PENDING_POST_IDS_CACHE_SIZE),
-		clientConfig:            make(map[string]string),
+		goroutineExitSignal: make(chan struct{}, 1),
+		RootRouter:          rootRouter,
+		licenseListeners:    map[string]func(){},
+		clientConfig:        make(map[string]string),
 	}
 	for _, option := range options {
 		if err := option(s); err != nil {
@@ -187,6 +190,16 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
+
+	// at the moment we only have this implementation
+	// in the future the cache provider will be built based on the loaded config
+	s.CacheProvider = new(lru.CacheProvider)
+
+	s.CacheProvider.Connect()
+
+	s.sessionCache = s.CacheProvider.NewCache(model.SESSION_CACHE_SIZE)
+	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
+	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)
 
 	err := s.RunOldAppInitialization()
 	if err != nil {
@@ -392,6 +405,10 @@ func (s *Server) Shutdown() error {
 
 	if s.Store != nil {
 		s.Store.Close()
+	}
+
+	if s.CacheProvider != nil {
+		s.CacheProvider.Close()
 	}
 
 	mlog.Info("Server stopped")

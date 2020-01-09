@@ -8,12 +8,28 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/stretchr/testify/mock"
 )
 
 var mainHelper *testlib.MainHelper
+
+func getMockCacheProvider() *mocks.CacheProvider {
+	mockCacheProvider := mocks.CacheProvider{}
+	//todo: replace this line with mocks for all tests
+	mockCache := lru.New(128)
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(mockCache)
+
+	return &mockCacheProvider
+}
 
 func getMockStore() *mocks.Store {
 	mockStore := mocks.Store{}
@@ -112,6 +128,7 @@ func getMockStore() *mocks.Store {
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
+	mockUserStore.On("Get", "123").Return(fakeUser[0], nil)
 	mockStore.On("User").Return(&mockUserStore)
 
 	fakeUserTeamIds := []string{"1", "2", "3"}

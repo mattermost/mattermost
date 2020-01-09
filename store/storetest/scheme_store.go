@@ -484,5 +484,5 @@ func testSchemeStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 
 	schemes, err := ss.Scheme().GetAllPage("", 0, 100000)
 	assert.Nil(t, err)
-	assert.Len(t, schemes, 0)
+	assert.Empty(t, schemes)
 }

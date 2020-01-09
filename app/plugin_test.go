@@ -528,7 +528,7 @@ func TestPluginSync(t *testing.T) {
 			// Check if removed
 			pluginStatus, err = env.Statuses()
 			require.Nil(t, err)
-			require.Len(t, pluginStatus, 0)
+			require.Empty(t, pluginStatus)
 
 			// RequirePluginSignature = true case
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -544,7 +544,7 @@ func TestPluginSync(t *testing.T) {
 			checkNoError(t, appErr)
 			pluginStatus, err = env.Statuses()
 			require.Nil(t, err)
-			require.Len(t, pluginStatus, 0)
+			require.Empty(t, pluginStatus)
 
 			// Wrong signature
 			signatureFileReader, err := os.Open(filepath.Join(path, "testpluginv2.tar.gz.sig"))
@@ -559,7 +559,7 @@ func TestPluginSync(t *testing.T) {
 
 			pluginStatus, err = env.Statuses()
 			require.Nil(t, err)
-			require.Len(t, pluginStatus, 0)
+			require.Empty(t, pluginStatus)
 
 			// Correct signature
 			key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
