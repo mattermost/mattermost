@@ -97,7 +97,12 @@ func (env *Environment) Available() ([]*model.BundleInfo, error) {
 	return scanSearchPath(env.pluginDir)
 }
 
+// Returns a list of prepackaged plugins available in the local prepackaged_plugins folder.
+// The list content is immutable and should not be modified.
 func (env *Environment) PrepackagedPlugins() []*PrepackagedPlugin {
+	env.prepackagedPluginsLock.RLock()
+	defer env.prepackagedPluginsLock.RUnlock()
+
 	return env.prepackagedPlugins
 }
 
