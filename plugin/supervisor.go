@@ -90,11 +90,6 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 		}
 	}
 
-	err = sup.Hooks().OnActivate()
-	if err != nil {
-		return nil, err
-	}
-
 	return &sup, nil
 }
 

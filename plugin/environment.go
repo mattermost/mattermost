@@ -250,6 +250,11 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
+
+		if err := sup.Hooks().OnActivate(); err != nil {
+			sup.Shutdown()
+			return nil, false, err
+		}
 		rp.supervisor = sup
 
 		componentActivated = true
@@ -291,6 +296,8 @@ func (env *Environment) Deactivate(id string) bool {
 		rp.supervisor.Shutdown()
 	}
 
+	env.registeredPlugins.Delete(id)
+
 	return true
 }
 
@@ -311,7 +318,7 @@ func (env *Environment) Shutdown() {
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
 		rp := value.(*registeredPlugin)
 
-		if rp.supervisor == nil {
+		if rp.supervisor == nil || !env.IsActive(rp.BundleInfo.Manifest.Id) {
 			return true
 		}
 
@@ -412,7 +419,7 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 	if p, ok := env.registeredPlugins.Load(id); ok {
 		rp := p.(*registeredPlugin)
-		if rp.supervisor != nil {
+		if rp.supervisor != nil && env.IsActive(id) {
 			return rp.supervisor.Hooks(), nil
 		}
 	}
@@ -428,14 +435,11 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
 		rp := value.(*registeredPlugin)
 
-		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) {
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
 			return true
 		}
-		if !hookRunnerFunc(rp.supervisor.Hooks()) {
-			return false
-		}
 
-		return true
+		return hookRunnerFunc(rp.supervisor.Hooks())
 	})
 }
 
