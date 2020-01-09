@@ -3739,6 +3739,10 @@
     "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
   },
   {
+    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
+    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
+  },
+  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
   },
