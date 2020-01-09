@@ -471,6 +471,7 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
 		"enable":                                 *cfg.LdapSettings.Enable,
 		"enable_sync":                            *cfg.LdapSettings.EnableSync,
+		"enable_admin_filter":                    *cfg.LdapSettings.EnableAdminFilter,
 		"connection_security":                    *cfg.LdapSettings.ConnectionSecurity,
 		"skip_certificate_verification":          *cfg.LdapSettings.SkipCertificateVerification,
 		"sync_interval_minutes":                  *cfg.LdapSettings.SyncIntervalMinutes,
@@ -510,6 +511,7 @@ func (a *App) trackConfig() {
 		"enable":                              *cfg.SamlSettings.Enable,
 		"enable_sync_with_ldap":               *cfg.SamlSettings.EnableSyncWithLdap,
 		"enable_sync_with_ldap_include_auth":  *cfg.SamlSettings.EnableSyncWithLdapIncludeAuth,
+		"enable_admin_attribute":              *cfg.SamlSettings.EnableAdminAttribute,
 		"verify":                              *cfg.SamlSettings.Verify,
 		"encrypt":                             *cfg.SamlSettings.Encrypt,
 		"sign_request":                        *cfg.SamlSettings.SignRequest,

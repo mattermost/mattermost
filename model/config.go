@@ -1701,10 +1701,11 @@ type LdapSettings struct {
 	BindPassword       *string
 
 	// Filtering
-	UserFilter  *string
-	GroupFilter *string
-	GuestFilter *string
-	AdminFilter *string
+	UserFilter        *string
+	GroupFilter       *string
+	GuestFilter       *string
+	EnableAdminFilter *bool
+	AdminFilter       *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string
@@ -1746,6 +1747,10 @@ func (s *LdapSettings) SetDefaults() {
 	// When unset should default to LDAP Enabled
 	if s.EnableSync == nil {
 		s.EnableSync = NewBool(*s.Enable)
+	}
+
+	if s.EnableAdminFilter == nil {
+		s.EnableAdminFilter = NewBool(false)
 	}
 
 	if s.LdapServer == nil {
@@ -1932,16 +1937,17 @@ type SamlSettings struct {
 	PrivateKeyFile        *string
 
 	// User Mapping
-	IdAttribute        *string
-	GuestAttribute     *string
-	AdminAttribute     *string
-	FirstNameAttribute *string
-	LastNameAttribute  *string
-	EmailAttribute     *string
-	UsernameAttribute  *string
-	NicknameAttribute  *string
-	LocaleAttribute    *string
-	PositionAttribute  *string
+	IdAttribute          *string
+	GuestAttribute       *string
+	EnableAdminAttribute *bool
+	AdminAttribute       *string
+	FirstNameAttribute   *string
+	LastNameAttribute    *string
+	EmailAttribute       *string
+	UsernameAttribute    *string
+	NicknameAttribute    *string
+	LocaleAttribute      *string
+	PositionAttribute    *string
 
 	LoginButtonText *string
 
@@ -1961,6 +1967,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.EnableSyncWithLdapIncludeAuth == nil {
 		s.EnableSyncWithLdapIncludeAuth = NewBool(false)
+	}
+
+	if s.EnableAdminAttribute == nil {
+		s.EnableAdminAttribute = NewBool(false)
 	}
 
 	if s.Verify == nil {
