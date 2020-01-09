@@ -202,18 +202,10 @@ func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 }
 
 func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
-	a.InvalidateCacheForChannelSkipClusterSend(channel.Id)
+	a.Srv.Store.Channel().InvalidateChannel(channel.Id)
 	a.InvalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
 	if a.Cluster != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     channel.Id,
-		}
-
-		a.Cluster.SendClusterMessage(msg)
-
 		nameMsg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
@@ -231,12 +223,10 @@ func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
 	}
 }
 
-func (a *App) InvalidateCacheForChannelSkipClusterSend(channelId string) {
-	a.Srv.Store.Channel().InvalidateChannel(channelId)
-}
-
 func (a *App) InvalidateCacheForChannelMembers(channelId string) {
 	a.InvalidateCacheForChannelMembersSkipClusterSend(channelId)
+	a.Srv.Store.Channel().InvalidateMemberCount(channelId)
+	a.Srv.Store.Channel().InvalidateGuestCount(channelId)
 
 	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
@@ -250,8 +240,6 @@ func (a *App) InvalidateCacheForChannelMembers(channelId string) {
 
 func (a *App) InvalidateCacheForChannelMembersSkipClusterSend(channelId string) {
 	a.Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
-	a.Srv.Store.Channel().InvalidateMemberCount(channelId)
-	a.Srv.Store.Channel().InvalidateGuestCount(channelId)
 }
 
 func (a *App) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
@@ -280,21 +268,8 @@ func (a *App) InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string
 }
 
 func (a *App) InvalidateCacheForChannelPosts(channelId string) {
-	a.InvalidateCacheForChannelPostsSkipClusterSend(channelId)
-
-	if a.Cluster != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_POSTS,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     channelId,
-		}
-		a.Cluster.SendClusterMessage(msg)
-	}
-}
-
-func (a *App) InvalidateCacheForChannelPostsSkipClusterSend(channelId string) {
-	a.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 	a.Srv.Store.Channel().InvalidatePinnedPostCount(channelId)
+	a.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 }
 
 func (a *App) InvalidateCacheForUser(userId string) {
@@ -312,6 +287,7 @@ func (a *App) InvalidateCacheForUser(userId string) {
 
 func (a *App) InvalidateCacheForUserTeams(userId string) {
 	a.InvalidateCacheForUserTeamsSkipClusterSend(userId)
+	a.Srv.Store.Team().InvalidateAllTeamIdsForUser(userId)
 
 	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
@@ -326,7 +302,7 @@ func (a *App) InvalidateCacheForUserTeams(userId string) {
 func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
 	a.Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
-	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
+	a.Srv.Store.User().InvalidateProfileCacheForUser(userId)
 
 	hub := a.GetHubForUserId(userId)
 	if hub != nil {
@@ -335,8 +311,6 @@ func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
 }
 
 func (a *App) InvalidateCacheForUserTeamsSkipClusterSend(userId string) {
-	a.Srv.Store.Team().InvalidateAllTeamIdsForUser(userId)
-
 	hub := a.GetHubForUserId(userId)
 	if hub != nil {
 		hub.InvalidateUser(userId)
@@ -344,19 +318,6 @@ func (a *App) InvalidateCacheForUserTeamsSkipClusterSend(userId string) {
 }
 
 func (a *App) InvalidateCacheForWebhook(webhookId string) {
-	a.InvalidateCacheForWebhookSkipClusterSend(webhookId)
-
-	if a.Cluster != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOK,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     webhookId,
-		}
-		a.Cluster.SendClusterMessage(msg)
-	}
-}
-
-func (a *App) InvalidateCacheForWebhookSkipClusterSend(webhookId string) {
 	a.Srv.Store.Webhook().InvalidateWebhookCache(webhookId)
 }
 
