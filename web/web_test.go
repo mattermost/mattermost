@@ -184,7 +184,7 @@ func TestStaticFilesRequest(t *testing.T) {
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, mainJS, res.Body.String())
-	assert.Equal(t, []string{"no-cache, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+	assert.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
 	// Verify cached access to the bundle with an If-Modified-Since timestamp in the future
 	future := time.Now().Add(24 * time.Hour)
@@ -194,7 +194,7 @@ func TestStaticFilesRequest(t *testing.T) {
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, http.StatusNotModified, res.Code)
 	assert.Empty(t, res.Body.String())
-	assert.Equal(t, []string{"no-cache, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+	assert.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
 	// Verify access to the bundle with an If-Modified-Since timestamp in the past
 	past := time.Now().Add(-24 * time.Hour)
@@ -204,7 +204,7 @@ func TestStaticFilesRequest(t *testing.T) {
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, mainJS, res.Body.String())
-	assert.Equal(t, []string{"no-cache, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+	assert.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
 	// Verify handling of 404.
 	req, _ = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/404.js", nil)
