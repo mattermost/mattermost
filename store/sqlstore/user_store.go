@@ -16,8 +16,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -41,7 +42,7 @@ type SqlUserStore struct {
 	usersQuery sq.SelectBuilder
 }
 
-var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
+var profilesInChannelCache cache.Cache = lru.New(PROFILES_IN_CHANNEL_CACHE_SIZE)
 
 func (us SqlUserStore) ClearCaches() {
 	profilesInChannelCache.Purge()
@@ -51,7 +52,7 @@ func (us SqlUserStore) ClearCaches() {
 	}
 }
 
-func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {}
+func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 
 func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
@@ -60,7 +61,7 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	}
 
 	us.usersQuery = us.getQueryBuilder().
-		Select("u.*", "b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription").
+		Select("u.*", "b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate").
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
@@ -490,8 +491,8 @@ func applyTeamGroupConstrainedFilter(query sq.SelectBuilder, teamId string) sq.S
 			)`, teamId)
 }
 
-func (s SqlUserStore) GetEtagForProfiles(teamId string) string {
-	updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
+func (us SqlUserStore) GetEtagForProfiles(teamId string) string {
+	updateAt, err := us.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
 	if err != nil {
 		return fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 	}

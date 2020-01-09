@@ -107,7 +107,7 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 		}
 	} else {
 		if count, err := s.GetMaster().SelectInt("SELECT COUNT(*) FROM Posts WHERE RootId = :Id", map[string]interface{}{"Id": post.Id}); err != nil {
-			mlog.Error(fmt.Sprintf("Error fetching post's thread: %v", err.Error()))
+			mlog.Error("Error fetching post's thread.", mlog.Err(err))
 		} else {
 			post.ReplyCount = count
 		}
