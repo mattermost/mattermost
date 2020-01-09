@@ -41,7 +41,6 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	if err := a.Srv.Store.Channel().ClearAllCustomRoleAssignments(); err != nil {
 		return err
 	}
-	a.Srv.Store.Channel().InvalidateMembersForAllUsers()
 
 	// Purge all schemes from the database.
 	if err := a.Srv.Store.Scheme().PermanentDeleteAll(); err != nil {

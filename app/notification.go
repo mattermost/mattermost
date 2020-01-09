@@ -135,7 +135,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		go func(userId string) {
 			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, userId)
 			close(umc)
-			a.Srv.Store.Channel().InvalidateMembersForUser(userId)
 		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
 	}

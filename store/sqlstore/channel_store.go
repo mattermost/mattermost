@@ -1253,7 +1253,6 @@ var CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 
 func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	defer s.InvalidateAllChannelMembersForUser(member.UserId)
-	defer s.InvalidateMembersForUser(member.UserId)
 
 	// Grab the channel we are saving this member to
 	channel, errCh := s.GetFromMaster(member.ChannelId)

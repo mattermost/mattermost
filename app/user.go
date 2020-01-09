@@ -1488,7 +1488,6 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	if err := a.Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); err != nil {
 		return err
 	}
-	a.Srv.Store.Channel().InvalidateMembersForUser(user.Id)
 
 	if err := a.Srv.Store.Group().PermanentDeleteMembersByUser(user.Id); err != nil {
 		return err

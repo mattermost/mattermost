@@ -736,7 +736,6 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
-	a.Srv.Store.Channel().InvalidateMembersForUser(userId)
 	a.InvalidateCacheForUser(userId)
 	return member, nil
 }
@@ -770,7 +769,6 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 	message.Add("channelMember", member.ToJson())
 	a.Publish(message)
 
-	a.Srv.Store.Channel().InvalidateMembersForUser(userId)
 	a.InvalidateCacheForUser(userId)
 	return member, nil
 }
@@ -808,7 +806,6 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 		return nil, err
 	}
 
-	a.Srv.Store.Channel().InvalidateMembersForUser(userId)
 	a.InvalidateCacheForUser(userId)
 	a.InvalidateCacheForChannelMembersNotifyProps(channelId)
 	// Notify the clients that the member notify props changed
@@ -1665,7 +1662,6 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 	if err := a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); err != nil {
 		return err
 	}
-	a.Srv.Store.Channel().InvalidateMembersForUser(userIdToRemove)
 
 	if err := a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); err != nil {
 		return err
@@ -1789,7 +1785,6 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 	if _, err := a.Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId); err != nil {
 		return err
 	}
-	a.Srv.Store.Channel().InvalidateMembersForUser(userId)
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 		for _, channelId := range channelIds {
@@ -1823,7 +1818,6 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 	if updateErr != nil {
 		return channelUnread, updateErr
 	}
-	a.Srv.Store.Channel().InvalidateMembersForUser(userID)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_UNREAD, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil)
 	message.Add("msg_count", channelUnread.MsgCount)
@@ -1990,7 +1984,6 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 	if err != nil {
 		return nil, err
 	}
-	a.Srv.Store.Channel().InvalidateMembersForUser(userId)
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 		for _, channelId := range channelIds {
@@ -2040,7 +2033,6 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 	if err := a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {
 		return err
 	}
-	a.Srv.Store.Channel().InvalidateMembersForAllUsers()
 
 	if err := a.Srv.Store.Webhook().PermanentDeleteIncomingByChannel(channel.Id); err != nil {
 		return err
@@ -2081,7 +2073,6 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		if err := a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); err != nil {
 			return err
 		}
-		a.Srv.Store.Channel().InvalidateMembersForAllUsers()
 	}
 
 	// Check that all channel members are in the destination team.
@@ -2157,7 +2148,6 @@ func (a *App) ToggleMuteChannel(channelId string, userId string) *model.ChannelM
 	}
 
 	a.Srv.Store.Channel().UpdateMember(member)
-	a.Srv.Store.Channel().InvalidateMembersForUser(userId)
 	return member
 }
 

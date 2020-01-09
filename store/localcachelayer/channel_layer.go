@@ -214,6 +214,76 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 	return count, nil
 }
 
+// SaveMember is a wrapper method for the underlying store which just takes
+// care of the cache invalidation.
+func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	defer s.InvalidateMembersForUser(member.UserId)
+	return s.ChannelStore.SaveMember(member)
+}
+
+// UpdateMember is a wrapper method for the underlying store which just takes
+// care of the cache invalidation.
+func (s LocalCacheChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	defer s.InvalidateMembersForUser(member.UserId)
+	return s.ChannelStore.UpdateMember(member)
+}
+
+// RemoveMember is a wrapper method for the underlying store which just takes
+// care of the cache invalidation.
+func (s LocalCacheChannelStore) RemoveMember(channelId, userId string) *model.AppError {
+	defer s.InvalidateMembersForUser(userId)
+	return s.ChannelStore.RemoveMember(channelId, userId)
+}
+
+// UpdateLastViewedAt is a wrapper method for the underlying store which just takes
+// care of the cache invalidation.
+func (s LocalCacheChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError) {
+	defer s.InvalidateMembersForUser(userId)
+	return s.ChannelStore.UpdateLastViewedAt(channelIds, userId)
+}
+
+// UpdateLastViewedAtPost is a wrapper method for the underlying store which just takes
+// care of the cache invalidation.
+func (s LocalCacheChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError) {
+	defer s.InvalidateMembersForUser(userID)
+	return s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount)
+}
+
+// PermanentDeleteMembersByChannel is a wrapper method for the underlying store which just takes
+// care of the cache invalidation.
+func (s LocalCacheChannelStore) PermanentDeleteMembersByChannel(channelId string) *model.AppError {
+	defer s.InvalidateMembersForAllUsers()
+	return s.ChannelStore.PermanentDeleteMembersByChannel(channelId)
+}
+
+// PermanentDeleteMembersByUser is a wrapper method for the underlying store which just takes
+// care of the cache invalidation.
+func (s LocalCacheChannelStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
+	defer s.InvalidateMembersForUser(userId)
+	return s.ChannelStore.PermanentDeleteMembersByUser(userId)
+}
+
+// RemoveAllDeactivatedMembers is a wrapper method for the underlying store which just takes
+// care of the cache invalidation.
+func (s LocalCacheChannelStore) RemoveAllDeactivatedMembers(channelId string) *model.AppError {
+	defer s.InvalidateMembersForAllUsers()
+	return s.ChannelStore.RemoveAllDeactivatedMembers(channelId)
+}
+
+// ClearAllCustomRoleAssignments is a wrapper method for the underlying store which just takes
+// care of the cache invalidation.
+func (s LocalCacheChannelStore) ClearAllCustomRoleAssignments() *model.AppError {
+	defer s.InvalidateMembersForAllUsers()
+	return s.ChannelStore.ClearAllCustomRoleAssignments()
+}
+
+// IncrementMentionCount is a wrapper method for the underlying store which just takes
+// care of the cache invalidation.
+func (s LocalCacheChannelStore) IncrementMentionCount(channelId, userId string) *model.AppError {
+	defer s.InvalidateMembersForUser(userId)
+	return s.ChannelStore.IncrementMentionCount(channelId, userId)
+}
+
 // GetMembersForUser is a cache wrapper method for ChannelStore.
 func (s LocalCacheChannelStore) GetMembersForUser(teamId, userId string) (*model.ChannelMembers, *model.AppError) {
 	key := userId + "-" + teamId
