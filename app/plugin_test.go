@@ -614,9 +614,12 @@ func TestCanaryPlugins(t *testing.T) {
 	require.NoError(t, err)
 	defer fileReader.Close()
 
+	// Add testplugin.tar.gz+daily in store
 	_, appErr := th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin"))
 	checkNoError(t, appErr)
 
+	// In store: testplugin.tar.gz+daily
+	// Canary tag: "daily"
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 
@@ -634,9 +637,12 @@ func TestCanaryPlugins(t *testing.T) {
 	require.NoError(t, err)
 	defer fileReader.Close()
 
+	// Add testplugin_v2.tar.gz in store
 	_, appErr = th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin_v2"))
 	checkNoError(t, appErr)
 
+	// In store: testplugin.tar.gz+daily, testplugin_v2.tar.gz
+	// Canary tag: ""
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 	// should be installed plugin with no canary flag
@@ -650,6 +656,8 @@ func TestCanaryPlugins(t *testing.T) {
 		*cfg.PluginSettings.CanaryTag = "daily"
 	})
 
+	// In store: testplugin.tar.gz+daily, testplugin_v2.tar.gz
+	// Canary tag: "daily"
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 	// should be installed both plugins
@@ -665,9 +673,12 @@ func TestCanaryPlugins(t *testing.T) {
 	require.NoError(t, err)
 	defer fileReader.Close()
 
+	// Add testplugin_v2.tar.gz+other tag in store
 	_, appErr = th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin_v2"))
 	checkNoError(t, appErr)
 
+	// In store: testplugin.tar.gz+daily, testplugin_v2.tar.gz, testplugin_v2.tar.gz+other tag
+	// Canary tag: "other tag"
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 	// should be installed plugin with other tag
@@ -684,9 +695,12 @@ func TestCanaryPlugins(t *testing.T) {
 	require.NoError(t, err)
 	defer fileReader.Close()
 
+	// Add testplugin_v2.tar.gz+daily in store
 	_, appErr = th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin_v2"))
 	checkNoError(t, appErr)
 
+	// In store: testplugin.tar.gz+daily, testplugin_v2.tar.gz, testplugin_v2.tar.gz+other tag, testplugin_v2.tar.gz+daily
+	// Canary tag: "daily"
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 	// should be installed both plugins
@@ -694,10 +708,12 @@ func TestCanaryPlugins(t *testing.T) {
 	require.Nil(t, err)
 	require.Len(t, pluginStatus, 2)
 
-	// remove
+	// remove testplugin_v2.tar.gz+daily
 	appErr = th.App.RemovePlugin("testplugin_v2")
 	checkNoError(t, appErr)
 
+	// In store: testplugin.tar.gz+daily, testplugin_v2.tar.gz, testplugin_v2.tar.gz+other tag
+	// Canary tag: "daily"
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 	// should still be installed two plugins(removing plugin with canary tag should not remove plugin with no tag)
@@ -705,8 +721,12 @@ func TestCanaryPlugins(t *testing.T) {
 	require.Nil(t, err)
 	require.Len(t, pluginStatus, 2)
 
+	// remove testplugin.tar.gz+daily
 	appErr = th.App.RemovePlugin("testplugin")
 	checkNoError(t, appErr)
+
+	// In store: testplugin_v2.tar.gz, testplugin_v2.tar.gz+other tag
+	// Canary tag: "daily"
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 	// one plugin left
@@ -718,8 +738,12 @@ func TestCanaryPlugins(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.CanaryTag = "other tag"
 	})
+
+	// remove testplugin_v2.tar.gz+other tag
 	appErr = th.App.RemovePlugin("testplugin_v2")
 	checkNoError(t, appErr)
+	// In store: testplugin_v2.tar.gz
+	// Canary tag: "other tag"
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 	pluginStatus, err = env.Statuses()
@@ -730,8 +754,10 @@ func TestCanaryPlugins(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.CanaryTag = ""
 	})
+	// remove testplugin_v2.tar.gz
 	appErr = th.App.RemovePlugin("testplugin_v2")
 	checkNoError(t, appErr)
+	// store empty
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 	pluginStatus, err = env.Statuses()
@@ -741,6 +767,7 @@ func TestCanaryPlugins(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.CanaryTag = "daily"
 	})
+	// store empty
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 	pluginStatus, err = env.Statuses()
@@ -750,6 +777,7 @@ func TestCanaryPlugins(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.CanaryTag = "other tag"
 	})
+	// store empty
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 	pluginStatus, err = env.Statuses()
