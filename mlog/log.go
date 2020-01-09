@@ -34,6 +34,7 @@ var Uint32 = zap.Uint32
 var String = zap.String
 var Any = zap.Any
 var Err = zap.Error
+var NamedErr = zap.NamedError
 var Bool = zap.Bool
 var Duration = zap.Duration
 
