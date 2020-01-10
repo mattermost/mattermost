@@ -84,12 +84,48 @@
     "translation": "An error occurred while deleting the certificate."
   },
   {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Failed to obtain metadata from Identity Provider URL."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Could not save certificate file."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Missing Identity Provider SSO Services node in the XML."
+  },
+  {
     "id": "api.admin.saml.metadata.app_error",
     "translation": "An error occurred while building Service Provider Metadata."
   },
   {
     "id": "api.admin.saml.not_available.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Invalid certificate text."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Invalid content type."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Missing content type."
   },
   {
     "id": "api.admin.test_email.body",
@@ -2837,6 +2873,18 @@
   {
     "id": "api.websocket_handler.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable"
+  },
+  {
+    "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+  },
+  {
+    "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
+    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+  },
+  {
+    "id": "app.admin.saml.invalid_response_from_idp.app_error",
+    "translation": "Could not read the response received from the Identity Provider."
   },
   {
     "id": "app.admin.test_email.failure",
