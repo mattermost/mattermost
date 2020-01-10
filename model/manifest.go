@@ -353,7 +353,7 @@ func isValidSettingsSchema(settingsSchema *PluginSettingsSchema) error {
 		return nil
 	}
 
-	for _, setting  := range settings {
+	for _, setting := range settings {
 		err := isValidSetting(setting)
 		if err != nil {
 			return err
@@ -385,7 +385,7 @@ func isValidSetting(setting *PluginSetting) error {
 		return nil
 	}
 
-	if pluginSettingType != Radio  && pluginSettingType != Dropdown {
+	if pluginSettingType != Radio && pluginSettingType != Dropdown {
 		return errors.New("should not set Options for setting type not in radio or dropdown")
 	}
 

@@ -18,11 +18,11 @@ import (
 )
 
 func TestIsValid(t *testing.T) {
-	testCases := [] struct {
-		Title string
-		manifest *Manifest
+	testCases := []struct {
+		Title       string
+		manifest    *Manifest
 		ExpectError bool
-	} {
+	}{
 		{"InvalidId", &Manifest{Id: "some id"}, true},
 		{"Invalid homePageURL", &Manifest{Id: "com.company.test", HomepageURL: "some url"}, true},
 		{"Invalid supportURL", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "some url"}, true},
@@ -35,8 +35,8 @@ func TestIsValid(t *testing.T) {
 			Id:               "com.company.test",
 			Name:             "thename",
 			Description:      "thedescription",
-			HomepageURL: "http://someurl.com",
-			SupportURL: "http://someotherurl.com",
+			HomepageURL:      "http://someurl.com",
+			SupportURL:       "http://someotherurl.com",
 			Version:          "0.0.1",
 			MinServerVersion: "5.6.0",
 			Server: &ManifestServer{
@@ -51,10 +51,10 @@ func TestIsValid(t *testing.T) {
 				Footer: "thefootertext",
 				Settings: []*PluginSetting{
 					{
-						Key:                "thesetting",
-						DisplayName:        "thedisplayname",
-						Type:               "dropdown",
-						HelpText:           "thehelptext",
+						Key:         "thesetting",
+						DisplayName: "thedisplayname",
+						Type:        "dropdown",
+						HelpText:    "thehelptext",
 						Options: []*PluginOption{
 							{
 								DisplayName: "theoptiondisplayname",
@@ -81,11 +81,11 @@ func TestIsValid(t *testing.T) {
 }
 
 func TestIsValidSettingsSchema(t *testing.T) {
-	testCases := [] struct {
-		Title string
+	testCases := []struct {
+		Title          string
 		settingsSchema *PluginSettingsSchema
-		ExpectError bool
-	} {
+		ExpectError    bool
+	}{
 		{"Nil Schema", nil, false},
 		{"Invalid Setting", &PluginSettingsSchema{Settings: []*PluginSetting{{Type: "invalid"}}}, true},
 		{"Happy case", &PluginSettingsSchema{Settings: []*PluginSetting{{Type: "text"}}}, false},
@@ -104,11 +104,11 @@ func TestIsValidSettingsSchema(t *testing.T) {
 }
 
 func TestIsValidSetting(t *testing.T) {
-	testCases  := []struct {
-		Title string
-		setting *PluginSetting
+	testCases := []struct {
+		Title       string
+		setting     *PluginSetting
 		ExpectError bool
-	} {
+	}{
 		{"Nil setting", nil, false},
 		{"Invalid setting type", &PluginSetting{Type: "invalid"}, true},
 		{"RegenerateHelpText error", &PluginSetting{Type: "text", RegenerateHelpText: "some text"}, true},
@@ -126,10 +126,10 @@ func TestIsValidSetting(t *testing.T) {
 			},
 		}}, true},
 		{"Happy case", &PluginSetting{Type: "radio", Options: []*PluginOption{
-					{
-						DisplayName: "Name",
-						Value: "value",
-					},
+			{
+				DisplayName: "Name",
+				Value:       "value",
+			},
 		}}, false},
 	}
 
@@ -147,11 +147,11 @@ func TestIsValidSetting(t *testing.T) {
 
 func TestConvertTypeToPluginSettingType(t *testing.T) {
 	testCases := []struct {
-		Title string
-		Type string
+		Title               string
+		Type                string
 		ExpectedSettingType PluginSettingType
-		ExpectError bool
-	} {
+		ExpectError         bool
+	}{
 		{"bool", "bool", Bool, false},
 		{"dropdown", "dropdown", Dropdown, false},
 		{"generated", "generated", Generated, false},
