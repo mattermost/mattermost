@@ -281,8 +281,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	require.Nil(t, resp.Error)
 	require.NotEmpty(t, rsp.AccessToken, "access token not returned")
 	require.NotEmpty(t, rsp.RefreshToken, "refresh token not returned")
-	token = rsp.AccessToken
-	refreshToken = rsp.RefreshToken
+	token, refreshToken = rsp.AccessToken, rsp.RefreshToken
 	require.Equal(t, rsp.TokenType, model.ACCESS_TOKEN_TYPE, "access token type incorrect")
 
 	_, err := ApiClient.DoApiGet("/oauth_test", "")
