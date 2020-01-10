@@ -100,16 +100,21 @@ func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, def
 	return defaultValue
 }
 
-func pluginData(availablePluginsData map[string]interface{}, pluginId string) interface{} {
-	data, ok := availablePluginsData[pluginId]
+func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string) bool {
+	state, ok := pluginStates[pluginId]
 	if !ok {
-		return map[string]interface{}{
-			"enabled": false,
-			"version": "",
+		return false
+	}
+	return state.Enable
+}
+
+func pluginVersion(pluginsAvailable []*model.BundleInfo, pluginId string) string {
+	for _, plugin := range pluginsAvailable {
+		if plugin.Manifest != nil && plugin.Manifest.Id == pluginId {
+			return plugin.Manifest.Version
 		}
 	}
-
-	return data
+	return ""
 }
 
 func (a *App) trackActivity() {
@@ -597,18 +602,49 @@ func (a *App) trackConfig() {
 		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 
-	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
-		"enable_nps_survey":           pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
-		"enable":                      *cfg.PluginSettings.Enable,
-		"enable_uploads":              *cfg.PluginSettings.EnableUploads,
-		"allow_insecure_download_url": *cfg.PluginSettings.AllowInsecureDownloadUrl,
-		"enable_health_check":         *cfg.PluginSettings.EnableHealthCheck,
-		"enable_marketplace":          *cfg.PluginSettings.EnableMarketplace,
-		"require_pluginSignature":     *cfg.PluginSettings.RequirePluginSignature,
-		"enable_remote_marketplace":   *cfg.PluginSettings.EnableRemoteMarketplace,
-		"is_default_marketplace_url":  isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
-		"signature_public_key_files":  len(cfg.PluginSettings.SignaturePublicKeyFiles),
-	})
+	pluginConfigData := map[string]interface{}{
+		"enable_antivirus":              pluginActivated(cfg.PluginSettings.PluginStates, "antivirus"),
+		"enable_autolink":               pluginActivated(cfg.PluginSettings.PluginStates, "mattermost-autolink"),
+		"enable_aws_sns":                pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.aws-sns"),
+		"enable_custom_user_attributes": pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.custom-attributes"),
+		"enable_github":                 pluginActivated(cfg.PluginSettings.PluginStates, "github"),
+		"enable_gitlab":                 pluginActivated(cfg.PluginSettings.PluginStates, "com.github.manland.mattermost-plugin-gitlab"),
+		"enable_jenkins":                pluginActivated(cfg.PluginSettings.PluginStates, "jenkins"),
+		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
+		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
+		"enable_webex":                  pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.webex"),
+		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
+		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
+		"enable":                        *cfg.PluginSettings.Enable,
+		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
+		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
+		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
+		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
+		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
+		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
+		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
+	}
+
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	plugins, appErr := pluginsEnvironment.Available()
+	if appErr != nil {
+		pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
+		pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
+		pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")
+		pluginConfigData["version_custom_user_attributes"] = pluginVersion(plugins, "com.mattermost.custom-attributes")
+		pluginConfigData["version_github"] = pluginVersion(plugins, "github")
+		pluginConfigData["version_gitlab"] = pluginVersion(plugins, "com.github.manland.mattermost-plugin-gitlab")
+		pluginConfigData["version_jenkins"] = pluginVersion(plugins, "jenkins")
+		pluginConfigData["version_jira"] = pluginVersion(plugins, "jira")
+		pluginConfigData["version_nps"] = pluginVersion(plugins, "com.mattermost.nps")
+		pluginConfigData["version_webex"] = pluginVersion(plugins, "com.mattermost.webex")
+		pluginConfigData["version_welcome_bot"] = pluginVersion(plugins, "com.mattermost.welcomebot")
+		pluginConfigData["version_zoom"] = pluginVersion(plugins, "zoom")
+	}
+
+	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, pluginConfigData)
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
 		"enable_message_deletion": *cfg.DataRetentionSettings.EnableMessageDeletion,
@@ -688,7 +724,6 @@ func (a *App) trackPlugins() {
 
 	pluginStates := a.Config().PluginSettings.PluginStates
 	plugins, _ := pluginsEnvironment.Available()
-	pluginTrackData := map[string]interface{}{}
 
 	if pluginStates != nil && plugins != nil {
 		for _, plugin := range plugins {
@@ -697,10 +732,8 @@ func (a *App) trackPlugins() {
 				continue
 			}
 
-			enabled := false
 			if state, ok := pluginStates[plugin.Manifest.Id]; ok && state.Enable {
 				totalEnabledCount += 1
-				enabled = true
 				if plugin.Manifest.HasServer() {
 					backendEnabledCount += 1
 				}
@@ -719,11 +752,6 @@ func (a *App) trackPlugins() {
 			if plugin.Manifest.SettingsSchema != nil {
 				settingsCount += 1
 			}
-
-			pluginTrackData[plugin.Manifest.Id] = map[string]interface{}{
-				"enabled": enabled,
-				"version": plugin.Manifest.Version,
-			}
 		}
 	} else {
 		totalEnabledCount = -1  // -1 to indicate disabled or error
@@ -739,16 +767,6 @@ func (a *App) trackPlugins() {
 		"disabled_backend_plugins":      backendDisabledCount,
 		"plugins_with_settings":         settingsCount,
 		"plugins_with_broken_manifests": brokenManifestCount,
-		"enable_antivirus":              pluginData(pluginTrackData, "antivirus"),
-		"enable_autolink":               pluginData(pluginTrackData, "mattermost-autolink"),
-		"enable_aws_sns":                pluginData(pluginTrackData, "com.mattermost.aws-sns"),
-		"enable_custom_user_attributes": pluginData(pluginTrackData, "com.mattermost.custom-attributes"),
-		"enable_github":                 pluginData(pluginTrackData, "github"),
-		"enable_gitlab":                 pluginData(pluginTrackData, "com.github.manland.mattermost-plugin-gitlab"),
-		"enable_jenkins":                pluginData(pluginTrackData, "jenkins"),
-		"enable_jira":                   pluginData(pluginTrackData, "jira"),
-		"enable_nps":                    pluginData(pluginTrackData, "com.mattermost.nps"),
-		"enable_welcome_bot":            pluginData(pluginTrackData, "com.mattermost.welcomebot"),
 	})
 }
 
