@@ -40,7 +40,7 @@ type SqlUserStore struct {
 
 func (us SqlUserStore) ClearCaches() {}
 
-func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {}
+func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 
 func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
