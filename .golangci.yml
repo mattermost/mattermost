@@ -39,4 +39,4 @@ issues:
     - linters:
       # ignore golint error for a lot of packages for now
       - golint
-      path: "api4|app|cmd|config|einterface|enterprise|imports|jobs|manualtesting|migrations|mlog|model|testlib|services|store|utils|web|wsapi|plugin/api.go|plugin/context.go|plugin/client.go|plugin/client_rpc.go|plugin/environment.go|plugin/health_check.go|plugin/hooks.go|plugin/supervisor.go|plugin/valid.go"
+      path: "api4|app|cmd|einterface|enterprise|imports|jobs|manualtesting|migrations|mlog|model|testlib|services|store|utils|web|wsapi|plugin/api.go|plugin/context.go|plugin/client.go|plugin/client_rpc.go|plugin/environment.go|plugin/health_check.go|plugin/hooks.go|plugin/supervisor.go|plugin/valid.go"

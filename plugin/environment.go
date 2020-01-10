@@ -29,11 +29,19 @@ type apiImplCreatorFunc func(*model.Manifest) API
 // plugin is configured as disabled and has not been activated during this server run.
 type registeredPlugin struct {
 	BundleInfo *model.BundleInfo
-	State      *int
+	State      int
 
 	failTimeStamps []time.Time
 	lastError      error
 	supervisor     *supervisor
+}
+
+// PrepackagedPlugin is a plugin prepackaged with the server and found on startup.
+type PrepackagedPlugin struct {
+	Path      string
+	IconData  string
+	Manifest  *model.Manifest
+	Signature []byte
 }
 
 // Environment represents the execution environment of active plugins.
@@ -41,12 +49,14 @@ type registeredPlugin struct {
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	registeredPlugins    sync.Map
-	pluginHealthCheckJob *PluginHealthCheckJob
-	logger               *mlog.Logger
-	newAPIImpl           apiImplCreatorFunc
-	pluginDir            string
-	webappPluginDir      string
+	registeredPlugins      sync.Map
+	pluginHealthCheckJob   *PluginHealthCheckJob
+	logger                 *mlog.Logger
+	newAPIImpl             apiImplCreatorFunc
+	pluginDir              string
+	webappPluginDir        string
+	prepackagedPlugins     []*PrepackagedPlugin
+	prepackagedPluginsLock sync.RWMutex
 }
 
 func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
@@ -87,6 +97,15 @@ func (env *Environment) Available() ([]*model.BundleInfo, error) {
 	return scanSearchPath(env.pluginDir)
 }
 
+// Returns a list of prepackaged plugins available in the local prepackaged_plugins folder.
+// The list content is immutable and should not be modified.
+func (env *Environment) PrepackagedPlugins() []*PrepackagedPlugin {
+	env.prepackagedPluginsLock.RLock()
+	defer env.prepackagedPluginsLock.RUnlock()
+
+	return env.prepackagedPlugins
+}
+
 // Returns a list of all currently active plugins within the environment.
 func (env *Environment) Active() []*model.BundleInfo {
 	activePlugins := []*model.BundleInfo{}
@@ -114,13 +133,13 @@ func (env *Environment) GetPluginState(id string) int {
 		return model.PluginStateNotRunning
 	}
 
-	return *rp.(*registeredPlugin).State
+	return rp.(*registeredPlugin).State
 }
 
 // SetPluginState sets the current state of a plugin (disabled, running, or error)
 func (env *Environment) SetPluginState(id string, state int) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {
-		*rp.(*registeredPlugin).State = state
+		rp.(*registeredPlugin).State = state
 	}
 }
 
@@ -439,7 +458,14 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 	})
 }
 
+// SetPrepackagedPlugins saves prepackaged plugins in the environment.
+func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
+	env.prepackagedPluginsLock.Lock()
+	env.prepackagedPlugins = plugins
+	env.prepackagedPluginsLock.Unlock()
+}
+
 func newRegisteredPlugin(bundle *model.BundleInfo) *registeredPlugin {
 	state := model.PluginStateNotRunning
-	return &registeredPlugin{failTimeStamps: []time.Time{}, State: &state, BundleInfo: bundle}
+	return &registeredPlugin{failTimeStamps: []time.Time{}, State: state, BundleInfo: bundle}
 }

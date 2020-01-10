@@ -53,9 +53,9 @@ func TestDesanitize(t *testing.T) {
 	target.SqlSettings.DataSourceReplicas = append(target.SqlSettings.DataSourceReplicas, "old_replica0")
 	target.SqlSettings.DataSourceSearchReplicas = append(target.SqlSettings.DataSourceReplicas, "old_search_replica0")
 
-	actual_clone := actual.Clone()
+	actualClone := actual.Clone()
 	desanitize(actual, target)
-	assert.Equal(t, actual_clone, actual, "actual should not have been changed")
+	assert.Equal(t, actualClone, actual, "actual should not have been changed")
 
 	// Verify the settings that should have been left untouched in target
 	assert.True(t, *target.LdapSettings.Enable, "LdapSettings.Enable should not have changed")
