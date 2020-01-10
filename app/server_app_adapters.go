@@ -64,7 +64,7 @@ func (s *Server) RunOldAppInitialization() error {
 			return store.NewTimerLayer(
 				localcachelayer.NewLocalCacheLayer(
 					sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics),
-					s.Metrics, s.Cluster),
+					s.Metrics, s.Cluster, s.CacheProvider),
 				s.Metrics)
 		}
 	}
