@@ -11,8 +11,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlFileInfoStore struct {
@@ -25,7 +26,7 @@ const (
 	FILE_INFO_CACHE_SEC  = 1800 // 30 minutes
 )
 
-var fileInfoCache *utils.Cache = utils.NewLru(FILE_INFO_CACHE_SIZE)
+var fileInfoCache cache.Cache = lru.New(FILE_INFO_CACHE_SIZE)
 
 func (fs SqlFileInfoStore) ClearCaches() {
 	fileInfoCache.Purge()
@@ -254,15 +255,15 @@ func (fs SqlFileInfoStore) PermanentDelete(fileId string) *model.AppError {
 	return nil
 }
 
-func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (fs SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
 	var query string
-	if s.DriverName() == "postgres" {
+	if fs.DriverName() == "postgres" {
 		query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < :EndTime LIMIT :Limit))"
 	} else {
 		query = "DELETE from FileInfo WHERE CreateAt < :EndTime LIMIT :Limit"
 	}
 
-	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	sqlResult, err := fs.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
 	if err != nil {
 		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
@@ -275,10 +276,10 @@ func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int6
 	return rowsAffected, nil
 }
 
-func (s SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
+func (fs SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
 	query := "DELETE from FileInfo WHERE CreatorId = :CreatorId"
 
-	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"CreatorId": userId})
+	sqlResult, err := fs.GetMaster().Exec(query, map[string]interface{}{"CreatorId": userId})
 	if err != nil {
 		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteByUser", "store.sql_file_info.PermanentDeleteByUser.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
