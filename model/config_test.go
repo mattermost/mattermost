@@ -157,6 +157,7 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 
 	*c1.SamlSettings.IdpUrl = "http://test.url.com"
 	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpMetadataUrl = "http://test.url.com"
 	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
 	*c1.SamlSettings.EmailAttribute = "Email"
 	*c1.SamlSettings.UsernameAttribute = "Username"

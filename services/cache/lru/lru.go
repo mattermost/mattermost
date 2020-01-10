@@ -8,12 +8,14 @@
 // LRU implementation in groupcache:
 // https://github.com/golang/groupcache/tree/master/lru
 
-package utils
+package lru
 
 import (
 	"container/list"
 	"sync"
 	"time"
+
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 )
 
 // Cache is a thread-safe fixed size LRU cache.
@@ -29,6 +31,29 @@ type Cache struct {
 	len                    int
 }
 
+// CacheProvider is an implementation of cache.Provider to create a new Lru Cache
+type CacheProvider struct{}
+
+// NewCache creates a new lru.Cache with given size.
+func (c *CacheProvider) NewCache(size int) cache.Cache {
+	return New(size)
+}
+
+// NewCacheWithParams creates a new lru.Cache with the given parameters.
+func (c *CacheProvider) NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) cache.Cache {
+	return NewWithParams(size, name, defaultExpiry, invalidateClusterEvent)
+}
+
+// Connect opens a new connection to the cache using specific provider parameters.
+func (c *CacheProvider) Connect() {
+
+}
+
+// Close releases any resources used by the cache provider.
+func (c *CacheProvider) Close() {
+
+}
+
 // entry is used to hold a value in the evictList.
 type entry struct {
 	key        interface{}
@@ -38,7 +63,7 @@ type entry struct {
 }
 
 // New creates an LRU of the given size.
-func NewLru(size int) *Cache {
+func New(size int) *Cache {
 	return &Cache{
 		size:      size,
 		evictList: list.New(),
@@ -46,9 +71,9 @@ func NewLru(size int) *Cache {
 	}
 }
 
-// New creates an LRU with the given parameters.
-func NewLruWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) *Cache {
-	lru := NewLru(size)
+// NewWithParams creates an LRU with the given parameters.
+func NewWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) *Cache {
+	lru := New(size)
 	lru.name = name
 	lru.defaultExpiry = defaultExpiry
 	lru.invalidateClusterEvent = invalidateClusterEvent
@@ -69,7 +94,7 @@ func (c *Cache) Add(key, value interface{}) {
 	c.AddWithExpiresInSecs(key, value, 0)
 }
 
-// Add adds the given key and value to the store with the default expiry.
+// AddWithDefaultExpires adds the given key and value to the store with the default expiry.
 func (c *Cache) AddWithDefaultExpires(key, value interface{}) {
 	c.AddWithExpiresInSecs(key, value, c.defaultExpiry)
 }
