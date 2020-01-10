@@ -537,13 +537,6 @@ func (s *Server) Start() error {
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
-	// Migration from old let's encrypt library
-	if *s.Config().ServiceSettings.UseLetsEncrypt {
-		if stat, err := os.Stat(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile); err == nil && !stat.IsDir() {
-			os.Remove(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
-		}
-	}
-
 	m := &autocert.Manager{
 		Cache:  autocert.DirCache(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
 		Prompt: autocert.AcceptTOS,
