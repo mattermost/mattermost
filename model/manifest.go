@@ -25,6 +25,19 @@ type PluginOption struct {
 	Value string `json:"value" yaml:"value"`
 }
 
+type PluginSettingType int
+
+const (
+	Bool PluginSettingType = iota
+	Dropdown
+	Generated
+	Radio
+	Text
+	LongText
+	Username
+	Custom
+)
+
 type PluginSetting struct {
 	// The key that the setting will be assigned to in the configuration file.
 	Key string `json:"key" yaml:"key"`
@@ -302,6 +315,112 @@ func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+func (m *Manifest) IsValid() error {
+	if !IsValidPluginId(m.Id) {
+		return errors.New("invalid plugin ID")
+	}
+
+	if m.HomepageURL == "" || !IsValidHttpUrl(m.HomepageURL) {
+		return errors.New("invalid HomepageURL")
+	}
+
+	if m.SupportURL == "" || !IsValidHttpUrl(m.SupportURL) {
+		return errors.New("invalid SupportURL")
+	}
+
+	_, err := semver.Parse(m.Version)
+	if err != nil {
+		return errors.New("failed to parse Version")
+	}
+
+	_, err = semver.Parse(m.MinServerVersion)
+	if err != nil {
+		return errors.New("failed to parse MinServerVersion")
+	}
+
+	return isValidSettingsSchema(m.SettingsSchema)
+}
+
+func isValidSettingsSchema(settingsSchema *PluginSettingsSchema) error {
+	if settingsSchema == nil {
+		return nil
+	}
+
+	settings := settingsSchema.Settings
+	if settings == nil {
+		return nil
+	}
+
+	for _, setting  := range settings {
+		err := isValidSetting(setting)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func isValidSetting(setting *PluginSetting) error {
+	if setting == nil {
+		return nil
+	}
+
+	pluginSettingType, err := convertTypeToPluginSettingType(setting.Type)
+	if err != nil {
+		return err
+	}
+
+	if setting.RegenerateHelpText != "" && pluginSettingType != Generated {
+		return errors.New("should not set RegenerateHelpText for setting type that is not generated")
+	}
+
+	if setting.Placeholder != "" && pluginSettingType != Text && pluginSettingType != Generated && pluginSettingType != Username {
+		return errors.New("should not set Placeholder for setting type not in text, generated or username")
+	}
+
+	if setting.Options == nil {
+		return nil
+	}
+
+	if pluginSettingType != Radio  && pluginSettingType != Dropdown {
+		return errors.New("should not set Options for setting type not in radio or dropdown")
+	}
+
+	for _, option := range setting.Options {
+		if option.DisplayName == "" || option.Value == "" {
+			return errors.New("should not have empty Displayname or Value for any option")
+		}
+	}
+	return nil
+}
+
+func convertTypeToPluginSettingType(t string) (PluginSettingType, error) {
+	var settingType PluginSettingType
+	var err error
+	switch t {
+	case "bool":
+		settingType = Bool
+	case "dropdown":
+		settingType = Dropdown
+	case "generated":
+		settingType = Generated
+	case "radio":
+		settingType = Radio
+	case "text":
+		settingType = Text
+	case "longtext":
+		settingType = LongText
+	case "username":
+		settingType = Username
+	case "custom":
+		settingType = Custom
+	default:
+		err = errors.New("invalid type: " + t)
+	}
+	return settingType, err
 }
 
 // FindManifest will find and parse the manifest in a given directory.
