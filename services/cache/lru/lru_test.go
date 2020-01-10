@@ -8,7 +8,7 @@
 // LRU implementation in groupcache:
 // https://github.com/golang/groupcache/tree/master/lru
 
-package utils
+package lru
 
 import (
 	"testing"
@@ -19,7 +19,7 @@ import (
 )
 
 func TestLRU(t *testing.T) {
-	l := NewLru(128)
+	l := New(128)
 
 	for i := 0; i < 256; i++ {
 		l.Add(i, i)
@@ -60,7 +60,7 @@ func TestLRU(t *testing.T) {
 }
 
 func TestLRUExpire(t *testing.T) {
-	l := NewLru(128)
+	l := New(128)
 
 	l.AddWithExpiresInSecs(1, 1, 1)
 	l.AddWithExpiresInSecs(2, 2, 1)
@@ -76,7 +76,7 @@ func TestLRUExpire(t *testing.T) {
 }
 
 func TestLRUGetOrAdd(t *testing.T) {
-	l := NewLru(128)
+	l := New(128)
 
 	// First GetOrAdd should save
 	value, loaded := l.GetOrAdd(1, 1, 0)
