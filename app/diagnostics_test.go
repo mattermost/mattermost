@@ -29,29 +29,38 @@ func TestPluginSetting(t *testing.T) {
 	assert.Equal(t, "asd", pluginSetting(settings, "test", "qwe", "asd"))
 }
 
-func TestPluginData(t *testing.T) {
+func TestPluginActivated(t *testing.T) {
+	states := map[string]*model.PluginState{
+		"foo": {
+			Enable: true,
+		},
+		"bar": {
+			Enable: false,
+		},
+	}
+	assert.True(t, pluginActivated(states, "foo"))
+	assert.False(t, pluginActivated(states, "bar"))
+	assert.False(t, pluginActivated(states, "none"))
+}
 
-	fooPluginData := map[string]interface{}{
-		"enabled": true,
-		"version": "1.2.0",
+func TestPluginVersion(t *testing.T) {
+	plugins := []*model.BundleInfo{
+		{
+			Manifest: &model.Manifest{
+				Id:      "test.plugin",
+				Version: "1.2.3",
+			},
+		},
+		{
+			Manifest: &model.Manifest{
+				Id:      "test.plugin2",
+				Version: "4.5.6",
+			},
+		},
 	}
-	barPluginData := map[string]interface{}{
-		"enabled": false,
-		"version": "0.1.2",
-	}
-	unavailablePluginData := map[string]interface{}{
-		"enabled": false,
-		"version": "",
-	}
-
-	pluginsData := map[string]interface{}{
-		"foo": fooPluginData,
-		"bar": barPluginData,
-	}
-
-	assert.Equal(t, fooPluginData, pluginData(pluginsData, "foo"))
-	assert.Equal(t, barPluginData, pluginData(pluginsData, "bar"))
-	assert.Equal(t, unavailablePluginData, pluginData(pluginsData, "none"))
+	assert.Equal(t, "1.2.3", pluginVersion(plugins, "test.plugin"))
+	assert.Equal(t, "4.5.6", pluginVersion(plugins, "test.plugin2"))
+	assert.Empty(t, pluginVersion(plugins, "unknown.plugin"))
 }
 
 func TestDiagnostics(t *testing.T) {
