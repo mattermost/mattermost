@@ -30,6 +30,7 @@ type MarketplaceLabel struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	URL         string `json:"url"`
+	Color       string `json:"color"`
 }
 
 // MarketplacePlugin is a state aware Marketplace plugin.
