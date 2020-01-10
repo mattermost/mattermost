@@ -607,22 +607,21 @@ func TestPluginSync(t *testing.T) {
 }
 
 func TestProcessPrepackagedPlugins(t *testing.T) {
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	testsPath, _ := fileutils.FindDir("tests")
 	prepackagedPluginsPath := filepath.Join(testsPath, prepackagedPluginsDir)
-	err := os.Mkdir(prepackagedPluginsPath, os.ModePerm)
-	require.NoError(t, err)
+	fileErr := os.Mkdir(prepackagedPluginsPath, os.ModePerm)
+	require.NoError(t, fileErr)
 	defer os.RemoveAll(prepackagedPluginsPath)
 
 	prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
 	require.True(t, found, "failed to find prepackaged plugins directory")
 
 	testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
-	err = utils.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
-	require.NoError(t, err)
+	fileErr = utils.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+	require.NoError(t, fileErr)
 
 	t.Run("automatic, enabled plugin, no signature", func(t *testing.T) {
 		// Install the plugin and enable
@@ -692,7 +691,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		// Add signature
 		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
-		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
+		err := utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
 		// Add second plugin
@@ -726,7 +725,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		// Add signature
 		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
-		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
+		err := utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
 		// Install first plugin and enable
@@ -780,19 +779,8 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
-		require.True(t, found, "failed to find prepackaged plugins directory")
-
-		testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
-		err = utils.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
-		require.NoError(t, err)
-
-		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
-		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
-		require.NoError(t, err)
-
 		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
-		err = utils.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
+		err := utils.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
 		require.NoError(t, err)
 
 		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
