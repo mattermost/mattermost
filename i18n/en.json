@@ -84,12 +84,48 @@
     "translation": "An error occurred while deleting the certificate."
   },
   {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Failed to obtain metadata from Identity Provider URL."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Could not save certificate file."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Missing Identity Provider SSO Services node in the XML."
+  },
+  {
     "id": "api.admin.saml.metadata.app_error",
     "translation": "An error occurred while building Service Provider Metadata."
   },
   {
     "id": "api.admin.saml.not_available.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Invalid certificate text."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Invalid content type."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Missing content type."
   },
   {
     "id": "api.admin.test_email.body",
@@ -368,12 +404,28 @@
     "translation": "You cannot rename a group message channel"
   },
   {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Unable to unarchive channel. The channel is not archived."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} unarchived the channel."
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted"
   },
   {
+    "id": "api.channel.update_channel.invalid_character.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
@@ -426,10 +478,6 @@
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
-  },
-  {
-    "id": "api.command.execute_command.debug",
-    "translation": "Executing cmd=%v userId=%v"
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -2827,12 +2875,28 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable"
   },
   {
+    "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+  },
+  {
+    "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
+    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+  },
+  {
+    "id": "app.admin.saml.invalid_response_from_idp.app_error",
+    "translation": "Could not read the response received from the Identity Provider."
+  },
+  {
     "id": "app.admin.test_email.failure",
     "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
     "id": "app.admin.test_site_url.failure",
     "translation": "This is not a valid live URL"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message",
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3729,6 +3793,10 @@
   {
     "id": "cli.license.critical",
     "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
+  },
+  {
+    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
+    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -5631,10 +5699,6 @@
     "translation": "Limit exceeded for paging"
   },
   {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of audits"
-  },
-  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "We encountered an error deleting the audits"
   },
@@ -5937,10 +6001,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "You've reached the limit of the number of allowed channels."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "A channel with that URL was previously created"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",

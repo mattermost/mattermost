@@ -38,6 +38,7 @@ const (
 	POST_CONVERT_CHANNEL        = "system_convert_channel"
 	POST_PURPOSE_CHANGE         = "system_purpose_change"
 	POST_CHANNEL_DELETED        = "system_channel_deleted"
+	POST_CHANNEL_RESTORED       = "system_channel_restored"
 	POST_EPHEMERAL              = "system_ephemeral"
 	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
 	POST_ADD_BOT_TEAMS_CHANNELS = "add_bot_teams_channels"
@@ -243,6 +244,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	switch o.Type {
 	case
 		POST_DEFAULT,
+		POST_SYSTEM_GENERIC,
 		POST_JOIN_LEAVE,
 		POST_AUTO_RESPONDER,
 		POST_ADD_REMOVE,
@@ -263,6 +265,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_DISPLAYNAME_CHANGE,
 		POST_CONVERT_CHANNEL,
 		POST_CHANNEL_DELETED,
+		POST_CHANNEL_RESTORED,
 		POST_CHANGE_CHANNEL_PRIVACY,
 		POST_ME,
 		POST_ADD_BOT_TEAMS_CHANNELS:
@@ -363,25 +366,25 @@ func (o *Post) IsJoinLeaveMessage() bool {
 		o.Type == POST_REMOVE_FROM_TEAM
 }
 
-func (p *Post) Patch(patch *PostPatch) {
+func (o *Post) Patch(patch *PostPatch) {
 	if patch.IsPinned != nil {
-		p.IsPinned = *patch.IsPinned
+		o.IsPinned = *patch.IsPinned
 	}
 
 	if patch.Message != nil {
-		p.Message = *patch.Message
+		o.Message = *patch.Message
 	}
 
 	if patch.Props != nil {
-		p.Props = *patch.Props
+		o.Props = *patch.Props
 	}
 
 	if patch.FileIds != nil {
-		p.FileIds = *patch.FileIds
+		o.FileIds = *patch.FileIds
 	}
 
 	if patch.HasReactions != nil {
-		p.HasReactions = *patch.HasReactions
+		o.HasReactions = *patch.HasReactions
 	}
 }
 

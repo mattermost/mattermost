@@ -5179,10 +5179,6 @@
     "translation": "Sayfalandırma sınırı aşıldı"
   },
   {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "Toplu denetimler kalıcı olarak silinirken bir sorun çıktı"
-  },
-  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "Denetimler silinirken bir sorun çıktı"
   },

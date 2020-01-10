@@ -950,6 +950,18 @@ func (a *App) userDeactivated(userId string) *model.AppError {
 
 	a.SetStatusOffline(userId, false)
 
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	// when disable a user, userDeactivated is called for the user and the
+	// bots the user owns. Only notify once, when the user is the owner, not the
+	// owners bots
+	if !user.IsBot {
+		a.notifySysadminsBotOwnerDeactivated(userId)
+	}
+
 	if *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated {
 		a.disableUserBots(userId)
 	}
@@ -1100,13 +1112,13 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	a.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	adminMessage.Add("user", &adminCopyOfUser)
-	adminMessage.Broadcast.ContainsSensitiveData = true
+	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
 	a.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", &user)
-	message.Broadcast.ContainsSanitizedData = true
+	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
 }
 
