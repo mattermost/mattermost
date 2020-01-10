@@ -607,23 +607,64 @@ func TestPluginSync(t *testing.T) {
 }
 
 func TestProcessPrepackagedPlugins(t *testing.T) {
-	t.Run("automatic, single plugin, no signature", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
 
-		testsPath, _ := fileutils.FindDir("tests")
-		prepackagedPluginsPath := filepath.Join(testsPath, prepackagedPluginsDir)
-		err := os.Mkdir(prepackagedPluginsPath, os.ModePerm)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testsPath, _ := fileutils.FindDir("tests")
+	prepackagedPluginsPath := filepath.Join(testsPath, prepackagedPluginsDir)
+	err := os.Mkdir(prepackagedPluginsPath, os.ModePerm)
+	require.NoError(t, err)
+	defer os.RemoveAll(prepackagedPluginsPath)
+
+	prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
+	require.True(t, found, "failed to find prepackaged plugins directory")
+
+	testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
+	err = utils.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	t.Run("automatic, enabled plugin, no signature", func(t *testing.T) {
+		// Install the plugin and enable
+		pluginBytes, err := ioutil.ReadFile(testPluginPath)
 		require.NoError(t, err)
-		defer os.RemoveAll(prepackagedPluginsPath)
+		require.NotNil(t, pluginBytes)
 
-		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
-		require.True(t, found, "failed to find prepackaged plugins directory")
+		manifest, appErr := th.App.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
+		require.Nil(t, appErr)
+		require.Equal(t, "testplugin", manifest.Id)
 
-		testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
-		err = utils.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		env := th.App.GetPluginsEnvironment()
+
+		activatedManifest, activated, err := env.Activate(manifest.Id)
 		require.NoError(t, err)
+		require.True(t, activated)
+		require.Equal(t, manifest, activatedManifest)
 
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+		})
+
+		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.Len(t, plugins, 1)
+		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
+		require.Empty(t, plugins[0].Signature, 0)
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+		appErr = th.App.RemovePlugin("testplugin")
+		checkNoError(t, appErr)
+
+		pluginStatus, err = env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 0)
+	})
+
+	t.Run("automatic, not enabled plugin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
@@ -638,27 +679,10 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
-		require.Len(t, pluginStatus, 1)
-		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
-
-		appErr := th.App.RemovePlugin("testplugin")
-		checkNoError(t, appErr)
-
-		pluginStatus, err = env.Statuses()
-		require.NoError(t, err)
-		require.Len(t, pluginStatus, 0)
+		require.Empty(t, pluginStatus, 0)
 	})
 
-	t.Run("automatic, multiple plugins", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		testsPath, _ := fileutils.FindDir("tests")
-		prepackagedPluginsPath := filepath.Join(testsPath, prepackagedPluginsDir)
-		err := os.Mkdir(prepackagedPluginsPath, os.ModePerm)
-		require.NoError(t, err)
-		defer os.RemoveAll(prepackagedPluginsPath)
-
+	t.Run("automatic, multiple plugins with signatures, not enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
@@ -666,17 +690,12 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
-		require.True(t, found, "failed to find prepackaged plugins directory")
-
-		testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
-		err = utils.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
-		require.NoError(t, err)
-
+		// Add signature
 		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
 		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
+		// Add second plugin
 		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
 		err = utils.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
 		require.NoError(t, err)
@@ -694,12 +713,58 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		pluginStatus, err := env.Statuses()
 		require.NoError(t, err)
-		require.Len(t, pluginStatus, 2)
+		require.Len(t, pluginStatus, 0)
+	})
 
-		appErr := th.App.RemovePlugin("testplugin")
-		checkNoError(t, appErr)
+	t.Run("automatic, multiple plugins with signatures, one enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+		})
 
-		appErr = th.App.RemovePlugin("testplugin2")
+		env := th.App.GetPluginsEnvironment()
+
+		// Add signature
+		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
+		err = utils.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
+		require.NoError(t, err)
+
+		// Install first plugin and enable
+		pluginBytes, err := ioutil.ReadFile(testPluginPath)
+		require.NoError(t, err)
+		require.NotNil(t, pluginBytes)
+
+		manifest, appErr := th.App.installPluginLocally(bytes.NewReader(pluginBytes), nil, installPluginLocallyAlways)
+		require.Nil(t, appErr)
+		require.Equal(t, "testplugin", manifest.Id)
+
+		activatedManifest, activated, err := env.Activate(manifest.Id)
+		require.NoError(t, err)
+		require.True(t, activated)
+		require.Equal(t, manifest, activatedManifest)
+
+		// Add second plugin
+		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
+		err = utils.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
+		require.NoError(t, err)
+
+		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
+		err = utils.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
+		require.NoError(t, err)
+
+		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		require.Len(t, plugins, 2)
+		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
+		require.NotEmpty(t, plugins[0].Signature)
+		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[1].Manifest.Id)
+		require.NotEmpty(t, plugins[1].Signature)
+
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		require.Equal(t, pluginStatus[0].PluginId, "testplugin")
+
+		appErr = th.App.RemovePlugin("testplugin")
 		checkNoError(t, appErr)
 
 		pluginStatus, err = env.Statuses()
@@ -708,15 +773,6 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 	})
 
 	t.Run("non-automatic, multiple plugins", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		testsPath, _ := fileutils.FindDir("tests")
-		prepackagedPluginsPath := filepath.Join(testsPath, prepackagedPluginsDir)
-		err := os.Mkdir(prepackagedPluginsPath, os.ModePerm)
-		require.NoError(t, err)
-		defer os.RemoveAll(prepackagedPluginsPath)
-
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false

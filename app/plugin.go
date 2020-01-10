@@ -738,6 +738,8 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 	return plugins
 }
 
+// processPrepackagedPlugin will return the prepackaged plugin metadata and will also
+// install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
 func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
 	mlog.Debug("Processing prepackaged plugin", mlog.String("path", pluginPath.path))
 
@@ -756,8 +758,11 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)
 	}
 
-	// Skip installing the plugin at all if automatic prepackaged plugins is disabled.
-	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+
+	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
+	// or if the plugin is has not been enabled.
+	if !(*a.Config().PluginSettings.AutomaticPrepackagedPlugins && pluginsEnvironment.IsActive(plugin.Manifest.Id)) {
 		return plugin, nil
 	}
 
