@@ -14,6 +14,31 @@ type GroupStore struct {
 	mock.Mock
 }
 
+// AdminRoleGroupsForSyncableMember provides a mock function with given fields: userID, syncableID, syncableType
+func (_m *GroupStore) AdminRoleGroupsForSyncableMember(userID string, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
+	ret := _m.Called(userID, syncableID, syncableType)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) []string); ok {
+		r0 = rf(userID, syncableID, syncableType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, model.GroupSyncableType) *model.AppError); ok {
+		r1 = rf(userID, syncableID, syncableType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // ChannelMembersMinusGroupMembers provides a mock function with given fields: channelID, groupIDs, page, perPage
 func (_m *GroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	ret := _m.Called(channelID, groupIDs, page, perPage)
@@ -532,15 +557,15 @@ func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpt
 }
 
 // GetGroupsByChannel provides a mock function with given fields: channelId, opts
-func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError) {
 	ret := _m.Called(channelId, opts)
 
-	var r0 []*model.Group
-	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.Group); ok {
+	var r0 []*model.GroupWithSchemeAdmin
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.GroupWithSchemeAdmin); ok {
 		r0 = rf(channelId, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Group)
+			r0 = ret.Get(0).([]*model.GroupWithSchemeAdmin)
 		}
 	}
 
@@ -557,15 +582,15 @@ func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearc
 }
 
 // GetGroupsByTeam provides a mock function with given fields: teamId, opts
-func (_m *GroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (_m *GroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError) {
 	ret := _m.Called(teamId, opts)
 
-	var r0 []*model.Group
-	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.Group); ok {
+	var r0 []*model.GroupWithSchemeAdmin
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.GroupWithSchemeAdmin); ok {
 		r0 = rf(teamId, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Group)
+			r0 = ret.Get(0).([]*model.GroupWithSchemeAdmin)
 		}
 	}
 
@@ -668,6 +693,31 @@ func (_m *GroupStore) PermanentDeleteMembersByUser(userId string) *model.AppErro
 	}
 
 	return r0
+}
+
+// PermittedSyncableAdmins provides a mock function with given fields: syncableID, syncableType
+func (_m *GroupStore) PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
+	ret := _m.Called(syncableID, syncableType)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, model.GroupSyncableType) []string); ok {
+		r0 = rf(syncableID, syncableType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, model.GroupSyncableType) *model.AppError); ok {
+		r1 = rf(syncableID, syncableType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // TeamMembersMinusGroupMembers provides a mock function with given fields: teamID, groupIDs, page, perPage

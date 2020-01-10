@@ -11,8 +11,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlFileInfoStore struct {
@@ -25,7 +26,7 @@ const (
 	FILE_INFO_CACHE_SEC  = 1800 // 30 minutes
 )
 
-var fileInfoCache *utils.Cache = utils.NewLru(FILE_INFO_CACHE_SIZE)
+var fileInfoCache cache.Cache = lru.New(FILE_INFO_CACHE_SIZE)
 
 func (fs SqlFileInfoStore) ClearCaches() {
 	fileInfoCache.Purge()

@@ -358,7 +358,7 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err = c.App.RestoreChannel(channel)
+	channel, err = c.App.RestoreChannel(channel, c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
