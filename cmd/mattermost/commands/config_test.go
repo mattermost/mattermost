@@ -616,10 +616,10 @@ func TestPluginConfigs(t *testing.T) {
 			},
 		},
 		PluginStates: map[string]*model.PluginState{
-			"antivirus": &model.PluginState{
+			"antivirus": {
 				Enable: false,
 			},
-			"com.github.manland.mattermost-plugin-gitlab": &model.PluginState{
+			"com.github.manland.mattermost-plugin-gitlab": {
 				Enable: true,
 			},
 		},
@@ -628,12 +628,15 @@ func TestPluginConfigs(t *testing.T) {
 
 	configMap := configToMap(pluginConfig)
 	err := UpdateMap(configMap, []string{"Enable"}, []string{"false"})
+	require.Nil(t, err, "Wasn't expecting an error")
 	assert.Equal(t, false, configMap["Enable"].(bool))
 
 	err = UpdateMap(configMap, []string{"Plugins", "antivirus", "clamavhostport"}, []string{"some text"})
+	require.Nil(t, err, "Wasn't expecting an error")
 	assert.Equal(t, "some text", configMap["Plugins"].(map[string]map[string]interface{})["antivirus"]["clamavhostport"].(string))
 
 	err = UpdateMap(configMap, []string{"Plugins", "mattermost-autolink", "enableadmincommand"}, []string{"true"})
+	require.Nil(t, err, "Wasn't expecting an error")
 	assert.Equal(t, true, configMap["Plugins"].(map[string]map[string]interface{})["mattermost-autolink"]["enableadmincommand"].(bool))
 
 	err = UpdateMap(configMap, []string{"PluginStates", "antivirus", "Enable"}, []string{"true"})
