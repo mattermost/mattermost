@@ -339,7 +339,6 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 				convertedMap[k] = v
 			}
 			return UpdateMap(convertedMap, configSettings[1:], newVal)
-
 		}
 		return fmt.Errorf(noSettingsNamed, configSettings[1])
 
