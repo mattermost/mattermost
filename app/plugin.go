@@ -758,11 +758,14 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)
 	}
 
-	pluginsEnvironment := a.GetPluginsEnvironment()
-
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
-	// or if the plugin is has not been enabled.
-	if !(*a.Config().PluginSettings.AutomaticPrepackagedPlugins && pluginsEnvironment.IsActive(plugin.Manifest.Id)) {
+	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
+		return plugin, nil
+	}
+
+	// Skip installing if the plugin is has not been previously enabled.
+	pluginState := a.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
+	if pluginState == nil || !pluginState.Enable {
 		return plugin, nil
 	}
 
