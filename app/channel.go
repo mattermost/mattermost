@@ -632,6 +632,9 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
 			Type:      model.POST_CHANNEL_RESTORED,
 			UserId:    userId,
+			Props: model.StringInterface{
+				"username": user.Username,
+			},
 		}
 
 		if _, err := a.CreatePost(post, channel, false); err != nil {
