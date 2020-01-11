@@ -398,24 +398,24 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[FIRST_NAME_NOTIFY_PROP] = "false"
 }
 
-func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
+func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	nonUsernameKeys := []string{}
-	for _, key := range user.GetMentionKeys() {
+	for _, key := range u.GetMentionKeys() {
 		if key != oldUsername && key != "@"+oldUsername {
 			nonUsernameKeys = append(nonUsernameKeys, key)
 		}
 	}
 
-	user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = user.Username + ",@" + user.Username
+	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = u.Username + ",@" + u.Username
 	if len(nonUsernameKeys) > 0 {
-		user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
+		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
 	}
 }
 
-func (user *User) GetMentionKeys() []string {
+func (u *User) GetMentionKeys() []string {
 	var keys []string
 
-	for _, key := range strings.Split(user.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
+	for _, key := range strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
 		trimmedKey := strings.TrimSpace(key)
 
 		if trimmedKey == "" {

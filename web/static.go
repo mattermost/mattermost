@@ -34,7 +34,7 @@ func (w *Web) InitStatic() {
 		mime.AddExtensionType(".wasm", "application/wasm")
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
-		pluginHandler := staticFilesWithValidationHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.ConfigService.Config().PluginSettings.ClientDirectory))))
+		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.ConfigService.Config().PluginSettings.ClientDirectory))))
 
 		if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
@@ -77,6 +77,9 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func staticFilesHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//wrap our ResponseWriter with our no-cache 404-handler
+		w = &notFoundNoCacheResponseWriter{ResponseWriter: w}
+
 		w.Header().Set("Cache-Control", "max-age=31556926, public")
 
 		if strings.HasSuffix(r.URL.Path, "/") {
@@ -87,18 +90,16 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 	})
 }
 
-func staticFilesWithValidationHandler(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Require validation from any cache, achieved via Last-Modified and the
-		// http.FileServer.
-		w.Header().Set("Cache-Control", "no-cache, public")
+type notFoundNoCacheResponseWriter struct {
+	http.ResponseWriter
+}
 
-		if strings.HasSuffix(r.URL.Path, "/") {
-			http.NotFound(w, r)
-			return
-		}
-		handler.ServeHTTP(w, r)
-	})
+func (w *notFoundNoCacheResponseWriter) WriteHeader(statusCode int) {
+	if statusCode == http.StatusNotFound {
+		// we have a 404, update our cache header first then fall through
+		w.Header().Set("Cache-Control", "no-cache, public")
+	}
+	w.ResponseWriter.WriteHeader(statusCode)
 }
 
 func robotsHandler(w http.ResponseWriter, r *http.Request) {
