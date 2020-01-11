@@ -22,8 +22,8 @@ import (
 type TestEnvironment struct {
 	Params        map[string][]string
 	Client        *model.Client4
-	CreatedTeamId string
-	CreatedUserId string
+	CreatedTeamID string
+	CreatedUserID string
 	Context       *web.Context
 	Writer        http.ResponseWriter
 	Request       *http.Request
@@ -126,8 +126,8 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	env := TestEnvironment{
 		Params:        params,
 		Client:        client,
-		CreatedTeamId: teamID,
-		CreatedUserId: userID,
+		CreatedTeamID: teamID,
+		CreatedUserID: userID,
 		Context:       c,
 		Writer:        w,
 		Request:       r,
