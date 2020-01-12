@@ -6,17 +6,10 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
-
-func ClearStatusCache() {
-	statusCache.Purge()
-}
-
 func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
-	statusCache.Add(status.UserId, status)
+	a.Srv.statusCache.Add(status.UserId, status)
 }
 
 func (a *App) AddStatusCache(status *model.Status) {
@@ -37,12 +30,12 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 		return map[string]*model.Status{}
 	}
 
-	userIds := statusCache.Keys()
+	userIds := a.Srv.statusCache.Keys()
 	statusMap := map[string]*model.Status{}
 
 	for _, userId := range userIds {
 		if id, ok := userId.(string); ok {
-			status := GetStatusFromCache(id)
+			status := a.GetStatusFromCache(id)
 			if status != nil {
 				statusMap[id] = status
 			}
@@ -62,7 +55,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
-		if result, ok := statusCache.Get(userId); ok {
+		if result, ok := a.Srv.statusCache.Get(userId); ok {
 			statusMap[userId] = result.(*model.Status).Status
 			if metrics != nil {
 				metrics.IncrementMemCacheHitCounter("Status")
@@ -109,7 +102,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
-		if result, ok := statusCache.Get(userId); ok {
+		if result, ok := a.Srv.statusCache.Get(userId); ok {
 			statusMap = append(statusMap, result.(*model.Status))
 			if metrics != nil {
 				metrics.IncrementMemCacheHitCounter("Status")
@@ -329,8 +322,8 @@ func (a *App) SetStatusOutOfOffice(userId string) {
 	a.SaveAndBroadcastStatus(status)
 }
 
-func GetStatusFromCache(userId string) *model.Status {
-	if result, ok := statusCache.Get(userId); ok {
+func (a *App) GetStatusFromCache(userId string) *model.Status {
+	if result, ok := a.Srv.statusCache.Get(userId); ok {
 		status := result.(*model.Status)
 		statusCopy := &model.Status{}
 		*statusCopy = *status
@@ -345,7 +338,7 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 		return &model.Status{}, nil
 	}
 
-	status := GetStatusFromCache(userId)
+	status := a.GetStatusFromCache(userId)
 	if status != nil {
 		return status, nil
 	}

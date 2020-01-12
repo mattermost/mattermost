@@ -43,6 +43,11 @@ type Group struct {
 	MemberCount  *int        `db:"-" json:"member_count,omitempty"`
 }
 
+type GroupWithSchemeAdmin struct {
+	Group
+	SchemeAdmin *bool `db:"SyncableSchemeAdmin" json:"scheme_admin,omitempty"`
+}
+
 type GroupPatch struct {
 	Name        *string `json:"name"`
 	DisplayName *string `json:"display_name"`
