@@ -971,6 +971,16 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		SchemeGuest: user.IsGuest(),
 		SchemeUser:  !user.IsGuest(),
 	}
+
+	if !user.IsGuest() {
+		var userShouldBeAdmin bool
+		userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, channel.Id, model.GroupSyncableTypeChannel)
+		if err != nil {
+			return nil, err
+		}
+		newMember.SchemeAdmin = userShouldBeAdmin
+	}
+
 	if _, err = a.Srv.Store.Channel().SaveMember(newMember); err != nil {
 		mlog.Error("Failed to add member", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusInternalServerError)
