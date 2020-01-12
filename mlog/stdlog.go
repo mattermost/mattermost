@@ -85,3 +85,15 @@ func (l *loggerWriter) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
+
+type panicLoggerWriter struct {
+	logFunc func(msg string, fields ...Field)
+}
+
+func (l *panicLoggerWriter) Write(p []byte) (int, error) {
+	trimmed := string(bytes.TrimSpace(p))
+	if strings.HasPrefix(trimmed, "panic: ") {
+		l.logFunc(trimmed)
+	}
+	return len(p), nil
+}

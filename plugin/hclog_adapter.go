@@ -29,10 +29,6 @@ func (h *hclogAdapter) Trace(msg string, args ...interface{}) {
 
 func (h *hclogAdapter) Debug(msg string, args ...interface{}) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
-	if strings.Contains(msg, "panic: ") || strings.Contains(extras, "panic: ") {
-		h.Error(msg, args...)
-		return
-	}
 	if extras != "" {
 		h.wrappedLogger.Debug(msg, mlog.String(h.extrasKey, extras))
 	} else {
