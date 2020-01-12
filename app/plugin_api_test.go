@@ -19,7 +19,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"text/template"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -30,6 +29,41 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func getDefaultPluginSettingsSchema() string {
+	ret, _ := json.Marshal(model.PluginSettingsSchema{
+		Settings: []*model.PluginSetting{
+			{Key: "BasicChannelName", Type: "text"},
+			{Key: "BasicChannelId", Type: "text"},
+			{Key: "BasicTeamDisplayName", Type: "text"},
+			{Key: "BasicTeamName", Type: "text"},
+			{Key: "BasicTeamId", Type: "text"},
+			{Key: "BasicUserEmail", Type: "text"},
+			{Key: "BasicUserId", Type: "text"},
+			{Key: "BasicUser2Email", Type: "text"},
+			{Key: "BasicUser2Id", Type: "text"},
+			{Key: "BasicPostMessage", Type: "text"},
+		},
+	})
+	return string(ret)
+}
+
+func setDefaultPluginConfig(th *TestHelper, pluginId string) {
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins[pluginId] = map[string]interface{}{
+			"BasicChannelName":     th.BasicChannel.Name,
+			"BasicChannelId":       th.BasicChannel.Id,
+			"BasicTeamName":        th.BasicTeam.Name,
+			"BasicTeamId":          th.BasicTeam.Id,
+			"BasicTeamDisplayName": th.BasicTeam.DisplayName,
+			"BasicUserEmail":       th.BasicUser.Email,
+			"BasicUserId":          th.BasicUser.Id,
+			"BasicUser2Email":      th.BasicUser2.Email,
+			"BasicUser2Id":         th.BasicUser2.Id,
+			"BasicPostMessage":     th.BasicPost.Message,
+		}
+	})
+}
 
 func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIds []string, app *App) string {
 	pluginDir, err := ioutil.TempDir("", "")
@@ -402,11 +436,11 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
 
-	testFolder, found := fileutils.FindDir("tests")
+	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
 	require.True(t, found, "Cannot find tests folder")
-	fullPath := path.Join(testFolder, "plugin_tests", "manual.test_load_configuration_plugin", "main.go")
+	fullPath := path.Join(testFolder, "manual.test_load_configuration_plugin", "main.go")
 
-	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", nil, `{"id": "testloadpluginconfig", "backend": {"executable": "backend.exe"}, "settings_schema": {
+	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", `{"id": "testloadpluginconfig", "backend": {"executable": "backend.exe"}, "settings_schema": {
 		"settings": [
 			{
 				"key": "MyStringSetting",
@@ -422,7 +456,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 			}
 		]
 	}}`)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 }
 
@@ -438,11 +472,11 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
 
-	testFolder, found := fileutils.FindDir("tests")
+	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
 	require.True(t, found, "Cannot find tests folder")
-	fullPath := path.Join(testFolder, "plugin_tests", "manual.test_load_configuration_defaults_plugin", "main.go")
+	fullPath := path.Join(testFolder, "manual.test_load_configuration_defaults_plugin", "main.go")
 
-	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", nil, `{
+	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", `{
 		"settings": [
 			{
 				"key": "MyStringSetting",
@@ -462,7 +496,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 		]
 	}`)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 }
 
@@ -767,13 +801,12 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	require.Nil(t, err)
 }
 
-func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string, params map[string]interface{}, settingsSchema string) error {
-	tpl := template.Must(template.ParseFiles(fileName))
-	builder := &strings.Builder{}
-	if err := tpl.Execute(builder, params); err != nil {
-		panic(err)
+func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string, settingsSchema string) error {
+	data, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return err
 	}
-	code := builder.String()
+	code := string(data)
 	schema := `{"settings": [ ]	}`
 	if settingsSchema != "" {
 		schema = settingsSchema
@@ -799,30 +832,23 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 // 5. Succesfully running test should return nil, "OK". Any other returned string is considered and error
 
 func TestBasicAPIPlugins(t *testing.T) {
-	testFolder, found := fileutils.FindDir("tests")
-	require.True(t, found, "Cannot read find test folder")
-	fullPath := path.Join(testFolder, "plugin_tests")
-	dirs, err := ioutil.ReadDir(fullPath)
-	require.NoError(t, err, "Cannot read test folder %v", fullPath)
+	defaultSchema := getDefaultPluginSettingsSchema()
+	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
+	require.True(t, found, "Cannot read find app folder")
+	dirs, err := ioutil.ReadDir(testFolder)
+	require.NoError(t, err, "Cannot read test folder %v", testFolder)
 	for _, dir := range dirs {
 		d := dir.Name()
 		if dir.IsDir() && !strings.HasPrefix(d, "manual.") {
 			t.Run(d, func(t *testing.T) {
-				mainPath := path.Join(fullPath, d, "main.go")
+				mainPath := path.Join(testFolder, d, "main.go")
 				_, err := os.Stat(mainPath)
-				assert.NoError(t, err, "Cannot find plugin main file at %v", mainPath)
+				require.NoError(t, err, "Cannot find plugin main file at %v", mainPath)
 				th := Setup(t).InitBasic()
 				defer th.TearDown()
-				params := map[string]interface{}{
-					"BasicUser":    th.BasicUser,
-					"BasicUser2":   th.BasicUser2,
-					"BasicChannel": th.BasicChannel,
-					"BasicTeam":    th.BasicTeam,
-					"BasicPost":    th.BasicPost,
-				}
-
-				err = pluginAPIHookTest(t, th, mainPath, dir.Name(), params, "")
-				assert.NoError(t, err)
+				setDefaultPluginConfig(th, dir.Name())
+				err = pluginAPIHookTest(t, th, mainPath, dir.Name(), defaultSchema)
+				require.NoError(t, err)
 			})
 		}
 	}
@@ -1104,17 +1130,6 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 	for i := range config.SqlSettings.DataSourceSearchReplicas {
 		assert.NotEqual(t, config.SqlSettings.DataSourceSearchReplicas[i], model.FAKE_SETTING)
 	}
-}
-
-func TestPluginCallLogAPI(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	pluginID := "com.mattermost.sample"
-	path, _ := fileutils.FindDir("mattermost-server/app/plugin_api_test")
-	pluginCode, err := ioutil.ReadFile(filepath.Join(path, "plugin_using_log_api.go"))
-	assert.NoError(t, err)
-	setupPluginApiTest(t, string(pluginCode),
-		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
 }
 
 func TestPluginAddUserToChannel(t *testing.T) {
