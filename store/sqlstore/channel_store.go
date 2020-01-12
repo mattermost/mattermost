@@ -1548,12 +1548,6 @@ func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId str
 func (s SqlChannelStore) InvalidateMemberCount(channelId string) {
 }
 
-func (s SqlChannelStore) InvalidateMembersForUser(userId string) {
-}
-
-func (s SqlChannelStore) InvalidateMembersForAllUsers() {
-}
-
 func (s SqlChannelStore) GetMemberCountFromCache(channelId string) int64 {
 	count, _ := s.GetMemberCount(channelId, true)
 	return count

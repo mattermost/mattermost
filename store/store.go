@@ -150,8 +150,6 @@ type ChannelStore interface {
 	InvalidateCacheForChannelMembersNotifyProps(channelId string)
 	GetMemberForPost(postId string, userId string) (*model.ChannelMember, *model.AppError)
 	InvalidateMemberCount(channelId string)
-	InvalidateMembersForUser(userId string)
-	InvalidateMembersForAllUsers()
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidatePinnedPostCount(channelId string)

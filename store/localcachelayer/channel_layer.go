@@ -4,8 +4,6 @@
 package localcachelayer
 
 import (
-	"strings"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -54,7 +52,7 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMembersForUser(ms
 	}
 
 	// Remove keys with prefix msg.Data
-	s.removeByPrefixFromChannelMembersForUserCache(msg.Data)
+	s.rootStore.channelMembersForUserCache.RemoveByPrefix(msg.Data)
 }
 
 func (s LocalCacheChannelStore) ClearCaches() {
@@ -87,24 +85,12 @@ func (s LocalCacheChannelStore) InvalidateMemberCount(channelId string) {
 	}
 }
 
-// removeByPrefixFromChannelMembersForUserCache removes all keys from
-// channelMembersForUserCache with the prefix of the given userId.
-func (s LocalCacheChannelStore) removeByPrefixFromChannelMembersForUserCache(userId string) {
-	keys := s.rootStore.channelMembersForUserCache.Keys()
-	for _, key := range keys {
-		keyString := key.(string)
-		if strings.HasPrefix(keyString, userId) {
-			s.rootStore.channelMembersForUserCache.Remove(keyString)
-		}
-	}
-}
-
-// InvalidateMembersForUser removes all keys from channelMembersForUserCache
+// invalidateMembersForUser removes all keys from channelMembersForUserCache
 // with the prefix of the given userID.
 // We cannot simply call doInvalidateCacheCluster because we need to remove
 // keys with a prefix rather than remove a single key.
-func (s LocalCacheChannelStore) InvalidateMembersForUser(userId string) {
-	s.removeByPrefixFromChannelMembersForUserCache(userId)
+func (s LocalCacheChannelStore) invalidateMembersForUser(userId string) {
+	s.rootStore.channelMembersForUserCache.RemoveByPrefix(userId)
 	if s.rootStore.cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_FOR_USER,
@@ -119,8 +105,8 @@ func (s LocalCacheChannelStore) InvalidateMembersForUser(userId string) {
 	}
 }
 
-// InvalidateMembersForAllUsers purges the entire channelMembersForUserCache cache.
-func (s LocalCacheChannelStore) InvalidateMembersForAllUsers() {
+// invalidateMembersForAllUsers purges the entire channelMembersForUserCache cache.
+func (s LocalCacheChannelStore) invalidateMembersForAllUsers() {
 	s.rootStore.channelMembersForUserCache.Purge()
 
 	if s.rootStore.cluster != nil {
@@ -217,70 +203,70 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 // SaveMember is a wrapper method for the underlying store which just takes
 // care of the cache invalidation.
 func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
-	defer s.InvalidateMembersForUser(member.UserId)
+	defer s.invalidateMembersForUser(member.UserId)
 	return s.ChannelStore.SaveMember(member)
 }
 
 // UpdateMember is a wrapper method for the underlying store which just takes
 // care of the cache invalidation.
 func (s LocalCacheChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
-	defer s.InvalidateMembersForUser(member.UserId)
+	defer s.invalidateMembersForUser(member.UserId)
 	return s.ChannelStore.UpdateMember(member)
 }
 
 // RemoveMember is a wrapper method for the underlying store which just takes
 // care of the cache invalidation.
 func (s LocalCacheChannelStore) RemoveMember(channelId, userId string) *model.AppError {
-	defer s.InvalidateMembersForUser(userId)
+	defer s.invalidateMembersForUser(userId)
 	return s.ChannelStore.RemoveMember(channelId, userId)
 }
 
 // UpdateLastViewedAt is a wrapper method for the underlying store which just takes
 // care of the cache invalidation.
 func (s LocalCacheChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError) {
-	defer s.InvalidateMembersForUser(userId)
+	defer s.invalidateMembersForUser(userId)
 	return s.ChannelStore.UpdateLastViewedAt(channelIds, userId)
 }
 
 // UpdateLastViewedAtPost is a wrapper method for the underlying store which just takes
 // care of the cache invalidation.
 func (s LocalCacheChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError) {
-	defer s.InvalidateMembersForUser(userID)
+	defer s.invalidateMembersForUser(userID)
 	return s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount)
 }
 
 // PermanentDeleteMembersByChannel is a wrapper method for the underlying store which just takes
 // care of the cache invalidation.
 func (s LocalCacheChannelStore) PermanentDeleteMembersByChannel(channelId string) *model.AppError {
-	defer s.InvalidateMembersForAllUsers()
+	defer s.invalidateMembersForAllUsers()
 	return s.ChannelStore.PermanentDeleteMembersByChannel(channelId)
 }
 
 // PermanentDeleteMembersByUser is a wrapper method for the underlying store which just takes
 // care of the cache invalidation.
 func (s LocalCacheChannelStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
-	defer s.InvalidateMembersForUser(userId)
+	defer s.invalidateMembersForUser(userId)
 	return s.ChannelStore.PermanentDeleteMembersByUser(userId)
 }
 
 // RemoveAllDeactivatedMembers is a wrapper method for the underlying store which just takes
 // care of the cache invalidation.
 func (s LocalCacheChannelStore) RemoveAllDeactivatedMembers(channelId string) *model.AppError {
-	defer s.InvalidateMembersForAllUsers()
+	defer s.invalidateMembersForAllUsers()
 	return s.ChannelStore.RemoveAllDeactivatedMembers(channelId)
 }
 
 // ClearAllCustomRoleAssignments is a wrapper method for the underlying store which just takes
 // care of the cache invalidation.
 func (s LocalCacheChannelStore) ClearAllCustomRoleAssignments() *model.AppError {
-	defer s.InvalidateMembersForAllUsers()
+	defer s.invalidateMembersForAllUsers()
 	return s.ChannelStore.ClearAllCustomRoleAssignments()
 }
 
 // IncrementMentionCount is a wrapper method for the underlying store which just takes
 // care of the cache invalidation.
 func (s LocalCacheChannelStore) IncrementMentionCount(channelId, userId string) *model.AppError {
-	defer s.InvalidateMembersForUser(userId)
+	defer s.invalidateMembersForUser(userId)
 	return s.ChannelStore.IncrementMentionCount(channelId, userId)
 }
 

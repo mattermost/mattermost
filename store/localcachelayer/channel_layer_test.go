@@ -330,7 +330,7 @@ func TestChannelStoreChannelMembersForUserCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 1)
 
 		// invalidate
-		cachedStore.Channel().InvalidateMembersForUser("userId1")
+		cachedStore.Channel().(LocalCacheChannelStore).invalidateMembersForUser("userId1")
 
 		_, _ = cachedStore.Channel().GetMembersForUser("teamId", "userId1")
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 2)
@@ -352,7 +352,7 @@ func TestChannelStoreChannelMembersForUserCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 2)
 
 		// invalidate all
-		cachedStore.Channel().InvalidateMembersForAllUsers()
+		cachedStore.Channel().(LocalCacheChannelStore).invalidateMembersForAllUsers()
 
 		_, _ = cachedStore.Channel().GetMembersForUser("teamId", "userId1")
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 3)
