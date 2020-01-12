@@ -92,8 +92,9 @@ type LocalCacheStore struct {
 	postLastPostsCache cache.Cache
 	lastPostTimeCache  cache.Cache
 
-	user                  LocalCacheUserStore
-	userProfileByIdsCache cache.Cache
+	user                   LocalCacheUserStore
+	userProfileByIdsCache  cache.Cache
+	profilesInChannelCache cache.Cache
 
 	team                       LocalCacheTeamStore
 	teamAllTeamIdsForUserCache cache.Cache
