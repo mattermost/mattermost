@@ -602,7 +602,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
-					Description: "This plugin is not listed in the marketplace but was installed manually.",
+					Description: "This plugin is not listed in the marketplace but was installed manually",
 				}},
 				Manifest: manifest,
 			},
@@ -737,7 +737,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
-					Description: "This plugin is not listed in the marketplace but was installed manually.",
+					Description: "This plugin is not listed in the marketplace but was installed manually",
 				}},
 				Manifest: manifest,
 			},
@@ -754,7 +754,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
-					Description: "This plugin is not listed in the marketplace but was installed manually.",
+					Description: "This plugin is not listed in the marketplace but was installed manually",
 				}},
 				Manifest: manifest,
 			},
