@@ -68,10 +68,76 @@ func TestUserStoreGetProfileByIdsCache(t *testing.T) {
 	})
 }
 
+func TestUserStoreProfilesInChannelCache(t *testing.T) {
+	fakeChannelId := "123"
+	fakeUserId := "456"
+	fakeMap := map[string]*model.User{
+		fakeUserId: {Id: "456"},
+	}
+
+	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		gotMap, err := cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeMap, gotMap)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
+
+		_, _ = cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
+	})
+
+	t.Run("first call not cached, second force not cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		gotMap, err := cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeMap, gotMap)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
+
+		_, _ = cachedStore.User().GetAllProfilesInChannel(fakeChannelId, false)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 2)
+	})
+
+	t.Run("first call not cached, invalidate by channel, and then not cached again", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		gotMap, err := cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeMap, gotMap)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
+
+		cachedStore.User().InvalidateProfilesInChannelCache("123")
+
+		_, _ = cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 2)
+	})
+
+	t.Run("first call not cached, invalidate by user, and then not cached again", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		gotMap, err := cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeMap, gotMap)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
+
+		cachedStore.User().InvalidateProfilesInChannelCacheByUser("456")
+
+		_, _ = cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 2)
+	})
+}
 func TestUserStoreGetCache(t *testing.T) {
 	fakeUserId := "123"
 	fakeUser := &model.User{Id: "123"}
-
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
