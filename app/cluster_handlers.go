@@ -19,7 +19,6 @@ func (a *App) RegisterAllClusterMessageHandlers() {
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_UPDATE_STATUS, a.ClusterUpdateStatusHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES, a.ClusterInvalidateAllCachesHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS, a.ClusterInvalidateCacheForChannelMembersNotifyPropHandler)
-	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS, a.ClusterInvalidateCacheForChannelMembersHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME, a.ClusterInvalidateCacheForChannelByNameHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER, a.ClusterInvalidateCacheForUserHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER_TEAMS, a.ClusterInvalidateCacheForUserTeamsHandler)
@@ -46,10 +45,6 @@ func (a *App) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
 
 func (a *App) ClusterInvalidateCacheForChannelMembersNotifyPropHandler(msg *model.ClusterMessage) {
 	a.InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(msg.Data)
-}
-
-func (a *App) ClusterInvalidateCacheForChannelMembersHandler(msg *model.ClusterMessage) {
-	a.InvalidateCacheForChannelMembersSkipClusterSend(msg.Data)
 }
 
 func (a *App) ClusterInvalidateCacheForChannelByNameHandler(msg *model.ClusterMessage) {

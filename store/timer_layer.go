@@ -1736,6 +1736,22 @@ func (s *TimerLayerChannelStore) UpdateMember(member *model.ChannelMember) (*mod
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) *model.AppError {
+	start := timemodule.Now()
+
+	resultVar0 := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar0 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateMembersRole", success, elapsed)
+	}
+	return resultVar0
+}
+
 func (s *TimerLayerChannelStore) UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
 	start := timemodule.Now()
 
@@ -2520,6 +2536,22 @@ func (s *TimerLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerGroupStore) AdminRoleGroupsForSyncableMember(userID string, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.AdminRoleGroupsForSyncableMember", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	start := timemodule.Now()
 
@@ -2856,7 +2888,7 @@ func (s *TimerLayerGroupStore) GetGroups(page int, perPage int, opts model.Group
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (s *TimerLayerGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.GroupStore.GetGroupsByChannel(channelId, opts)
@@ -2872,7 +2904,7 @@ func (s *TimerLayerGroupStore) GetGroupsByChannel(channelId string, opts model.G
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (s *TimerLayerGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.GroupStore.GetGroupsByTeam(teamId, opts)
@@ -2950,6 +2982,22 @@ func (s *TimerLayerGroupStore) PermanentDeleteMembersByUser(userId string) *mode
 		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.PermanentDeleteMembersByUser", success, elapsed)
 	}
 	return resultVar0
+}
+
+func (s *TimerLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.PermittedSyncableAdmins(syncableID, syncableType)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.PermittedSyncableAdmins", success, elapsed)
+	}
+	return resultVar0, resultVar1
 }
 
 func (s *TimerLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
@@ -5878,6 +5926,22 @@ func (s *TimerLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.Tea
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.UpdateMember", success, elapsed)
 	}
 	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.AppError {
+	start := timemodule.Now()
+
+	resultVar0 := s.TeamStore.UpdateMembersRole(teamID, userIDs)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar0 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.UpdateMembersRole", success, elapsed)
+	}
+	return resultVar0
 }
 
 func (s *TimerLayerTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError) {
