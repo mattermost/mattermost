@@ -171,6 +171,21 @@ func TestConfigOverwriteGuestSettings(t *testing.T) {
 	require.Equal(t, *c1.SamlSettings.GuestAttribute, attribute)
 }
 
+func TestConfigOverwriteAdminSettings(t *testing.T) {
+	const attribute = "FakeAttributeName"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			AdminAttribute: NewString(attribute),
+		},
+	}
+
+	c1.SetDefaults()
+
+	if *c1.SamlSettings.AdminAttribute != attribute {
+		t.Fatal("SamlSettings.AdminAttribute should be overwritten")
+	}
+}
+
 func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -1066,6 +1081,105 @@ func TestLdapSettingsIsValid(t *testing.T) {
 				IdAttribute:       NewString("id"),
 				LoginIdAttribute:  NewString("loginid"),
 				GuestFilter:       NewString("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: true,
+		},
+
+		{
+			Name: "valid Admin filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("(property=value)"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid Admin filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("("),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid Admin filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("()"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "valid Admin filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("(&(property=value)(otherthing=othervalue))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "valid Admin filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid Admin filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid Admin filter #4",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("(&(property=value)((otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: true,
 		},

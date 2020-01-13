@@ -132,6 +132,7 @@ const (
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
 	SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE      = ""
+	SAML_SETTINGS_DEFAULT_ADMIN_ATTRIBUTE      = ""
 	SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
 	SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE      = ""
@@ -1700,9 +1701,11 @@ type LdapSettings struct {
 	BindPassword       *string
 
 	// Filtering
-	UserFilter  *string
-	GroupFilter *string
-	GuestFilter *string
+	UserFilter        *string
+	GroupFilter       *string
+	GuestFilter       *string
+	EnableAdminFilter *bool
+	AdminFilter       *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string
@@ -1746,6 +1749,10 @@ func (s *LdapSettings) SetDefaults() {
 		s.EnableSync = NewBool(*s.Enable)
 	}
 
+	if s.EnableAdminFilter == nil {
+		s.EnableAdminFilter = NewBool(false)
+	}
+
 	if s.LdapServer == nil {
 		s.LdapServer = NewString("")
 	}
@@ -1776,6 +1783,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.GuestFilter == nil {
 		s.GuestFilter = NewString("")
+	}
+
+	if s.AdminFilter == nil {
+		s.AdminFilter = NewString("")
 	}
 
 	if s.GroupFilter == nil {
@@ -1927,15 +1938,17 @@ type SamlSettings struct {
 	PrivateKeyFile        *string
 
 	// User Mapping
-	IdAttribute        *string
-	GuestAttribute     *string
-	FirstNameAttribute *string
-	LastNameAttribute  *string
-	EmailAttribute     *string
-	UsernameAttribute  *string
-	NicknameAttribute  *string
-	LocaleAttribute    *string
-	PositionAttribute  *string
+	IdAttribute          *string
+	GuestAttribute       *string
+	EnableAdminAttribute *bool
+	AdminAttribute       *string
+	FirstNameAttribute   *string
+	LastNameAttribute    *string
+	EmailAttribute       *string
+	UsernameAttribute    *string
+	NicknameAttribute    *string
+	LocaleAttribute      *string
+	PositionAttribute    *string
 
 	LoginButtonText *string
 
@@ -1955,6 +1968,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.EnableSyncWithLdapIncludeAuth == nil {
 		s.EnableSyncWithLdapIncludeAuth = NewBool(false)
+	}
+
+	if s.EnableAdminAttribute == nil {
+		s.EnableAdminAttribute = NewBool(false)
 	}
 
 	if s.Verify == nil {
@@ -2023,6 +2040,9 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.GuestAttribute == nil {
 		s.GuestAttribute = NewString(SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE)
+	}
+	if s.AdminAttribute == nil {
+		s.AdminAttribute = NewString(SAML_SETTINGS_DEFAULT_ADMIN_ATTRIBUTE)
 	}
 	if s.FirstNameAttribute == nil {
 		s.FirstNameAttribute = NewString(SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE)
@@ -2816,6 +2836,12 @@ func (s *LdapSettings) isValid() *AppError {
 				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
+
+		if *s.AdminFilter != "" {
+			if _, err := ldap.CompileFilter(*s.AdminFilter); err != nil {
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_admin_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil
@@ -2876,6 +2902,15 @@ func (s *SamlSettings) isValid() *AppError {
 			}
 			if len(strings.Split(*s.GuestAttribute, "=")) != 2 {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+
+		if len(*s.AdminAttribute) > 0 {
+			if !(strings.Contains(*s.AdminAttribute, "=")) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+			if len(strings.Split(*s.AdminAttribute, "=")) != 2 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 	}
