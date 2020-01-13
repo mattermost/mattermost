@@ -253,9 +253,11 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("{{$substoreName}}Store.{{$index}}", success, elapsed)
-	}
 	{{ with ($element.Results | genResultsVars) -}}
+	}
 	return {{ . }}
+	{{- else -}}
+	}
 	{{- end }}
 }
 {{end}}
