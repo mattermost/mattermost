@@ -187,6 +187,8 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 			err = errors.Wrapf(err, "failed to open prepackaged plugin %s", prepackagedPlugin.Path)
 			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+		defer fileReader.Close()
+
 		pluginFile = fileReader
 		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
 	}
