@@ -269,7 +269,7 @@ type UserStore interface {
 	GetProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetProfileByIds(userIds []string, options *UserGetByIdsOpts, allowFromCache bool) ([]*model.User, *model.AppError)
 	GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, *model.AppError)
-	InvalidatProfileCacheForUser(userId string)
+	InvalidateProfileCacheForUser(userId string)
 	GetByEmail(email string) (*model.User, *model.AppError)
 	GetByAuth(authData *string, authService string) (*model.User, *model.AppError)
 	GetAllUsingAuthService(authService string) ([]*model.User, *model.AppError)
@@ -619,10 +619,10 @@ type GroupStore interface {
 	// ChannelMembersToRemove returns all channel members that should be removed based on group constraints.
 	ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, *model.AppError)
 
-	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
 	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)

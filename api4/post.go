@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -67,7 +68,20 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SetStatusOnline(c.App.Session.UserId, false)
+	setOnline := r.URL.Query().Get("set_online")
+	setOnlineBool := true // By default, always set online.
+	var err2 error
+	if setOnline != "" {
+		setOnlineBool, err2 = strconv.ParseBool(setOnline)
+		if err2 != nil {
+			mlog.Warn("Failed to parse set_online URL query parameter from createPost request", mlog.Err(err2))
+			setOnlineBool = true // Set online nevertheless.
+		}
+	}
+	if setOnlineBool {
+		c.App.SetStatusOnline(c.App.Session.UserId, false)
+	}
+
 	c.App.UpdateLastActivityAtIfNeeded(c.App.Session)
 
 	w.WriteHeader(http.StatusCreated)
