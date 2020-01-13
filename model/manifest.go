@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -332,15 +332,19 @@ func (m *Manifest) IsValid() error {
 
 	_, err := semver.Parse(m.Version)
 	if err != nil {
-		return errors.New("failed to parse Version")
+		return errors.Wrap(err, "failed to parse Version")
 	}
 
 	_, err = semver.Parse(m.MinServerVersion)
 	if err != nil {
-		return errors.New("failed to parse MinServerVersion")
+		return errors.Wrap(err, "failed to parse MinServerVersion")
 	}
 
-	return isValidSettingsSchema(m.SettingsSchema)
+	err = isValidSettingsSchema(m.SettingsSchema)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func isValidSettingsSchema(settingsSchema *PluginSettingsSchema) error {
@@ -349,12 +353,9 @@ func isValidSettingsSchema(settingsSchema *PluginSettingsSchema) error {
 	}
 
 	settings := settingsSchema.Settings
-	if settings == nil {
-		return nil
-	}
 
 	for _, setting := range settings {
-		err := isValidSetting(setting)
+		err := setting.isValid()
 		if err != nil {
 			return err
 		}
@@ -363,35 +364,33 @@ func isValidSettingsSchema(settingsSchema *PluginSettingsSchema) error {
 	return nil
 }
 
-func isValidSetting(setting *PluginSetting) error {
-	if setting == nil {
+func (s *PluginSetting) isValid() error {
+	if s == nil {
 		return nil
 	}
 
-	pluginSettingType, err := convertTypeToPluginSettingType(setting.Type)
+	pluginSettingType, err := convertTypeToPluginSettingType(s.Type)
 	if err != nil {
 		return err
 	}
 
-	if setting.RegenerateHelpText != "" && pluginSettingType != Generated {
+	if s.RegenerateHelpText != "" && pluginSettingType != Generated {
 		return errors.New("should not set RegenerateHelpText for setting type that is not generated")
 	}
 
-	if setting.Placeholder != "" && pluginSettingType != Text && pluginSettingType != Generated && pluginSettingType != Username {
+	if s.Placeholder != "" && !(pluginSettingType == Text || pluginSettingType == Generated || pluginSettingType == Username) {
 		return errors.New("should not set Placeholder for setting type not in text, generated or username")
 	}
 
-	if setting.Options == nil {
-		return nil
-	}
+	if s.Options != nil {
+		if pluginSettingType != Radio && pluginSettingType != Dropdown {
+			return errors.New("should not set Options for setting type not in radio or dropdown")
+		}
 
-	if pluginSettingType != Radio && pluginSettingType != Dropdown {
-		return errors.New("should not set Options for setting type not in radio or dropdown")
-	}
-
-	for _, option := range setting.Options {
-		if option.DisplayName == "" || option.Value == "" {
-			return errors.New("should not have empty Displayname or Value for any option")
+		for _, option := range s.Options {
+			if option.DisplayName == "" || option.Value == "" {
+				return errors.New("should not have empty Displayname or Value for any option")
+			}
 		}
 	}
 	return nil
@@ -399,28 +398,26 @@ func isValidSetting(setting *PluginSetting) error {
 
 func convertTypeToPluginSettingType(t string) (PluginSettingType, error) {
 	var settingType PluginSettingType
-	var err error
 	switch t {
 	case "bool":
-		settingType = Bool
+		return Bool, nil
 	case "dropdown":
-		settingType = Dropdown
+		return Dropdown, nil
 	case "generated":
-		settingType = Generated
+		return Generated, nil
 	case "radio":
-		settingType = Radio
+		return Radio, nil
 	case "text":
-		settingType = Text
+		return Text, nil
 	case "longtext":
-		settingType = LongText
+		return LongText, nil
 	case "username":
-		settingType = Username
+		return Username, nil
 	case "custom":
-		settingType = Custom
+		return Custom, nil
 	default:
-		err = errors.New("invalid type: " + t)
+		return settingType, errors.New("invalid setting type: " + t)
 	}
-	return settingType, err
 }
 
 // FindManifest will find and parse the manifest in a given directory.

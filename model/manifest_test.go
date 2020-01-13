@@ -23,7 +23,7 @@ func TestIsValid(t *testing.T) {
 		manifest    *Manifest
 		ExpectError bool
 	}{
-		{"InvalidId", &Manifest{Id: "some id"}, true},
+		{"Invalid Id", &Manifest{Id: "some id"}, true},
 		{"Invalid homePageURL", &Manifest{Id: "com.company.test", HomepageURL: "some url"}, true},
 		{"Invalid supportURL", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "some url"}, true},
 		{"Invalid version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "version"}, true},
@@ -103,7 +103,7 @@ func TestIsValidSettingsSchema(t *testing.T) {
 	}
 }
 
-func TestIsValidSetting(t *testing.T) {
+func TestSettingIsValid(t *testing.T) {
 	testCases := []struct {
 		Title       string
 		setting     *PluginSetting
@@ -135,7 +135,7 @@ func TestIsValidSetting(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Title, func(t *testing.T) {
-			err := isValidSetting(tc.setting)
+			err := tc.setting.isValid()
 			if tc.ExpectError {
 				assert.Error(t, err)
 			} else {
@@ -160,7 +160,7 @@ func TestConvertTypeToPluginSettingType(t *testing.T) {
 		{"longtext", "longtext", LongText, false},
 		{"username", "username", Username, false},
 		{"custom", "custom", Custom, false},
-		{"invalid", "invalid", Custom, true},
+		{"invalid", "invalid", Bool, true},
 	}
 
 	for _, tc := range testCases {
