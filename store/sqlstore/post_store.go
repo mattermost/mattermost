@@ -399,20 +399,6 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
 	}
 
-	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-	if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
-		if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
-			}
-			return cacheItem.(*model.PostList), nil
-		}
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
-	}
-
 	rpc := make(chan store.StoreResult, 1)
 	go func() {
 		posts, err := s.getRootPosts(channelId, offset, limit)
@@ -453,27 +439,10 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 
 	list.MakeNonNil()
 
-	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-	if offset == 0 && (limit == 60 || limit == 30) {
-		s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
-	}
-
 	return list, err
 }
 
 func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError) {
-	if allowFromCache {
-		// If the last post in the channel's time is less than or equal to the time we are getting posts since,
-		// we can safely return no posts.
-		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok && cacheItem.(int64) <= time {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Last Post Time")
-			}
-			list := model.NewPostList()
-			return list, nil
-		}
-	}
-
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 	}
@@ -513,16 +482,12 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 
 	list := model.NewPostList()
 
-	latestUpdate := time
-
 	for _, p := range posts {
 		list.AddPost(p)
 		if p.UpdateAt > time {
 			list.AddOrder(p.Id)
 		}
 	}
-
-	s.lastPostTimeCache.AddWithExpiresInSecs(channelId, latestUpdate, LAST_POST_TIME_CACHE_SEC)
 
 	return list, nil
 }

@@ -1216,7 +1216,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
 	mentionedByThread := make(map[string]bool)
 
-	thread, err := a.GetPostThread(post.Id, false)
+	thread, err := a.GetPostThread(post.Id)
 	if err != nil {
 		return 0, err
 	}
@@ -1230,12 +1230,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 	page := 0
 	perPage := 200
 	for {
-		postList, err := a.GetPostsAfterPost(model.GetPostsOptions{
-			ChannelId: post.ChannelId,
-			PostId:    post.Id,
-			Page:      page,
-			PerPage:   perPage,
-		})
+		postList, err := a.GetPostsAfterPost(post.ChannelId, post.Id, page, perPage)
 		if err != nil {
 			return 0, err
 		}
