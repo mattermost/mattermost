@@ -182,8 +182,8 @@ func getMockStore() *mocks.Store {
 
 	fakePosts := &model.PostList{}
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetPosts", "123", 30, true).Return(fakePosts, nil)
-	mockPostStore.On("GetPosts", "123", 30, false).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", "123", 0, 30, true).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", "123", 0, 30, false).Return(fakePosts, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "12360")
 
 	mockPostStoreEtagResult := fmt.Sprintf("%v.%v", model.CurrentVersion, 1)

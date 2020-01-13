@@ -154,7 +154,7 @@ func TestPostStoreCache(t *testing.T) {
 		assert.Equal(t, fakePosts, gotPosts)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetPosts", 1)
 
-		_, _ = cachedStore.Post().GetPosts("123", 0, 30, true)
+		_, _ = cachedStore.Post().GetPosts("123", 0, 30, false)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetPosts", 2)
 	})
 
