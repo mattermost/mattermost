@@ -1112,13 +1112,13 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	a.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	adminMessage.Add("user", &adminCopyOfUser)
-	adminMessage.Broadcast.ContainsSensitiveData = true
+	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
 	a.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", &user)
-	message.Broadcast.ContainsSanitizedData = true
+	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
 }
 
@@ -1435,6 +1435,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		mlog.Error("Failed during updating user roles", mlog.Err(result.Err))
 	}
 
+	a.InvalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {
@@ -2313,6 +2314,8 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 		}
 	}
 
+	a.InvalidateCacheForUser(user.Id)
+	a.ClearSessionCacheForUser(user.Id)
 	return nil
 }
 
@@ -2353,6 +2356,9 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 			a.Publish(evt)
 		}
 	}
+
+	a.InvalidateCacheForUser(user.Id)
+	a.ClearSessionCacheForUser(user.Id)
 
 	return nil
 }
