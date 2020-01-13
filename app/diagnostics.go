@@ -562,6 +562,7 @@ func (a *App) trackConfig() {
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
+		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
