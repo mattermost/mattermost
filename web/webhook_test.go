@@ -262,8 +262,8 @@ func TestCommandWebhooks(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		response, appErr2 := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
-		require.Equal(t, http.StatusOK, response.StatusCode)
 		require.Nil(t, appErr2)
+		require.Equal(t, http.StatusOK, response.StatusCode)
 	}
 
 	resp, _ = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
