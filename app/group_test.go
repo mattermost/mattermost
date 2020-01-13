@@ -213,7 +213,6 @@ func TestGetGroupsByChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	group.SchemeAdmin = model.NewBool(false)
 
 	// Create a group channel
 	groupSyncable := &model.GroupSyncable{
@@ -248,7 +247,6 @@ func TestGetGroupsByTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	group.SchemeAdmin = model.NewBool(false)
 
 	// Create a group team
 	groupSyncable := &model.GroupSyncable{
