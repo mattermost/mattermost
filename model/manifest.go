@@ -50,6 +50,8 @@ type PluginSetting struct {
 	// "longtext" will result in a multi line string that can be typed in manually.
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
+	//
+	// "custom" will result in a custom defined setting and will load the custom component registered for the Web App System Console.
 	Type string `json:"type" yaml:"type"`
 
 	// The help text to display to the user. Supports Markdown formatting.
@@ -166,6 +168,11 @@ type Manifest struct {
 
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
 	Props map[string]interface{} `json:"props,omitempty" yaml:"props,omitempty"`
+
+	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
+	//
+	// Use the plugin helpers CheckRequiredServerConfiguration method to enforce this.
+	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
 type ManifestServer struct {

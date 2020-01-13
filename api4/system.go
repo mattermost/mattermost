@@ -13,8 +13,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 	MAX_SERVER_BUSY_SECONDS      = 86400
 )
 
-var redirectLocationDataCache = utils.NewLru(REDIRECT_LOCATION_CACHE_SIZE)
+var redirectLocationDataCache = lru.New(REDIRECT_LOCATION_CACHE_SIZE)
 
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
@@ -492,12 +492,5 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-
-	busy := c.App.Srv.Busy
-	sbs := &model.ServerBusyState{
-		Busy:       busy.IsBusy(),
-		Expires:    busy.Expires().Unix(),
-		Expires_ts: busy.Expires().UTC().Format("Mon Jan 2 15:04:05 -0700 MST 2006"),
-	}
-	w.Write([]byte(sbs.ToJson()))
+	w.Write([]byte(c.App.Srv.Busy.ToJson()))
 }

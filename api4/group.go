@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -181,32 +180,16 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
-	if appErr != nil && appErr.DetailedError != sql.ErrNoRows.Error() {
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    c.Params.GroupId,
+		SyncableId: syncableID,
+		Type:       syncableType,
+	}
+	groupSyncable.Patch(patch)
+	groupSyncable, appErr = c.App.UpsertGroupSyncable(groupSyncable)
+	if appErr != nil {
 		c.Err = appErr
 		return
-	}
-
-	if groupSyncable == nil {
-		groupSyncable = &model.GroupSyncable{
-			GroupId:    c.Params.GroupId,
-			SyncableId: syncableID,
-			Type:       syncableType,
-		}
-		groupSyncable.Patch(patch)
-		groupSyncable, appErr = c.App.CreateGroupSyncable(groupSyncable)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-	} else {
-		groupSyncable.DeleteAt = 0
-		groupSyncable.Patch(patch)
-		groupSyncable, appErr = c.App.UpdateGroupSyncable(groupSyncable)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -337,8 +320,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -509,8 +493,8 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, marshalErr := json.Marshal(struct {
-		Groups []*model.Group `json:"groups"`
-		Count  int            `json:"total_group_count"`
+		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
+		Count  int                           `json:"total_group_count"`
 	}{
 		Groups: groups,
 		Count:  totalCount,
@@ -555,8 +539,8 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, marshalErr := json.Marshal(struct {
-		Groups []*model.Group `json:"groups"`
-		Count  int            `json:"total_group_count"`
+		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
+		Count  int                           `json:"total_group_count"`
 	}{
 		Groups: groups,
 		Count:  totalCount,

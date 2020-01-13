@@ -508,7 +508,16 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 	return channel, nil
 }
 
+// UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+	userIds := strings.Split(channel.Name, "__")
+	if channel.Type != model.CHANNEL_DIRECT &&
+		len(userIds) == 2 &&
+		model.IsValidId(userIds[0]) &&
+		model.IsValidId(userIds[1]) {
+		return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.invalid_character.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	_, err := a.Srv.Store.Channel().Update(channel)
 	if err != nil {
 		return nil, err
@@ -596,10 +605,40 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 	return nil
 }
 
-func (a *App) RestoreChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
+	if channel.DeleteAt == 0 {
+		return nil, model.NewAppError("restoreChannel", "api.channel.restore_channel.restored.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
 		return nil, err
 	}
+	a.InvalidateCacheForChannel(channel)
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_RESTORED, channel.TeamId, "", "", nil)
+	message.Add("channel_id", channel.Id)
+	a.Publish(message)
+
+	user, err := a.Srv.Store.User().Get(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if user != nil {
+		T := utils.GetUserTranslations(user.Locale)
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
+			Type:      model.POST_CHANNEL_RESTORED,
+			UserId:    userId,
+		}
+
+		if _, err := a.CreatePost(post, channel, false); err != nil {
+			mlog.Error("Failed to post unarchive message", mlog.Err(err))
+		}
+	}
+
 	return channel, nil
 }
 
@@ -754,6 +793,11 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 	if err != nil {
 		return nil, err
 	}
+
+	// Notify the clients that the member notify props changed
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
+	message.Add("channelMember", member.ToJson())
+	a.Publish(message)
 
 	a.InvalidateCacheForUser(userId)
 	return member, nil
@@ -927,6 +971,16 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		SchemeGuest: user.IsGuest(),
 		SchemeUser:  !user.IsGuest(),
 	}
+
+	if !user.IsGuest() {
+		var userShouldBeAdmin bool
+		userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, channel.Id, model.GroupSyncableTypeChannel)
+		if err != nil {
+			return nil, err
+		}
+		newMember.SchemeAdmin = userShouldBeAdmin
+	}
+
 	if _, err = a.Srv.Store.Channel().SaveMember(newMember); err != nil {
 		mlog.Error("Failed to add member", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusInternalServerError)

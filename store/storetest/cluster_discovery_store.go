@@ -152,5 +152,5 @@ func testClusterDiscoveryGetStore(t *testing.T, ss store.Store) {
 
 	list, err = ss.ClusterDiscovery().GetAll(model.NewId(), "cluster_name")
 	require.Nil(t, err)
-	assert.Len(t, list, 0)
+	assert.Empty(t, list)
 }

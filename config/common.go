@@ -77,7 +77,7 @@ func (cs *commonStore) set(newCfg *model.Config, allowEnvironmentOverrides bool,
 		}
 	}
 
-	if err := persist(cs.removeEnvOverrides(newCfg)); err != nil {
+	if err := persist(cs.RemoveEnvironmentOverrides(newCfg)); err != nil {
 		return nil, errors.Wrap(err, "failed to persist")
 	}
 
@@ -164,7 +164,7 @@ func (cs *commonStore) validate(cfg *model.Config) error {
 	return nil
 }
 
-// removeEnvOverrides returns a new config without the given environment overrides.
-func (cs *commonStore) removeEnvOverrides(cfg *model.Config) *model.Config {
+// RemoveEnvironmentOverrides returns a new config without the given environment overrides.
+func (cs *commonStore) RemoveEnvironmentOverrides(cfg *model.Config) *model.Config {
 	return removeEnvOverrides(cfg, cs.configWithoutOverrides, cs.environmentOverrides)
 }
