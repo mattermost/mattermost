@@ -1913,6 +1913,7 @@ type SamlSettings struct {
 
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
+	IdpMetadataUrl              *string
 	AssertionConsumerServiceURL *string
 
 	SignatureAlgorithm *string
@@ -1982,6 +1983,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.IdpDescriptorUrl == nil {
 		s.IdpDescriptorUrl = NewString("")
+	}
+
+	if s.IdpMetadataUrl == nil {
+		s.IdpMetadataUrl = NewString("")
 	}
 
 	if s.IdpCertificateFile == nil {
@@ -2669,10 +2674,6 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if !(*s.TeammateNameDisplay == SHOW_FULLNAME || *s.TeammateNameDisplay == SHOW_NICKNAME_FULLNAME || *s.TeammateNameDisplay == SHOW_USERNAME) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(*s.SiteName) == 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_empty.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(*s.SiteName) > SITENAME_MAX_LENGTH {

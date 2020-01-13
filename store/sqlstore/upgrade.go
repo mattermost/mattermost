@@ -754,6 +754,12 @@ func upgradeDatabaseToVersion520(sqlStore SqlStore) {
 
 	sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
 
+	sqlStore.CreateColumnIfNotExists("GroupTeams", "SchemeAdmin", "boolean", "boolean", "0")
+	sqlStore.CreateIndexIfNotExists("idx_groupteams_schemeadmin", "GroupTeams", "SchemeAdmin")
+
+	sqlStore.CreateColumnIfNotExists("GroupChannels", "SchemeAdmin", "boolean", "boolean", "0")
+	sqlStore.CreateIndexIfNotExists("idx_groupchannels_schemeadmin", "GroupChannels", "SchemeAdmin")
+
 	// 	saveSchemaVersion(sqlStore, VERSION_5_20_0)
 	// }
 }

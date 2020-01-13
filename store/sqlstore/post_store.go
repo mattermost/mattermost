@@ -446,35 +446,66 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 	}
-
+	var query string
 	var posts []*model.Post
-	_, err := s.GetReplica().Select(&posts,
-		`(SELECT
-			*
-		FROM
-			Posts
-		WHERE
-			(UpdateAt > :Time
-				AND ChannelId = :ChannelId)
-			LIMIT 1000)
-		UNION
+	// union of IDs and then join to get full posts is faster in mysql
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		query = `SELECT * FROM Posts p1 JOIN (
 			(SELECT
-			    *
-			FROM
-			    Posts
-			WHERE
-			    Id
-			IN
-			    (SELECT * FROM (SELECT
-			        RootId
-			    FROM
-			        Posts
-			    WHERE
-			        UpdateAt > :Time
-						AND ChannelId = :ChannelId
-				LIMIT 1000) temp_tab))
-		ORDER BY CreateAt DESC`,
-		map[string]interface{}{"ChannelId": channelId, "Time": time})
+              Id
+			  FROM
+				  Posts p2
+			  WHERE
+				  (UpdateAt > :Time
+					  AND ChannelId = :ChannelId)
+				  LIMIT 1000)
+			  UNION
+				  (SELECT
+					  Id
+				  FROM
+					  Posts p3
+				  WHERE
+					  Id
+				  IN
+					  (SELECT * FROM (SELECT
+						  RootId
+					  FROM
+						  Posts
+					  WHERE
+						  UpdateAt > :Time
+							  AND ChannelId = :ChannelId
+					  LIMIT 1000) temp_tab))
+			) j ON p1.Id = j.Id
+          ORDER BY CreateAt DESC`
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = `
+			(SELECT
+                       *
+               FROM
+                       Posts p1
+               WHERE
+                       (UpdateAt > :Time
+                               AND ChannelId = :ChannelId)
+                       LIMIT 1000)
+               UNION
+                       (SELECT
+                           *
+                       FROM
+                           Posts p2
+                       WHERE
+                           Id
+                       IN
+                           (SELECT * FROM (SELECT
+                               RootId
+                           FROM
+                               Posts
+                           WHERE
+                               UpdateAt > :Time
+                                               AND ChannelId = :ChannelId
+                               LIMIT 1000) temp_tab))
+               ORDER BY CreateAt DESC`
+	}
+	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": channelId, "Time": time})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPostsSince", "store.sql_post.get_posts_since.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
@@ -666,31 +697,88 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) ([]
 }
 
 func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
-	var posts []*model.Post
-	_, err := s.GetReplica().Select(&posts,
-		`SELECT
-			q2.*
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		return s.getParentsPostsPostgreSQL(channelId, offset, limit)
+	}
+
+	// query parent Ids first
+	var roots []*struct {
+		RootId string
+	}
+	rootQuery := `
+		SELECT DISTINCT
+			q.RootId
 		FROM
-			Posts q2
-				INNER JOIN
-			(SELECT DISTINCT
-				q3.RootId
+			(SELECT
+				RootId
 			FROM
-				(SELECT
-					RootId
-				FROM
-					Posts
-				WHERE
-					ChannelId = :ChannelId1
-						AND DeleteAt = 0
-				ORDER BY CreateAt DESC
-				LIMIT :Limit OFFSET :Offset) q3
-			WHERE q3.RootId != '') q1
-			ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
+				Posts
+			WHERE
+				ChannelId = :ChannelId
+					AND DeleteAt = 0
+			ORDER BY CreateAt DESC
+			LIMIT :Limit OFFSET :Offset) q
+		WHERE q.RootId != ''`
+
+	_, err := s.GetReplica().Select(&roots, rootQuery, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
+	}
+	if len(roots) == 0 {
+		return nil, nil
+	}
+	params := make(map[string]interface{})
+	placeholders := make([]string, len(roots))
+	for idx, r := range roots {
+		key := fmt.Sprintf(":Root%v", idx)
+		params[key[1:]] = r.RootId
+		placeholders[idx] = key
+	}
+	placeholderString := strings.Join(placeholders, ", ")
+	params["ChannelId"] = channelId
+	whereStatement := "p.Id IN (" + placeholderString + ") OR p.RootId IN (" + placeholderString + ")"
+	var posts []*model.Post
+	_, err = s.GetReplica().Select(&posts, `
+		SELECT p.*
+		FROM
+			Posts p
 		WHERE
-			ChannelId = :ChannelId2
+			(`+whereStatement+`)
+				AND ChannelId = :ChannelId
 				AND DeleteAt = 0
 		ORDER BY CreateAt`,
+		params)
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
+}
+
+func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts,
+		`SELECT q2.*
+        FROM
+            Posts q2
+                INNER JOIN
+            (SELECT DISTINCT
+                q3.RootId
+            FROM
+                (SELECT
+                    RootId
+                FROM
+                    Posts
+                WHERE
+                    ChannelId = :ChannelId1
+                        AND DeleteAt = 0
+                ORDER BY CreateAt DESC
+                LIMIT :Limit OFFSET :Offset) q3
+            WHERE q3.RootId != '') q1
+            ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
+        WHERE
+            ChannelId = :ChannelId2
+                AND DeleteAt = 0
+        ORDER BY CreateAt`,
 		map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)

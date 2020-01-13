@@ -106,6 +106,10 @@ type TeamStore interface {
 	GetUserTeamIds(userId string, allowFromCache bool) ([]string, *model.AppError)
 	InvalidateAllTeamIdsForUser(userId string)
 	ClearCaches()
+
+	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
+	// non-admin members.
+	UpdateMembersRole(teamID string, userIDs []string) *model.AppError
 }
 
 type ChannelStore interface {
@@ -190,6 +194,10 @@ type ChannelStore interface {
 	RemoveAllDeactivatedMembers(channelId string) *model.AppError
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
 	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)
+
+	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
+	// non-admin members.
+	UpdateMembersRole(channelID string, userIDs []string) *model.AppError
 }
 
 type ChannelMemberHistoryStore interface {
@@ -599,10 +607,10 @@ type GroupStore interface {
 	TeamMembersToRemove() ([]*model.TeamMember, *model.AppError)
 	ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError)
 
-	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
 	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
@@ -611,6 +619,14 @@ type GroupStore interface {
 	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError)
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError)
 	CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError)
+
+	// AdminRoleGroupsForSyncableMember returns the IDs of all of the groups that the user is a member of that are
+	// configured as SchemeAdmin: true for the given syncable.
+	AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+
+	// PermittedSyncableAdmins returns the IDs of all of the user who are permitted by the group syncable to have
+	// the admin role for the given syncable.
+	PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
 }
 
 type LinkMetadataStore interface {
