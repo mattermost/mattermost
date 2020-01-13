@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -165,29 +166,36 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 	prepackagedPluginsDir, found := fileutils.FindDir("prepackaged_plugins")
 	if found {
-		if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
-			if !strings.HasSuffix(walkPath, ".tar.gz") {
-				return nil
+		var walkPaths []string
+		filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
+			if strings.HasSuffix(walkPath, ".tar.gz") {
+				walkPaths = append(walkPaths, walkPath)
 			}
-
-			fileReader, err := os.Open(walkPath)
-			if err != nil {
-				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-				return nil
-			}
-			defer fileReader.Close()
-
-			mlog.Debug("Installing prepackaged plugin", mlog.String("path", walkPath))
-
-			_, appErr := a.installPluginLocally(fileReader, nil, installPluginLocallyOnlyIfNewOrUpgrade)
-			if appErr != nil {
-				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(appErr), mlog.String("path", walkPath))
-			}
-
 			return nil
-		}); err != nil {
-			mlog.Error("Failed to complete unpacking prepackaged plugins", mlog.Err(err))
+		})
+
+		var wg sync.WaitGroup
+		for _, walkPath := range walkPaths {
+			wg.Add(1)
+			go func(path string) {
+				defer wg.Done()
+				fileReader, err := os.Open(path)
+				if err != nil {
+					mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", path))
+					return
+				}
+				defer fileReader.Close()
+
+				mlog.Debug("Installing prepackaged plugin", mlog.String("path", path))
+
+				_, appErr := a.installPluginLocally(fileReader, nil, installPluginLocallyOnlyIfNewOrUpgrade)
+				if appErr != nil {
+					mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(appErr), mlog.String("path", path))
+				}
+			}(walkPath)
 		}
+
+		wg.Wait()
 	}
 
 	// Sync plugin active state when config changes. Also notify plugins.
