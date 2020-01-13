@@ -224,6 +224,10 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		}
 
 		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, c.Params.LimitBefore)
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	postList.NextPostId = c.App.GetNextPostIdFromPostList(postList)
