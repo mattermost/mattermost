@@ -987,12 +987,12 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	if len(opts.NotAssociatedToTeam) == 26 {
 		groupsQuery = groupsQuery.Where(`
 			g.Id NOT IN (
-				SELECT 
-					Id 
-				FROM 
+				SELECT
+					Id
+				FROM
 					UserGroups
 					JOIN GroupTeams ON GroupTeams.GroupId = UserGroups.Id
-				WHERE 
+				WHERE
 					GroupTeams.DeleteAt = 0
 					AND UserGroups.DeleteAt = 0
 					AND GroupTeams.TeamId = ?
@@ -1003,12 +1003,12 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	if len(opts.NotAssociatedToChannel) == 26 {
 		groupsQuery = groupsQuery.Where(`
 			g.Id NOT IN (
-				SELECT 
-					Id 
-				FROM 
+				SELECT
+					Id
+				FROM
 					UserGroups
 					JOIN GroupChannels ON GroupChannels.GroupId = UserGroups.Id
-				WHERE 
+				WHERE
 					GroupChannels.DeleteAt = 0
 					AND UserGroups.DeleteAt = 0
 					AND GroupChannels.ChannelId = ?
@@ -1187,17 +1187,17 @@ func (s *SqlGroupStore) AdminRoleGroupsForSyncableMember(userID, syncableID stri
 	var groupIds []string
 
 	sql := fmt.Sprintf(`
-		SELECT 
+		SELECT
 			GroupMembers.GroupId
-		FROM 
-			GroupMembers 
-		INNER JOIN 
+		FROM
+			GroupMembers
+		INNER JOIN
 			Group%[1]ss ON Group%[1]ss.GroupId = GroupMembers.GroupId
-		WHERE 
-			GroupMembers.UserId = :UserId 
-			AND GroupMembers.DeleteAt = 0 
-			AND %[1]sId = :%[1]sId 
-			AND Group%[1]ss.DeleteAt = 0 
+		WHERE
+			GroupMembers.UserId = :UserId
+			AND GroupMembers.DeleteAt = 0
+			AND %[1]sId = :%[1]sId
+			AND Group%[1]ss.DeleteAt = 0
 			AND Group%[1]ss.SchemeAdmin = TRUE`, syncableType)
 
 	_, err := s.GetReplica().Select(&groupIds, sql, map[string]interface{}{"UserId": userID, fmt.Sprintf("%sId", syncableType): syncableID})
