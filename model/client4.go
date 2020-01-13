@@ -352,6 +352,10 @@ func (c *Client4) GetCommandRoute(commandId string) string {
 	return fmt.Sprintf(c.GetCommandsRoute()+"/%v", commandId)
 }
 
+func (c *Client4) GetCommandMoveRoute(commandId string) string {
+	return fmt.Sprintf(c.GetCommandsRoute()+"/%v/move", commandId)
+}
+
 func (c *Client4) GetEmojisRoute() string {
 	return fmt.Sprintf("/emoji")
 }
@@ -3964,6 +3968,17 @@ func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response) {
 	}
 	defer closeBody(r)
 	return CommandFromJson(r.Body), BuildResponse(r)
+}
+
+// MoveCommand moves a command to a different team.
+func (c *Client4) MoveCommand(teamId string, commandId string) (bool, *Response) {
+	tid := TeamId{Id: teamId}
+	r, err := c.DoApiPut(c.GetCommandMoveRoute(commandId), tid.ToJson())
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
 }
 
 // DeleteCommand deletes a command based on the provided command id string.

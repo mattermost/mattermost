@@ -60,8 +60,9 @@ type Routes struct {
 
 	PublicFile *mux.Router // 'files/{file_id:[A-Za-z0-9]+}/public'
 
-	Commands *mux.Router // 'api/v4/commands'
-	Command  *mux.Router // 'api/v4/commands/{command_id:[A-Za-z0-9]+}'
+	Commands    *mux.Router // 'api/v4/commands'
+	Command     *mux.Router // 'api/v4/commands/{command_id:[A-Za-z0-9]+}'
+	CommandMove *mux.Router // 'api/v4/commands/{command_id:[A-Za-z0-9]+}/move'
 
 	Hooks         *mux.Router // 'api/v4/hooks'
 	IncomingHooks *mux.Router // 'api/v4/hooks/incoming'
@@ -172,6 +173,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 
 	api.BaseRoutes.Commands = api.BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
 	api.BaseRoutes.Command = api.BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.CommandMove = api.BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}/move").Subrouter()
 
 	api.BaseRoutes.Hooks = api.BaseRoutes.ApiRoot.PathPrefix("/hooks").Subrouter()
 	api.BaseRoutes.IncomingHooks = api.BaseRoutes.Hooks.PathPrefix("/incoming").Subrouter()

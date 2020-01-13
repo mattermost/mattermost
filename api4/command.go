@@ -17,6 +17,7 @@ func (api *API) InitCommand() {
 	api.BaseRoutes.Commands.Handle("/execute", api.ApiSessionRequired(executeCommand)).Methods("POST")
 
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(updateCommand)).Methods("PUT")
+	api.BaseRoutes.CommandMove.Handle("", api.ApiSessionRequired(moveCommand)).Methods("PUT")
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(deleteCommand)).Methods("DELETE")
 
 	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
@@ -96,6 +97,54 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	w.Write([]byte(rcmd.ToJson()))
+}
+
+func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireCommandId()
+	if c.Err != nil {
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	newTeamId, iderr := model.TeamIdFromJson(r.Body)
+	if iderr != nil {
+		c.SetInvalidParam("team_id")
+		return
+	}
+
+	newTeam, err := c.App.GetTeam(newTeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	cmd, err := c.App.GetCommand(c.Params.CommandId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, newTeam.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
+	err = c.App.MoveCommand(newTeam, cmd)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+	ReturnStatusOK(w)
 }
 
 func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
