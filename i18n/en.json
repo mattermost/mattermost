@@ -4119,6 +4119,10 @@
     "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Invalid AD/LDAP Admin Filter"
+  },
+  {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Invalid AD/LDAP Filter"
   },
@@ -4877,6 +4881,10 @@
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "Invalid direct message restriction. Must be 'any', or 'team'"
+  },
+  {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "Invalid Admin attribute. Must be in the form 'field=value'"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
