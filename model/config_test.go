@@ -251,9 +251,8 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	c1.SetDefaults()
 	c1.TeamSettings.SiteName = NewString("")
 
-	// should fail fast because ts.SiteName is not set
-	err := c1.TeamSettings.isValid()
-	require.NotNil(t, err)
+	// should not fail if ts.SiteName is not set, defaults are used
+	require.Nil(t, c1.TeamSettings.isValid())
 }
 
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
