@@ -10,11 +10,11 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
-	"html/template"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
+	"text/template"
 )
 
 func main() {
@@ -254,7 +254,9 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("{{$substoreName}}Store.{{$index}}", success, elapsed)
 	}
-	return {{$element.Results | genResultsVars}}
+	{{ with ($element.Results | genResultsVars) -}}
+	return {{ . }}
+	{{- end }}
 }
 {{end}}
 {{end}}

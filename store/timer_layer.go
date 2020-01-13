@@ -549,6 +549,7 @@ func (s *TimerLayerChannelStore) ClearCaches() {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.ClearCaches", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError) {
@@ -1236,6 +1237,7 @@ func (s *TimerLayerChannelStore) InvalidateAllChannelMembersForUser(userId strin
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.InvalidateAllChannelMembersForUser", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
@@ -1251,6 +1253,7 @@ func (s *TimerLayerChannelStore) InvalidateCacheForChannelMembersNotifyProps(cha
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.InvalidateCacheForChannelMembersNotifyProps", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerChannelStore) InvalidateChannel(id string) {
@@ -1266,6 +1269,7 @@ func (s *TimerLayerChannelStore) InvalidateChannel(id string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.InvalidateChannel", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerChannelStore) InvalidateChannelByName(teamId string, name string) {
@@ -1281,6 +1285,7 @@ func (s *TimerLayerChannelStore) InvalidateChannelByName(teamId string, name str
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.InvalidateChannelByName", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerChannelStore) InvalidateGuestCount(channelId string) {
@@ -1296,6 +1301,7 @@ func (s *TimerLayerChannelStore) InvalidateGuestCount(channelId string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.InvalidateGuestCount", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerChannelStore) InvalidateMemberCount(channelId string) {
@@ -1311,6 +1317,7 @@ func (s *TimerLayerChannelStore) InvalidateMemberCount(channelId string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.InvalidateMemberCount", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerChannelStore) InvalidatePinnedPostCount(channelId string) {
@@ -1326,6 +1333,7 @@ func (s *TimerLayerChannelStore) InvalidatePinnedPostCount(channelId string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.InvalidatePinnedPostCount", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
@@ -2077,6 +2085,7 @@ func (s *TimerLayerCommandWebhookStore) Cleanup() {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("CommandWebhookStore.Cleanup", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.AppError) {
@@ -2364,6 +2373,7 @@ func (s *TimerLayerFileInfoStore) ClearCaches() {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.ClearCaches", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerFileInfoStore) DeleteForPost(postId string) (string, *model.AppError) {
@@ -2459,6 +2469,7 @@ func (s *TimerLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string)
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.InvalidateFileInfosForPostCache", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerFileInfoStore) PermanentDelete(fileId string) *model.AppError {
@@ -3850,6 +3861,7 @@ func (s *TimerLayerPostStore) ClearCaches() {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.ClearCaches", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerPostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
@@ -4217,6 +4229,7 @@ func (s *TimerLayerPostStore) InvalidateLastPostTimeCache(channelId string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.InvalidateLastPostTimeCache", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
@@ -4808,6 +4821,7 @@ func (s *TimerLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.Cleanup", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, *model.AppError) {
@@ -5271,6 +5285,7 @@ func (s *TimerLayerTeamStore) ClearCaches() {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.ClearCaches", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerTeamStore) Get(id string) (*model.Team, *model.AppError) {
@@ -5670,6 +5685,7 @@ func (s *TimerLayerTeamStore) InvalidateAllTeamIdsForUser(userId string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.InvalidateAllTeamIdsForUser", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError) {
@@ -6005,6 +6021,7 @@ func (s *TimerLayerTokenStore) Cleanup() {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.Cleanup", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerTokenStore) Delete(token string) *model.AppError {
@@ -6148,6 +6165,7 @@ func (s *TimerLayerUserStore) ClearCaches() {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.ClearCaches", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerUserStore) Count(options model.UserCountOptions) (int64, *model.AppError) {
@@ -6723,6 +6741,7 @@ func (s *TimerLayerUserStore) InvalidateProfileCacheForUser(userId string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.InvalidateProfileCacheForUser", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerUserStore) InvalidateProfilesInChannelCache(channelId string) {
@@ -6738,6 +6757,7 @@ func (s *TimerLayerUserStore) InvalidateProfilesInChannelCache(channelId string)
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.InvalidateProfilesInChannelCache", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
@@ -6753,6 +6773,7 @@ func (s *TimerLayerUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.InvalidateProfilesInChannelCacheByUser", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerUserStore) PermanentDelete(userId string) *model.AppError {
@@ -7296,6 +7317,7 @@ func (s *TimerLayerWebhookStore) ClearCaches() {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.ClearCaches", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerWebhookStore) DeleteIncoming(webhookId string, time int64) *model.AppError {
@@ -7551,6 +7573,7 @@ func (s *TimerLayerWebhookStore) InvalidateWebhookCache(webhook string) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.InvalidateWebhookCache", success, elapsed)
 	}
+
 }
 
 func (s *TimerLayerWebhookStore) PermanentDeleteIncomingByChannel(channelId string) *model.AppError {
