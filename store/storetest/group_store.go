@@ -2269,7 +2269,6 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
-		SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -2278,7 +2277,6 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		DisplayName: "group-2",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
-		SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -2313,7 +2311,6 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		DisplayName: "group-3",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
-		SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 

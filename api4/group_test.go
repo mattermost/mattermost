@@ -651,7 +651,6 @@ func TestGetGroupsByChannel(t *testing.T) {
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
-		SchemeAdmin: model.NewBool(false),
 	})
 	assert.Nil(t, err)
 
@@ -719,7 +718,6 @@ func TestGetGroupsByTeam(t *testing.T) {
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
-		SchemeAdmin: model.NewBool(false),
 	})
 	assert.Nil(t, err)
 
