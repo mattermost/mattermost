@@ -130,7 +130,8 @@ func TestChannelStoreChannelByNameCache(t *testing.T) {
 
 	t.Run("first call force no cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Channel().GetByName(teamIdString, nameString, false)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 1)
@@ -142,7 +143,8 @@ func TestChannelStoreChannelByNameCache(t *testing.T) {
 
 	t.Run("first call not cached, clear cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Channel().GetByName(teamIdString, nameString, true)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 1)
@@ -153,7 +155,8 @@ func TestChannelStoreChannelByNameCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Channel().GetByName(teamIdString, nameString, true)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 1)
