@@ -592,7 +592,7 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 			// Labels should not (yet) be localized as the labels sent by the Marketplace are not (yet) localizable.
 			labels = append(labels, model.MarketplaceLabel{
 				Name:        "Local",
-				Description: "This plugin is not listed in the marketplace but was installed manually",
+				Description: "This plugin is not listed in the marketplace",
 			})
 		}
 

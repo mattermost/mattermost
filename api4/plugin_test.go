@@ -934,7 +934,7 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 				Manifest: manifest,
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
-					Description: "This plugin is not listed in the marketplace but was installed manually",
+					Description: "This plugin is not listed in the marketplace",
 				}},
 			},
 			InstalledVersion: manifest.Version,
