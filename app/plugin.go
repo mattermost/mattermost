@@ -502,6 +502,11 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 
 		result = append(result, &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				// Labels should not (yet) be localized as the labels sent by the Marketplace are not (yet) localizable.
+				Labels: []model.MarketplaceLabel{{
+					Name:        "Local",
+					Description: "This plugin is not listed in the marketplace but was installed manually",
+				}},
 				Manifest: plugin.Manifest,
 			},
 			InstalledVersion: plugin.Manifest.Version,

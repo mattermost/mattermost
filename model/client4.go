@@ -3479,6 +3479,18 @@ func (c *Client4) GetSamlCertificateStatus() (*SamlCertificateStatus, *Response)
 	return SamlCertificateStatusFromJson(r.Body), BuildResponse(r)
 }
 
+func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataResponse, *Response) {
+	requestBody := make(map[string]string)
+	requestBody["saml_metadata_url"] = samlMetadataURL
+	r, err := c.DoApiPost(c.GetSamlRoute()+"/metadatafromidp", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+
+	defer closeBody(r)
+	return SamlMetadataResponseFromJson(r.Body), BuildResponse(r)
+}
+
 // Compliance Section
 
 // CreateComplianceReport creates an incoming webhook for a channel.
@@ -3616,7 +3628,7 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 }
 
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
-func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]*Group, int, *Response) {
+func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response) {
 	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v", c.GetChannelRoute(channelId), opts.Q, opts.IncludeMemberCount)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
@@ -3628,8 +3640,8 @@ func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]
 	defer closeBody(r)
 
 	responseData := struct {
-		Groups []*Group `json:"groups"`
-		Count  int      `json:"total_group_count"`
+		Groups []*GroupWithSchemeAdmin `json:"groups"`
+		Count  int                     `json:"total_group_count"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
 		appErr := NewAppError("Api4.GetGroupsByChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
@@ -3640,7 +3652,7 @@ func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]
 }
 
 // GetGroupsByTeam retrieves the Mattermost Groups associated with a given team
-func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group, int, *Response) {
+func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response) {
 	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v", c.GetTeamRoute(teamId), opts.Q, opts.IncludeMemberCount)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
@@ -3652,8 +3664,8 @@ func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group
 	defer closeBody(r)
 
 	responseData := struct {
-		Groups []*Group `json:"groups"`
-		Count  int      `json:"total_group_count"`
+		Groups []*GroupWithSchemeAdmin `json:"groups"`
+		Count  int                     `json:"total_group_count"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
 		appErr := NewAppError("Api4.GetGroupsByTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
@@ -4830,4 +4842,13 @@ func (c *Client4) ChannelMembersMinusGroupMembers(channelID string, groupIDs []s
 	defer closeBody(r)
 	ugc := UsersWithGroupsAndCountFromJson(r.Body)
 	return ugc.Users, ugc.Count, BuildResponse(r)
+}
+
+func (c *Client4) PatchConfig(config *Config) (*Config, *Response) {
+	r, err := c.DoApiPut(c.GetConfigRoute()+"/patch", config.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ConfigFromJson(r.Body), BuildResponse(r)
 }
