@@ -547,6 +547,12 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
 				IconData:    "https://example.com/icon.svg",
 				DownloadURL: "https://example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				Labels: []model.MarketplaceLabel{
+					{
+						Name:        "someName",
+						Description: "some Description",
+					},
+				},
 				Manifest: &model.Manifest{
 					Id:               "com.mattermost.nps",
 					Name:             "User Satisfaction Surveys",
@@ -594,7 +600,11 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 				HomepageURL: "",
 				IconData:    "",
 				DownloadURL: "",
-				Manifest:    manifest,
+				Labels: []model.MarketplaceLabel{{
+					Name:        "Local",
+					Description: "This plugin is not listed in the marketplace but was installed manually",
+				}},
+				Manifest: manifest,
 			},
 			InstalledVersion: manifest.Version,
 		})
@@ -725,7 +735,11 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 				HomepageURL: "",
 				IconData:    "",
 				DownloadURL: "",
-				Manifest:    manifest,
+				Labels: []model.MarketplaceLabel{{
+					Name:        "Local",
+					Description: "This plugin is not listed in the marketplace but was installed manually",
+				}},
+				Manifest: manifest,
 			},
 			InstalledVersion: manifest.Version,
 		}
@@ -738,7 +752,11 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 				HomepageURL: "",
 				IconData:    "",
 				DownloadURL: "",
-				Manifest:    manifest,
+				Labels: []model.MarketplaceLabel{{
+					Name:        "Local",
+					Description: "This plugin is not listed in the marketplace but was installed manually",
+				}},
+				Manifest: manifest,
 			},
 			InstalledVersion: manifest.Version,
 		}
