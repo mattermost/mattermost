@@ -167,12 +167,17 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	prepackagedPluginsDir, found := fileutils.FindDir("prepackaged_plugins")
 	if found {
 		var walkPaths []string
-		filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
+		err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
 			if strings.HasSuffix(walkPath, ".tar.gz") {
 				walkPaths = append(walkPaths, walkPath)
 			}
 			return nil
 		})
+
+		if err != nil {
+			mlog.Error("Failed to complete unpacking prepackaged plugins", mlog.Err(err))
+			return
+		}
 
 		var wg sync.WaitGroup
 		for _, walkPath := range walkPaths {
@@ -230,22 +235,29 @@ func (a *App) SyncPlugins() *model.AppError {
 		return model.NewAppError("SyncPlugins", "app.plugin.sync.read_local_folder.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	var wg sync.WaitGroup
 	for _, plugin := range availablePlugins {
-		pluginId := plugin.Manifest.Id
+		wg.Add(1)
+		go func(plugin *model.BundleInfo) {
+			defer wg.Done()
+			pluginId := plugin.Manifest.Id
 
-		// Only handle managed plugins with .filestore flag file.
-		_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, pluginId, managedPluginFileName))
-		if os.IsNotExist(err) {
-			mlog.Warn("Skipping sync for unmanaged plugin", mlog.String("plugin_id", pluginId))
-		} else if err != nil {
-			mlog.Error("Skipping sync for plugin after failure to check if managed", mlog.String("plugin_id", pluginId), mlog.Err(err))
-		} else {
-			mlog.Debug("Removing local installation of managed plugin before sync", mlog.String("plugin_id", pluginId))
-			if err := a.removePluginLocally(pluginId); err != nil {
-				mlog.Error("Failed to remove local installation of managed plugin before sync", mlog.String("plugin_id", pluginId), mlog.Err(err))
+			// Only handle managed plugins with .filestore flag file.
+			_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, pluginId, managedPluginFileName))
+			if os.IsNotExist(err) {
+				mlog.Warn("Skipping sync for unmanaged plugin", mlog.String("plugin_id", pluginId))
+			} else if err != nil {
+				mlog.Error("Skipping sync for plugin after failure to check if managed", mlog.String("plugin_id", pluginId), mlog.Err(err))
+			} else {
+				mlog.Debug("Removing local installation of managed plugin before sync", mlog.String("plugin_id", pluginId))
+				if err := a.removePluginLocally(pluginId); err != nil {
+					mlog.Error("Failed to remove local installation of managed plugin before sync", mlog.String("plugin_id", pluginId), mlog.Err(err))
+				}
 			}
-		}
+		}(plugin)
 	}
+
+	wg.Wait()
 
 	// Install plugins from the file store.
 	pluginSignaturePathMap, appErr := a.getPluginsFromFolder()
@@ -254,28 +266,35 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	for _, plugin := range pluginSignaturePathMap {
-		reader, appErr := a.FileReader(plugin.path)
-		if appErr != nil {
-			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
-			continue
-		}
-		defer reader.Close()
-
-		var signature filesstore.ReadCloseSeeker
-		if *a.Config().PluginSettings.RequirePluginSignature {
-			signature, appErr = a.FileReader(plugin.signaturePath)
+		wg.Add(1)
+		go func(plugin *pluginSignaturePath) {
+			defer wg.Done()
+			reader, appErr := a.FileReader(plugin.path)
 			if appErr != nil {
-				mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
-				continue
+				mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+				return
 			}
-			defer signature.Close()
-		}
+			defer reader.Close()
 
-		mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
-		if _, err := a.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
-			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
-		}
+			var signature filesstore.ReadCloseSeeker
+			if *a.Config().PluginSettings.RequirePluginSignature {
+				signature, appErr = a.FileReader(plugin.signaturePath)
+				if appErr != nil {
+					mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
+					return
+				}
+				defer signature.Close()
+			}
+
+			mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
+			if _, err := a.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
+				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
+			}
+		}(plugin)
+
 	}
+
+	wg.Wait()
 	return nil
 }
 
