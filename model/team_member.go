@@ -33,7 +33,7 @@ type TeamMemberForExport struct {
 }
 
 type TeamMemberWithError struct {
-	UserId string
+	UserId string      `json:"user_id"`
 	Member *TeamMember `json:"member"`
 	Error  *AppError   `json:"error"`
 }

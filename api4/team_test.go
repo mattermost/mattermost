@@ -1705,6 +1705,10 @@ func TestAddTeamMembersDomainConstrained(t *testing.T) {
 	require.Len(t, members, 2)
 	require.NotNil(t, members[0].Member)
 	require.NotNil(t, members[1].Error)
+	require.Equal(t, members[0].UserId, user1.Id)
+	require.Equal(t, members[1].UserId, user2.Id)
+	require.Nil(t, members[0].Error)
+	require.Nil(t, members[1].Member)
 }
 
 func TestAddTeamMembers(t *testing.T) {
