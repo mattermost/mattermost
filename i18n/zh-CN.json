@@ -373,7 +373,7 @@
   },
   {
     "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "无效的频道名。用户 id 不能作为私信以外的频道名。"
   },
   {
     "id": "api.channel.update_channel.tried.app_error",

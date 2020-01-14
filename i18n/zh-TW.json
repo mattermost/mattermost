@@ -373,7 +373,7 @@
   },
   {
     "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "無效的頻道名稱。非直接傳訊頻道不允許用使用者 ID 作為名稱。"
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -381,7 +381,7 @@
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
-    "translation": "Channel type cannot be updated"
+    "translation": "無法更新頻道類型"
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
