@@ -191,20 +191,33 @@ func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd, err := c.App.GetCommand(c.Params.CommandId)
-	if err != nil {
-		c.Err = err
+	teamId := r.URL.Query().Get("team_id")
+	if len(teamId) == 0 {
+		c.SetInvalidParam("team_id")
 		return
 	}
 
 	// check for permissions to view this command; must have perms to view team and
 	// PERMISSION_MANAGE_SLASH_COMMANDS for the team the command belongs to.
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_VIEW_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
+	cmd, err := c.App.GetCommand(c.Params.CommandId)
+	if err != nil {
+		c.SetCommandNotFoundError()
+		return
+	}
+
+	if cmd.TeamId != teamId {
+		// the commandId does not exist for the expected team so we'll return `not found`
+		// so we're not leaking information about existence of the command.
+		c.SetCommandNotFoundError()
 		return
 	}
 	w.Write([]byte(cmd.ToJson()))
