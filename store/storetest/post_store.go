@@ -689,7 +689,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	}
 
 	// Run once to fill cache
-	_, err = ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	_, err = ss.Post().GetPosts(o1.ChannelId, 0, 30, false)
 	require.Nil(t, err)
 
 	o6 := &model.Post{}
@@ -699,7 +699,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Save(o6)
 	require.Nil(t, err)
 
-	r3, err := ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	r3, err := ss.Post().GetPosts(o1.ChannelId, 0, 30, false)
 	require.Nil(t, err)
 	assert.Equal(t, 7, len(r3.Order))
 }
