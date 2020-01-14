@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"path/filepath"
 	"testing"
 
@@ -101,5 +102,32 @@ func TestInstallPluginFromURL(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Equal(t, "received 404 status code while downloading plugin from server", err.Error())
+	})
+}
+
+func TestGetPluginAssetURL(t *testing.T) {
+	siteURL := "https://mattermost.example.com"
+	api := &plugintest.API{}
+	api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: &siteURL}})
+
+	p := &plugin.HelpersImpl{API: api}
+
+	t.Run("Valid directory and pluginID provided", func(t *testing.T) {
+		pluginID := "mattermost-1234"
+		dir := "assets"
+		wantedURL := &url.URL{Scheme: "https", Host: "mattermost.example.com", Path: "/mattermost-1234/assets"}
+		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
+
+		assert.Equalf(t, wantedURL, gotURL, "GetPluginAssetURL(%s, %s) got=%s; want=%v", pluginID, dir, gotURL, wantedURL)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Invalid directory and pluginID provided", func(t *testing.T) {
+		pluginID := ""
+		dir := ""
+		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
+
+		assert.Nilf(t, gotURL, "GetPluginAssetURL(%q, %q) got=%s; want=nil", pluginID, dir, gotURL)
+		assert.Error(t, err)
 	})
 }
