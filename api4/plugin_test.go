@@ -932,6 +932,10 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				Manifest: manifest,
+				Labels: []model.MarketplaceLabel{{
+					Name:        "Local",
+					Description: "This plugin is not listed in the marketplace but was installed manually",
+				}},
 			},
 			InstalledVersion: manifest.Version,
 		}
