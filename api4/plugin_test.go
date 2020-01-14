@@ -597,7 +597,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 		expectedPlugins := append(samplePlugins, &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "",
+				HomepageURL: "https://example.com/homepage",
 				IconData:    "",
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
@@ -732,7 +732,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 
 		newPluginV1 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "",
+				HomepageURL: "https://example.com/homepage",
 				IconData:    "",
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
@@ -749,7 +749,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		CheckNoError(t, resp)
 		newPluginV2 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "",
+				HomepageURL: "https://example.com/homepage",
 				IconData:    "",
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
