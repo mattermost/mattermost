@@ -108,7 +108,6 @@ func TestChannelStoreChannelByNameCache(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		
 		channel, err := cachedStore.Channel().GetByName(teamIdString, nameString, true)
 		require.Nil(t, err)
 		assert.Equal(t, channel, &fakeChannel)
