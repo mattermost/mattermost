@@ -465,7 +465,7 @@ func (me *TestHelper) TearDown() {
 }
 
 func (me *TestHelper) ResetRoleMigration() {
-	sqlSupplier := mainHelper.GetSqlSupplier()
+	sqlSupplier := mainHelper.GetSQLSupplier()
 	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
@@ -478,7 +478,7 @@ func (me *TestHelper) ResetRoleMigration() {
 }
 
 func (me *TestHelper) ResetEmojisMigration() {
-	sqlSupplier := mainHelper.GetSqlSupplier()
+	sqlSupplier := mainHelper.GetSQLSupplier()
 	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}

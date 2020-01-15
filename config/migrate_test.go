@@ -14,7 +14,7 @@ import (
 
 func TestMigrateDatabaseToFile(t *testing.T) {
 	helper := testlib.NewMainHelper()
-	sqlSettings := helper.GetSqlSettings()
+	sqlSettings := helper.GetSQLSettings()
 	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 	files := []string{"IdpCertificateFile", "PublicCertificateFile", "PrivateKeyFile"}
@@ -52,7 +52,7 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 
 func TestMigrateFileToDatabaseWhenFilePathIsNotSpecified(t *testing.T) {
 	helper := testlib.NewMainHelper()
-	sqlSettings := helper.GetSqlSettings()
+	sqlSettings := helper.GetSQLSettings()
 	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 
