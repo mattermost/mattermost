@@ -1985,6 +1985,31 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// InviteUsersToTeam invite users by email to the team.
+func (c *Client4) InviteUsersToTeamGracefully(teamId string, userEmails []string) ([]*EmailInviteWithError, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite/email?graceful=true", ArrayToJson(userEmails))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return EmailInviteWithErrorFromJson(r.Body), BuildResponse(r)
+}
+
+// InviteGuestsToTeam invite guest by email to some channels in a team.
+func (c *Client4) InviteGuestsToTeamGracefully(teamId string, userEmails []string, channels []string, message string) ([]*EmailInviteWithError, *Response) {
+	guestsInvite := GuestsInvite{
+		Emails:   userEmails,
+		Channels: channels,
+		Message:  message,
+	}
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite-guests/email?graceful=true", guestsInvite.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return EmailInviteWithErrorFromJson(r.Body), BuildResponse(r)
+}
+
 // InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
 func (c *Client4) InvalidateEmailInvites() (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetTeamsRoute() + "/invites/email")
