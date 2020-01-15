@@ -37,10 +37,20 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
+	tempWorkspace, err := ioutil.TempDir("", "apptest")
+	if err != nil {
+		panic(err)
+	}
+
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}
+
+	config := memoryStore.Get()
+	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
+	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	memoryStore.Set(config)
 
 	var options []Option
 	options = append(options, ConfigStore(memoryStore))
@@ -88,17 +98,8 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	if th.tempWorkspace == "" {
-		dir, err := ioutil.TempDir("", "apptest")
-		if err != nil {
-			panic(err)
-		}
-		th.tempWorkspace = dir
+		th.tempWorkspace = tempWorkspace
 	}
-
-	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
-	webappDir := filepath.Join(th.tempWorkspace, "webapp")
-
-	th.App.InitPlugins(pluginDir, webappDir)
 
 	return th
 }
