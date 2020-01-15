@@ -66,6 +66,50 @@ func TestUserStoreGetProfileByIdsCache(t *testing.T) {
 		_, _ = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 2)
 	})
+
+	t.Run("should always return a copy of the stored data", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		storedUsers, err := mockStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, false)
+		require.Nil(t, err)
+
+		originalProps := make([]model.StringMap, len(storedUsers))
+
+		for i := 0; i < len(storedUsers); i++ {
+			originalProps[i] = storedUsers[i].NotifyProps
+			storedUsers[i].NotifyProps = map[string]string{}
+			storedUsers[i].NotifyProps["key"] = "somevalue"
+		}
+
+		cachedUsers, err := cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		require.Nil(t, err)
+
+		for i := 0; i < len(storedUsers); i++ {
+			assert.Equal(t, storedUsers[i], cachedUsers[i])
+			if storedUsers[i] == cachedUsers[i] {
+				assert.Fail(t, "should be different pointers")
+			}
+			cachedUsers[i].NotifyProps["key"] = "othervalue"
+			assert.NotEqual(t, storedUsers[i], cachedUsers[i])
+		}
+
+		cachedUsers, err = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		require.Nil(t, err)
+		for i := 0; i < len(storedUsers); i++ {
+			assert.Equal(t, storedUsers[i], cachedUsers[i])
+			if storedUsers[i] == cachedUsers[i] {
+				assert.Fail(t, "should be different pointers")
+			}
+			cachedUsers[i].NotifyProps["key"] = "othervalue"
+			assert.NotEqual(t, storedUsers[i], cachedUsers[i])
+		}
+
+		for i := 0; i < len(storedUsers); i++ {
+			storedUsers[i].NotifyProps = originalProps[i]
+		}
+	})
 }
 
 func TestUserStoreProfilesInChannelCache(t *testing.T) {
@@ -166,5 +210,38 @@ func TestUserStoreGetCache(t *testing.T) {
 
 		_, _ = cachedStore.User().Get(fakeUserId)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 2)
+	})
+
+	t.Run("should always return a copy of the stored data", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		storedUser, err := mockStore.User().Get(fakeUserId)
+		require.Nil(t, err)
+		originalProps := storedUser.NotifyProps
+
+		storedUser.NotifyProps = map[string]string{}
+		storedUser.NotifyProps["key"] = "somevalue"
+
+		cachedUser, err := cachedStore.User().Get(fakeUserId)
+		require.Nil(t, err)
+		assert.Equal(t, storedUser, cachedUser)
+		if storedUser == cachedUser {
+			assert.Fail(t, "should be different pointers")
+		}
+		cachedUser.NotifyProps["key"] = "othervalue"
+		assert.NotEqual(t, storedUser, cachedUser)
+
+		cachedUser, err = cachedStore.User().Get(fakeUserId)
+		require.Nil(t, err)
+		assert.Equal(t, storedUser, cachedUser)
+		if storedUser == cachedUser {
+			assert.Fail(t, "should be different pointers")
+		}
+		cachedUser.NotifyProps["key"] = "othervalue"
+		assert.NotEqual(t, storedUser, cachedUser)
+
+		storedUser.NotifyProps = originalProps
 	})
 }

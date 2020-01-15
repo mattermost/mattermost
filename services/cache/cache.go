@@ -31,6 +31,9 @@ type Cache interface {
 	// Remove deletes the value for a key.
 	Remove(key interface{})
 
+	// RemoveByPrefix deletes all keys containing the given prefix string.
+	RemoveByPrefix(prefix string)
+
 	// Keys returns a slice of the keys in the cache.
 	Keys() []interface{}
 
