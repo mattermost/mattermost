@@ -52,6 +52,8 @@ github.com/gorilla/schema
 github.com/gorilla/websocket
 # github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 github.com/gregjones/httpcache
+# github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
+github.com/h2non/go-is-svg
 # github.com/hako/durafmt v0.0.0-20190612201238-650ed9f29a84
 github.com/hako/durafmt
 # github.com/hashicorp/errwrap v1.0.0
