@@ -202,11 +202,11 @@ func (o *Channel) IsValid() *AppError {
 }
 
 func (o *GetChannelsOptions) IsValid() *AppError {
-	if reflect.TypeOf(o.UserIds).String() == "[]string" {
+	if reflect.TypeOf(o.UserIds).String() != "[]string" {
 		return NewAppError("GetChannelsOptions.IsValid", "model.channel.is_valid.user.ids.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if reflect.TypeOf(o.ChannelTypes).String() == "[]string" {
+	if reflect.TypeOf(o.ChannelTypes).String() != "[]string" {
 		return NewAppError("GetChannelsOptions.IsValid", "model.channel.is_valid.channel.types.app_error", nil, "", http.StatusBadRequest)
 	}
 

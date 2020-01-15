@@ -1000,7 +1000,7 @@ func testChannelStoreGetChannelsWithOptions(t *testing.T, ss store.Store) {
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
 	_, err := ss.Channel().Save(&o1, -1)
-	require.NotNil(t, err)
+	require.Nil(t, err)
 
 	o2 := model.Channel{}
 	o2.TeamId = model.NewId()
