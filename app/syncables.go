@@ -223,8 +223,10 @@ func (a *App) SyncRolesAndMembership(syncableID string, syncableType model.Group
 	case model.GroupSyncableTypeTeam:
 		a.createDefaultTeamMemberships(since, &syncableID)
 		a.deleteGroupConstrainedTeamMemberships(&syncableID)
+		a.ClearTeamMembersCache(syncableID)
 	case model.GroupSyncableTypeChannel:
 		a.createDefaultChannelMemberships(since, &syncableID)
 		a.deleteGroupConstrainedChannelMemberships(&syncableID)
+		a.ClearChannelMembersCache(syncableID)
 	}
 }
