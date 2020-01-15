@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"io"
 	"net/http"
@@ -434,7 +435,7 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 }
 
 func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	cached, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+	cached, ok := linkCache.Get(fmt.Sprintf("%x", model.GenerateLinkMetadataHash(requestURL, timestamp)))
 	if !ok {
 		return nil, nil, false
 	}
@@ -497,7 +498,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 		val = image
 	}
 
-	linkCache.AddWithExpiresInSecs(model.GenerateLinkMetadataHash(requestURL, timestamp), val, LINK_CACHE_DURATION)
+	linkCache.AddWithExpiresInSecs(fmt.Sprintf("%x", model.GenerateLinkMetadataHash(requestURL, timestamp)), val, LINK_CACHE_DURATION)
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
