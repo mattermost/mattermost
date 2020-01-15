@@ -26,6 +26,7 @@ require (
 	github.com/gorilla/schema v1.1.0
 	github.com/gorilla/websocket v1.4.1
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
+	github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 	github.com/hako/durafmt v0.0.0-20190612201238-650ed9f29a84
 	github.com/hashicorp/go-hclog v0.9.2
 	github.com/hashicorp/go-immutable-radix v1.1.0 // indirect
