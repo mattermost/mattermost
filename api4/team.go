@@ -983,8 +983,8 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+		ReturnStatusOK(w)
 	}
-	ReturnStatusOK(w)
 }
 
 func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1028,9 +1028,8 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Err = err
 			return
 		}
+		ReturnStatusOK(w)
 	}
-
-	ReturnStatusOK(w)
 }
 
 func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
