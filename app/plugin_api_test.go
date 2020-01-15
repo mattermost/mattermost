@@ -792,7 +792,7 @@ func TestInstallPlugin(t *testing.T) {
 
 		import (
 			"net/http"
-			
+
 			"github.com/pkg/errors"
 
 			"github.com/mattermost/mattermost-server/v5/plugin"
@@ -801,7 +801,7 @@ func TestInstallPlugin(t *testing.T) {
 		type configuration struct {
 			DownloadURL string
 		}
-		
+
 		type Plugin struct {
 			plugin.MattermostPlugin
 
@@ -814,7 +814,7 @@ func TestInstallPlugin(t *testing.T) {
 			}
 			return nil
 		}
-		
+
 		func (p *Plugin) OnActivate() error {
 			resp, err := http.Get(p.configuration.DownloadURL)
 			if err != nil {
@@ -831,7 +831,7 @@ func TestInstallPlugin(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&Plugin{})
 		}
-		
+
 	`,
 		`{"id": "testinstallplugin", "backend": {"executable": "backend.exe"}, "settings_schema": {
 		"settings": [
@@ -996,6 +996,45 @@ func TestPluginAPIGetChannelsForTeamForUser(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Empty(t, channels)
 	})
+}
+
+func TestPluginGetChannelsOptions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	setupPluginApiTest(t,
+		`
+		package main
+		import (
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
+		)
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			_, err := p.API.GetChannels(&model.GetChannelsOptions{
+				Page:         10,
+			})
+			if err != nil {
+				return nil, err.Error() + "failed get channels with options"
+			}
+			return nil, "stub"
+		}
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+		`{"id": "testplugingetchannelsoptions", "backend": {"executable": "backend.exe"}, "settings_schema": {
+	}}`, "testplugingetchannelsoptions", th.App)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugingetchannelsoptions")
+	require.Nil(t, err)
+	require.NotNil(t, hooks)
+	require.Nil(t, err)
+
+	_, errString := hooks.MessageWillBePosted(nil, nil)
+	assert.Equal(t, "stub", errString)
 }
 
 func TestPluginAPIRemoveTeamIcon(t *testing.T) {

@@ -1286,6 +1286,10 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 	return result, nil
 }
 
+func (a *App) GetChannelsWithOptions(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+	return a.Srv.Store.Channel().GetChannelsWithOptions(opt)
+}
+
 func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
 	return a.Srv.Store.Channel().GetChannels(teamId, userId, includeDeleted)
 }

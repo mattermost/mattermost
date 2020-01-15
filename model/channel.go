@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"reflect"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -103,6 +104,18 @@ type ChannelSearchOpts struct {
 	PerPage                *int
 }
 
+type GetChannelsOptions struct {
+	// ChannelTypes optionally limits the types of channels to return.
+	// See model.CHANNEL*OPEN, model.CHANNEL_PRIVATE, model.CHANNEL_DIRECT, and model.CHANNEL*GROUP.
+	ChannelTypes []string
+	// UserIds optionally limits the channels to those containing the given users.
+	UserIds []string
+	// Page limits to the requested page of results.
+	Page int
+	// PerPage limits the number of results to fetch per page.
+	PerPage int
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {
@@ -183,6 +196,18 @@ func (o *Channel) IsValid() *AppError {
 
 	if len(o.CreatorId) > 26 {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (o *GetChannelsOptions) IsValid() *AppError {
+	if reflect.TypeOf(o.UserIds).String() == "[]string" {
+		return NewAppError("GetChannelsOptions.IsValid", "model.channel.is_valid.user.ids.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if reflect.TypeOf(o.ChannelTypes).String() == "[]string" {
+		return NewAppError("GetChannelsOptions.IsValid", "model.channel.is_valid.channel.types.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

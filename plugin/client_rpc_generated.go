@@ -1952,6 +1952,34 @@ func (s *apiRPCServer) GetChannel(args *Z_GetChannelArgs, returns *Z_GetChannelR
 	return nil
 }
 
+type Z_GetChannelsArgs struct {
+	A *model.GetChannelsOptions
+}
+type Z_GetChannelsReturns struct {
+	A *model.ChannelList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannels(options *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+	_args := &Z_GetChannelsArgs{options}
+	_returns := &Z_GetChannelsReturns{}
+	if err := g.client.Call("Plugin.GetChannels", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannels API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannels(args *Z_GetChannelsArgs, returns *Z_GetChannelsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannels(options *model.GetChannelsOptions) (*model.ChannelList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannels(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetChannels called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetChannelByNameArgs struct {
 	A string
 	B string

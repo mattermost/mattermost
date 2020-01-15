@@ -873,6 +873,49 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	return channels, nil
 }
 
+func (s SqlChannelStore) GetChannelsWithOptions(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+
+	if err := opt.IsValid(); err != nil {
+		return nil, err
+	}
+
+	query := s.getQueryBuilder().
+		Select("c.*").
+		From("Channels AS c")
+
+	if opt.Page < 0 {
+		return nil, model.NewAppError("SqlChannelStore.GetChannelsWithOptions", "store.sql_channel.get_channels_with_options.get.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if opt.PerPage < 0 {
+		return nil, model.NewAppError("SqlChannelStore.GetChannelsWithOptions", "store.sql_channel.get_channels_with_options.per_page_arg.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(opt.ChannelTypes) > 0 {
+		query = query.Where(fmt.Sprintf("c.Type IN ('%s')", strings.Join(opt.ChannelTypes, "', '")))
+	}
+
+	if len(opt.UserIds) > 0 {
+		query = query.Where(fmt.Sprintf("c.Id IN (SELECT DISTINCT(ChannelId) FROM ChannelMembers where UserId IN ('%s'))", strings.Join(opt.UserIds, "', '")))
+	}
+	if opt.Page >= 0 && opt.PerPage >= 0 {
+		query = query.Limit(uint64(opt.Page)).Offset(uint64(opt.PerPage))
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetChannelsWithOptions", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	channels := &model.ChannelList{}
+	if _, err = s.GetReplica().Select(channels, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetChannelsWithOptions", "store.sql_channel.get_channels_with_options.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channels, nil
+
+}
+
 func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
 	query := s.getAllChannelsQuery(opts, false)
 

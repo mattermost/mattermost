@@ -4499,6 +4499,14 @@
     "translation": "Update at must be a valid time"
   },
   {
+    "id": "model.channel.is_valid.user.ids.app_error",
+    "translation": "Invalid UserIds"
+  },
+  {
+    "id": "model.channel.is_valid.channel.types.app_error",
+    "translation": "Invalid UserIds"
+  },
+  {
     "id": "model.channel_member.is_valid.channel_id.app_error",
     "translation": "Invalid channel id"
   },
@@ -5829,6 +5837,18 @@
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
     "translation": "No channel found"
+  },
+  {
+    "id": "store.sql_channel.get_channels_with_options.get.app_error",
+    "translation": "Unable to find channels with options"
+  },
+  {
+    "id": "store.sql_channel.get_channels_with_options.page_arg.app_error",
+    "translation": "Input value page should not be less than zero"
+  },
+  {
+    "id": "store.sql_channel.get_channels_with_options.per_page_arg.app_error",
+    "translation": "Input value per page should not be less than zero"
   },
   {
     "id": "store.sql_channel.get_deleted.existing.app_error",

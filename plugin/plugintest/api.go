@@ -563,6 +563,31 @@ func (_m *API) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 	return r0, r1
 }
 
+// GetChannel provides a mock function with given fields: channelId
+func (_m *API) GetChannels(options *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+	ret := _m.Called(options)
+
+	var r0 *model.ChannelList
+	if rf, ok := ret.Get(0).(func(*model.GetChannelsOptions) *model.ChannelList); ok {
+		r0 = rf(options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.GetChannelsOptions) *model.AppError); ok {
+		r1 = rf(options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetChannelByName provides a mock function with given fields: teamId, name, includeDeleted
 func (_m *API) GetChannelByName(teamId string, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	ret := _m.Called(teamId, name, includeDeleted)
